@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma, prismaBase } from '@/lib/prisma'
 import { withOrg } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
@@ -26,10 +27,7 @@ export async function POST(req: NextRequest) {
         expenseDate,
         total,
         receiptUrl: body.receiptUrl,
-        ocrData: body.ocrData != null
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (JSON.parse(JSON.stringify(body.ocrData)) as any)
-          : undefined,
+        ocrData: body.ocrData as Prisma.InputJsonValue,
         manHours: body.manHours,
       },
     })
