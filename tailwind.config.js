@@ -8,7 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* Linfield blue – primary accent */
+        /* Lionheart primary accent */
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',

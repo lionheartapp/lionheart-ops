@@ -7,14 +7,14 @@ export const ROLES = [
   { id: 'viewer', label: 'Viewer', description: 'Read-only access' },
 ]
 
-import { DIRECTORY_TEAMS, DIRECTORY_USERS } from './linfieldDirectory'
+import { DIRECTORY_TEAMS, DIRECTORY_USERS } from './sampleDirectory'
 
 // Teams: directory teams (includes elementary, middle-school, high-school, campus-safety + existing)
 export const DEFAULT_TEAMS = DIRECTORY_TEAMS
 
-// Users: Michael Kerley (super-admin) + Linfield 2025-26 directory
+// Users: sample admin + sampleDirectory
 export const INITIAL_USERS = [
-  { id: 'u0', name: 'Michael Kerley', email: 'michael@linfield.edu', teamIds: ['admin'], role: 'super-admin', positionTitle: 'Administrator' },
+  { id: 'u0', name: 'Admin User', email: 'admin@school.edu', teamIds: ['admin'], role: 'super-admin', positionTitle: 'Administrator' },
   ...DIRECTORY_USERS,
 ]
 

@@ -6,7 +6,7 @@
 
 ## What This Software Is
 
-**Lionheart** (branded "Lionheart Operations") is a **school facility and operations management platform** built for **Linfield Christian School** and designed to replace School Dude. It is being productized as a multi-tenant SaaS for K–12 schools.
+**Lionheart** (branded "Lionheart Operations") is a **school facility and operations management platform** for K–12 schools. Multi-tenant SaaS.
 
 **Primary goal:** Move from a reactive, human-monitored calendar to a **proactive** system that catches conflicts automatically and unifies events, facilities, IT support, and maintenance in one place.
 
@@ -54,7 +54,7 @@ Two separate applications that work together:
 
 ### 5. Command Bar (⌘K / Ctrl+K)
 - Search teachers, rooms, tickets.
-- Teachers: Platform DB + Linfield directory (`linfieldDirectory.js`).
+- Teachers: Platform DB + optional sample directory (`sampleDirectory.js`).
 - Selecting teacher/room opens Platform campus map.
 
 ### 6. Monthly Reporting
@@ -69,7 +69,7 @@ Two separate applications that work together:
 ├── src/                    # Lionheart (Vite) frontend
 │   ├── App.jsx
 │   ├── components/         # PondHealthWidget, CommandBar, SmartEventModal, EventCreatorModal, etc.
-│   ├── data/               # linfieldDirectory.js, eventsData, supportTicketsData, teamsData
+│   ├── data/               # sampleDirectory.js, eventsData, supportTicketsData, teamsData
 │   ├── services/           # gemini.js, icalService.js
 │   └── config/             # orgContext.js
 ├── platform/               # Next.js backend
@@ -143,13 +143,13 @@ Two separate applications that work together:
 
 | Data | Source |
 |------|--------|
-| Teachers (search) | Platform DB (User + TeacherSchedule) + `linfieldDirectory.js` |
+| Teachers (search) | Platform DB (User + TeacherSchedule) + `sampleDirectory.js` |
 | Rooms, buildings | Platform DB |
 | Events | Platform DB + School Dude iCal (Lionheart) |
 | Tickets | Lionheart state (supportRequests) + Platform DB for platform tickets |
 | Pond | Platform DB (PondLog) |
 | Inventory | Platform DB |
-| Staff directory | `src/data/linfieldDirectory.js` (DIRECTORY_USERS, DIRECTORY_TEAMS) |
+| Staff directory | `src/data/sampleDirectory.js` (DIRECTORY_USERS, DIRECTORY_TEAMS) |
 
 ---
 

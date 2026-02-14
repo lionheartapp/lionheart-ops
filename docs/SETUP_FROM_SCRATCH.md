@@ -101,7 +101,7 @@ After `git push` succeeds:
 5. Add **Environment Variables**:
    - `VITE_PLATFORM_URL` — Platform URL from step above
    - `VITE_CURRENT_ORG_ID` — `9a8bfad3-abad-483e-a393-1f3e7f9be1d7`
-   - `VITE_ORG_NAME` — `Linfield Christian School`
+   - `VITE_ORG_NAME` — `your school`
    - `VITE_GEMINI_API_KEY` — your key
 6. Deploy → copy the URL
 

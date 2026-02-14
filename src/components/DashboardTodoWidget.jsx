@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react'
 
-const STORAGE_KEY_PREFIX = 'linfield-dashboard-todos'
+const STORAGE_KEY_PREFIX = 'lionheart-dashboard-todos'
 
 function getStorageKey(userId) {
   return `${STORAGE_KEY_PREFIX}-${userId || 'anonymous'}`

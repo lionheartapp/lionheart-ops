@@ -71,8 +71,8 @@ git push -u origin main
    |------|-------|
    | `VITE_PLATFORM_URL` | `https://your-platform.vercel.app` |
    | `VITE_CURRENT_ORG_ID` | `9a8bfad3-abad-483e-a393-1f3e7f9be1d7` |
-   | `VITE_ORG_NAME` | `Linfield Christian School` |
-   | `VITE_ORG_WEBSITE` | `https://www.linfieldchristian.org` |
+   | `VITE_ORG_NAME` | `your school` |
+   | `VITE_ORG_WEBSITE` | (optional) |
    | `VITE_GEMINI_API_KEY` | Your Gemini API key |
 
 4. Deploy → note the URL (e.g. `lionheart.vercel.app`)
@@ -95,8 +95,8 @@ After both deployments:
 
 ## Step 5: Custom Domains (Optional)
 
-- Platform: e.g. `api.linfieldchristian.org`
-- Lionheart: e.g. `app.linfieldchristian.org`
+- Platform: e.g. `api.yourschool.com`
+- Lionheart: e.g. `app.yourschool.com`
 
 Add in Vercel: Project → Settings → Domains.
 

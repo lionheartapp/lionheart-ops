@@ -3,7 +3,7 @@ import { prismaBase } from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
 
-/** Create new tenant (Organization) + admin User. Separate from Linfield (org 9a8bfad3-...). */
+/** Create new tenant (Organization) + admin User. */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as {

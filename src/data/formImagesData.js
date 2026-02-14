@@ -1,25 +1,25 @@
 /**
  * Form Builder image library: user uploads, stock images, templates.
- * Stored in localStorage under LINFIELD_FORM_IMAGES_KEY.
+ * Stored in localStorage under lionheart-form-images.
  */
 
-const STORAGE_KEY = 'linfield-form-images'
-const CUSTOM_STOCK_KEY = 'linfield-form-custom-stock'
+const STORAGE_KEY = 'lionheart-form-images'
+const CUSTOM_STOCK_KEY = 'lionheart-form-custom-stock'
 
 export const STOCK_IMAGES = [
-  { id: 'stock-1', name: 'LC Logo', url: '/stock-images/download-b1726dae-455d-4670-b0d1-bba378015bb8.png' },
+  { id: 'stock-1', name: 'Logo', url: '/stock-images/download-b1726dae-455d-4670-b0d1-bba378015bb8.png' },
   { id: 'stock-2', name: 'Classroom', url: '/stock-images/image1-c64f4769-6ad5-45b1-afa8-4ab7ccdb37e3.png' },
-  { id: 'stock-3', name: 'Linfield School Logo', url: '/stock-images/Logo-a2baa17c-6598-4a18-8395-3efbf7d893bb.png' },
+  { id: 'stock-3', name: 'School Logo', url: '/stock-images/Logo-a2baa17c-6598-4a18-8395-3efbf7d893bb.png' },
   { id: 'stock-4', name: 'Students & Staff', url: '/stock-images/image4-b32b7720-e993-4df4-a31a-d52335f42928.png' },
   { id: 'stock-5', name: 'Lion Logo', url: '/stock-images/images-b5e3493e-752a-4401-b7af-9e5d5a07313a.png' },
   { id: 'stock-6', name: 'Campus Group', url: '/stock-images/image_3-d114adc9-15ee-4dcd-b8df-98b856907b59.png' },
   { id: 'stock-7', name: 'Student in Classroom', url: '/stock-images/image2-e9be0fe2-063f-442c-855c-a4274aa6dd0f.png' },
 ]
 
-/** Linfield School Logo */
+/** School Logo template */
 export const LOGO_TEMPLATE = {
   id: 'template-logo',
-  name: 'Linfield School Logo',
+  name: 'School Logo',
   type: 'logo',
   url: '/stock-images/Logo-a2baa17c-6598-4a18-8395-3efbf7d893bb.png',
 }

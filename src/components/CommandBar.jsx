@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, MapPin, User, AlertCircle, Building2, Loader2 } from 'lucide-react'
-import { DIRECTORY_USERS } from '../data/linfieldDirectory'
+import { DIRECTORY_USERS } from '../data/sampleDirectory'
 import { platformFetch, PLATFORM_URL } from '../services/platformApi'
 
 const CAMPUS_URL = `${PLATFORM_URL}/campus`

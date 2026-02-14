@@ -3,8 +3,8 @@
  * name and details so users don't have to type them in every time.
  *
  * Set these in .env to customize:
- * - VITE_ORG_NAME: Organization name (e.g. "Linfield Christian School")
- * - VITE_ORG_WEBSITE: Website URL (e.g. "https://www.linfieldchristian.org")
+ * - VITE_ORG_NAME: Organization name (e.g. "your school" - or comes from logged-in user's org)
+ * - VITE_ORG_WEBSITE: Website URL (optional)
  * - VITE_ORG_CONTEXT: Optional extra context (paste key info from your website, mission statement, etc.)
  */
 

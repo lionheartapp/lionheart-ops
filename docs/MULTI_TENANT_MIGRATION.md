@@ -33,21 +33,21 @@ Create a default organization and assign all existing rows to it:
 ```sql
 -- 1. Create default org (adjust name/slug for your school)
 INSERT INTO "Organization" (id, name, slug, "createdAt", "updatedAt")
-VALUES ('org_default_linfield', 'Linfield Christian School', 'linfield-christian', NOW(), NOW())
+VALUES ('org_default', 'Your School Name', 'your-school', NOW(), NOW())
 ON CONFLICT DO NOTHING;
 
 -- 2. Backfill organizationId
-UPDATE "User" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "Building" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "Ticket" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "Event" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "Expense" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "Budget" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "MaintenanceTip" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "KnowledgeBaseEntry" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "InventoryItem" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "PondLog" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
-UPDATE "PondConfig" SET "organizationId" = 'org_default_linfield' WHERE "organizationId" IS NULL;
+UPDATE "User" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "Building" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "Ticket" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "Event" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "Expense" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "Budget" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "MaintenanceTip" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "KnowledgeBaseEntry" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "InventoryItem" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "PondLog" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
+UPDATE "PondConfig" SET "organizationId" = 'org_default' WHERE "organizationId" IS NULL;
 ```
 
 Use the `id` from your actual Organization row if different. Run via `psql` or Prisma Studio + raw SQL.

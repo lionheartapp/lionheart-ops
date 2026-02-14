@@ -1,6 +1,6 @@
 # SaaS Productization Roadmap
 
-> Plan to turn the Linfield School Facility Management system into a sellable, multi-tenant SaaS product.
+> Plan for Lionheart as a sellable, multi-tenant SaaS product.
 
 ---
 
@@ -9,8 +9,8 @@
 | Area | Status | Notes |
 |------|--------|-------|
 | **Data** | Single-tenant | No Organization/Tenant model; all data implicitly for one school |
-| **Auth** | None | Users from static `linfieldDirectory.js`; no login, no sessions |
-| **Branding** | Hardcoded | `VITE_ORG_NAME` in .env; `linfield-inventory-prefs` in localStorage |
+| **Auth** | None | Users from static `sampleDirectory.js`; no login, no sessions |
+| **Branding** | Hardcoded | `VITE_ORG_NAME` in .env; `schoolops-inventory-prefs` in localStorage |
 | **Apps** | 2 apps | Vite (Lionheart) + Next.js (Platform); separate ports, CORS needed |
 | **Data sources** | Mixed | Platform: Prisma/DB. Lionheart: static files + React state (tickets, events, forms) |
 | **Supabase** | Unused | Keys in .env; DB used but Auth not wired |
@@ -29,8 +29,8 @@ Add to `platform/prisma/schema.prisma`:
 model Organization {
   id          String   @id @default(cuid())
   name        String
-  slug        String   @unique   // e.g. "linfield-christian"
-  subdomain   String?  @unique   // e.g. "linfield" for linfield.yourapp.com
+  slug        String   @unique   // e.g. "your-school"
+  subdomain   String?  @unique   // e.g. "yourschool" for yourschool.yourapp.com
   logoUrl     String?
   website     String?
   createdAt   DateTime @default(now())
@@ -108,7 +108,7 @@ Replace hardcoded org config with a tenant-aware config:
 
 ### 4.1 White-Label
 
-- Custom domain: `facilities.linfieldchristian.org` → resolve to tenant
+- Custom domain: `facilities.yourschool.com` → resolve to tenant
 - Logo, colors, favicon from `Organization`
 - Remove "Lionheart" branding or make it configurable
 
@@ -118,7 +118,7 @@ Store per-org: `{ "campusMap": true, "aiForms": true, "receiptOcr": true, "month
 
 ### 4.3 Data Migration
 
-- Move `linfieldDirectory` users into DB (Supabase Auth + `User` table)
+- Move `sampleDirectory` users into DB (Supabase Auth + `User` table)
 - Move `INITIAL_SUPPORT_REQUESTS`, `INITIAL_EVENTS`, etc. to Prisma (or keep as seed per org)
 
 ---
@@ -126,10 +126,10 @@ Store per-org: `{ "campusMap": true, "aiForms": true, "receiptOcr": true, "month
 ## Quick Wins (Done)
 
 1. **Rename hardcoded keys**  
-   `linfield-inventory-prefs` → `schoolops-inventory-prefs`
+   (Already: `schoolops-inventory-prefs`)
 
 2. **Env-driven org config**  
-   `orgContext.js` uses `VITE_ORG_*`; no Linfield fallbacks.
+   `orgContext.js` uses `VITE_ORG_*`; generic fallbacks.
 
 3. **Add `Organization` model**  
    Added to schema with `organizationId` on `Building` (optional for backward compat).
@@ -154,7 +154,7 @@ Store per-org: `{ "campusMap": true, "aiForms": true, "receiptOcr": true, "month
 
 | Current | SaaS-Ready |
 |---------|------------|
-| `src/data/linfieldDirectory.js` | DB `User` + `OrganizationMember`; seed or import |
+| `src/data/sampleDirectory.js` | DB `User` + `OrganizationMember`; seed or import |
 | `src/data/teamsData.js` | Keep role logic; fetch users from API |
 | `src/config/orgContext.js` | Fetch from `Organization` + settings API |
 | `INVENTORY_PREFS_KEY` | `org-${orgId}-inventory-prefs` |

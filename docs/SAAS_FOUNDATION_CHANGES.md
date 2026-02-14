@@ -1,6 +1,6 @@
 # SaaS Foundation Changes
 
-> Concrete steps to make the codebase product-ready with minimal disruption to current Linfield deployment.
+> Concrete steps to make the codebase product-ready.
 
 ---
 
@@ -27,7 +27,7 @@ organizationId String?
 organization   Organization? @relation(fields: [organizationId], references: [id])
 ```
 
-**Strategy:** Add `organizationId` as optional first (nullable), then backfill Linfield with a single org. New tenants get org on signup.
+**Strategy:** Add `organizationId` as optional first (nullable), then backfill with a single org. New tenants get org on signup.
 
 ---
 
@@ -54,15 +54,15 @@ Lionheart’s `orgContext.js` already uses `VITE_ORG_*` — keep that. For Platf
 
 | File | Change |
 |------|--------|
-| `src/App.jsx` | `linfield-inventory-prefs` → `inventory-prefs` (or `schoolops-inventory-prefs`) |
-| `src/config/orgContext.js` | Remove "Linfield Christian School" fallback; require env or empty string |
+| `src/App.jsx` | Uses `schoolops-inventory-prefs` |
+| `src/config/orgContext.js` | Generic fallback "your organization" |
 
 ---
 
 ## 4. Directory as Seed Data
 
-- Keep `linfieldDirectory.js` as **Linfield-specific seed**
-- Add `platform/prisma/seed-linfield.ts` that creates org + users from directory
+- Keep `sampleDirectory.js` as **sample/demo data**
+- Add `platform/prisma/seed.ts` that creates org + users from directory
 - For other tenants, users come from signup/invite
 
 ---
