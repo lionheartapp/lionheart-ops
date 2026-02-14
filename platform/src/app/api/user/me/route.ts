@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { UserRole } from '@prisma/client'
 import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
@@ -83,15 +84,16 @@ export async function PATCH(req: NextRequest) {
       role?: string
     }
 
-    const updates: { name?: string; role?: string } = {}
+    const updates: { name?: string; role?: UserRole } = {}
     if (body.name != null && typeof body.name === 'string') {
       const trimmed = body.name.trim()
       if (trimmed) updates.name = trimmed
     }
     if (body.role != null && typeof body.role === 'string') {
       const mapped = ROLE_MAP[body.role] || body.role
-      if (['TEACHER', 'MAINTENANCE', 'ADMIN', 'SITE_SECRETARY', 'VIEWER'].includes(mapped)) {
-        updates.role = mapped
+      const validRoles: UserRole[] = ['TEACHER', 'MAINTENANCE', 'ADMIN', 'SITE_SECRETARY', 'VIEWER']
+      if (validRoles.includes(mapped as UserRole)) {
+        updates.role = mapped as UserRole
       }
     }
 
