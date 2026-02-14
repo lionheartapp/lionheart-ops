@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg } from '@/lib/orgContext'
+import { withOrg, getOrgId, requireModule } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
 
-/** POST: Receive IoT probe data or manual entry. GET: Latest readings. */
+/** POST: Receive IoT probe data or manual entry. GET: Latest readings. Requires waterManagement module. */
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+      await requireModule(prismaBase, getOrgId(), 'waterManagement')
       const body = (await req.json()) as {
         pH?: number
         turbidity?: number
@@ -47,6 +48,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(log, { headers: corsHeaders })
     })
   } catch (err) {
+    if (err instanceof Error && err.message === 'MODULE_NOT_ACTIVE') {
+      return NextResponse.json({ error: 'Water Management module is not active for your plan' }, { status: 403, headers: corsHeaders })
+    }
     if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
       return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
     }
@@ -61,6 +65,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+      await requireModule(prismaBase, getOrgId(), 'waterManagement')
       const logs = await prisma.pondLog.findMany({
         take: 1,
         orderBy: { createdAt: 'desc' },
@@ -72,18 +77,15 @@ export async function GET(req: NextRequest) {
       )
     })
   } catch (err) {
+    if (err instanceof Error && err.message === 'MODULE_NOT_ACTIVE') {
+      return NextResponse.json({ error: 'Water Management module is not active for your plan' }, { status: 403, headers: corsHeaders })
+    }
     if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
       return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
     }
     return NextResponse.json(
-      {
-        pH: 7.2,
-        turbidity: 25,
-        temperature: 18,
-        source: 'manual',
-        createdAt: new Date().toISOString(),
-      },
-      { headers: corsHeaders }
+      { error: err instanceof Error ? err.message : 'Failed to load readings' },
+      { status: 500, headers: corsHeaders }
     )
   }
 }

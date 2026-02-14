@@ -23,6 +23,8 @@ import TopBar from './components/TopBar'
 import CommandBar from './components/CommandBar'
 import EventInfoModal from './components/EventInfoModal'
 import SettingsPage from './components/SettingsPage'
+import WaterManagementPage from './components/WaterManagementPage'
+import BillingPage from './components/BillingPage'
 import { INITIAL_EVENTS, userStartedEventWithTicketSales } from './data/eventsData'
 import { fetchIcalEvents } from './services/icalService'
 import { INITIAL_SUPPORT_REQUESTS } from './data/supportTicketsData'
@@ -34,6 +36,7 @@ import {
   getStockByScope,
 } from './data/inventoryData'
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, getUserTeamIds } from './data/teamsData'
+import { useOrgModules } from './context/OrgModulesContext'
 
 const INVENTORY_PREFS_KEY = 'schoolops-inventory-prefs'
 
@@ -64,10 +67,13 @@ const tabContent = {
   'it-support': { title: 'IT Support', showAll: false },
   'my-tickets': { title: 'My Tickets', showAll: false },
   inventory: { title: 'Inventory', showAll: false },
+  'water-management': { title: 'Water Management', showAll: false },
+  billing: { title: 'Manage Subscription', showAll: false },
   settings: { title: 'Settings', showAll: false },
 }
 
 export default function App() {
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -98,11 +104,6 @@ export default function App() {
   const [settingsSection, setSettingsSection] = useState('account')
   const [inventoryPrefs, setInventoryPrefs] = useState(loadInventoryPrefs)
   const [commandBarOpen, setCommandBarOpen] = useState(false)
-
-  // Dark mode by default
-  useEffect(() => {
-    document.documentElement.classList.add('dark')
-  }, [])
 
   // Command Bar (K-Bar): Cmd+K / Ctrl+K
   useEffect(() => {
@@ -175,7 +176,7 @@ export default function App() {
   const isITUser = isITTeam(effectiveUser, teams)
   const isAVUser = isAVTeam(effectiveUser, teams)
   const hasTeamInventory = isAVUser || isFacilitiesUser || isITUser
-  const showInventory = hasTeamInventory || inventoryPrefs[effectiveUser?.id] === true
+  const showInventory = hasAdvancedInventory && (hasTeamInventory || inventoryPrefs[effectiveUser?.id] === true)
   const inventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : (inventoryPrefs[effectiveUser?.id] ? 'personal' : null)
 
   const setInventoryPref = (userId, enabled) => {
@@ -211,6 +212,8 @@ export default function App() {
         onViewAs={setViewAsUser}
         onClearViewAs={() => setViewAsUser(null)}
         showInventory={showInventory}
+        showCampusMap={hasVisualCampus}
+        showWaterManagement={hasWaterManagement}
       />
 
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -228,9 +231,21 @@ export default function App() {
         <div className="flex-1 flex min-h-0 overflow-hidden gap-6 lg:gap-8">
         <div className="flex-1 min-w-0 overflow-auto flex flex-col min-h-0">
           <div
-            className={`min-h-full flex flex-col min-h-0 w-full ${activeTab !== 'settings' ? 'p-6 lg:p-8' : ''}`}
+            className={`min-h-full flex flex-col min-h-0 w-full ${!['settings', 'billing', 'water-management'].includes(activeTab) ? 'p-6 lg:p-8' : ''}`}
           >
-          {activeTab === 'settings' ? (
+          {activeTab === 'billing' ? (
+            <div className="flex-1 flex min-h-0 w-full min-w-0 p-6 lg:p-8">
+              <BillingPage />
+            </div>
+          ) : activeTab === 'water-management' ? (
+            <div className="flex-1 flex min-h-0 w-full min-w-0 p-6 lg:p-8">
+              <WaterManagementPage
+                supportRequests={supportRequests}
+                setSupportRequests={setSupportRequests}
+                currentUser={effectiveUser}
+              />
+            </div>
+          ) : activeTab === 'settings' ? (
             <div className="flex-1 flex min-h-0 w-full min-w-0">
               <SettingsPage
                 settingsSection={settingsSection}
@@ -300,12 +315,14 @@ export default function App() {
                   )}
                   {isFacilitiesTeam(effectiveUser, teams) && (
                     <>
-                      <section>
-                        <PondHealthWidget
-                          setSupportRequests={setSupportRequests}
-                          currentUser={effectiveUser}
-                        />
-                      </section>
+                      {hasWaterManagement && (
+                        <section>
+                          <PondHealthWidget
+                            setSupportRequests={setSupportRequests}
+                            currentUser={effectiveUser}
+                          />
+                        </section>
+                      )}
                       <section>
                         <FacilitiesDashboardRequests
                           requests={supportRequests}

@@ -12,6 +12,7 @@ model Organization {
   id                   String               @id @default(cuid())
   name                 String
   slug                 String               @unique
+  plan                 String               @default("CORE")  // CORE | PRO | ENTERPRISE
   logoUrl              String?
   website              String?
   settings             Json?
@@ -28,6 +29,8 @@ model Organization {
   pondLogs             PondLog[]
   tickets              Ticket[]
   users                User[]
+
+  @@index([plan])
 }
 
 model User {
@@ -271,6 +274,7 @@ model PondConfig {
 }
 
 enum UserRole {
+  SUPER_ADMIN
   TEACHER
   MAINTENANCE
   ADMIN

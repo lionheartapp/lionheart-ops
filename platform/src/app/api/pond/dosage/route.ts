@@ -8,9 +8,25 @@ import {
   ALKALINITY_MIN,
 } from '@/lib/pondConstants'
 import { corsHeaders } from '@/lib/cors'
+import { withOrg, getOrgId, requireModule } from '@/lib/orgContext'
+import { prismaBase } from '@/lib/prisma'
 
-/** Calculate dosage (oz) for Copper Sulfate or Dye. Alkalinity required for Copper. */
+/** Calculate dosage (oz) for Copper Sulfate or Dye. Alkalinity required for Copper. Requires waterManagement module. */
 export async function GET(req: NextRequest) {
+  try {
+    await withOrg(req, prismaBase, async () => {
+      await requireModule(prismaBase, getOrgId(), 'waterManagement')
+    })
+  } catch (err) {
+    if (err instanceof Error && err.message === 'MODULE_NOT_ACTIVE') {
+      return NextResponse.json({ error: 'Water Management module is not active for your plan' }, { status: 403, headers: corsHeaders })
+    }
+    if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
+      return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
+    }
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
+  }
+
   const u = req.nextUrl
   const volumeGal = parseFloat(u.searchParams.get('volume') || '') || POND_DEFAULT_VOLUME_GALLONS
   const treatment = (u.searchParams.get('treatment') || 'copper').toLowerCase()

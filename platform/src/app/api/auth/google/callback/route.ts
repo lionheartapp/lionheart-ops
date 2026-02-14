@@ -100,6 +100,15 @@ export async function GET(req: NextRequest) {
         data: {
           name: googleUser.name || email.split('@')[0],
           slug: uniqueSlug,
+          plan: 'CORE',
+          settings: {
+            modules: {
+              core: true,
+              waterManagement: false,
+              visualCampus: { enabled: true },
+              advancedInventory: false,
+            },
+          },
         },
       })
 
@@ -109,7 +118,7 @@ export async function GET(req: NextRequest) {
           name: googleUser.name || null,
           imageUrl: googleUser.picture || null,
           organizationId: org.id,
-          role: 'ADMIN',
+          role: 'SUPER_ADMIN',
           canSubmitEvents: true,
         },
         include: { organization: true },

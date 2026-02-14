@@ -67,7 +67,7 @@ export function isAVTeam(user, teams) {
 }
 
 export function isSuperAdmin(user) {
-  return user?.role === 'super-admin'
+  return user?.role === 'super-admin' || user?.role === 'SUPER_ADMIN'
 }
 
 /** IT Admin: manages IT queue, can assign tickets to any IT team member. Must be in IT team. */

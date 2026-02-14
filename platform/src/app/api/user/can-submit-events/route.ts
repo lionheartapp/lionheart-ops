@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     })
     if (!user) return NextResponse.json({ canSubmit: false, message: 'User not found' })
     const canSubmit =
+      user.role === 'SUPER_ADMIN' ||
       user.role === 'ADMIN' ||
       user.role === 'SITE_SECRETARY' ||
       user.canSubmitEvents === true

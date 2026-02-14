@@ -51,18 +51,28 @@ export async function POST(req: NextRequest) {
       data: {
         name: schoolName,
         slug: uniqueSlug,
+        plan: 'CORE',
+        settings: {
+          modules: {
+            core: true,
+            waterManagement: false,
+            visualCampus: { enabled: true },
+            advancedInventory: false,
+          },
+        },
       },
     })
 
     const passwordHash = await hashPassword(password)
 
+    // First user of the org gets SUPER_ADMIN (can manage subscription, see everything)
     const user = await prismaBase.user.create({
       data: {
         email,
         name,
         passwordHash,
         organizationId: org.id,
-        role: 'ADMIN',
+        role: 'SUPER_ADMIN',
         canSubmitEvents: true,
       },
     })

@@ -31,7 +31,7 @@ export function UserPermissionsClient() {
   }
 
   const teachers = users.filter((u) => u.role === 'TEACHER')
-  const admins = users.filter((u) => u.role === 'ADMIN' || u.role === 'SITE_SECRETARY')
+  const admins = users.filter((u) => u.role === 'SUPER_ADMIN' || u.role === 'ADMIN' || u.role === 'SITE_SECRETARY')
 
   if (loading) return <div className="p-6 text-zinc-500">Loading…</div>
 

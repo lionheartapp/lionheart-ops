@@ -21,7 +21,7 @@
 }
 
 body {
-  @apply antialiased;
+  @apply antialiased font-sans;
   background-color: rgb(var(--bg-base));
   color: rgb(var(--text-primary));
 }

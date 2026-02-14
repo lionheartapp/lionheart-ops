@@ -58,3 +58,31 @@ export async function withOrg<T>(
   const orgId = await getOrgIdFromRequest(req)
   return runWithOrg(orgId, prisma, handler)
 }
+
+/**
+ * Check if a module is enabled for the current org (must be inside withOrg).
+ * Throws MODULE_NOT_ACTIVE if not enabled.
+ */
+export async function requireModule(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prisma: any,
+  orgId: string | undefined,
+  moduleName: 'waterManagement' | 'visualCampus' | 'advancedInventory'
+): Promise<void> {
+  if (!orgId?.trim()) {
+    throw new Error('Organization ID is required')
+  }
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { settings: true },
+  })
+  if (!org) {
+    throw new Error('Invalid organization')
+  }
+  const modules = (org.settings && typeof org.settings === 'object' && (org.settings as Record<string, unknown>).modules) as Record<string, unknown> | undefined
+  const moduleVal = modules?.[moduleName]
+  const enabled = moduleVal === true || (moduleVal && typeof moduleVal === 'object' && (moduleVal as Record<string, unknown>).enabled === true)
+  if (!enabled) {
+    throw new Error('MODULE_NOT_ACTIVE')
+  }
+}

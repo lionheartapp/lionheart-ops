@@ -8,6 +8,8 @@ import {
   FileText,
   UserCircle,
   MapPin,
+  Droplets,
+  CreditCard,
 } from 'lucide-react'
 
 import { PLATFORM_URL } from '../services/platformApi'
@@ -56,6 +58,8 @@ export default function Sidebar({
   onViewAs,
   onClearViewAs,
   showInventory = false,
+  showCampusMap = true,
+  showWaterManagement = false,
 }) {
   const isFacilitiesUser = isFacilitiesTeam(currentUser, teams)
   const isITUser = isITTeam(currentUser, teams)
@@ -101,6 +105,25 @@ export default function Sidebar({
             )
           })}
 
+          {/* Add-ons: Water Management */}
+          {showWaterManagement && (
+            <div className="pt-3 mt-1">
+              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                Add-ons
+              </p>
+              <button
+                type="button"
+                onClick={() => onTabChange('water-management')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors mt-0.5 ${
+                  activeTab === 'water-management' ? 'bg-blue-500/15 text-blue-400' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'
+                }`}
+              >
+                <Droplets className="w-4 h-4 shrink-0" strokeWidth={2} />
+                <span className="dark:text-zinc-300">Water Management</span>
+              </button>
+            </div>
+          )}
+
           {/* Support section header + links */}
           <div className="pt-3 mt-1">
             <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -129,16 +152,30 @@ export default function Sidebar({
       </nav>
 
       <div className="p-3 pt-0 border-t border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40 shrink-0 mt-auto space-y-1">
-        <a
-          href={`${PLATFORM_URL}/campus`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-        >
-          <MapPin className="w-4 h-4 shrink-0" strokeWidth={2} />
-          <span>Campus Map</span>
-          <span className="text-[10px] ml-auto">↗</span>
-        </a>
+        {showCampusMap && (
+          <a
+            href={`${PLATFORM_URL}/campus`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+          >
+            <MapPin className="w-4 h-4 shrink-0" strokeWidth={2} />
+            <span>Campus Map</span>
+            <span className="text-[10px] ml-auto">↗</span>
+          </a>
+        )}
+        {superAdmin && (
+          <button
+            type="button"
+            onClick={() => onTabChange('billing')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'billing' ? 'bg-primary-600 text-white' : 'text-primary-600 dark:text-primary-400 hover:bg-primary-500/15 font-semibold'
+            }`}
+          >
+            <CreditCard className="w-4 h-4 shrink-0" strokeWidth={2} />
+            <span>Manage Subscription</span>
+          </button>
+        )}
         <ViewAsDropdown
           users={users ?? []}
           teams={teams ?? []}

@@ -7,13 +7,17 @@ import {
   Users,
   Package,
   LayoutGrid,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
 import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
+import { useTheme } from '../context/ThemeContext'
 
 const generalSettings = [
   { id: 'apps', label: 'Apps', icon: LayoutGrid },
   { id: 'account', label: 'Account', icon: User },
+  { id: 'appearance', label: 'Appearance', icon: Sun },
   { id: 'notification', label: 'Notification', icon: Bell },
   { id: 'language', label: 'Language & Region', icon: Globe },
 ]
@@ -93,6 +97,51 @@ function AppsSection({ currentUser, teams, hasTeamInventory, showInventoryPref, 
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+function AppearanceSection() {
+  const { theme, setTheme, isDark } = useTheme()
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Appearance</h2>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        Choose how Lionheart looks for you. Light mode is the default; dark mode reduces eye strain in low light.
+      </p>
+      <div className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 dark:border-blue-950/30 bg-white dark:bg-zinc-800/50">
+        <div className="flex-1">
+          <h3 className="font-medium text-zinc-900 dark:text-zinc-100">Dark mode</h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Use a dark theme for the dashboard and app
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isDark}
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 ${
+            isDark ? 'bg-primary-600' : 'bg-zinc-300 dark:bg-zinc-600'
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition ${
+              isDark ? 'translate-x-5' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+      <div className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+        {isDark ? (
+          <Moon className="w-4 h-4 text-primary-600" />
+        ) : (
+          <Sun className="w-4 h-4 text-primary-600" />
+        )}
+        <span>
+          {isDark ? 'Dark mode is on' : 'Light mode is on'}
+        </span>
       </div>
     </div>
   )
@@ -196,6 +245,7 @@ function SettingsSectionContent({
   const labels = {
     apps: 'Apps',
     account: 'Account',
+    appearance: 'Appearance',
     notification: 'Notification',
     language: 'Language & Region',
     general: 'General',
@@ -204,6 +254,7 @@ function SettingsSectionContent({
 
   const content = {
     account: <AccountSection currentUser={currentUser} />,
+    appearance: <AppearanceSection />,
     apps: (
       <AppsSection
         currentUser={currentUser}
@@ -217,6 +268,7 @@ function SettingsSectionContent({
 
   if (section === 'account') return content.account
   if (section === 'apps') return content.apps
+  if (section === 'appearance') return content.appearance
 
   return (
     <div className="space-y-8">
