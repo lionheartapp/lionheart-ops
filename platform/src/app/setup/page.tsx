@@ -1,45 +1,55 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Search, MapPin, ArrowRight, Loader2, Palette, Sparkles } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-function setupFetch(orgId: string, path: string, init: RequestInit = {}) {
-  const headers = new Headers(init.headers)
-  headers.set('x-org-id', orgId)
-  if (!(init.body instanceof FormData) && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json')
-  }
-  return fetch(path, { ...init, headers })
+type SchoolData = {
+  name: string
+  address: string
+  colors: { primary: string; secondary: string }
+  logo: string
+  website: string
 }
+
+// Mock function to simulate "Finding" the school data
+// In production, this would call your backend which hits Google Places + Brandfetch
+const simulateSchoolDiscovery = async (name: string): Promise<SchoolData> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        name: name,
+        address: '31950 Pauba Rd, Temecula, CA 92592',
+        // Mocking Linfield colors/logo for the demo "Wow"
+        colors: { primary: '#003366', secondary: '#c4a006' },
+        logo: 'https://logo.clearbit.com/linfield.com',
+        website: 'linfield.com',
+      })
+    }, 1500)
+  })
+}
+
+const LIONHEART_URL = (process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173').replace(/\/+$/, '')
 
 function SetupContent() {
   const searchParams = useSearchParams()
   const orgId = searchParams.get('orgId')
-  const [buildingName, setBuildingName] = useState('')
-  const [roomName, setRoomName] = useState('')
-  const [buildings, setBuildings] = useState<{ id: string; name: string }[]>([])
-  const [selectedBuildingId, setSelectedBuildingId] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [buildingCreated, setBuildingCreated] = useState(false)
-  const [roomCreated, setRoomCreated] = useState(false)
 
-  useEffect(() => {
-    if (!orgId) return
-    setupFetch(orgId, '/api/buildings')
-      .then((r) => r.json())
-      .then((data) => (Array.isArray(data) ? setBuildings(data) : setBuildings(data?.buildings || [])))
-      .catch(() => setBuildings([]))
-  }, [orgId, buildingCreated])
+  const [step, setStep] = useState(1)
+  const [query, setQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+  const [schoolData, setSchoolData] = useState<SchoolData | null>(null)
 
   if (!orgId) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
-        <div className="text-center text-zinc-400">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <div className="text-center text-zinc-500">
           <p className="text-lg">Missing organization. Please complete signup first.</p>
           <a
-            href={(process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173') + '/signup'}
-            className="mt-4 inline-block text-emerald-500 hover:underline"
+            href={`${LIONHEART_URL}/signup`}
+            className="mt-4 inline-block text-blue-600 hover:underline font-medium"
           >
             Go to signup →
           </a>
@@ -48,135 +58,155 @@ function SetupContent() {
     )
   }
 
-  const handleAddBuilding = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!buildingName.trim() || !orgId) return
-    setLoading(true)
-    setError('')
-    try {
-      const res = await setupFetch(orgId, '/api/buildings', {
-        method: 'POST',
-        body: JSON.stringify({ name: buildingName.trim() }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Failed')
-      setBuildingCreated(true)
-      setBuildingName('')
-      setSelectedBuildingId(data.id)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed')
-    } finally {
-      setLoading(false)
-    }
+    if (!query.trim()) return
+    setIsSearching(true)
+    const data = await simulateSchoolDiscovery(query.trim())
+    setSchoolData(data)
+    setIsSearching(false)
+    setStep(2)
   }
 
-  const handleAddRoom = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!roomName.trim() || !selectedBuildingId || !orgId) return
-    setLoading(true)
-    setError('')
-    try {
-      const res = await setupFetch(orgId, '/api/rooms', {
-        method: 'POST',
-        body: JSON.stringify({ name: roomName.trim(), buildingId: selectedBuildingId }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Failed')
-      setRoomCreated(true)
-      setRoomName('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed')
-    } finally {
-      setLoading(false)
-    }
+  const handleConfirm = async () => {
+    // Save branding to Organization settings via API (optional - implement when ready)
+    // await fetch(`/api/organizations/${orgId}/branding`, { method: 'PATCH', body: JSON.stringify(schoolData) })
+    // For now, redirect to Lionheart dashboard
+    window.location.href = `${LIONHEART_URL}/app`
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
-      <div className="max-w-xl mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-2">Setup your school</h1>
-        <p className="text-zinc-400 text-sm mb-8">
-          Add your first building and room to get started.
-        </p>
+    <div className="min-h-screen bg-white text-zinc-900 flex flex-col items-center justify-center p-6 font-sans">
+      <AnimatePresence mode="wait">
+        {step === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-lg text-center space-y-8"
+          >
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold tracking-tight text-zinc-900">
+                Let&apos;s find your school.
+              </h1>
+              <p className="text-lg text-zinc-500">
+                We&apos;ll auto-configure your branding, location, and schedule.
+              </p>
+            </div>
 
-        <section className="mb-8">
-          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-3">1. Add a building</h2>
-          <form onSubmit={handleAddBuilding} className="flex gap-2">
-            <input
-              type="text"
-              value={buildingName}
-              onChange={(e) => setBuildingName(e.target.value)}
-              placeholder="e.g. Main Building"
-              className="flex-1 px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white"
-            />
-            <button
-              type="submit"
-              disabled={loading || !buildingName.trim()}
-              className="px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium disabled:opacity-50"
-            >
-              Add
-            </button>
-          </form>
-          {buildings.length > 0 && (
-            <p className="mt-2 text-sm text-zinc-500">
-              Buildings: {buildings.map((b) => b.name).join(', ')}
-            </p>
-          )}
-        </section>
-
-        <section>
-          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-3">2. Add a room</h2>
-          <form onSubmit={handleAddRoom} className="space-y-2">
-            <select
-              value={selectedBuildingId}
-              onChange={(e) => setSelectedBuildingId(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white"
-            >
-              <option value="">— Select building —</option>
-              {buildings.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-            <div className="flex gap-2">
+            <form onSubmit={handleSearch} className="relative group">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                {isSearching ? (
+                  <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />
+                ) : (
+                  <Search className="w-5 h-5 text-zinc-400" />
+                )}
+              </div>
               <input
                 type="text"
-                value={roomName}
-                onChange={(e) => setRoomName(e.target.value)}
-                placeholder="e.g. Room 101"
-                className="flex-1 px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white"
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Enter school name (e.g. Linfield Christian)..."
+                className="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border border-zinc-200 shadow-xl shadow-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
               />
               <button
                 type="submit"
-                disabled={loading || !roomName.trim() || !selectedBuildingId}
-                className="px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium disabled:opacity-50"
+                disabled={!query.trim() || isSearching}
+                className="absolute inset-y-2 right-2 px-4 bg-zinc-900 text-white rounded-xl font-medium hover:bg-zinc-800 disabled:opacity-50 transition-opacity"
               >
-                Add
+                Go
               </button>
-            </div>
-          </form>
-        </section>
-
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
-
-        {(buildingCreated || roomCreated) && (
-          <div className="mt-8 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-            <p className="text-emerald-400 font-medium">You&apos;re all set!</p>
-            <p className="text-sm text-zinc-400 mt-1">
-              Update your .env with <code className="text-zinc-300">VITE_CURRENT_ORG_ID={orgId}</code> to use this org in Lionheart.
-            </p>
-            <a
-              href="/"
-              className="mt-4 inline-block px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600"
-            >
-              Platform home →
-            </a>
-            <p className="mt-3 text-xs text-zinc-500">
-              In Lionheart, set VITE_CURRENT_ORG_ID to your new org ID and go to /app
-            </p>
-          </div>
+            </form>
+          </motion.div>
         )}
+
+        {step === 2 && schoolData && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl"
+          >
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold mb-4">
+                <Sparkles className="w-4 h-4" /> Match Found
+              </div>
+              <h1 className="text-3xl font-bold text-zinc-900">Welcome to Lionheart.</h1>
+              <p className="text-zinc-500 mt-2">We&apos;ve personalized your workspace.</p>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl overflow-hidden">
+              <div
+                className="h-32 w-full relative flex items-end p-6"
+                style={{ backgroundColor: schoolData.colors.primary }}
+              >
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white rounded-full text-xs font-medium border border-white/30 flex items-center gap-1">
+                    <Palette className="w-3 h-3" /> Theme Applied
+                  </span>
+                </div>
+
+                <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center p-2 translate-y-1/2">
+                  <img src={schoolData.logo} alt="Logo" className="w-full h-full object-contain" />
+                </div>
+              </div>
+
+              <div className="pt-14 pb-8 px-8">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold text-zinc-900">{schoolData.name}</h2>
+                    <div className="flex items-center gap-2 text-zinc-500 mt-1">
+                      <MapPin className="w-4 h-4 shrink-0" />
+                      {schoolData.address}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+                      Detected Colors
+                    </p>
+                    <div className="flex gap-2 justify-end">
+                      <div
+                        className="w-8 h-8 rounded-full shadow-sm ring-1 ring-zinc-100"
+                        style={{ background: schoolData.colors.primary }}
+                        title="Primary"
+                      />
+                      <div
+                        className="w-8 h-8 rounded-full shadow-sm ring-1 ring-zinc-100"
+                        style={{ background: schoolData.colors.secondary }}
+                        title="Secondary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-zinc-100 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="px-6 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-medium hover:bg-zinc-50 transition-colors"
+                  >
+                    Wrong school
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirm}
+                    className="px-8 py-3 rounded-xl bg-zinc-900 text-white font-bold hover:bg-zinc-800 transition-colors flex items-center gap-2 shadow-lg shadow-zinc-900/20"
+                  >
+                    Looks good, let&apos;s go <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Decorative background elements */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] bg-blue-100/50 rounded-full blur-3xl opacity-60" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[40vw] h-[40vw] bg-violet-100/50 rounded-full blur-3xl opacity-60" />
       </div>
     </div>
   )
@@ -184,7 +214,13 @@ function SetupContent() {
 
 export default function SetupPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center"><p className="text-zinc-400">Loading…</p></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <p className="text-zinc-500">Loading…</p>
+        </div>
+      }
+    >
       <SetupContent />
     </Suspense>
   )
