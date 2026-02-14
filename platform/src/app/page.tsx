@@ -8,6 +8,12 @@ export default function Home() {
         Next.js + Prisma + Supabase — Foundation ready.
       </p>
       <a
+        href="/login"
+        className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-lg text-sm font-medium hover:opacity-90"
+      >
+        Sign in
+      </a>
+      <a
         href="/admin/users"
         className="mt-2 inline-flex items-center gap-2 px-4 py-2 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
       >

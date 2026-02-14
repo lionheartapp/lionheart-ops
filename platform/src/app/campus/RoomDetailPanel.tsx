@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/apiFetch'
 
 type RoomData = {
   id: string
@@ -26,7 +27,7 @@ export function RoomDetailPanel({
   const [schedule, setSchedule] = useState<ScheduleData | null>(null)
 
   useEffect(() => {
-    fetch(`/api/room/${roomId}`)
+    apiFetch(`/api/room/${roomId}`)
       .then((r) => r.json())
       .then(setRoom)
       .catch(() => setRoom(null))
@@ -34,7 +35,7 @@ export function RoomDetailPanel({
 
   useEffect(() => {
     if (!roomId) return
-    fetch(`/api/room/${roomId}/schedule`)
+    apiFetch(`/api/room/${roomId}/schedule`)
       .then((r) => r.json())
       .then(setSchedule)
       .catch(() => setSchedule(null))

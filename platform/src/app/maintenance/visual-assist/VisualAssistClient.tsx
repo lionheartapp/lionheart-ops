@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { apiFetch } from '@/lib/apiFetch'
 
 export function VisualAssistClient() {
   const [file, setFile] = useState<File | null>(null)
@@ -41,7 +42,7 @@ export function VisualAssistClient() {
     try {
       const formData = new FormData()
       formData.append('image', file)
-      const res = await fetch('/api/maintenance/visual-assist', {
+      const res = await apiFetch('/api/maintenance/visual-assist', {
         method: 'POST',
         body: formData,
       })

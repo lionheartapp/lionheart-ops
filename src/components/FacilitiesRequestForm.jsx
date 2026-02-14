@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Building2, Sparkles, Package, Plus, Trash2 } from 'lucide-react'
+import ScheduleCheck from './ScheduleCheck'
 
 const LOCATIONS = [
   { value: '', label: 'Select location...' },
@@ -188,6 +189,7 @@ export default function FacilitiesRequestForm({
               <option value="critical">Critical</option>
             </select>
           </div>
+          <ScheduleCheck />
           <button
             type="submit"
             className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors"

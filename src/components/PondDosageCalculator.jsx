@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Calculator, ShoppingCart, ExternalLink, AlertTriangle, ChevronDown } from 'lucide-react'
 import DrawerModal from './DrawerModal'
-
-const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
+import { platformFetch } from '../services/platformApi'
 const DEFAULT_VOLUME = 5000
 
 /** Aquaculture & reptile care threshold quick reference (from pondConstants) */
@@ -35,7 +34,7 @@ export default function PondDosageCalculator({ isOpen, onClose, onAddToTicket })
     setLoading(true)
     const params = new URLSearchParams({ volume, treatment, turtles: hasTurtles })
     if (alkalinity.trim()) params.set('alkalinity', alkalinity.trim())
-    fetch(`${PLATFORM_URL}/api/pond/dosage?${params}`)
+    platformFetch(`/api/pond/dosage?${params}`)
       .then((r) => r.json())
       .then(setResult)
       .catch(() => setResult(null))

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Headphones } from 'lucide-react'
+import ScheduleCheck from './ScheduleCheck'
 
 export default function ITRequestForm({ onSubmit, inDrawer = false }) {
   const [title, setTitle] = useState('')
@@ -56,6 +57,7 @@ export default function ITRequestForm({ onSubmit, inDrawer = false }) {
             <option value="critical">Critical</option>
           </select>
         </div>
+        <ScheduleCheck />
         <button
           type="submit"
           className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"

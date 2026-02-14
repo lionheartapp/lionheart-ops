@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, prismaBase } from '@/lib/prisma'
+import { withOrg } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
 
 /** Unified search across rooms, teachers, and active maintenance tickets */
@@ -12,6 +13,7 @@ export async function GET(req: NextRequest) {
   const match = (s: string) => s && (words.length === 0 || words.some((w) => (s ?? '').toLowerCase().includes(w)))
 
   try {
+    return await withOrg(req, prismaBase, async () => {
     const buildings = await prisma.building.findMany({
       include: {
         rooms: {
@@ -87,7 +89,11 @@ export async function GET(req: NextRequest) {
       { rooms, teachers: Array.from(teachers.values()), tickets },
       { headers: corsHeaders }
     )
-  } catch {
+    })
+  } catch (err) {
+    if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
+      return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
+    }
     return NextResponse.json(getMockSearchData(qLower), { headers: corsHeaders })
   }
 }

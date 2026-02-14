@@ -1,10 +1,40 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { corsHeaders } from '@/lib/cors'
 
-export function middleware(req: Request) {
+export function middleware(req: NextRequest) {
   if (req.method === 'OPTIONS') {
     return new NextResponse(null, { status: 204, headers: corsHeaders })
   }
+
+  // Require x-org-id or Authorization Bearer for API requests (multi-tenant context)
+  // Exclude: cron, auth (signup, login, Google OAuth)
+  if (
+    req.nextUrl.pathname.startsWith('/api/cron/') ||
+    req.nextUrl.pathname === '/api/auth/signup' ||
+    req.nextUrl.pathname === '/api/auth/login' ||
+    req.nextUrl.pathname === '/api/auth/google' ||
+    req.nextUrl.pathname.startsWith('/api/auth/google/')
+  ) {
+    return NextResponse.next()
+  }
+  const orgId = req.headers.get('x-org-id')?.trim()
+  const authHeader = req.headers.get('authorization')
+  const hasBearer = authHeader?.startsWith('Bearer ')
+  if (!orgId && !hasBearer) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Missing x-org-id header or Authorization Bearer token' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // When using x-org-id, validate format. Bearer token is verified in route handlers.
+  if (orgId && (orgId.length < 10 || orgId.length > 100)) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Invalid x-org-id format' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   return NextResponse.next()
 }
 

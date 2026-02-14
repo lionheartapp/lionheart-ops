@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { Droplets, AlertTriangle, Calculator, Plus } from 'lucide-react'
 import DrawerModal from './DrawerModal'
 import PondDosageCalculator from './PondDosageCalculator'
-
-const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
+import { platformFetch } from '../services/platformApi'
 
 const SAFE = { pHMin: 6.5, pHMax: 8.5, turbidityWarn: 25, doMin: 5.0, alkalinityMin: 50 }
 
@@ -29,7 +28,7 @@ export default function PondHealthWidget({
   const [logSubmitting, setLogSubmitting] = useState(false)
 
   const fetchLatest = () => {
-    fetch(`${PLATFORM_URL}/api/pond-sensor`)
+    platformFetch('/api/pond-sensor')
       .then((r) => r.json())
       .then(setLatest)
       .catch(() => setLatest(null))
@@ -54,9 +53,8 @@ export default function PondHealthWidget({
       }
       if (data.dissolvedOxygen) payload.dissolvedOxygen = parseFloat(data.dissolvedOxygen)
       if (data.alkalinity) payload.alkalinity = parseFloat(data.alkalinity)
-      await fetch(`${PLATFORM_URL}/api/pond-sensor`, {
+      await platformFetch('/api/pond-sensor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       setLogFormOpen(false)

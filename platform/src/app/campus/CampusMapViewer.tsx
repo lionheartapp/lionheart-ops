@@ -1,6 +1,7 @@
 'use client'
 
 import Script from 'next/script'
+import { apiFetch } from '@/lib/apiFetch'
 import { useEffect, useRef, useState } from 'react'
 import { TicketPinPanel } from './TicketPinPanel'
 import { RoomDetailPanel } from './RoomDetailPanel'
@@ -61,7 +62,7 @@ export function CampusMapViewer({ initialRoomId }: Props) {
   const [pannellumReady, setPannellumReady] = useState(false)
 
   useEffect(() => {
-    fetch('/api/campus')
+    apiFetch('/api/campus')
       .then((r) => r.json())
       .then((buildings: Building[]) => {
         const allPins: PinInfo[] = []

@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma, prismaBase } from '@/lib/prisma'
+import { withOrg } from '@/lib/orgContext'
 
 function timeToMinutes(t: string): number {
   const [h, m] = (t || '00:00').split(':').map(Number)
@@ -14,8 +15,9 @@ function overlaps(aStart: string, aEnd: string, bStart: string, bEnd: string, bu
   return aS - bufferMinutes < bE && bS < aE + bufferMinutes
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    return await withOrg(req, prismaBase, async () => {
     const body = (await req.json()) as {
       date?: string
       startTime?: string
@@ -133,7 +135,11 @@ export async function POST(req: Request) {
       hasConflict: warnings.length > 0,
       warnings,
     })
+    })
   } catch (err) {
+    if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
+      return NextResponse.json({ error: err.message, hasConflict: false, warnings: [] }, { status: 401 })
+    }
     console.error('Conflicts check error:', err)
     return NextResponse.json({ hasConflict: false, warnings: [] })
   }

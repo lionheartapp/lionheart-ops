@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma, prismaBase } from '@/lib/prisma'
+import { withOrg } from '@/lib/orgContext'
 
 export async function GET(
-  _req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   const { userId } = await params
@@ -15,6 +16,7 @@ export async function GET(
     })
   }
   try {
+    return await withOrg(req, prismaBase, async () => {
     const now = new Date()
     const dayOfWeek = now.getDay()
     const schedules = await prisma.teacherSchedule.findMany({
@@ -30,6 +32,7 @@ export async function GET(
         subject: s.subject,
         roomName: s.room?.name,
       })),
+    })
     })
   } catch {
     return NextResponse.json({ blocks: [] })

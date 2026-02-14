@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { prisma } from '@/lib/prisma'
+import { prisma, prismaBase } from '@/lib/prisma'
+import { withOrg } from '@/lib/orgContext'
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -20,7 +21,7 @@ async function matchToManual(partName: string) {
   return null
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   if (!openai) {
     return NextResponse.json(
       { error: 'OpenAI API key not configured. Add OPENAI_API_KEY to .env' },
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
     )
   }
   try {
+    return await withOrg(req, prismaBase, async () => {
     const formData = await req.formData()
     const file = formData.get('image') as File | null
     if (!file) return NextResponse.json({ error: 'Missing image' }, { status: 400 })
@@ -98,6 +100,7 @@ Be specific (e.g. "Projector lamp", "HVAC air filter", "Document camera lens", "
       manualUrl: manualEntry?.manualUrl ?? null,
       manualLinked: !!manualEntry,
       repairSteps,
+    })
     })
   } catch (err) {
     console.error('Visual assist error:', err)

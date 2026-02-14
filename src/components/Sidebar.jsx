@@ -10,7 +10,7 @@ import {
   MapPin,
 } from 'lucide-react'
 
-const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
+import { PLATFORM_URL } from '../services/platformApi'
 import ViewAsDropdown from './ViewAsDropdown'
 import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate } from '../data/teamsData'
 

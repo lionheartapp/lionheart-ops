@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, MapPin, User, AlertCircle, Building2, Loader2 } from 'lucide-react'
 import { DIRECTORY_USERS } from '../data/linfieldDirectory'
+import { platformFetch, PLATFORM_URL } from '../services/platformApi'
 
-const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
 const CAMPUS_URL = `${PLATFORM_URL}/campus`
 
 /** Get team label for directory teachers (no room assignment) */
@@ -51,7 +51,7 @@ export default function CommandBar({ isOpen, onClose, supportRequests = [], onNa
     }
     let cancelled = false
     setLoading(true)
-    fetch(`${PLATFORM_URL}/api/search?q=${encodeURIComponent(q)}`)
+    platformFetch(`/api/search?q=${encodeURIComponent(q)}`)
       .then((r) => r.json())
       .then((d) => {
         if (!cancelled) {

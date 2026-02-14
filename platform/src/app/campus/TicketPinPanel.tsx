@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/apiFetch'
 
 type PinInfo = {
   roomId: string
@@ -28,7 +29,7 @@ export function TicketPinPanel({
   const [schedule, setSchedule] = useState<ScheduleData | null>(null)
 
   useEffect(() => {
-    fetch(`/api/room/${pin.roomId}/schedule`)
+    apiFetch(`/api/room/${pin.roomId}/schedule`)
       .then((r) => r.json())
       .then(setSchedule)
       .catch(() =>

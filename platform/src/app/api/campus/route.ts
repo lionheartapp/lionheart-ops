@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma, prismaBase } from '@/lib/prisma'
+import { withOrg } from '@/lib/orgContext'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    return await withOrg(req, prismaBase, async () => {
     const buildings = await prisma.building.findMany({
       include: {
         rooms: {
@@ -19,6 +21,7 @@ export async function GET() {
     // Use mock when DB is empty (demo mode)
     if (buildings.length === 0) return NextResponse.json(getMockCampusData())
     return NextResponse.json(buildings)
+    })
   } catch (error) {
     console.error('Campus API error:', error)
     return NextResponse.json(getMockCampusData())

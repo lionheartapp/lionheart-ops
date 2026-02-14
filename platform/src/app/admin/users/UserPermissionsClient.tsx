@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/apiFetch'
 
 type User = { id: string; name: string | null; email: string; role: string; canSubmitEvents: boolean }
 
@@ -9,7 +10,7 @@ export function UserPermissionsClient() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/admin/users')
+    apiFetch('/api/admin/users')
       .then((r) => r.json())
       .then(setUsers)
       .catch(() => setUsers([]))
@@ -17,7 +18,7 @@ export function UserPermissionsClient() {
   }, [])
 
   const toggleCanSubmit = async (userId: string, value: boolean) => {
-    const res = await fetch('/api/admin/users/' + userId + '/can-submit', {
+    const res = await apiFetch('/api/admin/users/' + userId + '/can-submit', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ canSubmitEvents: value }),

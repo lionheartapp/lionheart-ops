@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react'
 import { CheckCircle2, Upload, FileText, Loader2 } from 'lucide-react'
 import DrawerModal from './DrawerModal'
-
-const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
+import { platformFetch } from '../services/platformApi'
 
 /** Completion flow when marking a ticket as Done. Collects man hours, receipt (OCR or manual), future takeaway. */
 export default function CompletionFlowModal({
@@ -57,7 +56,7 @@ export default function CompletionFlowModal({
     try {
       const formData = new FormData()
       formData.append('image', file)
-      const res = await fetch(`${PLATFORM_URL}/api/receipts/ocr`, {
+      const res = await platformFetch('/api/receipts/ocr', {
         method: 'POST',
         body: formData,
       })
@@ -97,9 +96,8 @@ export default function CompletionFlowModal({
       const ticketId = request?.id ? String(request.id) : null
 
       // Create expense (platform API)
-      const expenseRes = await fetch(`${PLATFORM_URL}/api/expenses`, {
+      const expenseRes = await platformFetch('/api/expenses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ticketId,
           vendor: vendorVal,
@@ -116,9 +114,8 @@ export default function CompletionFlowModal({
 
       // Future takeaway → MaintenanceTip
       if (futureTakeaway?.trim()) {
-        await fetch(`${PLATFORM_URL}/api/knowledge-base/tips`, {
+        await platformFetch('/api/knowledge-base/tips', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             content: futureTakeaway.trim(),
             sourceTicketId: ticketId,

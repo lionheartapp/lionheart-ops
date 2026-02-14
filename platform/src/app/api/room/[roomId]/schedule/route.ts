@@ -1,18 +1,21 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma, prismaBase } from '@/lib/prisma'
+import { withOrg, getOrgId } from '@/lib/orgContext'
 
 export async function GET(
-  _req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ roomId: string }> }
 ) {
   const { roomId } = await params
   try {
+    return await withOrg(req, prismaBase, async () => {
     const now = new Date()
     const dayOfWeek = now.getDay() // 0=Sun, 1=Mon, ...
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 
+    const orgId = getOrgId()
     const schedules = await prisma.teacherSchedule.findMany({
-      where: { roomId },
+      where: orgId ? { roomId, room: { building: { organizationId: orgId } } } : { roomId },
       include: { user: true },
       orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
     })
@@ -42,6 +45,7 @@ export async function GET(
       status,
       currentBlock: activeSchedule,
       schedules: todaysSchedules,
+    })
     })
   } catch {
     // Mock for demo when DB unavailable

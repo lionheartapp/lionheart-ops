@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma, prismaBase } from '@/lib/prisma'
+import { withOrg } from '@/lib/orgContext'
 
 // Auto-route: Elementary room → Elementary Principal + Maintenance
 async function getRoutedToIds(roomId: string | null | undefined): Promise<string[]> {
@@ -45,8 +46,9 @@ async function getRoutedToIds(roomId: string | null | undefined): Promise<string
   return [...new Set(ids)]
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    return await withOrg(req, prismaBase, async () => {
     const body = (await req.json()) as {
       name: string
       description?: string
@@ -82,7 +84,11 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(event)
+    })
   } catch (err) {
+    if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
+      return NextResponse.json({ error: err.message }, { status: 401 })
+    }
     console.error('Create event error:', err)
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Create failed' },

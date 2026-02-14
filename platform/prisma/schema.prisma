@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // Transaction pooler (Port 6543)
+  directUrl = env("DIRECT_URL")     // Direct connection (Port 5432)
 }
 
 // --- Organization (Tenant): For multi-tenant SaaS ---
@@ -40,6 +41,7 @@ model User {
   id               String   @id @default(cuid())
   organizationId   String?  // SaaS: scopes to tenant (nullable for migration; required after backfill)
   email            String   @unique // Will become @@unique([organizationId, email]) after backfill
+  passwordHash     String?  // bcrypt hash; null for OAuth users
   name             String?
   imageUrl         String?  // Photo/avatar for side panel
   role             UserRole @default(VIEWER)

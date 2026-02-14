@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/apiFetch'
 
 type Room = { id: string; name: string; building: { name: string; division: string | null } }
-type Teacher = { id: string; name: string | null; email: string }
-type ScheduleBlock = { startTime: string; endTime: string; subject: string | null; roomName: string | null }
 
 export function EventRequestForm() {
   const [canSubmit, setCanSubmit] = useState(true)
@@ -12,43 +11,22 @@ export function EventRequestForm() {
   const [parsed, setParsed] = useState<Record<string, unknown> | null>(null)
   const [loading, setLoading] = useState(false)
   const [rooms, setRooms] = useState<Room[]>([])
-  const [teacherId, setTeacherId] = useState<string>('')
-  const [teachers, setTeachers] = useState<Teacher[]>([])
-  const [teacherBlocks, setTeacherBlocks] = useState<ScheduleBlock[]>([])
   const [conflicts, setConflicts] = useState<{ hasConflict: boolean; warnings: string[] } | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [selectedRoomId, setSelectedRoomId] = useState<string>('')
 
   useEffect(() => {
-    fetch('/api/user/can-submit-events')
+    apiFetch('/api/user/can-submit-events')
       .then((r) => r.json())
       .then((d) => setCanSubmit(d.canSubmit ?? true))
   }, [])
 
   useEffect(() => {
-    fetch('/api/rooms')
+    apiFetch('/api/rooms')
       .then((r) => r.json())
       .then(setRooms)
       .catch(() => setRooms([]))
   }, [])
-
-  useEffect(() => {
-    fetch('/api/users')
-      .then((r) => r.json())
-      .then(setTeachers)
-      .catch(() => setTeachers([]))
-  }, [])
-
-  useEffect(() => {
-    if (!teacherId) {
-      setTeacherBlocks([])
-      return
-    }
-    fetch(`/api/user/${teacherId}/schedule`)
-      .then((r) => r.json())
-      .then((d) => setTeacherBlocks(d.blocks || []))
-      .catch(() => setTeacherBlocks([]))
-  }, [teacherId])
 
   const handleParse = async () => {
     if (!rawText.trim()) return
@@ -56,7 +34,7 @@ export function EventRequestForm() {
     setParsed(null)
     setConflicts(null)
     try {
-      const res = await fetch('/api/events/parse', {
+      const res = await apiFetch('/api/events/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: rawText.trim() }),
@@ -96,7 +74,7 @@ export function EventRequestForm() {
 
   const checkConflicts = async () => {
     if (!date || !startTime) return
-    const res = await fetch('/api/events/conflicts', {
+    const res = await apiFetch('/api/events/conflicts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -117,7 +95,7 @@ export function EventRequestForm() {
     if (!name || !date || !startTime) return
     setLoading(true)
     try {
-      const res = await fetch('/api/events', {
+      const res = await apiFetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -219,46 +197,6 @@ export function EventRequestForm() {
         >
           {loading ? 'Parsing…' : 'Parse with AI'}
         </button>
-      </section>
-
-      {/* Teacher schedule (for admins: select teacher to avoid booking during their class) */}
-      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
-        <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
-          Schedule check
-        </h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
-          Optional: Select a teacher to see their block schedule and avoid booking during their class.
-        </p>
-        <select
-          value={teacherId}
-          onChange={(e) => setTeacherId(e.target.value)}
-          className="w-full max-w-xs px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-        >
-          <option value="">— No teacher selected —</option>
-          {teachers.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name || t.email}
-            </option>
-          ))}
-          {teachers.length === 0 && (
-            <option value="demo">Demo: Sarah Johnson (no DB)</option>
-          )}
-        </select>
-        {teacherBlocks.length > 0 && (
-          <div className="mt-3 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">
-            <p className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">Today&apos;s blocks:</p>
-            <ul className="space-y-1 text-zinc-600 dark:text-zinc-400">
-              {teacherBlocks.map((b, i) => (
-                <li key={i}>
-                  {b.startTime}–{b.endTime} {b.subject || '—'} {b.roomName ? `(${b.roomName})` : ''}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-              Don&apos;t book your event during these times if the teacher needs the room.
-            </p>
-          </div>
-        )}
       </section>
 
       {/* Parsed form */}
