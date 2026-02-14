@@ -42,8 +42,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders })
     }
 
-    const org = user.organization
-    const isSuperAdmin = org?.ownerId === user.id
+    const isSuperAdmin = user.role === 'SUPER_ADMIN'
 
     return NextResponse.json(
       {
