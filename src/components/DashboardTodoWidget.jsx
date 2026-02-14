@@ -195,7 +195,7 @@ export default function DashboardTodoWidget({ currentUser }) {
           <button
             type="submit"
             disabled={!input.trim()}
-            className="p-2.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:pointer-events-none transition-colors shrink-0"
+            className="p-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none transition-colors shrink-0"
             aria-label="Add task"
           >
             <Plus className="w-5 h-5" />
@@ -215,13 +215,13 @@ export default function DashboardTodoWidget({ currentUser }) {
             onClick={() => setFilter(id)}
             className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               filter === id
-                ? 'bg-blue-500 text-white'
+                ? 'bg-blue-600 text-white'
                 : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
             }`}
           >
             {label}
             {count != null && (
-              <span className="ml-1 opacity-80">({count})</span>
+              <span className="ml-1 opacity-95">({count})</span>
             )}
           </button>
         ))}
@@ -374,6 +374,7 @@ export default function DashboardTodoWidget({ currentUser }) {
               className="fixed inset-0 z-[100]"
               onClick={() => setDueDatePicker(null)}
               aria-hidden
+              tabIndex={-1}
             />
             <div
               className="fixed z-[101] p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-xl"
@@ -406,6 +407,7 @@ export default function DashboardTodoWidget({ currentUser }) {
               className="fixed inset-0 z-[100]"
               onClick={() => setShowPriorityMenu(null)}
               aria-hidden
+              tabIndex={-1}
             />
             <div
               className="fixed z-[101] py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-xl min-w-[100px]"

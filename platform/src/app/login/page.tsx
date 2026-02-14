@@ -144,9 +144,28 @@ function LoginForm() {
   )
 }
 
+const LoginFallback = () => (
+  <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6">
+    <div className="w-full max-w-md">
+      <div className="h-4 w-16 bg-zinc-800 rounded mb-8" />
+      <div className="h-8 w-24 bg-zinc-800 rounded mb-2" />
+      <div className="h-4 w-64 bg-zinc-800 rounded mb-6" />
+      <div className="space-y-4">
+        <div className="h-12 bg-zinc-900 rounded-lg border border-zinc-700" />
+        <div className="h-12 bg-zinc-900 rounded-lg border border-zinc-700" />
+        <div className="h-12 bg-emerald-500/50 rounded-lg" />
+        <div className="flex justify-center py-2">
+          <span className="text-zinc-500 text-sm">or</span>
+        </div>
+        <div className="h-12 bg-zinc-900 rounded-lg border border-zinc-700" />
+      </div>
+    </div>
+  </div>
+)
+
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center"><p className="text-zinc-400">Loading…</p></div>}>
+    <Suspense fallback={<LoginFallback />}>
       <LoginForm />
     </Suspense>
   )

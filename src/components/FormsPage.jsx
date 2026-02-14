@@ -265,7 +265,7 @@ export default function FormsPage({
                   <button
                     type="button"
                     onClick={() => { setSelectedFormId(form.id); setView('fill'); setFillViewSource('list') }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/25"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-300 text-sm font-medium hover:bg-blue-500/25"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Fill out

@@ -96,11 +96,11 @@ export default function Sidebar({
               <motion.button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/15 text-blue-400' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-300 dark:text-blue-200' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'}`}
                 whileTap={{ scale: 0.98 }}
               >
                 <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
-                <span className="dark:text-zinc-300">{label}</span>
+                <span>{label}</span>
               </motion.button>
             )
           })}
@@ -108,14 +108,14 @@ export default function Sidebar({
           {/* Add-ons: Water Management */}
           {showWaterManagement && (
             <div className="pt-3 mt-1">
-              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Add-ons
               </p>
               <button
                 type="button"
                 onClick={() => onTabChange('water-management')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors mt-0.5 ${
-                  activeTab === 'water-management' ? 'bg-blue-500/15 text-blue-400' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'
+                  activeTab === 'water-management' ? 'bg-blue-500/20 text-blue-300 dark:text-blue-200' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'
                 }`}
               >
                 <Droplets className="w-4 h-4 shrink-0" strokeWidth={2} />
@@ -126,7 +126,7 @@ export default function Sidebar({
 
           {/* Support section header + links */}
           <div className="pt-3 mt-1">
-            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               {supportSection.header}
             </p>
             <div className="pl-1 pt-0.5 space-y-0.5">
@@ -139,10 +139,10 @@ export default function Sidebar({
                     key={item.id}
                     type="button"
                     onClick={() => onTabChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/15 text-blue-400' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-300 dark:text-blue-200' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'}`}
                   >
                     <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
-                    <span className="dark:text-zinc-300">{label}</span>
+                    <span>{label}</span>
                   </button>
                 )
               })}

@@ -8,7 +8,6 @@ export default function LandingPage() {
   const [heroImgError, setHeroImgError] = useState(false)
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans">
-      {/* Navigation */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary-900 rounded-lg flex items-center justify-center">
@@ -26,7 +25,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      <main>
       <section className="relative pt-20 pb-32 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
@@ -111,6 +110,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </main>
     </div>
   )
 }

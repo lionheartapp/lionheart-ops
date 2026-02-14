@@ -307,7 +307,7 @@ export default function SettingsPage({
       <nav className="w-52 shrink-0 flex flex-col border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40 bg-zinc-50/50 dark:bg-zinc-900/50 py-4">
         <div className="px-3 space-y-6">
           <div>
-            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               General Settings
             </p>
             <div className="mt-1 space-y-0.5">
@@ -321,7 +321,7 @@ export default function SettingsPage({
                     onClick={() => onSettingsSectionChange(item.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                        ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
                     }`}
                   >
@@ -333,7 +333,7 @@ export default function SettingsPage({
             </div>
           </div>
           <div>
-            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Workspace Settings
             </p>
             <div className="mt-1 space-y-0.5">
@@ -347,7 +347,7 @@ export default function SettingsPage({
                     onClick={() => onSettingsSectionChange(item.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                        ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
                     }`}
                   >

@@ -152,7 +152,7 @@ export default function ViewAsDropdown({
                       onClick={() => handleSelectUser(u)}
                       className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
                         isActive
-                          ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                          ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300'
                           : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
                       }`}
                     >

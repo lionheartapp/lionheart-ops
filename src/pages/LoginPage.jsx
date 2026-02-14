@@ -42,7 +42,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
+    <main className="min-h-screen bg-white flex flex-col items-center justify-center px-6" aria-label="Sign in">
       <div className="w-full max-w-md">
         <Link to="/" className="text-sm text-zinc-600 hover:text-primary-600 mb-8 block">
           ← Back to home
@@ -129,6 +129,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   )
 }

@@ -92,37 +92,87 @@ export async function GET(req: NextRequest) {
     })
 
     if (!user) {
-      const slug = email.replace(/@.*/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'user'
-      const slugExists = await prismaBase.organization.findUnique({ where: { slug } })
-      const uniqueSlug = slugExists ? `${slug}-${Date.now().toString(36)}` : slug
+      const emailDomain = email.split('@')[1] || ''
+      let existingOrg: { id: string; settings: unknown } | null = null
 
-      const org = await prismaBase.organization.create({
-        data: {
-          name: googleUser.name || email.split('@')[0],
-          slug: uniqueSlug,
-          plan: 'CORE',
-          settings: {
-            modules: {
-              core: true,
-              waterManagement: false,
-              visualCampus: { enabled: true },
-              advancedInventory: false,
+      // 1. Check allowedDomains in settings (orgs can have multiple: linfield.edu, linfield.com)
+      if (emailDomain) {
+        const byDomain = await prismaBase.$queryRaw<{ id: string; settings: unknown }[]>`
+          SELECT id, settings FROM "Organization"
+          WHERE settings->'allowedDomains' ? ${emailDomain}
+          LIMIT 1
+        `
+        if (byDomain?.[0]) existingOrg = byDomain[0]
+      }
+
+      // 2. Fallback: match website hostname (e.g. website "https://linfield.edu" matches @linfield.edu)
+      if (!existingOrg && emailDomain) {
+        const orgs = await prismaBase.organization.findMany({
+          where: { website: { not: null } },
+          select: { id: true, website: true },
+        })
+        for (const o of orgs) {
+          try {
+            const host = o.website ? new URL(o.website.startsWith('http') ? o.website : `https://${o.website}`).hostname : ''
+            const domain = host.replace(/^www\./, '')
+            if (domain && domain.toLowerCase() === emailDomain.toLowerCase()) {
+              existingOrg = { id: o.id, settings: null }
+              break
+            }
+          } catch {
+            /* skip invalid URLs */
+          }
+        }
+      }
+
+      if (existingOrg) {
+        // Auto-join existing school (domain match)
+        user = await prismaBase.user.create({
+          data: {
+            email,
+            name: googleUser.name || null,
+            imageUrl: googleUser.picture || null,
+            organizationId: existingOrg.id,
+            role: 'TEACHER',
+            canSubmitEvents: true,
+          },
+          include: { organization: true },
+        })
+      } else {
+        // Create new org (first user = SUPER_ADMIN)
+        const slug = email.replace(/@.*/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'user'
+        const slugExists = await prismaBase.organization.findUnique({ where: { slug } })
+        const uniqueSlug = slugExists ? `${slug}-${Date.now().toString(36)}` : slug
+
+        const org = await prismaBase.organization.create({
+          data: {
+            name: googleUser.name || email.split('@')[0],
+            slug: uniqueSlug,
+            plan: 'CORE',
+            settings: {
+              modules: {
+                core: true,
+                waterManagement: false,
+                visualCampus: { enabled: true },
+                advancedInventory: false,
+              },
+              allowedDomains: emailDomain ? [emailDomain] : [],
             },
           },
-        },
-      })
+        })
 
-      user = await prismaBase.user.create({
-        data: {
-          email,
-          name: googleUser.name || null,
-          imageUrl: googleUser.picture || null,
-          organizationId: org.id,
-          role: 'SUPER_ADMIN',
-          canSubmitEvents: true,
-        },
-        include: { organization: true },
-      })
+        user = await prismaBase.user.create({
+          data: {
+            email,
+            name: googleUser.name || null,
+            imageUrl: googleUser.picture || null,
+            organizationId: org.id,
+            role: 'SUPER_ADMIN',
+            canSubmitEvents: true,
+          },
+          include: { organization: true },
+        })
+      }
     }
 
     const token = await createToken({
