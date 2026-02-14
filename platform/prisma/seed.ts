@@ -1,8 +1,48 @@
 import { PrismaClient } from '@prisma/client'
+import * as bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+const DEV_ORG_SLUG = 'lionheart-dev'
+const DEV_USER_EMAIL = 'dev@lionheart.app'
+const DEV_USER_PASSWORD = 'LionheartDev1!'
+
 async function main() {
+  // --- Lionheart Dev account (for internal development) ---
+  let devOrg = await prisma.organization.findUnique({ where: { slug: DEV_ORG_SLUG } })
+  if (!devOrg) {
+    devOrg = await prisma.organization.create({
+      data: {
+        name: 'Lionheart Dev',
+        slug: DEV_ORG_SLUG,
+        plan: 'CORE',
+        settings: {
+          modules: {
+            core: true,
+            waterManagement: true,
+            visualCampus: { enabled: true },
+            advancedInventory: false,
+          },
+        },
+      },
+    })
+    const passwordHash = await bcrypt.hash(DEV_USER_PASSWORD, 10)
+    await prisma.user.create({
+      data: {
+        email: DEV_USER_EMAIL,
+        name: 'Lionheart Dev',
+        passwordHash,
+        organizationId: devOrg.id,
+        role: 'SUPER_ADMIN',
+        canSubmitEvents: true,
+      },
+    })
+    console.log(`Created dev org + user: ${DEV_USER_EMAIL} / ${DEV_USER_PASSWORD}`)
+  } else {
+    console.log('Dev org already exists (dev@lionheart.app)')
+  }
+
+  // --- Knowledge base (optional seed data) ---
   const count = await prisma.knowledgeBaseEntry.count()
   if (count > 0) return
 

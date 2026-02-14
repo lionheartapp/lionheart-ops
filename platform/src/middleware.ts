@@ -7,13 +7,14 @@ export function middleware(req: NextRequest) {
   }
 
   // Require x-org-id or Authorization Bearer for API requests (multi-tenant context)
-  // Exclude: cron, auth (signup, login, Google OAuth)
+  // Exclude: cron, auth (signup, login, Google OAuth, debug-url)
   if (
     req.nextUrl.pathname.startsWith('/api/cron/') ||
     req.nextUrl.pathname === '/api/auth/signup' ||
     req.nextUrl.pathname === '/api/auth/login' ||
     req.nextUrl.pathname === '/api/auth/google' ||
-    req.nextUrl.pathname.startsWith('/api/auth/google/')
+    req.nextUrl.pathname.startsWith('/api/auth/google/') ||
+    req.nextUrl.pathname === '/api/auth/debug-url'
   ) {
     return NextResponse.next()
   }
