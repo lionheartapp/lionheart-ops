@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
 const AUTH_KEY = 'platform-auth-token'
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -24,5 +24,13 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
       <p className="text-zinc-400">Signing you in…</p>
     </div>
+  )
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center"><p className="text-zinc-400">Loading…</p></div>}>
+      <AuthCallbackContent />
+    </Suspense>
   )
 }

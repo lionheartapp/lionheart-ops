@@ -7,7 +7,7 @@ type RoomData = {
   id: string
   name: string
   buildingName: string
-  teacher?: { id: string; name: string | null } | null
+  teacher?: { id: string; name: string | null; imageUrl?: string | null } | null
   tickets?: Array<{ id: string; title: string; status: string }>
 }
 

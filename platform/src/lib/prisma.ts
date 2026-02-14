@@ -51,9 +51,10 @@ const queryExtension = Object.fromEntries(
   tenantModels.map((m) => [m, tenantOps])
 )
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const prisma = basePrisma.$extends({
   name: 'tenantScope',
-  query: queryExtension,
+  query: queryExtension as any,
 }) as unknown as PrismaClient
 
 export const prismaBase = basePrisma

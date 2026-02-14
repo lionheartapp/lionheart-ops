@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 function setupFetch(orgId: string, path: string, init: RequestInit = {}) {
@@ -12,7 +12,7 @@ function setupFetch(orgId: string, path: string, init: RequestInit = {}) {
   return fetch(path, { ...init, headers })
 }
 
-export default function SetupPage() {
+function SetupContent() {
   const searchParams = useSearchParams()
   const orgId = searchParams.get('orgId')
   const [buildingName, setBuildingName] = useState('')
@@ -179,5 +179,13 @@ export default function SetupPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SetupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center"><p className="text-zinc-400">Loading…</p></div>}>
+      <SetupContent />
+    </Suspense>
   )
 }

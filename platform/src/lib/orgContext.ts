@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks'
-import type { Request } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { verifyToken } from './auth'
 
 /**
@@ -15,7 +15,7 @@ export function getOrgId(): string | undefined {
 /**
  * Extract org ID from request: Bearer token (preferred) or x-org-id header.
  */
-export async function getOrgIdFromRequest(req: Request): Promise<string | null> {
+export async function getOrgIdFromRequest(req: NextRequest): Promise<string | null> {
   const authHeader = req.headers.get('authorization')
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7)
@@ -51,7 +51,7 @@ export async function runWithOrg<T>(
  * Use: return withOrg(req, async () => { ... use prisma ... })
  */
 export async function withOrg<T>(
-  req: Request,
+  req: NextRequest,
   prisma: PrismaOrgValidator,
   handler: () => Promise<T>
 ): Promise<T> {
