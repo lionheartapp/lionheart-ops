@@ -7,15 +7,12 @@ export const ROLES = [
   { id: 'viewer', label: 'Viewer', description: 'Read-only access' },
 ]
 
-import { DIRECTORY_TEAMS, DIRECTORY_USERS } from './sampleDirectory'
+// Clean start: no pre-defined teams; schools create their own.
+export const DEFAULT_TEAMS = []
 
-// Teams: directory teams (includes elementary, middle-school, high-school, campus-safety + existing)
-export const DEFAULT_TEAMS = DIRECTORY_TEAMS
-
-// Users: sample admin + sampleDirectory
+// Single admin user for a new school (e.g. Linfield). No sample/demo users.
 export const INITIAL_USERS = [
-  { id: 'u0', name: 'Admin User', email: 'admin@school.edu', teamIds: ['admin'], role: 'super-admin', positionTitle: 'Administrator' },
-  ...DIRECTORY_USERS,
+  { id: 'u0', name: 'Admin User', email: 'admin@school.edu', teamIds: [], role: 'super-admin', positionTitle: 'Administrator' },
 ]
 
 export function getTeamName(teams, teamId) {

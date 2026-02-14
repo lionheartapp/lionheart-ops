@@ -39,6 +39,7 @@ import {
 } from './data/inventoryData'
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, getUserTeamIds } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
+import { getAuthToken, platformFetch } from './services/platformApi'
 
 const INVENTORY_PREFS_KEY = 'schoolops-inventory-prefs'
 
@@ -119,6 +120,38 @@ export default function App() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // Fetch current user from Platform when logged in (use real name instead of "Admin User")
+  useEffect(() => {
+    if (!getAuthToken()) return
+    let cancelled = false
+    platformFetch('/api/user/me')
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (cancelled || !d?.user) return
+        const u = d.user
+        const me = {
+          id: u.id,
+          name: u.name ?? u.email?.split('@')[0] ?? 'User',
+          email: u.email ?? '',
+          teamIds: u.teamIds ?? [],
+          role: u.role ?? 'super-admin',
+        }
+        setCurrentUser(me)
+        setUsers((prev) => {
+          const idx = prev.findIndex((p) => p.id === me.id)
+          if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...me } : p))
+          // Replace placeholder (u0) with real user, or prepend if not found
+          const placeholderIdx = prev.findIndex((p) => p.id === 'u0')
+          if (placeholderIdx >= 0) {
+            return prev.map((p, i) => (i === placeholderIdx ? { ...me, positionTitle: p.positionTitle } : p))
+          }
+          return [me, ...prev]
+        })
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [])
 
   // Load real events from iCal feed (SchoolDude)

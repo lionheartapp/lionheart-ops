@@ -235,6 +235,7 @@ function SettingsSectionContent({
     return (
       <MembersPage
         teams={teams}
+        setTeams={setTeams}
         users={users}
         setUsers={setUsers}
         currentUser={currentUser}

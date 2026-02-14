@@ -1,8 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { UserPlus, Pencil, Trash2, Download, Search, Filter } from 'lucide-react'
+import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus } from 'lucide-react'
 import { ROLES, getTeamName, getUserTeamIds, canManageTeams } from '../data/teamsData'
 import DrawerModal from './DrawerModal'
+
+/** Generate a slug id from a team display name (e.g. "A/V" -> "av", "Campus Services" -> "campus-services") */
+function slugifyTeamId(name) {
+  return (name || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'team'
+}
 
 const TEAM_TAG_COLORS = [
   'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30',
@@ -50,7 +55,7 @@ function downloadCSV(users, teams) {
   URL.revokeObjectURL(url)
 }
 
-function EditUserDrawer({ user, teams, users, setUsers, currentUser, isOpen, onClose }) {
+function EditUserDrawer({ user, teams, setTeams, users, setUsers, currentUser, isOpen, onClose }) {
   const canAssignRole = canManageTeams(currentUser)
   const [form, setForm] = useState({
     name: '',
@@ -58,6 +63,7 @@ function EditUserDrawer({ user, teams, users, setUsers, currentUser, isOpen, onC
     teamIds: [],
     role: 'viewer',
   })
+  const [newTagName, setNewTagName] = useState('')
 
   useEffect(() => {
     if (user) {
@@ -71,6 +77,20 @@ function EditUserDrawer({ user, teams, users, setUsers, currentUser, isOpen, onC
   }, [user])
 
   const safeTeams = Array.isArray(teams) ? teams : []
+
+  const handleAddTag = (e) => {
+    e.preventDefault()
+    const name = newTagName.trim()
+    if (!name) return
+    const id = slugifyTeamId(name)
+    if (safeTeams.some((t) => t.id === id || t.name.toLowerCase() === name.toLowerCase())) {
+      setNewTagName('')
+      return
+    }
+    setTeams((prev) => [...prev, { id, name }])
+    setForm((p) => ({ ...p, teamIds: [...p.teamIds, id] }))
+    setNewTagName('')
+  }
 
   const handleSave = (e) => {
     e.preventDefault()
@@ -141,8 +161,27 @@ function EditUserDrawer({ user, teams, users, setUsers, currentUser, isOpen, onC
               )
             })}
           </div>
+          {setTeams && (
+            <form onSubmit={handleAddTag} className="flex gap-2 mt-2">
+              <input
+                type="text"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                placeholder="Create new tag (e.g. Athletics, A/V)"
+                className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400"
+              />
+              <button
+                type="submit"
+                disabled={!newTagName.trim()}
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-blue-500 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-4 h-4" />
+                Add tag
+              </button>
+            </form>
+          )}
           {form.teamIds.length === 0 && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Select at least one team</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Select or create at least one team tag</p>
           )}
         </div>
         {canAssignRole && (
@@ -180,12 +219,13 @@ function EditUserDrawer({ user, teams, users, setUsers, currentUser, isOpen, onC
   )
 }
 
-export default function MembersPage({ teams = [], users = [], setUsers, currentUser }) {
+export default function MembersPage({ teams = [], setTeams, users = [], setUsers, currentUser }) {
   const [showAddUser, setShowAddUser] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [newUser, setNewUser] = useState({ name: '', email: '', teamIds: [], role: 'viewer' })
   const [searchQuery, setSearchQuery] = useState('')
   const [teamFilter, setTeamFilter] = useState('')
+  const [newTagName, setNewTagName] = useState('')
 
   const canManage = canManageTeams(currentUser)
   const safeTeams = Array.isArray(teams) ? teams : []
@@ -228,8 +268,75 @@ export default function MembersPage({ teams = [], users = [], setUsers, currentU
     setUsers((prev) => prev.filter((x) => x.id !== u.id))
   }
 
+  const handleCreateTag = (e) => {
+    e.preventDefault()
+    const name = newTagName.trim()
+    if (!name || !setTeams) return
+    const id = slugifyTeamId(name)
+    if (safeTeams.some((t) => t.id === id || t.name.toLowerCase() === name.toLowerCase())) {
+      setNewTagName('')
+      return
+    }
+    setTeams((prev) => [...prev, { id, name }])
+    setNewTagName('')
+  }
+
+  const handleAddTagForNewUser = (e) => {
+    e.preventDefault()
+    const name = newTagName.trim()
+    if (!name || !setTeams) return
+    const id = slugifyTeamId(name)
+    if (safeTeams.some((t) => t.id === id || t.name.toLowerCase() === name.toLowerCase())) {
+      setNewTagName('')
+      return
+    }
+    setTeams((prev) => [...prev, { id, name }])
+    setNewUser((p) => ({ ...p, teamIds: [...p.teamIds, id] }))
+    setNewTagName('')
+  }
+
   return (
     <div className="space-y-8">
+      {/* Team tags: create custom tags for your organization */}
+      {canManage && setTeams && (
+        <div className="glass-card p-4 sm:p-6">
+          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Team tags</h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+            Create team tags for your organization (e.g. A/V, Athletics, Admin, IT). Assign these to members when adding or editing users.
+          </p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {safeTeams.map((t) => (
+              <span
+                key={t.id}
+                className="inline-flex px-2.5 py-0.5 rounded-md text-xs font-medium bg-zinc-100 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600"
+              >
+                {t.name}
+              </span>
+            ))}
+            {safeTeams.length === 0 && (
+              <span className="text-sm text-zinc-500 dark:text-zinc-400">No tags yet. Create one below.</span>
+            )}
+          </div>
+          <form onSubmit={handleCreateTag} className="flex gap-2">
+            <input
+              type="text"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              placeholder="New tag name (e.g. Athletics, A/V)"
+              className="flex-1 min-w-0 max-w-xs px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400"
+            />
+            <button
+              type="submit"
+              disabled={!newTagName.trim()}
+              className="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+              Add tag
+            </button>
+          </form>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
@@ -431,7 +538,7 @@ export default function MembersPage({ teams = [], users = [], setUsers, currentU
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Team tags</label>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-                Assign one or more team tags (e.g. A/V, Athletics)
+                Assign one or more team tags (e.g. A/V, Athletics). Create new tags as needed.
               </p>
               <div className="flex flex-wrap gap-2">
                 {safeTeams.map((t) => {
@@ -448,7 +555,7 @@ export default function MembersPage({ teams = [], users = [], setUsers, currentU
                       }
                       className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                         isSelected
-                          ? 'bg-blue-500 text-white border-blue-500'
+                          ? 'bg-blue-500 text-white border-blue-500 dark:bg-blue-500 dark:border-blue-500'
                           : 'border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                       }`}
                     >
@@ -457,8 +564,27 @@ export default function MembersPage({ teams = [], users = [], setUsers, currentU
                   )
                 })}
               </div>
+              {setTeams && (
+                <form onSubmit={handleAddTagForNewUser} className="flex gap-2 mt-2">
+                  <input
+                    type="text"
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    placeholder="Create new tag (e.g. Athletics, A/V)"
+                    className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newTagName.trim()}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-blue-500 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add tag
+                  </button>
+                </form>
+              )}
               {newUser.teamIds.length === 0 && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Select at least one team</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Select or create at least one team tag</p>
               )}
             </div>
             <div>
@@ -489,6 +615,7 @@ export default function MembersPage({ teams = [], users = [], setUsers, currentU
         <EditUserDrawer
           user={editingUser}
           teams={teams}
+          setTeams={setTeams}
           users={users}
           setUsers={setUsers}
           currentUser={currentUser}
