@@ -7,8 +7,8 @@ const SCOPES = ['openid', 'email', 'profile'].join(' ')
 /** Redirect to Google OAuth consent. Pass ?from=platform|lionheart to control post-login redirect. */
 export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID
-  const platformUrl = process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001'
-  const lionheartUrl = process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173'
+  const platformUrl = (process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001').replace(/\/+$/, '')
+  const lionheartUrl = (process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173').replace(/\/+$/, '')
 
   if (!clientId) {
     return NextResponse.json(

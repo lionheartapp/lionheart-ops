@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
     const stateParam = req.nextUrl.searchParams.get('state')
     const errorParam = req.nextUrl.searchParams.get('error')
 
-    const platformUrl = process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001'
-    const lionheartUrl = process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173'
+    const platformUrl = (process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001').replace(/\/+$/, '')
+    const lionheartUrl = (process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173').replace(/\/+$/, '')
 
     if (errorParam) {
       const loginPath = errorParam === 'access_denied' ? '/login' : '/login?error=oauth_failed'
@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   } catch (err) {
     console.error('Google OAuth callback error:', err)
-    const platformUrl = process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001'
+    const platformUrl = (process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001').replace(/\/+$/, '')
     return NextResponse.redirect(`${platformUrl}/login?error=oauth_failed`)
   }
 }
