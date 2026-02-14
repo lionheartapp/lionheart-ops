@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { Prisma } from '@prisma/client'
 import { prisma, prismaBase } from '@/lib/prisma'
 import { withOrg } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
@@ -27,9 +26,8 @@ export async function POST(req: NextRequest) {
         expenseDate,
         total,
         receiptUrl: body.receiptUrl,
-        ocrData: body.ocrData != null
-          ? (JSON.parse(JSON.stringify(body.ocrData)) as Prisma.InputJsonValue)
-          : undefined,
+        // Prisma Json type - cast to satisfy strict TS
+        ocrData: (body.ocrData != null ? JSON.parse(JSON.stringify(body.ocrData)) : undefined) as Parameters<typeof prisma.expense.create>[0]['data']['ocrData'],
         manHours: body.manHours,
       },
     })
