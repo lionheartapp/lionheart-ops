@@ -10,6 +10,7 @@ import {
   Calendar,
   ChevronDown,
   X,
+  ArrowRight,
 } from 'lucide-react'
 
 const STORAGE_KEY_PREFIX = 'lionheart-dashboard-todos'
@@ -42,7 +43,35 @@ const PRIORITY_OPTIONS = [
   { id: 'high', label: 'High', class: 'text-red-600 dark:text-red-400 bg-red-500/15' },
 ]
 
-export default function DashboardTodoWidget({ currentUser }) {
+import { PLATFORM_URL } from '../services/platformApi'
+import { isSuperAdmin } from '../data/teamsData'
+
+const ONBOARDING_STORAGE_KEY = 'lionheart-onboarding-checklist'
+
+const ONBOARDING_ITEMS = [
+  { id: 'upload-staff', label: 'Upload Staff CSV', link: '/app', tab: 'settings' },
+  { id: 'rebrand', label: 'Rebrand Organization', link: '/app', tab: 'settings' },
+  { id: 'verify-buildings', label: 'Verify Buildings', link: `${PLATFORM_URL}/campus`, external: true },
+]
+
+function loadOnboardingDone() {
+  try {
+    const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveOnboardingDone(itemId) {
+  try {
+    const done = loadOnboardingDone()
+    done[itemId] = true
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(done))
+  } catch {}
+}
+
+export default function DashboardTodoWidget({ currentUser, onNavigateToTab }) {
   const userId = currentUser?.id ?? 'anonymous'
   const [todos, setTodos] = useState(() => loadTodos(userId))
   const [input, setInput] = useState('')
@@ -226,6 +255,62 @@ export default function DashboardTodoWidget({ currentUser }) {
           </button>
         ))}
       </div>
+
+      {/* Onboarding checklist (super admin only) */}
+      {isSuperAdmin(currentUser) && (
+        <div className="p-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+            Getting Started
+          </p>
+          <div className="space-y-1.5">
+            {ONBOARDING_ITEMS.map((item) => {
+              const done = loadOnboardingDone()[item.id]
+              return (
+                <div
+                  key={item.id}
+                  className="flex flex-col p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50"
+                >
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => saveOnboardingDone(item.id)}
+                      className="shrink-0 text-zinc-400 hover:text-emerald-500 transition-colors"
+                      aria-label={done ? 'Mark incomplete' : 'Mark complete'}
+                    >
+                      {done ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Circle className="w-4 h-4" />}
+                    </button>
+                    <span className={`text-sm font-medium ${done ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                      {item.label}
+                    </span>
+                  </div>
+                  {!done && (
+                    <>
+                      {item.external ? (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1.5 ml-6 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                        >
+                          Take me there <ArrowRight className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToTab?.(item.tab)}
+                          className="mt-1.5 ml-6 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline text-left"
+                        >
+                          Take me there <ArrowRight className="w-3 h-3" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* List */}
       <div className="flex-1 overflow-y-auto min-h-0 p-3">

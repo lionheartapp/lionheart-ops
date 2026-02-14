@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Sidebar from './components/Sidebar'
 import CreateDropdown from './components/CreateDropdown'
@@ -25,6 +26,7 @@ import EventInfoModal from './components/EventInfoModal'
 import SettingsPage from './components/SettingsPage'
 import WaterManagementPage from './components/WaterManagementPage'
 import BillingPage from './components/BillingPage'
+import OnboardingModal from './components/OnboardingModal'
 import { INITIAL_EVENTS, userStartedEventWithTicketSales } from './data/eventsData'
 import { fetchIcalEvents } from './services/icalService'
 import { INITIAL_SUPPORT_REQUESTS } from './data/supportTicketsData'
@@ -73,6 +75,8 @@ const tabContent = {
 }
 
 export default function App() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
@@ -363,7 +367,7 @@ export default function App() {
                   </section>
                 </div>
                 <div className="shrink-0 pl-2">
-                  <DashboardTodoWidget key={effectiveUser?.id} currentUser={effectiveUser} />
+                  <DashboardTodoWidget key={effectiveUser?.id} currentUser={effectiveUser} onNavigateToTab={setActiveTab} />
                 </div>
               </div>
             </>
@@ -748,6 +752,22 @@ export default function App() {
           setAIFormModalOpen(false)
         }}
       />
+
+      {searchParams.get('onboarding') === '1' && (
+        <OnboardingModal
+          user={effectiveUser}
+          onComplete={(updatedUser) => {
+            setSearchParams((p) => {
+              const next = new URLSearchParams(p)
+              next.delete('onboarding')
+              return next
+            })
+            if (updatedUser && effectiveUser?.id === currentUser?.id) {
+              setCurrentUser((prev) => ({ ...prev, name: updatedUser.name, role: updatedUser.role }))
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

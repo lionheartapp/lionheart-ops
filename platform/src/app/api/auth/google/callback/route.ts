@@ -90,6 +90,7 @@ export async function GET(req: NextRequest) {
       where: { email },
       include: { organization: true },
     })
+    let isNewUser = false
 
     if (!user) {
       const emailDomain = email.split('@')[1] || ''
@@ -127,6 +128,7 @@ export async function GET(req: NextRequest) {
 
       if (existingOrg) {
         // Auto-join existing school (domain match)
+        isNewUser = true
         user = await prismaBase.user.create({
           data: {
             email,
@@ -134,20 +136,23 @@ export async function GET(req: NextRequest) {
             imageUrl: googleUser.picture || null,
             organizationId: existingOrg.id,
             role: 'TEACHER',
-            canSubmitEvents: true,
+            canSubmitEvents: false,
           },
           include: { organization: true },
         })
       } else {
-        // Create new org (first user = SUPER_ADMIN)
-        const slug = email.replace(/@.*/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'user'
+        // Create new school (first user = SUPER_ADMIN)
+        isNewUser = true
+        const baseSlug = emailDomain ? emailDomain.split('.')[0] : email.replace(/@.*/, '').replace(/[^a-z0-9]+/g, '-')
+        const slug = (baseSlug || 'school').replace(/^-|-$/g, '')
         const slugExists = await prismaBase.organization.findUnique({ where: { slug } })
-        const uniqueSlug = slugExists ? `${slug}-${Date.now().toString(36)}` : slug
+        const uniqueSlug = slugExists ? `${slug}-${Date.now().toString(36).slice(-6)}` : slug
 
         const org = await prismaBase.organization.create({
           data: {
-            name: googleUser.name || email.split('@')[0],
+            name: googleUser.name ? `${googleUser.name}'s School` : (email.split('@')[0] || 'My School'),
             slug: uniqueSlug,
+            website: emailDomain ? `https://www.${emailDomain}` : null,
             plan: 'CORE',
             settings: {
               modules: {
@@ -183,7 +188,8 @@ export async function GET(req: NextRequest) {
 
     const baseUrl = state.from === 'lionheart' ? lionheartUrl : platformUrl
     const authCallbackPath = '/auth/callback'
-    const redirectUrl = `${baseUrl}${authCallbackPath}?token=${encodeURIComponent(token)}&next=${encodeURIComponent(state.finalRedirect)}`
+    const nextPath = state.finalRedirect + (isNewUser ? '?onboarding=1' : '')
+    const redirectUrl = `${baseUrl}${authCallbackPath}?token=${encodeURIComponent(token)}&next=${encodeURIComponent(nextPath)}`
 
     return NextResponse.redirect(redirectUrl)
   } catch (err) {

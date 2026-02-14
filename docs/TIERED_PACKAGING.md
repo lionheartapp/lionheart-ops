@@ -120,6 +120,23 @@ WHERE name ILIKE '%linfield%' OR slug = 'linfield';
 
 Replace `linfield` with your school name/slug and the domains you want to allow.
 
+---
+
+## Onboarding Flow
+
+**First-time users** (new org or auto-joined) get `?onboarding=1` in the redirect and see **OnboardingModal**:
+
+1. Confirm/edit display name
+2. Select primary role (Teacher, Maintenance, IT Support, Administrator)
+
+**Super admins** see a **Getting Started** checklist in the Dashboard To-Do widget:
+
+- Upload Staff CSV → Settings
+- Rebrand Organization → Settings
+- Verify Buildings → Platform Campus Map (external link)
+
+**API:** `PATCH /api/user/me` — updates current user's name and role (Bearer token required).
+
 ### Fixing a user already in the wrong org
 
 If a user (e.g. `mkerley@linfield.com`) already signed in with Google and was put in a new org:
