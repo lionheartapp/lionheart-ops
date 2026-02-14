@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { PLATFORM_URL } from '../services/platformApi'
+import { AlertCircle } from 'lucide-react'
+
+const CHECK_DEBOUNCE_MS = 400
 
 export default function SignupPage() {
   const [schoolName, setSchoolName] = useState('')
@@ -9,10 +12,41 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [duplicateSchool, setDuplicateSchool] = useState(false)
+  const [checkingSchool, setCheckingSchool] = useState(false)
+  const debounceRef = useRef(null)
+
+  useEffect(() => {
+    const q = schoolName.trim()
+    if (q.length < 3) {
+      setDuplicateSchool(false)
+      return
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      debounceRef.current = null
+      setCheckingSchool(true)
+      try {
+        const res = await fetch(
+          `${PLATFORM_URL}/api/auth/check-school?name=${encodeURIComponent(q)}`
+        )
+        const data = await res.json()
+        setDuplicateSchool(data.exists === true)
+      } catch {
+        setDuplicateSchool(false)
+      } finally {
+        setCheckingSchool(false)
+      }
+    }, CHECK_DEBOUNCE_MS)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [schoolName])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    if (duplicateSchool) return
     if (!schoolName.trim() || !name.trim() || !email.trim() || !password.trim()) {
       setError('Please fill in all fields.')
       return
@@ -37,7 +71,11 @@ export default function SignupPage() {
       if (!res.ok) {
         throw new Error(data?.error || 'Signup failed')
       }
-      const { orgId } = data
+      const { orgId, orgName, userName } = data
+      const params = new URLSearchParams({ orgId })
+      if (orgName) params.set('orgName', orgName)
+      if (userName) params.set('userName', userName)
+      const setupUrl = `${PLATFORM_URL}/setup?${params}`
       // Optional: log in immediately by calling login API and storing token
       try {
         const loginRes = await fetch(`${PLATFORM_URL}/api/auth/login`, {
@@ -49,11 +87,11 @@ export default function SignupPage() {
         if (loginRes.ok && loginData.token) {
           const { setAuthToken } = await import('../services/platformApi')
           setAuthToken(loginData.token)
-          window.location.href = `${PLATFORM_URL}/setup?orgId=${encodeURIComponent(orgId)}`
+          window.location.href = setupUrl
           return
         }
       } catch {}
-      window.location.href = `${PLATFORM_URL}/setup?orgId=${encodeURIComponent(orgId)}`
+      window.location.href = setupUrl
     } catch (err) {
       setError(err?.message || 'Something went wrong.')
     } finally {
@@ -80,9 +118,20 @@ export default function SignupPage() {
               value={schoolName}
               onChange={(e) => setSchoolName(e.target.value)}
               placeholder="e.g. Lincoln Academy"
-              className="w-full px-4 py-3 rounded-lg bg-white border-2 border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className={`w-full px-4 py-3 rounded-lg bg-white border-2 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                duplicateSchool ? 'border-amber-500 focus:ring-amber-500' : 'border-zinc-200'
+              }`}
               required
             />
+            {checkingSchool && (
+              <p className="mt-1.5 text-xs text-zinc-500">Checking for existing school…</p>
+            )}
+            {duplicateSchool && !checkingSchool && (
+              <div className="mt-1.5 flex items-start gap-2 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <p>This school already has an account. <Link to="/login" className="font-medium underline hover:no-underline">Sign in</Link> or contact your administrator.</p>
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 mb-1.5">Your name</label>
@@ -123,7 +172,7 @@ export default function SignupPage() {
           )}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || duplicateSchool}
             className="w-full py-3 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-60"
           >
             {loading ? 'Creating account…' : 'Get started with email'}

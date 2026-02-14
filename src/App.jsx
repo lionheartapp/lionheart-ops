@@ -122,6 +122,19 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // Apply userName from URL (fallback when coming from setup - API may not have loaded yet)
+  useEffect(() => {
+    const userName = searchParams.get('userName')
+    if (userName?.trim() && currentUser?.id === 'u0') {
+      setCurrentUser((prev) => (prev ? { ...prev, name: userName.trim() } : prev))
+      setUsers((prev) => {
+        const idx = prev.findIndex((p) => p.id === 'u0')
+        if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, name: userName.trim() } : p))
+        return prev
+      })
+    }
+  }, [searchParams])
+
   // Fetch current user from Platform when logged in (use real name instead of "Admin User")
   useEffect(() => {
     if (!getAuthToken()) return

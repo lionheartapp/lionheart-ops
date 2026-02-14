@@ -124,7 +124,7 @@ export default function TopBar({
           aria-label="Account menu"
           aria-expanded={accountOpen}
         >
-          <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
             {initial}
           </div>
           <span className="hidden sm:block text-sm font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate">

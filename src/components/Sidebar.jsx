@@ -96,7 +96,7 @@ export default function Sidebar({
               <motion.button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-300 dark:text-blue-200' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-700 dark:text-blue-200' : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
                 whileTap={{ scale: 0.98 }}
               >
                 <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
@@ -115,7 +115,7 @@ export default function Sidebar({
                 type="button"
                 onClick={() => onTabChange('water-management')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors mt-0.5 ${
-                  activeTab === 'water-management' ? 'bg-blue-500/20 text-blue-300 dark:text-blue-200' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'
+                  activeTab === 'water-management' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-200' : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
                 <Droplets className="w-4 h-4 shrink-0" strokeWidth={2} />
@@ -139,7 +139,7 @@ export default function Sidebar({
                     key={item.id}
                     type="button"
                     onClick={() => onTabChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-300 dark:text-blue-200' : 'text-zinc-500 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10'}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-700 dark:text-blue-200' : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
                   >
                     <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
                     <span>{label}</span>

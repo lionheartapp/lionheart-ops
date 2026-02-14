@@ -10,6 +10,8 @@ export function middleware(req: NextRequest) {
   // Exclude: cron, auth (signup, login, Google OAuth, debug-url)
   if (
     req.nextUrl.pathname.startsWith('/api/cron/') ||
+    req.nextUrl.pathname === '/api/auth/check-school' ||
+    req.nextUrl.pathname === '/api/setup/org' ||
     req.nextUrl.pathname === '/api/auth/signup' ||
     req.nextUrl.pathname === '/api/auth/login' ||
     req.nextUrl.pathname === '/api/auth/google' ||
