@@ -85,7 +85,8 @@ export async function PATCH(req: NextRequest) {
 
     const updates: { name?: string; role?: string } = {}
     if (body.name != null && typeof body.name === 'string') {
-      updates.name = body.name.trim() || null
+      const trimmed = body.name.trim()
+      if (trimmed) updates.name = trimmed
     }
     if (body.role != null && typeof body.role === 'string') {
       const mapped = ROLE_MAP[body.role] || body.role
