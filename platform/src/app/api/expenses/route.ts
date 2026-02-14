@@ -26,8 +26,10 @@ export async function POST(req: NextRequest) {
         expenseDate,
         total,
         receiptUrl: body.receiptUrl,
-        // Prisma Json type - cast to satisfy strict TS
-        ocrData: (body.ocrData != null ? JSON.parse(JSON.stringify(body.ocrData)) : undefined) as Parameters<typeof prisma.expense.create>[0]['data']['ocrData'],
+        ocrData: body.ocrData != null
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (JSON.parse(JSON.stringify(body.ocrData)) as any)
+          : undefined,
         manHours: body.manHours,
       },
     })
