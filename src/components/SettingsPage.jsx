@@ -7,39 +7,210 @@ import {
   Users,
   Package,
   LayoutGrid,
-  Sun,
-  Moon,
   CreditCard,
+  Check,
+  AlertTriangle,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
-import SubscriptionSettings from './SubscriptionSettings'
-import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin } from '../data/teamsData'
-import { useTheme } from '../context/ThemeContext'
+import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
 
-const generalSettings = [
-  { id: 'apps', label: 'Apps', icon: LayoutGrid },
-  { id: 'account', label: 'Account', icon: User },
-  { id: 'appearance', label: 'Appearance', icon: Sun },
-  { id: 'notification', label: 'Notification', icon: Bell },
-  { id: 'language', label: 'Language & Region', icon: Globe },
-]
-
-const workspaceSettings = [
-  { id: 'general', label: 'General', icon: Wrench },
-  { id: 'members', label: 'Members', icon: Users },
-  { id: 'subscription', label: 'Subscription', icon: CreditCard },
-]
-
-const APP_MODULES = [
+// --- CONSTANTS ---
+const PRICING_PLANS = [
   {
-    id: 'inventory',
-    label: 'Inventory',
-    description: 'Track items and stock by location. Team members (A/V, IT, Facilities) see their team inventory; others can enable a personal inventory.',
-    icon: Package,
+    id: 'starter',
+    name: 'Starter',
+    priceMonthly: 199,
+    priceAnnual: 159,
+    description: 'Small private schools',
+    features: ['Maintenance & IT Tickets', 'Basic Calendar', 'Basic User Management'],
+    buttonLabel: 'Downgrade'
   },
+  {
+    id: 'pro',
+    name: 'Pro',
+    priceMonthly: 499,
+    priceAnnual: 399,
+    description: 'Standard K-12 schools',
+    features: ['Water Management Module', 'Inventory Tracking', 'Smart Event AI (Unlimited)', 'Visual Repair Assistant (50 uses/mo)'],
+    isPopular: true,
+    buttonLabel: 'Current Plan'
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    priceMonthly: null,
+    priceAnnual: null,
+    description: 'Multi-site / Districts',
+    features: ['Visual Campus (3D Matterport)', 'Monthly AI Budget Reports', 'Unlimited AI Usage', 'Dedicated Support Manager'],
+    buttonLabel: 'Contact Sales'
+  }
 ]
+
+// --- SUB-COMPONENTS ---
+
+function SubscriptionSection() {
+  const [billingCycle, setBillingCycle] = useState('monthly')
+  const currentPlanId = 'pro'
+  const isTrial = true
+  const daysLeft = 14
+
+  return (
+    <div className="space-y-8 max-w-5xl">
+      {/* 1. Trial Notice Banner */}
+      {isTrial && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 flex items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center shrink-0">
+               <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+             </div>
+             <div>
+               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                 Your Pro Trial is active
+               </h3>
+               <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                 You have <span className="font-medium text-amber-600 dark:text-amber-400">{daysLeft} days</span> left to explore all features.
+               </p>
+             </div>
+          </div>
+          <button className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm whitespace-nowrap">
+            Add Payment Method
+          </button>
+        </div>
+      )}
+
+      {/* 2. Header & Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+           <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Plans & Pricing</h2>
+           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+             Choose the plan that fits your school&apos;s needs.
+           </p>
+        </div>
+
+        <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg self-start">
+          <button
+            onClick={() => setBillingCycle('monthly')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+              billingCycle === 'monthly'
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingCycle('annual')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-1.5 ${
+              billingCycle === 'annual'
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+            }`}
+          >
+            Annual <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">-20%</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Pricing Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {PRICING_PLANS.map((plan) => {
+          const isActive = plan.id === currentPlanId
+          const price = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceAnnual
+
+          return (
+            <div
+              key={plan.id}
+              className={`relative flex flex-col p-6 rounded-2xl border transition-all ${
+                isActive
+                  ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/10 dark:bg-emerald-900/10'
+                  : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/40 hover:border-zinc-300 dark:hover:border-zinc-600'
+              }`}
+            >
+              {plan.isPopular && !isActive && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm">
+                  Best Value
+                </div>
+              )}
+              {isActive && isTrial && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm">
+                  Active Trial
+                </div>
+              )}
+
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{plan.name}</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 h-10">{plan.description}</p>
+              </div>
+
+              <div className="mb-6">
+                {price !== null ? (
+                   <div className="flex items-baseline gap-1">
+                     <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">${price}</span>
+                     <span className="text-sm text-zinc-500">/mo</span>
+                   </div>
+                ) : (
+                   <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Custom</div>
+                )}
+                {billingCycle === 'annual' && price !== null && (
+                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+                     Billed ${price * 12} yearly
+                   </p>
+                )}
+              </div>
+
+              <div className="space-y-3 mb-8 flex-1">
+                {plan.features.map((feature, i) => (
+                  <div key={i} className="flex items-start gap-3 text-sm text-zinc-600 dark:text-zinc-300">
+                    <Check className={`w-4 h-4 shrink-0 mt-0.5 ${isActive ? 'text-emerald-500' : 'text-zinc-400'}`} />
+                    <span className="leading-snug">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                    : 'border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700'
+                }`}
+              >
+                {isActive ? (isTrial ? 'Activate Subscription' : 'Current Plan') : plan.buttonLabel}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 4. Payment Method (Placeholder for Stripe) */}
+      <div className="border-t border-zinc-200 dark:border-zinc-800 pt-8">
+        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Payment Method</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+           <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+             <CreditCard className="w-5 h-5 text-zinc-500" />
+           </div>
+           <div className="flex-1">
+             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">No payment method added</p>
+             <p className="text-xs text-zinc-500 dark:text-zinc-400">Add a card to ensure uninterrupted service when your trial ends.</p>
+           </div>
+           <button className="px-4 py-2 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium rounded-lg hover:bg-white dark:hover:bg-zinc-800 transition-colors">
+             + Add Card
+           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function AppsSection({ currentUser, teams, hasTeamInventory, showInventoryPref, onInventoryPrefChange }) {
+  const APP_MODULES = [
+    {
+      id: 'inventory',
+      label: 'Inventory',
+      description: 'Track items and stock by location. Team members (A/V, IT, Facilities) see their team inventory; others can enable a personal inventory.',
+      icon: Package,
+    },
+  ]
+
   const getTeamLabel = () => {
     if (isAVTeam(currentUser, teams)) return 'A/V'
     if (isFacilitiesTeam(currentUser, teams)) return 'Facilities'
@@ -52,7 +223,7 @@ function AppsSection({ currentUser, teams, hasTeamInventory, showInventoryPref, 
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Apps</h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        Enable or disable modules to customize your sidebar. Team apps (e.g. Inventory for A/V, IT, Facilities) are always available to their teams.
+        Enable or disable modules to customize your sidebar.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         {APP_MODULES.map((module) => {
@@ -105,51 +276,6 @@ function AppsSection({ currentUser, teams, hasTeamInventory, showInventoryPref, 
   )
 }
 
-function AppearanceSection() {
-  const { theme, setTheme, isDark } = useTheme()
-  return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Appearance</h2>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        Choose how Lionheart looks for you. Light mode is the default; dark mode reduces eye strain in low light.
-      </p>
-      <div className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 dark:border-blue-950/30 bg-white dark:bg-zinc-800/50">
-        <div className="flex-1">
-          <h3 className="font-medium text-zinc-900 dark:text-zinc-100">Dark mode</h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Use a dark theme for the dashboard and app
-          </p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={isDark}
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 ${
-            isDark ? 'bg-primary-600' : 'bg-zinc-300 dark:bg-zinc-600'
-          }`}
-        >
-          <span
-            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition ${
-              isDark ? 'translate-x-5' : 'translate-x-1'
-            }`}
-          />
-        </button>
-      </div>
-      <div className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-        {isDark ? (
-          <Moon className="w-4 h-4 text-primary-600" />
-        ) : (
-          <Sun className="w-4 h-4 text-primary-600" />
-        )}
-        <span>
-          {isDark ? 'Dark mode is on' : 'Light mode is on'}
-        </span>
-      </div>
-    </div>
-  )
-}
-
 function AccountSection({ currentUser }) {
   const nameParts = (currentUser?.name ?? '').split(' ')
   const [firstName, setFirstName] = useState(nameParts[0] ?? '')
@@ -172,18 +298,15 @@ function AccountSection({ currentUser }) {
                 type="button"
                 className="px-4 py-2.5 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100"
               >
-                + Change Image
+                Change Image
               </button>
               <button
                 type="button"
                 className="px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800"
               >
-                Remove Image
+                Remove
               </button>
             </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              We support PNGs, JPEGs and GIFs under 2MB
-            </p>
             <div className="space-y-4 mt-6 max-w-sm">
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">First Name</label>
@@ -192,7 +315,6 @@ function AccountSection({ currentUser }) {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                  placeholder="First name"
                 />
               </div>
               <div>
@@ -202,7 +324,6 @@ function AccountSection({ currentUser }) {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                  placeholder="Last name"
                 />
               </div>
               <div>
@@ -212,7 +333,7 @@ function AccountSection({ currentUser }) {
                   value={positionTitle}
                   onChange={(e) => setPositionTitle(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                  placeholder="e.g. Athletic Director, Teacher"
+                  placeholder="e.g. Athletic Director"
                 />
               </div>
             </div>
@@ -234,14 +355,10 @@ function SettingsSectionContent({
   showInventoryPref,
   onInventoryPrefChange,
 }) {
-  if (section === 'subscription') {
-    return <SubscriptionSettings />
-  }
   if (section === 'members') {
     return (
       <MembersPage
         teams={teams}
-        setTeams={setTeams}
         users={users}
         setUsers={setUsers}
         currentUser={currentUser}
@@ -252,17 +369,14 @@ function SettingsSectionContent({
   const labels = {
     apps: 'Apps',
     account: 'Account',
-    appearance: 'Appearance',
+    subscription: 'Subscription',
     notification: 'Notification',
     language: 'Language & Region',
     general: 'General',
-    members: 'Members',
-    subscription: 'Subscription',
   }
 
   const content = {
     account: <AccountSection currentUser={currentUser} />,
-    appearance: <AppearanceSection />,
     apps: (
       <AppsSection
         currentUser={currentUser}
@@ -272,25 +386,37 @@ function SettingsSectionContent({
         onInventoryPrefChange={onInventoryPrefChange}
       />
     ),
+    subscription: <SubscriptionSection />
   }
 
-  if (section === 'account') return content.account
-  if (section === 'apps') return content.apps
-  if (section === 'appearance') return content.appearance
+  if (content[section]) return content[section]
 
   return (
     <div className="space-y-8">
       <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
         {labels[section] ?? section}
       </h2>
-      {content[section] ?? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {labels[section]} settings coming soon.
-        </p>
-      )}
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        {labels[section]} settings coming soon.
+      </p>
     </div>
   )
 }
+
+// --- MAIN PAGE COMPONENT ---
+
+const generalSettings = [
+  { id: 'apps', label: 'Apps', icon: LayoutGrid },
+  { id: 'account', label: 'Account', icon: User },
+  { id: 'notification', label: 'Notification', icon: Bell },
+  { id: 'language', label: 'Language & Region', icon: Globe },
+]
+
+const workspaceSettings = [
+  { id: 'general', label: 'General', icon: Wrench },
+  { id: 'members', label: 'Members', icon: Users },
+  { id: 'subscription', label: 'Subscription', icon: CreditCard },
+]
 
 export default function SettingsPage({
   settingsSection,
@@ -304,11 +430,7 @@ export default function SettingsPage({
   showInventoryPref = false,
   onInventoryPrefChange,
 }) {
-  const superAdmin = isSuperAdmin(currentUser)
-  const workspaceItemsToShow = superAdmin
-    ? workspaceSettings
-    : workspaceSettings.filter((s) => s.id !== 'subscription')
-  const allSections = [...generalSettings, ...workspaceItemsToShow]
+  const allSections = [...generalSettings, ...workspaceSettings]
   const activeSection = allSections.some((s) => s.id === settingsSection)
     ? settingsSection
     : 'apps'
@@ -316,11 +438,11 @@ export default function SettingsPage({
   return (
     <div className="flex-1 flex min-h-0 gap-0">
       {/* Secondary settings nav */}
-      <nav className="w-52 shrink-0 flex flex-col border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40 bg-zinc-50/50 dark:bg-zinc-900/50 py-4">
-        <div className="px-3 space-y-6">
+      <nav className="w-56 shrink-0 flex flex-col border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40 bg-zinc-50/50 dark:bg-zinc-900/50 py-6">
+        <div className="px-3 space-y-8">
           <div>
-            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              General Settings
+            <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              General
             </p>
             <div className="mt-1 space-y-0.5">
               {generalSettings.map((item) => {
@@ -331,9 +453,9 @@ export default function SettingsPage({
                     key={item.id}
                     type="button"
                     onClick={() => onSettingsSectionChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300'
+                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
                     }`}
                   >
@@ -345,11 +467,11 @@ export default function SettingsPage({
             </div>
           </div>
           <div>
-            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Workspace Settings
+            <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              Workspace
             </p>
             <div className="mt-1 space-y-0.5">
-              {workspaceItemsToShow.map((item) => {
+              {workspaceSettings.map((item) => {
                 const Icon = item.icon
                 const isActive = activeSection === item.id
                 return (
@@ -357,9 +479,9 @@ export default function SettingsPage({
                     key={item.id}
                     type="button"
                     onClick={() => onSettingsSectionChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300'
+                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
                     }`}
                   >
@@ -374,7 +496,7 @@ export default function SettingsPage({
       </nav>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 overflow-auto p-6 lg:p-8">
+      <div className="flex-1 min-w-0 overflow-auto p-8 lg:p-10">
         <SettingsSectionContent
           section={activeSection}
           currentUser={currentUser}

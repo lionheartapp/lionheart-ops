@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Loader2, Search, MapPin, Users, FileSpreadsheet, Globe, Upload } from 'lucide-react'
+import { Check, Loader2, Search, MapPin, Users, FileSpreadsheet, Globe, Upload, Link as LinkIcon, Copy, Plus, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import confetti from 'canvas-confetti'
@@ -77,7 +77,12 @@ function SetupWizard({
   useEffect(() => {
     if (orgNameFromUrl) setSchoolData((p) => ({ ...p, name: orgNameFromUrl }))
   }, [orgNameFromUrl])
-  const [invites, setInvites] = useState(['', '', ''])
+  const [invites, setInvites] = useState<Array<{ email: string; role: string }>>([
+    { email: '', role: 'ADMIN' },
+    { email: '', role: 'VIEWER' },
+    { email: '', role: 'VIEWER' },
+  ])
+  const [linkCopied, setLinkCopied] = useState(false)
   const [csvMembers, setCsvMembers] = useState<Array<{ name: string; email: string; role?: string; teamNames?: string[] }>>([])
   const csvInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -226,13 +231,30 @@ function SetupWizard({
     frame()
   }
 
+  const addInviteRow = () => setInvites((p) => [...p, { email: '', role: 'VIEWER' }])
+  const removeInviteRow = (idx: number) => setInvites((p) => p.filter((_, i) => i !== idx))
+  const updateInvite = (idx: number, field: 'email' | 'role', value: string) => {
+    setInvites((p) => {
+      const n = [...p]
+      n[idx] = { ...n[idx], [field]: value }
+      return n
+    })
+  }
+
+  const copyInviteLink = () => {
+    const base = LIONHEART_URL.replace(/\/+$/, '')
+    navigator.clipboard.writeText(`${base}/join/${orgId}`)
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2000)
+  }
+
   const handleFinishSetup = async (skipInvites = false) => {
     setLoading(true)
     fireConfetti()
     setStep(3)
     if (token && !skipInvites) {
       const hasCsv = csvMembers.length > 0
-      const manualEmails = invites.filter((e) => e.trim().includes('@'))
+      const manualMembers = invites.filter((i) => i.email.trim().includes('@')).map((i) => ({ email: i.email.trim().toLowerCase(), role: i.role }))
       try {
         if (hasCsv) {
           await fetch('/api/setup/invite-members', {
@@ -240,11 +262,11 @@ function SetupWizard({
             headers: authHeaders,
             body: JSON.stringify({ orgId, members: csvMembers }),
           })
-        } else if (manualEmails.length > 0) {
+        } else if (manualMembers.length > 0) {
           await fetch('/api/setup/invite-members', {
             method: 'POST',
             headers: authHeaders,
-            body: JSON.stringify({ orgId, emails: manualEmails }),
+            body: JSON.stringify({ orgId, members: manualMembers }),
           })
         }
       } catch {
@@ -499,7 +521,24 @@ function SetupWizard({
               <p className="text-zinc-400 text-sm mt-1">Operations work better together.</p>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 p-4 rounded-xl bg-zinc-950/50 border border-zinc-700 flex items-center gap-3">
+              <LinkIcon className="w-5 h-5 text-zinc-500 shrink-0" />
+              <input
+                readOnly
+                value={`${LIONHEART_URL.replace(/\/+$/, '')}/join/${orgId}`}
+                className="flex-1 bg-transparent border-0 text-sm text-zinc-400 focus:ring-0 min-w-0"
+              />
+              <button
+                type="button"
+                onClick={copyInviteLink}
+                className="px-4 py-2 rounded-lg border border-zinc-600 text-zinc-300 hover:bg-zinc-800 text-xs font-medium transition-colors flex items-center gap-2 shrink-0"
+              >
+                {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {linkCopied ? 'Copied' : 'Copy Link'}
+              </button>
+            </div>
+
+            <div className="mb-4">
               <input ref={csvInputRef} type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
               <button
                 type="button"
@@ -513,26 +552,49 @@ function SetupWizard({
 
             <p className="text-xs text-zinc-500 mb-3">Or enter emails:</p>
             <div className="space-y-3 mb-6">
-              {invites.map((email, idx) => (
-                <div key={idx} className="relative">
-                  <input
-                    type="email"
-                    placeholder="colleague@school.edu"
-                    className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-500 bg-zinc-900/80 border border-zinc-700 focus:ring-2 focus:ring-[#3b82f6]/50 outline-none"
-                    value={email}
-                    onChange={(e) => {
-                      const n = [...invites]
-                      n[idx] = e.target.value
-                      setInvites(n)
-                    }}
-                  />
-                  {email.trim().includes('@') && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500">
-                      <Check className="w-5 h-5" />
-                    </div>
+              {invites.map((inv, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="email"
+                      placeholder="colleague@school.edu"
+                      className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-500 bg-zinc-900/80 border border-zinc-700 focus:ring-2 focus:ring-[#3b82f6]/50 outline-none pr-10"
+                      value={inv.email}
+                      onChange={(e) => updateInvite(idx, 'email', e.target.value)}
+                    />
+                    {inv.email.trim().includes('@') && (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500">
+                        <Check className="w-5 h-5" />
+                      </div>
+                    )}
+                  </div>
+                  <select
+                    className="w-28 rounded-xl px-3 py-3 text-white bg-zinc-900/80 border border-zinc-700 focus:ring-2 focus:ring-[#3b82f6]/50 outline-none text-sm"
+                    value={inv.role}
+                    onChange={(e) => updateInvite(idx, 'role', e.target.value)}
+                  >
+                    <option value="ADMIN">Admin</option>
+                    <option value="SITE_SECRETARY">Secretary</option>
+                    <option value="VIEWER">Viewer</option>
+                  </select>
+                  {invites.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeInviteRow(idx)}
+                      className="p-2.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded-xl transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               ))}
+              <button
+                type="button"
+                onClick={addInviteRow}
+                className="text-sm text-[#3b82f6] hover:text-[#60a5fa] font-medium flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" /> Add another
+              </button>
             </div>
 
             <button
