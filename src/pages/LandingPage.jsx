@@ -1,175 +1,226 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Calendar, ShieldCheck, Map, ArrowRight, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 
-const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
+const PRICING_PLANS = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    priceMonthly: 199,
+    priceAnnual: 159,
+    description: 'Perfect for small private schools.',
+    features: ['Maintenance & IT Tickets', 'Basic Calendar', 'Up to 300 students'],
+    buttonLabel: 'Start Free Trial',
+    href: '/signup?plan=starter'
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    priceMonthly: 499,
+    priceAnnual: 399,
+    description: 'The standard for K-12 operations.',
+    features: ['Water Management Module', 'Inventory Tracking', 'Smart Event AI (Unlimited)', 'Visual Repair Assistant', 'Up to 1,000 students'],
+    isPopular: true,
+    buttonLabel: 'Start Free Trial',
+    href: '/signup?plan=pro'
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    priceMonthly: null,
+    priceAnnual: null,
+    description: 'For multi-site districts & large campuses.',
+    features: ['Visual Campus (3D Matterport)', 'Monthly AI Budget Reports', 'Unlimited AI Usage', 'Dedicated Support Manager', 'Unlimited students'],
+    buttonLabel: 'Contact Sales',
+    href: 'mailto:sales@lionheart.app'
+  }
+]
+
+function PricingSection() {
+  const [billingCycle, setBillingCycle] = useState('annual') // Default to annual for higher ACV
+
+  return (
+    <section className="w-full max-w-6xl mx-auto px-6 py-24">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
+          <Check className="w-3 h-3" />
+          14-Day Free Trial &bull; No Credit Card Required
+        </div>
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          Simple, transparent pricing
+        </h2>
+        <p className="text-zinc-400 max-w-xl mx-auto">
+          Site licenses based on feature needs. Start free and upgrade when you&apos;re ready.
+        </p>
+
+        {/* Toggle */}
+        <div className="flex items-center justify-center mt-8 gap-3">
+          <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-zinc-500'}`}>Monthly</span>
+          <button
+            onClick={() => setBillingCycle((c) => (c === 'monthly' ? 'annual' : 'monthly'))}
+            className="relative w-14 h-8 rounded-full bg-zinc-800 border border-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+          >
+            <div className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-emerald-500 transition-transform ${billingCycle === 'annual' ? 'translate-x-6' : 'translate-x-0'}`} />
+          </button>
+          <span className={`text-sm font-medium flex items-center gap-2 ${billingCycle === 'annual' ? 'text-white' : 'text-zinc-500'}`}>
+            Yearly
+            <span className="text-[10px] font-bold text-emerald-900 bg-emerald-400 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+              Save 20%
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        {PRICING_PLANS.map((plan) => {
+          const price = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceAnnual
+          const isCustom = price === null
+
+          return (
+            <div
+              key={plan.id}
+              className={`relative flex flex-col p-8 rounded-2xl border transition-all ${
+                plan.isPopular
+                  ? 'bg-zinc-900/80 border-emerald-500/50 shadow-2xl shadow-emerald-900/20 z-10 scale-105 md:scale-110'
+                  : 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-700'
+              }`}
+            >
+              {plan.isPopular && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                  Most Popular
+                </div>
+              )}
+
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
+                <p className="text-sm text-zinc-400 mt-2 min-h-[40px]">{plan.description}</p>
+              </div>
+
+              <div className="mb-8">
+                {!isCustom ? (
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-white">${price}</span>
+                    <span className="text-zinc-500">/mo</span>
+                  </div>
+                ) : (
+                  <div className="text-4xl font-bold text-white">Custom</div>
+                )}
+                {!isCustom && billingCycle === 'annual' && (
+                   <p className="text-xs text-emerald-400 mt-2 font-medium">
+                     Billed ${price * 12} yearly
+                   </p>
+                )}
+              </div>
+
+              <div className="space-y-4 mb-8 flex-1">
+                {plan.features.map((feat, i) => (
+                  <div key={i} className="flex items-start gap-3 text-sm text-zinc-300">
+                    <Check className={`w-4 h-4 mt-0.5 shrink-0 ${plan.isPopular ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+
+              {plan.href.startsWith('http') || plan.href.startsWith('mailto') ? (
+                <a
+                  href={plan.href}
+                  className={`w-full py-3 rounded-xl text-center text-sm font-semibold transition-colors ${
+                    plan.isPopular
+                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      : 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700'
+                  }`}
+                >
+                  {plan.buttonLabel}
+                </a>
+              ) : (
+                <Link
+                  to={plan.href}
+                  className={`w-full py-3 rounded-xl text-center text-sm font-semibold transition-colors block ${
+                    plan.isPopular
+                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      : 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700'
+                  }`}
+                >
+                  {plan.buttonLabel}
+                </Link>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 
 export default function LandingPage() {
-  const [heroImgError, setHeroImgError] = useState(false)
   return (
-    <div className="min-h-screen bg-white text-zinc-900 font-sans">
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-900 rounded-lg flex items-center justify-center">
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-900 max-w-7xl mx-auto w-full">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
             <span className="text-white font-bold text-lg">L</span>
           </div>
-          <span className="font-bold text-xl tracking-tight text-primary-900">Lionheart</span>
-        </div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
-          <a href="#features" className="hover:text-primary-600">Features</a>
-          <a href="#pricing" className="hover:text-primary-600">Pricing</a>
-          <Link to="/login" className="hover:text-primary-600">Sign in</Link>
-          <Link to="/signup" className="px-4 py-2 bg-primary-900 text-white rounded-full hover:bg-primary-800 transition-all">
+          <span className="font-bold text-xl tracking-tight text-white">Lionheart</span>
+        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">
+            Sign in
+          </Link>
+          <Link to="/signup" className="px-4 py-2 bg-white text-zinc-950 rounded-lg font-semibold text-sm hover:bg-zinc-200 transition-colors">
             Get Started
           </Link>
         </div>
       </nav>
 
-      <main>
-      <section className="relative pt-20 pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
-              AI-Powered School Operations
-            </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold text-primary-950 leading-[1.1] tracking-tight">
-              Operational excellence for <span className="text-primary-600">modern schools.</span>
-            </h1>
-            <p className="text-xl text-zinc-600 leading-relaxed max-w-xl">
-              Unify events, facilities, IT, and maintenance in a single, proactive platform. Built for institutions that prioritize efficiency over paperwork.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/signup" className="px-8 py-4 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-700 transition-all shadow-xl shadow-primary-200 flex items-center justify-center gap-2">
-                Start for Free <ArrowRight className="w-5 h-5" />
-              </Link>
-              <a href={`${PLATFORM_URL}/campus`} target="_blank" rel="noreferrer" className="px-8 py-4 rounded-xl border-2 border-zinc-200 text-zinc-700 font-bold text-lg hover:bg-zinc-50 transition-all flex items-center justify-center gap-2">
-                View Campus Demo
-              </a>
-            </div>
-          </div>
-
-          {/* AI Interface Preview */}
-          <div className="relative group">
-            <div className="absolute -inset-4 bg-gradient-to-tr from-primary-500/20 to-violet-500/20 blur-3xl rounded-full opacity-50" />
-            <div className="relative bg-white/80 backdrop-blur-xl border border-zinc-200/60 rounded-2xl overflow-hidden bg-zinc-100/50 p-2 shadow-2xl">
-              <div className="relative w-full h-[400px] rounded-xl overflow-hidden bg-zinc-200">
-                {heroImgError ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200">
-                    <div className="text-center text-primary-700">
-                      <Sparkles className="w-16 h-16 mx-auto mb-2 opacity-50" />
-                      <p className="font-medium">AI-Powered Operations</p>
-                    </div>
-                  </div>
-                ) : (
-                  <img
-                    src="/stock-images/image4-b32b7720-e993-4df4-a31a-d52335f42928.png"
-                    alt="Students and staff"
-                    className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700"
-                    onError={() => setHeroImgError(true)}
-                  />
-                )}
-              </div>
-              <div className="absolute bottom-6 left-6 right-6 bg-white/80 backdrop-blur-xl p-4 rounded-xl border border-white/20 shadow-2xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-zinc-900">Smart Event Assistant</p>
-                    <p className="text-xs text-zinc-600">&quot;Scheduling the Gym for Friday. Detecting no conflicts.&quot;</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Hero Section */}
+      <div className="flex flex-col items-center justify-center px-6 pt-24 pb-12 text-center">
+        <div className="max-w-3xl space-y-8">
+          <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-tight">
+            School operations.
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+              Simplified.
+            </span>
+          </h1>
+          <p className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+            Events, facilities, IT tickets, and maintenance&mdash;all in one place.
+            Built for schools that need to move fast without the paperwork.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <Link
+              to="/signup"
+              className="px-8 py-4 rounded-xl bg-white text-zinc-950 font-bold text-lg hover:bg-zinc-200 transition-colors"
+            >
+              Get Started
+            </Link>
+            <Link
+              to="/login"
+              className="px-8 py-4 rounded-xl border border-zinc-700 text-zinc-300 font-semibold text-lg hover:bg-zinc-800 transition-colors"
+            >
+              Sign in
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Feature Pillars */}
-      <section id="features" className="py-24 bg-zinc-50/50 border-y border-zinc-100">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl font-bold text-primary-950">One platform. Every department.</h2>
-            <p className="text-zinc-500 max-w-2xl mx-auto">Built to replace legacy silos with a single source of truth for your entire campus.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { icon: Calendar, title: 'Proactive Events', desc: 'AI-parsed requests with automatic inventory and spatial conflict detection.' },
-              { icon: ShieldCheck, title: 'Facilities & IT', desc: 'Tiered ticketing with safety-mode overlays and man-hour tracking.' },
-              { icon: Map, title: '360° Campus Map', desc: 'Interactive Matterport tours with deep-linked room pins and schedules.' },
-            ].map((f, i) => (
-              <div key={i} className="p-8 rounded-2xl bg-white border border-zinc-200 hover:shadow-xl transition-all group">
-                <div className="w-12 h-12 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:text-white transition-colors">
-                  <f.icon className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-zinc-900 mb-3">{f.title}</h3>
-                <p className="text-zinc-600 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Pricing Section */}
+      <div className="bg-zinc-950 border-t border-zinc-900/50">
+        <PricingSection />
+      </div>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-24 bg-white border-t border-zinc-100">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16 space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold">
-              <Check className="w-4 h-4" />
-              14-Day Free Trial • No Credit Card Required
-            </div>
-            <h2 className="text-3xl font-bold text-primary-950">Simple, transparent pricing</h2>
-            <p className="text-zinc-500 max-w-2xl mx-auto">
-              Simple site licenses. Start free and upgrade when you&apos;re ready.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              { name: 'Starter', price: 199, priceLabel: '$199/mo', features: ['Maintenance & IT Tickets', 'Basic Calendar', 'Basic User Management'], cta: 'Start Free Trial', href: '/signup' },
-              { name: 'Pro', price: 499, priceLabel: '$499/mo', features: ['Water Management', 'Inventory Tracking', 'Smart Event AI', 'Visual Repair Assistant'], cta: 'Start Free Trial', href: '/signup', highlight: true },
-              { name: 'Enterprise', price: null, priceLabel: 'Custom', features: ['Visual Campus (3D Matterport)', 'Monthly AI Budget Reports', 'Unlimited AI Usage', 'Dedicated Support'], cta: 'Contact Sales', href: 'mailto:sales@lionheart.app' },
-            ].map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border-2 p-8 flex flex-col ${plan.highlight ? 'border-primary-500 bg-primary-50/30 shadow-xl shadow-primary-200/30' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}
-              >
-                {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary-600 text-white text-xs font-bold uppercase tracking-wider">
-                    Best Deal
-                  </div>
-                )}
-                <h3 className="text-xl font-bold text-zinc-900 mb-1">{plan.name}</h3>
-                <p className="text-3xl font-extrabold text-primary-900 mb-6">{plan.priceLabel}</p>
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-zinc-700">
-                      <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                {plan.href.startsWith('/') ? (
-                  <Link
-                    to={plan.href}
-                    className={`block text-center py-3 px-6 rounded-xl font-bold transition-all ${plan.highlight ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}
-                  >
-                    {plan.cta}
-                  </Link>
-                ) : (
-                  <a
-                    href={plan.href}
-                    className={`block text-center py-3 px-6 rounded-xl font-bold transition-all ${plan.highlight ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}
-                  >
-                    {plan.cta}
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-zinc-900 py-12 text-center">
+        <div className="flex items-center justify-center gap-6 mb-8 text-sm text-zinc-500 font-medium">
+           <p>Event Requests</p>
+           <p>Facilities &amp; IT</p>
+           <p>360&deg; Campus</p>
+           <p>Multi-tenant</p>
         </div>
-      </section>
-      </main>
+        <p className="text-zinc-600 text-sm">
+          &copy; {new Date().getFullYear()} Lionheart Operations. All rights reserved.
+        </p>
+      </footer>
     </div>
   )
 }

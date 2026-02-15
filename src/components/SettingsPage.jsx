@@ -58,7 +58,7 @@ function SubscriptionSection() {
     <div className="space-y-8 max-w-5xl">
       {/* 1. Trial Notice Banner */}
       {isTrial && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 flex items-start sm:items-center justify-between gap-4">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center shrink-0">
                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
@@ -116,6 +116,9 @@ function SubscriptionSection() {
         {PRICING_PLANS.map((plan) => {
           const isActive = plan.id === currentPlanId
           const price = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceAnnual
+          const yearlySavings = plan.priceMonthly && plan.priceAnnual
+            ? (plan.priceMonthly * 12) - (plan.priceAnnual * 12)
+            : 0
 
           return (
             <div
@@ -144,15 +147,22 @@ function SubscriptionSection() {
 
               <div className="mb-6">
                 {price !== null ? (
-                   <div className="flex items-baseline gap-1">
-                     <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">${price}</span>
-                     <span className="text-sm text-zinc-500">/mo</span>
+                   <div>
+                     <div className="flex items-baseline gap-1">
+                       <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">${price}</span>
+                       <span className="text-sm text-zinc-500">/mo</span>
+                     </div>
+                     {billingCycle === 'annual' && yearlySavings > 0 && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium bg-emerald-100 dark:bg-emerald-900/30 inline-block px-2 py-0.5 rounded">
+                          Save ${yearlySavings}/year
+                        </p>
+                     )}
                    </div>
                 ) : (
                    <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Custom</div>
                 )}
                 {billingCycle === 'annual' && price !== null && (
-                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+                   <p className="text-xs text-zinc-400 mt-1">
                      Billed ${price * 12} yearly
                    </p>
                 )}
