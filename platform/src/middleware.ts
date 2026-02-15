@@ -7,11 +7,12 @@ export function middleware(req: NextRequest) {
   }
 
   // Require x-org-id or Authorization Bearer for API requests (multi-tenant context)
-  // Exclude: cron, auth (signup, login, Google OAuth, debug-url)
+  // Exclude: cron, auth (signup, login, Google OAuth, debug-url), setup (maps-key is public for onboarding)
   if (
     req.nextUrl.pathname.startsWith('/api/cron/') ||
     req.nextUrl.pathname === '/api/auth/check-school' ||
     req.nextUrl.pathname === '/api/setup/org' ||
+    req.nextUrl.pathname === '/api/setup/maps-key' ||
     req.nextUrl.pathname === '/api/auth/signup' ||
     req.nextUrl.pathname === '/api/auth/login' ||
     req.nextUrl.pathname === '/api/auth/google' ||
