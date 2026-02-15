@@ -71,9 +71,10 @@ export async function PATCH(req: NextRequest) {
         : {}) as Record<string, unknown>
       if (body.address !== undefined) branding.address = body.address?.trim() ?? null
       if (body.colors) {
+        const existing = branding.colors as { primary?: string; secondary?: string } | undefined
         branding.colors = {
-          primary: body.colors.primary ?? branding.colors?.primary ?? '#003366',
-          secondary: body.colors.secondary ?? (branding.colors as { secondary?: string })?.secondary ?? '#c4a006',
+          primary: body.colors.primary ?? existing?.primary ?? '#003366',
+          secondary: body.colors.secondary ?? existing?.secondary ?? '#c4a006',
         }
       }
       updates.settings = { ...currentSettings, branding }
