@@ -1,51 +1,14 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GoogleMap, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api'
-import { Search, MapPin, ArrowRight, Sparkles, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react'
+import { useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api'
+import { ArrowRight, Check, Loader2, School, Building2, Upload } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import confetti from 'canvas-confetti'
 
 const LIBRARIES: ('places')[] = ['places']
-
-const MAP_STYLES = [
-  { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#263c3f' }] },
-  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a76' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
-  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
-  { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] },
-]
-
-const mapOptions: google.maps.MapOptions = {
-  disableDefaultUI: true,
-  mapTypeId: 'hybrid',
-  styles: MAP_STYLES,
-  tilt: 45,
-  heading: 0,
-}
-
-type SchoolData = {
-  name: string
-  address: string
-  colors: { primary: string; secondary: string }
-  logo: string | null
-  website: string
-  isVerifiedSchool: boolean
-  nameMismatch?: string // orgName if it doesn't match place name
-}
-
 const LIONHEART_URL = (process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173').replace(/\/+$/, '')
 
 function extractDomain(place: google.maps.places.PlaceResult): string | null {
@@ -79,12 +42,12 @@ function SetupContent() {
 
   if (!orgId) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
         <div className="text-center text-zinc-500">
           <p className="text-lg">Missing organization. Please complete signup first.</p>
           <a
             href={`${LIONHEART_URL}/signup`}
-            className="mt-4 inline-block text-blue-400 hover:underline font-medium"
+            className="mt-4 inline-block text-blue-500 hover:underline font-medium"
           >
             Go to signup →
           </a>
@@ -95,7 +58,7 @@ function SetupContent() {
 
   if (mapsKeyLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">
+      <div className="min-h-screen bg-white flex items-center justify-center text-zinc-400">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin" />
           <span>Loading…</span>
@@ -106,23 +69,26 @@ function SetupContent() {
 
   if (!mapsKey) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 text-zinc-400 text-center max-w-md space-y-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-6 text-zinc-500 text-center max-w-md space-y-4">
         <p>
-          Google Maps API key is not configured. Add <code className="text-zinc-300">GOOGLE_PLACES_API_KEY</code> or{' '}
-          <code className="text-zinc-300">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to:
+          Google Maps API key is not configured. Add <code className="text-zinc-600">GOOGLE_PLACES_API_KEY</code> or{' '}
+          <code className="text-zinc-600">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to platform/.env
         </p>
-        <ul className="text-left space-y-1 text-sm">
-          <li>• <strong>Local:</strong> <code className="text-zinc-300">platform/.env</code></li>
-          <li>• <strong>Vercel:</strong> Project → Settings → Environment Variables</li>
-        </ul>
       </div>
     )
   }
 
-  return <SetupMapFlow orgId={orgId} orgNameFromUrl={orgNameFromUrl} searchParams={searchParams} mapsKey={mapsKey} />
+  return (
+    <SetupWizard
+      orgId={orgId}
+      orgNameFromUrl={orgNameFromUrl}
+      searchParams={searchParams}
+      mapsKey={mapsKey}
+    />
+  )
 }
 
-function SetupMapFlow({
+function SetupWizard({
   orgId,
   orgNameFromUrl,
   searchParams,
@@ -134,18 +100,28 @@ function SetupMapFlow({
   mapsKey: string
 }) {
   const [step, setStep] = useState(1)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [schoolName, setSchoolName] = useState(orgNameFromUrl || '')
+  const [schoolAddress, setSchoolAddress] = useState('')
+  const [primaryColor, setPrimaryColor] = useState('#3b82f6')
+  const [secondaryColor, setSecondaryColor] = useState('#f59e0b')
+  const [logoUrl, setLogoUrl] = useState('')
+  const [website, setWebsite] = useState('')
   const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null)
-  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null)
-  const [schoolData, setSchoolData] = useState<SchoolData | null>(null)
-  const [orgName, setOrgName] = useState(orgNameFromUrl || '')
-  const [error, setError] = useState('')
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: mapsKey,
     libraries: LIBRARIES,
   })
+
+  useEffect(() => {
+    if (!orgId || orgNameFromUrl) return
+    fetch(`/api/setup/org?orgId=${encodeURIComponent(orgId)}`)
+      .then((r) => r.json())
+      .then((d) => d.name && setSchoolName(d.name))
+      .catch(() => {})
+  }, [orgId, orgNameFromUrl])
 
   const getToken = useCallback(() => {
     if (typeof window === 'undefined') return null
@@ -154,115 +130,64 @@ function SetupMapFlow({
     return match ? decodeURIComponent(match[1]) : null
   }, [])
 
-  useEffect(() => {
-    if (!orgId || orgNameFromUrl) return
-    fetch(`/api/setup/org?orgId=${encodeURIComponent(orgId)}`)
-      .then((r) => r.json())
-      .then((d) => d.name && setOrgName(d.name))
-      .catch(() => {})
-  }, [orgId, orgNameFromUrl])
-
-  useEffect(() => {
-    if (!map || selectedPlace) return
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-          map.setZoom(13)
-        },
-        () => {}
-      )
-    }
-  }, [map, selectedPlace])
-
-  const onLoadMap = useCallback((m: google.maps.Map) => setMap(m), [])
-  const onLoadSearchBox = useCallback((ref: google.maps.places.SearchBox) => setSearchBox(ref), [])
-
-  const onPlacesChanged = useCallback(async () => {
+  const onPlacesChanged = () => {
     const places = searchBox?.getPlaces()
     if (!places?.length) return
-
     const place = places[0]
-    const location = place.geometry?.location
-    const types = place.types || []
-
-    if (!location) return
-
-    const isSchoolFromSearch = types.some((t) =>
-      ['school', 'university', 'secondary_school', 'primary_school', 'college'].includes(t)
-    )
-    if (!isSchoolFromSearch) {
-      setError("This location isn't listed as a school. You can still proceed if it's correct.")
+    setSchoolName(place.name || '')
+    setSchoolAddress(place.formatted_address || '')
+    const domain = extractDomain(place)
+    if (domain) {
+      setWebsite(domain)
+      setLogoUrl('')
+      fetch(`/api/setup/logo-url?domain=${encodeURIComponent(domain)}`)
+        .then((r) => r.json())
+        .then((d) => d?.url && setLogoUrl(d.url))
+        .catch(() => {})
     } else {
-      setError('')
+      setLogoUrl('')
+      setWebsite('')
     }
+  }
 
-    setSelectedPlace(place)
-    map?.panTo(location)
-    map?.setZoom(18)
-    map?.setTilt(45)
-    setStep(2)
-
-    // Fetch Place Details from Google to verify name and school type
-    let verifiedName: string | null = null
-    let verifiedIsSchool = isSchoolFromSearch
-    let verifiedAddress = place.formatted_address || ''
-    let websiteUri: string | null = null
-
-    const placeId = (place as { place_id?: string }).place_id
-    if (placeId) {
-      try {
-        const detailsRes = await fetch(`/api/places/details?placeId=${encodeURIComponent(placeId)}`)
-        const details = await detailsRes.json()
-        if (details.name) verifiedName = details.name
-        if (details.address) verifiedAddress = details.address
-        if (typeof details.isSchool === 'boolean') verifiedIsSchool = details.isSchool
-        if (details.websiteUri) websiteUri = details.websiteUri
-      } catch {
-        // Fall back to search result
-      }
-    }
-
-    const domain =
-      websiteUri
-        ? (() => {
-            try {
-              return new URL(websiteUri).hostname.replace(/^www\./, '')
-            } catch {
-              return null
-            }
-          })()
-        : extractDomain(place)
-    const logo = domain ? `https://logo.clearbit.com/${domain}` : null
-
-    const displayName = verifiedName || place.name || orgName || 'Your School'
-    const nameMismatch =
-      orgName &&
-      displayName &&
-      orgName.toLowerCase() !== displayName.toLowerCase() &&
-      !displayName.toLowerCase().includes(orgName.toLowerCase()) &&
-      !orgName.toLowerCase().includes(displayName.toLowerCase())
-        ? orgName
-        : undefined
-
+  const handleNextStep = () => {
+    if (!schoolName.trim()) return
+    setLoading(true)
     setTimeout(() => {
-      setSchoolData({
-        name: displayName,
-        address: verifiedAddress,
-        colors: { primary: '#1e3a8a', secondary: '#fbbf24' },
-        logo,
-        website: domain || '',
-        isVerifiedSchool: verifiedIsSchool,
-        nameMismatch,
+      setLoading(false)
+      setStep(2)
+    }, 600)
+  }
+
+  const fireConfetti = () => {
+    const end = Date.now() + 1500
+    const colors = [primaryColor, secondaryColor, '#ffffff']
+    function frame() {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors,
       })
-      setStep(3)
-    }, 3000)
-  }, [searchBox, map, orgName])
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors,
+      })
+      if (Date.now() < end) requestAnimationFrame(frame)
+    }
+    frame()
+  }
 
   const handleFinish = async () => {
-    if (!schoolData || !orgId) return
+    fireConfetti()
+    setStep(3)
+
     const token = getToken()
-    if (token) {
+    if (token && schoolName) {
       try {
         await fetch('/api/setup/branding', {
           method: 'PATCH',
@@ -272,11 +197,11 @@ function SetupMapFlow({
           },
           body: JSON.stringify({
             orgId,
-            address: schoolData.address,
-            logoUrl: schoolData.logo || null,
-            name: orgName || schoolData.name,
-            website: schoolData.website || undefined,
-            colors: schoolData.colors,
+            name: schoolName.trim(),
+            address: schoolAddress || undefined,
+            logoUrl: logoUrl || null,
+            website: website || undefined,
+            colors: { primary: primaryColor, secondary: secondaryColor },
           }),
         })
       } catch {
@@ -286,213 +211,214 @@ function SetupMapFlow({
         window.history.replaceState(null, '', window.location.pathname + window.location.search)
       }
     }
+
     const params = new URLSearchParams()
     const userName = searchParams.get('userName')
     const userEmail = searchParams.get('userEmail')
-    const orgNameParam = orgName || schoolData.name
     if (userName) params.set('userName', userName)
     if (userEmail) params.set('userEmail', userEmail)
-    if (orgNameParam) params.set('orgName', orgNameParam)
+    if (schoolName.trim()) params.set('orgName', schoolName.trim())
     const qs = params.toString()
-    window.location.href = `${LIONHEART_URL}/app${qs ? '?' + qs : ''}`
-  }
 
-  const handleWrongSchool = () => {
-    setStep(1)
-    setSelectedPlace(null)
-    setSchoolData(null)
-    setError('')
+    setTimeout(() => {
+      window.location.href = `${LIONHEART_URL}/app${qs ? '?' + qs : ''}`
+    }, 2000)
   }
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin" />
-          <span>Initializing map…</span>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center text-zinc-400">
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden font-sans bg-zinc-950">
+    <div className="min-h-screen w-full bg-white flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Background: Soft aurora gradients */}
       <div className="absolute inset-0 z-0">
-        <GoogleMap
-          mapContainerStyle={{ width: '100%', height: '100%' }}
-          center={{ lat: 37.0902, lng: -95.7129 }}
-          zoom={4}
-          options={mapOptions}
-          onLoad={onLoadMap}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-zinc-950/20 pointer-events-none" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-blue-100 rounded-full blur-[100px] opacity-60 animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-violet-100 rounded-full blur-[100px] opacity-60 animate-[pulse_10s_ease-in-out_infinite]" />
       </div>
 
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 pointer-events-none">
-        <AnimatePresence mode="wait">
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-              className="pointer-events-auto w-full max-w-lg"
-            >
-              <div className="bg-white/95 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl shadow-black/50">
-                <div className="mb-6">
-                  <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Identify your campus.</h1>
-                  <p className="text-zinc-500 mt-2">
-                    Search for your school to auto-configure branding and satellite maps.
-                  </p>
+      <AnimatePresence mode="wait">
+        {/* STEP 1: Identity */}
+        {step === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="relative z-10 w-full max-w-lg"
+          >
+            <div className="bg-white/80 backdrop-blur-xl border border-white/60 p-8 rounded-3xl shadow-2xl shadow-zinc-200/50">
+              <div className="mb-8 text-center">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner">
+                  🏫
                 </div>
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">
+                  What&apos;s your school&apos;s name?
+                </h1>
+                <p className="text-zinc-500">We&apos;ll set up your digital campus based on your location.</p>
+              </div>
 
-                <StandaloneSearchBox onLoad={onLoadSearchBox} onPlacesChanged={onPlacesChanged}>
+              <div className="space-y-4">
+                <StandaloneSearchBox onLoad={(ref) => setSearchBox(ref)} onPlacesChanged={onPlacesChanged}>
                   <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-blue-600 transition-colors" />
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                      <School className="w-5 h-5 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
+                    </div>
                     <input
                       type="text"
-                      placeholder="Search school name or address…"
-                      className="w-full pl-12 pr-4 py-4 bg-zinc-50 border-2 border-transparent focus:bg-white focus:border-blue-500 rounded-2xl outline-none text-lg transition-all shadow-inner text-zinc-900"
+                      placeholder="Search for your school..."
+                      value={schoolName}
+                      onChange={(e) => setSchoolName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleNextStep()}
+                      className="w-full pl-12 pr-4 py-4 bg-white border border-zinc-200 rounded-xl text-lg outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm text-zinc-900"
                       autoFocus
                     />
                   </div>
                 </StandaloneSearchBox>
 
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mt-4 p-3 bg-amber-50 text-amber-700 rounded-xl flex items-center gap-2 text-sm font-medium"
-                  >
-                    <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            >
-              <div className="relative w-[320px] h-[320px] sm:w-[400px] sm:h-[400px] flex items-center justify-center">
-                <div className="absolute inset-0 border border-emerald-500/30 rounded-full animate-ping" />
-                <div className="absolute inset-0 border border-emerald-500/20 rounded-full animate-[ping_3s_linear_infinite]" />
-                <div className="w-full h-1 bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent absolute top-1/2 blur-sm animate-[spin_4s_linear_infinite]" />
-                <div className="bg-zinc-900/80 backdrop-blur-md px-6 py-3 rounded-full border border-emerald-500/30 text-emerald-400 font-mono text-sm flex items-center gap-3">
-                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                  Analyzing campus infrastructure…
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {step === 3 && schoolData && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="pointer-events-auto w-full max-w-lg"
-            >
-              <div className="bg-white rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5">
-                <div
-                  className="h-32 w-full relative flex items-center justify-center"
-                  style={{ backgroundColor: schoolData.colors.primary }}
+                <button
+                  onClick={handleNextStep}
+                  disabled={!schoolName.trim() || loading}
+                  className="w-full py-4 bg-zinc-900 text-white rounded-xl font-semibold text-lg hover:bg-zinc-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-zinc-900/20"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                  <div className="w-24 h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center p-2 absolute -bottom-12 border-4 border-white">
-                    {schoolData.logo ? (
-                      <img
-                        src={schoolData.logo}
-                        alt="School"
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                        }}
-                      />
-                    ) : null}
-                    <span
-                      className={`text-lg font-bold text-zinc-600 truncate px-1 ${schoolData.logo ? 'hidden' : ''}`}
-                    >
-                      {schoolData.name}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-16 pb-8 px-8 text-center">
-                  {schoolData.isVerifiedSchool ? (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider mb-4">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Verified by Google as a school
-                    </div>
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider mb-4">
-                      <AlertTriangle className="w-3.5 h-3.5" /> Not listed as a school — please verify
-                    </div>
+                    <>
+                      Next <ArrowRight className="w-5 h-5" />
+                    </>
                   )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
-                  <h1 className="text-2xl font-bold text-zinc-900 mb-1">Welcome to Lionheart.</h1>
-                  <h2 className="text-lg font-semibold text-zinc-600 mb-1">{schoolData.name}</h2>
-                  <p className="text-zinc-500 flex items-center justify-center gap-1.5 text-sm mb-2">
-                    <MapPin className="w-4 h-4 shrink-0" /> {schoolData.address}
-                  </p>
-
-                  {schoolData.nameMismatch && (
-                    <p className="text-amber-700 text-sm font-medium bg-amber-50 rounded-lg px-3 py-2 mb-4">
-                      You signed up as <strong>{schoolData.nameMismatch}</strong>. Google lists this location as{' '}
-                      <strong>{schoolData.name}</strong>. Confirm this is correct.
-                    </p>
+        {/* STEP 2: Personalize */}
+        {step === 2 && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="relative z-10 w-full max-w-lg"
+          >
+            <div className="bg-white/90 backdrop-blur-xl border border-white/60 p-8 rounded-3xl shadow-2xl shadow-zinc-200/50">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-zinc-900">Let&apos;s make it yours.</h2>
+                  <p className="text-zinc-500 text-sm mt-1">{schoolName}</p>
+                </div>
+                <div className="w-16 h-16 rounded-xl border border-zinc-100 bg-white shadow-md flex items-center justify-center overflow-hidden p-2 relative group cursor-pointer">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt="Logo"
+                      className="w-full h-full object-contain"
+                      onError={() => setLogoUrl('')}
+                    />
+                  ) : (
+                    <Building2 className="w-8 h-8 text-zinc-300" />
                   )}
-
-                  <div className="mt-8 grid grid-cols-2 gap-3 text-left">
-                    <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100">
-                      <p className="text-xs text-zinc-400 font-medium uppercase">Primary</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div
-                          className="w-4 h-4 rounded-full shrink-0"
-                          style={{ background: schoolData.colors.primary }}
-                        />
-                        <span className="text-sm font-mono text-zinc-700">{schoolData.colors.primary}</span>
-                      </div>
-                    </div>
-                    <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100">
-                      <p className="text-xs text-zinc-400 font-medium uppercase">Secondary</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div
-                          className="w-4 h-4 rounded-full shrink-0"
-                          style={{ background: schoolData.colors.secondary }}
-                        />
-                        <span className="text-sm font-mono text-zinc-700">{schoolData.colors.secondary}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 flex gap-3">
-                    <button
-                      type="button"
-                      onClick={handleWrongSchool}
-                      className="flex-1 px-4 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-medium hover:bg-zinc-50 transition-colors"
-                    >
-                      Wrong school
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleFinish}
-                      className="flex-1 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
-                    >
-                      Confirm & Continue <ArrowRight className="w-4 h-4" />
-                    </button>
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Upload className="w-4 h-4 text-white" />
                   </div>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+                    Brand Colors
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <span className="text-sm font-medium text-zinc-700">Primary</span>
+                      <div className="flex items-center gap-3 p-2 rounded-xl border border-zinc-200 bg-zinc-50">
+                        <input
+                          type="color"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
+                        />
+                        <span className="text-sm font-mono text-zinc-500 uppercase">{primaryColor}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <span className="text-sm font-medium text-zinc-700">Secondary</span>
+                      <div className="flex items-center gap-3 p-2 rounded-xl border border-zinc-200 bg-zinc-50">
+                        <input
+                          type="color"
+                          value={secondaryColor}
+                          onChange={(e) => setSecondaryColor(e.target.value)}
+                          className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
+                        />
+                        <span className="text-sm font-mono text-zinc-500 uppercase">{secondaryColor}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+                  <p className="text-xs text-zinc-400 mb-2 text-center">Dashboard Preview</p>
+                  <div className="w-full h-24 rounded-lg bg-white shadow-sm border border-zinc-200 overflow-hidden flex flex-col">
+                    <div className="h-8 w-full flex items-center px-3" style={{ backgroundColor: primaryColor }}>
+                      <div className="w-16 h-2 bg-white/20 rounded-full" />
+                    </div>
+                    <div className="flex-1 p-3 flex gap-3">
+                      <div className="w-12 h-full bg-zinc-100 rounded-md" />
+                      <div className="flex-1 space-y-2">
+                        <div className="w-3/4 h-2 bg-zinc-100 rounded-full" />
+                        <div className="w-1/2 h-2 bg-zinc-100 rounded-full" />
+                        <div className="mt-auto w-8 h-8 rounded-full ml-auto" style={{ backgroundColor: secondaryColor }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setStep(1)}
+                    className="px-6 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-medium hover:bg-zinc-50 transition-colors"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleFinish}
+                    className="flex-1 px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-zinc-900/20"
+                  >
+                    Finish Setup <Check className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* STEP 3: Celebration */}
+        {step === 3 && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="relative z-10 w-full max-w-lg text-center"
+          >
+            <div className="bg-white/90 backdrop-blur-xl border border-white/60 p-12 rounded-3xl shadow-2xl shadow-zinc-200/50">
+              <div className="text-6xl mb-6">🎉</div>
+              <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">Welcome home!</h1>
+              <p className="text-zinc-500 mb-8">
+                Your campus is ready. Taking you to your dashboard…
+              </p>
+              <Loader2 className="w-10 h-10 animate-spin text-zinc-400 mx-auto" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -501,7 +427,7 @@ export default function SetupPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">
+        <div className="min-h-screen bg-white flex items-center justify-center text-zinc-500">
           <Loader2 className="w-8 h-8 animate-spin" />
         </div>
       }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { PLATFORM_URL } from '../services/platformApi'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
 const CHECK_DEBOUNCE_MS = 400
 
@@ -116,16 +116,27 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700 mb-1.5">School name</label>
-            <input
-              type="text"
-              value={schoolName}
-              onChange={(e) => setSchoolName(e.target.value)}
-              placeholder="e.g. Lincoln Academy"
-              className={`w-full px-4 py-3 rounded-lg bg-white border-2 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                duplicateSchool ? 'border-amber-500 focus:ring-amber-500' : 'border-zinc-200'
-              }`}
-              required
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={schoolName}
+                onChange={(e) => setSchoolName(e.target.value)}
+                placeholder="e.g. Lincoln Academy"
+                className={`w-full px-4 py-3 rounded-lg bg-white border-2 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  schoolName.trim().length >= 3 && !checkingSchool && !duplicateSchool
+                    ? 'border-emerald-500 focus:ring-emerald-500 focus:border-emerald-500 pr-11'
+                    : duplicateSchool
+                      ? 'border-amber-500 focus:ring-amber-500'
+                      : 'border-zinc-200'
+                }`}
+                required
+              />
+              {schoolName.trim().length >= 3 && !checkingSchool && !duplicateSchool && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" aria-hidden />
+                </div>
+              )}
+            </div>
             {checkingSchool && (
               <p className="mt-1.5 text-xs text-zinc-500">Checking for existing school…</p>
             )}
