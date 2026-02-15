@@ -256,8 +256,35 @@ export default function App() {
             ? 'My Tickets'
             : current?.title ?? 'Dashboard'
 
+  const isTrialActive = trialDaysLeft != null && trialDaysLeft > 0
+
   return (
-    <div className="min-h-screen flex bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <div className="min-h-screen flex flex-col bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+      {isTrialActive && (
+        <div className="shrink-0 rounded-none border-0 border-b border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Your Pro Trial is active</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                You have <span className="font-medium text-amber-600 dark:text-amber-400">{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</span> left to explore all features.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setActiveTab('settings'); setSettingsSection('subscription') }}
+            className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+          >
+            Add Payment Method
+          </button>
+        </div>
+      )}
+      <div className="flex flex-1 min-h-0">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -288,11 +315,6 @@ export default function App() {
           }}
           onOpenCommandBar={() => setCommandBarOpen(true)}
         />
-        {trialDaysLeft != null && trialDaysLeft > 0 && (
-          <div className="shrink-0 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-200 text-sm font-medium text-center">
-            {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} left in your Pro trial • <button type="button" onClick={() => { setActiveTab('settings'); setSettingsSection('subscription') }} className="underline hover:no-underline font-semibold">Upgrade to keep all features</button>
-          </div>
-        )}
         <div className="flex-1 flex min-h-0 overflow-hidden gap-6 lg:gap-8">
         <div className="flex-1 min-w-0 overflow-auto flex flex-col min-h-0">
           <div
@@ -613,6 +635,7 @@ export default function App() {
         </div>
         </div>
       </main>
+      </div>
 
       <EventCreatorModal
         isOpen={eventModalOpen}

@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus, Upload } from 'lucide-react'
+import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus, Upload, Users } from 'lucide-react'
 import { parseMembersCsv } from '../utils/parseMembersCsv'
 import { ROLES, getTeamName, getUserTeamIds, canManageTeams } from '../data/teamsData'
 import DrawerModal from './DrawerModal'
@@ -54,6 +53,201 @@ function downloadCSV(users, teams) {
   a.download = 'team-members.csv'
   a.click()
   URL.revokeObjectURL(url)
+}
+
+function AddTeamModal({ teams, setTeams, isOpen, onClose }) {
+  const [name, setName] = useState('')
+  const safeTeams = Array.isArray(teams) ? teams : []
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    const trimmed = name.trim()
+    if (!trimmed || !setTeams) return
+    const id = slugifyTeamId(trimmed)
+    if (safeTeams.some((t) => t.id === id || (t.name || '').toLowerCase() === trimmed.toLowerCase())) {
+      return
+    }
+    setTeams((prev) => [...prev, { id, name: trimmed }])
+    setName('')
+    onClose()
+  }
+
+  return (
+    <DrawerModal isOpen={isOpen} onClose={onClose} title="Add team">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Team name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+            placeholder="e.g. A/V, Facilities, IT, Athletics"
+            required
+          />
+        </div>
+        <div className="flex gap-2 pt-2">
+          <button
+            type="submit"
+            disabled={!name.trim()}
+            className="px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Create team
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </DrawerModal>
+  )
+}
+
+function AddUserModal({ teams, setTeams, users, setUsers, currentUser, isOpen, onClose }) {
+  const [form, setForm] = useState({ name: '', email: '', teamIds: [], role: 'viewer' })
+  const [newTagName, setNewTagName] = useState('')
+  const canAssignRole = canManageTeams(currentUser)
+  const safeTeams = Array.isArray(teams) ? teams : []
+
+  const handleAddTag = (e) => {
+    e.preventDefault()
+    const name = newTagName.trim()
+    if (!name || !setTeams) return
+    const id = slugifyTeamId(name)
+    if (safeTeams.some((t) => t.id === id || t.name.toLowerCase() === name.toLowerCase())) {
+      setNewTagName('')
+      return
+    }
+    setTeams((prev) => [...prev, { id, name }])
+    setForm((p) => ({ ...p, teamIds: [...p.teamIds, id] }))
+    setNewTagName('')
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!form.name.trim() || form.teamIds.length === 0) return
+    const id = 'u' + Date.now()
+    setUsers((prev) => [...prev, { ...form, id }])
+    setForm({ name: '', email: '', teamIds: [], role: 'viewer' })
+    setNewTagName('')
+    onClose()
+  }
+
+  const toggleTeam = (teamId) => {
+    setForm((p) => ({
+      ...p,
+      teamIds: p.teamIds.includes(teamId) ? p.teamIds.filter((id) => id !== teamId) : [...p.teamIds, teamId],
+    }))
+  }
+
+  return (
+    <DrawerModal isOpen={isOpen} onClose={onClose} title="Add user">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Name</label>
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+            placeholder="Full name"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Email</label>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+            placeholder="email@example.com"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Team tags</label>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+            Assign one or more team tags (e.g. A/V, Athletics, Admin). Create new tags as needed.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {safeTeams.map((t) => {
+              const isSelected = form.teamIds.includes(t.id)
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => toggleTeam(t.id)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    isSelected
+                      ? 'bg-blue-500 text-white border-blue-500 dark:bg-blue-500 dark:border-blue-500'
+                      : 'border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                  }`}
+                >
+                  {t.name}
+                </button>
+              )
+            })}
+          </div>
+          {setTeams && (
+            <form onSubmit={handleAddTag} className="flex gap-2 mt-2">
+              <input
+                type="text"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                placeholder="Create new tag (e.g. Athletics, A/V)"
+                className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400"
+              />
+              <button
+                type="submit"
+                disabled={!newTagName.trim()}
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-blue-500 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-4 h-4" />
+                Add tag
+              </button>
+            </form>
+          )}
+          {form.teamIds.length === 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Select or create at least one team tag</p>
+          )}
+        </div>
+        {canAssignRole && (
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Role</label>
+            <select
+              value={form.role}
+              onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
+              className="select-arrow-padded w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+            >
+              {ROLES.map((r) => (
+                <option key={r.id} value={r.id}>{r.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        <div className="flex gap-2 pt-2">
+          <button
+            type="submit"
+            disabled={!form.name.trim() || form.teamIds.length === 0}
+            className="px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Add user
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </DrawerModal>
+  )
 }
 
 function EditUserDrawer({ user, teams, setTeams, users, setUsers, currentUser, isOpen, onClose }) {
@@ -222,8 +416,8 @@ function EditUserDrawer({ user, teams, setTeams, users, setUsers, currentUser, i
 
 export default function MembersPage({ teams = [], setTeams, users = [], setUsers, currentUser }) {
   const [showAddUser, setShowAddUser] = useState(false)
+  const [showAddTeam, setShowAddTeam] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
-  const [newUser, setNewUser] = useState({ name: '', email: '', teamIds: [], role: 'viewer' })
   const [searchQuery, setSearchQuery] = useState('')
   const [teamFilter, setTeamFilter] = useState('')
   const [newTagName, setNewTagName] = useState('')
@@ -254,16 +448,6 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
     }
     return result
   }, [safeUsers, searchQuery, teamFilter, safeTeams])
-
-  const handleAddUser = (e) => {
-    e.preventDefault()
-    if (!newUser.name.trim()) return
-    if (newUser.teamIds.length === 0) return
-    const id = 'u' + Date.now()
-    setUsers((prev) => [...prev, { ...newUser, id }])
-    setNewUser({ name: '', email: '', teamIds: [], role: 'viewer' })
-    setShowAddUser(false)
-  }
 
   const handleDeleteUser = (u) => {
     if (typeof window !== 'undefined' && !window.confirm(`Remove ${u.name} from the team?`)) return
@@ -349,30 +533,28 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
     setNewTagName('')
   }
 
-  const handleAddTagForNewUser = (e) => {
-    e.preventDefault()
-    const name = newTagName.trim()
-    if (!name || !setTeams) return
-    const id = slugifyTeamId(name)
-    if (safeTeams.some((t) => t.id === id || t.name.toLowerCase() === name.toLowerCase())) {
-      setNewTagName('')
-      return
-    }
-    setTeams((prev) => [...prev, { id, name }])
-    setNewUser((p) => ({ ...p, teamIds: [...p.teamIds, id] }))
-    setNewTagName('')
-  }
-
   return (
     <div className="space-y-8">
-      {/* Team tags: create custom tags for your organization */}
+      {/* Teams: create teams for your organization */}
       {canManage && setTeams && (
         <div className="glass-card p-4 sm:p-6">
-          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Team tags</h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
-            Create team tags for your organization (e.g. A/V, Athletics, Admin, IT). Assign these to members when adding or editing users.
-          </p>
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div>
+              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Teams</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Create teams (e.g. A/V, Athletics, Admin, IT) and assign them to members.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddTeam(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
+            >
+              <Plus className="w-4 h-4" />
+              Add team
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
             {safeTeams.map((t) => (
               <span
                 key={t.id}
@@ -382,24 +564,23 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
               </span>
             ))}
             {safeTeams.length === 0 && (
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">No tags yet. Create one below.</span>
+              <span className="text-sm text-zinc-500 dark:text-zinc-400">No teams yet. Add one using the button above.</span>
             )}
           </div>
-          <form onSubmit={handleCreateTag} className="flex gap-2">
+          <form onSubmit={handleCreateTag} className="flex gap-2 mt-3">
             <input
               type="text"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
-              placeholder="New tag name (e.g. Athletics, A/V)"
+              placeholder="Or type to add quickly (e.g. Athletics, A/V)"
               className="flex-1 min-w-0 max-w-xs px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400"
             />
             <button
               type="submit"
               disabled={!newTagName.trim()}
-              className="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800"
             >
-              <Plus className="w-4 h-4" />
-              Add tag
+              Add
             </button>
           </form>
         </div>
@@ -440,6 +621,15 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
             <Download className="w-4 h-4" />
             Download CSV
           </button>
+          {canManage && setTeams && (
+            <button
+              onClick={() => setShowAddTeam(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            >
+              <Users className="w-4 h-4" />
+              Add team
+            </button>
+          )}
           {canManage && (
             <button
               onClick={() => setShowAddUser(true)}
@@ -590,110 +780,25 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
         </div>
       </section>
 
-      {/* Add user */}
-      {canManage && showAddUser && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="glass-card p-6"
-        >
-          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Add user</h3>
-          <form onSubmit={handleAddUser} className="space-y-4 max-w-sm">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Name</label>
-              <input
-                type="text"
-                value={newUser.name}
-                onChange={(e) => setNewUser((p) => ({ ...p, name: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                placeholder="Full name"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Email</label>
-              <input
-                type="email"
-                value={newUser.email}
-                onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                placeholder="email@example.com"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Team tags</label>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-                Assign one or more team tags (e.g. A/V, Athletics). Create new tags as needed.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {safeTeams.map((t) => {
-                  const isSelected = newUser.teamIds.includes(t.id)
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() =>
-                        setNewUser((p) => ({
-                          ...p,
-                          teamIds: isSelected ? p.teamIds.filter((id) => id !== t.id) : [...p.teamIds, t.id],
-                        }))
-                      }
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                        isSelected
-                          ? 'bg-blue-500 text-white border-blue-500 dark:bg-blue-500 dark:border-blue-500'
-                          : 'border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      }`}
-                    >
-                      {t.name}
-                    </button>
-                  )
-                })}
-              </div>
-              {setTeams && (
-                <form onSubmit={handleAddTagForNewUser} className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    placeholder="Create new tag (e.g. Athletics, A/V)"
-                    className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newTagName.trim()}
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-blue-500 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add tag
-                  </button>
-                </form>
-              )}
-              {newUser.teamIds.length === 0 && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Select or create at least one team tag</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Role</label>
-              <select
-                value={newUser.role}
-                onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}
-                className="select-arrow-padded w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-              >
-                {ROLES.map((r) => (
-                  <option key={r.id} value={r.id}>{r.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <button type="submit" disabled={!newUser.name.trim() || newUser.teamIds.length === 0} className="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50">
-                Add user
-              </button>
-              <button type="button" onClick={() => setShowAddUser(false)} className="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm">
-                Cancel
-              </button>
-            </div>
-          </form>
-        </motion.div>
+      {canManage && setTeams && (
+        <AddTeamModal
+          teams={teams}
+          setTeams={setTeams}
+          isOpen={showAddTeam}
+          onClose={() => setShowAddTeam(false)}
+        />
+      )}
+
+      {canManage && (
+        <AddUserModal
+          teams={teams}
+          setTeams={setTeams}
+          users={users}
+          setUsers={setUsers}
+          currentUser={currentUser}
+          isOpen={showAddUser}
+          onClose={() => setShowAddUser(false)}
+        />
       )}
 
       {editingUser && (

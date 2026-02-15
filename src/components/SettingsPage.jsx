@@ -9,7 +9,6 @@ import {
   LayoutGrid,
   CreditCard,
   Check,
-  AlertTriangle,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
 import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
@@ -52,33 +51,10 @@ function SubscriptionSection() {
   const [billingCycle, setBillingCycle] = useState('monthly')
   const currentPlanId = 'pro'
   const isTrial = true
-  const daysLeft = 14
 
   return (
     <div className="space-y-8 max-w-5xl">
-      {/* 1. Trial Notice Banner */}
-      {isTrial && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center shrink-0">
-               <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-             </div>
-             <div>
-               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                 Your Pro Trial is active
-               </h3>
-               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                 You have <span className="font-medium text-amber-600 dark:text-amber-400">{daysLeft} days</span> left to explore all features.
-               </p>
-             </div>
-          </div>
-          <button className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm whitespace-nowrap">
-            Add Payment Method
-          </button>
-        </div>
-      )}
-
-      {/* 2. Header & Toggle */}
+      {/* 1. Header & Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Plans & Pricing</h2>
