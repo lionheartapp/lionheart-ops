@@ -121,14 +121,14 @@ export default function LandingPage() {
             </div>
             <h2 className="text-3xl font-bold text-primary-950">Simple, transparent pricing</h2>
             <p className="text-zinc-500 max-w-2xl mx-auto">
-              Site licenses based on student enrollment. Start free and upgrade when you&apos;re ready.
+              Simple site licenses. Start free and upgrade when you&apos;re ready.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { name: 'Starter', price: 199, priceLabel: '$199/mo', students: 'Up to 300 students', features: ['Maintenance & IT Tickets', 'Basic Calendar', 'Basic User Management'], cta: 'Start Free Trial', href: '/signup' },
-              { name: 'Pro', price: 499, priceLabel: '$499/mo', students: 'Up to 1,000 students', features: ['Water Management', 'Inventory Tracking', 'Smart Event AI', 'Visual Repair Assistant'], cta: 'Start Free Trial', href: '/signup', highlight: true },
-              { name: 'Enterprise', price: null, priceLabel: 'Custom', students: 'Unlimited', features: ['Visual Campus (3D Matterport)', 'Monthly AI Budget Reports', 'Unlimited AI Usage', 'Dedicated Support'], cta: 'Contact Sales', href: 'mailto:sales@lionheart.app' },
+              { name: 'Starter', price: 199, priceLabel: '$199/mo', features: ['Maintenance & IT Tickets', 'Basic Calendar', 'Basic User Management'], cta: 'Start Free Trial', href: '/signup' },
+              { name: 'Pro', price: 499, priceLabel: '$499/mo', features: ['Water Management', 'Inventory Tracking', 'Smart Event AI', 'Visual Repair Assistant'], cta: 'Start Free Trial', href: '/signup', highlight: true },
+              { name: 'Enterprise', price: null, priceLabel: 'Custom', features: ['Visual Campus (3D Matterport)', 'Monthly AI Budget Reports', 'Unlimited AI Usage', 'Dedicated Support'], cta: 'Contact Sales', href: 'mailto:sales@lionheart.app' },
             ].map((plan) => (
               <div
                 key={plan.name}
@@ -136,12 +136,11 @@ export default function LandingPage() {
               >
                 {plan.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary-600 text-white text-xs font-bold uppercase tracking-wider">
-                    Most Popular
+                    Best Deal
                   </div>
                 )}
                 <h3 className="text-xl font-bold text-zinc-900 mb-1">{plan.name}</h3>
-                <p className="text-3xl font-extrabold text-primary-900 mb-1">{plan.priceLabel}</p>
-                <p className="text-sm text-zinc-500 mb-6">{plan.students}</p>
+                <p className="text-3xl font-extrabold text-primary-900 mb-6">{plan.priceLabel}</p>
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((f, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-zinc-700">

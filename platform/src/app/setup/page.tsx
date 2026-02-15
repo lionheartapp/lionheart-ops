@@ -69,7 +69,10 @@ function SetupWizard({
     address: '',
     website: '',
     logoUrl: '',
+    primaryColor: PRIMARY,
+    secondaryColor: SECONDARY,
   })
+  const [extractingBrand, setExtractingBrand] = useState(false)
 
   useEffect(() => {
     if (orgNameFromUrl) setSchoolData((p) => ({ ...p, name: orgNameFromUrl }))
@@ -90,7 +93,7 @@ function SetupWizard({
   const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
   if (token) authHeaders.Authorization = `Bearer ${token}`
 
-  const saveSchoolAndCreateFacilities = useCallback(async (data: { name: string; address: string; website?: string; logoUrl?: string }) => {
+  const saveSchoolAndCreateFacilities = useCallback(async (data: { name: string; address: string; website?: string; logoUrl?: string; primaryColor?: string; secondaryColor?: string }) => {
     if (!token) return
     await fetch('/api/setup/branding', {
       method: 'PATCH',
@@ -101,7 +104,7 @@ function SetupWizard({
         address: data.address?.trim() || undefined,
         website: data.website || undefined,
         logoUrl: data.logoUrl || null,
-        colors: { primary: PRIMARY, secondary: SECONDARY },
+        colors: { primary: data.primaryColor || PRIMARY, secondary: data.secondaryColor || SECONDARY },
       }),
     })
     const buildingsRes = await fetch('/api/buildings', { headers: authHeaders })
@@ -142,12 +145,40 @@ function SetupWizard({
           address: data.address || '',
           website: data.website || data.domain || '',
           logoUrl: data.logo || '',
+          primaryColor: PRIMARY,
+          secondaryColor: SECONDARY,
         })
       } else {
         setManualMode(true)
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleExtractBrand = async () => {
+    const url = schoolData.website?.trim()
+    if (!url) return
+    setExtractingBrand(true)
+    try {
+      const res = await fetch('/api/setup/extract-brand', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ url }),
+      })
+      const data = await res.json()
+      if (res.ok && (data.primaryColor || data.secondaryColor || data.logoUrl)) {
+        setSchoolData((p) => ({
+          ...p,
+          primaryColor: data.primaryColor || p.primaryColor,
+          secondaryColor: data.secondaryColor || p.secondaryColor,
+          logoUrl: data.logoUrl || p.logoUrl,
+        }))
+      }
+    } catch {
+      // non-blocking
+    } finally {
+      setExtractingBrand(false)
     }
   }
 
@@ -322,6 +353,17 @@ function SetupWizard({
                       )}
                     </div>
                   </div>
+                  {(searchResult.website || searchResult.domain) && (
+                    <button
+                      type="button"
+                      onClick={handleExtractBrand}
+                      disabled={extractingBrand}
+                      className="mt-4 text-xs text-[#3b82f6] hover:underline flex items-center gap-1"
+                    >
+                      {extractingBrand ? <Loader2 className="w-3 h-3 animate-spin" /> : <Globe className="w-3 h-3" />}
+                      {extractingBrand ? 'Extracting colors & logo…' : 'Extract colors & logo from website'}
+                    </button>
+                  )}
                   <div className="mt-6 flex gap-3">
                     <button
                       onClick={confirmSchool}
@@ -368,13 +410,24 @@ function SetupWizard({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1">Website</label>
-                  <input
-                    type="url"
-                    className="w-full rounded-lg px-3 py-2 text-white bg-zinc-900/80 border border-zinc-700 focus:ring-2 focus:ring-[#3b82f6]/50 outline-none"
-                    placeholder="https://..."
-                    value={schoolData.website}
-                    onChange={(e) => setSchoolData((p) => ({ ...p, website: e.target.value }))}
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      className="flex-1 rounded-lg px-3 py-2 text-white bg-zinc-900/80 border border-zinc-700 focus:ring-2 focus:ring-[#3b82f6]/50 outline-none"
+                      placeholder="https://linfield.com"
+                      value={schoolData.website}
+                      onChange={(e) => setSchoolData((p) => ({ ...p, website: e.target.value }))}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleExtractBrand}
+                      disabled={extractingBrand || !schoolData.website.trim()}
+                      className="px-3 py-2 rounded-lg border border-zinc-600 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors text-xs whitespace-nowrap flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {extractingBrand ? <Loader2 className="w-3 h-3 animate-spin" /> : <Globe className="w-3 h-3" />}
+                      {extractingBrand ? 'Extracting…' : 'Auto-fill'}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1">Logo (optional)</label>

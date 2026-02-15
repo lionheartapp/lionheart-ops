@@ -7,7 +7,6 @@ const PLANS = {
     subtitle: 'Small private schools',
     monthly: 199,
     annual: 2000,
-    students: 'Up to 300 Students',
     features: ['Maintenance & IT Tickets', 'Basic Calendar', 'Basic User Management'],
   },
   pro: {
@@ -15,7 +14,6 @@ const PLANS = {
     subtitle: 'Standard K-12 Campus',
     monthly: 499,
     annual: 5500,
-    students: 'Up to 1,000 Students',
     features: ['Water Management Module', 'Inventory Tracking', 'Smart Event AI (Unlimited)', 'Visual Repair Assistant (50 uses/mo)'],
   },
   enterprise: {
@@ -23,7 +21,6 @@ const PLANS = {
     subtitle: 'Multi-site Districts',
     monthly: null,
     annual: '10k+',
-    students: 'Unlimited Students',
     features: ['Visual Campus (3D Matterport)', 'Monthly AI Budget Reports', 'Unlimited AI Usage', 'Dedicated Support Manager'],
   },
 }
@@ -58,7 +55,7 @@ export default function SubscriptionSettings() {
       <div>
         <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Billing & Subscription</h2>
         <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-          Site license pricing based on student enrollment. Manage your school&apos;s plan, payment methods, and billing history.
+          Manage your school&apos;s plan, payment methods, and billing history.
         </p>
       </div>
 
@@ -138,7 +135,7 @@ export default function SubscriptionSettings() {
         <div className="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex flex-col">
           <div className="mb-4">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Starter</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Small private schools (&lt;300 students)</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Small private schools</p>
           </div>
           <div className="mb-6">
             <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{formatPrice(PLANS.starter)}</span>
@@ -151,9 +148,6 @@ export default function SubscriptionSettings() {
             Downgrade
           </button>
           <ul className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400 flex-1">
-            <li className="flex gap-2">
-              <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {PLANS.starter.students}
-            </li>
             {PLANS.starter.features.map((f) => (
               <li key={f} className="flex gap-2">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {f}
@@ -165,7 +159,7 @@ export default function SubscriptionSettings() {
         {/* Pro Tier (Highlighted) */}
         <div className="p-6 rounded-2xl border-2 border-emerald-500 bg-white dark:bg-zinc-800 flex flex-col relative shadow-xl shadow-emerald-500/10">
           <div className="absolute top-0 right-0 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">
-            MOST POPULAR
+            Best Deal
           </div>
           <div className="mb-4">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Pro</h3>
@@ -182,9 +176,6 @@ export default function SubscriptionSettings() {
             Current Plan
           </button>
           <ul className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400 flex-1">
-            <li className="flex gap-2">
-              <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {PLANS.pro.students}
-            </li>
             {PLANS.pro.features.map((f) => (
               <li key={f} className="flex gap-2">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {f.includes('AI') ? <strong>{f}</strong> : f}
@@ -210,9 +201,6 @@ export default function SubscriptionSettings() {
             Upgrade Plan
           </button>
           <ul className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400 flex-1">
-            <li className="flex gap-2">
-              <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {PLANS.enterprise.students}
-            </li>
             {PLANS.enterprise.features.map((f) => (
               <li key={f} className="flex gap-2">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0" /> {f.includes('Visual') ? <strong>{f}</strong> : f}
