@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Search, Bell, User, LogOut, Settings, ChevronDown } from 'lucide-react'
 import { buildNotifications } from '../utils/pendingApprovals'
-import { clearAuthToken, getAuthToken } from '../services/platformApi'
+import { clearAuthToken } from '../services/platformApi'
+
+const LOGIN_PATH = '/login'
 
 export default function TopBar({
   currentUser,
@@ -12,9 +13,7 @@ export default function TopBar({
   onNavigateToFormResponses,
   onOpenCommandBar,
 }) {
-  const navigate = useNavigate()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const hasAuth = !!getAuthToken()
   const [accountOpen, setAccountOpen] = useState(false)
   const notificationsRef = useRef(null)
   const accountRef = useRef(null)
@@ -167,10 +166,8 @@ export default function TopBar({
                   type="button"
                   onClick={() => {
                     setAccountOpen(false)
-                    if (hasAuth) {
-                      clearAuthToken()
-                      navigate('/login', { replace: true })
-                    }
+                    clearAuthToken()
+                    window.location.href = LOGIN_PATH
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
