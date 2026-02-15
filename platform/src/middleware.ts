@@ -14,6 +14,7 @@ export function middleware(req: NextRequest) {
     req.nextUrl.pathname === '/api/setup/org' ||
     req.nextUrl.pathname === '/api/setup/maps-key' ||
     req.nextUrl.pathname === '/api/setup/logo-url' ||
+    req.nextUrl.pathname === '/api/setup/search-school' ||
     req.nextUrl.pathname.startsWith('/api/places/') ||
     req.nextUrl.pathname === '/api/auth/signup' ||
     req.nextUrl.pathname === '/api/auth/login' ||
