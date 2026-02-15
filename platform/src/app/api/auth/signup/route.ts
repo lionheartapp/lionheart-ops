@@ -47,18 +47,22 @@ export async function POST(req: NextRequest) {
     const slugExists = await prismaBase.organization.findUnique({ where: { slug } })
     const uniqueSlug = slugExists ? `${slug}-${Date.now().toString(36)}` : slug
 
+    const trialEndsAt = new Date()
+    trialEndsAt.setDate(trialEndsAt.getDate() + 14)
+
     const emailDomain = email.split('@')[1] || ''
     const org = await prismaBase.organization.create({
       data: {
         name: schoolName,
         slug: uniqueSlug,
-        plan: 'CORE',
+        plan: 'PRO_TRIAL',
+        trialEndsAt,
         settings: {
           modules: {
             core: true,
-            waterManagement: false,
+            waterManagement: true,
             visualCampus: { enabled: true },
-            advancedInventory: false,
+            advancedInventory: true,
           },
           allowedDomains: emailDomain ? [emailDomain] : [],
         },

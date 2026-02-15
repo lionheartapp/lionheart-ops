@@ -10,13 +10,22 @@ export async function GET(req: NextRequest) {
       if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       const org = await prismaBase.organization.findUnique({
         where: { id: orgId },
-        select: { settings: true, name: true, logoUrl: true },
+        select: { settings: true, name: true, logoUrl: true, plan: true, trialEndsAt: true },
       })
-      const modules = getModules(org?.settings ?? null)
+      let modules = getModules(org?.settings ?? null)
+      let trialDaysLeft: number | null = null
+      if (org?.plan === 'PRO_TRIAL' && org.trialEndsAt) {
+        if (new Date() > org.trialEndsAt) {
+          modules = { ...modules, waterManagement: false, visualCampus: { enabled: false, maxBuildings: null }, advancedInventory: false }
+        } else {
+          trialDaysLeft = Math.ceil((org.trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        }
+      }
       return NextResponse.json({
         modules,
         name: org?.name ?? null,
         logoUrl: org?.logoUrl ?? null,
+        trialDaysLeft,
       })
     })
   } catch (err) {

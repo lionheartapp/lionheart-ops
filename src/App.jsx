@@ -15,6 +15,7 @@ import FacilitiesPage from './components/FacilitiesPage'
 import FacilitiesMyTicketsPage from './components/FacilitiesMyTicketsPage'
 import DashboardEventsList from './components/DashboardEventsList'
 import DashboardTodoWidget from './components/DashboardTodoWidget'
+import OnboardingChecklist from './components/OnboardingChecklist'
 import PendingApprovalsWidget from './components/PendingApprovalsWidget'
 import ITDashboardRequests from './components/ITDashboardRequests'
 import FacilitiesDashboardRequests from './components/FacilitiesDashboardRequests'
@@ -77,7 +78,7 @@ const tabContent = {
 export default function App() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, trialDaysLeft } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -287,6 +288,11 @@ export default function App() {
           }}
           onOpenCommandBar={() => setCommandBarOpen(true)}
         />
+        {trialDaysLeft != null && trialDaysLeft > 0 && (
+          <div className="shrink-0 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-200 text-sm font-medium text-center">
+            {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} left in your Pro trial • <button type="button" onClick={() => { setActiveTab('settings'); setSettingsSection('subscription') }} className="underline hover:no-underline font-semibold">Upgrade to keep all features</button>
+          </div>
+        )}
         <div className="flex-1 flex min-h-0 overflow-hidden gap-6 lg:gap-8">
         <div className="flex-1 min-w-0 overflow-auto flex flex-col min-h-0">
           <div
@@ -342,6 +348,14 @@ export default function App() {
               </header>
               <div className="flex-1 flex min-h-0 gap-6 lg:gap-8 pt-6">
                 <div className="flex-1 min-w-0 overflow-auto space-y-8">
+                  <OnboardingChecklist
+                    onOpenMap={() => setCampusMapModalOpen(true)}
+                    onCreateEvent={canCreate(effectiveUser) ? () => setEventModalOpen(true) : () => setActiveTab('events')}
+                    onNavigateToMembers={() => { setActiveTab('settings'); setSettingsSection('members') }}
+                    isEventCreated={events.length > 0}
+                    isTeamSetup={(users?.length ?? 0) > 1}
+                    hasVisualCampus={hasVisualCampus}
+                  />
                   {!isITTeam(effectiveUser, teams) && !isFacilitiesTeam(effectiveUser, teams) && (
                     <section>
                       <DashboardEventsList
@@ -418,7 +432,18 @@ export default function App() {
                   </section>
                 </div>
                 <div className="shrink-0 pl-2">
-                  <DashboardTodoWidget key={effectiveUser?.id} currentUser={effectiveUser} onNavigateToTab={setActiveTab} />
+                  <DashboardTodoWidget
+                    key={effectiveUser?.id}
+                    currentUser={effectiveUser}
+                    users={users}
+                    events={events}
+                    orgLogoUrl={orgLogoUrl}
+                    onNavigateToTab={setActiveTab}
+                    onNavigateToSettings={(section) => {
+                      setActiveTab('settings')
+                      setSettingsSection(section)
+                    }}
+                  />
                 </div>
               </div>
             </>

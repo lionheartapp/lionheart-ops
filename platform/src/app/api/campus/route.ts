@@ -1,30 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg } from '@/lib/orgContext'
+import { withOrg, getOrgId } from '@/lib/orgContext'
 
 export async function GET(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
-    const buildings = await prisma.building.findMany({
-      include: {
-        rooms: {
-          include: {
-            tickets: {
-              where: { category: 'MAINTENANCE', status: { not: 'RESOLVED' } },
-              include: { submittedBy: true },
+      const orgId = getOrgId()
+      let address: string | null = null
+      if (orgId) {
+        const org = await prismaBase.organization.findUnique({
+          where: { id: orgId },
+          select: { settings: true },
+        })
+        const branding = org?.settings && typeof org.settings === 'object'
+          ? (org.settings as Record<string, unknown>).branding as Record<string, unknown> | undefined
+          : undefined
+        address = (branding?.address as string)?.trim() || null
+      }
+
+      const buildings = await prisma.building.findMany({
+        include: {
+          rooms: {
+            include: {
+              tickets: {
+                where: { category: 'MAINTENANCE', status: { not: 'RESOLVED' } },
+                include: { submittedBy: true },
+              },
+              teacherSchedules: { include: { user: true } },
             },
-            teacherSchedules: { include: { user: true } },
           },
         },
-      },
-    })
-    // Use mock when DB is empty (demo mode)
-    if (buildings.length === 0) return NextResponse.json(getMockCampusData())
-    return NextResponse.json(buildings)
+      })
+
+      const hasPanoramaContent = buildings.some((b) =>
+        b.rooms.some((r) => r.panoramaImageUrl || r.matterportUrl)
+      )
+
+      const payload = {
+        buildings: buildings.length === 0 ? getMockCampusData() : buildings,
+        address,
+        hasPanoramaContent,
+      }
+      return NextResponse.json(payload)
     })
   } catch (error) {
     console.error('Campus API error:', error)
-    return NextResponse.json(getMockCampusData())
+    return NextResponse.json({
+      buildings: getMockCampusData(),
+      address: null,
+      hasPanoramaContent: false,
+    })
   }
 }
 

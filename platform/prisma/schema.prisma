@@ -12,7 +12,10 @@ model Organization {
   id                   String               @id @default(cuid())
   name                 String
   slug                 String               @unique
-  plan                 String               @default("CORE")  // CORE | PRO | ENTERPRISE
+  plan                 String               @default("PRO_TRIAL")  // FREE | PRO_TRIAL | CORE | PRO | ENTERPRISE
+  trialEndsAt          DateTime?
+  stripeCustomerId     String?
+  subscriptionStatus   String?               // 'active' | 'past_due' | 'canceled'
   logoUrl              String?
   website              String?
   settings             Json?

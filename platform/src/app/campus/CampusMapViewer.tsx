@@ -3,6 +3,7 @@
 import Script from 'next/script'
 import { apiFetch } from '@/lib/apiFetch'
 import { useEffect, useRef, useState } from 'react'
+import { MapPin } from 'lucide-react'
 import { TicketPinPanel } from './TicketPinPanel'
 import { RoomDetailPanel } from './RoomDetailPanel'
 
@@ -53,6 +54,17 @@ const DEFAULT_PANORAMA = 'https://pannellum.org/images/cerro-toco-0.jpg'
 
 type Props = { initialRoomId?: string }
 
+type CampusApiResponse = {
+  buildings: Building[]
+  address: string | null
+  hasPanoramaContent: boolean
+}
+
+function buildGoogleMapEmbedUrl(address: string): string {
+  const encoded = encodeURIComponent(address)
+  return `https://www.google.com/maps?q=${encoded}&z=17&output=embed`
+}
+
 export function CampusMapViewer({ initialRoomId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<{ addHotSpot: (c: Record<string, unknown>) => void; destroy: () => void } | null>(null)
@@ -60,14 +72,20 @@ export function CampusMapViewer({ initialRoomId }: Props) {
   const [selectedPin, setSelectedPin] = useState<PinInfo | null>(null)
   const [urlRoomId, setUrlRoomId] = useState<string | null>(initialRoomId ?? null)
   const [pannellumReady, setPannellumReady] = useState(false)
+  const [address, setAddress] = useState<string | null>(null)
+  const [hasPanoramaContent, setHasPanoramaContent] = useState(false)
 
   useEffect(() => {
     apiFetch('/api/campus')
       .then((r) => r.json())
-      .then((buildings: Building[]) => {
+      .then((data: CampusApiResponse | Building[]) => {
+        const buildings = Array.isArray(data) ? data : (data as CampusApiResponse).buildings ?? []
+        const resp = data as CampusApiResponse
+        setAddress((resp?.address as string)?.trim() || null)
+        setHasPanoramaContent(Boolean(resp?.hasPanoramaContent))
         const allPins: PinInfo[] = []
         for (const b of buildings) {
-          for (const r of b.rooms) {
+          for (const r of b.rooms ?? []) {
             const maintenanceTickets = r.tickets?.filter((t) => t && t.id) ?? []
             if (maintenanceTickets.length === 0) continue
             const yaw = r.pinYaw ?? 0
@@ -87,8 +105,11 @@ export function CampusMapViewer({ initialRoomId }: Props) {
       .catch(() => setPins([]))
   }, [])
 
+  const showGoogleMap = Boolean(address)
+  const showPanorama = !address && hasPanoramaContent
+
   useEffect(() => {
-    if (!pannellumReady || !containerRef.current || !window.pannellum) return
+    if (!showPanorama || !pannellumReady || !containerRef.current || !window.pannellum) return
 
     const panorama = DEFAULT_PANORAMA
 
@@ -119,7 +140,7 @@ export function CampusMapViewer({ initialRoomId }: Props) {
       viewerRef.current?.destroy()
       viewerRef.current = null
     }
-  }, [pannellumReady, pins])
+  }, [showPanorama, pannellumReady, pins])
 
   useEffect(() => {
     if (initialRoomId) setUrlRoomId(initialRoomId)
@@ -127,21 +148,48 @@ export function CampusMapViewer({ initialRoomId }: Props) {
 
   return (
     <>
-      <Script
-        src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"
-        strategy="beforeInteractive"
-        onLoad={() => setPannellumReady(true)}
-      />
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
-      />
+      {showPanorama && (
+        <>
+          <Script
+            src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"
+            strategy="beforeInteractive"
+            onLoad={() => setPannellumReady(true)}
+          />
+          <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
+          />
+        </>
+      )}
       <div className="relative flex-1 flex min-h-0">
-        <div
-          id="pannellum-container"
-          ref={containerRef}
-          className="w-full h-[calc(100vh-72px)] min-h-[400px]"
-        />
+        {showGoogleMap && (
+          <iframe
+            src={buildGoogleMapEmbedUrl(address!)}
+            title="Campus Map"
+            className="w-full h-[calc(100vh-72px)] min-h-[400px] border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+        )}
+        {showPanorama && (
+          <div
+            id="pannellum-container"
+            ref={containerRef}
+            className="w-full h-[calc(100vh-72px)] min-h-[400px]"
+          />
+        )}
+        {!showGoogleMap && !showPanorama && (
+          <div className="w-full h-[calc(100vh-72px)] min-h-[400px] bg-zinc-900 flex items-center justify-center">
+            <div className="text-center p-8 max-w-md">
+              <MapPin className="w-12 h-12 text-zinc-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-zinc-300 mb-2">No campus address yet</h3>
+              <p className="text-sm text-zinc-500">
+                Add your campus address in Settings → Workspace so we can show a map of your campus here.
+              </p>
+            </div>
+          </div>
+        )}
         {selectedPin && (
           <TicketPinPanel
             pin={selectedPin}

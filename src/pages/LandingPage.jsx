@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Calendar, ShieldCheck, Map, ArrowRight } from 'lucide-react'
+import { Sparkles, Calendar, ShieldCheck, Map, ArrowRight, Check } from 'lucide-react'
 
 const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
 
@@ -17,7 +17,7 @@ export default function LandingPage() {
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
           <a href="#features" className="hover:text-primary-600">Features</a>
-          <a href="#features" className="hover:text-primary-600">Solutions</a>
+          <a href="#pricing" className="hover:text-primary-600">Pricing</a>
           <Link to="/login" className="hover:text-primary-600">Sign in</Link>
           <Link to="/signup" className="px-4 py-2 bg-primary-900 text-white rounded-full hover:bg-primary-800 transition-all">
             Get Started
@@ -105,6 +105,66 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold text-zinc-900 mb-3">{f.title}</h3>
                 <p className="text-zinc-600 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="py-24 bg-white border-t border-zinc-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16 space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold">
+              <Check className="w-4 h-4" />
+              14-Day Free Trial • No Credit Card Required
+            </div>
+            <h2 className="text-3xl font-bold text-primary-950">Simple, transparent pricing</h2>
+            <p className="text-zinc-500 max-w-2xl mx-auto">
+              Site licenses based on student enrollment. Start free and upgrade when you&apos;re ready.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {[
+              { name: 'Starter', price: 199, priceLabel: '$199/mo', students: 'Up to 300 students', features: ['Maintenance & IT Tickets', 'Basic Calendar', 'Basic User Management'], cta: 'Start Free Trial', href: '/signup' },
+              { name: 'Pro', price: 499, priceLabel: '$499/mo', students: 'Up to 1,000 students', features: ['Water Management', 'Inventory Tracking', 'Smart Event AI', 'Visual Repair Assistant'], cta: 'Start Free Trial', href: '/signup', highlight: true },
+              { name: 'Enterprise', price: null, priceLabel: 'Custom', students: 'Unlimited', features: ['Visual Campus (3D Matterport)', 'Monthly AI Budget Reports', 'Unlimited AI Usage', 'Dedicated Support'], cta: 'Contact Sales', href: 'mailto:sales@lionheart.app' },
+            ].map((plan) => (
+              <div
+                key={plan.name}
+                className={`relative rounded-2xl border-2 p-8 flex flex-col ${plan.highlight ? 'border-primary-500 bg-primary-50/30 shadow-xl shadow-primary-200/30' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}
+              >
+                {plan.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary-600 text-white text-xs font-bold uppercase tracking-wider">
+                    Most Popular
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-zinc-900 mb-1">{plan.name}</h3>
+                <p className="text-3xl font-extrabold text-primary-900 mb-1">{plan.priceLabel}</p>
+                <p className="text-sm text-zinc-500 mb-6">{plan.students}</p>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-zinc-700">
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                {plan.href.startsWith('/') ? (
+                  <Link
+                    to={plan.href}
+                    className={`block text-center py-3 px-6 rounded-xl font-bold transition-all ${plan.highlight ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}
+                  >
+                    {plan.cta}
+                  </Link>
+                ) : (
+                  <a
+                    href={plan.href}
+                    className={`block text-center py-3 px-6 rounded-xl font-bold transition-all ${plan.highlight ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}
+                  >
+                    {plan.cta}
+                  </a>
+                )}
               </div>
             ))}
           </div>

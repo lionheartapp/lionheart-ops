@@ -8,13 +8,14 @@ const DEFAULT_MODULES = {
   advancedInventory: false,
 }
 
-const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null })
+const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, trialDaysLeft: null })
 
 export function OrgModulesProvider({ children }) {
   const [modules, setModules] = useState(DEFAULT_MODULES)
   const [loading, setLoading] = useState(true)
   const [orgName, setOrgName] = useState(null)
   const [orgLogoUrl, setOrgLogoUrl] = useState(null)
+  const [trialDaysLeft, setTrialDaysLeft] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -36,6 +37,7 @@ export function OrgModulesProvider({ children }) {
         }
         if (data?.name != null) setOrgName(data.name)
         if (data?.logoUrl != null) setOrgLogoUrl(data.logoUrl)
+        if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -50,6 +52,7 @@ export function OrgModulesProvider({ children }) {
     hasAdvancedInventory: modules.advancedInventory === true,
     orgName,
     orgLogoUrl,
+    trialDaysLeft,
   }
 
   return (
@@ -61,5 +64,5 @@ export function OrgModulesProvider({ children }) {
 
 export function useOrgModules() {
   const ctx = useContext(OrgModulesContext)
-  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null }
+  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, trialDaysLeft: null }
 }

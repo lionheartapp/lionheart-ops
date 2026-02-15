@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus } from 'lucide-react'
+import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus, Upload } from 'lucide-react'
+import { parseMembersCsv } from '../utils/parseMembersCsv'
 import { ROLES, getTeamName, getUserTeamIds, canManageTeams } from '../data/teamsData'
 import DrawerModal from './DrawerModal'
 
@@ -226,6 +227,7 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
   const [searchQuery, setSearchQuery] = useState('')
   const [teamFilter, setTeamFilter] = useState('')
   const [newTagName, setNewTagName] = useState('')
+  const csvInputRef = useRef(null)
 
   const canManage = canManageTeams(currentUser)
   const safeTeams = Array.isArray(teams) ? teams : []
@@ -266,6 +268,72 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
   const handleDeleteUser = (u) => {
     if (typeof window !== 'undefined' && !window.confirm(`Remove ${u.name} from the team?`)) return
     setUsers((prev) => prev.filter((x) => x.id !== u.id))
+  }
+
+  const resolveRoleId = (roleStr) => {
+    if (!roleStr) return 'viewer'
+    const r = (roleStr || '').toLowerCase().trim()
+    const match = ROLES.find((x) => x.id === r || (x.label || '').toLowerCase() === r)
+    return match?.id ?? 'viewer'
+  }
+
+  const handleCsvImport = (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !file.name.toLowerCase().endsWith('.csv')) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text = String(reader.result ?? '')
+      const parsed = parseMembersCsv(text)
+      if (parsed.length === 0) return
+
+      const existingEmails = new Set(safeUsers.map((u) => (u.email || '').toLowerCase()))
+      const newUsers = []
+      const teamsToAdd = []
+
+      for (const m of parsed) {
+        const email = (m.email || '').trim().toLowerCase()
+        if (!email || !email.includes('@') || existingEmails.has(email)) continue
+        existingEmails.add(email)
+
+        let teamIds = (m.teamNames || []).map((name) => {
+          const id = slugifyTeamId(name)
+          if (!safeTeams.some((t) => t.id === id) && !teamsToAdd.some((t) => t.id === id)) {
+            teamsToAdd.push({ id, name })
+          }
+          return id
+        })
+        if (teamIds.length === 0) {
+          const generalId = slugifyTeamId('General')
+          if (!safeTeams.some((t) => t.id === generalId) && !teamsToAdd.some((t) => t.id === generalId)) {
+            teamsToAdd.push({ id: generalId, name: 'General' })
+          }
+          teamIds = [generalId]
+        }
+
+        newUsers.push({
+          id: 'u' + Date.now() + Math.random().toString(36).slice(2, 8),
+          name: (m.name || email.split('@')[0] || 'Unknown').trim(),
+          email,
+          teamIds,
+          role: resolveRoleId(m.role),
+        })
+      }
+
+      const existingIds = new Set(safeTeams.map((t) => t.id))
+      const byId = new Map()
+      for (const t of teamsToAdd) {
+        if (!existingIds.has(t.id) && !byId.has(t.id)) byId.set(t.id, t)
+      }
+      const uniqueTeams = Array.from(byId.values())
+      if (uniqueTeams.length && setTeams) {
+        setTeams((prev) => [...prev, ...uniqueTeams])
+      }
+      if (newUsers.length && setUsers) {
+        setUsers((prev) => [...prev, ...newUsers])
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
   }
 
   const handleCreateTag = (e) => {
@@ -347,6 +415,23 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <input
+            ref={csvInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleCsvImport}
+            className="hidden"
+          />
+          {canManage && (
+            <button
+              type="button"
+              onClick={() => csvInputRef.current?.click()}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            >
+              <Upload className="w-4 h-4" />
+              Upload CSV
+            </button>
+          )}
           <button
             type="button"
             onClick={() => downloadCSV(filteredUsers, safeTeams)}

@@ -3,15 +3,16 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api'
-import { ArrowRight, Check, Loader2, School, Building2, Upload } from 'lucide-react'
+import { Check, Loader2, Upload, Search, MapPin, Users, FileSpreadsheet } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import confetti from 'canvas-confetti'
+import { parseMembersCsv } from '@/lib/parseMembersCsv'
 
 const LIBRARIES: ('places')[] = ['places']
 const LIONHEART_URL = (process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173').replace(/\/+$/, '')
 
-function extractDomain(place: google.maps.places.PlaceResult): string | null {
+function extractDomainFromPlace(place: google.maps.places.PlaceResult): string | null {
   const raw = (place as { website?: string; url?: string }).website || (place as { website?: string; url?: string }).url
   if (raw) {
     try {
@@ -99,15 +100,20 @@ function SetupWizard({
   searchParams: URLSearchParams
   mapsKey: string
 }) {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(orgNameFromUrl ? 2 : 1)
   const [loading, setLoading] = useState(false)
   const [schoolName, setSchoolName] = useState(orgNameFromUrl || '')
   const [schoolAddress, setSchoolAddress] = useState('')
   const [primaryColor, setPrimaryColor] = useState('#3b82f6')
   const [secondaryColor, setSecondaryColor] = useState('#f59e0b')
   const [logoUrl, setLogoUrl] = useState('')
+  const [logoLoading, setLogoLoading] = useState(false)
   const [website, setWebsite] = useState('')
   const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null)
+  const [invites, setInvites] = useState(['', '', ''])
+  const [csvMembers, setCsvMembers] = useState<Array<{ name: string; email: string; role?: string; teamNames?: string[] }>>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const csvInputRef = useRef<HTMLInputElement>(null)
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -123,6 +129,8 @@ function SetupWizard({
       .catch(() => {})
   }, [orgId, orgNameFromUrl])
 
+  const startAtBranding = !!orgNameFromUrl
+
   const getToken = useCallback(() => {
     if (typeof window === 'undefined') return null
     const hash = window.location.hash
@@ -130,24 +138,55 @@ function SetupWizard({
     return match ? decodeURIComponent(match[1]) : null
   }, [])
 
+  const fetchLogoForDomain = useCallback((domain: string) => {
+    setLogoLoading(true)
+    fetch(`/api/setup/logo-url?domain=${encodeURIComponent(domain)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.url) setLogoUrl(d.url)
+      })
+      .catch(() => {})
+      .finally(() => setLogoLoading(false))
+  }, [])
+
   const onPlacesChanged = () => {
     const places = searchBox?.getPlaces()
     if (!places?.length) return
     const place = places[0]
-    setSchoolName(place.name || '')
+    setSchoolName(place.name || schoolName)
     setSchoolAddress(place.formatted_address || '')
-    const domain = extractDomain(place)
-    if (domain) {
-      setWebsite(domain)
-      setLogoUrl('')
-      fetch(`/api/setup/logo-url?domain=${encodeURIComponent(domain)}`)
+    let domain = extractDomainFromPlace(place)
+    const placeId = (place as { place_id?: string }).place_id
+    if (placeId && !domain) {
+      fetch(`/api/places/details?placeId=${encodeURIComponent(placeId)}`)
         .then((r) => r.json())
-        .then((d) => d?.url && setLogoUrl(d.url))
+        .then((d) => {
+          if (d?.websiteUri) {
+            try {
+              domain = new URL(d.websiteUri).hostname.replace(/^www\./, '')
+            } catch {}
+          }
+          if (domain) {
+            setWebsite(domain)
+            fetchLogoForDomain(domain)
+          }
+        })
         .catch(() => {})
-    } else {
-      setLogoUrl('')
-      setWebsite('')
+    } else if (domain) {
+      setWebsite(domain)
+      fetchLogoForDomain(domain)
     }
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const valid = file.type === 'image/svg+xml' || file.type === 'image/png' || file.type === 'image/jpeg'
+    if (!valid) return
+    const reader = new FileReader()
+    reader.onload = () => setLogoUrl(reader.result as string)
+    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const handleNextStep = () => {
@@ -156,60 +195,129 @@ function SetupWizard({
     setTimeout(() => {
       setLoading(false)
       setStep(2)
-    }, 600)
+    }, 400)
   }
 
   const fireConfetti = () => {
     const end = Date.now() + 1500
     const colors = [primaryColor, secondaryColor, '#ffffff']
     function frame() {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors,
-      })
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors,
-      })
+      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors })
+      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors })
       if (Date.now() < end) requestAnimationFrame(frame)
     }
     frame()
   }
 
-  const handleFinish = async () => {
-    fireConfetti()
-    setStep(3)
+  const token = getToken()
+  const authHeaders = token
+    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' }
 
-    const token = getToken()
-    if (token && schoolName) {
-      try {
-        await fetch('/api/setup/branding', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            orgId,
-            name: schoolName.trim(),
-            address: schoolAddress || undefined,
-            logoUrl: logoUrl || null,
-            website: website || undefined,
-            colors: { primary: primaryColor, secondary: secondaryColor },
-          }),
-        })
-      } catch {
-        // continue
+  const handleContinueFromBranding = async () => {
+    if (!schoolName.trim()) return
+    setLoading(true)
+    try {
+      if (token) {
+        try {
+          await fetch('/api/setup/branding', {
+            method: 'PATCH',
+            headers: authHeaders,
+            body: JSON.stringify({
+              orgId,
+              name: schoolName.trim(),
+              address: schoolAddress?.trim() || undefined,
+              logoUrl: logoUrl || null,
+              website: website || undefined,
+              colors: { primary: primaryColor, secondary: secondaryColor },
+            }),
+          })
+        } catch {
+          // continue
+        }
+        try {
+          const buildingsRes = await fetch('/api/buildings', { headers: authHeaders })
+          const buildings = await buildingsRes.json()
+          if (Array.isArray(buildings) && buildings.length === 0) {
+            const createRes = await fetch('/api/buildings', {
+              method: 'POST',
+              headers: authHeaders,
+              body: JSON.stringify({ name: 'Main Campus', division: 'HIGH' }),
+            })
+            const b = await createRes.json()
+            if (b?.id) {
+              await fetch('/api/rooms', {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify({ name: 'General Room', buildingId: b.id }),
+              })
+            }
+          }
+        } catch {
+          // non-blocking
+        }
       }
-      if (typeof window !== 'undefined' && window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      setStep(3)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !file.name.toLowerCase().endsWith('.csv')) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text = String(reader.result ?? '')
+      const parsed = parseMembersCsv(text)
+      setCsvMembers(parsed)
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
+  const handleFinishSetup = async (skipInvites = false) => {
+    setLoading(true)
+    fireConfetti()
+    setStep(4)
+
+    if (token && !skipInvites) {
+      const hasCsv = csvMembers.length > 0
+      const manualEmails = invites.filter((e) => e.trim().includes('@'))
+
+      if (hasCsv) {
+        try {
+          await fetch('/api/setup/invite-members', {
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify({
+              orgId,
+              members: csvMembers.map((m) => ({
+                name: m.name,
+                email: m.email,
+                role: m.role,
+                teamNames: m.teamNames,
+              })),
+            }),
+          })
+        } catch {
+          // non-blocking
+        }
+      } else if (manualEmails.length > 0) {
+        try {
+          await fetch('/api/setup/invite-members', {
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify({ orgId, emails: manualEmails }),
+          })
+        } catch {
+          // non-blocking
+        }
       }
+    }
+
+    if (typeof window !== 'undefined' && window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
     }
 
     const params = new URLSearchParams()
@@ -234,191 +342,338 @@ function SetupWizard({
   }
 
   return (
-    <div className="min-h-screen w-full bg-white flex items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* Background: Soft aurora gradients */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-blue-100 rounded-full blur-[100px] opacity-60 animate-[pulse_8s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-violet-100 rounded-full blur-[100px] opacity-60 animate-[pulse_10s_ease-in-out_infinite]" />
-      </div>
+    <div className="min-h-screen bg-white text-zinc-900 font-sans">
+      {/* Nav - matches landing page */}
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary-900 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-lg">L</span>
+          </div>
+          <span className="font-bold text-xl tracking-tight text-primary-900">Lionheart</span>
+        </div>
+        <span className="text-sm text-zinc-500">Setup</span>
+      </nav>
 
-      <AnimatePresence mode="wait">
-        {/* STEP 1: Identity */}
-        {step === 1 && (
-          <motion.div
-            key="step1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="relative z-10 w-full max-w-lg"
-          >
-            <div className="bg-white/80 backdrop-blur-xl border border-white/60 p-8 rounded-3xl shadow-2xl shadow-zinc-200/50">
-              <div className="mb-8 text-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner">
-                  🏫
+      <main className="max-w-7xl mx-auto px-6">
+        {/* Stepper */}
+        <div className="pt-8 pb-4">
+          <div className="flex items-center gap-1 sm:gap-2 max-w-2xl">
+            {[
+              { n: 1, label: 'Identity' },
+              { n: 2, label: 'Branding' },
+              { n: 3, label: 'Team' },
+              { n: 4, label: 'Done' },
+            ].map(({ n, label }, i) => (
+              <div key={n} className="flex items-center flex-1 min-w-0">
+                <div className={`flex items-center gap-1.5 sm:gap-2 ${step >= n ? 'text-primary-600' : 'text-zinc-400'}`}>
+                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium shrink-0 ${
+                    step >= n ? 'bg-primary-100 text-primary-600' : 'bg-zinc-100 text-zinc-400'
+                  }`}>
+                    {step > n ? <Check className="w-3 h-3 sm:w-4 sm:h-4" /> : n}
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium hidden sm:inline truncate">{label}</span>
                 </div>
-                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">
-                  What&apos;s your school&apos;s name?
-                </h1>
-                <p className="text-zinc-500">We&apos;ll set up your digital campus based on your location.</p>
+                {i < 3 && <div className={`flex-1 h-0.5 min-w-[8px] mx-0.5 ${step > n ? 'bg-primary-200' : 'bg-zinc-200'}`} />}
               </div>
+            ))}
+          </div>
+        </div>
 
-              <div className="space-y-4">
+        <AnimatePresence mode="wait">
+          {/* STEP 1: Only when no orgName - school search */}
+          {step === 1 && !startAtBranding && (
+            <motion.section
+              key="step1"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="pt-16 pb-24"
+            >
+              <div className="max-w-xl">
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">Find your school</h1>
+                <p className="text-zinc-500 mb-8">Search to pull your logo and address automatically.</p>
                 <StandaloneSearchBox onLoad={(ref) => setSearchBox(ref)} onPlacesChanged={onPlacesChanged}>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                      <School className="w-5 h-5 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
-                    </div>
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
                     <input
                       type="text"
                       placeholder="Search for your school..."
                       value={schoolName}
                       onChange={(e) => setSchoolName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleNextStep()}
-                      className="w-full pl-12 pr-4 py-4 bg-white border border-zinc-200 rounded-xl text-lg outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm text-zinc-900"
+                      className="w-full pl-12 pr-4 py-4 border border-zinc-200 rounded-xl text-lg outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
                       autoFocus
                     />
                   </div>
                 </StandaloneSearchBox>
-
                 <button
                   onClick={handleNextStep}
                   disabled={!schoolName.trim() || loading}
-                  className="w-full py-4 bg-zinc-900 text-white rounded-xl font-semibold text-lg hover:bg-zinc-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-zinc-900/20"
+                  className="mt-6 w-full py-4 bg-primary-600 text-white rounded-xl font-semibold text-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      Next <ArrowRight className="w-5 h-5" />
-                    </>
-                  )}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Next <Check className="w-5 h-5" /></>}
                 </button>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.section>
+          )}
 
-        {/* STEP 2: Personalize */}
-        {step === 2 && (
-          <motion.div
-            key="step2"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="relative z-10 w-full max-w-lg"
-          >
-            <div className="bg-white/90 backdrop-blur-xl border border-white/60 p-8 rounded-3xl shadow-2xl shadow-zinc-200/50">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-zinc-900">Let&apos;s make it yours.</h2>
-                  <p className="text-zinc-500 text-sm mt-1">{schoolName}</p>
-                </div>
-                <div className="w-16 h-16 rounded-xl border border-zinc-100 bg-white shadow-md flex items-center justify-center overflow-hidden p-2 relative group cursor-pointer">
-                  {logoUrl ? (
-                    <img
-                      src={logoUrl}
-                      alt="Logo"
-                      className="w-full h-full object-contain"
-                      onError={() => setLogoUrl('')}
-                    />
-                  ) : (
-                    <Building2 className="w-8 h-8 text-zinc-300" />
-                  )}
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Upload className="w-4 h-4 text-white" />
+          {/* STEP 2: Branding - Let's make it yours */}
+          {step === 2 && (
+            <motion.section
+              key="step2"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="pt-16 pb-24"
+            >
+              <div className="max-w-2xl">
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">Let&apos;s make it yours.</h1>
+                <p className="text-zinc-500 mb-10">Add your logo and brand colors.</p>
+
+                {/* Logo: search + upload */}
+                <div className="mb-10">
+                  <label className="block text-sm font-medium text-zinc-700 mb-3">Your logo</label>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => fileInputRef.current?.click()}
+                      onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                      className="w-24 h-24 rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 hover:border-primary-300 hover:bg-primary-50/30 flex items-center justify-center overflow-hidden cursor-pointer transition-colors shrink-0"
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".svg,.png,.jpg,.jpeg,image/svg+xml,image/png,image/jpeg"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                      {logoLoading ? (
+                        <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
+                      ) : logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt="Logo"
+                          className="w-full h-full object-contain p-2"
+                          onError={() => setLogoUrl('')}
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="w-8 h-8 text-zinc-400 mx-auto mb-1" />
+                          <span className="text-xs text-zinc-500">PNG / SVG</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-zinc-500 mb-3">Search for your school to fetch the logo automatically, or upload your own.</p>
+                      <StandaloneSearchBox onLoad={(ref) => setSearchBox(ref)} onPlacesChanged={onPlacesChanged}>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                          <input
+                            type="text"
+                            placeholder="Search school name to fetch logo..."
+                            className="w-full pl-10 pr-4 py-3 border border-zinc-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
+                          />
+                        </div>
+                      </StandaloneSearchBox>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
-                    Brand Colors
+                {/* Campus address - used for Campus Map */}
+                <div className="mb-10">
+                  <label className="block text-sm font-medium text-zinc-700 mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Campus address
                   </label>
+                  <p className="text-sm text-zinc-500 mb-3">
+                    Used for the Campus Map so we can show a Google view of your campus.
+                  </p>
+                  <StandaloneSearchBox onLoad={(ref) => setSearchBox(ref)} onPlacesChanged={onPlacesChanged}>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                      <input
+                        type="text"
+                        placeholder="Search or enter address..."
+                        value={schoolAddress}
+                        onChange={(e) => setSchoolAddress(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-zinc-200 rounded-lg outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
+                      />
+                    </div>
+                  </StandaloneSearchBox>
+                </div>
+
+                {/* Brand colors */}
+                <div className="mb-10">
+                  <label className="block text-sm font-medium text-zinc-700 mb-4">Brand colors</label>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium text-zinc-700">Primary</span>
-                      <div className="flex items-center gap-3 p-2 rounded-xl border border-zinc-200 bg-zinc-50">
+                    <div>
+                      <span className="text-xs text-zinc-500 block mb-2">Primary</span>
+                      <div className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 bg-zinc-50">
                         <input
                           type="color"
                           value={primaryColor}
                           onChange={(e) => setPrimaryColor(e.target.value)}
-                          className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
+                          className="w-10 h-10 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
                         />
-                        <span className="text-sm font-mono text-zinc-500 uppercase">{primaryColor}</span>
+                        <span className="text-sm font-mono text-zinc-600">{primaryColor}</span>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium text-zinc-700">Secondary</span>
-                      <div className="flex items-center gap-3 p-2 rounded-xl border border-zinc-200 bg-zinc-50">
+                    <div>
+                      <span className="text-xs text-zinc-500 block mb-2">Secondary</span>
+                      <div className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 bg-zinc-50">
                         <input
                           type="color"
                           value={secondaryColor}
                           onChange={(e) => setSecondaryColor(e.target.value)}
-                          className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
+                          className="w-10 h-10 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
                         />
-                        <span className="text-sm font-mono text-zinc-500 uppercase">{secondaryColor}</span>
+                        <span className="text-sm font-mono text-zinc-600">{secondaryColor}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
-                  <p className="text-xs text-zinc-400 mb-2 text-center">Dashboard Preview</p>
-                  <div className="w-full h-24 rounded-lg bg-white shadow-sm border border-zinc-200 overflow-hidden flex flex-col">
-                    <div className="h-8 w-full flex items-center px-3" style={{ backgroundColor: primaryColor }}>
-                      <div className="w-16 h-2 bg-white/20 rounded-full" />
+                {/* Preview */}
+                <div className="mb-10 p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+                  <p className="text-xs text-zinc-400 mb-3">Preview</p>
+                  <div className="w-full h-20 rounded-lg bg-white border border-zinc-200 overflow-hidden flex">
+                    <div className="h-full flex items-center px-4" style={{ backgroundColor: primaryColor, minWidth: 120 }}>
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="" className="h-10 w-auto max-w-[80px] object-contain" />
+                      ) : (
+                        <span className="text-white font-bold text-lg">L</span>
+                      )}
                     </div>
-                    <div className="flex-1 p-3 flex gap-3">
-                      <div className="w-12 h-full bg-zinc-100 rounded-md" />
-                      <div className="flex-1 space-y-2">
-                        <div className="w-3/4 h-2 bg-zinc-100 rounded-full" />
-                        <div className="w-1/2 h-2 bg-zinc-100 rounded-full" />
-                        <div className="mt-auto w-8 h-8 rounded-full ml-auto" style={{ backgroundColor: secondaryColor }} />
-                      </div>
+                    <div className="flex-1 flex items-center px-4">
+                      <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-4">
+                  {!startAtBranding && (
+                    <button
+                      onClick={() => setStep(1)}
+                      className="px-6 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-medium hover:bg-zinc-50 transition-colors"
+                    >
+                      Back
+                    </button>
+                  )}
                   <button
-                    onClick={() => setStep(1)}
-                    className="px-6 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-medium hover:bg-zinc-50 transition-colors"
+                    onClick={handleContinueFromBranding}
+                    disabled={loading}
+                    className="flex-1 py-3 px-6 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    Back
-                  </button>
-                  <button
-                    onClick={handleFinish}
-                    className="flex-1 px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-zinc-900/20"
-                  >
-                    Finish Setup <Check className="w-5 h-5" />
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continue <Check className="w-5 h-5" /></>}
                   </button>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.section>
+          )}
 
-        {/* STEP 3: Celebration */}
-        {step === 3 && (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="relative z-10 w-full max-w-lg text-center"
-          >
-            <div className="bg-white/90 backdrop-blur-xl border border-white/60 p-12 rounded-3xl shadow-2xl shadow-zinc-200/50">
+          {/* STEP 3: Team - Invite colleagues */}
+          {step === 3 && (
+            <motion.section
+              key="step3"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="pt-16 pb-24"
+            >
+              <div className="max-w-xl">
+                <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Users className="w-7 h-7 text-blue-600" />
+                </div>
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">Don&apos;t fly solo</h1>
+                <p className="text-zinc-500 mb-6">
+                  Invite your Facilities Director, IT Admin, or Office Manager. Upload a CSV or enter emails below.
+                </p>
+
+                {/* CSV upload */}
+                <div className="mb-8">
+                  <input
+                    ref={csvInputRef}
+                    type="file"
+                    accept=".csv"
+                    onChange={handleCsvUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => csvInputRef.current?.click()}
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-zinc-200 text-zinc-700 hover:bg-zinc-50 transition-colors"
+                  >
+                    <FileSpreadsheet className="w-5 h-5" />
+                    {csvMembers.length > 0
+                      ? `${csvMembers.length} members from CSV`
+                      : 'Upload CSV'}
+                  </button>
+                  {csvMembers.length > 0 && (
+                    <p className="text-sm text-emerald-600 mt-2">
+                      CSV loaded. Use columns: Name, Email, Role, Teams
+                    </p>
+                  )}
+                </div>
+
+                <p className="text-sm text-zinc-500 mb-3">Or enter emails manually:</p>
+                <div className="space-y-3 mb-8">
+                  {invites.map((email, idx) => (
+                    <div key={idx} className="relative">
+                      <input
+                        type="email"
+                        placeholder="colleague@school.edu"
+                        className="w-full py-3 px-4 border border-zinc-200 rounded-xl text-zinc-900 outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
+                        value={email}
+                        onChange={(e) => {
+                          const next = [...invites]
+                          next[idx] = e.target.value
+                          setInvites(next)
+                        }}
+                      />
+                      {email.trim().includes('@') && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500">
+                          <Check className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handleFinishSetup(false)}
+                  disabled={loading}
+                  className="w-full py-4 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mb-3"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Finish Setup'}
+                </button>
+                <button
+                  onClick={() => handleFinishSetup(true)}
+                  className="w-full py-2 text-zinc-500 text-sm hover:text-zinc-700"
+                >
+                  Skip for now
+                </button>
+              </div>
+            </motion.section>
+          )}
+
+          {/* STEP 4: Celebration */}
+          {step === 4 && (
+            <motion.section
+              key="step4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="pt-32 pb-24 text-center"
+            >
               <div className="text-6xl mb-6">🎉</div>
               <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">Welcome home!</h1>
-              <p className="text-zinc-500 mb-8">
-                Your campus is ready. Taking you to your dashboard…
-              </p>
+              <p className="text-zinc-500 mb-8">Your campus is ready. Taking you to your dashboard…</p>
               <Loader2 className="w-10 h-10 animate-spin text-zinc-400 mx-auto" />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.section>
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   )
 }
