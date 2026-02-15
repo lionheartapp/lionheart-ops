@@ -81,9 +81,7 @@ export default function Sidebar({
         {orgLogoUrl ? (
           <img src={orgLogoUrl} alt={orgName || 'School'} className="h-10 w-auto max-w-full object-contain" />
         ) : (
-          <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-center truncate w-full">
-            {orgName || 'Lionheart Operations'}
-          </h1>
+          <img src="/lionheart-logo.svg" alt={orgName || 'Lionheart'} className="h-10 w-auto max-w-full object-contain dark:opacity-90" />
         )}
       </div>
 

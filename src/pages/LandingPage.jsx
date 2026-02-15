@@ -45,12 +45,9 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans">
       <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-900 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">L</span>
-          </div>
-          <span className="font-bold text-xl tracking-tight text-primary-900">Lionheart</span>
-        </div>
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/lionheart-logo.svg" alt="Lionheart" className="h-8 w-auto" />
+        </Link>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
           <a href="#features" className="hover:text-primary-600">Features</a>
           <a href="#pricing" className="hover:text-primary-600">Pricing</a>

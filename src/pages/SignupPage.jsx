@@ -113,8 +113,9 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen bg-white flex flex-col items-center justify-center px-6" aria-label="Create account">
       <div className="w-full max-w-md">
-        <Link to="/" className="text-sm text-zinc-600 hover:text-primary-600 mb-8 block">
-          ← Back to home
+        <Link to="/" className="flex flex-col items-center gap-3 mb-8">
+          <img src="/lionheart-logo.svg" alt="Lionheart" className="h-10 w-auto" />
+          <span className="text-sm text-zinc-600 hover:text-primary-600">← Back to home</span>
         </Link>
         <h1 className="text-2xl font-bold text-zinc-900 mb-2">Create your school</h1>
         <p className="text-zinc-600 text-sm mb-6">
