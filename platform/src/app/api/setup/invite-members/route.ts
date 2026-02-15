@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     if (body.members?.length) {
       toAdd = body.members
-        .map((m) => {
+        .map((m): PendingMember | null => {
           const email = String(m.email || '').trim().toLowerCase()
           if (!email || !email.includes('@')) return null
           return {

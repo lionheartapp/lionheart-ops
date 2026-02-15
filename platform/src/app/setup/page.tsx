@@ -210,9 +210,8 @@ function SetupWizard({
   }
 
   const token = getToken()
-  const authHeaders = token
-    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-    : { 'Content-Type': 'application/json' }
+  const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) authHeaders.Authorization = `Bearer ${token}`
 
   const handleContinueFromBranding = async () => {
     if (!schoolName.trim()) return
