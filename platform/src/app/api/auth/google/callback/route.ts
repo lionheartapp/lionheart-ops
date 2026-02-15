@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(`${platformUrl}/login?error=missing_params`)
     }
 
-    let state: { nonce: string; from: 'platform' | 'lionheart'; finalRedirect: string }
+    let state: { nonce: string; from: 'platform' | 'lionheart'; finalRedirect: string; intent?: 'login' | 'signup' }
     try {
       state = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
     } catch {
@@ -93,6 +93,12 @@ export async function GET(req: NextRequest) {
     let isNewUser = false
 
     if (!user) {
+      // Intent: login = must exist; signup = create if not found
+      if (state.intent === 'login') {
+        const loginBase = state.from === 'lionheart' ? lionheartUrl : platformUrl
+        return NextResponse.redirect(`${loginBase}/login?error=account_not_found`)
+      }
+
       const emailDomain = email.split('@')[1] || ''
       let existingOrg: { id: string; settings: unknown } | null = null
 

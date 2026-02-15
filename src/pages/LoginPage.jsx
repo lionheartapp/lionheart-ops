@@ -1,15 +1,26 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { PLATFORM_URL, setAuthToken } from '../services/platformApi'
 
-const GOOGLE_AUTH_URL = `${PLATFORM_URL}/api/auth/google?from=lionheart`
+const GOOGLE_AUTH_URL = `${PLATFORM_URL}/api/auth/google?from=lionheart&intent=login`
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const err = searchParams.get('error')
+    if (err === 'account_not_found') {
+      setError('No account found for this Google email. Sign up first, or sign in with the email and password you used to create your account.')
+    } else if (err === 'oauth_failed') setError('Google sign-in failed. Please try again or use email.')
+    else if (err === 'access_denied') setError('Sign-in was cancelled.')
+    else if (err === 'email_not_verified') setError('Google email could not be verified.')
+    else if (err) setError('Something went wrong. Please try again.')
+  }, [searchParams])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

@@ -18,10 +18,11 @@ export async function GET(req: NextRequest) {
   }
 
   const from = (req.nextUrl.searchParams.get('from') || 'platform') as 'platform' | 'lionheart'
+  const intent = (req.nextUrl.searchParams.get('intent') || 'login') as 'login' | 'signup'
   const callbackUrl = `${platformUrl}/api/auth/google/callback`
   const nonce = randomBytes(16).toString('hex')
   const state = Buffer.from(
-    JSON.stringify({ nonce, from, finalRedirect: from === 'platform' ? '/campus' : '/app' })
+    JSON.stringify({ nonce, from, intent, finalRedirect: from === 'platform' ? '/campus' : '/app' })
   ).toString('base64url')
 
   const params = new URLSearchParams({

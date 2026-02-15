@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 const AUTH_KEY = 'platform-auth-token'
 // Use relative URL - login page is on Platform origin
-const GOOGLE_AUTH_URL = '/api/auth/google?from=platform'
+const GOOGLE_AUTH_URL = '/api/auth/google?from=platform&intent=login'
 
 function LoginForm() {
   const router = useRouter()
@@ -18,7 +18,8 @@ function LoginForm() {
 
   useEffect(() => {
     const err = searchParams.get('error')
-    if (err === 'oauth_failed') setError('Google sign-in failed. Please try again or use email.')
+    if (err === 'account_not_found') setError('No account found for this Google email. Sign up first, or sign in with the email and password you used.')
+    else if (err === 'oauth_failed') setError('Google sign-in failed. Please try again or use email.')
     else if (err === 'access_denied') setError('Sign-in was cancelled.')
     else if (err === 'missing_params' || err === 'invalid_state') setError('Invalid request. Please try again.')
     else if (err === 'email_not_verified') setError('Google email could not be verified.')
