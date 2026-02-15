@@ -42,6 +42,8 @@ type SchoolData = {
   colors: { primary: string; secondary: string }
   logo: string | null
   website: string
+  isVerifiedSchool: boolean
+  nameMismatch?: string // orgName if it doesn't match place name
 }
 
 const LIONHEART_URL = (process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173').replace(/\/+$/, '')
@@ -176,7 +178,7 @@ function SetupMapFlow({
   const onLoadMap = useCallback((m: google.maps.Map) => setMap(m), [])
   const onLoadSearchBox = useCallback((ref: google.maps.places.SearchBox) => setSearchBox(ref), [])
 
-  const onPlacesChanged = useCallback(() => {
+  const onPlacesChanged = useCallback(async () => {
     const places = searchBox?.getPlaces()
     if (!places?.length) return
 
@@ -186,10 +188,10 @@ function SetupMapFlow({
 
     if (!location) return
 
-    const isSchool = types.some((t) =>
+    const isSchoolFromSearch = types.some((t) =>
       ['school', 'university', 'secondary_school', 'primary_school', 'college'].includes(t)
     )
-    if (!isSchool) {
+    if (!isSchoolFromSearch) {
       setError("This location isn't listed as a school. You can still proceed if it's correct.")
     } else {
       setError('')
@@ -201,15 +203,57 @@ function SetupMapFlow({
     map?.setTilt(45)
     setStep(2)
 
+    // Fetch Place Details from Google to verify name and school type
+    let verifiedName: string | null = null
+    let verifiedIsSchool = isSchoolFromSearch
+    let verifiedAddress = place.formatted_address || ''
+    let websiteUri: string | null = null
+
+    const placeId = (place as { place_id?: string }).place_id
+    if (placeId) {
+      try {
+        const detailsRes = await fetch(`/api/places/details?placeId=${encodeURIComponent(placeId)}`)
+        const details = await detailsRes.json()
+        if (details.name) verifiedName = details.name
+        if (details.address) verifiedAddress = details.address
+        if (typeof details.isSchool === 'boolean') verifiedIsSchool = details.isSchool
+        if (details.websiteUri) websiteUri = details.websiteUri
+      } catch {
+        // Fall back to search result
+      }
+    }
+
+    const domain =
+      websiteUri
+        ? (() => {
+            try {
+              return new URL(websiteUri).hostname.replace(/^www\./, '')
+            } catch {
+              return null
+            }
+          })()
+        : extractDomain(place)
+    const logo = domain ? `https://logo.clearbit.com/${domain}` : null
+
+    const displayName = verifiedName || place.name || orgName || 'Your School'
+    const nameMismatch =
+      orgName &&
+      displayName &&
+      orgName.toLowerCase() !== displayName.toLowerCase() &&
+      !displayName.toLowerCase().includes(orgName.toLowerCase()) &&
+      !orgName.toLowerCase().includes(displayName.toLowerCase())
+        ? orgName
+        : undefined
+
     setTimeout(() => {
-      const domain = extractDomain(place)
-      const logo = domain ? `https://logo.clearbit.com/${domain}` : null
       setSchoolData({
-        name: place.name || orgName || 'Your School',
-        address: place.formatted_address || '',
+        name: displayName,
+        address: verifiedAddress,
         colors: { primary: '#1e3a8a', secondary: '#fbbf24' },
         logo,
         website: domain || '',
+        isVerifiedSchool: verifiedIsSchool,
+        nameMismatch,
       })
       setStep(3)
     }, 3000)
@@ -245,8 +289,10 @@ function SetupMapFlow({
     const params = new URLSearchParams()
     const userName = searchParams.get('userName')
     const userEmail = searchParams.get('userEmail')
+    const orgNameParam = orgName || schoolData.name
     if (userName) params.set('userName', userName)
     if (userEmail) params.set('userEmail', userEmail)
+    if (orgNameParam) params.set('orgName', orgNameParam)
     const qs = params.toString()
     window.location.href = `${LIONHEART_URL}/app${qs ? '?' + qs : ''}`
   }
@@ -379,14 +425,28 @@ function SetupMapFlow({
                 </div>
 
                 <div className="pt-16 pb-8 px-8 text-center">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider mb-4">
-                    <Sparkles className="w-3.5 h-3.5" /> Match Found
-                  </div>
+                  {schoolData.isVerifiedSchool ? (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider mb-4">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Verified by Google as a school
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider mb-4">
+                      <AlertTriangle className="w-3.5 h-3.5" /> Not listed as a school — please verify
+                    </div>
+                  )}
 
-                  <h2 className="text-2xl font-bold text-zinc-900 mb-2">{schoolData.name}</h2>
-                  <p className="text-zinc-500 flex items-center justify-center gap-1.5 text-sm">
+                  <h1 className="text-2xl font-bold text-zinc-900 mb-1">Welcome to Lionheart.</h1>
+                  <h2 className="text-lg font-semibold text-zinc-600 mb-1">{schoolData.name}</h2>
+                  <p className="text-zinc-500 flex items-center justify-center gap-1.5 text-sm mb-2">
                     <MapPin className="w-4 h-4 shrink-0" /> {schoolData.address}
                   </p>
+
+                  {schoolData.nameMismatch && (
+                    <p className="text-amber-700 text-sm font-medium bg-amber-50 rounded-lg px-3 py-2 mb-4">
+                      You signed up as <strong>{schoolData.nameMismatch}</strong>. Google lists this location as{' '}
+                      <strong>{schoolData.name}</strong>. Confirm this is correct.
+                    </p>
+                  )}
 
                   <div className="mt-8 grid grid-cols-2 gap-3 text-left">
                     <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100">
@@ -400,10 +460,13 @@ function SetupMapFlow({
                       </div>
                     </div>
                     <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100">
-                      <p className="text-xs text-zinc-400 font-medium uppercase">Satellite</p>
-                      <div className="flex items-center gap-2 mt-1 text-emerald-600">
-                        <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        <span className="text-sm font-medium">Synced</span>
+                      <p className="text-xs text-zinc-400 font-medium uppercase">Secondary</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div
+                          className="w-4 h-4 rounded-full shrink-0"
+                          style={{ background: schoolData.colors.secondary }}
+                        />
+                        <span className="text-sm font-mono text-zinc-700">{schoolData.colors.secondary}</span>
                       </div>
                     </div>
                   </div>

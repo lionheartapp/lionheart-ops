@@ -17,60 +17,8 @@ function getThisWeekBounds() {
   return { start, end: addDays(start, 6) }
 }
 
-const { start: weekStart } = getThisWeekBounds()
-
-export const INITIAL_EVENTS = [
-  {
-    id: '1',
-    name: 'Spring Gala',
-    date: toDateStr(addDays(weekStart, 1)),
-    time: '18:00',
-    endTime: '21:00',
-    location: 'Main Hall',
-    description: 'Annual spring gala with dinner and entertainment.',
-    owner: 'Jane Smith',
-    creator: 'Jane Smith',
-    watchers: ['Cafeteria Manager'],
-    hasTicketSales: true,
-  },
-  {
-    id: '2',
-    name: 'Tech Talk',
-    date: toDateStr(addDays(weekStart, 2)),
-    time: '14:00',
-    endTime: '16:00',
-    location: 'Auditorium',
-    description: 'Presentations on AI in education and digital tools.',
-    owner: 'Maria Garcia',
-    creator: 'Jane Smith',
-    watchers: ['IT Department Head'],
-  },
-  {
-    id: '3',
-    name: 'Pep Rally',
-    date: toDateStr(addDays(weekStart, 4)),
-    time: '09:00',
-    endTime: '10:30',
-    location: 'Gym',
-    description: 'Spirit week pep rally for the upcoming games.',
-    owner: 'Jane Smith',
-    creator: 'Mike Johnson',
-    watchers: ['Jane Smith', 'Facilities Lead'],
-  },
-  {
-    id: '4',
-    name: 'Parent Night',
-    date: toDateStr(addDays(weekStart, 5)),
-    time: '17:00',
-    endTime: '20:00',
-    location: 'Campus',
-    description: 'Open house for parents to meet teachers and staff.',
-    owner: 'Sarah Chen',
-    creator: 'Sarah Chen',
-    watchers: ['Jane Smith'],
-    hasTicketSales: true,
-  },
-]
+// Brand new orgs start with no events; users create them as needed
+export const INITIAL_EVENTS = []
 
 /** True if the user started (is owner or creator of) at least one event that has ticket sales. */
 export function userStartedEventWithTicketSales(events, userName) {

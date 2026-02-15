@@ -9,9 +9,11 @@ import {
   LayoutGrid,
   Sun,
   Moon,
+  CreditCard,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
-import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
+import SubscriptionSettings from './SubscriptionSettings'
+import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin } from '../data/teamsData'
 import { useTheme } from '../context/ThemeContext'
 
 const generalSettings = [
@@ -25,6 +27,7 @@ const generalSettings = [
 const workspaceSettings = [
   { id: 'general', label: 'General', icon: Wrench },
   { id: 'members', label: 'Members', icon: Users },
+  { id: 'subscription', label: 'Subscription', icon: CreditCard },
 ]
 
 const APP_MODULES = [
@@ -231,6 +234,9 @@ function SettingsSectionContent({
   showInventoryPref,
   onInventoryPrefChange,
 }) {
+  if (section === 'subscription') {
+    return <SubscriptionSettings />
+  }
   if (section === 'members') {
     return (
       <MembersPage
@@ -251,6 +257,7 @@ function SettingsSectionContent({
     language: 'Language & Region',
     general: 'General',
     members: 'Members',
+    subscription: 'Subscription',
   }
 
   const content = {
@@ -297,7 +304,11 @@ export default function SettingsPage({
   showInventoryPref = false,
   onInventoryPrefChange,
 }) {
-  const allSections = [...generalSettings, ...workspaceSettings]
+  const superAdmin = isSuperAdmin(currentUser)
+  const workspaceItemsToShow = superAdmin
+    ? workspaceSettings
+    : workspaceSettings.filter((s) => s.id !== 'subscription')
+  const allSections = [...generalSettings, ...workspaceItemsToShow]
   const activeSection = allSections.some((s) => s.id === settingsSection)
     ? settingsSection
     : 'apps'
@@ -338,7 +349,7 @@ export default function SettingsPage({
               Workspace Settings
             </p>
             <div className="mt-1 space-y-0.5">
-              {workspaceSettings.map((item) => {
+              {workspaceItemsToShow.map((item) => {
                 const Icon = item.icon
                 const isActive = activeSection === item.id
                 return (

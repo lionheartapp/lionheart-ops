@@ -23,9 +23,9 @@ import AVEventNotifications from './components/AVEventNotifications'
 import TopBar from './components/TopBar'
 import CommandBar from './components/CommandBar'
 import EventInfoModal from './components/EventInfoModal'
+import CampusMapModal from './components/CampusMapModal'
 import SettingsPage from './components/SettingsPage'
 import WaterManagementPage from './components/WaterManagementPage'
-import BillingPage from './components/BillingPage'
 import OnboardingModal from './components/OnboardingModal'
 import { INITIAL_EVENTS, userStartedEventWithTicketSales } from './data/eventsData'
 import { fetchIcalEvents } from './services/icalService'
@@ -71,7 +71,6 @@ const tabContent = {
   'my-tickets': { title: 'My Tickets', showAll: false },
   inventory: { title: 'Inventory', showAll: false },
   'water-management': { title: 'Water Management', showAll: false },
-  billing: { title: 'Manage Subscription', showAll: false },
   settings: { title: 'Settings', showAll: false },
 }
 
@@ -109,6 +108,7 @@ export default function App() {
   const [settingsSection, setSettingsSection] = useState('account')
   const [inventoryPrefs, setInventoryPrefs] = useState(loadInventoryPrefs)
   const [commandBarOpen, setCommandBarOpen] = useState(false)
+  const [campusMapModalOpen, setCampusMapModalOpen] = useState(false)
 
   // Command Bar (K-Bar): Cmd+K / Ctrl+K
   useEffect(() => {
@@ -270,7 +270,8 @@ export default function App() {
         showInventory={showInventory}
         showCampusMap={hasVisualCampus}
         showWaterManagement={hasWaterManagement}
-        orgName={orgName}
+        onOpenCampusMap={() => setCampusMapModalOpen(true)}
+        orgName={orgName || searchParams.get('orgName')}
         orgLogoUrl={orgLogoUrl}
       />
 
@@ -289,13 +290,9 @@ export default function App() {
         <div className="flex-1 flex min-h-0 overflow-hidden gap-6 lg:gap-8">
         <div className="flex-1 min-w-0 overflow-auto flex flex-col min-h-0">
           <div
-            className={`min-h-full flex flex-col min-h-0 w-full ${!['settings', 'billing', 'water-management'].includes(activeTab) ? 'p-6 lg:p-8' : ''}`}
+            className={`min-h-full flex flex-col min-h-0 w-full ${!['settings', 'water-management'].includes(activeTab) ? 'p-6 lg:p-8' : ''}`}
           >
-          {activeTab === 'billing' ? (
-            <div className="flex-1 flex min-h-0 w-full min-w-0 p-6 lg:p-8">
-              <BillingPage />
-            </div>
-          ) : activeTab === 'water-management' ? (
+          {activeTab === 'water-management' ? (
             <div className="flex-1 flex min-h-0 w-full min-w-0 p-6 lg:p-8">
               <WaterManagementPage
                 supportRequests={supportRequests}
@@ -701,6 +698,11 @@ export default function App() {
           if (liveEvent?.id === updated.id) setLiveEvent(updated)
         }}
         currentUser={effectiveUser}
+      />
+
+      <CampusMapModal
+        isOpen={campusMapModalOpen}
+        onClose={() => setCampusMapModalOpen(false)}
       />
 
       <DrawerModal

@@ -9,10 +9,7 @@ import {
   UserCircle,
   MapPin,
   Droplets,
-  CreditCard,
 } from 'lucide-react'
-
-import { PLATFORM_URL } from '../services/platformApi'
 import ViewAsDropdown from './ViewAsDropdown'
 import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate } from '../data/teamsData'
 
@@ -62,6 +59,7 @@ export default function Sidebar({
   showWaterManagement = false,
   orgName,
   orgLogoUrl,
+  onOpenCampusMap,
 }) {
   const isFacilitiesUser = isFacilitiesTeam(currentUser, teams)
   const isITUser = isITTeam(currentUser, teams)
@@ -79,9 +77,9 @@ export default function Sidebar({
 
   return (
     <aside className="sticky top-0 w-56 h-screen max-h-screen flex flex-col overflow-hidden border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/50 bg-zinc-50/80 dark:bg-zinc-900/90 backdrop-blur-xl shrink-0">
-      <div className="h-14 shrink-0 flex items-center justify-center px-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40">
+      <div className="h-20 shrink-0 flex items-center justify-center px-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40">
         {orgLogoUrl ? (
-          <img src={orgLogoUrl} alt={orgName || 'School'} className="h-8 w-auto max-w-full object-contain" />
+          <img src={orgLogoUrl} alt={orgName || 'School'} className="h-10 w-auto max-w-full object-contain" />
         ) : (
           <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-center truncate w-full">
             {orgName || 'Lionheart Operations'}
@@ -159,27 +157,13 @@ export default function Sidebar({
 
       <div className="p-3 pt-0 border-t border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40 shrink-0 mt-auto space-y-1">
         {showCampusMap && (
-          <a
-            href={`${PLATFORM_URL}/campus`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+          <button
+            type="button"
+            onClick={() => onOpenCampusMap?.()}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors text-left"
           >
             <MapPin className="w-4 h-4 shrink-0" strokeWidth={2} />
             <span>Campus Map</span>
-            <span className="text-[10px] ml-auto">↗</span>
-          </a>
-        )}
-        {superAdmin && (
-          <button
-            type="button"
-            onClick={() => onTabChange('billing')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'billing' ? 'bg-primary-600 text-white' : 'text-primary-600 dark:text-primary-400 hover:bg-primary-500/15 font-semibold'
-            }`}
-          >
-            <CreditCard className="w-4 h-4 shrink-0" strokeWidth={2} />
-            <span>Manage Subscription</span>
           </button>
         )}
         <ViewAsDropdown

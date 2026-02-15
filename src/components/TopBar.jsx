@@ -48,7 +48,7 @@ export default function TopBar({
   }, [])
 
   return (
-    <header className="relative z-50 shrink-0 h-14 flex items-center gap-4 px-6 lg:px-8 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-sm">
+    <header className="relative z-50 shrink-0 h-20 flex items-center gap-4 px-6 lg:px-8 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-sm">
       {/* Search - left */}
       <div className="min-w-0 flex items-center gap-2 w-full max-w-2xl">
         <button
