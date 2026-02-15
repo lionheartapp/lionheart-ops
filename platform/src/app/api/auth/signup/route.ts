@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json(
-      { orgId: org.id, userId: user.id, slug: org.slug, orgName: org.name, userName: user.name ?? name },
+      { orgId: org.id, userId: user.id, slug: org.slug, orgName: org.name, userName: user.name ?? name, userEmail: user.email },
       { headers: corsHeaders }
     )
   } catch (err) {

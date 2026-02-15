@@ -71,12 +71,13 @@ export default function SignupPage() {
       if (!res.ok) {
         throw new Error(data?.error || 'Signup failed')
       }
-      const { orgId, orgName, userName } = data
+      const { orgId, orgName, userName, userEmail } = data
       const params = new URLSearchParams({ orgId })
       if (orgName) params.set('orgName', orgName)
       if (userName) params.set('userName', userName)
-      const setupUrl = `${PLATFORM_URL}/setup?${params}`
-      // Optional: log in immediately by calling login API and storing token
+      if (userEmail) params.set('userEmail', userEmail)
+      let setupUrl = `${PLATFORM_URL}/setup?${params}`
+      // Log in immediately so setup can save branding; pass token in hash for setup page
       try {
         const loginRes = await fetch(`${PLATFORM_URL}/api/auth/login`, {
           method: 'POST',
@@ -87,6 +88,8 @@ export default function SignupPage() {
         if (loginRes.ok && loginData.token) {
           const { setAuthToken } = await import('../services/platformApi')
           setAuthToken(loginData.token)
+          // Pass token in hash so setup page can use it (hash not sent to server)
+          setupUrl += '#token=' + encodeURIComponent(loginData.token)
           window.location.href = setupUrl
           return
         }

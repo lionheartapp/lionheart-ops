@@ -78,7 +78,7 @@ const tabContent = {
 export default function App() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -122,16 +122,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Apply userName from URL (fallback when coming from setup - API may not have loaded yet)
+  // Apply userName/userEmail from URL (fallback when coming from setup - API may not have loaded yet)
   useEffect(() => {
     const userName = searchParams.get('userName')
-    if (userName?.trim() && currentUser?.id === 'u0') {
-      setCurrentUser((prev) => (prev ? { ...prev, name: userName.trim() } : prev))
-      setUsers((prev) => {
-        const idx = prev.findIndex((p) => p.id === 'u0')
-        if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, name: userName.trim() } : p))
-        return prev
-      })
+    const userEmail = searchParams.get('userEmail')
+    if ((userName?.trim() || userEmail?.trim()) && currentUser?.id === 'u0') {
+      const updates = {}
+      if (userName?.trim()) updates.name = userName.trim()
+      if (userEmail?.trim()) updates.email = userEmail.trim()
+      if (Object.keys(updates).length > 0) {
+        setCurrentUser((prev) => (prev ? { ...prev, ...updates } : prev))
+        setUsers((prev) => {
+          const idx = prev.findIndex((p) => p.id === 'u0')
+          if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...updates } : p))
+          return prev
+        })
+      }
     }
   }, [searchParams])
 
@@ -264,6 +270,8 @@ export default function App() {
         showInventory={showInventory}
         showCampusMap={hasVisualCampus}
         showWaterManagement={hasWaterManagement}
+        orgName={orgName}
+        orgLogoUrl={orgLogoUrl}
       />
 
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">

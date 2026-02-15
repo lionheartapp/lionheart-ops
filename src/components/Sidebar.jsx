@@ -60,6 +60,8 @@ export default function Sidebar({
   showInventory = false,
   showCampusMap = true,
   showWaterManagement = false,
+  orgName,
+  orgLogoUrl,
 }) {
   const isFacilitiesUser = isFacilitiesTeam(currentUser, teams)
   const isITUser = isITTeam(currentUser, teams)
@@ -77,10 +79,14 @@ export default function Sidebar({
 
   return (
     <aside className="sticky top-0 w-56 h-screen max-h-screen flex flex-col overflow-hidden border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/50 bg-zinc-50/80 dark:bg-zinc-900/90 backdrop-blur-xl shrink-0">
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40 shrink-0 flex items-center justify-center min-h-[52px]">
-        <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-center">
-          Lionheart Operations
-        </h1>
+      <div className="h-14 shrink-0 flex items-center justify-center px-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40">
+        {orgLogoUrl ? (
+          <img src={orgLogoUrl} alt={orgName || 'School'} className="h-8 w-auto max-w-full object-contain" />
+        ) : (
+          <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight text-center truncate w-full">
+            {orgName || 'Lionheart Operations'}
+          </h1>
+        )}
       </div>
 
       <nav className="flex-1 min-h-0 p-3 flex flex-col overflow-hidden">

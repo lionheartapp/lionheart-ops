@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, ArrowRight, Loader2, Palette, Sparkles } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -10,59 +10,115 @@ type SchoolData = {
   name: string
   address: string
   colors: { primary: string; secondary: string }
-  logo: string
+  logo: string | null
   website: string
 }
 
-// Mock function to simulate address lookup and branding fetch
-// In production, this would call Google Places API (by address) + Brandfetch for colors/logo
+type Suggestion = { text: string; placeId?: string }
+
+// Mock function to simulate branding fetch (logo/colors from address)
+// In production, could use Brandfetch by domain from address
 const simulateAddressLookup = async (address: string, orgName: string): Promise<SchoolData> => {
   return new Promise((resolve) => {
     setTimeout(() => {
+      // Try to get logo from domain; if not found, use null so sidebar shows school name
+      const domain = address.match(/\b([a-z0-9-]+\.(edu|org|com|net))\b/i)?.[1]?.toLowerCase()
+      const logo = domain ? `https://logo.clearbit.com/${domain}` : null
       resolve({
         name: orgName,
         address: address || '31950 Pauba Rd, Temecula, CA 92592',
         colors: { primary: '#003366', secondary: '#c4a006' },
-        logo: 'https://logo.clearbit.com/linfield.com',
-        website: 'linfield.com',
+        logo,
+        website: domain || '',
       })
-    }, 1500)
+    }, 1200)
   })
 }
 
 const LIONHEART_URL = (process.env.NEXT_PUBLIC_LIONHEART_URL || 'http://localhost:5173').replace(/\/+$/, '')
+const PLATFORM_URL = (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001').replace(/\/+$/, '')
 
-const PLATFORM_URL = (process.env.NEXT_PUBLIC_PLATFORM_URL || 'http://localhost:3001').replace(/\/+$/, '')
-
-// Basic validation: addresses typically have a street number and city/state (e.g. "123 Main St, City, ST")
-function looksLikeAddress(input: string): boolean {
-  const trimmed = input.trim()
-  if (trimmed.length < 15) return false
-  if (!/\d/.test(trimmed)) return false // Must have at least one digit (street number)
-  return true
-}
+const AUTOCOMPLETE_DEBOUNCE_MS = 300
 
 function SetupContent() {
   const searchParams = useSearchParams()
   const orgId = searchParams.get('orgId')
   const orgNameFromUrl = searchParams.get('orgName')
-  const userNameFromUrl = searchParams.get('userName')
-
   const [step, setStep] = useState(1)
   const [addressQuery, setAddressQuery] = useState('')
   const [addressError, setAddressError] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [schoolData, setSchoolData] = useState<SchoolData | null>(null)
   const [orgName, setOrgName] = useState(orgNameFromUrl || '')
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Fetch org name if not in URL (e.g. from Google OAuth or bookmarked setup link)
+  // Read token from hash (passed by signup for branding API)
+  const getToken = useCallback(() => {
+    if (typeof window === 'undefined') return null
+    const hash = window.location.hash
+    const match = hash.match(/#token=([^&]+)/)
+    return match ? decodeURIComponent(match[1]) : null
+  }, [])
+
+  // Fetch org name if not in URL
   useEffect(() => {
     if (!orgId || orgNameFromUrl) return
-    fetch(`${PLATFORM_URL}/api/setup/org?orgId=${encodeURIComponent(orgId)}`)
+    fetch(`/api/setup/org?orgId=${encodeURIComponent(orgId)}`)
       .then((r) => r.json())
       .then((d) => d.name && setOrgName(d.name))
       .catch(() => {})
   }, [orgId, orgNameFromUrl])
+
+  // Address autocomplete
+  useEffect(() => {
+    const q = addressQuery.trim()
+    if (q.length < 3) {
+      setSuggestions([])
+      setSuggestionsOpen(false)
+      return
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null
+      setSuggestionsLoading(true)
+      fetch('/api/places/autocomplete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: q }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          const list: Suggestion[] = []
+          for (const s of data.suggestions || []) {
+            const pp = s.placePrediction
+            if (pp?.text?.text) list.push({ text: pp.text.text, placeId: pp.placeId })
+          }
+          setSuggestions(list)
+          setSuggestionsOpen(list.length > 0)
+        })
+        .catch(() => setSuggestions([]))
+        .finally(() => setSuggestionsLoading(false))
+    }, AUTOCOMPLETE_DEBOUNCE_MS)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [addressQuery])
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) && inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        setSuggestionsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   if (!orgId) {
     return (
@@ -85,10 +141,11 @@ function SetupContent() {
     setAddressError('')
     const trimmed = addressQuery.trim()
     if (!trimmed) return
-    if (!looksLikeAddress(trimmed)) {
-      setAddressError('Please enter a valid address with street number and city (e.g. 31950 Pauba Rd, Temecula, CA)')
+    if (trimmed.length < 5 || !/\d/.test(trimmed)) {
+      setAddressError('Please enter or select a valid address with street number and city.')
       return
     }
+    setSuggestionsOpen(false)
     setIsSearching(true)
     const data = await simulateAddressLookup(trimmed, orgName || 'Your School')
     setSchoolData(data)
@@ -96,13 +153,46 @@ function SetupContent() {
     setStep(2)
   }
 
-  const handleConfirm = () => {
-    // Save branding to Organization settings via API (optional - implement when ready)
-    // await fetch(`/api/organizations/${orgId}/branding`, { method: 'PATCH', body: JSON.stringify(schoolData) })
-    // Pass userName so Lionheart can show it immediately (fallback if /api/user/me hasn't loaded)
+  const handleSelectSuggestion = (text: string) => {
+    setAddressQuery(text)
+    setSuggestionsOpen(false)
+    setAddressError('')
+    inputRef.current?.focus()
+  }
+
+  const handleConfirm = async () => {
+    if (!schoolData) return
+    const token = getToken()
+    if (token && orgId) {
+      try {
+        await fetch('/api/setup/branding', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            orgId,
+            address: schoolData.address,
+            logoUrl: schoolData.logo || null,
+            name: orgName || schoolData.name,
+            website: schoolData.website || undefined,
+            colors: schoolData.colors,
+          }),
+        })
+      } catch {
+        // Continue to redirect even if save fails
+      }
+      // Clear token from hash
+      if (typeof window !== 'undefined' && window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+    }
     const params = new URLSearchParams()
     const userName = searchParams.get('userName')
+    const userEmail = searchParams.get('userEmail')
     if (userName) params.set('userName', userName)
+    if (userEmail) params.set('userEmail', userEmail)
     const qs = params.toString()
     window.location.href = `${LIONHEART_URL}/app${qs ? '?' + qs : ''}`
   }
@@ -128,29 +218,49 @@ function SetupContent() {
             </div>
 
             <form onSubmit={handleSearch} className="space-y-2">
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                   {isSearching ? (
+                    <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />
+                  ) : suggestionsLoading ? (
                     <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />
                   ) : (
                     <MapPin className="w-5 h-5 text-zinc-400" />
                   )}
                 </div>
                 <input
+                  ref={inputRef}
                   type="text"
+                  autoComplete="off"
                   autoFocus
                   value={addressQuery}
                   onChange={(e) => {
                     setAddressQuery(e.target.value)
                     if (addressError) setAddressError('')
                   }}
-                  placeholder="Enter school address (e.g. 31950 Pauba Rd, Temecula, CA)"
+                  onFocus={() => suggestions.length > 0 && setSuggestionsOpen(true)}
+                  placeholder="Start typing your school address…"
                   className={`w-full pl-12 pr-20 py-4 text-lg rounded-2xl border shadow-xl focus:outline-none focus:ring-2 transition-all ${
                     addressError
                       ? 'border-amber-400 shadow-zinc-100 focus:ring-amber-500 focus:border-amber-500'
                       : 'border-zinc-200 shadow-zinc-100 focus:ring-blue-600 focus:border-transparent'
                   }`}
                 />
+                {suggestionsOpen && suggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 rounded-xl border border-zinc-200 bg-white shadow-xl overflow-hidden z-50 max-h-60 overflow-y-auto">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={s.placeId || i}
+                        type="button"
+                        onClick={() => handleSelectSuggestion(s.text)}
+                        className="w-full text-left px-4 py-3 hover:bg-zinc-50 text-sm text-zinc-800 flex items-center gap-2"
+                      >
+                        <MapPin className="w-4 h-4 text-zinc-400 shrink-0" />
+                        {s.text}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <button
                   type="submit"
                   disabled={!addressQuery.trim() || isSearching}
@@ -195,7 +305,11 @@ function SetupContent() {
                 </div>
 
                 <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center p-2 translate-y-1/2">
-                  <img src={schoolData.logo} alt="Logo" className="w-full h-full object-contain" />
+                  {schoolData.logo ? (
+                    <img src={schoolData.logo} alt="Logo" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                  ) : (
+                    <span className="text-lg font-bold text-zinc-600 truncate px-1">{schoolData.name}</span>
+                  )}
                 </div>
               </div>
 
