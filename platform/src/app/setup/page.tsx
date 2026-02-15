@@ -64,6 +64,69 @@ function SetupContent() {
   const searchParams = useSearchParams()
   const orgId = searchParams.get('orgId')
   const orgNameFromUrl = searchParams.get('orgName')
+  const [mapsKey, setMapsKey] = useState<string | null>(null)
+  const [mapsKeyLoading, setMapsKeyLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/setup/maps-key')
+      .then((r) => r.json())
+      .then((d) => (d.key ? setMapsKey(d.key) : setMapsKey(null)))
+      .catch(() => setMapsKey(null))
+      .finally(() => setMapsKeyLoading(false))
+  }, [])
+
+  if (!orgId) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+        <div className="text-center text-zinc-500">
+          <p className="text-lg">Missing organization. Please complete signup first.</p>
+          <a
+            href={`${LIONHEART_URL}/signup`}
+            className="mt-4 inline-block text-blue-400 hover:underline font-medium"
+          >
+            Go to signup →
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  if (mapsKeyLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span>Loading…</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!mapsKey) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 text-zinc-400 text-center max-w-md">
+        <p>
+          Google Maps API key is not configured. Add <code className="text-zinc-300">GOOGLE_PLACES_API_KEY</code> or{' '}
+          <code className="text-zinc-300">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to <code className="text-zinc-300">platform/.env</code>.
+        </p>
+      </div>
+    )
+  }
+
+  return <SetupMapFlow orgId={orgId} orgNameFromUrl={orgNameFromUrl} searchParams={searchParams} mapsKey={mapsKey} />
+}
+
+function SetupMapFlow({
+  orgId,
+  orgNameFromUrl,
+  searchParams,
+  mapsKey,
+}: {
+  orgId: string
+  orgNameFromUrl: string | null
+  searchParams: URLSearchParams
+  mapsKey: string
+}) {
   const [step, setStep] = useState(1)
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null)
@@ -72,10 +135,9 @@ function SetupContent() {
   const [orgName, setOrgName] = useState(orgNameFromUrl || '')
   const [error, setError] = useState('')
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey,
+    googleMapsApiKey: mapsKey,
     libraries: LIBRARIES,
   })
 
@@ -190,30 +252,6 @@ function SetupContent() {
     setSelectedPlace(null)
     setSchoolData(null)
     setError('')
-  }
-
-  if (!orgId) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
-        <div className="text-center text-zinc-500">
-          <p className="text-lg">Missing organization. Please complete signup first.</p>
-          <a
-            href={`${LIONHEART_URL}/signup`}
-            className="mt-4 inline-block text-blue-400 hover:underline font-medium"
-          >
-            Go to signup →
-          </a>
-        </div>
-      </div>
-    )
-  }
-
-  if (!apiKey) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">
-        <p>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not configured. Add it to platform/.env</p>
-      </div>
-    )
   }
 
   if (!isLoaded) {
