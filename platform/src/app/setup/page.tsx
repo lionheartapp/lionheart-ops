@@ -104,11 +104,15 @@ function SetupContent() {
 
   if (!mapsKey) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 text-zinc-400 text-center max-w-md">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 text-zinc-400 text-center max-w-md space-y-4">
         <p>
           Google Maps API key is not configured. Add <code className="text-zinc-300">GOOGLE_PLACES_API_KEY</code> or{' '}
-          <code className="text-zinc-300">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to <code className="text-zinc-300">platform/.env</code>.
+          <code className="text-zinc-300">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to:
         </p>
+        <ul className="text-left space-y-1 text-sm">
+          <li>• <strong>Local:</strong> <code className="text-zinc-300">platform/.env</code></li>
+          <li>• <strong>Vercel:</strong> Project → Settings → Environment Variables</li>
+        </ul>
       </div>
     )
   }
