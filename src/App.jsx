@@ -158,26 +158,26 @@ export default function App() {
     }
   }, [searchParams])
 
-  // Bootstrap: fetch all app data in parallel so one round trip + one state update wave (faster perceived load)
+  // Bootstrap: fetch app data in parallel; use allSettled so one slow/failed request doesn't block name/nav
   useEffect(() => {
     if (!getAuthToken()) return
     let cancelled = false
-    const meRes = platformFetch('/api/user/me')
-    const invRes = platformFetch('/api/inventory')
-    const ticketsRes = platformFetch('/api/tickets')
-    const formsRes = platformFetch('/api/forms')
-    const submissionsRes = platformFetch('/api/forms/submissions')
-    const eventsRes = platformFetch('/api/events')
-
-    Promise.all([
-      meRes.then((r) => (r.ok ? r.json() : null)),
-      invRes.then((r) => (r.ok ? r.json() : null)),
-      ticketsRes.then((r) => (r.ok ? r.json() : null)),
-      formsRes.then((r) => (r.ok ? r.json() : null)),
-      submissionsRes.then((r) => (r.ok ? r.json() : null)),
-      eventsRes.then((r) => (r.ok ? r.json() : null)),
-    ]).then(([meData, invData, ticketsData, formsData, submissionsData, eventsData]) => {
+    const toJson = (r) => (r.ok ? r.json() : null)
+    Promise.allSettled([
+      platformFetch('/api/user/me').then(toJson),
+      platformFetch('/api/inventory').then(toJson),
+      platformFetch('/api/tickets').then(toJson),
+      platformFetch('/api/forms').then(toJson),
+      platformFetch('/api/forms/submissions').then(toJson),
+      platformFetch('/api/events').then(toJson),
+    ]).then(([me, inv, tickets, forms, submissions, events]) => {
       if (cancelled) return
+      const meData = me.status === 'fulfilled' ? me.value : null
+      const invData = inv.status === 'fulfilled' ? inv.value : null
+      const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
+      const formsData = forms.status === 'fulfilled' ? forms.value : null
+      const submissionsData = submissions.status === 'fulfilled' ? submissions.value : null
+      const eventsData = events.status === 'fulfilled' ? events.value : null
 
       if (invData) {
         if (Array.isArray(invData.items)) setInventoryItems(invData.items)
@@ -204,25 +204,25 @@ export default function App() {
 
       if (meData?.user) {
         const u = meData.user
-        const me = {
+        const userMe = {
           id: u.id,
           name: u.name ?? u.email?.split('@')[0] ?? 'User',
           email: u.email ?? '',
           teamIds: u.teamIds ?? [],
           role: u.role ?? 'super-admin',
         }
-        setCurrentUser(me)
+        setCurrentUser(userMe)
         setUsers((prev) => {
-          const idx = prev.findIndex((p) => p.id === me.id)
-          if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...me } : p))
+          const idx = prev.findIndex((p) => p.id === userMe.id)
+          if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...userMe } : p))
           const placeholderIdx = prev.findIndex((p) => p.id === 'u0')
           if (placeholderIdx >= 0) {
-            return prev.map((p, i) => (i === placeholderIdx ? { ...me, positionTitle: p.positionTitle } : p))
+            return prev.map((p, i) => (i === placeholderIdx ? { ...userMe, positionTitle: p.positionTitle } : p))
           }
-          return [me, ...prev]
+          return [userMe, ...prev]
         })
       }
-    }).catch(() => {})
+    })
     return () => { cancelled = true }
   }, [])
 
