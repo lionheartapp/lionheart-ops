@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Wrench,
   User,
@@ -10,10 +10,11 @@ import {
   CreditCard,
   Check,
   Download,
+  Building2,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
 import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
-import { platformPost, platformFetch, getAuthToken } from '../services/platformApi'
+import { platformPost, platformFetch, platformPatch, getAuthToken } from '../services/platformApi'
 
 // --- CONSTANTS ---
 const PRICING_PLANS = [
@@ -358,6 +359,117 @@ function AccountSection({ currentUser }) {
   )
 }
 
+function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, onLogoUpdated }) {
+  const [name, setName] = useState(orgName || '')
+  const [logoUrl, setLogoUrl] = useState(orgLogoUrl || '')
+  const [website, setWebsite] = useState(orgWebsite || '')
+  const [address, setAddress] = useState(orgAddress || '')
+
+  useEffect(() => { setName(orgName || '') }, [orgName])
+  useEffect(() => { setLogoUrl(orgLogoUrl || '') }, [orgLogoUrl])
+  useEffect(() => { setWebsite(orgWebsite || '') }, [orgWebsite])
+  useEffect(() => { setAddress(orgAddress || '') }, [orgAddress])
+
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError('')
+    try {
+      const res = await platformPatch('/api/organization/branding', {
+        name: name.trim() || undefined,
+        logoUrl: logoUrl.trim() || null,
+        website: website.trim() || null,
+        address: address.trim() || null,
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Save failed')
+      }
+      onLogoUpdated?.()
+    } catch (err) {
+      setError(err?.message || 'Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">School Information</h2>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          Update your school&apos;s name, logo, website, and address. These appear in the sidebar, login page, and communications.
+        </p>
+      </div>
+      <div className="glass-card p-6 space-y-5">
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">School name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Lincoln Academy"
+            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Logo</label>
+          {orgLogoUrl && (
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-24 h-12 border border-zinc-200 dark:border-zinc-600 rounded-lg flex items-center justify-center bg-white dark:bg-zinc-800 overflow-hidden">
+                <img src={orgLogoUrl} alt="School logo" className="max-h-full max-w-full object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+              </div>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">Current logo</span>
+            </div>
+          )}
+          <input
+            type="text"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            placeholder="https://example.com/logo.png or paste URL"
+            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Website</label>
+          <input
+            type="text"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            placeholder="e.g. linfield.com or https://www.linfield.edu"
+            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Address</label>
+          <textarea
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Street address, city, state, ZIP"
+            rows={2}
+            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm resize-none"
+          />
+        </div>
+
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function DataExportSection() {
   const [loading, setLoading] = useState(false)
   const handleExport = async (format) => {
@@ -427,6 +539,8 @@ function SettingsSectionContent({
   hasTeamInventory,
   showInventoryPref,
   onInventoryPrefChange,
+  orgLogoUrl,
+  onOrgBrandingUpdated,
 }) {
   if (section === 'members') {
     return (
@@ -447,6 +561,7 @@ function SettingsSectionContent({
     notification: 'Notification',
     language: 'Language & Region',
     general: 'General',
+    school: 'School Information',
   }
 
   const content = {
@@ -462,6 +577,15 @@ function SettingsSectionContent({
     ),
     subscription: <SubscriptionSection />,
     'data-export': <DataExportSection />,
+    school: (
+      <SchoolSection
+        orgLogoUrl={orgLogoUrl}
+        orgName={orgName}
+        orgWebsite={orgWebsite}
+        orgAddress={orgAddress}
+        onLogoUpdated={onOrgBrandingUpdated}
+      />
+    ),
   }
 
   if (content[section]) return content[section]
@@ -488,6 +612,7 @@ const generalSettings = [
 ]
 
 const workspaceSettings = [
+  { id: 'school', label: 'School Information', icon: Building2 },
   { id: 'general', label: 'General', icon: Wrench },
   { id: 'members', label: 'Members', icon: Users },
   { id: 'subscription', label: 'Subscription', icon: CreditCard },
@@ -505,6 +630,11 @@ export default function SettingsPage({
   hasTeamInventory = false,
   showInventoryPref = false,
   onInventoryPrefChange,
+  onOrgBrandingUpdated,
+  orgLogoUrl,
+  orgName,
+  orgWebsite,
+  orgAddress,
 }) {
   const allSections = [...generalSettings, ...workspaceSettings]
   const activeSection = allSections.some((s) => s.id === settingsSection)
@@ -583,6 +713,11 @@ export default function SettingsPage({
           hasTeamInventory={hasTeamInventory}
           showInventoryPref={showInventoryPref}
           onInventoryPrefChange={onInventoryPrefChange}
+        orgLogoUrl={orgLogoUrl}
+        orgName={orgName}
+        orgWebsite={orgWebsite}
+        orgAddress={orgAddress}
+        onOrgBrandingUpdated={onOrgBrandingUpdated}
         />
       </div>
     </div>

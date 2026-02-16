@@ -336,12 +336,13 @@ function SetupWizard({
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     }
     const params = new URLSearchParams()
+    params.set('onboarding', '1')
     if (searchParams.get('userName')) params.set('userName', searchParams.get('userName')!)
     if (searchParams.get('userEmail')) params.set('userEmail', searchParams.get('userEmail')!)
     if (schoolData.name) params.set('orgName', schoolData.name)
     const qs = params.toString()
     setTimeout(() => {
-      window.location.href = `${LIONHEART_URL}/app${qs ? '?' + qs : ''}`
+      window.location.href = `${LIONHEART_URL}/app?${qs}`
     }, 2000)
   }
 

@@ -50,7 +50,8 @@ export default function SignupPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [schoolName, schoolWebsite])
+  }, [schoolName])
+  // schoolWebsite is passed to API when check runs (from closure) but we don't re-trigger on website-only changes
 
   const handleSubmit = async (e) => {
     e.preventDefault()

@@ -47,6 +47,41 @@ async function getRoutedToIds(roomId: string | null | undefined): Promise<string
   return [...new Set(ids)]
 }
 
+export async function GET(req: NextRequest) {
+  try {
+    return await withOrg(req, prismaBase, async () => {
+      const orgId = getOrgId()
+      if (!orgId) return NextResponse.json([], { status: 200 })
+      const list = await prisma.event.findMany({
+        where: { organizationId: orgId },
+        orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+        include: {
+          room: { select: { name: true } },
+          submittedBy: { select: { name: true } },
+        },
+      })
+      const events = list.map((e) => ({
+        id: e.id,
+        name: e.name,
+        description: e.description,
+        date: e.date,
+        startTime: e.startTime,
+        endTime: e.endTime,
+        roomId: e.roomId,
+        room: e.room ? { name: e.room.name } : null,
+        submittedBy: e.submittedBy ? { name: e.submittedBy.name } : null,
+      }))
+      return NextResponse.json(events)
+    })
+  } catch (err) {
+    if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
+      return NextResponse.json([], { status: 200 })
+    }
+    console.error('GET events error:', err)
+    return NextResponse.json([], { status: 200 })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {

@@ -30,8 +30,6 @@ import SettingsPage from './components/SettingsPage'
 import WaterManagementPage from './components/WaterManagementPage'
 import OnboardingModal from './components/OnboardingModal'
 import { INITIAL_EVENTS, userStartedEventWithTicketSales } from './data/eventsData'
-import { fetchIcalEvents } from './services/icalService'
-import { INITIAL_SUPPORT_REQUESTS } from './data/supportTicketsData'
 import {
   INITIAL_INVENTORY_ITEMS,
   INITIAL_INVENTORY_STOCK,
@@ -79,7 +77,7 @@ const tabContent = {
 export default function App() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, trialDaysLeft } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, trialDaysLeft, refreshOrg } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -94,7 +92,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(INITIAL_USERS[0] ?? null) // actual logged-in user (set by auth)
   const [viewAsUser, setViewAsUser] = useState(null) // when set, we're "viewing as" this user
   const effectiveUser = viewAsUser ?? currentUser
-  const [supportRequests, setSupportRequests] = useState(INITIAL_SUPPORT_REQUESTS)
+  const [supportRequests, setSupportRequests] = useState([])
   const [inventoryItems, setInventoryItems] = useState(INITIAL_INVENTORY_ITEMS)
   const [inventoryStock, setInventoryStock] = useState(INITIAL_INVENTORY_STOCK)
   const [forms, setForms] = useState(INITIAL_FORMS)
@@ -247,13 +245,30 @@ export default function App() {
     return () => { cancelled = true }
   }, [])
 
-  // Load real events from iCal feed (SchoolDude)
+  // Fetch events from Platform when logged in (new orgs get empty list)
   useEffect(() => {
+    if (!getAuthToken()) return
     let cancelled = false
-    fetchIcalEvents().then((icalEvents) => {
-      if (cancelled || !icalEvents.length) return
-      setEvents(icalEvents)
-    })
+    platformFetch('/api/events')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return
+        if (Array.isArray(data)) {
+          setEvents(data.map((e) => ({
+            id: e.id,
+            name: e.name,
+            description: e.description,
+            date: e.date,
+            time: e.startTime,
+            endTime: e.endTime,
+            location: e.room?.name || e.location || 'TBD',
+            owner: e.submittedBy?.name,
+            creator: e.submittedBy?.name,
+            watchers: [],
+          })))
+        }
+      })
+      .catch(() => {})
     return () => { cancelled = true }
   }, [])
 
@@ -374,6 +389,7 @@ export default function App() {
         onOpenCampusMap={() => setCampusMapModalOpen(true)}
         orgName={orgName || searchParams.get('orgName')}
         orgLogoUrl={orgLogoUrl}
+        onNavigateToSettings={(section) => { setActiveTab('settings'); setSettingsSection(section || 'account') }}
       />
 
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -414,6 +430,11 @@ export default function App() {
                 hasTeamInventory={hasTeamInventory}
                 showInventoryPref={inventoryPrefs[effectiveUser?.id] === true}
                 onInventoryPrefChange={(enabled) => setInventoryPref(effectiveUser?.id, enabled)}
+                orgLogoUrl={orgLogoUrl}
+                orgName={orgName}
+                orgWebsite={orgWebsite}
+                orgAddress={orgAddress}
+                onOrgBrandingUpdated={refreshOrg}
               />
             </div>
           ) : activeTab === 'dashboard' && showAll ? (

@@ -47,7 +47,7 @@ import { isSuperAdmin } from '../data/teamsData'
 
 const ONBOARDING_ITEMS = [
   { id: 'add-team', label: 'Add team members', settingsSection: 'members', doneWhen: (ctx) => (ctx.users?.length ?? 0) > 1 },
-  { id: 'edit-branding', label: 'Edit logo & colors', settingsSection: 'subscription', doneWhen: (ctx) => !!ctx.orgLogoUrl, hideWhen: (ctx) => !!ctx.orgLogoUrl },
+  { id: 'edit-branding', label: 'Edit logo & colors', settingsSection: 'school', doneWhen: (ctx) => !!ctx.orgLogoUrl, hideWhen: (ctx) => !!ctx.orgLogoUrl },
   { id: 'import-calendar', label: 'Import calendar', tab: 'events', doneWhen: (ctx) => (ctx.events?.length ?? 0) > 0 },
 ]
 
