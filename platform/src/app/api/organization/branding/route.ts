@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prismaBase } from '@/lib/prisma'
 import { withOrg, getOrgId } from '@/lib/orgContext'
+import { verifyToken } from '@/lib/auth'
+import { canEditWorkspaceInfo } from '@/lib/roles'
 import { geocodeAddress } from '@/lib/geocode'
 
 function normalizeWebsite(raw: string | null | undefined): string | null {
@@ -19,6 +21,25 @@ export async function PATCH(req: NextRequest) {
     return await withOrg(req, prismaBase, async () => {
       const orgId = getOrgId()
       if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+      const authHeader = req.headers.get('authorization')
+      if (!authHeader?.startsWith('Bearer ')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      const payload = await verifyToken(authHeader.slice(7))
+      if (!payload?.userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      const editor = await prismaBase.user.findUnique({
+        where: { id: payload.userId },
+        select: { role: true },
+      })
+      if (!canEditWorkspaceInfo(editor?.role)) {
+        return NextResponse.json(
+          { error: 'Only Super Admins can edit workspace information' },
+          { status: 403 }
+        )
+      }
 
       const body = (await req.json()) as {
         logoUrl?: string | null

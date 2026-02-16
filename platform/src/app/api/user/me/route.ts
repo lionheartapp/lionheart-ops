@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserRole } from '@prisma/client'
 import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
@@ -96,20 +95,13 @@ export async function PATCH(req: NextRequest) {
 
     const body = (await req.json()) as {
       name?: string
-      role?: string
     }
 
-    const updates: { name?: string; role?: UserRole } = {}
+    // Role cannot be changed via self-update; only Admins/Super Admins can assign roles via /api/admin/users/[userId]
+    const updates: { name?: string } = {}
     if (body.name != null && typeof body.name === 'string') {
       const trimmed = body.name.trim()
       if (trimmed) updates.name = trimmed
-    }
-    if (body.role != null && typeof body.role === 'string') {
-      const mapped = ROLE_MAP[body.role.toLowerCase()] || ROLE_MAP[body.role] || body.role
-      const validRoles: UserRole[] = ['TEACHER', 'MAINTENANCE', 'ADMIN', 'SITE_SECRETARY', 'VIEWER']
-      if (validRoles.includes(mapped as UserRole)) {
-        updates.role = mapped as UserRole
-      }
     }
 
     if (Object.keys(updates).length === 0) {
@@ -125,8 +117,9 @@ export async function PATCH(req: NextRequest) {
       include: { organization: true },
     })
 
+    const isSuperAdmin = user.role === 'SUPER_ADMIN'
     return NextResponse.json(
-      { user: { id: user.id, email: user.email, name: user.name, role: user.role } },
+      { user: { id: user.id, email: user.email, name: user.name, role: isSuperAdmin ? 'super-admin' : toLionheartRole(user.role) } },
       { headers: corsHeaders }
     )
   } catch (err) {

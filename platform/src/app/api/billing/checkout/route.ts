@@ -1,16 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg } from '@/lib/orgContext'
+import { withOrg, getOrgId } from '@/lib/orgContext'
+import { verifyToken } from '@/lib/auth'
+import { canManageBilling } from '@/lib/roles'
 import { corsHeaders } from '@/lib/cors'
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY?.trim()
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null
 
-/** POST /api/billing/checkout — Create Stripe Checkout Session for subscription */
+/** POST /api/billing/checkout — Create Stripe Checkout Session for subscription. Super Admin only. */
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+      const authHeader = req.headers.get('authorization')
+      if (!authHeader?.startsWith('Bearer ')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
+      }
+      const payload = await verifyToken(authHeader.slice(7))
+      if (!payload?.userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
+      }
+      const user = await prismaBase.user.findUnique({
+        where: { id: payload.userId },
+        select: { role: true },
+      })
+      if (!canManageBilling(user?.role)) {
+        return NextResponse.json(
+          { error: 'Only Super Admins can manage subscriptions and billing' },
+          { status: 403, headers: corsHeaders }
+        )
+      }
+
       if (!stripe) {
         return NextResponse.json(
           { error: 'Billing not configured (missing STRIPE_SECRET_KEY)' },
@@ -26,17 +47,9 @@ export async function POST(req: NextRequest) {
       }
 
       const body = (await req.json()) as { successUrl?: string; cancelUrl?: string }
-      const orgId = req.headers.get('x-org-id')?.trim()
-      const authHeader = req.headers.get('authorization')
+      const resolvedOrgId = getOrgId()
       let customerEmail: string | undefined
-      if (authHeader?.startsWith('Bearer ')) {
-        const { verifyToken } = await import('@/lib/auth')
-        const payload = await verifyToken(authHeader.slice(7))
-        if (payload?.email) customerEmail = payload.email
-      }
-
-      const { getOrgId } = await import('@/lib/orgContext')
-      const resolvedOrgId = getOrgId() || orgId
+      if (payload?.email) customerEmail = payload.email
       if (!resolvedOrgId) {
         return NextResponse.json({ error: 'Organization required' }, { status: 401, headers: corsHeaders })
       }

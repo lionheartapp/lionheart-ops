@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
+import { canAssignRole, canCreateMembers } from '@/lib/roles'
 import { corsHeaders } from '@/lib/cors'
 
 type PendingMember = { email: string; name?: string; role?: string; teamNames?: string[] }
@@ -37,6 +38,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403, headers: corsHeaders })
     }
 
+    const inviter = await prismaBase.user.findUnique({
+      where: { id: payload.userId },
+      select: { role: true },
+    })
+    if (!inviter) {
+      return NextResponse.json({ error: 'User not found' }, { status: 401, headers: corsHeaders })
+    }
+    if (!canCreateMembers(inviter.role)) {
+      return NextResponse.json(
+        { error: 'Only Admins and Super Admins can invite new members' },
+        { status: 403, headers: corsHeaders }
+      )
+    }
+
     let toAdd: PendingMember[] = []
 
     if (body.members?.length) {
@@ -58,6 +73,18 @@ export async function POST(req: NextRequest) {
         .map((e) => String(e).trim().toLowerCase())
         .filter((e) => e.includes('@'))
       toAdd = emails.map((email) => ({ email }))
+    }
+
+    for (const m of toAdd) {
+      const role = (m.role ?? '').trim().toUpperCase()
+      if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+        if (!canAssignRole(inviter.role, role)) {
+          return NextResponse.json(
+            { error: role === 'SUPER_ADMIN' ? 'Only Super Admins can invite another Super Admin.' : 'Only Admins and Super Admins can invite Admins.' },
+            { status: 403, headers: corsHeaders }
+          )
+        }
+      }
     }
 
     if (toAdd.length === 0) {

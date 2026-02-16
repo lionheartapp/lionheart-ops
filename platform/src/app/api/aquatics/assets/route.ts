@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
 import { withOrg, getOrgId, requireModule } from '@/lib/orgContext'
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
           name: name || 'Untitled Asset',
           type,
           volumeGallons,
-          thresholds: body.thresholds ?? undefined,
+          thresholds: (body.thresholds ?? undefined) as Prisma.InputJsonValue | undefined,
         },
       })
       return NextResponse.json(asset, { headers: corsHeaders })
