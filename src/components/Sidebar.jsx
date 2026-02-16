@@ -85,7 +85,7 @@ export default function Sidebar({
     <aside className="sticky top-0 w-56 h-screen max-h-screen flex flex-col overflow-hidden border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/50 bg-zinc-50/80 dark:bg-zinc-900/90 backdrop-blur-xl shrink-0">
       <div className="h-20 shrink-0 flex items-center justify-center px-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40">
         {showLogo ? (
-          <img src={orgLogoUrl} alt={orgName || 'School'} className="h-10 w-auto max-w-full object-contain" onError={() => setLogoError(true)} />
+          <img src={orgLogoUrl} alt={orgName || 'School'} className="h-10 w-auto max-w-full object-contain" referrerPolicy="no-referrer" onError={() => setLogoError(true)} />
         ) : (
           <div className="flex flex-col items-center justify-center min-w-0">
             {orgName ? (

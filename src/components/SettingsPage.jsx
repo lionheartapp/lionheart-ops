@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Wrench,
   User,
@@ -11,6 +11,7 @@ import {
   Check,
   Download,
   Building2,
+  Upload,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
 import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
@@ -364,6 +365,7 @@ function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, orgLoading
   const [logoUrl, setLogoUrl] = useState(orgLogoUrl || '')
   const [website, setWebsite] = useState(orgWebsite || '')
   const [address, setAddress] = useState(orgAddress || '')
+  const logoUploadRef = useRef(null)
 
   useEffect(() => { setName(orgName || '') }, [orgName])
   useEffect(() => { setLogoUrl(orgLogoUrl || '') }, [orgLogoUrl])
@@ -430,21 +432,49 @@ function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, orgLoading
 
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Logo</label>
-          {orgLogoUrl && (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+            Paste a URL or upload an image to change the logo. It appears in the sidebar and login page.
+          </p>
+          {(logoUrl || orgLogoUrl) && (
             <div className="flex items-center gap-4 mb-2">
               <div className="w-24 h-12 border border-zinc-200 dark:border-zinc-600 rounded-lg flex items-center justify-center bg-white dark:bg-zinc-800 overflow-hidden">
-                <img src={orgLogoUrl} alt="School logo" className="max-h-full max-w-full object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+                <img src={logoUrl || orgLogoUrl} alt="School logo" className="max-h-full max-w-full object-contain" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.style.display = 'none'} />
               </div>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">Current logo</span>
             </div>
           )}
-          <input
-            type="text"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            placeholder="https://example.com/logo.png or paste URL"
-            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              placeholder="https://example.com/logo.png or paste URL"
+              className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+            />
+            <input
+              ref={logoUploadRef}
+              type="file"
+              accept=".svg,.png,.jpg,.jpeg,.webp,image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  const reader = new FileReader()
+                  reader.onload = () => setLogoUrl(reader.result || '')
+                  reader.readAsDataURL(file)
+                }
+                e.target.value = ''
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => logoUploadRef.current?.click()}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-sm font-medium transition-colors"
+            >
+              <Upload className="w-4 h-4" />
+              Upload
+            </button>
+          </div>
         </div>
 
         <div>

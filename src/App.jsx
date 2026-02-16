@@ -388,7 +388,7 @@ export default function App() {
         showWaterManagement={hasWaterManagement}
         onOpenCampusMap={() => setCampusMapModalOpen(true)}
         orgName={orgName || searchParams.get('orgName')}
-        orgLogoUrl={orgLogoUrl}
+        orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
         primaryColor={primaryColor}
         onNavigateToSettings={(section) => { setActiveTab('settings'); setSettingsSection(section || 'account') }}
       />
@@ -1032,6 +1032,8 @@ export default function App() {
       {searchParams.get('onboarding') === '1' && (
         <OnboardingModal
           user={effectiveUser}
+          orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
+          orgName={orgName || searchParams.get('orgName')}
           onComplete={(updatedUser) => {
             setSearchParams((p) => {
               const next = new URLSearchParams(p)
@@ -1041,6 +1043,7 @@ export default function App() {
             if (updatedUser && effectiveUser?.id === currentUser?.id) {
               setCurrentUser((prev) => ({ ...prev, name: updatedUser.name, role: updatedUser.role }))
             }
+            refreshOrg()
           }}
         />
       )}

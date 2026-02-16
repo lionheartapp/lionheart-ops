@@ -412,9 +412,14 @@ function SetupWizard({
                 <div className="h-0.5 bg-gradient-to-r from-[#3b82f6] to-[#f59e0b]" />
                 <div className="p-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-white rounded-lg p-2 shrink-0">
+                    <div className="relative w-16 h-16 bg-white rounded-lg p-2 shrink-0">
                       {(schoolData.logoUrl || searchResult.logo) ? (
-                        <img src={schoolData.logoUrl || searchResult.logo} alt="" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                        <>
+                          <img src={schoolData.logoUrl || searchResult.logo} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                          <div className="absolute -bottom-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white" title="Logo found">
+                            <Check className="w-3 h-3" strokeWidth={3} />
+                          </div>
+                        </>
                       ) : (
                         <div className="w-full h-full rounded bg-zinc-100 flex items-center justify-center text-zinc-500 text-xs">
                           {extractingBrand ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Logo'}
@@ -521,16 +526,21 @@ function SetupWizard({
                       tabIndex={0}
                       onClick={() => fileInputRef.current?.click()}
                       onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
-                      className="w-14 h-14 rounded-lg border-2 border-dashed border-zinc-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#3b82f6]/50 transition-colors"
+                      className="relative w-14 h-14 rounded-lg border-2 border-dashed border-zinc-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#3b82f6]/50 transition-colors"
                     >
                       <input ref={fileInputRef} type="file" accept=".svg,.png,.jpg,.jpeg,image/*" onChange={handleFileUpload} className="hidden" />
                       {schoolData.logoUrl ? (
-                        <img src={schoolData.logoUrl} alt="" className="w-full h-full object-contain p-1" />
+                        <>
+                          <img src={schoolData.logoUrl} alt="" className="w-full h-full object-contain p-1" referrerPolicy="no-referrer" />
+                          <div className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white" title="Logo added">
+                            <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                          </div>
+                        </>
                       ) : (
                         <Upload className="w-5 h-5 text-zinc-500" />
                       )}
                     </div>
-                    <span className="text-xs text-zinc-500">PNG / SVG</span>
+                    <span className="text-xs text-zinc-500">{schoolData.logoUrl ? 'Logo added – click to change' : 'PNG / SVG – click to upload'}</span>
                   </div>
                 </div>
                 <div>
