@@ -205,7 +205,7 @@ export default function SignupPage() {
               type="url"
               value={schoolWebsite}
               onChange={(e) => setSchoolWebsite(e.target.value)}
-              placeholder="e.g. linfield.com or https://linfield.com"
+              placeholder="e.g. yourschool.com or https://yourschool.com"
               className="w-full px-4 py-3 rounded-lg bg-white border-2 border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>

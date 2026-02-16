@@ -201,7 +201,9 @@ export async function GET(req: NextRequest) {
     let nextPath = state.finalRedirect + (isNewUser ? '?onboarding=1' : '')
     if (createdNewOrg && user.organizationId) {
       // Token in hash so Setup page can use it (cross-origin redirect from Lionheart)
-      nextPath = `${platformUrl}/setup?orgId=${user.organizationId}#token=${encodeURIComponent(token)}`
+      const params = new URLSearchParams({ orgId: user.organizationId })
+      if (user.email) params.set('userEmail', user.email)
+      nextPath = `${platformUrl}/setup?${params.toString()}#token=${encodeURIComponent(token)}`
     }
 
     const redirectUrl = `${baseUrl}${authCallbackPath}?token=${encodeURIComponent(token)}&next=${encodeURIComponent(nextPath)}`
