@@ -188,6 +188,32 @@ export default function App() {
     return () => { cancelled = true }
   }, [])
 
+  // Fetch forms from Platform when logged in
+  useEffect(() => {
+    if (!getAuthToken()) return
+    let cancelled = false
+    platformFetch('/api/forms')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setForms(data)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  // Fetch form submissions from Platform when logged in
+  useEffect(() => {
+    if (!getAuthToken()) return
+    let cancelled = false
+    platformFetch('/api/forms/submissions')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setFormSubmissions(data)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
   // Fetch current user from Platform when logged in (use real name instead of "Admin User")
   useEffect(() => {
     if (!getAuthToken()) return

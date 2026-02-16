@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Download, Search, Check, X } from 'lucide-react'
 import { submissionToEvent } from '../data/formsData'
+import { platformPatch } from '../services/platformApi'
 
 function escapeCsvCell(s) {
   const str = String(s ?? '')
@@ -27,7 +28,7 @@ export default function FormSubmissionsView({
   const currentUserId = currentUser?.id
 
   const handleApprove = useCallback(
-    (sub, approved) => {
+    async (sub, approved) => {
       if (!setFormSubmissions || !currentUserId) return
       const myApproval = sub.approvals?.find((a) => a.approverId === currentUserId)
       if (myApproval?.approved != null) return
@@ -44,6 +45,22 @@ export default function FormSubmissionsView({
         approvals: nextApprovals,
         status: anyRejected ? 'rejected' : allApproved ? 'approved' : 'pending',
         eventId: allApproved && form.submissionType === 'event-request' ? `ev_${sub.id}` : sub.eventId,
+      }
+
+      const isDbSub = sub.id && !String(sub.id).startsWith('sub_')
+      if (isDbSub) {
+        try {
+          const r = await platformPatch(`/api/forms/submissions/${sub.id}`, {
+            status: updated.status,
+            approvals: nextApprovals,
+            eventId: updated.eventId ?? null,
+          })
+          if (!r.ok) return
+          const saved = await r.json()
+          updated.submittedAt = saved.submittedAt
+        } catch {
+          return
+        }
       }
 
       setFormSubmissions((prev) =>

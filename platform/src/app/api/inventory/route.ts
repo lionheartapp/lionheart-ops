@@ -58,12 +58,8 @@ export async function POST(req: NextRequest) {
         | { name: string; teamId?: string }
         | { itemId: string; location: string; quantity: number }
 
-      if (body.itemId && 'location' in body && typeof body.quantity === 'number') {
-        const { itemId, location, quantity } = body as {
-          itemId: string
-          location: string
-          quantity: number
-        }
+      if ('itemId' in body && body.itemId && 'location' in body && typeof body.quantity === 'number') {
+        const { itemId, location, quantity } = body
         if (!itemId?.trim() || !location?.trim()) {
           return NextResponse.json(
             { error: 'Missing itemId or location' },

@@ -73,4 +73,14 @@ export function platformPost(path, body) {
   })
 }
 
+/**
+ * PATCH request to Platform API.
+ */
+export function platformPatch(path, body) {
+  return platformFetch(path, {
+    method: 'PATCH',
+    body: body ? JSON.stringify(body) : undefined,
+  })
+}
+
 export { PLATFORM_URL, ORG_ID }

@@ -25,7 +25,8 @@ model Organization {
   buildings            Building[]
   events               Event[]
   expenses             Expense[]
-  inventoryItems       InventoryItem[]
+  forms               Form[]
+  inventoryItems      InventoryItem[]
   knowledgeBaseEntries KnowledgeBaseEntry[]
   maintenanceTips      MaintenanceTip[]
   pondConfigs          PondConfig[]
@@ -205,6 +206,36 @@ model MaintenanceTip {
 
   @@index([organizationId])
   @@index([sourceTicketId])
+}
+
+model Form {
+  id               String            @id @default(cuid())
+  organizationId   String?
+  title            String
+  description      String            @default("")
+  config           Json?             // fields, layout, approvalWorkflow, submissionType, etc.
+  createdBy        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submissions      FormSubmission[]
+
+  @@index([organizationId])
+}
+
+model FormSubmission {
+  id         String   @id @default(cuid())
+  formId     String
+  data       Json     // field id -> value map
+  status     String   @default("submitted") // submitted | pending | approved | rejected
+  approvals  Json?    // [{ approverId, approved, at }]
+  submittedBy String?
+  eventId    String?
+  createdAt  DateTime @default(now())
+  form       Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId])
+  @@index([submittedBy])
 }
 
 model KnowledgeBaseEntry {

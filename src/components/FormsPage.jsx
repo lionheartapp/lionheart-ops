@@ -9,6 +9,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { createForm, submissionToEvent } from '../data/formsData'
+import { platformPost, platformPatch, platformFetch } from '../services/platformApi'
 import { buildApproversMailtoUrl } from '../utils/pendingApprovals'
 import FormBuilderModal from './FormBuilderModal'
 import FormFillView from './FormFillView'
@@ -82,8 +83,17 @@ export default function FormsPage({
     setFormToEdit(null)
   }
 
-  const handleDeleteForm = (form) => {
+  const handleDeleteForm = async (form) => {
     if (typeof window !== 'undefined' && !window.confirm(`Delete "${form.title}"? This cannot be undone.`)) return
+    const isDbForm = form.id && !form.id.startsWith('form_')
+    if (isDbForm) {
+      try {
+        const r = await platformFetch(`/api/forms/${form.id}`, { method: 'DELETE' })
+        if (!r.ok) return
+      } catch {
+        return
+      }
+    }
     setForms((prev) => prev.filter((f) => f.id !== form.id))
     setFormSubmissions((prev) => prev.filter((s) => s.formId !== form.id))
     if (selectedFormId === form.id) {
@@ -92,13 +102,43 @@ export default function FormsPage({
     }
   }
 
-  const handleSaveForm = (updated) => {
-    const saved = { ...updated, updatedAt: new Date().toISOString() }
-    setForms((prev) =>
-      prev.map((f) => (f.id === updated.id ? saved : f))
-    )
-    if (formToEdit?.id === updated.id) {
-      setFormToEdit(saved)
+  const handleSaveForm = async (updated) => {
+    const isNew = updated.id && updated.id.startsWith('form_')
+    try {
+      const payload = {
+        title: updated.title,
+        description: updated.description ?? '',
+        showTitle: updated.showTitle,
+        fields: updated.fields,
+        layout: updated.layout,
+        formWidth: updated.formWidth,
+        headerImage: updated.headerImage ?? '',
+        sideImage: updated.sideImage ?? '',
+        steps: updated.steps ?? [],
+        approvalWorkflow: updated.approvalWorkflow,
+        submissionType: updated.submissionType ?? 'general',
+      }
+      let saved
+      if (isNew) {
+        const r = await platformPost('/api/forms', payload)
+        if (!r.ok) return
+        saved = await r.json()
+      } else {
+        const r = await platformPatch(`/api/forms/${updated.id}`, payload)
+        if (!r.ok) return
+        saved = await r.json()
+      }
+      setForms((prev) =>
+        prev.map((f) => (f.id === updated.id ? saved : f))
+      )
+      if (formToEdit?.id === updated.id) {
+        setFormToEdit(saved)
+      }
+    } catch {
+      // Fallback to local state on API error
+      const saved = { ...updated, updatedAt: new Date().toISOString() }
+      setForms((prev) => prev.map((f) => (f.id === updated.id ? saved : f)))
+      if (formToEdit?.id === updated.id) setFormToEdit(saved)
     }
   }
 
@@ -123,9 +163,41 @@ export default function FormsPage({
     setFormBuilderOpen(false)
   }
 
-  const handleFormSubmit = (form, data) => {
+  const handleFormSubmit = async (form, data) => {
     const workflow = form.approvalWorkflow
     const hasApproval = workflow?.approverIds?.length > 0
+    const isDbForm = form.id && !form.id.startsWith('form_')
+    if (isDbForm) {
+      try {
+        const r = await platformPost('/api/forms/submissions', {
+          formId: form.id,
+          data,
+        })
+        if (!r.ok) return
+        const sub = await r.json()
+        setFormSubmissions((prev) => [...prev, sub])
+        if (!hasApproval && form.submissionType === 'event-request' && onEventCreated) {
+          const event = submissionToEvent(form, sub)
+          if (event) onEventCreated(event)
+        }
+        if (hasApproval && workflow.approverIds?.length) {
+          const names = workflow.approverIds
+            .map((id) => users.find((u) => u.id === id)?.name)
+            .filter(Boolean)
+            .join(', ')
+          const mailtoUrl = buildApproversMailtoUrl(workflow.approverIds, users, form, sub)
+          const message = `Request submitted! It's pending approval from ${names || 'the approvers'}.`
+          if (mailtoUrl && window.confirm(`${message}\n\nWould you like to open your email client to notify them?`)) {
+            window.location.href = mailtoUrl
+          } else if (!mailtoUrl) {
+            alert(message)
+          }
+        }
+        return
+      } catch {
+        // Fall through to local-only path
+      }
+    }
     const sub = {
       id: `sub_${Date.now()}`,
       formId: form.id,
