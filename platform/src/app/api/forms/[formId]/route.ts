@@ -9,7 +9,7 @@ function toFrontendForm(f: {
   id: string
   title: string
   description: string
-  config: object | null
+  config: unknown
   createdBy: string | null
   createdAt: Date
   updatedAt: Date
