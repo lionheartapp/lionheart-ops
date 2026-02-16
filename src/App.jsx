@@ -158,70 +158,52 @@ export default function App() {
     }
   }, [searchParams])
 
-  // Fetch inventory from Platform when logged in
+  // Bootstrap: fetch all app data in parallel so one round trip + one state update wave (faster perceived load)
   useEffect(() => {
     if (!getAuthToken()) return
     let cancelled = false
-    platformFetch('/api/inventory')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!cancelled && data) {
-          if (Array.isArray(data.items)) setInventoryItems(data.items)
-          if (Array.isArray(data.stock)) setInventoryStock(data.stock)
-        }
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
+    const meRes = platformFetch('/api/user/me')
+    const invRes = platformFetch('/api/inventory')
+    const ticketsRes = platformFetch('/api/tickets')
+    const formsRes = platformFetch('/api/forms')
+    const submissionsRes = platformFetch('/api/forms/submissions')
+    const eventsRes = platformFetch('/api/events')
 
-  // Fetch tickets from Platform when logged in
-  useEffect(() => {
-    if (!getAuthToken()) return
-    let cancelled = false
-    platformFetch('/api/tickets')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!cancelled && Array.isArray(data)) setSupportRequests(data)
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
+    Promise.all([
+      meRes.then((r) => (r.ok ? r.json() : null)),
+      invRes.then((r) => (r.ok ? r.json() : null)),
+      ticketsRes.then((r) => (r.ok ? r.json() : null)),
+      formsRes.then((r) => (r.ok ? r.json() : null)),
+      submissionsRes.then((r) => (r.ok ? r.json() : null)),
+      eventsRes.then((r) => (r.ok ? r.json() : null)),
+    ]).then(([meData, invData, ticketsData, formsData, submissionsData, eventsData]) => {
+      if (cancelled) return
 
-  // Fetch forms from Platform when logged in
-  useEffect(() => {
-    if (!getAuthToken()) return
-    let cancelled = false
-    platformFetch('/api/forms')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!cancelled && Array.isArray(data)) setForms(data)
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
+      if (invData) {
+        if (Array.isArray(invData.items)) setInventoryItems(invData.items)
+        if (Array.isArray(invData.stock)) setInventoryStock(invData.stock)
+      }
+      if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
+      if (Array.isArray(formsData)) setForms(formsData)
+      if (Array.isArray(submissionsData)) setFormSubmissions(submissionsData)
 
-  // Fetch form submissions from Platform when logged in
-  useEffect(() => {
-    if (!getAuthToken()) return
-    let cancelled = false
-    platformFetch('/api/forms/submissions')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!cancelled && Array.isArray(data)) setFormSubmissions(data)
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
+      if (eventsData && Array.isArray(eventsData)) {
+        setEvents(eventsData.map((e) => ({
+          id: e.id,
+          name: e.name,
+          description: e.description,
+          date: e.date,
+          time: e.startTime,
+          endTime: e.endTime,
+          location: e.room?.name || e.location || 'TBD',
+          owner: e.submittedBy?.name,
+          creator: e.submittedBy?.name,
+          watchers: [],
+        })))
+      }
 
-  // Fetch current user from Platform when logged in (use real name instead of "Admin User")
-  useEffect(() => {
-    if (!getAuthToken()) return
-    let cancelled = false
-    platformFetch('/api/user/me')
-      .then((r) => r.ok ? r.json() : null)
-      .then((d) => {
-        if (cancelled || !d?.user) return
-        const u = d.user
+      if (meData?.user) {
+        const u = meData.user
         const me = {
           id: u.id,
           name: u.name ?? u.email?.split('@')[0] ?? 'User',
@@ -239,12 +221,12 @@ export default function App() {
           }
           return [me, ...prev]
         })
-      })
-      .catch(() => {})
+      }
+    }).catch(() => {})
     return () => { cancelled = true }
   }, [])
 
-  // Fetch full member list for Admin/Super Admin (View As dropdown + Members page)
+  // Fetch full member list for Admin/Super Admin (after /me so we know role)
   useEffect(() => {
     if (!getAuthToken() || !currentUser?.id) return
     const role = (currentUser.role || '').toLowerCase()
@@ -266,33 +248,6 @@ export default function App() {
       .catch(() => {})
     return () => { cancelled = true }
   }, [currentUser?.id, currentUser?.role])
-
-  // Fetch events from Platform when logged in (new orgs get empty list)
-  useEffect(() => {
-    if (!getAuthToken()) return
-    let cancelled = false
-    platformFetch('/api/events')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (cancelled) return
-        if (Array.isArray(data)) {
-          setEvents(data.map((e) => ({
-            id: e.id,
-            name: e.name,
-            description: e.description,
-            date: e.date,
-            time: e.startTime,
-            endTime: e.endTime,
-            location: e.room?.name || e.location || 'TBD',
-            owner: e.submittedBy?.name,
-            creator: e.submittedBy?.name,
-            watchers: [],
-          })))
-        }
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
 
   const openEventInfo = (ev) => {
     setSelectedEvent(ev)
