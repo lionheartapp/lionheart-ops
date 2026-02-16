@@ -37,7 +37,7 @@ import {
   getItemsByScope,
   getStockByScope,
 } from './data/inventoryData'
-import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, getUserTeamIds, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
+import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, platformFetch, platformPost } from './services/platformApi'
 
@@ -345,6 +345,15 @@ export default function App() {
   const hasTeamInventory = isAVUser || isFacilitiesUser || isITUser
   const isSA = effectiveUser?.role === 'super-admin' || effectiveUser?.role === 'SUPER_ADMIN'
   const showInventory = hasAdvancedInventory && (hasTeamInventory || isSA || (inventoryPrefs[effectiveUser?.id] === true))
+  // Water Management: Maintenance team OR Super Admin only (hide from A/V, IT, Teachers, etc.)
+  const showWaterManagementForUser = hasWaterManagement && (isFacilitiesUser || isSuperAdmin(effectiveUser))
+
+  useEffect(() => {
+    if (activeTab === 'water-management' && !showWaterManagementForUser) {
+      setActiveTab('dashboard')
+    }
+  }, [activeTab, showWaterManagementForUser])
+
   const defaultInventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : (inventoryPrefs[effectiveUser?.id] ? 'personal' : null)
   const [inventoryScopeOverride, setInventoryScopeOverride] = useState(null)
   const effectiveScope = defaultInventoryScope ?? (isSA ? 'av' : null)
@@ -383,19 +392,23 @@ export default function App() {
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Your Pro Trial is active</h3>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {isSuperAdmin(effectiveUser) ? 'Your Pro Trial is active' : "You're in trial"}
+              </h3>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                You have <span className="font-medium text-amber-600 dark:text-amber-400">{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</span> left to explore all features.
+                You have <span className="font-medium text-amber-600 dark:text-amber-400">{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</span> left{isSuperAdmin(effectiveUser) ? ' to explore all features.' : ' in the trial period.'}
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => { setActiveTab('settings'); setSettingsSection('subscription') }}
-            className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-          >
-            Add Payment Method
-          </button>
+          {isSuperAdmin(effectiveUser) && (
+            <button
+              type="button"
+              onClick={() => { setActiveTab('settings'); setSettingsSection('subscription') }}
+              className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              Add Payment Method
+            </button>
+          )}
         </div>
       )}
       <div className="flex flex-1 min-h-0">
@@ -411,7 +424,7 @@ export default function App() {
         onClearViewAs={() => setViewAsUser(null)}
         showInventory={showInventory}
         showCampusMap={hasVisualCampus}
-        showWaterManagement={hasWaterManagement}
+        showWaterManagement={showWaterManagementForUser}
         onOpenCampusMap={() => setCampusMapModalOpen(true)}
         orgName={orgName || searchParams.get('orgName')}
         orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
@@ -533,27 +546,27 @@ export default function App() {
                       />
                     </section>
                   )}
-                  {isFacilitiesTeam(effectiveUser, teams) && (
+                  {(isFacilitiesTeam(effectiveUser, teams) || isSuperAdmin(effectiveUser)) && showWaterManagementForUser && (
                     <>
-                      {hasWaterManagement && (
+                      <section>
+                        <WidgetErrorBoundary>
+                          <WaterOpsWidget
+                            setSupportRequests={setSupportRequests}
+                            currentUser={effectiveUser}
+                          />
+                        </WidgetErrorBoundary>
+                      </section>
+                      {isFacilitiesTeam(effectiveUser, teams) && (
                         <section>
-                          <WidgetErrorBoundary>
-                            <WaterOpsWidget
-                              setSupportRequests={setSupportRequests}
-                              currentUser={effectiveUser}
-                            />
-                          </WidgetErrorBoundary>
+                          <FacilitiesDashboardRequests
+                            requests={supportRequests}
+                            setSupportRequests={setSupportRequests}
+                            updateTicket={updateTicket}
+                            currentUser={effectiveUser}
+                            onNavigateToSupport={() => setActiveTab('facilities')}
+                          />
                         </section>
                       )}
-                      <section>
-                        <FacilitiesDashboardRequests
-                          requests={supportRequests}
-                          setSupportRequests={setSupportRequests}
-                          updateTicket={updateTicket}
-                          currentUser={effectiveUser}
-                          onNavigateToSupport={() => setActiveTab('facilities')}
-                        />
-                      </section>
                     </>
                   )}
                   {isAVTeam(effectiveUser, teams) && (

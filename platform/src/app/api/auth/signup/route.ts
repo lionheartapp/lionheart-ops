@@ -11,11 +11,18 @@ export async function POST(req: NextRequest) {
       name?: string
       email?: string
       password?: string
+      teamIds?: string[]
+      selectedTeamId?: string
     }
     const schoolName = body.schoolName?.trim()
     const name = body.name?.trim()
     const email = body.email?.trim()?.toLowerCase()
     const password = body.password
+    const teamIds = Array.isArray(body.teamIds)
+      ? body.teamIds.filter((t): t is string => typeof t === 'string')
+      : body.selectedTeamId
+        ? [body.selectedTeamId.trim()].filter(Boolean)
+        : []
 
     if (!schoolName || !name || !email) {
       return NextResponse.json(
@@ -71,14 +78,15 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await hashPassword(password)
 
-    // First user of the org gets SUPER_ADMIN (can manage subscription, see everything)
+    const userCount = await prismaBase.user.count({ where: { organizationId: org.id } })
     const user = await prismaBase.user.create({
       data: {
         email,
         name,
         passwordHash,
         organizationId: org.id,
-        role: 'SUPER_ADMIN',
+        role: userCount === 0 ? 'SUPER_ADMIN' : 'MEMBER',
+        teamIds,
         canSubmitEvents: true,
       },
     })

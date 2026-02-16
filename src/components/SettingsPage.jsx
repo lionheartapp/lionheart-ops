@@ -16,7 +16,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
-import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
+import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin } from '../data/teamsData'
 import { platformPost, platformFetch, platformPatch, getAuthToken } from '../services/platformApi'
 
 // --- CONSTANTS ---
@@ -887,10 +887,17 @@ export default function SettingsPage({
   hasWaterManagement = false,
   onOpenAddOn,
 }) {
-  const allSections = [...generalSettings, ...workspaceSettings]
+  const canSeeWorkspace = isSuperAdmin(currentUser) || (currentUser?.role && String(currentUser.role).toLowerCase() === 'admin')
+  const allSections = canSeeWorkspace ? [...generalSettings, ...workspaceSettings] : generalSettings
   const activeSection = allSections.some((s) => s.id === settingsSection)
     ? settingsSection
-    : 'apps'
+    : 'account'
+
+  useEffect(() => {
+    if (!canSeeWorkspace && workspaceSettings.some((s) => s.id === settingsSection)) {
+      onSettingsSectionChange('account')
+    }
+  }, [canSeeWorkspace, settingsSection, onSettingsSectionChange])
 
   return (
     <div className="flex-1 flex min-h-0 gap-0">
@@ -923,32 +930,34 @@ export default function SettingsPage({
               })}
             </div>
           </div>
-          <div>
-            <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              Workspace
-            </p>
-            <div className="mt-1 space-y-0.5">
-              {workspaceSettings.map((item) => {
-                const Icon = item.icon
-                const isActive = activeSection === item.id
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => onSettingsSectionChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
-                    {item.label}
-                  </button>
-                )
-              })}
+          {canSeeWorkspace && (
+            <div>
+              <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                Workspace
+              </p>
+              <div className="mt-1 space-y-0.5">
+                {workspaceSettings.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeSection === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => onSettingsSectionChange(item.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
+                      {item.label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </nav>
 
