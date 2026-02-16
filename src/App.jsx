@@ -40,7 +40,7 @@ import {
 } from './data/inventoryData'
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, getUserTeamIds } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
-import { getAuthToken, platformFetch } from './services/platformApi'
+import { getAuthToken, platformFetch, platformPost } from './services/platformApi'
 
 const INVENTORY_PREFS_KEY = 'schoolops-inventory-prefs'
 
@@ -111,6 +111,23 @@ export default function App() {
   const [commandBarOpen, setCommandBarOpen] = useState(false)
   const [campusMapModalOpen, setCampusMapModalOpen] = useState(false)
 
+  const updateTicket = (ticketId, updates) => {
+    if (typeof ticketId !== 'string' || ticketId.length < 10) return // Skip mock tickets (numeric id)
+    platformFetch(`/api/tickets/${ticketId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((updated) => {
+        if (updated) {
+          setSupportRequests((prev) =>
+            prev.map((t) => (String(t.id) === String(ticketId) ? { ...t, ...updated } : t))
+          )
+        }
+      })
+      .catch(() => {})
+  }
+
   // Command Bar (K-Bar): Cmd+K / Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -141,6 +158,35 @@ export default function App() {
       }
     }
   }, [searchParams])
+
+  // Fetch inventory from Platform when logged in
+  useEffect(() => {
+    if (!getAuthToken()) return
+    let cancelled = false
+    platformFetch('/api/inventory')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) {
+          if (Array.isArray(data.items)) setInventoryItems(data.items)
+          if (Array.isArray(data.stock)) setInventoryStock(data.stock)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  // Fetch tickets from Platform when logged in
+  useEffect(() => {
+    if (!getAuthToken()) return
+    let cancelled = false
+    platformFetch('/api/tickets')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setSupportRequests(data)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   // Fetch current user from Platform when logged in (use real name instead of "Admin User")
   useEffect(() => {
@@ -397,6 +443,7 @@ export default function App() {
                       <ITDashboardRequests
                         requests={supportRequests}
                         setSupportRequests={setSupportRequests}
+                        updateTicket={updateTicket}
                         currentUser={effectiveUser}
                         users={users}
                         teams={teams}
@@ -418,6 +465,7 @@ export default function App() {
                         <FacilitiesDashboardRequests
                           requests={supportRequests}
                           setSupportRequests={setSupportRequests}
+                          updateTicket={updateTicket}
                           currentUser={effectiveUser}
                           onNavigateToSupport={() => setActiveTab('facilities')}
                         />
@@ -645,8 +693,26 @@ export default function App() {
         }}
         onEventUpdate={handleEventUpdate}
         initialEvent={editingEvent}
-        onSave={(payload) => {
+        onSave={async (payload) => {
           const id = payload.id || String(Date.now())
+          if (getAuthToken()) {
+            try {
+              const chairs = payload.facilitiesRequested?.find((f) => /chair/i.test(f.item || f.name || ''))?.quantity
+              const tables = payload.facilitiesRequested?.find((f) => /table/i.test(f.item || f.name || ''))?.quantity
+              await platformPost('/api/events', {
+                name: payload.name,
+                description: payload.description || undefined,
+                date: payload.date,
+                startTime: payload.time || '00:00',
+                endTime: payload.endTime || undefined,
+                chairsRequested: chairs ?? payload.chairsRequested,
+                tablesRequested: tables ?? payload.tablesRequested,
+                submittedById: effectiveUser?.id || undefined,
+              })
+            } catch {
+              /* persist to local state regardless */
+            }
+          }
           const newEvent = {
             id,
             name: payload.name,
@@ -692,8 +758,24 @@ export default function App() {
         onClose={() => setSmartEventModalOpen(false)}
         currentUser={effectiveUser}
         calendarEvents={events}
-        onSave={(payload) => {
+        onSave={async (payload) => {
           const id = payload.id || String(Date.now())
+          if (getAuthToken()) {
+            try {
+              await platformPost('/api/events', {
+                name: payload.name,
+                description: payload.description || undefined,
+                date: payload.date,
+                startTime: payload.time || '00:00',
+                endTime: payload.endTime || undefined,
+                chairsRequested: payload.chairsRequested,
+                tablesRequested: payload.tablesRequested,
+                submittedById: effectiveUser?.id || undefined,
+              })
+            } catch {
+              /* persist to local state regardless */
+            }
+          }
           const newEvent = {
             id,
             name: payload.name,
@@ -759,7 +841,26 @@ export default function App() {
         title="Create Facilities Request"
       >
         <FacilitiesRequestForm
-          onSubmit={(payload) => {
+          onSubmit={async (payload) => {
+            if (getAuthToken()) {
+              try {
+                const res = await platformPost('/api/tickets', {
+                  title: payload.title,
+                  description: payload.details || undefined,
+                  type: 'Facilities',
+                  category: 'MAINTENANCE',
+                  priority: payload.priority || 'normal',
+                })
+                if (res.ok) {
+                  const ticket = await res.json()
+                  setSupportRequests((prev) => [...(prev || []), ticket])
+                  setFacilitiesDrawerOpen(false)
+                  return
+                }
+              } catch {
+                /* fall through to local state */
+              }
+            }
             setSupportRequests((prev) => [
               ...(prev || []),
               {
@@ -792,7 +893,26 @@ export default function App() {
         title="Create IT Request"
       >
         <ITRequestForm
-          onSubmit={(payload) => {
+          onSubmit={async (payload) => {
+            if (getAuthToken()) {
+              try {
+                const res = await platformPost('/api/tickets', {
+                  title: payload.title,
+                  description: payload.details || undefined,
+                  type: 'IT',
+                  category: 'IT',
+                  priority: payload.priority || 'normal',
+                })
+                if (res.ok) {
+                  const ticket = await res.json()
+                  setSupportRequests((prev) => [...(prev || []), ticket])
+                  setITDrawerOpen(false)
+                  return
+                }
+              } catch {
+                /* fall through to local state */
+              }
+            }
             setSupportRequests((prev) => [
               ...(prev || []),
               {

@@ -79,6 +79,7 @@ function RequestCard({ request, onClick, priorityStyles, draggable, onDragStart,
 export default function FacilitiesDashboardRequests({
   requests = [],
   setSupportRequests,
+  updateTicket,
   currentUser,
   onNavigateToSupport,
 }) {
@@ -271,6 +272,7 @@ export default function FacilitiesDashboardRequests({
             request={selectedRequest}
             currentUser={currentUser}
             setSupportRequests={setSupportRequests}
+            updateTicket={updateTicket}
             onClose={() => setSelectedRequest(null)}
             onMarkAsDoneClick={() => {
               setCompletionFlowOpen(true)
@@ -287,11 +289,15 @@ export default function FacilitiesDashboardRequests({
         request={selectedRequest}
         ticketPrefix="FAC"
         onComplete={() => {
-          setSupportRequests?.((prev) =>
-            prev.map((r) =>
-              r.id === selectedRequest?.id ? { ...r, status: 'resolved' } : r
+          if (updateTicket && typeof selectedRequest?.id === 'string' && selectedRequest.id.length >= 10) {
+            updateTicket(selectedRequest.id, { status: 'RESOLVED' })
+          } else {
+            setSupportRequests?.((prev) =>
+              prev.map((r) =>
+                r.id === selectedRequest?.id ? { ...r, status: 'resolved' } : r
+              )
             )
-          )
+          }
           setSelectedRequest(null)
           setCompletionFlowOpen(false)
         }}
@@ -300,7 +306,7 @@ export default function FacilitiesDashboardRequests({
   )
 }
 
-function RequestDetailContent({ request, currentUser, setSupportRequests, onClose, onMarkAsDoneClick }) {
+function RequestDetailContent({ request, currentUser, setSupportRequests, updateTicket, onClose, onMarkAsDoneClick }) {
   const isNew = !request.status || request.status === 'new'
   const isInProgress = request.status === 'in-progress'
   const priorityClass = priorityStyles[request.priority] || priorityStyles.normal
@@ -341,11 +347,15 @@ function RequestDetailContent({ request, currentUser, setSupportRequests, onClos
           <button
             type="button"
             onClick={() => {
-              setSupportRequests?.((prev) =>
-                prev.map((r) =>
-                  r.id === request.id ? { ...r, status: 'in-progress', assignedTo: currentUser?.name ?? r.assignedTo } : r
+              if (updateTicket && typeof request.id === 'string' && request.id.length >= 10) {
+                updateTicket(request.id, { status: 'IN_PROGRESS', assignedToId: currentUser?.id || null })
+              } else {
+                setSupportRequests?.((prev) =>
+                  prev.map((r) =>
+                    r.id === request.id ? { ...r, status: 'in-progress', assignedTo: currentUser?.name ?? r.assignedTo } : r
+                  )
                 )
-              )
+              }
               onClose?.()
             }}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors"

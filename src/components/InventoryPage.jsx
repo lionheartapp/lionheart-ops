@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Package, MapPin, Plus, Pencil, Trash2 } from 'lucide-react'
 import { LOCATIONS, getTotalAvailable, getItemsByScope, getStockByScope } from '../data/inventoryData'
+import { getAuthToken, platformFetch, platformPost } from '../services/platformApi'
 
 export default function InventoryPage({ items = [], setItems, stock = [], setStock, inventoryScope = 'facilities' }) {
   const itemList = useMemo(() => getItemsByScope(items ?? [], inventoryScope), [items, inventoryScope])
@@ -10,17 +11,42 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
   const [newItemName, setNewItemName] = useState('')
   const [addingStock, setAddingStock] = useState(null) // itemId when adding stock for that item
 
-  const addItem = (e) => {
+  const addItem = async (e) => {
     e.preventDefault()
     const name = newItemName.trim()
     if (!name) return
+    if (getAuthToken()) {
+      try {
+        const res = await platformPost('/api/inventory', { name, teamId: inventoryScope })
+        if (res.ok) {
+          const item = await res.json()
+          setItems((prev) => [...(prev ?? []), item])
+          setNewItemName('')
+          return
+        }
+      } catch {
+        /* fall through */
+      }
+    }
     const id = String(Date.now())
     setItems((prev) => [...(prev ?? []), { id, name, teamId: inventoryScope }])
     setNewItemName('')
   }
 
-  const removeItem = (itemId) => {
+  const removeItem = async (itemId) => {
     if (typeof window !== 'undefined' && !window.confirm('Remove this item type? Stock entries will be removed too.')) return
+    if (getAuthToken() && typeof itemId === 'string' && itemId.length >= 10) {
+      try {
+        const res = await platformFetch(`/api/inventory/items/${itemId}`, { method: 'DELETE' })
+        if (res.ok) {
+          setItems((prev) => (prev || []).filter((i) => i.id !== itemId))
+          setStock((prev) => (prev || []).filter((s) => s.itemId !== itemId))
+          return
+        }
+      } catch {
+        /* fall through */
+      }
+    }
     setItems((prev) => (prev || []).filter((i) => i.id !== itemId))
     setStock((prev) => (prev || []).filter((s) => s.itemId !== itemId))
   }
@@ -29,12 +55,48 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
     return stockList.filter((s) => s.itemId === itemId)
   }
 
-  const saveStockEdit = (entry) => {
+  const saveStockEdit = async (entry) => {
     if (!entry.id) {
+      if (getAuthToken()) {
+        try {
+          const res = await platformPost('/api/inventory', {
+            itemId: entry.itemId,
+            location: entry.location,
+            quantity: entry.quantity || 0,
+          })
+          if (res.ok) {
+            const created = await res.json()
+            setStock((prev) => [...(prev || []), created])
+            setAddingStock(null)
+            setEditingStock(null)
+            return
+          }
+        } catch {
+          /* fall through */
+        }
+      }
       const newId = 's' + Date.now()
       setStock((prev) => [...(prev || []), { ...entry, id: newId }])
       setAddingStock(null)
     } else {
+      if (getAuthToken() && typeof entry.id === 'string') {
+        try {
+          const res = await platformFetch(`/api/inventory/stock/${entry.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location: entry.location, quantity: entry.quantity ?? 0 }),
+          })
+          if (res.ok) {
+            setStock((prev) =>
+              prev.map((s) => (s.id === entry.id ? { ...s, location: entry.location, quantity: entry.quantity } : s))
+            )
+            setEditingStock(null)
+            return
+          }
+        } catch {
+          /* fall through */
+        }
+      }
       setStock((prev) =>
         prev.map((s) => (s.id === entry.id ? { ...s, location: entry.location, quantity: entry.quantity } : s))
       )
@@ -42,7 +104,20 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
     setEditingStock(null)
   }
 
-  const removeStockEntry = (stockId) => {
+  const removeStockEntry = async (stockId) => {
+    if (getAuthToken() && typeof stockId === 'string' && stockId.length >= 10) {
+      try {
+        const res = await platformFetch(`/api/inventory/stock/${stockId}`, { method: 'DELETE' })
+        if (res.ok) {
+          setStock((prev) => (prev || []).filter((s) => s.id !== stockId))
+          setEditingStock(null)
+          setAddingStock(null)
+          return
+        }
+      } catch {
+        /* fall through */
+      }
+    }
     setStock((prev) => (prev || []).filter((s) => s.id !== stockId))
     setEditingStock(null)
     setAddingStock(null)

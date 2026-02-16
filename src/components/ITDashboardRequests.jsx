@@ -81,6 +81,7 @@ function RequestCard({ request, onClick, priorityStyles, draggable, onDragStart 
 export default function ITDashboardRequests({
   requests = [],
   setSupportRequests,
+  updateTicket,
   currentUser,
   users = [],
   teams = [],
@@ -325,6 +326,7 @@ export default function ITDashboardRequests({
                 teams={teams}
                 itAdmin={itAdmin}
                 setSupportRequests={setSupportRequests}
+                updateTicket={updateTicket}
                 onClose={() => setSelectedRequest(null)}
                 onMarkAsDoneClick={() => setCompletionFlowOpen(true)}
               />
@@ -339,11 +341,15 @@ export default function ITDashboardRequests({
         request={selectedRequest}
         ticketPrefix="IT"
         onComplete={() => {
-          setSupportRequests?.((prev) =>
-            prev.map((r) =>
-              r.id === selectedRequest?.id ? { ...r, status: 'resolved' } : r
+          if (updateTicket && typeof selectedRequest?.id === 'string' && selectedRequest.id.length >= 10) {
+            updateTicket(selectedRequest.id, { status: 'RESOLVED' })
+          } else {
+            setSupportRequests?.((prev) =>
+              prev.map((r) =>
+                r.id === selectedRequest?.id ? { ...r, status: 'resolved' } : r
+              )
             )
-          )
+          }
           setSelectedRequest(null)
           setCompletionFlowOpen(false)
         }}
@@ -352,7 +358,7 @@ export default function ITDashboardRequests({
   )
 }
 
-function RequestDetailContent({ request, currentUser, users, teams, itAdmin, setSupportRequests, onClose, onMarkAsDoneClick }) {
+function RequestDetailContent({ request, currentUser, users, teams, itAdmin, setSupportRequests, updateTicket, onClose, onMarkAsDoneClick }) {
   const [assignTo, setAssignTo] = useState(currentUser?.name ?? '')
   useEffect(() => {
     setAssignTo(currentUser?.name ?? '')
@@ -363,11 +369,17 @@ function RequestDetailContent({ request, currentUser, users, teams, itAdmin, set
 
   const handleMoveToInProgress = (assigneeName) => {
     const who = assigneeName || assignTo || currentUser?.name
-    setSupportRequests?.((prev) =>
-      prev.map((r) =>
-        r.id === request.id ? { ...r, status: 'in-progress', assignedTo: who } : r
+    const assigneeUser = users?.find((u) => (u.name || '').toLowerCase() === (who || '').toLowerCase())
+    const assignedToId = assigneeUser?.id ?? currentUser?.id
+    if (updateTicket && typeof request.id === 'string' && request.id.length >= 10) {
+      updateTicket(request.id, { status: 'IN_PROGRESS', assignedToId: assignedToId || null })
+    } else {
+      setSupportRequests?.((prev) =>
+        prev.map((r) =>
+          r.id === request.id ? { ...r, status: 'in-progress', assignedTo: who } : r
+        )
       )
-    )
+    }
     onClose?.()
   }
 
