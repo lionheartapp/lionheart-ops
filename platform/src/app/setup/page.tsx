@@ -69,6 +69,7 @@ function SetupWizard({
     address: '',
     website: '',
     logoUrl: '',
+    loginHeroImageUrl: '',
     primaryColor: PRIMARY,
     secondaryColor: SECONDARY,
   })
@@ -98,7 +99,7 @@ function SetupWizard({
   const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
   if (token) authHeaders.Authorization = `Bearer ${token}`
 
-  const saveSchoolAndCreateFacilities = useCallback(async (data: { name: string; address: string; website?: string; logoUrl?: string; primaryColor?: string; secondaryColor?: string }) => {
+  const saveSchoolAndCreateFacilities = useCallback(async (data: { name: string; address: string; website?: string; logoUrl?: string; loginHeroImageUrl?: string; primaryColor?: string; secondaryColor?: string }) => {
     if (!token) return
     await fetch('/api/setup/branding', {
       method: 'PATCH',
@@ -109,6 +110,7 @@ function SetupWizard({
         address: data.address?.trim() || undefined,
         website: data.website || undefined,
         logoUrl: data.logoUrl || null,
+        loginHeroImageUrl: data.loginHeroImageUrl?.trim() || null,
         colors: { primary: data.primaryColor || PRIMARY, secondary: data.secondaryColor || SECONDARY },
       }),
     })
@@ -150,6 +152,7 @@ function SetupWizard({
           address: data.address || '',
           website: data.website || data.domain || '',
           logoUrl: data.logo || '',
+          loginHeroImageUrl: '',
           primaryColor: PRIMARY,
           secondaryColor: SECONDARY,
         })
@@ -470,6 +473,17 @@ function SetupWizard({
                     </div>
                     <span className="text-xs text-zinc-500">PNG / SVG</span>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-500 mb-1">Login page hero image (optional)</label>
+                  <input
+                    type="url"
+                    className="w-full rounded-lg px-3 py-2 text-white bg-zinc-900/80 border border-zinc-700 focus:ring-2 focus:ring-[#3b82f6]/50 outline-none"
+                    placeholder="https://example.com/campus-photo.jpg"
+                    value={schoolData.loginHeroImageUrl}
+                    onChange={(e) => setSchoolData((p) => ({ ...p, loginHeroImageUrl: e.target.value }))}
+                  />
+                  <p className="text-[11px] text-zinc-500 mt-1">Shown on your school&apos;s login page. Leave blank for stock image.</p>
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button

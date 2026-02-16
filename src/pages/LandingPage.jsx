@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Sparkles, Calendar, ShieldCheck, Map, ArrowRight, Check } from 'lucide-react'
+import { getSubdomain } from '../utils/subdomain'
 
 const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
 
@@ -39,8 +40,23 @@ const PRICING_PLANS = [
 ]
 
 export default function LandingPage() {
+  const navigate = useNavigate()
+  const subdomain = getSubdomain()
   const [heroImgError, setHeroImgError] = useState(false)
   const [billingCycle, setBillingCycle] = useState('annual')
+
+  // School subdomains (linfield.lionheartapp.com) -> redirect to branded login
+  useEffect(() => {
+    if (subdomain) navigate('/login', { replace: true })
+  }, [subdomain, navigate])
+
+  if (subdomain) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-zinc-300 border-t-primary-500 rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans">

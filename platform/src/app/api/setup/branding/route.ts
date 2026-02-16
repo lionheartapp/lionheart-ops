@@ -13,6 +13,7 @@ export async function PATCH(req: NextRequest) {
       orgId?: string
       address?: string
       logoUrl?: string | null
+      loginHeroImageUrl?: string | null
       name?: string
       website?: string
       colors?: { primary?: string; secondary?: string }
@@ -62,7 +63,7 @@ export async function PATCH(req: NextRequest) {
       updates.website = body.website?.trim() || null
     }
 
-    if (body.address !== undefined || body.colors !== undefined) {
+    if (body.address !== undefined || body.colors !== undefined || body.loginHeroImageUrl !== undefined) {
       const currentSettings = (org.settings && typeof org.settings === 'object'
         ? org.settings as Record<string, unknown>
         : {}) as Record<string, unknown>
@@ -70,6 +71,7 @@ export async function PATCH(req: NextRequest) {
         ? { ...(currentSettings.branding as Record<string, unknown>) }
         : {}) as Record<string, unknown>
       if (body.address !== undefined) branding.address = body.address?.trim() ?? null
+      if (body.loginHeroImageUrl !== undefined) branding.loginHeroImageUrl = body.loginHeroImageUrl && String(body.loginHeroImageUrl).trim() ? body.loginHeroImageUrl.trim() : null
       if (body.colors) {
         const existing = branding.colors as { primary?: string; secondary?: string } | undefined
         branding.colors = {
