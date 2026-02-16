@@ -118,10 +118,10 @@ export async function POST(req: NextRequest) {
       const workflow = (form.config as Record<string, unknown>)?.approvalWorkflow as
         | { approverIds?: string[] }
         | undefined
-      const hasApproval = workflow?.approverIds?.length > 0
+      const hasApproval = (workflow?.approverIds?.length ?? 0) > 0
       const status = body.status ?? (hasApproval ? 'pending' : 'approved')
       const approvals = body.approvals ?? (hasApproval
-        ? (workflow.approverIds ?? []).map((id: string) => ({
+        ? (workflow?.approverIds ?? []).map((id: string) => ({
             approverId: id,
             approved: null,
             at: null,
