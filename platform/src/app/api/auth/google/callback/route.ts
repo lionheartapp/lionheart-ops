@@ -91,6 +91,7 @@ export async function GET(req: NextRequest) {
       include: { organization: true },
     })
     let isNewUser = false
+    let createdNewOrg = false
 
     if (!user) {
       // Intent: login = must exist; signup = create if not found
@@ -149,6 +150,7 @@ export async function GET(req: NextRequest) {
       } else {
         // Create new school (first user = SUPER_ADMIN)
         isNewUser = true
+        createdNewOrg = true
         const baseSlug = emailDomain ? emailDomain.split('.')[0] : email.replace(/@.*/, '').replace(/[^a-z0-9]+/g, '-')
         const slug = (baseSlug || 'school').replace(/^-|-$/g, '')
         const slugExists = await prismaBase.organization.findUnique({ where: { slug } })
@@ -194,7 +196,14 @@ export async function GET(req: NextRequest) {
 
     const baseUrl = state.from === 'lionheart' ? lionheartUrl : platformUrl
     const authCallbackPath = '/auth/callback'
-    const nextPath = state.finalRedirect + (isNewUser ? '?onboarding=1' : '')
+
+    // New users who created a new school must go to Setup wizard to confirm school details
+    let nextPath = state.finalRedirect + (isNewUser ? '?onboarding=1' : '')
+    if (createdNewOrg && user.organizationId) {
+      // Token in hash so Setup page can use it (cross-origin redirect from Lionheart)
+      nextPath = `${platformUrl}/setup?orgId=${user.organizationId}#token=${encodeURIComponent(token)}`
+    }
+
     const redirectUrl = `${baseUrl}${authCallbackPath}?token=${encodeURIComponent(token)}&next=${encodeURIComponent(nextPath)}`
 
     return NextResponse.redirect(redirectUrl)
