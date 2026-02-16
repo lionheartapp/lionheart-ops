@@ -4,10 +4,16 @@ import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
 
+/** Map frontend role (admin/member/requester/viewer) to DB UserRole */
 const ROLE_MAP: Record<string, string> = {
+  admin: 'ADMIN',
+  member: 'SITE_SECRETARY',
+  requester: 'TEACHER',
+  viewer: 'VIEWER',
+  // Legacy aliases
   Teacher: 'TEACHER',
   Maintenance: 'MAINTENANCE',
-  'IT Support': 'MAINTENANCE', // map to MAINTENANCE; IT could have separate role later
+  'IT Support': 'MAINTENANCE',
   Administrator: 'ADMIN',
 }
 
@@ -16,7 +22,8 @@ function toLionheartRole(dbRole: string | null): string {
   if (!dbRole) return 'viewer'
   const r = dbRole.toUpperCase()
   if (r === 'ADMIN') return 'admin'
-  if (['TEACHER', 'MAINTENANCE', 'SITE_SECRETARY'].includes(r)) return 'creator'
+  if (r === 'SITE_SECRETARY' || r === 'MAINTENANCE') return 'member'
+  if (r === 'TEACHER') return 'requester'
   if (r === 'VIEWER') return 'viewer'
   return 'viewer'
 }
@@ -90,7 +97,7 @@ export async function PATCH(req: NextRequest) {
       if (trimmed) updates.name = trimmed
     }
     if (body.role != null && typeof body.role === 'string') {
-      const mapped = ROLE_MAP[body.role] || body.role
+      const mapped = ROLE_MAP[body.role.toLowerCase()] || ROLE_MAP[body.role] || body.role
       const validRoles: UserRole[] = ['TEACHER', 'MAINTENANCE', 'ADMIN', 'SITE_SECRETARY', 'VIEWER']
       if (validRoles.includes(mapped as UserRole)) {
         updates.role = mapped as UserRole

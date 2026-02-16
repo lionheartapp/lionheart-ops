@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus, Upload, Users } from 'lucide-react'
 import { parseMembersCsv } from '../utils/parseMembersCsv'
-import { ROLES, getTeamName, getUserTeamIds, canManageTeams } from '../data/teamsData'
+import { ROLES, getTeamName, getUserTeamIds, canManageTeams, DEFAULT_TEAMS, TEAM_SUGGESTIONS } from '../data/teamsData'
 import DrawerModal from './DrawerModal'
 
 /** Generate a slug id from a team display name (e.g. "A/V" -> "av", "Campus Services" -> "campus-services") */
@@ -58,6 +58,16 @@ function downloadCSV(users, teams) {
 function AddTeamModal({ teams, setTeams, isOpen, onClose }) {
   const [name, setName] = useState('')
   const safeTeams = Array.isArray(teams) ? teams : []
+  const existingIds = new Set(safeTeams.map((t) => t.id))
+
+  const addTeam = (suggestion) => {
+    if (!setTeams) return
+    const id = slugifyTeamId(suggestion.name)
+    if (existingIds.has(id)) return
+    setTeams((prev) => [...prev, { id, name: suggestion.name }])
+    setName('')
+    onClose()
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -72,18 +82,37 @@ function AddTeamModal({ teams, setTeams, isOpen, onClose }) {
     onClose()
   }
 
+  const allSuggestions = [...DEFAULT_TEAMS, ...TEAM_SUGGESTIONS]
+  const availableSuggestions = allSuggestions.filter((s) => !existingIds.has(s.id))
+
   return (
     <DrawerModal isOpen={isOpen} onClose={onClose} title="Add team">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {availableSuggestions.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Quick add</label>
+            <div className="flex flex-wrap gap-2">
+              {availableSuggestions.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => addTeam(s)}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Team name</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Or create custom team</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
             placeholder="e.g. A/V, Facilities, IT, Athletics"
-            required
           />
         </div>
         <div className="flex gap-2 pt-2">

@@ -1,19 +1,56 @@
-// Access levels: super-admin (see/view as anyone), admin (full), it-admin (IT team lead), creator (create/edit events), viewer (read-only)
+// Access levels: Standardized for SaaS School Operations
 export const ROLES = [
-  { id: 'super-admin', label: 'Super Admin', description: 'View as any user and see everything' },
-  { id: 'admin', label: 'Admin', description: 'Full access, manage users & teams' },
-  { id: 'it-admin', label: 'IT Admin', description: 'Manage IT queue, assign tickets to team, oversee IT support' },
-  { id: 'creator', label: 'Creator', description: 'Create and edit events' },
-  { id: 'viewer', label: 'Viewer', description: 'Read-only access' },
+  {
+    id: 'super-admin',
+    label: 'Super Admin',
+    description: 'Platform-level access; view as any user and see everything',
+  },
+  {
+    id: 'admin',
+    label: 'Admin',
+    description: 'Full access to settings, billing, and all data.',
+  },
+  {
+    id: 'member',
+    label: 'Member',
+    description: 'Can manage tickets, events, and view all data. (Best for Maintenance/IT Staff & Secretaries)',
+  },
+  {
+    id: 'requester',
+    label: 'Teacher / Staff',
+    description: 'Can submit requests and view their own history.',
+  },
+  {
+    id: 'viewer',
+    label: 'Viewer',
+    description: 'Read-only access.',
+  },
 ]
 
-// Clean start: no pre-defined teams; schools create their own.
-export const DEFAULT_TEAMS = []
-
-// Single admin user for a new school (e.g. Linfield). No sample/demo users.
-export const INITIAL_USERS = [
-  { id: 'u0', name: 'Admin User', email: 'admin@school.edu', teamIds: [], role: 'super-admin', positionTitle: 'Administrator' },
+// Standard Pre-built Teams
+export const DEFAULT_TEAMS = [
+  { id: 'admin', name: 'Administration' },
+  { id: 'teachers', name: 'Teachers' },
+  { id: 'students', name: 'Students' },
+  { id: 'it', name: 'IT' },
+  { id: 'facilities', name: 'Maintenance' }, // Mapped to 'facilities' ID for code compatibility
+  { id: 'av', name: 'A/V' },
+  { id: 'web', name: 'Web' },
+  { id: 'athletics', name: 'Athletics' },
+  { id: 'security', name: 'Campus Safety' },
 ]
+
+// Additional teams suggested when adding a new team (high-traffic facility/event departments)
+export const TEAM_SUGGESTIONS = [
+  { id: 'admissions', name: 'Admissions' },
+  { id: 'health-office', name: 'Health Office / Nurse' },
+  { id: 'transportation', name: 'Transportation' },
+  { id: 'after-school', name: 'After-School / Extended Care' },
+  { id: 'pto', name: 'PTO / PTA' },
+]
+
+// Default to empty users for a new school instance
+export const INITIAL_USERS = []
 
 export function getTeamName(teams, teamId) {
   return teams.find((t) => t.id === teamId)?.name ?? teamId
@@ -34,15 +71,15 @@ export function getPrimaryTeamId(user) {
 }
 
 export function canCreate(user) {
-  return user && (user.role === 'super-admin' || user.role === 'admin' || user.role === 'it-admin' || user.role === 'creator')
+  return ['admin', 'member', 'requester', 'super-admin', 'creator'].includes(user?.role)
 }
 
 export function canEdit(user) {
-  return user && (user.role === 'super-admin' || user.role === 'admin' || user.role === 'it-admin' || user.role === 'creator')
+  return ['admin', 'member', 'super-admin', 'creator'].includes(user?.role)
 }
 
 export function canManageTeams(user) {
-  return user && (user.role === 'super-admin' || user.role === 'admin')
+  return ['admin', 'super-admin'].includes(user?.role)
 }
 
 export function isITTeam(user, teams) {
@@ -67,11 +104,11 @@ export function isSuperAdmin(user) {
   return user?.role === 'super-admin' || user?.role === 'SUPER_ADMIN'
 }
 
-/** IT Admin: manages IT queue, can assign tickets to any IT team member. Must be in IT team. */
+/** IT Admin: admin/super-admin, or member-level user within the IT team */
 export function isITAdmin(user, teams) {
   if (!user) return false
   if (user.role === 'admin' || isSuperAdmin(user)) return true
-  return user.role === 'it-admin' && getUserTeamIds(user).includes('it')
+  return user.role === 'member' && getUserTeamIds(user).includes('it')
 }
 
 /** Get user names for a team (e.g. 'facilities', 'av') */

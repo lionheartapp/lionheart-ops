@@ -90,7 +90,7 @@ export default function App() {
   const [infoModalOpen, setInfoModalOpen] = useState(false)
   const [teams, setTeams] = useState(DEFAULT_TEAMS)
   const [users, setUsers] = useState(INITIAL_USERS)
-  const [currentUser, setCurrentUser] = useState(INITIAL_USERS[0]) // actual logged-in user
+  const [currentUser, setCurrentUser] = useState(INITIAL_USERS[0] ?? null) // actual logged-in user (set by auth)
   const [viewAsUser, setViewAsUser] = useState(null) // when set, we're "viewing as" this user
   const effectiveUser = viewAsUser ?? currentUser
   const [supportRequests, setSupportRequests] = useState(INITIAL_SUPPORT_REQUESTS)

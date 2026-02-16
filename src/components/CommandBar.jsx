@@ -10,7 +10,22 @@ const CAMPUS_URL = `${PLATFORM_URL}/campus`
 /** Get team label for directory teachers (no room assignment) */
 function getTeamLabel(teamIds) {
   if (!teamIds?.length) return 'Staff'
-  const labels = { elementary: 'Elementary', 'middle-school': 'Middle School', 'high-school': 'High School', admin: 'Admin', facilities: 'Facilities', it: 'IT', athletics: 'Athletics', av: 'A/V', teachers: 'Teachers' }
+  const labels = {
+    admin: 'Administration',
+    teachers: 'Teachers',
+    students: 'Students',
+    it: 'IT',
+    facilities: 'Maintenance',
+    av: 'A/V',
+    web: 'Web',
+    athletics: 'Athletics',
+    security: 'Campus Safety',
+    admissions: 'Admissions',
+    'health-office': 'Health Office',
+    transportation: 'Transportation',
+    'after-school': 'After-School',
+    pto: 'PTO',
+  }
   return teamIds.map((id) => labels[id] || id).join(', ') || 'Staff'
 }
 
