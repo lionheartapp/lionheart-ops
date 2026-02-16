@@ -540,6 +540,9 @@ function SettingsSectionContent({
   showInventoryPref,
   onInventoryPrefChange,
   orgLogoUrl,
+  orgName,
+  orgWebsite,
+  orgAddress,
   onOrgBrandingUpdated,
 }) {
   if (section === 'members') {

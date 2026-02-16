@@ -18,8 +18,8 @@ export default function TopBar({
   const notificationsRef = useRef(null)
   const accountRef = useRef(null)
 
-  const name = currentUser?.name ?? 'User'
-  const initial = name.charAt(0).toUpperCase()
+  const name = currentUser?.name ?? ''
+  const initial = name ? name.charAt(0).toUpperCase() : '…'
   const notifications = useMemo(
     () => buildNotifications(formSubmissions, forms, currentUser?.id),
     [formSubmissions, forms, currentUser?.id]
@@ -127,14 +127,14 @@ export default function TopBar({
             {initial}
           </div>
           <span className="hidden sm:block text-sm font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate">
-            {name}
+            {name || '…'}
           </span>
           <ChevronDown className={`hidden sm:block w-4 h-4 text-zinc-400 transition-transform ${accountOpen ? 'rotate-180' : ''}`} />
         </button>
         {accountOpen && (
           <div className="absolute right-0 top-full mt-1 w-56 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xl z-[100] py-1">
             <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
-              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{name}</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{name || '…'}</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">{currentUser?.email ?? 'Signed in'}</p>
             </div>
             <ul className="py-1">
