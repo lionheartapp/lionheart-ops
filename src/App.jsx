@@ -382,7 +382,7 @@ export default function App() {
   const isTrialActive = trialDaysLeft != null && trialDaysLeft > 0
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <div className="h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
       {isTrialActive && (
         <div className="shrink-0 rounded-none border-0 border-b border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -509,9 +509,8 @@ export default function App() {
                   onITRequest={() => setITDrawerOpen(true)}
                 />
               </header>
-              <div className="flex-1 flex min-h-0 flex-col lg:flex-row gap-6 lg:gap-8 pt-6">
-                <div className="flex-1 min-w-0 flex flex-col min-h-0">
-                  <div className="flex-1 min-h-0 overflow-auto space-y-8">
+              <div className="flex-1 flex min-h-0 gap-6 lg:gap-8 pt-6">
+                <div className="flex-1 min-w-0 overflow-auto space-y-8">
                   {(isSuperAdmin(effectiveUser) || (effectiveUser?.role && String(effectiveUser.role).toLowerCase() === 'admin')) && (
                     <OnboardingChecklist
                       onOpenMap={() => setCampusMapModalOpen(true)}
@@ -600,24 +599,8 @@ export default function App() {
                       emptyMessage="You haven't submitted any requests yet."
                     />
                   </section>
-                  </div>
-                  {hasVisualCampus && (
-                    <div className="shrink-0 pt-4 mt-auto border-t border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => setCampusMapModalOpen(true)}
-                        className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Campus Map
-                      </button>
-                    </div>
-                  )}
                 </div>
-                <div className="shrink-0 pl-2 lg:pl-0">
+                <div className="shrink-0 pl-2">
                   <DashboardTodoWidget
                     key={effectiveUser?.id}
                     currentUser={effectiveUser}
