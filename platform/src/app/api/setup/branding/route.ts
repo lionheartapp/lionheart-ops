@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
+import { geocodeAddress } from '@/lib/geocode'
 
 function normalizeWebsite(raw: string | null | undefined): string | null {
   const s = raw?.trim()
@@ -76,6 +77,19 @@ export async function PATCH(req: NextRequest) {
     }
     if (body.address !== undefined) updates.address = body.address?.trim() || null
     if (body.city !== undefined) updates.city = body.city?.trim() || null
+
+    // Auto-geocode address during onboarding for weather-based Water Management alerts
+    if (body.address?.trim()) {
+      try {
+        const coords = await geocodeAddress(body.address.trim())
+        if (coords) {
+          updates.latitude = coords.latitude
+          updates.longitude = coords.longitude
+        }
+      } catch {
+        // Ignore geocode failures; coordinates can be set later in Settings
+      }
+    }
     if (body.state !== undefined) updates.state = body.state?.trim() || null
     if (body.zip !== undefined) updates.zip = body.zip?.trim() || null
     if (body.primaryColor !== undefined) updates.primaryColor = body.primaryColor?.trim() || null

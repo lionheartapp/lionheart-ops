@@ -138,6 +138,27 @@ export function calcDyeOz(volumeGallons: number): number {
   return (volumeGallons / 1000) * DYE_FACTOR_OZ_PER_1000_GAL
 }
 
+// --- Pool Chemistry (Chlorine / Acid) ---
+/** Liquid chlorine (12.5%): oz per 10,000 gal to raise 1 ppm */
+export const CHLORINE_OZ_PER_10K_GAL_PER_PPM = 10
+/** Muriatic acid (31.45%): oz per 10,000 gal to lower pH by ~0.1 */
+export const ACID_OZ_PER_10K_GAL_PER_0_1_PH = 10
+
+/** Chlorine dose (oz liquid chlorine 12.5%) to raise from current to target ppm */
+export function calcChlorineOz(
+  volumeGallons: number,
+  currentPpm: number,
+  targetPpm: number
+): number {
+  const delta = Math.max(0, targetPpm - currentPpm)
+  return (volumeGallons / 10000) * delta * CHLORINE_OZ_PER_10K_GAL_PER_PPM
+}
+
+/** Muriatic acid (oz) to lower pH by delta (e.g. 0.2 = two tenths) */
+export function calcAcidOz(volumeGallons: number, pHDrop: number): number {
+  return (volumeGallons / 10000) * (pHDrop * 10) * ACID_OZ_PER_10K_GAL_PER_0_1_PH
+}
+
 export function isInSafeZone(reading: PondReading, zone = POND_SAFEZONE): boolean {
   return (
     reading.pH >= zone.pHMin &&

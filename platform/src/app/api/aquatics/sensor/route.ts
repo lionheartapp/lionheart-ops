@@ -4,7 +4,7 @@ import { withOrg, getOrgId, requireModule } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
 import { getProactiveAlerts } from '@/lib/weatherOps'
 
-/** POST: Receive IoT probe data or manual entry. GET: Latest readings. Requires waterManagement module. */
+/** POST: Log reading (with optional waterAssetId). GET: Latest reading(s). Requires waterManagement module. */
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
           : parseFloat(String(body.temperature))
       const dissolvedOxygen =
         body.dissolvedOxygen != null ? parseFloat(String(body.dissolvedOxygen)) : undefined
-      const alkalinity = body.alkalinity != null ? parseFloat(String(body.alkalinity)) : undefined
+      const alkalinity =
+        body.alkalinity != null ? parseFloat(String(body.alkalinity)) : undefined
       const chlorine = body.chlorine != null ? parseFloat(String(body.chlorine)) : undefined
 
       if (isNaN(pH) || isNaN(turbidity) || isNaN(temperature)) {
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
     }
-    console.error('Pond sensor error:', err)
+    console.error('Aquatics sensor error:', err)
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Failed' },
       { status: 500, headers: corsHeaders }
@@ -133,12 +134,6 @@ export async function GET(req: NextRequest) {
         { error: 'Water Management module is not active for your plan' },
         { status: 403, headers: corsHeaders }
       )
-    }
-    if (
-      err instanceof Error &&
-      (err.message === 'Organization ID is required' || err.message === 'Invalid organization')
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
     }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Failed to load readings' },

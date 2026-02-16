@@ -44,7 +44,8 @@ const tenantOps = {
 
 const tenantModels = [
   'user', 'building', 'ticket', 'event', 'expense', 'budget',
-  'maintenanceTip', 'knowledgeBaseEntry', 'inventoryItem', 'pondLog', 'pondConfig',
+  'maintenanceTip', 'knowledgeBaseEntry', 'inventoryItem',
+  'waterLog', 'waterAssetConfig', 'waterAsset',
   'form', 'auditLog',
 ]
 

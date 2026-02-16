@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
       await requireModule(prismaBase, getOrgId(), 'waterManagement')
-      const logs = await prisma.pondLog.findMany({
+      const logs = await prisma.waterLog.findMany({
       take: limit,
       orderBy: { createdAt: 'desc' },
     })

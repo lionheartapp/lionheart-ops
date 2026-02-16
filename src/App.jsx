@@ -19,7 +19,7 @@ import OnboardingChecklist from './components/OnboardingChecklist'
 import PendingApprovalsWidget from './components/PendingApprovalsWidget'
 import ITDashboardRequests from './components/ITDashboardRequests'
 import FacilitiesDashboardRequests from './components/FacilitiesDashboardRequests'
-import PondHealthWidget from './components/PondHealthWidget'
+import WaterOpsWidget from './components/WaterOpsWidget'
 import WidgetErrorBoundary from './components/WidgetErrorBoundary'
 import AVEventNotifications from './components/AVEventNotifications'
 import TopBar from './components/TopBar'
@@ -77,7 +77,7 @@ const tabContent = {
 export default function App() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, primaryColor, secondaryColor, trialDaysLeft, refreshOrg, loading: orgLoading } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, refreshOrg, loading: orgLoading } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -385,6 +385,7 @@ export default function App() {
         onClearViewAs={() => setViewAsUser(null)}
         showInventory={showInventory}
         showCampusMap={hasVisualCampus}
+        showWaterManagement={hasWaterManagement}
         onOpenCampusMap={() => setCampusMapModalOpen(true)}
         orgName={orgName || searchParams.get('orgName')}
         orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
@@ -434,6 +435,8 @@ export default function App() {
                 orgName={orgName || searchParams.get('orgName')}
                 orgWebsite={orgWebsite || searchParams.get('orgWebsite')}
                 orgAddress={orgAddress || searchParams.get('orgAddress')}
+                orgLatitude={orgLatitude}
+                orgLongitude={orgLongitude}
                 orgLoading={orgLoading}
                 onOrgBrandingUpdated={refreshOrg}
                 hasWaterManagement={hasWaterManagement}
@@ -507,7 +510,7 @@ export default function App() {
                       {hasWaterManagement && (
                         <section>
                           <WidgetErrorBoundary>
-                            <PondHealthWidget
+                            <WaterOpsWidget
                               setSupportRequests={setSupportRequests}
                               currentUser={effectiveUser}
                             />

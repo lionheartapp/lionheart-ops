@@ -390,17 +390,22 @@ function AccountSection({ currentUser }) {
   )
 }
 
-function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, orgLoading, onLogoUpdated }) {
+function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, orgLatitude, orgLongitude, orgLoading, onLogoUpdated }) {
   const [name, setName] = useState(orgName || '')
   const [logoUrl, setLogoUrl] = useState(orgLogoUrl || '')
   const [website, setWebsite] = useState(orgWebsite || '')
   const [address, setAddress] = useState(orgAddress || '')
+  const [latitude, setLatitude] = useState(orgLatitude != null ? String(orgLatitude) : '')
+  const [longitude, setLongitude] = useState(orgLongitude != null ? String(orgLongitude) : '')
+  const [geocoding, setGeocoding] = useState(false)
   const logoUploadRef = useRef(null)
 
   useEffect(() => { setName(orgName || '') }, [orgName])
   useEffect(() => { setLogoUrl(orgLogoUrl || '') }, [orgLogoUrl])
   useEffect(() => { setWebsite(orgWebsite || '') }, [orgWebsite])
   useEffect(() => { setAddress(orgAddress || '') }, [orgAddress])
+  useEffect(() => { setLatitude(orgLatitude != null ? String(orgLatitude) : '') }, [orgLatitude])
+  useEffect(() => { setLongitude(orgLongitude != null ? String(orgLongitude) : '') }, [orgLongitude])
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -409,11 +414,25 @@ function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, orgLoading
     setSaving(true)
     setError('')
     try {
+      let lat = latitude.trim() ? parseFloat(latitude) : null
+      let lon = longitude.trim() ? parseFloat(longitude) : null
+      if ((lat == null || lon == null) && address.trim()) {
+        const geo = await platformFetch(`/api/geocode?address=${encodeURIComponent(address.trim())}`)
+        const geoData = await geo.json().catch(() => ({}))
+        if (geoData?.latitude != null && geoData?.longitude != null) {
+          lat = geoData.latitude
+          lon = geoData.longitude
+          setLatitude(String(lat))
+          setLongitude(String(lon))
+        }
+      }
       const res = await platformPatch('/api/organization/branding', {
         name: name.trim() || undefined,
         logoUrl: logoUrl.trim() || null,
         website: website.trim() || null,
         address: address.trim() || null,
+        latitude: lat != null && !isNaN(lat) ? lat : null,
+        longitude: lon != null && !isNaN(lon) ? lon : null,
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -529,6 +548,65 @@ function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, orgLoading
           />
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+              Latitude <span className="text-zinc-400 font-normal">(for weather alerts)</span>
+            </label>
+            <input
+              type="number"
+              step="any"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              placeholder="e.g. 33.4936"
+              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+              Longitude <span className="text-zinc-400 font-normal">(for weather alerts)</span>
+            </label>
+            <input
+              type="number"
+              step="any"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              placeholder="e.g. -117.1484"
+              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              if (!address.trim()) return
+              setGeocoding(true)
+              try {
+                const res = await platformFetch(`/api/geocode?address=${encodeURIComponent(address.trim())}`)
+                const data = await res.json()
+                if (data?.latitude != null && data?.longitude != null) {
+                  setLatitude(String(data.latitude))
+                  setLongitude(String(data.longitude))
+                } else {
+                  alert(data?.error || 'Could not find coordinates for this address')
+                }
+              } catch {
+                alert('Geocoding failed. Please enter coordinates manually.')
+              } finally {
+                setGeocoding(false)
+              }
+            }}
+            disabled={geocoding || !address.trim()}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 disabled:no-underline"
+          >
+            {geocoding ? 'Looking up…' : 'Look up from address'}
+          </button>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            Enables weather-based Water Management alerts
+          </span>
+        </div>
+
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button
           type="button"
@@ -616,6 +694,8 @@ function SettingsSectionContent({
   orgName,
   orgWebsite,
   orgAddress,
+  orgLatitude,
+  orgLongitude,
   orgLoading,
   onOrgBrandingUpdated,
   hasWaterManagement,
@@ -667,6 +747,8 @@ function SettingsSectionContent({
         orgName={orgName}
         orgWebsite={orgWebsite}
         orgAddress={orgAddress}
+        orgLatitude={orgLatitude}
+        orgLongitude={orgLongitude}
         orgLoading={orgLoading}
         onLogoUpdated={onOrgBrandingUpdated}
       />
@@ -720,6 +802,8 @@ export default function SettingsPage({
   orgName,
   orgWebsite,
   orgAddress,
+  orgLatitude,
+  orgLongitude,
   orgLoading = false,
   hasWaterManagement = false,
   onOpenAddOn,
@@ -805,6 +889,8 @@ export default function SettingsPage({
         orgName={orgName}
         orgWebsite={orgWebsite}
         orgAddress={orgAddress}
+        orgLatitude={orgLatitude}
+        orgLongitude={orgLongitude}
         orgLoading={orgLoading}
         onOrgBrandingUpdated={onOrgBrandingUpdated}
         hasWaterManagement={hasWaterManagement}

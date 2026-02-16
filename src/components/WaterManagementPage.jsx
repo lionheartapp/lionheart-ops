@@ -1,12 +1,12 @@
-import PondHealthWidget from './PondHealthWidget'
+import WaterOpsWidget from './WaterOpsWidget'
 import WidgetErrorBoundary from './WidgetErrorBoundary'
 
-/** Water & Environmental Management add-on. Rebranded Pond module. */
+/** Water & Environmental Management add-on. Multi-asset (Pool, Pond, Fountain). */
 export default function WaterManagementPage({ supportRequests, setSupportRequests, currentUser }) {
   return (
     <section>
       <WidgetErrorBoundary>
-        <PondHealthWidget
+        <WaterOpsWidget
           setSupportRequests={setSupportRequests}
           currentUser={currentUser}
         />

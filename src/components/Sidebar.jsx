@@ -9,6 +9,7 @@ import {
   FileText,
   UserCircle,
   MapPin,
+  Droplets,
 } from 'lucide-react'
 import ViewAsDropdown from './ViewAsDropdown'
 import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate } from '../data/teamsData'
@@ -44,6 +45,11 @@ const facilitiesSupportSection = {
   ],
 }
 
+const addOnsSection = {
+  header: 'Add-ons',
+  items: [{ id: 'water-management', label: 'Water Management', icon: Droplets }],
+}
+
 export default function Sidebar({
   activeTab,
   onTabChange,
@@ -56,6 +62,7 @@ export default function Sidebar({
   onClearViewAs,
   showInventory = false,
   showCampusMap = true,
+  showWaterManagement = false,
   orgName,
   orgLogoUrl,
   primaryColor = '#3b82f6',
@@ -129,6 +136,33 @@ export default function Sidebar({
               </motion.button>
             )
           })}
+
+          {/* Add-ons section */}
+          {showWaterManagement && (
+            <div className="pt-3 mt-1">
+              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                {addOnsSection.header}
+              </p>
+              <div className="pl-1 pt-0.5 space-y-0.5">
+                {addOnsSection.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeTab === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => onTabChange(item.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? '' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                      style={isActive ? { backgroundColor: `${primaryColor}20`, color: primaryColor } : {}}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
+                      <span>{item.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Support section header + links */}
           <div className="pt-3 mt-1">
