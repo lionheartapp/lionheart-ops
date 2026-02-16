@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg } from '@/lib/orgContext'
+import { withOrg, getOrgId } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
+import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
+import { logAction } from '@/lib/audit'
 
 type TicketStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED'
 
@@ -62,6 +64,7 @@ export async function PATCH(
     }
 
     return await withOrg(req, prismaBase, async () => {
+      await requireActivePlan(prismaBase, getOrgId()!)
       const body = (await req.json()) as {
         status?: string
         assignedToId?: string | null
@@ -91,9 +94,22 @@ export async function PATCH(
         },
       })
 
+      await logAction({
+        action: 'UPDATE',
+        entityType: 'Ticket',
+        entityId: ticketId,
+        metadata: updates,
+      })
+
       return NextResponse.json(formatTicket(ticket), { headers: corsHeaders })
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: 402, headers: corsHeaders }
+      )
+    }
     if (
       err instanceof Error &&
       (err.message === 'Organization ID is required' || err.message === 'Invalid organization')

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg } from '@/lib/orgContext'
+import { withOrg, getOrgId } from '@/lib/orgContext'
+import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
 
 // Auto-route: Elementary room → Elementary Principal + Maintenance
 async function getRoutedToIds(roomId: string | null | undefined): Promise<string[]> {
@@ -49,6 +50,7 @@ async function getRoutedToIds(roomId: string | null | undefined): Promise<string
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+    await requireActivePlan(prismaBase, getOrgId()!)
     const body = (await req.json()) as {
       name: string
       description?: string
@@ -86,6 +88,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(event)
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 402 })
+    }
     if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
       return NextResponse.json({ error: err.message }, { status: 401 })
     }

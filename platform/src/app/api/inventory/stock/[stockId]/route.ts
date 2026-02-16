@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prismaBase, prisma } from '@/lib/prisma'
 import { withOrg, getOrgId } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
+import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
 
 /** PATCH /api/inventory/stock/[stockId] — Update stock entry */
 export async function PATCH(
@@ -18,6 +19,7 @@ export async function PATCH(
     }
 
     return await withOrg(req, prismaBase, async () => {
+      await requireActivePlan(prismaBase, getOrgId()!)
       const orgId = getOrgId()
       const existing = await prisma.inventoryStock.findUnique({
         where: { id: stockId },
@@ -48,6 +50,9 @@ export async function PATCH(
       return NextResponse.json(stock, { headers: corsHeaders })
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 402, headers: corsHeaders })
+    }
     if (
       err instanceof Error &&
       (err.message === 'Organization ID is required' || err.message === 'Invalid organization')
@@ -77,6 +82,7 @@ export async function DELETE(
     }
 
     return await withOrg(req, prismaBase, async () => {
+      await requireActivePlan(prismaBase, getOrgId()!)
       const orgId = getOrgId()
       const existing = await prisma.inventoryStock.findUnique({
         where: { id: stockId },
@@ -89,6 +95,9 @@ export async function DELETE(
       return new NextResponse(null, { status: 204, headers: corsHeaders })
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 402, headers: corsHeaders })
+    }
     if (
       err instanceof Error &&
       (err.message === 'Organization ID is required' || err.message === 'Invalid organization')

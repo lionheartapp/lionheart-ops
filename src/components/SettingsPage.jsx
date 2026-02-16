@@ -9,9 +9,11 @@ import {
   LayoutGrid,
   CreditCard,
   Check,
+  Download,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
 import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
+import { platformPost, platformFetch, getAuthToken } from '../services/platformApi'
 
 // --- CONSTANTS ---
 const PRICING_PLANS = [
@@ -49,8 +51,26 @@ const PRICING_PLANS = [
 
 function SubscriptionSection() {
   const [billingCycle, setBillingCycle] = useState('monthly')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const currentPlanId = 'pro'
   const isTrial = true
+
+  const handleCheckout = async () => {
+    setCheckoutLoading(true)
+    try {
+      const res = await platformPost('/api/billing/checkout', {
+        successUrl: `${window.location.origin}/app?tab=settings&section=subscription&checkout=success`,
+        cancelUrl: `${window.location.origin}/app?tab=settings&section=subscription`,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (data?.url) window.location.href = data.url
+      else alert(data?.error || 'Checkout unavailable')
+    } catch (err) {
+      alert('Failed to start checkout')
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-8 max-w-5xl">
@@ -154,13 +174,16 @@ function SubscriptionSection() {
               </div>
 
               <button
+                type="button"
+                onClick={isActive && isTrial ? handleCheckout : undefined}
+                disabled={checkoutLoading || (isActive && !isTrial)}
                 className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                   isActive
                     ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
                     : 'border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700'
-                }`}
+                } ${!isActive || !isTrial ? 'cursor-default' : ''}`}
               >
-                {isActive ? (isTrial ? 'Activate Subscription' : 'Current Plan') : plan.buttonLabel}
+                {isActive ? (isTrial ? (checkoutLoading ? 'Loading...' : 'Activate Subscription') : 'Current Plan') : plan.buttonLabel}
               </button>
             </div>
           )
@@ -178,8 +201,13 @@ function SubscriptionSection() {
              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">No payment method added</p>
              <p className="text-xs text-zinc-500 dark:text-zinc-400">Add a card to ensure uninterrupted service when your trial ends.</p>
            </div>
-           <button className="px-4 py-2 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium rounded-lg hover:bg-white dark:hover:bg-zinc-800 transition-colors">
-             + Add Card
+           <button
+             type="button"
+             onClick={handleCheckout}
+             disabled={checkoutLoading}
+             className="px-4 py-2 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium rounded-lg hover:bg-white dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+           >
+             {checkoutLoading ? 'Loading...' : '+ Add Card'}
            </button>
         </div>
       </div>
@@ -330,6 +358,65 @@ function AccountSection({ currentUser }) {
   )
 }
 
+function DataExportSection() {
+  const [loading, setLoading] = useState(false)
+  const handleExport = async (format) => {
+    if (!getAuthToken()) return
+    setLoading(true)
+    try {
+      const res = await platformFetch(`/api/admin/export?format=${format}`)
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `org-export-${new Date().toISOString().slice(0, 10)}.${format}`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+      alert('Export failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Data Export</h2>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          Download your organization&apos;s data for annual reports, compliance audits, or backups (FERPA/GDPR).
+        </p>
+      </div>
+      <div className="glass-card p-6">
+        <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
+          Exports include tickets, events, members, forms, form submissions, inventory, and audit log.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => handleExport('json')}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            {loading ? 'Exporting...' : 'Download All Data (JSON)'}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleExport('csv')}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <Download className="w-4 h-4" />
+            Summary (CSV)
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SettingsSectionContent({
   section,
   currentUser,
@@ -356,6 +443,7 @@ function SettingsSectionContent({
     apps: 'Apps',
     account: 'Account',
     subscription: 'Subscription',
+    'data-export': 'Data Export',
     notification: 'Notification',
     language: 'Language & Region',
     general: 'General',
@@ -372,7 +460,8 @@ function SettingsSectionContent({
         onInventoryPrefChange={onInventoryPrefChange}
       />
     ),
-    subscription: <SubscriptionSection />
+    subscription: <SubscriptionSection />,
+    'data-export': <DataExportSection />,
   }
 
   if (content[section]) return content[section]
@@ -402,6 +491,7 @@ const workspaceSettings = [
   { id: 'general', label: 'General', icon: Wrench },
   { id: 'members', label: 'Members', icon: Users },
   { id: 'subscription', label: 'Subscription', icon: CreditCard },
+  { id: 'data-export', label: 'Data Export', icon: Download },
 ]
 
 export default function SettingsPage({

@@ -15,6 +15,7 @@ model Organization {
   plan                 String               @default("PRO_TRIAL")  // FREE | PRO_TRIAL | CORE | PRO | ENTERPRISE
   trialEndsAt          DateTime?
   stripeCustomerId     String?
+  stripeSubscriptionId String?
   subscriptionStatus   String?               // 'active' | 'past_due' | 'canceled'
   logoUrl              String?
   website              String?
@@ -33,8 +34,25 @@ model Organization {
   pondLogs             PondLog[]
   tickets              Ticket[]
   users                User[]
+  auditLogs            AuditLog[]
 
   @@index([plan])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String?
+  userId         String?
+  action         String   // CREATE | UPDATE | DELETE
+  entityType     String   // Ticket, Event, Form, User, etc.
+  entityId       String?
+  metadata       Json?    // additional context (old/new values, etc.)
+  createdAt      DateTime @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
 
 model User {

@@ -3,6 +3,7 @@ import { prisma, prismaBase } from '@/lib/prisma'
 import { withOrg, getOrgId } from '@/lib/orgContext'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
+import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
 
 /** Map DB FormSubmission to frontend shape */
 function toFrontendSubmission(s: {
@@ -73,6 +74,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+      await requireActivePlan(prismaBase, getOrgId()!)
       const body = (await req.json()) as {
         formId: string
         data: Record<string, unknown>
@@ -144,6 +146,9 @@ export async function POST(req: NextRequest) {
       })
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 402, headers: corsHeaders })
+    }
     if (
       err instanceof Error &&
       (err.message === 'Organization ID is required' || err.message === 'Invalid organization')

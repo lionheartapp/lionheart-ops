@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg } from '@/lib/orgContext'
-import { verifyToken } from '@/lib/auth'
+import { withOrg, getOrgId } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
+import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
 
 /** Map DB Form to frontend shape */
 function toFrontendForm(f: {
@@ -46,6 +46,7 @@ export async function PATCH(
     }
 
     return await withOrg(req, prismaBase, async () => {
+      await requireActivePlan(prismaBase, getOrgId()!)
       const body = (await req.json()) as {
         title?: string
         description?: string
@@ -90,6 +91,9 @@ export async function PATCH(
       return NextResponse.json(toFrontendForm(form), { headers: corsHeaders })
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 402, headers: corsHeaders })
+    }
     if (
       err instanceof Error &&
       (err.message === 'Organization ID is required' || err.message === 'Invalid organization')
@@ -116,10 +120,14 @@ export async function DELETE(
     }
 
     return await withOrg(req, prismaBase, async () => {
+      await requireActivePlan(prismaBase, getOrgId()!)
       await prisma.form.delete({ where: { id: formId } })
       return new NextResponse(null, { status: 204, headers: corsHeaders })
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 402, headers: corsHeaders })
+    }
     if (
       err instanceof Error &&
       (err.message === 'Organization ID is required' || err.message === 'Invalid organization')

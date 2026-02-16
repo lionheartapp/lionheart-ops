@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
 import { withOrg, getOrgId } from '@/lib/orgContext'
 import { corsHeaders } from '@/lib/cors'
+import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
 
 /** GET /api/inventory — Fetch all inventory items and stock for the organization */
 export async function GET(req: NextRequest) {
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+      await requireActivePlan(prismaBase, getOrgId()!)
       const body = (await req.json()) as
         | { name: string; teamId?: string }
         | { itemId: string; location: string; quantity: number }
@@ -103,6 +105,9 @@ export async function POST(req: NextRequest) {
       )
     })
   } catch (err) {
+    if (err instanceof PlanRestrictedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 402, headers: corsHeaders })
+    }
     if (
       err instanceof Error &&
       (err.message === 'Organization ID is required' || err.message === 'Invalid organization')

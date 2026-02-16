@@ -45,7 +45,7 @@ const tenantOps = {
 const tenantModels = [
   'user', 'building', 'ticket', 'event', 'expense', 'budget',
   'maintenanceTip', 'knowledgeBaseEntry', 'inventoryItem', 'pondLog', 'pondConfig',
-  'form',
+  'form', 'auditLog',
 ]
 
 const queryExtension = Object.fromEntries(
