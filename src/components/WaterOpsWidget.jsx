@@ -110,10 +110,10 @@ export default function WaterOpsWidget({
 
   return (
     <>
-      <section className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+      <section className="glass-card overflow-hidden w-full">
+        <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 shrink-0">
               <Droplets className="w-5 h-5 text-cyan-500" />
               Water Management
             </h2>
@@ -121,7 +121,7 @@ export default function WaterOpsWidget({
               <select
                 value={selectedAssetId || ''}
                 onChange={(e) => setSelectedAssetId(e.target.value || null)}
-                className="text-sm px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                className="text-sm px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shrink-0"
               >
                 {assets.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -131,11 +131,11 @@ export default function WaterOpsWidget({
               </select>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setLogFormOpen(true)}
-              className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center gap-1"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Log
@@ -143,15 +143,15 @@ export default function WaterOpsWidget({
             <button
               type="button"
               onClick={() => setDosageOpen(true)}
-              className="text-sm text-amber-500 hover:text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
             >
               <Calculator className="w-4 h-4" />
-              Dosage
+              Dosage Calculator
             </button>
           </div>
         </div>
 
-        <div className="p-4">
+        <div className="p-4 sm:p-6 min-h-[140px]">
           {proactiveWarnings.length > 0 && (
             <div className="mb-4 flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30">
               <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
@@ -290,9 +290,9 @@ export default function WaterOpsWidget({
                   <button
                     type="button"
                     onClick={() => setDosageOpen(true)}
-                    className="ml-auto text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline"
+                    className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                   >
-                    Calculate →
+                    Dosage Calculator →
                   </button>
                 </div>
               )}
