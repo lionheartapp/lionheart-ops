@@ -2,7 +2,19 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus, Upload, Users } from 'lucide-react'
 import { parseMembersCsv } from '../utils/parseMembersCsv'
 import { ROLES, getTeamName, getUserTeamIds, canManageTeams, DEFAULT_TEAMS, TEAM_SUGGESTIONS } from '../data/teamsData'
+import { platformPatch } from '../services/platformApi'
 import DrawerModal from './DrawerModal'
+
+/** Map frontend role id to backend UserRole for PATCH /api/admin/users */
+function roleToBackend(roleId) {
+  const r = (roleId || '').toLowerCase()
+  if (r === 'super-admin') return 'SUPER_ADMIN'
+  if (r === 'admin') return 'ADMIN'
+  if (r === 'member') return 'SITE_SECRETARY'
+  if (r === 'requester') return 'TEACHER'
+  if (r === 'viewer') return 'VIEWER'
+  return 'VIEWER'
+}
 
 /** Generate a slug id from a team display name (e.g. "A/V" -> "av", "Campus Services" -> "campus-services") */
 function slugifyTeamId(name) {
@@ -288,6 +300,8 @@ function EditUserDrawer({ user, teams, setTeams, users, setUsers, currentUser, i
     role: 'viewer',
   })
   const [newTagName, setNewTagName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     if (user) {
@@ -316,18 +330,53 @@ function EditUserDrawer({ user, teams, setTeams, users, setUsers, currentUser, i
     setNewTagName('')
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    if (!form.name.trim()) return
-    if (!form.teamIds.length) return
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? { ...u, name: form.name.trim(), email: form.email.trim() || undefined, teamIds: form.teamIds, role: form.role }
-          : u
-      )
-    )
-    onClose()
+    if (!form.name.trim() || !form.teamIds.length) return
+    setSaveError('')
+    setSaving(true)
+    try {
+      const payload = {
+        name: form.name.trim(),
+        role: roleToBackend(form.role),
+        teamIds: form.teamIds,
+      }
+      const res = await platformPatch(`/api/admin/users/${user.id}`, payload)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Save failed')
+      }
+      const data = await res.json().catch(() => ({}))
+      const updated = data?.user
+      if (updated) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id
+              ? {
+                  ...u,
+                  name: updated.name ?? u.name,
+                  email: updated.email ?? u.email,
+                  teamIds: updated.teamIds ?? form.teamIds,
+                  role: (updated.role || '').toLowerCase().replace('_', '-'),
+                }
+              : u
+          )
+        )
+      } else {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id
+              ? { ...u, name: form.name.trim(), email: form.email.trim() || undefined, teamIds: form.teamIds, role: form.role }
+              : u
+          )
+        )
+      }
+      onClose()
+    } catch (err) {
+      setSaveError(err?.message || 'Failed to save')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const toggleTeam = (teamId) => {
@@ -422,13 +471,16 @@ function EditUserDrawer({ user, teams, setTeams, users, setUsers, currentUser, i
             </select>
           </div>
         )}
+        {saveError && (
+          <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>
+        )}
         <div className="flex gap-2 pt-2">
           <button
             type="submit"
-            disabled={!form.name.trim() || form.teamIds.length === 0}
+            disabled={!form.name.trim() || form.teamIds.length === 0 || saving}
             className="px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save changes
+            {saving ? 'Saving…' : 'Save changes'}
           </button>
           <button
             type="button"

@@ -233,7 +233,6 @@ export default function App() {
         setUsers((prev) => {
           const idx = prev.findIndex((p) => p.id === me.id)
           if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...me } : p))
-          // Replace placeholder (u0) with real user, or prepend if not found
           const placeholderIdx = prev.findIndex((p) => p.id === 'u0')
           if (placeholderIdx >= 0) {
             return prev.map((p, i) => (i === placeholderIdx ? { ...me, positionTitle: p.positionTitle } : p))
@@ -244,6 +243,29 @@ export default function App() {
       .catch(() => {})
     return () => { cancelled = true }
   }, [])
+
+  // Fetch full member list for Admin/Super Admin (View As dropdown + Members page)
+  useEffect(() => {
+    if (!getAuthToken() || !currentUser?.id) return
+    const role = (currentUser.role || '').toLowerCase()
+    if (role !== 'admin' && role !== 'super-admin') return
+    let cancelled = false
+    platformFetch('/api/admin/users')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((list) => {
+        if (cancelled || !Array.isArray(list)) return
+        const mapped = list.map((u) => ({
+          id: u.id,
+          name: u.name ?? u.email?.split('@')[0] ?? 'User',
+          email: u.email ?? '',
+          teamIds: u.teamIds ?? [],
+          role: (u.role || '').toLowerCase().replace('_', '-'),
+        }))
+        setUsers(mapped)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [currentUser?.id, currentUser?.role])
 
   // Fetch events from Platform when logged in (new orgs get empty list)
   useEffect(() => {
@@ -321,8 +343,12 @@ export default function App() {
   const isITUser = isITTeam(effectiveUser, teams)
   const isAVUser = isAVTeam(effectiveUser, teams)
   const hasTeamInventory = isAVUser || isFacilitiesUser || isITUser
-  const showInventory = hasAdvancedInventory && (hasTeamInventory || inventoryPrefs[effectiveUser?.id] === true)
-  const inventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : (inventoryPrefs[effectiveUser?.id] ? 'personal' : null)
+  const isSA = effectiveUser?.role === 'super-admin' || effectiveUser?.role === 'SUPER_ADMIN'
+  const showInventory = hasAdvancedInventory && (hasTeamInventory || isSA || (inventoryPrefs[effectiveUser?.id] === true))
+  const defaultInventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : (inventoryPrefs[effectiveUser?.id] ? 'personal' : null)
+  const [inventoryScopeOverride, setInventoryScopeOverride] = useState(null)
+  const effectiveScope = defaultInventoryScope ?? (isSA ? 'av' : null)
+  const inventoryScope = (isSA && inventoryScopeOverride) ? inventoryScopeOverride : effectiveScope
 
   const setInventoryPref = (userId, enabled) => {
     setInventoryPrefs((prev) => {
@@ -702,13 +728,29 @@ export default function App() {
               )}
 
               {activeTab === 'inventory' && inventoryScope && (
-                <InventoryPage
-                  items={inventoryItems}
-                  setItems={setInventoryItems}
-                  stock={inventoryStock}
-                  setStock={setInventoryStock}
-                  inventoryScope={inventoryScope}
-                />
+                <>
+                  {isSA && (
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">View inventory:</span>
+                      <select
+                        value={inventoryScope}
+                        onChange={(e) => setInventoryScopeOverride(e.target.value)}
+                        className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="av">A/V</option>
+                        <option value="facilities">Facilities</option>
+                        <option value="it">IT</option>
+                      </select>
+                    </div>
+                  )}
+                  <InventoryPage
+                    items={inventoryItems}
+                    setItems={setInventoryItems}
+                    stock={inventoryStock}
+                    setStock={setInventoryStock}
+                    inventoryScope={inventoryScope}
+                  />
+                </>
               )}
 
               {activeTab === 'forms' && (

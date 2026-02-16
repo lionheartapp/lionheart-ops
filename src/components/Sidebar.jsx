@@ -12,7 +12,7 @@ import {
   Droplets,
 } from 'lucide-react'
 import ViewAsDropdown from './ViewAsDropdown'
-import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate } from '../data/teamsData'
+import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate, canManageTeams } from '../data/teamsData'
 
 const mainNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -203,16 +203,18 @@ export default function Sidebar({
             <span>Campus Map</span>
           </button>
         )}
-        <ViewAsDropdown
-          users={users ?? []}
-          teams={teams ?? []}
-          actualUser={actualUser ?? currentUser}
-          viewAsUser={viewAsUser}
-          currentUser={currentUser}
-          onViewAs={onViewAs}
-          onClearViewAs={onClearViewAs}
-          className="w-full"
-        />
+        {(isSuperAdmin(actualUser ?? currentUser) || canManageTeams(actualUser ?? currentUser)) && (
+          <ViewAsDropdown
+            users={users ?? []}
+            teams={teams ?? []}
+            actualUser={actualUser ?? currentUser}
+            viewAsUser={viewAsUser}
+            currentUser={currentUser}
+            onViewAs={onViewAs}
+            onClearViewAs={onClearViewAs}
+            className="w-full"
+          />
+        )}
       </div>
     </aside>
   )

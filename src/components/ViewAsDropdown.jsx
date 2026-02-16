@@ -125,7 +125,7 @@ export default function ViewAsDropdown({
               />
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 px-0.5">
-              View as (demo)
+              View as any user to troubleshoot
             </p>
           </div>
 
