@@ -4,12 +4,12 @@ import { corsHeaders } from '@/lib/cors'
 // Mock fallback when Places API is not configured
 const MOCK_SCHOOLS = [
   {
-    name: 'Linfield Christian School',
-    address: '31950 Pauba Rd, Temecula, CA 92592',
-    website: 'https://www.linfield.com',
-    logo: 'https://logo.clearbit.com/linfield.com',
-    domain: 'linfield.com',
-    placeId: 'mock-linfield',
+    name: 'Lincoln Academy',
+    address: '31950 Main St, Temecula, CA 92592',
+    website: 'https://www.lincolnacademy.edu',
+    logo: 'https://logo.clearbit.com/lincolnacademy.edu',
+    domain: 'lincolnacademy.edu',
+    placeId: 'mock-lincoln',
   },
   {
     name: 'Rancho Christian School',

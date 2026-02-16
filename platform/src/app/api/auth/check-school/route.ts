@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     const searchTerm = name.toLowerCase()
 
-    // Find orgs whose name contains the search (e.g. "Linfield" matches "Linfield Christian School")
+    // Find orgs whose name contains the search (e.g. "Lincoln" matches "Lincoln Academy")
     const matches = await prismaBase.organization.findMany({
       where: {
         name: { contains: searchTerm, mode: 'insensitive' },

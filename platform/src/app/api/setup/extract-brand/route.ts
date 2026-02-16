@@ -17,7 +17,7 @@ function extractDomain(url: string): string | null {
 
 /**
  * POST /api/setup/extract-brand
- * Body: { url: string } - school website URL (e.g. https://linfield.com)
+ * Body: { url: string } - school website URL (e.g. https://schoolname.edu)
  * Returns { primaryColor?, secondaryColor?, logoUrl? } extracted via AI from the page.
  */
 export async function POST(req: NextRequest) {

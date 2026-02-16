@@ -359,7 +359,7 @@ function AccountSection({ currentUser }) {
   )
 }
 
-function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, onLogoUpdated }) {
+function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, orgLoading, onLogoUpdated }) {
   const [name, setName] = useState(orgName || '')
   const [logoUrl, setLogoUrl] = useState(orgLogoUrl || '')
   const [website, setWebsite] = useState(orgWebsite || '')
@@ -393,6 +393,19 @@ function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, onLogoUpda
     } finally {
       setSaving(false)
     }
+  }
+
+  if (orgLoading) {
+    return (
+      <div className="space-y-6 max-w-2xl">
+        <div>
+          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">School Information</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Loading your school information…
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -440,7 +453,7 @@ function SchoolSection({ orgLogoUrl, orgName, orgWebsite, orgAddress, onLogoUpda
             type="text"
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
-            placeholder="e.g. linfield.com or https://www.linfield.edu"
+            placeholder="e.g. schoolname.com or https://www.school.edu"
             className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
           />
         </div>
@@ -543,6 +556,7 @@ function SettingsSectionContent({
   orgName,
   orgWebsite,
   orgAddress,
+  orgLoading,
   onOrgBrandingUpdated,
 }) {
   if (section === 'members') {
@@ -586,6 +600,7 @@ function SettingsSectionContent({
         orgName={orgName}
         orgWebsite={orgWebsite}
         orgAddress={orgAddress}
+        orgLoading={orgLoading}
         onLogoUpdated={onOrgBrandingUpdated}
       />
     ),
@@ -638,6 +653,7 @@ export default function SettingsPage({
   orgName,
   orgWebsite,
   orgAddress,
+  orgLoading = false,
 }) {
   const allSections = [...generalSettings, ...workspaceSettings]
   const activeSection = allSections.some((s) => s.id === settingsSection)
@@ -720,6 +736,7 @@ export default function SettingsPage({
         orgName={orgName}
         orgWebsite={orgWebsite}
         orgAddress={orgAddress}
+        orgLoading={orgLoading}
         onOrgBrandingUpdated={onOrgBrandingUpdated}
         />
       </div>

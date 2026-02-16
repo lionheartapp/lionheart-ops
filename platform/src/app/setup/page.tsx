@@ -493,7 +493,7 @@ function SetupWizard({
                     <input
                       type="text"
                       className="flex-1 rounded-lg px-3 py-2 text-zinc-900 bg-white border border-zinc-200 focus:ring-2 focus:ring-[#3b82f6]/30 outline-none"
-                      placeholder="e.g. linfield.com, www.linfield.com, or https://linfield.com"
+                      placeholder="e.g. schoolname.com, www.schoolname.com, or https://schoolname.com"
                       value={schoolData.website}
                       onChange={(e) => setSchoolData((p) => ({ ...p, website: e.target.value }))}
                     />
