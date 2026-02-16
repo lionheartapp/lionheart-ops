@@ -8,7 +8,7 @@ import { corsHeaders } from '@/lib/cors'
 function toFrontendSubmission(s: {
   id: string
   formId: string
-  data: object
+  data: unknown
   status: string
   approvals: unknown
   submittedBy: string | null
@@ -18,7 +18,7 @@ function toFrontendSubmission(s: {
   return {
     id: s.id,
     formId: s.formId,
-    data: s.data ?? {},
+    data: (typeof s.data === 'object' && s.data !== null ? s.data : {}) as Record<string, unknown>,
     submittedAt: s.createdAt.toISOString(),
     submittedBy: s.submittedBy ?? 'Unknown',
     status: s.status ?? 'submitted',
