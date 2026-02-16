@@ -430,10 +430,10 @@ export default function App() {
                 hasTeamInventory={hasTeamInventory}
                 showInventoryPref={inventoryPrefs[effectiveUser?.id] === true}
                 onInventoryPrefChange={(enabled) => setInventoryPref(effectiveUser?.id, enabled)}
-                orgLogoUrl={orgLogoUrl}
-                orgName={orgName}
-                orgWebsite={orgWebsite}
-                orgAddress={orgAddress}
+                orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
+                orgName={orgName || searchParams.get('orgName')}
+                orgWebsite={orgWebsite || searchParams.get('orgWebsite')}
+                orgAddress={orgAddress || searchParams.get('orgAddress')}
                 orgLoading={orgLoading}
                 onOrgBrandingUpdated={refreshOrg}
               />

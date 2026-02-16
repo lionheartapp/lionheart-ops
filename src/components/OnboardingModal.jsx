@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { platformFetch } from '../services/platformApi'
 
 const ROLE_OPTIONS = [
-  { label: 'Teacher', value: 'Teacher' },
+  { label: 'Administrator', value: 'Administrator' },
+  { label: 'Teacher / Staff', value: 'Teacher' },
   { label: 'Maintenance', value: 'Maintenance' },
   { label: 'IT Support', value: 'IT Support' },
-  { label: 'Administrator', value: 'Administrator' },
+  { label: 'Secretary / Office Staff', value: 'Secretary' },
+  { label: 'A/V or Media', value: 'AV' },
+  { label: 'Athletics / Coach', value: 'Teacher' },
+  { label: 'Viewer (read-only)', value: 'Viewer' },
 ]
 
 export default function OnboardingModal({ user, onComplete }) {
@@ -73,18 +77,25 @@ export default function OnboardingModal({ user, onComplete }) {
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
               What&apos;s your primary role?
             </h2>
-            <div className="grid gap-3">
+            <select
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              className="w-full p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">Select your role…</option>
               {ROLE_OPTIONS.map((r) => (
-                <button
-                  key={r.value}
-                  onClick={() => handleComplete(r.value)}
-                  disabled={loading}
-                  className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-left font-medium transition-all text-zinc-900 dark:text-zinc-100"
-                >
+                <option key={r.label} value={r.value}>
                   {r.label}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
+            <button
+              onClick={() => handleComplete(formData.role)}
+              disabled={loading || !formData.role}
+              className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              Continue
+            </button>
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
         )}

@@ -340,6 +340,9 @@ function SetupWizard({
     if (searchParams.get('userName')) params.set('userName', searchParams.get('userName')!)
     if (searchParams.get('userEmail')) params.set('userEmail', searchParams.get('userEmail')!)
     if (schoolData.name) params.set('orgName', schoolData.name)
+    if (schoolData.website) params.set('orgWebsite', schoolData.website)
+    if (schoolData.address) params.set('orgAddress', schoolData.address)
+    if (schoolData.logoUrl && schoolData.logoUrl.startsWith('http')) params.set('orgLogoUrl', schoolData.logoUrl)
     const qs = params.toString()
     setTimeout(() => {
       window.location.href = `${LIONHEART_URL}/app?${qs}`

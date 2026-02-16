@@ -4,17 +4,25 @@ import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
 
-/** Map frontend role (admin/member/requester/viewer) to DB UserRole */
+/** Map frontend role to DB UserRole */
 const ROLE_MAP: Record<string, string> = {
   admin: 'ADMIN',
   member: 'SITE_SECRETARY',
   requester: 'TEACHER',
   viewer: 'VIEWER',
-  // Legacy aliases
+  teacher: 'TEACHER',
+  maintenance: 'MAINTENANCE',
+  administrator: 'ADMIN',
+  secretary: 'SITE_SECRETARY',
+  av: 'MAINTENANCE',
+  // Display label variants
   Teacher: 'TEACHER',
   Maintenance: 'MAINTENANCE',
   'IT Support': 'MAINTENANCE',
   Administrator: 'ADMIN',
+  Secretary: 'SITE_SECRETARY',
+  AV: 'MAINTENANCE',
+  Viewer: 'VIEWER',
 }
 
 /** Map DB role to Lionheart role format */
