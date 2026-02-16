@@ -65,7 +65,7 @@ const tabContent = {
   dashboard: { title: 'Dashboard', showAll: true },
   facilities: { title: 'Facilities', showAll: false },
   'facilities-my-tickets': { title: 'My Tickets', showAll: false },
-  events: { title: 'Events', showAll: false },
+  events: { title: 'Calendar', showAll: false },
   forms: { title: 'Forms', showAll: false },
   'it-support': { title: 'IT Support', showAll: false },
   'my-tickets': { title: 'My Tickets', showAll: false },

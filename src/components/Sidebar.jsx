@@ -16,7 +16,7 @@ import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate, canManageTeams } f
 
 const mainNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'events', label: 'Events', icon: CalendarDays },
+  { id: 'events', label: 'Calendar', icon: CalendarDays },
   { id: 'forms', label: 'Forms', icon: FileText },
   { id: 'inventory', label: 'Inventory', icon: Package },
 ]
