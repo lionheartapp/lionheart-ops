@@ -9,7 +9,6 @@ import {
   FileText,
   UserCircle,
   MapPin,
-  Droplets,
 } from 'lucide-react'
 import ViewAsDropdown from './ViewAsDropdown'
 import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate } from '../data/teamsData'
@@ -57,7 +56,6 @@ export default function Sidebar({
   onClearViewAs,
   showInventory = false,
   showCampusMap = true,
-  showWaterManagement = false,
   orgName,
   orgLogoUrl,
   primaryColor = '#3b82f6',
@@ -131,26 +129,6 @@ export default function Sidebar({
               </motion.button>
             )
           })}
-
-          {/* Add-ons: Water Management */}
-          {showWaterManagement && (
-            <div className="pt-3 mt-1">
-              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Add-ons
-              </p>
-              <button
-                type="button"
-                onClick={() => onTabChange('water-management')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors mt-0.5 ${
-                  activeTab === 'water-management' ? '' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-                style={activeTab === 'water-management' ? { backgroundColor: `${primaryColor}20`, color: primaryColor } : {}}
-              >
-                <Droplets className="w-4 h-4 shrink-0" strokeWidth={2} />
-                <span className="dark:text-zinc-300">Water Management</span>
-              </button>
-            </div>
-          )}
 
           {/* Support section header + links */}
           <div className="pt-3 mt-1">

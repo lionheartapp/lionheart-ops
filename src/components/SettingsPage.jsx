@@ -12,6 +12,8 @@ import {
   Download,
   Building2,
   Upload,
+  Droplets,
+  ExternalLink,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
 import { isAVTeam, isFacilitiesTeam, isITTeam } from '../data/teamsData'
@@ -51,7 +53,7 @@ const PRICING_PLANS = [
 
 // --- SUB-COMPONENTS ---
 
-function SubscriptionSection() {
+function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const currentPlanId = 'pro'
@@ -190,6 +192,34 @@ function SubscriptionSection() {
             </div>
           )
         })}
+      </div>
+
+      {/* Add-ons */}
+      <div className="border-t border-zinc-200 dark:border-zinc-800 pt-8">
+        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Add-ons</h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+          Manage and access add-on modules included in your plan.
+        </p>
+        <div className="space-y-2">
+          {hasWaterManagement && (
+            <button
+              type="button"
+              onClick={() => onOpenAddOn?.('water-management')}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Droplets className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-900 dark:text-zinc-100">Water Management</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Pond health, dosage logs, IoT probes</p>
+                </div>
+              </div>
+              <ExternalLink className="w-4 h-4 text-zinc-400" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 4. Payment Method (Placeholder for Stripe) */}
@@ -588,6 +618,8 @@ function SettingsSectionContent({
   orgAddress,
   orgLoading,
   onOrgBrandingUpdated,
+  hasWaterManagement,
+  onOpenAddOn,
 }) {
   if (section === 'members') {
     return (
@@ -622,7 +654,12 @@ function SettingsSectionContent({
         onInventoryPrefChange={onInventoryPrefChange}
       />
     ),
-    subscription: <SubscriptionSection />,
+    subscription: (
+      <SubscriptionSection
+        hasWaterManagement={hasWaterManagement}
+        onOpenAddOn={onOpenAddOn}
+      />
+    ),
     'data-export': <DataExportSection />,
     school: (
       <SchoolSection
@@ -684,6 +721,8 @@ export default function SettingsPage({
   orgWebsite,
   orgAddress,
   orgLoading = false,
+  hasWaterManagement = false,
+  onOpenAddOn,
 }) {
   const allSections = [...generalSettings, ...workspaceSettings]
   const activeSection = allSections.some((s) => s.id === settingsSection)
@@ -768,6 +807,8 @@ export default function SettingsPage({
         orgAddress={orgAddress}
         orgLoading={orgLoading}
         onOrgBrandingUpdated={onOrgBrandingUpdated}
+        hasWaterManagement={hasWaterManagement}
+        onOpenAddOn={onOpenAddOn}
         />
       </div>
     </div>

@@ -9,7 +9,7 @@ export default function TopBar({
   currentUser,
   formSubmissions = [],
   forms = [],
-  onNavigateToSettings,
+          onNavigateToSettings,
   onNavigateToFormResponses,
   onOpenCommandBar,
 }) {
@@ -141,7 +141,10 @@ export default function TopBar({
               <li>
                 <button
                   type="button"
-                  onClick={() => setAccountOpen(false)}
+                  onClick={() => {
+                    setAccountOpen(false)
+                    onNavigateToSettings?.('account')
+                  }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors"
                 >
                   <User className="w-4 h-4 text-zinc-400" />

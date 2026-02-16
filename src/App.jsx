@@ -385,7 +385,6 @@ export default function App() {
         onClearViewAs={() => setViewAsUser(null)}
         showInventory={showInventory}
         showCampusMap={hasVisualCampus}
-        showWaterManagement={hasWaterManagement}
         onOpenCampusMap={() => setCampusMapModalOpen(true)}
         orgName={orgName || searchParams.get('orgName')}
         orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
@@ -398,7 +397,7 @@ export default function App() {
           currentUser={effectiveUser}
           formSubmissions={formSubmissions}
           forms={forms}
-          onNavigateToSettings={() => setActiveTab('settings')}
+          onNavigateToSettings={(section) => { setActiveTab('settings'); setSettingsSection(section || 'account') }}
           onNavigateToFormResponses={(formId) => {
             setFormIdToViewResponses(formId)
             setActiveTab('forms')
@@ -437,6 +436,8 @@ export default function App() {
                 orgAddress={orgAddress || searchParams.get('orgAddress')}
                 orgLoading={orgLoading}
                 onOrgBrandingUpdated={refreshOrg}
+                hasWaterManagement={hasWaterManagement}
+                onOpenAddOn={(tab) => setActiveTab(tab)}
               />
             </div>
           ) : activeTab === 'dashboard' && showAll ? (

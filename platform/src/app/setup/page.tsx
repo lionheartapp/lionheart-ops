@@ -411,6 +411,7 @@ function SetupWizard({
               >
                 <div className="h-0.5 bg-gradient-to-r from-[#3b82f6] to-[#f59e0b]" />
                 <div className="p-5">
+                  {/* School info row */}
                   <div className="flex items-start gap-4">
                     <div className="relative w-16 h-16 bg-white rounded-lg p-2 shrink-0">
                       {(schoolData.logoUrl || searchResult.logo) ? (
@@ -442,29 +443,64 @@ function SetupWizard({
                       )}
                     </div>
                   </div>
+
+                  {/* Branding section – show logo and colors when found */}
                   {(searchResult.website || searchResult.domain) && (
-                    <button
-                      type="button"
-                      onClick={handleExtractBrand}
-                      disabled={extractingBrand}
-                      className="mt-4 text-xs text-[#3b82f6] hover:underline flex items-center gap-1"
-                    >
-                      {extractingBrand ? <Loader2 className="w-3 h-3 animate-spin" /> : <Globe className="w-3 h-3" />}
-                      {extractingBrand ? 'Extracting colors & logo…' : 'Extract colors & logo from website'}
-                    </button>
+                    <div className="mt-5 p-4 rounded-xl bg-white border border-zinc-200">
+                      <p className="text-sm font-medium text-zinc-700 mb-3">Your branding</p>
+                      {extractingBrand ? (
+                        <div className="flex items-center gap-3 py-2">
+                          <Loader2 className="w-5 h-5 animate-spin text-[#3b82f6]" />
+                          <span className="text-sm text-zinc-600">Fetching logo and colors from your website…</span>
+                        </div>
+                      ) : (schoolData.logoUrl || searchResult.logo) || schoolData.primaryColor || schoolData.secondaryColor ? (
+                        <div className="flex items-center gap-4 flex-wrap">
+                          {(schoolData.logoUrl || searchResult.logo) && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-20 h-14 bg-zinc-50 rounded-lg flex items-center justify-center p-2 overflow-hidden">
+                                <img src={schoolData.logoUrl || searchResult.logo} alt="" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                              </div>
+                              <span className="text-xs text-emerald-600 font-medium">Logo found</span>
+                            </div>
+                          )}
+                          {(schoolData.primaryColor || schoolData.secondaryColor) && (
+                            <div className="flex items-center gap-2">
+                              <div className="flex rounded-lg overflow-hidden border border-zinc-200">
+                                <div className="w-8 h-8" style={{ backgroundColor: schoolData.primaryColor || PRIMARY }} title="Primary" />
+                                <div className="w-8 h-8" style={{ backgroundColor: schoolData.secondaryColor || SECONDARY }} title="Secondary" />
+                              </div>
+                              <span className="text-xs text-emerald-600 font-medium">Colors found</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-zinc-500 mb-3">We&apos;ll pull your logo and colors from your website.</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleExtractBrand}
+                        disabled={extractingBrand}
+                        className="w-full mt-2 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-60 border-2 border-dashed border-zinc-300 hover:border-[#3b82f6]/50 hover:bg-[#3b82f6]/5 text-zinc-700 hover:text-[#3b82f6]"
+                      >
+                        {extractingBrand ? <Loader2 className="w-5 h-5 animate-spin" /> : <Globe className="w-5 h-5" />}
+                        {extractingBrand ? 'Extracting…' : 'Extract logo & colors from website'}
+                      </button>
+                    </div>
                   )}
+
                   <div className="mt-6 flex gap-3">
                     <button
                       onClick={confirmSchool}
-                      disabled={loading}
-                      className="flex-1 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 text-white"
+                      disabled={loading || extractingBrand}
+                      className="flex-1 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
                       style={{ backgroundColor: PRIMARY }}
                     >
                       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Yes, this is us <Check className="w-4 h-4" /></>}
                     </button>
                     <button
                       onClick={() => { setSearchResult(null); setManualMode(true) }}
-                      className="px-4 py-2.5 rounded-lg border border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+                      disabled={extractingBrand}
+                      className="px-4 py-2.5 rounded-lg border border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors disabled:opacity-50"
                     >
                       No
                     </button>
