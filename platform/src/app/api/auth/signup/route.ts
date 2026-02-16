@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
         name,
         passwordHash,
         organizationId: org.id,
-        role: userCount === 0 ? 'SUPER_ADMIN' : 'MEMBER',
+        role: userCount === 0 ? 'SUPER_ADMIN' : 'VIEWER',
         teamIds,
         canSubmitEvents: true,
       },
