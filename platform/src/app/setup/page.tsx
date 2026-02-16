@@ -78,7 +78,8 @@ function SetupWizard({
   userEmailFromUrl: string | null
   searchParams: URLSearchParams
 }) {
-  const [step, setStep] = useState(orgNameFromUrl ? 2 : 1)
+  // Always start at step 1 (School Identity) - branding is mandatory, never skip
+  const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const domainHint = (() => {
     const email = userEmailFromUrl?.trim().toLowerCase()
@@ -166,7 +167,8 @@ function SetupWizard({
         website: data.website || undefined,
         logoUrl: data.logoUrl || null,
         loginHeroImageUrl: data.loginHeroImageUrl?.trim() || null,
-        colors: { primary: data.primaryColor || PRIMARY, secondary: data.secondaryColor || SECONDARY },
+        primaryColor: data.primaryColor || PRIMARY,
+        secondaryColor: data.secondaryColor || SECONDARY,
       }),
     })
     const buildingsRes = await fetch('/api/buildings', { headers: authHeaders })
@@ -705,15 +707,22 @@ function SetupWizard({
         )}
       </AnimatePresence>
 
-      {/* Stepper */}
-      <div className="mt-8 flex items-center gap-2">
-        {[1, 2, 3].map((n) => (
-          <div
-            key={n}
-            className={`w-2.5 h-2.5 rounded-full transition-colors ${step >= n ? '' : 'bg-zinc-300'}`}
-            style={step >= n ? { backgroundColor: PRIMARY } : {}}
+      {/* Progress bar: 33% Identity, 66% Team, 100% Complete */}
+      <div className="mt-8 w-full max-w-xs mx-auto">
+        <div className="flex justify-between text-[10px] font-medium text-zinc-500 mb-1.5">
+          <span className={step >= 1 ? 'text-[#3b82f6]' : ''}>Identity</span>
+          <span className={step >= 2 ? 'text-[#3b82f6]' : ''}>Team</span>
+          <span className={step >= 3 ? 'text-[#3b82f6]' : ''}>Complete</span>
+        </div>
+        <div className="h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ backgroundColor: PRIMARY }}
+            initial={{ width: '0%' }}
+            animate={{ width: `${step === 1 ? 33 : step === 2 ? 66 : 100}%` }}
+            transition={{ duration: 0.3 }}
           />
-        ))}
+        </div>
       </div>
     </div>
   )

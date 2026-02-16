@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { platformGet } from '../services/platformApi'
 import { PLATFORM_URL } from '../services/platformApi'
+import { setOrgContextFromAPI } from '../config/orgContext'
 
 const DEFAULT_MODULES = {
   core: true,
@@ -22,7 +23,7 @@ function extractDomain(website) {
   }
 }
 
-const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, trialDaysLeft: null })
+const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, primaryColor: null, secondaryColor: null, trialDaysLeft: null })
 
 export function OrgModulesProvider({ children }) {
   const [modules, setModules] = useState(DEFAULT_MODULES)
@@ -31,6 +32,8 @@ export function OrgModulesProvider({ children }) {
   const [orgLogoUrl, setOrgLogoUrl] = useState(null)
   const [orgWebsite, setOrgWebsite] = useState(null)
   const [orgAddress, setOrgAddress] = useState(null)
+  const [primaryColor, setPrimaryColor] = useState(null)
+  const [secondaryColor, setSecondaryColor] = useState(null)
   const [brandfetchLogoUrl, setBrandfetchLogoUrl] = useState(null)
   const [trialDaysLeft, setTrialDaysLeft] = useState(null)
 
@@ -58,7 +61,12 @@ export function OrgModulesProvider({ children }) {
         else setOrgWebsite(null)
         if (data?.address != null) setOrgAddress(data.address)
         else setOrgAddress(null)
+        if (data?.primaryColor != null) setPrimaryColor(data.primaryColor)
+        else setPrimaryColor(null)
+        if (data?.secondaryColor != null) setSecondaryColor(data.secondaryColor)
+        else setSecondaryColor(null)
         if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
+        setOrgContextFromAPI({ name: data?.name, website: data?.website })
 
         // When no saved logo but we have website, try Brandfetch/Clearbit
         if (!data?.logoUrl && data?.website) {
@@ -104,7 +112,12 @@ export function OrgModulesProvider({ children }) {
         else setOrgWebsite(null)
         if (data?.address != null) setOrgAddress(data.address)
         else setOrgAddress(null)
+        if (data?.primaryColor != null) setPrimaryColor(data.primaryColor)
+        else setPrimaryColor(null)
+        if (data?.secondaryColor != null) setSecondaryColor(data.secondaryColor)
+        else setSecondaryColor(null)
         if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
+        setOrgContextFromAPI({ name: data?.name, website: data?.website })
 
         // When no saved logo but we have website, try Brandfetch/Clearbit
         if (!data?.logoUrl && data?.website) {
@@ -139,6 +152,8 @@ export function OrgModulesProvider({ children }) {
     orgLogoUrl: displayLogoUrl,
     orgWebsite,
     orgAddress,
+    primaryColor: primaryColor || '#3b82f6',
+    secondaryColor: secondaryColor || '#f59e0b',
     trialDaysLeft,
     refreshOrg: fetchOrg,
   }
@@ -152,5 +167,5 @@ export function OrgModulesProvider({ children }) {
 
 export function useOrgModules() {
   const ctx = useContext(OrgModulesContext)
-  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, trialDaysLeft: null }
+  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null }
 }

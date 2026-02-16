@@ -60,6 +60,7 @@ export default function Sidebar({
   showWaterManagement = false,
   orgName,
   orgLogoUrl,
+  primaryColor = '#3b82f6',
   onOpenCampusMap,
   onNavigateToSettings,
 }) {
@@ -94,7 +95,8 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => onNavigateToSettings('school')}
-                    className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline mt-0.5"
+                    className="text-[11px] hover:underline mt-0.5"
+                    style={{ color: primaryColor }}
                   >
                     Upload school logo
                   </button>
@@ -120,7 +122,8 @@ export default function Sidebar({
               <motion.button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-700 dark:text-blue-200' : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? '' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                style={isActive ? { backgroundColor: `${primaryColor}20`, color: primaryColor } : undefined}
                 whileTap={{ scale: 0.98 }}
               >
                 <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
@@ -139,8 +142,9 @@ export default function Sidebar({
                 type="button"
                 onClick={() => onTabChange('water-management')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors mt-0.5 ${
-                  activeTab === 'water-management' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-200' : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  activeTab === 'water-management' ? '' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
+                style={activeTab === 'water-management' ? { backgroundColor: `${primaryColor}20`, color: primaryColor } : {}}
               >
                 <Droplets className="w-4 h-4 shrink-0" strokeWidth={2} />
                 <span className="dark:text-zinc-300">Water Management</span>
@@ -163,7 +167,8 @@ export default function Sidebar({
                     key={item.id}
                     type="button"
                     onClick={() => onTabChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? 'bg-blue-500/20 text-blue-700 dark:text-blue-200' : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/10 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${isActive ? '' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                    style={isActive ? { backgroundColor: `${primaryColor}20`, color: primaryColor } : {}}
                   >
                     <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
                     <span>{label}</span>

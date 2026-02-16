@@ -77,7 +77,7 @@ const tabContent = {
 export default function App() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, trialDaysLeft, refreshOrg, loading: orgLoading } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, primaryColor, secondaryColor, trialDaysLeft, refreshOrg, loading: orgLoading } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -389,6 +389,7 @@ export default function App() {
         onOpenCampusMap={() => setCampusMapModalOpen(true)}
         orgName={orgName || searchParams.get('orgName')}
         orgLogoUrl={orgLogoUrl}
+        primaryColor={primaryColor}
         onNavigateToSettings={(section) => { setActiveTab('settings'); setSettingsSection(section || 'account') }}
       />
 

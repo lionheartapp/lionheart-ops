@@ -24,6 +24,11 @@ export async function PATCH(req: NextRequest) {
         name?: string
         website?: string | null
         address?: string | null
+        city?: string | null
+        state?: string | null
+        zip?: string | null
+        primaryColor?: string | null
+        secondaryColor?: string | null
       }
 
       const org = await prismaBase.organization.findUnique({
@@ -38,9 +43,15 @@ export async function PATCH(req: NextRequest) {
       if (body.logoUrl !== undefined) updates.logoUrl = body.logoUrl && String(body.logoUrl).trim() ? body.logoUrl.trim() : null
       if (body.website !== undefined) updates.website = body.website && String(body.website).trim() ? normalizeWebsite(body.website) : null
       if (body.address !== undefined) {
-        branding.address = body.address && String(body.address).trim() ? body.address.trim() : null
+        updates.address = body.address && String(body.address).trim() ? body.address.trim() : null
+        branding.address = updates.address
         updates.settings = { ...currentSettings, branding }
       }
+      if (body.city !== undefined) updates.city = body.city && String(body.city).trim() ? body.city.trim() : null
+      if (body.state !== undefined) updates.state = body.state && String(body.state).trim() ? body.state.trim() : null
+      if (body.zip !== undefined) updates.zip = body.zip && String(body.zip).trim() ? body.zip.trim() : null
+      if (body.primaryColor !== undefined) updates.primaryColor = body.primaryColor && String(body.primaryColor).trim() ? body.primaryColor.trim() : null
+      if (body.secondaryColor !== undefined) updates.secondaryColor = body.secondaryColor && String(body.secondaryColor).trim() ? body.secondaryColor.trim() : null
 
       if (Object.keys(updates).length === 0) {
         return NextResponse.json({ ok: true })

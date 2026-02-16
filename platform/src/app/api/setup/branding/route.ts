@@ -19,10 +19,15 @@ export async function PATCH(req: NextRequest) {
     const body = (await req.json()) as {
       orgId?: string
       address?: string
+      city?: string
+      state?: string
+      zip?: string
       logoUrl?: string | null
       loginHeroImageUrl?: string | null
       name?: string
       website?: string
+      primaryColor?: string
+      secondaryColor?: string
       colors?: { primary?: string; secondary?: string }
     }
 
@@ -69,8 +74,15 @@ export async function PATCH(req: NextRequest) {
     if (body.website !== undefined) {
       updates.website = normalizeWebsite(body.website)
     }
+    if (body.address !== undefined) updates.address = body.address?.trim() || null
+    if (body.city !== undefined) updates.city = body.city?.trim() || null
+    if (body.state !== undefined) updates.state = body.state?.trim() || null
+    if (body.zip !== undefined) updates.zip = body.zip?.trim() || null
+    if (body.primaryColor !== undefined) updates.primaryColor = body.primaryColor?.trim() || null
+    if (body.secondaryColor !== undefined) updates.secondaryColor = body.secondaryColor?.trim() || null
 
-    if (body.address !== undefined || body.colors !== undefined || body.loginHeroImageUrl !== undefined) {
+    // Legacy: also sync to settings.branding for backward compat
+    if (body.address !== undefined || body.colors !== undefined || body.loginHeroImageUrl !== undefined || body.primaryColor !== undefined || body.secondaryColor !== undefined) {
       const currentSettings = (org.settings && typeof org.settings === 'object'
         ? org.settings as Record<string, unknown>
         : {}) as Record<string, unknown>
@@ -79,13 +91,9 @@ export async function PATCH(req: NextRequest) {
         : {}) as Record<string, unknown>
       if (body.address !== undefined) branding.address = body.address?.trim() ?? null
       if (body.loginHeroImageUrl !== undefined) branding.loginHeroImageUrl = body.loginHeroImageUrl && String(body.loginHeroImageUrl).trim() ? body.loginHeroImageUrl.trim() : null
-      if (body.colors) {
-        const existing = branding.colors as { primary?: string; secondary?: string } | undefined
-        branding.colors = {
-          primary: body.colors.primary ?? existing?.primary ?? '#003366',
-          secondary: body.colors.secondary ?? existing?.secondary ?? '#c4a006',
-        }
-      }
+      const primary = body.primaryColor ?? body.colors?.primary ?? (branding.colors as { primary?: string })?.primary ?? '#003366'
+      const secondary = body.secondaryColor ?? body.colors?.secondary ?? (branding.colors as { secondary?: string })?.secondary ?? '#c4a006'
+      branding.colors = { primary, secondary }
       updates.settings = { ...currentSettings, branding }
     }
 
