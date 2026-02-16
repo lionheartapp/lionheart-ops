@@ -3,6 +3,13 @@ import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
 
+function normalizeWebsite(raw: string | null | undefined): string | null {
+  const s = raw?.trim()
+  if (!s) return null
+  if (/^https?:\/\//i.test(s)) return s
+  return `https://${s}`
+}
+
 /**
  * PATCH /api/setup/branding - Save org branding (address, logo, etc.) from setup wizard.
  * Requires Bearer token; user must belong to the org.
@@ -60,7 +67,7 @@ export async function PATCH(req: NextRequest) {
       updates.name = body.name.trim()
     }
     if (body.website !== undefined) {
-      updates.website = body.website?.trim() || null
+      updates.website = normalizeWebsite(body.website)
     }
 
     if (body.address !== undefined || body.colors !== undefined || body.loginHeroImageUrl !== undefined) {

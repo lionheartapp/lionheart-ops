@@ -490,9 +490,9 @@ function SetupWizard({
                   <label className="block text-xs font-medium text-zinc-600 mb-1">Website</label>
                   <div className="flex gap-2">
                     <input
-                      type="url"
+                      type="text"
                       className="flex-1 rounded-lg px-3 py-2 text-zinc-900 bg-white border border-zinc-200 focus:ring-2 focus:ring-[#3b82f6]/30 outline-none"
-                      placeholder="https://yourschool.com"
+                      placeholder="e.g. linfield.com, www.linfield.com, or https://linfield.com"
                       value={schoolData.website}
                       onChange={(e) => setSchoolData((p) => ({ ...p, website: e.target.value }))}
                     />
