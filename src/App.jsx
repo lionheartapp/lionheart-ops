@@ -20,6 +20,7 @@ import PendingApprovalsWidget from './components/PendingApprovalsWidget'
 import ITDashboardRequests from './components/ITDashboardRequests'
 import FacilitiesDashboardRequests from './components/FacilitiesDashboardRequests'
 import PondHealthWidget from './components/PondHealthWidget'
+import WidgetErrorBoundary from './components/WidgetErrorBoundary'
 import AVEventNotifications from './components/AVEventNotifications'
 import TopBar from './components/TopBar'
 import CommandBar from './components/CommandBar'
@@ -481,10 +482,12 @@ export default function App() {
                     <>
                       {hasWaterManagement && (
                         <section>
-                          <PondHealthWidget
-                            setSupportRequests={setSupportRequests}
-                            currentUser={effectiveUser}
-                          />
+                          <WidgetErrorBoundary>
+                            <PondHealthWidget
+                              setSupportRequests={setSupportRequests}
+                              currentUser={effectiveUser}
+                            />
+                          </WidgetErrorBoundary>
                         </section>
                       )}
                       <section>
