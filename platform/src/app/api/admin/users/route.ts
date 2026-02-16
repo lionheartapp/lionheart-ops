@@ -32,10 +32,13 @@ export async function GET(req: NextRequest) {
       }
 
       const users = await prisma.user.findMany({
-        select: { id: true, name: true, email: true, role: true, canSubmitEvents: true },
+        select: { id: true, name: true, email: true, role: true, canSubmitEvents: true, teamIds: true },
         orderBy: [{ role: 'asc' }, { name: 'asc' }],
       })
-      return NextResponse.json(users, { headers: corsHeaders })
+      return NextResponse.json(
+        users.map((u) => ({ ...u, teamIds: u.teamIds ?? [] })),
+        { headers: corsHeaders }
+      )
     })
   } catch (err) {
     if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {

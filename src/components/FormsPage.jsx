@@ -9,6 +9,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { createForm, submissionToEvent } from '../data/formsData'
+import { shouldCreatePersonalForm } from '../data/teamsData'
 import { platformPost, platformPatch, platformFetch } from '../services/platformApi'
 import { buildApproversMailtoUrl } from '../utils/pendingApprovals'
 import FormBuilderModal from './FormBuilderModal'
@@ -117,6 +118,7 @@ export default function FormsPage({
         steps: updated.steps ?? [],
         approvalWorkflow: updated.approvalWorkflow,
         submissionType: updated.submissionType ?? 'general',
+        ...(isNew && { visibility: shouldCreatePersonalForm(currentUser) ? 'personal' : 'org' }),
       }
       let saved
       if (isNew) {

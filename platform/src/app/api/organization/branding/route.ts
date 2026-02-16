@@ -53,6 +53,7 @@ export async function PATCH(req: NextRequest) {
         secondaryColor?: string | null
         latitude?: number | null
         longitude?: number | null
+        allowTeacherEventRequests?: boolean
       }
 
       const org = await prismaBase.organization.findUnique({
@@ -91,6 +92,7 @@ export async function PATCH(req: NextRequest) {
       if (body.secondaryColor !== undefined) updates.secondaryColor = body.secondaryColor && String(body.secondaryColor).trim() ? body.secondaryColor.trim() : null
       if (body.latitude !== undefined) updates.latitude = typeof body.latitude === 'number' && !isNaN(body.latitude) ? body.latitude : null
       if (body.longitude !== undefined) updates.longitude = typeof body.longitude === 'number' && !isNaN(body.longitude) ? body.longitude : null
+      if (typeof body.allowTeacherEventRequests === 'boolean') updates.allowTeacherEventRequests = body.allowTeacherEventRequests
 
       if (Object.keys(updates).length === 0) {
         return NextResponse.json({ ok: true })

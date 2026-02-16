@@ -37,7 +37,7 @@ import {
   getItemsByScope,
   getStockByScope,
 } from './data/inventoryData'
-import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, getUserTeamIds } from './data/teamsData'
+import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, getUserTeamIds, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, platformFetch, platformPost } from './services/platformApi'
 
@@ -77,7 +77,7 @@ const tabContent = {
 export default function App() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, refreshOrg, loading: orgLoading } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, allowTeacherEventRequests, refreshOrg, loading: orgLoading } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -439,6 +439,8 @@ export default function App() {
                 orgLongitude={orgLongitude}
                 orgLoading={orgLoading}
                 onOrgBrandingUpdated={refreshOrg}
+                allowTeacherEventRequests={allowTeacherEventRequests}
+                onAllowTeacherEventRequestsChange={refreshOrg}
                 hasWaterManagement={hasWaterManagement}
                 onOpenAddOn={(tab) => setActiveTab(tab)}
               />
@@ -451,8 +453,8 @@ export default function App() {
                 </h1>
                 <CreateDropdown
                   mode="dashboard"
-                  onCreateEvent={canCreate(effectiveUser) ? () => setEventModalOpen(true) : undefined}
-                  onCreateSmartEvent={canCreate(effectiveUser) ? () => setSmartEventModalOpen(true) : undefined}
+                  onCreateEvent={canCreateEvent(effectiveUser, allowTeacherEventRequests) ? () => setEventModalOpen(true) : undefined}
+                  onCreateSmartEvent={canCreateEvent(effectiveUser, allowTeacherEventRequests) ? () => setSmartEventModalOpen(true) : undefined}
                   onFormsRequest={
                     canEdit(effectiveUser)
                       ? () => {
@@ -472,7 +474,7 @@ export default function App() {
                 <div className="flex-1 min-w-0 overflow-auto space-y-8">
                   <OnboardingChecklist
                     onOpenMap={() => setCampusMapModalOpen(true)}
-                    onCreateEvent={canCreate(effectiveUser) ? () => setEventModalOpen(true) : () => setActiveTab('events')}
+                    onCreateEvent={canCreateEvent(effectiveUser, allowTeacherEventRequests) ? () => setEventModalOpen(true) : () => setActiveTab('events')}
                     onNavigateToMembers={() => { setActiveTab('settings'); setSettingsSection('members') }}
                     isEventCreated={events.length > 0}
                     isTeamSetup={(users?.length ?? 0) > 1}
@@ -585,7 +587,7 @@ export default function App() {
                 <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
                   {pageTitle}
                 </h1>
-                {activeTab === 'events' && canCreate(effectiveUser) && (
+                {activeTab === 'events' && canCreateEvent(effectiveUser, allowTeacherEventRequests) && (
                   <CreateDropdown
                     mode="events"
                     onCreateEvent={() => setEventModalOpen(true)}
@@ -606,6 +608,12 @@ export default function App() {
                 )}
               </header>
 
+              {/* Events: Linfield message when user cannot create events */}
+              {activeTab === 'events' && !canCreateEvent(effectiveUser, allowTeacherEventRequests) && (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg px-4 py-2 border border-zinc-200 dark:border-zinc-700">
+                  {EVENT_SCHEDULING_MESSAGE}
+                </p>
+              )}
               {/* Events: calendar, My Events, Generate Landing Page */}
               {activeTab === 'events' && (
                 <EventsPage

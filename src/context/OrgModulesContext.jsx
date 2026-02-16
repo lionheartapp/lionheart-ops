@@ -23,7 +23,7 @@ function extractDomain(website) {
   }
 }
 
-const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: null, secondaryColor: null, trialDaysLeft: null })
+const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: null, secondaryColor: null, trialDaysLeft: null, allowTeacherEventRequests: false })
 
 export function OrgModulesProvider({ children }) {
   const [modules, setModules] = useState(DEFAULT_MODULES)
@@ -38,6 +38,7 @@ export function OrgModulesProvider({ children }) {
   const [secondaryColor, setSecondaryColor] = useState(null)
   const [brandfetchLogoUrl, setBrandfetchLogoUrl] = useState(null)
   const [trialDaysLeft, setTrialDaysLeft] = useState(null)
+  const [allowTeacherEventRequests, setAllowTeacherEventRequests] = useState(false)
 
   const fetchOrg = () => {
     platformGet('/api/organization/settings')
@@ -72,6 +73,8 @@ export function OrgModulesProvider({ children }) {
         if (data?.secondaryColor != null) setSecondaryColor(data.secondaryColor)
         else setSecondaryColor(null)
         if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
+        if (typeof data?.allowTeacherEventRequests === 'boolean') setAllowTeacherEventRequests(data.allowTeacherEventRequests)
+        else setAllowTeacherEventRequests(false)
         setOrgContextFromAPI({ name: data?.name, website: data?.website })
 
         // When no saved logo but we have website, try Brandfetch/Clearbit
@@ -127,6 +130,8 @@ export function OrgModulesProvider({ children }) {
         if (data?.secondaryColor != null) setSecondaryColor(data.secondaryColor)
         else setSecondaryColor(null)
         if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
+        if (typeof data?.allowTeacherEventRequests === 'boolean') setAllowTeacherEventRequests(data.allowTeacherEventRequests)
+        else setAllowTeacherEventRequests(false)
         setOrgContextFromAPI({ name: data?.name, website: data?.website })
 
         // When no saved logo but we have website, try Brandfetch/Clearbit
@@ -167,6 +172,7 @@ export function OrgModulesProvider({ children }) {
     primaryColor: primaryColor || '#3b82f6',
     secondaryColor: secondaryColor || '#f59e0b',
     trialDaysLeft,
+    allowTeacherEventRequests,
     refreshOrg: fetchOrg,
   }
 
@@ -179,5 +185,5 @@ export function OrgModulesProvider({ children }) {
 
 export function useOrgModules() {
   const ctx = useContext(OrgModulesContext)
-  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null }
+  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null, allowTeacherEventRequests: false }
 }

@@ -27,10 +27,12 @@ model Organization {
   longitude            Float?
   primaryColor         String?               // e.g. #3b82f6
   secondaryColor       String?               // e.g. #f59e0b
+  allowTeacherEventRequests Boolean          @default(false)  // Linfield (false): only Admins create events; Alternative (true): teachers submit PENDING_APPROVAL
   settings             Json?
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   budgets              Budget[]
+  teams                Team[]
   buildings            Building[]
   events               Event[]
   expenses             Expense[]
@@ -71,6 +73,7 @@ model User {
   name             String?
   imageUrl         String?
   role             UserRole          @default(VIEWER)
+  teamIds          String[]          @default([])  // e.g. ['teachers'], ['it','facilities'] — drives visibility/features
   canSubmitEvents  Boolean           @default(false)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -81,6 +84,19 @@ model User {
   submittedTickets Ticket[]          @relation("SubmittedTickets")
   organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String   // e.g. "IT", "Maintenance", "Teachers"
+  slug           String   // e.g. "it", "facilities", "teachers" — used in User.teamIds
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, slug])
   @@index([organizationId])
 }
 
@@ -241,13 +257,16 @@ model Form {
   title            String
   description      String            @default("")
   config           Json?             // fields, layout, approvalWorkflow, submissionType, etc.
+  visibility       String            @default("org")  // 'org' = everyone in org; 'personal' = only creator sees it
   createdBy        String?
+  createdByUserId  String?           // for personal forms: only this user sees the form
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submissions      FormSubmission[]
 
   @@index([organizationId])
+  @@index([createdByUserId])
 }
 
 model FormSubmission {

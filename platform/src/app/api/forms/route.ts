@@ -11,7 +11,9 @@ function toFrontendForm(f: {
   title: string
   description: string
   config: unknown
+  visibility?: string | null
   createdBy: string | null
+  createdByUserId?: string | null
   createdAt: Date
   updatedAt: Date
 }) {
@@ -29,17 +31,34 @@ function toFrontendForm(f: {
     steps: config.steps ?? [],
     approvalWorkflow: config.approvalWorkflow ?? null,
     submissionType: config.submissionType ?? 'general',
+    visibility: f.visibility ?? 'org',
+    isPersonal: (f.visibility ?? 'org') === 'personal',
     createdBy: f.createdBy ?? '',
     createdAt: f.createdAt.toISOString(),
     updatedAt: f.updatedAt.toISOString(),
   }
 }
 
-/** GET /api/forms — Fetch all forms for the current organization */
+/** GET /api/forms — Fetch all forms: org-wide + personal forms owned by current user */
 export async function GET(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+      let currentUserId: string | null = null
+      const authHeader = req.headers.get('authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        const payload = await verifyToken(authHeader.slice(7))
+        if (payload?.userId) currentUserId = payload.userId
+      }
       const forms = await prisma.form.findMany({
+        where:
+          currentUserId == null
+            ? { visibility: 'org' }
+            : {
+                OR: [
+                  { visibility: 'org' },
+                  { visibility: 'personal', createdByUserId: currentUserId },
+                ],
+              },
         orderBy: { updatedAt: 'desc' },
       })
       return NextResponse.json(
@@ -79,13 +98,16 @@ export async function POST(req: NextRequest) {
         steps?: unknown[]
         approvalWorkflow?: unknown
         submissionType?: string
+        visibility?: 'org' | 'personal'
       }
 
       let createdBy: string | null = null
+      let createdByUserId: string | null = null
       const authHeader = req.headers.get('authorization')
       if (authHeader?.startsWith('Bearer ')) {
         const payload = await verifyToken(authHeader.slice(7))
         if (payload?.userId) {
+          createdByUserId = payload.userId
           const user = await prisma.user.findUnique({
             where: { id: payload.userId },
             select: { name: true, email: true },
@@ -94,6 +116,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      const visibility = body.visibility === 'personal' ? 'personal' : 'org'
       const config = {
         showTitle: body.showTitle ?? true,
         fields: body.fields ?? [],
@@ -111,7 +134,9 @@ export async function POST(req: NextRequest) {
           title: (body.title ?? 'Untitled form').trim(),
           description: (body.description ?? '').trim(),
           config: config as object,
+          visibility,
           createdBy: createdBy ?? null,
+          createdByUserId: visibility === 'personal' ? createdByUserId : null,
         },
       })
 

@@ -62,8 +62,8 @@ export async function PATCH(
         return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders })
       }
 
-      const body = (await req.json()) as { role?: string; name?: string }
-      const updates: { role?: UserRole; name?: string } = {}
+      const body = (await req.json()) as { role?: string; name?: string; teamIds?: string[] }
+      const updates: { role?: UserRole; name?: string; teamIds?: string[] } = {}
 
       if (body.name != null && typeof body.name === 'string') {
         const trimmed = body.name.trim()
@@ -90,6 +90,11 @@ export async function PATCH(
         updates.role = newRole
       }
 
+      if (Array.isArray(body.teamIds)) {
+        const valid = ['admin', 'teachers', 'students', 'it', 'facilities', 'av', 'web', 'athletics', 'security', 'admissions', 'health-office', 'transportation', 'after-school', 'pto']
+        updates.teamIds = body.teamIds.filter((id) => typeof id === 'string' && valid.includes(id.trim().toLowerCase()))
+      }
+
       if (Object.keys(updates).length === 0) {
         return NextResponse.json(
           { error: 'No valid updates' },
@@ -100,10 +105,15 @@ export async function PATCH(
       const updated = await prisma.user.update({
         where: { id: userId },
         data: updates,
-        select: { id: true, email: true, name: true, role: true },
+        select: { id: true, email: true, name: true, role: true, teamIds: true },
       })
 
-      return NextResponse.json({ user: updated }, { headers: corsHeaders })
+      return NextResponse.json({
+        user: {
+          ...updated,
+          teamIds: updated.teamIds ?? [],
+        },
+      }, { headers: corsHeaders })
     })
   } catch (err) {
     if (err instanceof Error && err.message.includes('Cannot demote or remove the last Super Admin')) {

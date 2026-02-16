@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { EventStatus } from '@prisma/client'
 import { prisma, prismaBase } from '@/lib/prisma'
 import { withOrg, getOrgId } from '@/lib/orgContext'
+import { verifyToken } from '@/lib/auth'
 import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
+import { isAdminOrSuperAdmin } from '@/lib/roles'
 
 // Auto-route: Elementary room → Elementary Principal + Maintenance
 async function getRoutedToIds(roomId: string | null | undefined): Promise<string[]> {
@@ -52,8 +55,13 @@ export async function GET(req: NextRequest) {
     return await withOrg(req, prismaBase, async () => {
       const orgId = getOrgId()
       if (!orgId) return NextResponse.json([], { status: 200 })
+      const url = new URL(req.url)
+      const includePending = url.searchParams.get('includePending') === 'true'
       const list = await prisma.event.findMany({
-        where: { organizationId: orgId },
+        where: {
+          organizationId: orgId,
+          ...(includePending ? {} : { status: 'APPROVED' }),
+        },
         orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
         include: {
           room: { select: { name: true } },
@@ -70,6 +78,7 @@ export async function GET(req: NextRequest) {
         roomId: e.roomId,
         room: e.room ? { name: e.room.name } : null,
         submittedBy: e.submittedBy ? { name: e.submittedBy.name } : null,
+        status: e.status,
       }))
       return NextResponse.json(events)
     })
@@ -85,42 +94,77 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
-    await requireActivePlan(prismaBase, getOrgId()!)
-    const body = (await req.json()) as {
-      name: string
-      description?: string
-      date: string
-      startTime: string
-      endTime?: string
-      roomId?: string
-      chairsRequested?: number
-      tablesRequested?: number
-      submittedById?: string
-    }
+      const orgId = getOrgId()
+      if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      await requireActivePlan(prismaBase, orgId)
 
-    const { name, date, startTime, roomId, submittedById } = body
-    if (!name || !date || !startTime) {
-      return NextResponse.json({ error: 'Missing name, date, or startTime' }, { status: 400 })
-    }
+      const org = await prismaBase.organization.findUnique({
+        where: { id: orgId },
+        select: { allowTeacherEventRequests: true },
+      })
+      const allowTeacherEventRequests = org?.allowTeacherEventRequests ?? false
 
-    const routedToIds = await getRoutedToIds(roomId ?? null)
+      let currentUserId: string | null = null
+      let currentUserRole: string | null = null
+      const authHeader = req.headers.get('authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        const payload = await verifyToken(authHeader.slice(7))
+        if (payload?.userId) {
+          currentUserId = payload.userId
+          const user = await prismaBase.user.findUnique({
+            where: { id: payload.userId },
+            select: { role: true },
+          })
+          currentUserRole = user?.role ?? null
+        }
+      }
 
-    const event = await prisma.event.create({
-      data: {
-        name,
-        description: body.description,
-        date,
-        startTime,
-        endTime: body.endTime,
-        roomId: body.roomId,
-        chairsRequested: body.chairsRequested,
-        tablesRequested: body.tablesRequested,
-        submittedById: body.submittedById,
-        routedToIds,
-      },
-    })
+      const body = (await req.json()) as {
+        name: string
+        description?: string
+        date: string
+        startTime: string
+        endTime?: string
+        roomId?: string
+        chairsRequested?: number
+        tablesRequested?: number
+        submittedById?: string
+      }
 
-    return NextResponse.json(event)
+      const { name, date, startTime, roomId, submittedById } = body
+      if (!name || !date || !startTime) {
+        return NextResponse.json({ error: 'Missing name, date, or startTime' }, { status: 400 })
+      }
+
+      const isAdmin = isAdminOrSuperAdmin(currentUserRole)
+      const eventStatus: EventStatus = isAdmin ? 'APPROVED' : 'PENDING_APPROVAL'
+
+      if (!isAdmin && !allowTeacherEventRequests) {
+        return NextResponse.json(
+          { error: 'Event scheduling is managed by Site Administration. Please contact your Site Secretary to book a facility.' },
+          { status: 403 }
+        )
+      }
+
+      const routedToIds = await getRoutedToIds(roomId ?? null)
+
+      const event = await prisma.event.create({
+        data: {
+          name,
+          description: body.description,
+          date,
+          startTime,
+          endTime: body.endTime,
+          roomId: body.roomId,
+          chairsRequested: body.chairsRequested,
+          tablesRequested: body.tablesRequested,
+          submittedById: submittedById ?? currentUserId ?? body.submittedById,
+          routedToIds,
+          status: eventStatus,
+        },
+      })
+
+      return NextResponse.json(event)
     })
   } catch (err) {
     if (err instanceof PlanRestrictedError) {

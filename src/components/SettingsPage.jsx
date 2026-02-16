@@ -322,6 +322,74 @@ function AppsSection({ currentUser, teams, hasTeamInventory, showInventoryPref, 
   )
 }
 
+function GeneralSection({ currentUser, allowTeacherEventRequests, onAllowTeacherEventRequestsChange }) {
+  const isSuperAdmin = currentUser?.role === 'super-admin'
+  const [saving, setSaving] = useState(false)
+  const [value, setValue] = useState(!!allowTeacherEventRequests)
+  useEffect(() => setValue(!!allowTeacherEventRequests), [allowTeacherEventRequests])
+
+  const handleToggle = async () => {
+    if (!isSuperAdmin || !onAllowTeacherEventRequestsChange) return
+    const next = !value
+    setSaving(true)
+    try {
+      const res = await platformPatch('/api/organization/branding', { allowTeacherEventRequests: next })
+      if (res.ok) {
+        setValue(next)
+        onAllowTeacherEventRequestsChange()
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="space-y-6 max-w-2xl">
+        <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">General</h2>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Only Super Admins can change workspace governance settings.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">General</h2>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        Control who can add events to the Master Calendar.
+      </p>
+      <div className="glass-card p-6 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="font-medium text-zinc-900 dark:text-zinc-100">Teacher event requests</h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+              <strong>Off (Linfield model):</strong> Only Admins and Super Admins can create events. Teachers see a message to contact Site Secretary.
+              <br />
+              <strong>On (Alternative):</strong> Teachers can submit event requests; they appear as pending until an Admin approves.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={value}
+            disabled={saving}
+            onClick={handleToggle}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 ${
+              value ? 'bg-blue-500' : 'bg-zinc-300 dark:bg-zinc-600'
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition ${
+                value ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AccountSection({ currentUser }) {
   const nameParts = (currentUser?.name ?? '').split(' ')
   const [firstName, setFirstName] = useState(nameParts[0] ?? '')
@@ -698,6 +766,8 @@ function SettingsSectionContent({
   orgLongitude,
   orgLoading,
   onOrgBrandingUpdated,
+  allowTeacherEventRequests,
+  onAllowTeacherEventRequestsChange,
   hasWaterManagement,
   onOpenAddOn,
 }) {
@@ -753,6 +823,13 @@ function SettingsSectionContent({
         onLogoUpdated={onOrgBrandingUpdated}
       />
     ),
+    general: (
+      <GeneralSection
+        currentUser={currentUser}
+        allowTeacherEventRequests={allowTeacherEventRequests}
+        onAllowTeacherEventRequestsChange={onAllowTeacherEventRequestsChange}
+      />
+    ),
   }
 
   if (content[section]) return content[section]
@@ -805,6 +882,8 @@ export default function SettingsPage({
   orgLatitude,
   orgLongitude,
   orgLoading = false,
+  allowTeacherEventRequests = false,
+  onAllowTeacherEventRequestsChange,
   hasWaterManagement = false,
   onOpenAddOn,
 }) {
@@ -885,13 +964,15 @@ export default function SettingsPage({
           hasTeamInventory={hasTeamInventory}
           showInventoryPref={showInventoryPref}
           onInventoryPrefChange={onInventoryPrefChange}
-        orgLogoUrl={orgLogoUrl}
-        orgName={orgName}
-        orgWebsite={orgWebsite}
-        orgAddress={orgAddress}
-        orgLatitude={orgLatitude}
-        orgLongitude={orgLongitude}
-        orgLoading={orgLoading}
+          orgLogoUrl={orgLogoUrl}
+          orgName={orgName}
+          orgWebsite={orgWebsite}
+          orgAddress={orgAddress}
+          orgLatitude={orgLatitude}
+          orgLongitude={orgLongitude}
+          orgLoading={orgLoading}
+          allowTeacherEventRequests={allowTeacherEventRequests}
+          onAllowTeacherEventRequestsChange={onAllowTeacherEventRequestsChange}
         onOrgBrandingUpdated={onOrgBrandingUpdated}
         hasWaterManagement={hasWaterManagement}
         onOpenAddOn={onOpenAddOn}

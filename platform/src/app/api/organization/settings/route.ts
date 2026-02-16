@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
       const org = await prismaBase.organization.findUnique({
         where: { id: orgId },
-        select: { settings: true, name: true, logoUrl: true, website: true, address: true, city: true, state: true, zip: true, primaryColor: true, secondaryColor: true, plan: true, trialEndsAt: true, latitude: true, longitude: true },
+        select: { settings: true, name: true, logoUrl: true, website: true, address: true, city: true, state: true, zip: true, primaryColor: true, secondaryColor: true, plan: true, trialEndsAt: true, latitude: true, longitude: true, allowTeacherEventRequests: true },
       })
       const settings = org?.settings && typeof org.settings === 'object' ? org.settings as Record<string, unknown> : {}
       const branding = settings?.branding && typeof settings.branding === 'object' ? settings.branding as Record<string, unknown> : {}
@@ -35,16 +35,17 @@ export async function GET(req: NextRequest) {
           modules,
           name: org?.name ?? null,
           logoUrl: org?.logoUrl ?? null,
-        website: org?.website ?? null,
-        address,
-        city: org?.city ?? null,
-        state: org?.state ?? null,
-        zip: org?.zip ?? null,
+          website: org?.website ?? null,
+          address,
+          city: org?.city ?? null,
+          state: org?.state ?? null,
+          zip: org?.zip ?? null,
           primaryColor,
           secondaryColor,
           trialDaysLeft,
           latitude: org?.latitude ?? null,
           longitude: org?.longitude ?? null,
+          allowTeacherEventRequests: org?.allowTeacherEventRequests ?? false,
         },
         { headers: corsHeaders }
       )

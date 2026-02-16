@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
 import { withOrg, getOrgId } from '@/lib/orgContext'
+import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
 import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
 
@@ -10,6 +11,7 @@ function toFrontendForm(f: {
   title: string
   description: string
   config: unknown
+  visibility?: string | null
   createdBy: string | null
   createdAt: Date
   updatedAt: Date
@@ -28,10 +30,19 @@ function toFrontendForm(f: {
     steps: config.steps ?? [],
     approvalWorkflow: config.approvalWorkflow ?? null,
     submissionType: config.submissionType ?? 'general',
+    visibility: f.visibility ?? 'org',
     createdBy: f.createdBy ?? '',
     createdAt: f.createdAt.toISOString(),
     updatedAt: f.updatedAt.toISOString(),
   }
+}
+
+/** Require that current user can edit this form (org form = any org user with edit; personal = only creator) */
+async function getCurrentUserId(req: NextRequest): Promise<string | null> {
+  const authHeader = req.headers.get('authorization')
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const payload = await verifyToken(authHeader.slice(7))
+  return payload?.userId ?? null
 }
 
 /** PATCH /api/forms/[formId] — Update a form */
@@ -64,6 +75,12 @@ export async function PATCH(
       const existing = await prisma.form.findFirst({ where: { id: formId } })
       if (!existing) {
         return NextResponse.json({ error: 'Form not found' }, { status: 404, headers: corsHeaders })
+      }
+      if (existing.visibility === 'personal' && existing.createdByUserId) {
+        const userId = await getCurrentUserId(req)
+        if (userId !== existing.createdByUserId) {
+          return NextResponse.json({ error: 'Only the form owner can edit this form' }, { status: 403, headers: corsHeaders })
+        }
       }
 
       const config = (existing.config as Record<string, unknown>) || {}
@@ -121,6 +138,16 @@ export async function DELETE(
 
     return await withOrg(req, prismaBase, async () => {
       await requireActivePlan(prismaBase, getOrgId()!)
+      const existing = await prisma.form.findFirst({ where: { id: formId } })
+      if (!existing) {
+        return NextResponse.json({ error: 'Form not found' }, { status: 404, headers: corsHeaders })
+      }
+      if (existing.visibility === 'personal' && existing.createdByUserId) {
+        const userId = await getCurrentUserId(req)
+        if (userId !== existing.createdByUserId) {
+          return NextResponse.json({ error: 'Only the form owner can delete this form' }, { status: 403, headers: corsHeaders })
+        }
+      }
       await prisma.form.delete({ where: { id: formId } })
       return new NextResponse(null, { status: 204, headers: corsHeaders })
     })

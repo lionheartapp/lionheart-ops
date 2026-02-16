@@ -100,6 +100,46 @@ export function isAVTeam(user, teams) {
   return ids.includes('av') || user.role === 'admin'
 }
 
+/** User is in the Teachers team (sees calendar, requests, personal forms only; no events) */
+export function isTeacherTeam(user) {
+  if (!user) return false
+  const ids = getUserTeamIds(user)
+  return ids.includes('teachers') || user.role === 'admin' || user.role === 'super-admin'
+}
+
+/** User is only in Teachers (and/or students, etc.) — no IT/Maintenance/A/V/Admin. They cannot create events; forms they create are personal. */
+export function isTeachersOnly(user) {
+  if (!user) return false
+  if (user.role === 'admin' || user.role === 'super-admin') return false
+  const ids = getUserTeamIds(user)
+  const operational = ['it', 'facilities', 'av', 'admin', 'security', 'web', 'athletics']
+  const hasOperational = operational.some((t) => ids.includes(t))
+  return !hasOperational && ids.length >= 0
+}
+
+/**
+ * Can show "Create Event" / "Request Event" and submit to API.
+ * Respects SaaS toggle (Linfield vs Alternative):
+ * - allowTeacherEventRequests === false (Linfield): only Admin/Super Admin can create events.
+ * - allowTeacherEventRequests === true (Alternative): any canCreate user (including teachers) can submit; backend sets PENDING_APPROVAL for non-admins.
+ */
+export function canCreateEvent(user, allowTeacherEventRequests = false) {
+  if (!user) return false
+  const isAdmin = user.role === 'admin' || user.role === 'super-admin'
+  if (isAdmin) return true
+  if (allowTeacherEventRequests) return canCreate(user)
+  return false
+}
+
+/** Linfield model: event scheduling message when user cannot create events. */
+export const EVENT_SCHEDULING_MESSAGE =
+  'Event scheduling is managed by the Site Administration. Please contact your Site Secretary to book a facility.'
+
+/** Forms created by teachers-only are personal (only visible to them). */
+export function shouldCreatePersonalForm(user) {
+  return isTeachersOnly(user)
+}
+
 export function isSuperAdmin(user) {
   return user?.role === 'super-admin' || user?.role === 'SUPER_ADMIN'
 }
