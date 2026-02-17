@@ -48,8 +48,7 @@ export async function POST(req: NextRequest) {
 
     const slug = schoolName
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || 'school'
+      .replace(/[^a-z0-9]/g, '') || 'school'
 
     const slugExists = await prismaBase.organization.findUnique({ where: { slug } })
     const uniqueSlug = slugExists ? `${slug}-${Date.now().toString(36)}` : slug

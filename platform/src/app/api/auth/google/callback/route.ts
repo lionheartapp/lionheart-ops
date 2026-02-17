@@ -151,8 +151,8 @@ export async function GET(req: NextRequest) {
         // Create new school (first user = SUPER_ADMIN)
         isNewUser = true
         createdNewOrg = true
-        const baseSlug = emailDomain ? emailDomain.split('.')[0] : email.replace(/@.*/, '').replace(/[^a-z0-9]+/g, '-')
-        const slug = (baseSlug || 'school').replace(/^-|-$/g, '')
+        const baseSlug = emailDomain ? emailDomain.split('.')[0] : email.replace(/@.*/, '').replace(/[^a-z0-9]/g, '')
+        const slug = (baseSlug || 'school').toLowerCase().replace(/[^a-z0-9]/g, '') || 'school'
         const slugExists = await prismaBase.organization.findUnique({ where: { slug } })
         const uniqueSlug = slugExists ? `${slug}-${Date.now().toString(36).slice(-6)}` : slug
 
