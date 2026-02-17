@@ -347,8 +347,10 @@ function SetupWizard({
     if (schoolData.address) params.set('orgAddress', schoolData.address)
     if (schoolData.logoUrl && schoolData.logoUrl.startsWith('http')) params.set('orgLogoUrl', schoolData.logoUrl)
     const qs = params.toString()
+    // Stay on same origin so auth token in localStorage is preserved (avoid 401 on onboarding).
+    const appUrl = typeof window !== 'undefined' ? `${window.location.origin}/app?${qs}` : `${LIONHEART_URL}/app?${qs}`
     setTimeout(() => {
-      window.location.href = `${LIONHEART_URL}/app?${qs}`
+      window.location.href = appUrl
     }, 2000)
   }
 

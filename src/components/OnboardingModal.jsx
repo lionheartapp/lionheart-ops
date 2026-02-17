@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { platformFetch, clearAuthToken } from '../services/platformApi'
+import { platformFetch, clearAuthToken, getAuthToken } from '../services/platformApi'
 
 const ROLE_OPTIONS = [
   { label: 'Administrator', value: 'Administrator' },
@@ -9,7 +9,8 @@ const ROLE_OPTIONS = [
   { label: 'IT Support', value: 'IT Support' },
   { label: 'Secretary / Office Staff', value: 'Secretary' },
   { label: 'A/V or Media', value: 'AV' },
-  { label: 'Athletics / Coach', value: 'Teacher' },
+  { label: 'Athletics / Coach', value: 'Coach' },
+  { label: 'Security', value: 'Security' },
   { label: 'Viewer (read-only)', value: 'Viewer' },
 ]
 
@@ -22,6 +23,12 @@ export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete 
   const showLogo = orgLogoUrl && !logoError
 
   const handleComplete = async () => {
+    if (!getAuthToken()) {
+      setError('Your session expired. Redirecting to sign in…')
+      clearAuthToken()
+      setTimeout(() => router.push('/login?error=session_expired'), 800)
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -34,8 +41,9 @@ export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete 
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         if (res.status === 401) {
+          setError('Your session expired. Redirecting to sign in…')
           clearAuthToken()
-          router.push('/login?error=session_expired')
+          setTimeout(() => router.push('/login?error=session_expired'), 800)
           return
         }
         throw new Error(data?.error || 'Update failed')
