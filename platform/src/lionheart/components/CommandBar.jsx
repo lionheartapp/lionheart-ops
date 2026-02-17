@@ -25,6 +25,10 @@ function getTeamLabel(teamIds) {
     transportation: 'Transportation',
     'after-school': 'After-School',
     pto: 'PTO',
+    'elementary-school': 'Elementary School',
+    'middle-school': 'Middle School',
+    'high-school': 'High School',
+    global: 'Global',
   }
   return teamIds.map((id) => labels[id] || id).join(', ') || 'Staff'
 }

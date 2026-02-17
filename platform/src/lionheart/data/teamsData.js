@@ -27,7 +27,7 @@ export const ROLES = [
   },
 ]
 
-// Standard Pre-built Teams
+// Standard Pre-built Teams (roles + divisions)
 export const DEFAULT_TEAMS = [
   { id: 'admin', name: 'Administration' },
   { id: 'teachers', name: 'Teachers' },
@@ -38,6 +38,10 @@ export const DEFAULT_TEAMS = [
   { id: 'web', name: 'Web' },
   { id: 'athletics', name: 'Athletics' },
   { id: 'security', name: 'Campus Safety' },
+  { id: 'elementary-school', name: 'Elementary School' },
+  { id: 'middle-school', name: 'Middle School' },
+  { id: 'high-school', name: 'High School' },
+  { id: 'global', name: 'Global / All divisions' },
 ]
 
 // Additional teams suggested when adding a new team (high-traffic facility/event departments)

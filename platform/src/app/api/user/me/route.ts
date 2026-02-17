@@ -25,18 +25,31 @@ const ROLE_MAP: Record<string, string> = {
   Administrator: 'ADMIN',
   Secretary: 'SITE_SECRETARY',
   AV: 'MAINTENANCE',
+  Media: 'MAINTENANCE',
+  Security: 'MAINTENANCE',
+  Coach: 'TEACHER',
   Viewer: 'VIEWER',
 }
 
 /** When user sets role via onboarding, set default team so they see the right views (e.g. A/V -> av, Teacher -> teachers). */
 const ROLE_TO_DEFAULT_TEAM: Record<string, string> = {
   AV: 'av',
+  Media: 'av',
   Teacher: 'teachers',
   Maintenance: 'facilities',
   'IT Support': 'it',
   Secretary: 'admin',
   Administrator: 'admin',
+  Security: 'security',
+  Coach: 'athletics',
 }
+
+/** Division/area and role team ids allowed for self-assignment (onboarding, settings). */
+const VALID_TEAM_IDS = [
+  'admin', 'teachers', 'students', 'it', 'facilities', 'av', 'web', 'athletics', 'security',
+  'admissions', 'health-office', 'transportation', 'after-school', 'pto',
+  'elementary-school', 'middle-school', 'high-school', 'global',
+]
 
 /** Map DB role to Lionheart role format */
 function toLionheartRole(dbRole: string | null): string {
@@ -132,10 +145,9 @@ export async function PATCH(req: NextRequest) {
         }
       }
     }
-    // Teams: self-assign team membership (e.g. onboarding or settings). Valid ids aligned with frontend DEFAULT_TEAMS.
+    // Teams: self-assign team membership (e.g. onboarding or settings). Valid ids include divisions and roles.
     if (Array.isArray(body.teamIds)) {
-      const valid = ['admin', 'teachers', 'students', 'it', 'facilities', 'av', 'web', 'athletics', 'security', 'admissions', 'health-office', 'transportation', 'after-school', 'pto']
-      updates.teamIds = body.teamIds.filter((id) => typeof id === 'string' && valid.includes(id.trim().toLowerCase()))
+      updates.teamIds = body.teamIds.filter((id) => typeof id === 'string' && VALID_TEAM_IDS.includes(id.trim().toLowerCase()))
     }
 
     if (Object.keys(updates).length === 0) {
@@ -145,11 +157,35 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
-    const user = await prismaBase.user.update({
+    // Ensure user still exists (e.g. after DB reset or stale token)
+    const existing = await prismaBase.user.findUnique({
       where: { id: payload.userId },
-      data: updates,
-      include: { organization: true },
     })
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'User not found. Please sign in again.', code: 'SESSION_INVALID' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    let user
+    try {
+      user = await prismaBase.user.update({
+        where: { id: payload.userId },
+        data: updates,
+        include: { organization: true },
+      })
+    } catch (updateErr: unknown) {
+      const msg = updateErr instanceof Error ? updateErr.message : String(updateErr)
+      const code = (updateErr as { code?: string })?.code
+      if (code === 'P2025' || /record.*not found|to update not found/i.test(msg)) {
+        return NextResponse.json(
+          { error: 'User not found. Please sign in again.', code: 'SESSION_INVALID' },
+          { status: 401, headers: corsHeaders }
+        )
+      }
+      throw updateErr
+    }
 
     const isSuperAdmin = user.role === 'SUPER_ADMIN'
     return NextResponse.json(

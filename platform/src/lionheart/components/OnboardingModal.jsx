@@ -1,20 +1,31 @@
 import { useState } from 'react'
 import { platformFetch } from '../services/platformApi'
 
+const DIVISION_OPTIONS = [
+  { label: 'Elementary School', value: 'elementary-school' },
+  { label: 'Middle School', value: 'middle-school' },
+  { label: 'High School', value: 'high-school' },
+  { label: 'Athletics', value: 'athletics' },
+  { label: 'Global / All divisions', value: 'global' },
+]
+
 const ROLE_OPTIONS = [
   { label: 'Administrator', value: 'Administrator' },
-  { label: 'Teacher / Staff', value: 'Teacher' },
+  { label: 'Teacher', value: 'Teacher' },
   { label: 'Maintenance', value: 'Maintenance' },
-  { label: 'IT Support', value: 'IT Support' },
+  { label: 'Security', value: 'Security' },
+  { label: 'IT', value: 'IT Support' },
+  { label: 'A/V', value: 'AV' },
+  { label: 'Coach', value: 'Coach' },
   { label: 'Secretary / Office Staff', value: 'Secretary' },
-  { label: 'A/V or Media', value: 'AV' },
-  { label: 'Athletics / Coach', value: 'Teacher' },
+  { label: 'Media', value: 'Media' },
   { label: 'Viewer (read-only)', value: 'Viewer' },
 ]
 
 export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [division, setDivision] = useState('')
   const [role, setRole] = useState('')
   const [logoError, setLogoError] = useState(false)
   const showLogo = orgLogoUrl && !logoError
@@ -23,14 +34,26 @@ export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete 
     setLoading(true)
     setError('')
     try {
+      const teamIds = []
+      if (division) teamIds.push(division)
+      const roleDefaultTeam = { Administrator: 'admin', Teacher: 'teachers', Maintenance: 'facilities', Security: 'security', 'IT Support': 'it', AV: 'av', Coach: 'athletics', Secretary: 'admin', Media: 'av', Viewer: null }
+      const roleTeam = roleDefaultTeam[role]
+      if (roleTeam && !teamIds.includes(roleTeam)) teamIds.push(roleTeam)
       const res = await platformFetch('/api/user/me', {
         method: 'PATCH',
         body: JSON.stringify({
           role: role || undefined,
+          teamIds: teamIds.length ? teamIds : undefined,
         }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
+        if (res.status === 401 && (data?.code === 'SESSION_INVALID' || /sign in again|not found/i.test(data?.error || ''))) {
+          const { clearAuthToken } = await import('../services/platformApi')
+          clearAuthToken()
+          if (typeof window !== 'undefined') window.location.href = '/login'
+          return
+        }
         throw new Error(data?.error || 'Update failed')
       }
       const data = await res.json()
@@ -58,6 +81,21 @@ export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete 
               Welcome to Lionheart!
             </h2>
           )}
+          <p className="text-zinc-500 dark:text-zinc-400">
+            Division or area
+          </p>
+          <select
+            value={division}
+            onChange={(e) => setDivision(e.target.value)}
+            className="w-full p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="">Select division…</option>
+            {DIVISION_OPTIONS.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.label}
+              </option>
+            ))}
+          </select>
           <p className="text-zinc-500 dark:text-zinc-400">
             What&apos;s your primary role?
           </p>
