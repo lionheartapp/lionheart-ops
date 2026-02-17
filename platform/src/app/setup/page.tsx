@@ -210,8 +210,8 @@ function SetupWizard({
           website: data.website || data.domain || '',
           logoUrl: data.logo || '',
           loginHeroImageUrl: '',
-          primaryColor: PRIMARY,
-          secondaryColor: SECONDARY,
+          primaryColor: '',
+          secondaryColor: '',
         })
       } else {
         setManualMode(true)
@@ -453,7 +453,7 @@ function SetupWizard({
                           <Loader2 className="w-5 h-5 animate-spin text-[#3b82f6]" />
                           <span className="text-sm text-zinc-600">Fetching logo and colors from your website…</span>
                         </div>
-                      ) : (schoolData.logoUrl || searchResult.logo) || schoolData.primaryColor || schoolData.secondaryColor ? (
+                      ) : (schoolData.logoUrl || searchResult.logo) || (schoolData.primaryColor && schoolData.secondaryColor) ? (
                         <div className="flex items-center gap-4 flex-wrap">
                           {(schoolData.logoUrl || searchResult.logo) && (
                             <div className="flex items-center gap-2">
@@ -463,15 +463,17 @@ function SetupWizard({
                               <span className="text-xs text-emerald-600 font-medium">Logo found</span>
                             </div>
                           )}
-                          {(schoolData.primaryColor || schoolData.secondaryColor) && (
+                          {schoolData.primaryColor && schoolData.secondaryColor ? (
                             <div className="flex items-center gap-2">
                               <div className="flex rounded-lg overflow-hidden border border-zinc-200">
-                                <div className="w-8 h-8" style={{ backgroundColor: schoolData.primaryColor || PRIMARY }} title="Primary" />
-                                <div className="w-8 h-8" style={{ backgroundColor: schoolData.secondaryColor || SECONDARY }} title="Secondary" />
+                                <div className="w-8 h-8" style={{ backgroundColor: schoolData.primaryColor }} title="Primary" />
+                                <div className="w-8 h-8" style={{ backgroundColor: schoolData.secondaryColor }} title="Secondary" />
                               </div>
                               <span className="text-xs text-emerald-600 font-medium">Colors found</span>
                             </div>
-                          )}
+                          ) : (searchResult.website || searchResult.domain) ? (
+                            <p className="text-sm text-zinc-500">Colors not yet extracted. Click below to pull from your website.</p>
+                          ) : null}
                         </div>
                       ) : (
                         <p className="text-sm text-zinc-500 mb-3">We&apos;ll pull your logo and colors from your website.</p>

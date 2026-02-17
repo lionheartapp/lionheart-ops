@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import Sidebar from './components/Sidebar'
@@ -40,7 +40,7 @@ import {
 } from './data/inventoryData'
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
-import { getAuthToken, platformFetch, platformPost } from './services/platformApi'
+import { getAuthToken, platformFetch, platformPost, setCurrentOrgId } from './services/platformApi'
 
 const INVENTORY_PREFS_KEY = 'schoolops-inventory-prefs'
 
@@ -76,8 +76,9 @@ const tabContent = {
 }
 
 export default function App() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, allowTeacherEventRequests, refreshOrg, loading: orgLoading } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
@@ -143,6 +144,12 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Set org from URL so API calls include x-org-id (e.g. /app?orgId=xxx after setup)
+  useEffect(() => {
+    const orgId = searchParams?.get('orgId')?.trim()
+    if (orgId) setCurrentOrgId(orgId)
+  }, [searchParams])
 
   // Apply userName/userEmail from URL (fallback when coming from setup - API may not have loaded yet)
   useEffect(() => {
@@ -1114,11 +1121,10 @@ export default function App() {
           orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
           orgName={orgName || searchParams.get('orgName')}
           onComplete={(updatedUser) => {
-            setSearchParams((p) => {
-              const next = new URLSearchParams(p)
-              next.delete('onboarding')
-              return next
-            })
+            const next = new URLSearchParams(searchParams.toString())
+            next.delete('onboarding')
+            const q = next.toString()
+            router.replace(q ? `${pathname || '/app'}?${q}` : (pathname || '/app'))
             if (updatedUser && effectiveUser?.id === currentUser?.id) {
               setCurrentUser((prev) => ({ ...prev, name: updatedUser.name, role: updatedUser.role }))
             }

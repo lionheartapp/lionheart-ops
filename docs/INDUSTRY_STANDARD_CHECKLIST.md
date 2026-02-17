@@ -6,9 +6,9 @@
 
 ## Executive Summary
 
-**Current strengths:** Multi-tenant SaaS foundation, Google OAuth, setup wizard, subdomain branding, tiered modules, campus map/3D, event management, IT/Facilities ticketing UI, forms builder, AI features, water/pond module, expense tracking, knowledge base.
+**Current strengths:** Single Next.js app (UI + API, same-origin), multi-tenant SaaS, Google OAuth, setup wizard, subdomain branding, tiered modules, campus map/3D, event management, IT/Facilities ticketing UI with tickets API, events API wired, forms builder, AI features, water/pond module, expense tracking, knowledge base, global error boundary.
 
-**Main gaps:** Incomplete data persistence, no billing integration, fragmented app architecture, limited testing/observability, missing compliance and mobile features.
+**Main gaps:** Forms/inventory still in-memory or local; no billing integration; limited testing/observability; missing compliance and mobile features.
 
 ---
 
@@ -16,20 +16,19 @@
 
 | Item | Status | Priority | Notes |
 |------|--------|----------|-------|
-| **Tickets CRUD API** | ❌ Missing | P0 | `Ticket` exists in Prisma but no `/api/tickets`; frontend uses `INITIAL_SUPPORT_REQUESTS` + React state. All ticket create/assign/update/resolve is in-memory only. |
-| **Events sync to Platform** | ⚠️ Partial | P0 | Event creator saves to React state; Platform `POST /api/events` exists but Lionheart UI doesn't call it. Two sources of truth. |
-| **Forms persistence** | ❌ Missing | P0 | Forms and submissions in `formsData.js` + React state. No DB, no API. |
-| **Inventory persistence** | ❌ Missing | P0 | `inventoryData.js` + localStorage. No org-scoped DB. |
-| **Users/Members sync** | ⚠️ Partial | P1 | Members page uses local state; Platform has User model. No sync. |
+| **Tickets CRUD API** | ✅ Done | — | `GET/POST /api/tickets`, `PATCH /api/tickets/[ticketId]`; frontend uses `platformFetch` to load and mutate. Persisted per org. |
+| **Events sync** | ✅ Wired | P0 | Dashboard loads events from `/api/events`; EventCreatorModal/SmartEventModal call `POST /api/events`. Single source of truth. |
+| **Forms persistence** | ✅ Done | — | Form + FormSubmission APIs; dashboard loads/saves forms and submissions per org. |
+| **Inventory persistence** | ❌ Missing | P0 | `inventoryData.js` + localStorage. Schema exists; no org-scoped API. |
+| **Users/Members sync** | ⚠️ Partial | P1 | Members page uses local state; User model and `/api/user/me` exist. No full members list API or sync. |
 | **Teams persistence** | ❌ Missing | P1 | Teams in `teamsData.js` DEFAULT_TEAMS + local state. No DB. |
-| **Event–ticket linking** | ⚠️ Partial | P1 | Event notifications create tickets in React state only; no DB link. |
+| **Event–ticket linking** | ⚠️ Partial | P1 | Event notifications can create tickets via API; ensure event↔ticket link in DB where needed. |
 
 ### Actions
-- [ ] Build `/api/tickets` (GET list, POST create, PATCH update status/assignee)
-- [ ] Wire EventCreatorModal/SmartEventModal to `POST /api/events` and load events from API on app init
-- [ ] Add Form + FormSubmission models and APIs; migrate forms UI to platform
-- [ ] Add InventoryItem/Stock APIs (or use existing schema); sync inventory to DB
-- [ ] Sync members/users from Platform; add Teams model if needed
+- [x] ~~Add Form + FormSubmission models and APIs; migrate forms UI to use them~~ (done)
+- [ ] Add InventoryItem/Stock APIs (schema exists); sync inventory to DB, remove localStorage
+- [ ] Expose members list API; sync members/users from Platform in UI
+- [ ] Add Teams model and API if needed; replace DEFAULT_TEAMS with DB
 - [ ] Link Event ↔ Ticket in DB when event creates facility/IT tickets
 
 ---
@@ -57,17 +56,16 @@
 
 | Item | Status | Priority | Notes |
 |------|--------|----------|-------|
-| **Single app** | ❌ Two apps | P1 | Vite (Lionheart) on :5173 + Next.js (Platform) on :3001. CORS, separate deploys. |
+| **Single app** | ✅ Done | — | One Next.js app at root: dashboard at `/app`, API at `/api`, same-origin. No CORS for app; single deploy (e.g. app.lionheartapp.com). |
 | **Real-time** | ❌ Missing | P2 | No WebSockets or SSE. No live ticket/event updates. |
 | **Offline / PWA** | ❌ Missing | P2 | No service worker, no offline support. |
 | **CDN / Assets** | ⚠️ Unknown | P2 | Logo, images—ensure caching headers. |
 | **Env validation** | ⚠️ Minimal | P2 | No strict schema for required env vars at startup. |
 
 ### Actions
-- [ ] Consider merging into single Next.js app (Lionheart as app routes) or use Vite behind proxy on same origin
 - [ ] Add WebSockets or polling for ticket/event updates (optional)
 - [ ] Add PWA manifest + service worker for critical flows
-- [ ] Document and validate env vars (e.g. zod in platform)
+- [ ] Document and validate env vars (e.g. zod at startup)
 
 ---
 
@@ -75,11 +73,11 @@
 
 | Item | Status | Priority | Notes |
 |------|--------|----------|-------|
-| **CORS** | ✅ Present | — | Configured in platform |
-| **Auth** | ✅ Google OAuth | — | JWT in localStorage; callback flow |
-| **Password auth** | ⚠️ Platform only | P1 | Next.js login page has email/password; Lionheart uses OAuth. |
-| **Row-level security** | ⚠️ API-level | P1 | `withOrg` filters; no DB RLS. Ensure all queries scoped. |
-| **Audit logging** | ❌ Missing | P1 | No log of who changed what (settings, roles, deletions). |
+| **CORS** | ✅ Present | — | Configured for `/api/*` where needed. |
+| **Auth** | ✅ Google OAuth | — | JWT in localStorage; callback flow; same-origin API. |
+| **Password auth** | ⚠️ Present | — | Login page has email/password; OAuth also available. |
+| **Row-level security** | ⚠️ API-level | P1 | `withOrg`-style filters; no DB RLS. Ensure all queries org-scoped. |
+| **Audit logging** | ⚠️ Schema | P1 | AuditLog model exists; no middleware or UI. |
 | **Data export** | ❌ Missing | P1 | No GDPR/FERPA “export my data” for schools. |
 | **Data retention** | ❌ Missing | P2 | No policy for old tickets, events, logs. |
 | **HTTPS / HSTS** | ⚠️ Deploy-dependent | P1 | Ensure production uses HTTPS; HSTS headers. |
@@ -87,7 +85,7 @@
 | **FERPA / COPPA** | ⚠️ Unknown | P1 | Student data handling; age restrictions; consent flows. |
 
 ### Actions
-- [ ] Add audit log table + middleware for sensitive mutations
+- [ ] Add audit middleware and UI for sensitive mutations (AuditLog)
 - [ ] Implement data export (JSON/CSV) for org admin
 - [ ] Document data retention and FERPA/COPPA posture
 - [ ] Add rate limiting on auth and public APIs
@@ -99,7 +97,7 @@
 
 | Item | Status | Priority | Notes |
 |------|--------|----------|-------|
-| **In-app notifications** | ⚠️ Basic | P1 | TopBar has notifications dropdown; appears static/mock. |
+| **In-app notifications** | ⚠️ Basic | P1 | TopBar has notifications dropdown; may be static/mock. |
 | **Email** | ⚠️ Partial | P1 | Resend referenced; monthly report cron. Invite flow uses link, no email. |
 | **Ticket assignment alerts** | ❌ Missing | P1 | No email/Slack when ticket assigned. |
 | **Event reminders** | ❌ Missing | P2 | No reminder before event (owner, facilities, IT). |
@@ -176,16 +174,15 @@
 | **Unit tests** | ❌ Missing | P1 | No Jest/Vitest. |
 | **API tests** | ❌ Missing | P1 | No integration tests for routes. |
 | **E2E tests** | ❌ Missing | P1 | No Playwright/Cypress. |
-| **Error boundaries** | ❌ Missing | P1 | No React error boundary; uncaught errors crash app. |
-| **Monitoring** | ❌ Missing | P1 | No Sentry, LogRocket, or APM. |
+| **Error boundaries** | ✅ Present | — | GlobalErrorBoundary wraps dashboard; WidgetErrorBoundary for widgets. |
+| **Monitoring** | ⚠️ Stub | P1 | Instrument stub (no-op); no Sentry/LogRocket/APM. |
 | **Logging** | ⚠️ console | P2 | No structured logs, no log aggregation. |
 
 ### Actions
 - [ ] Add Vitest; unit test teamsData, parseMembersCsv, eventNotifications
 - [ ] Add API integration tests (tickets, events, auth)
 - [ ] Add Playwright E2E for login, create ticket, create event
-- [ ] Add React error boundary + fallback UI
-- [ ] Integrate Sentry (or similar) for errors
+- [ ] Integrate Sentry (or similar) for errors (replace stub in instrument.js)
 - [ ] Structured logging (pino/winston) + export to CloudWatch/Datadog
 
 ---
@@ -238,34 +235,33 @@
 
 ## 12. Prioritized Roadmap (Suggested Order)
 
-### Phase 1: Core persistence (4–6 weeks)
-1. Tickets API + wire frontend
-2. Events sync (create/load from Platform)
-3. Forms + submissions persistence
-4. Basic error boundary + Sentry
+### Phase 1: Remaining core persistence (2–3 weeks)
+1. ~~Forms + submissions persistence~~ (done)
+2. Inventory APIs + DB sync (replace localStorage)
+3. Replace Sentry stub with real error tracking
 
 ### Phase 2: Billing & compliance (3–4 weeks)
-5. Stripe Checkout + webhooks
-6. Audit logging
-7. Data export
-8. Rate limiting
+4. Stripe Checkout + webhooks
+5. Audit logging (middleware + UI)
+6. Data export
+7. Rate limiting
 
 ### Phase 3: Notifications & reporting (2–3 weeks)
-9. Email for assignments, approvals, invites
-10. Ticket analytics dashboard
-11. Export (CSV) for tickets, events, members
+8. Email for assignments, approvals, invites
+9. Ticket analytics dashboard
+10. Export (CSV) for tickets, events, members
 
 ### Phase 4: Integrations & scale (4–6 weeks)
-12. SSO (SAML/OIDC)
-13. SIS import (CSV or API)
-14. Google Calendar sync (optional)
-15. Consolidate to single app (optional)
+11. SSO (SAML/OIDC)
+12. SIS import (CSV or API)
+13. Google Calendar sync (optional)
+14. Real-time updates (WebSockets or polling, optional)
 
 ### Phase 5: Polish (ongoing)
-16. E2E tests
-17. API docs
-18. In-app help
-19. Mobile optimization
+15. E2E tests
+16. API docs
+17. In-app help
+18. Mobile optimization
 
 ---
 
@@ -273,16 +269,17 @@
 
 | Area | Have | Need |
 |------|------|------|
+| **Architecture** | Single Next.js app, same-origin API | Real-time, PWA optional |
 | **Auth** | Google OAuth, JWT, domain join | SSO, MFA, session management |
-| **Tickets** | UI, schema | API, persistence, notifications |
-| **Events** | UI, Platform API | Frontend sync, calendar import |
-| **Forms** | Builder, submissions | Persistence, templates |
-| **Inventory** | UI, schema | API, shortage alerts |
+| **Tickets** | API + UI, persistence | Notifications, analytics |
+| **Events** | API + UI, persistence | Calendar import, reminders |
+| **Forms** | Builder, submissions UI, API + DB | Templates, export |
+| **Inventory** | UI, schema | API, persistence, shortage alerts |
 | **Billing** | Schema | Stripe, webhooks, enforcement |
-| **Testing** | — | Unit, API, E2E |
-| **Monitoring** | — | Error tracking, APM |
+| **Testing** | Error boundaries | Unit, API, E2E |
+| **Monitoring** | Stub | Sentry/APM |
 | **Docs** | Internal docs | API docs, user guide |
 
 ---
 
-*Last updated: Feb 2025*
+*Last updated: Feb 2026*

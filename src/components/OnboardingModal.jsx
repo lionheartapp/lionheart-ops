@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { platformFetch } from '../services/platformApi'
+import { useRouter } from 'next/navigation'
+import { platformFetch, clearAuthToken } from '../services/platformApi'
 
 const ROLE_OPTIONS = [
   { label: 'Administrator', value: 'Administrator' },
@@ -13,6 +14,7 @@ const ROLE_OPTIONS = [
 ]
 
 export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete }) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [role, setRole] = useState('')
@@ -29,11 +31,15 @@ export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete 
           role: role || undefined,
         }),
       })
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
+        if (res.status === 401) {
+          clearAuthToken()
+          router.push('/login?error=session_expired')
+          return
+        }
         throw new Error(data?.error || 'Update failed')
       }
-      const data = await res.json()
       onComplete?.(data?.user)
     } catch (err) {
       setError(err?.message || 'Something went wrong')

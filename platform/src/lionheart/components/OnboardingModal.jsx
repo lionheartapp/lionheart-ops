@@ -9,13 +9,14 @@ const DIVISION_OPTIONS = [
   { label: 'Global / All divisions', value: 'global' },
 ]
 
+// Order: division-like first (per user request), then roles
 const ROLE_OPTIONS = [
   { label: 'Administrator', value: 'Administrator' },
   { label: 'Teacher', value: 'Teacher' },
   { label: 'Maintenance', value: 'Maintenance' },
   { label: 'Security', value: 'Security' },
   { label: 'IT', value: 'IT Support' },
-  { label: 'A/V', value: 'AV' },
+  { label: 'AV', value: 'AV' },
   { label: 'Coach', value: 'Coach' },
   { label: 'Secretary / Office Staff', value: 'Secretary' },
   { label: 'Media', value: 'Media' },
@@ -48,18 +49,29 @@ export default function OnboardingModal({ user, orgLogoUrl, orgName, onComplete 
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        if (res.status === 401 && (data?.code === 'SESSION_INVALID' || /sign in again|not found/i.test(data?.error || ''))) {
+        const msg = data?.error || ''
+        if (res.status === 401 || /session invalid|sign in again|user not found/i.test(msg)) {
           const { clearAuthToken } = await import('../services/platformApi')
           clearAuthToken()
-          if (typeof window !== 'undefined') window.location.href = '/login'
+          if (typeof window !== 'undefined') {
+            setError('Redirecting to sign in…')
+            window.location.href = '/login'
+          }
           return
         }
-        throw new Error(data?.error || 'Update failed')
+        throw new Error(msg || 'Update failed')
       }
       const data = await res.json()
       onComplete?.(data?.user)
     } catch (err) {
-      setError(err?.message || 'Something went wrong')
+      const msg = err?.message || 'Something went wrong'
+      if (/user not found|sign in again|session invalid/i.test(msg)) {
+        const { clearAuthToken } = await import('../services/platformApi')
+        clearAuthToken()
+        if (typeof window !== 'undefined') window.location.href = '/login'
+        return
+      }
+      setError(msg)
       setLoading(false)
     }
   }
