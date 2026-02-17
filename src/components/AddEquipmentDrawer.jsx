@@ -19,6 +19,7 @@ export default function AddEquipmentDrawer({
 }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [ownerId, setOwnerId] = useState('')
   const [locationRows, setLocationRows] = useState([{ quantity: 1, location: LOCATIONS[0], usage: '' }])
   const [allowCheckout, setAllowCheckout] = useState(false)
   const [category, setCategory] = useState('')
@@ -55,10 +56,17 @@ export default function AddEquipmentDrawer({
     setSaving(true)
     try {
       if (getAuthToken()) {
-        const itemRes = await platformPost('/api/inventory', {
+        const itemPayload = {
           name: trimmedName,
           teamId: inventoryScope,
-        })
+          description: description?.trim() || undefined,
+          ownerId: ownerId?.trim() || undefined,
+          allowCheckout,
+          checkoutCategory: category?.trim() || undefined,
+          manufacturer: manufacturer?.trim() || undefined,
+          model: model?.trim() || undefined,
+        }
+        const itemRes = await platformPost('/api/inventory', itemPayload)
         if (!itemRes.ok) {
           const err = await itemRes.json().catch(() => ({}))
           throw new Error(err.error || 'Failed to create item')
@@ -72,6 +80,7 @@ export default function AddEquipmentDrawer({
               itemId: item.id,
               location: row.location.trim(),
               quantity: qty,
+              usageNotes: row.usage?.trim() || undefined,
             })
             if (stockRes.ok) {
               const stockEntry = await stockRes.json()
@@ -90,12 +99,18 @@ export default function AddEquipmentDrawer({
             itemId: id,
             location: r.location.trim(),
             quantity: Math.max(0, Math.floor(Number(r.quantity) || 0)),
+            usageNotes: r.usage?.trim() || undefined,
           }))
         onSaved?.({ item: newItem, stockEntries: mockStock })
       }
       onClose()
       setName('')
       setDescription('')
+      setOwnerId('')
+      setAllowCheckout(false)
+      setCategory('')
+      setManufacturer('')
+      setModel('')
       setLocationRows([{ quantity: 1, location: LOCATIONS[0], usage: '' }])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -108,6 +123,11 @@ export default function AddEquipmentDrawer({
     if (!saving) {
       setName('')
       setDescription('')
+      setOwnerId('')
+      setAllowCheckout(false)
+      setCategory('')
+      setManufacturer('')
+      setModel('')
       setLocationRows([{ quantity: 1, location: LOCATIONS[0], usage: '' }])
       setError('')
       onClose()
@@ -152,7 +172,12 @@ export default function AddEquipmentDrawer({
             {users?.length > 0 && (
               <div>
                 <label htmlFor="eq-owner" className={labelClass}>Owner</label>
-                <select id="eq-owner" className={inputClass}>
+                <select
+                  id="eq-owner"
+                  className={inputClass}
+                  value={ownerId}
+                  onChange={(e) => setOwnerId(e.target.value)}
+                >
                   <option value="">None</option>
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>

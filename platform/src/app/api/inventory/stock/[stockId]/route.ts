@@ -28,13 +28,16 @@ export async function PATCH(
       if (!existing || (orgId && existing.item?.organizationId !== orgId)) {
         return NextResponse.json({ error: 'Not found' }, { status: 404, headers: corsHeaders })
       }
-      const body = (await req.json()) as { location?: string; quantity?: number }
-      const updates: { location?: string; quantity?: number } = {}
+      const body = (await req.json()) as { location?: string; quantity?: number; usageNotes?: string }
+      const updates: { location?: string; quantity?: number; usageNotes?: string | null } = {}
       if (body.location != null && typeof body.location === 'string') {
         updates.location = body.location.trim()
       }
       if (typeof body.quantity === 'number') {
         updates.quantity = Math.max(0, Math.floor(body.quantity))
+      }
+      if ('usageNotes' in body) {
+        updates.usageNotes = typeof body.usageNotes === 'string' ? body.usageNotes.trim() || null : null
       }
       if (Object.keys(updates).length === 0) {
         return NextResponse.json(

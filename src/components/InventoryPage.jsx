@@ -89,10 +89,11 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
             itemId: entry.itemId,
             location: entry.location,
             quantity: entry.quantity || 0,
+            usageNotes: entry.usageNotes?.trim() || undefined,
           })
           if (res.ok) {
             const created = await res.json()
-            setStock((prev) => [...(prev || []), created])
+            setStock((prev) => [...(prev || []), { ...created, usageNotes: created.usageNotes ?? entry.usageNotes }])
             setAddingStock(null)
             setEditingStock(null)
             return
@@ -109,11 +110,16 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
           const res = await platformFetch(`/api/inventory/stock/${entry.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: entry.location, quantity: entry.quantity ?? 0 }),
+            body: JSON.stringify({
+              location: entry.location,
+              quantity: entry.quantity ?? 0,
+              usageNotes: entry.usageNotes !== undefined ? (entry.usageNotes?.trim() || null) : undefined,
+            }),
           })
           if (res.ok) {
+            const updated = await res.json().catch(() => ({}))
             setStock((prev) =>
-              prev.map((s) => (s.id === entry.id ? { ...s, location: entry.location, quantity: entry.quantity } : s))
+              prev.map((s) => (s.id === entry.id ? { ...s, ...updated, usageNotes: updated.usageNotes ?? entry.usageNotes } : s))
             )
             setEditingStock(null)
             return
@@ -123,7 +129,7 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
         }
       }
       setStock((prev) =>
-        prev.map((s) => (s.id === entry.id ? { ...s, location: entry.location, quantity: entry.quantity } : s))
+        prev.map((s) => (s.id === entry.id ? { ...s, location: entry.location, quantity: entry.quantity, usageNotes: entry.usageNotes } : s))
       )
     }
     setEditingStock(null)
@@ -150,7 +156,7 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
 
   const addStockRow = (itemId) => {
     setAddingStock(itemId)
-    setEditingStock({ id: null, itemId, location: LOCATIONS[0], quantity: 0 })
+    setEditingStock({ id: null, itemId, location: LOCATIONS[0], quantity: 0, usageNotes: '' })
   }
 
   const scopeLabel = inventoryScope === 'personal' ? 'Personal' : inventoryScope === 'av' ? 'A/V' : inventoryScope === 'it' ? 'IT' : 'Facilities'
@@ -182,13 +188,23 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
                   onChange={(e) => setEditingStock((p) => ({ ...p, quantity: parseInt(e.target.value, 10) || 0 }))}
                   className="w-16 px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
                 />
+                <input
+                  type="text"
+                  placeholder="Usage"
+                  value={editingStock.usageNotes ?? ''}
+                  onChange={(e) => setEditingStock((p) => ({ ...p, usageNotes: e.target.value }))}
+                  className="min-w-[100px] px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
+                />
                 <button type="button" onClick={() => saveStockEdit(editingStock)} className="text-xs font-medium text-blue-500 hover:underline">Save</button>
                 <button type="button" onClick={() => removeStockEntry(s.id)} className="text-xs font-medium text-red-500 hover:underline">Remove</button>
               </>
             ) : (
               <>
                 <MapPin className="w-3.5 h-3.5 text-zinc-500" />
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">{s.location}: {s.quantity}</span>
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                  {s.location}: {s.quantity}
+                  {s.usageNotes?.trim() ? ` — ${s.usageNotes.trim()}` : ''}
+                </span>
                 <button type="button" onClick={() => setEditingStock({ ...s })} className="p-0.5 rounded text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700" title="Edit">
                   <Pencil className="w-3 h-3" />
                 </button>
@@ -197,7 +213,7 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
           </div>
         ))}
         {addingStock === item.id && editingStock && !editingStock.id && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30">
+          <div className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30">
             <select
               value={editingStock.location}
               onChange={(e) => setEditingStock((p) => ({ ...p, location: e.target.value }))}
@@ -213,6 +229,13 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
               value={editingStock.quantity}
               onChange={(e) => setEditingStock((p) => ({ ...p, quantity: parseInt(e.target.value, 10) || 0 }))}
               className="w-16 px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
+            />
+            <input
+              type="text"
+              placeholder="Usage"
+              value={editingStock.usageNotes ?? ''}
+              onChange={(e) => setEditingStock((p) => ({ ...p, usageNotes: e.target.value }))}
+              className="min-w-[100px] px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
             />
             <button type="button" onClick={() => saveStockEdit({ ...editingStock, itemId: item.id })} className="text-xs font-medium text-blue-500 hover:underline">Add</button>
             <button type="button" onClick={() => { setAddingStock(null); setEditingStock(null) }} className="text-xs font-medium text-zinc-500 hover:underline">Cancel</button>
@@ -347,18 +370,6 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
               >
                 <Plus className="w-4 h-4" /> Add equipment
               </button>
-              <form onSubmit={addItem} className="flex gap-2">
-                <input
-                  type="text"
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  placeholder="e.g. 8' table"
-                  className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm w-48"
-                />
-                <button type="submit" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                  <Plus className="w-4 h-4" /> Add item
-                </button>
-              </form>
             </div>
           )}
         </div>
@@ -463,6 +474,15 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
               </button>
             </div>
             <div className="p-4 overflow-auto">
+              {(detailItem.description || detailItem.owner || detailItem.manufacturer || detailItem.model) && (
+                <div className="mb-4 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 space-y-1 text-sm">
+                  {detailItem.description && <p className="text-zinc-700 dark:text-zinc-300">{detailItem.description}</p>}
+                  {detailItem.owner && <p className="text-zinc-500 dark:text-zinc-400">Owner: {detailItem.owner.name || detailItem.owner.email}</p>}
+                  {(detailItem.manufacturer || detailItem.model) && (
+                    <p className="text-zinc-500 dark:text-zinc-400">{[detailItem.manufacturer, detailItem.model].filter(Boolean).join(' · ')}</p>
+                  )}
+                </div>
+              )}
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
                 Total: {getTotalAvailable(stockList, detailItem.id)} · {getStockByLocation(detailItem.id).length} location{getStockByLocation(detailItem.id).length !== 1 ? 's' : ''}
               </p>

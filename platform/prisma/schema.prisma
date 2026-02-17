@@ -83,6 +83,7 @@ model User {
   assignedTickets  Ticket[]          @relation("AssignedTickets")
   submittedTickets Ticket[]          @relation("SubmittedTickets")
   organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownedInventoryItems InventoryItem[] @relation("OwnedInventoryItems")
 
   @@index([organizationId])
 }
@@ -300,26 +301,39 @@ model KnowledgeBaseEntry {
 }
 
 model InventoryItem {
-  id             String           @id @default(cuid())
-  organizationId String?
-  name           String
-  teamId         String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  stock          InventoryStock[]
+  id                 String           @id @default(cuid())
+  organizationId     String?
+  name               String
+  teamId             String?
+  description        String?
+  ownerId            String?
+  allowCheckout      Boolean          @default(false)
+  checkoutCategory   String?
+  manufacturer       String?
+  model              String?
+  serialNumbers      String?          // JSON array of strings
+  imageUrl           String?
+  documentationLinks String?          // JSON array of { url, title, type }
+  tags               String?          // JSON array of { id?, name, color? }
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organization       Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner              User?            @relation("OwnedInventoryItems", fields: [ownerId], references: [id], onDelete: SetNull)
+  stock              InventoryStock[]
 
   @@index([organizationId])
+  @@index([ownerId])
 }
 
 model InventoryStock {
-  id        String        @id @default(cuid())
-  itemId    String
-  location  String
-  quantity  Int           @default(0)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  item      InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  id         String        @id @default(cuid())
+  itemId     String
+  location   String
+  quantity   Int           @default(0)
+  usageNotes String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  item       InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([itemId])
   @@index([location])
