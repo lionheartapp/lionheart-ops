@@ -8,6 +8,17 @@ const PLATFORM_URL = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_
 const ORG_ID = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_CURRENT_ORG_ID?.trim()) || ''
 const AUTH_KEY = 'lionheart-auth-token'
 
+/** When on a school subdomain (e.g. linfieldchristianschool.lionheartapp.com), set by SubdomainResolver so API calls use that org. */
+let _currentOrgId = ''
+
+export function setCurrentOrgId(orgId) {
+  _currentOrgId = (orgId && String(orgId).trim()) || ''
+}
+
+export function getCurrentOrgId() {
+  return _currentOrgId || ORG_ID
+}
+
 export function getAuthToken() {
   try {
     return localStorage.getItem(AUTH_KEY)
@@ -33,8 +44,9 @@ function getHeaders(init = {}) {
   const token = getAuthToken()
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
-  } else if (ORG_ID) {
-    headers.set('x-org-id', ORG_ID)
+  } else {
+    const orgId = _currentOrgId || ORG_ID
+    if (orgId) headers.set('x-org-id', orgId)
   }
   const isFormData = init.body instanceof FormData
   if (!isFormData && !headers.has('Content-Type')) {

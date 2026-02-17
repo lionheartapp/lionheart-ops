@@ -53,6 +53,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         found: true,
+        id: org.id,
         name: org.name,
         slug: org.slug,
         logoUrl: org.logoUrl || null,

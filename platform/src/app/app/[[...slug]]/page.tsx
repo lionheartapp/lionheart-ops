@@ -3,18 +3,21 @@
 import { Suspense } from 'react'
 import { ThemeProvider } from '@/lionheart/context/ThemeContext'
 import { OrgModulesProvider } from '@/lionheart/context/OrgModulesContext'
+import { SubdomainResolver } from '@/lionheart/components/SubdomainResolver'
 import DashboardApp from '@/lionheart/App'
 import GlobalErrorBoundary from '@/lionheart/components/GlobalErrorBoundary'
 
 function DashboardContent() {
   return (
-    <ThemeProvider>
-      <GlobalErrorBoundary>
-        <OrgModulesProvider>
-          <DashboardApp />
-        </OrgModulesProvider>
-      </GlobalErrorBoundary>
-    </ThemeProvider>
+    <SubdomainResolver>
+      <ThemeProvider>
+        <GlobalErrorBoundary>
+          <OrgModulesProvider>
+            <DashboardApp />
+          </OrgModulesProvider>
+        </GlobalErrorBoundary>
+      </ThemeProvider>
+    </SubdomainResolver>
   )
 }
 

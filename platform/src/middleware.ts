@@ -1,7 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { corsHeaders } from '@/lib/cors'
 
+const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
+
+function getSubdomainFromHost(host: string): string | null {
+  const base = host.replace(/^www\./, '')
+  // subdomain.lionheartapp.com or subdomain.localhost
+  if (base.endsWith('.localhost')) {
+    const sub = base.replace(/\.localhost$/, '')
+    return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
+  }
+  const parts = base.split('.')
+  if (parts.length >= 2) {
+    const sub = parts[0]
+    return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
+  }
+  return null
+}
+
 export function middleware(req: NextRequest) {
+  // Subdomain root → redirect to dashboard (e.g. linfieldchristianschool.lionheartapp.com/ → /app)
+  if (req.nextUrl.pathname === '/') {
+    const host = req.headers.get('host') || ''
+    const sub = getSubdomainFromHost(host)
+    if (sub) {
+      const url = req.nextUrl.clone()
+      url.pathname = '/app'
+      return NextResponse.redirect(url)
+    }
+  }
+
   if (req.method === 'OPTIONS') {
     return new NextResponse(null, { status: 204, headers: corsHeaders })
   }
@@ -47,4 +75,4 @@ export function middleware(req: NextRequest) {
   return NextResponse.next()
 }
 
-export const config = { matcher: '/api/:path*' }
+export const config = { matcher: ['/', '/api/:path*'] }
