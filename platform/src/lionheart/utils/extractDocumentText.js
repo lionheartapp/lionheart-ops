@@ -3,10 +3,11 @@
  * Returns a Promise that resolves to the extracted text, or rejects with an error.
  */
 import * as pdfjsLib from 'pdfjs-dist'
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?url'
 
+// Next.js doesn't support ?url for workers; use CDN so we don't need to bundle the worker
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker
+  const version = pdfjsLib.version || '5.4.624'
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.mjs`
 }
 
 /**
