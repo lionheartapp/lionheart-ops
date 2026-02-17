@@ -3,8 +3,9 @@ import { motion } from 'framer-motion'
 import { Package, MapPin, Plus, Pencil, Trash2, Search, Grid3x3, List, MoreVertical, X } from 'lucide-react'
 import { LOCATIONS, getTotalAvailable, getItemsByScope, getStockByScope } from '../data/inventoryData'
 import { getAuthToken, platformFetch, platformPost } from '../services/platformApi'
+import AddEquipmentDrawer from './AddEquipmentDrawer'
 
-export default function InventoryPage({ items = [], setItems, stock = [], setStock, inventoryScope = 'facilities' }) {
+export default function InventoryPage({ items = [], setItems, stock = [], setStock, inventoryScope = 'facilities', users = [], currentUser }) {
   const itemList = useMemo(() => getItemsByScope(items ?? [], inventoryScope), [items, inventoryScope])
   const stockList = useMemo(() => getStockByScope(stock ?? [], items ?? [], inventoryScope), [stock, items, inventoryScope])
   const [editingStock, setEditingStock] = useState(null)
@@ -15,6 +16,7 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
   const [viewMode, setViewMode] = useState('card')
   const [openMenuId, setOpenMenuId] = useState(null)
   const [detailItemId, setDetailItemId] = useState(null)
+  const [addEquipmentOpen, setAddEquipmentOpen] = useState(false)
   const menuRef = useRef(null)
 
   const filteredAndSortedItems = useMemo(() => {
@@ -236,26 +238,47 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
             {inventoryScope === 'personal'
               ? 'Your personal inventory. Track items and stock by location.'
-              : `${scopeLabel} team inventory. Track items and stock by location.`}
+              : `Manage and track ${scopeLabel.toLowerCase()} equipment.`}
           </p>
         </div>
-        <form onSubmit={addItem} className="flex gap-2 shrink-0">
-          <input
-            type="text"
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="e.g. 8' table"
-            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
-          />
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
-            type="submit"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
+            type="button"
+            onClick={() => setAddEquipmentOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
           >
             <Plus className="w-4 h-4" />
-            Add item
+            Add equipment
           </button>
-        </form>
+          <form onSubmit={addItem} className="flex gap-2">
+            <input
+              type="text"
+              value={newItemName}
+              onChange={(e) => setNewItemName(e.target.value)}
+              placeholder="e.g. 8' table"
+              className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-36"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700"
+            >
+              <Plus className="w-4 h-4" /> Add item
+            </button>
+          </form>
+        </div>
       </div>
+
+      <AddEquipmentDrawer
+        isOpen={addEquipmentOpen}
+        onClose={() => setAddEquipmentOpen(false)}
+        inventoryScope={inventoryScope}
+        users={users}
+        currentUser={currentUser}
+        onSaved={({ item, stockEntries = [] }) => {
+          setItems((prev) => [...(prev ?? []), item])
+          setStock((prev) => [...(prev ?? []), ...stockEntries])
+        }}
+      />
 
       {itemList.length > 0 && (
         <div className="glass-card overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
@@ -316,18 +339,27 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
             {search.trim() ? 'Try adjusting your search.' : 'Get started by adding your first item type.'}
           </p>
           {!search.trim() && (
-            <form onSubmit={addItem} className="flex justify-center gap-2">
-              <input
-                type="text"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                placeholder="e.g. 8' table"
-                className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm w-48"
-              />
-              <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600">
-                <Plus className="w-4 h-4" /> Add item
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setAddEquipmentOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
+              >
+                <Plus className="w-4 h-4" /> Add equipment
               </button>
-            </form>
+              <form onSubmit={addItem} className="flex gap-2">
+                <input
+                  type="text"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  placeholder="e.g. 8' table"
+                  className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm w-48"
+                />
+                <button type="submit" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700">
+                  <Plus className="w-4 h-4" /> Add item
+                </button>
+              </form>
+            </div>
           )}
         </div>
       ) : viewMode === 'card' ? (

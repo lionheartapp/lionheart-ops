@@ -719,6 +719,8 @@ export default function App() {
                     stock={inventoryStock}
                     setStock={setInventoryStock}
                     inventoryScope={inventoryScope}
+                    users={users}
+                    currentUser={effectiveUser}
                   />
                 </>
               )}
