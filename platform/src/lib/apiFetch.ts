@@ -3,7 +3,7 @@
  * Uses Bearer token when logged in, otherwise x-org-id from env.
  */
 const ORG_ID = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID?.trim() || ''
-const AUTH_KEY = 'platform-auth-token'
+const AUTH_KEY = 'lionheart-auth-token'
 
 function getPlatformToken(): string | null {
   if (typeof window === 'undefined') return null

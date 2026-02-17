@@ -3,7 +3,7 @@
 import { Suspense, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
-const AUTH_KEY = 'platform-auth-token'
+const AUTH_KEY = 'lionheart-auth-token'
 
 function AuthCallbackContent() {
   const searchParams = useSearchParams()

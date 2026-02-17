@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-const AUTH_KEY = 'platform-auth-token'
+const AUTH_KEY = 'lionheart-auth-token'
 // Use relative URL - login page is on Platform origin
 const GOOGLE_AUTH_URL = '/api/auth/google?from=platform&intent=login'
 
