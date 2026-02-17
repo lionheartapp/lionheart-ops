@@ -35,7 +35,8 @@
     "react-dom": "^18.3.1",
     "resend": "^6.9.2",
     "stripe": "^20.3.1",
-    "pdfjs-dist": "^5.4.624"
+    "pdfjs-dist": "^5.4.624",
+    "@google/genai": "^1.40.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
