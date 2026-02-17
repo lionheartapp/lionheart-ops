@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Loader2 } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import CreateDropdown from './components/CreateDropdown'
 import EventCreatorModal from './components/EventCreatorModal'
@@ -109,6 +110,10 @@ export default function App() {
   const [inventoryPrefs, setInventoryPrefs] = useState(loadInventoryPrefs)
   const [commandBarOpen, setCommandBarOpen] = useState(false)
   const [campusMapModalOpen, setCampusMapModalOpen] = useState(false)
+  const [formsDataLoaded, setFormsDataLoaded] = useState(false)
+  const [formsLoading, setFormsLoading] = useState(false)
+  const [inventoryDataLoaded, setInventoryDataLoaded] = useState(false)
+  const [inventoryLoading, setInventoryLoading] = useState(false)
 
   const updateTicket = (ticketId, updates) => {
     if (typeof ticketId !== 'string' || ticketId.length < 10) return // Skip mock tickets (numeric id)
@@ -158,51 +163,15 @@ export default function App() {
     }
   }, [searchParams])
 
-  // Bootstrap: fetch app data in parallel; use allSettled so one slow/failed request doesn't block name/nav
+  // Bootstrap: fetch user first so name and nav show fast, then tickets+events (Forms/Inventory load when tab is opened)
   useEffect(() => {
     if (!getAuthToken()) return
     let cancelled = false
     const toJson = (r) => (r.ok ? r.json() : null)
-    Promise.allSettled([
-      platformFetch('/api/user/me').then(toJson),
-      platformFetch('/api/inventory').then(toJson),
-      platformFetch('/api/tickets').then(toJson),
-      platformFetch('/api/forms').then(toJson),
-      platformFetch('/api/forms/submissions').then(toJson),
-      platformFetch('/api/events').then(toJson),
-    ]).then(([me, inv, tickets, forms, submissions, events]) => {
-      if (cancelled) return
-      const meData = me.status === 'fulfilled' ? me.value : null
-      const invData = inv.status === 'fulfilled' ? inv.value : null
-      const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
-      const formsData = forms.status === 'fulfilled' ? forms.value : null
-      const submissionsData = submissions.status === 'fulfilled' ? submissions.value : null
-      const eventsData = events.status === 'fulfilled' ? events.value : null
-
-      if (invData) {
-        if (Array.isArray(invData.items)) setInventoryItems(invData.items)
-        if (Array.isArray(invData.stock)) setInventoryStock(invData.stock)
-      }
-      if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
-      if (Array.isArray(formsData)) setForms(formsData)
-      if (Array.isArray(submissionsData)) setFormSubmissions(submissionsData)
-
-      if (eventsData && Array.isArray(eventsData)) {
-        setEvents(eventsData.map((e) => ({
-          id: e.id,
-          name: e.name,
-          description: e.description,
-          date: e.date,
-          time: e.startTime,
-          endTime: e.endTime,
-          location: e.room?.name || e.location || 'TBD',
-          owner: e.submittedBy?.name,
-          creator: e.submittedBy?.name,
-          watchers: [],
-        })))
-      }
-
-      if (meData?.user) {
+    platformFetch('/api/user/me')
+      .then(toJson)
+      .then((meData) => {
+        if (cancelled || !meData?.user) return
         const u = meData.user
         const userMe = {
           id: u.id,
@@ -221,10 +190,78 @@ export default function App() {
           }
           return [userMe, ...prev]
         })
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    if (!getAuthToken()) return
+    let cancelled = false
+    const toJson = (r) => (r.ok ? r.json() : null)
+    Promise.allSettled([
+      platformFetch('/api/tickets').then(toJson),
+      platformFetch('/api/events').then(toJson),
+    ]).then(([tickets, events]) => {
+      if (cancelled) return
+      const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
+      const eventsData = events.status === 'fulfilled' ? events.value : null
+      if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
+      if (eventsData && Array.isArray(eventsData)) {
+        setEvents(eventsData.map((e) => ({
+          id: e.id,
+          name: e.name,
+          description: e.description,
+          date: e.date,
+          time: e.startTime,
+          endTime: e.endTime,
+          location: e.room?.name || e.location || 'TBD',
+          owner: e.submittedBy?.name,
+          creator: e.submittedBy?.name,
+          watchers: [],
+        })))
       }
     })
     return () => { cancelled = true }
   }, [])
+
+  // Lazy load forms when user opens Forms tab
+  useEffect(() => {
+    if (!getAuthToken() || activeTab !== 'forms' || formsDataLoaded || formsLoading) return
+    let cancelled = false
+    setFormsLoading(true)
+    const toJson = (r) => (r.ok ? r.json() : null)
+    Promise.all([
+      platformFetch('/api/forms').then(toJson),
+      platformFetch('/api/forms/submissions').then(toJson),
+    ]).then(([formsRes, submissionsRes]) => {
+      if (cancelled) return
+      if (Array.isArray(formsRes)) setForms(formsRes)
+      if (Array.isArray(submissionsRes)) setFormSubmissions(submissionsRes)
+      setFormsDataLoaded(true)
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setFormsLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [activeTab, formsDataLoaded, formsLoading])
+
+  // Lazy load inventory when user opens Inventory tab
+  useEffect(() => {
+    if (!getAuthToken() || activeTab !== 'inventory' || inventoryDataLoaded || inventoryLoading) return
+    let cancelled = false
+    setInventoryLoading(true)
+    platformFetch('/api/inventory')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((invData) => {
+        if (cancelled || !invData) return
+        if (Array.isArray(invData.items)) setInventoryItems(invData.items)
+        if (Array.isArray(invData.stock)) setInventoryStock(invData.stock)
+        setInventoryDataLoaded(true)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setInventoryLoading(false) })
+    return () => { cancelled = true }
+  }, [activeTab, inventoryDataLoaded, inventoryLoading])
 
   // Fetch full member list for Admin/Super Admin (after /me so we know role)
   useEffect(() => {
@@ -699,21 +736,28 @@ export default function App() {
 
               {activeTab === 'inventory' && inventoryScope && (
                 <>
-                  {isSA && (
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">View inventory:</span>
-                      <select
-                        value={inventoryScope}
-                        onChange={(e) => setInventoryScopeOverride(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="av">A/V</option>
-                        <option value="facilities">Facilities</option>
-                        <option value="it">IT</option>
-                      </select>
+                  {inventoryLoading ? (
+                    <div className="flex flex-col items-center justify-center py-24 text-zinc-500 dark:text-zinc-400">
+                      <Loader2 className="w-10 h-10 animate-spin mb-3" />
+                      <p className="text-sm">Loading inventory…</p>
                     </div>
-                  )}
-                  <InventoryPage
+                  ) : (
+                    <>
+                      {isSA && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">View inventory:</span>
+                          <select
+                            value={inventoryScope}
+                            onChange={(e) => setInventoryScopeOverride(e.target.value)}
+                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="av">A/V</option>
+                            <option value="facilities">Facilities</option>
+                            <option value="it">IT</option>
+                          </select>
+                        </div>
+                      )}
+                      <InventoryPage
                     items={inventoryItems}
                     setItems={setInventoryItems}
                     stock={inventoryStock}
@@ -722,10 +766,18 @@ export default function App() {
                     users={users}
                     currentUser={effectiveUser}
                   />
+                    </>
+                  )}
                 </>
               )}
 
               {activeTab === 'forms' && (
+                formsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-24 text-zinc-500 dark:text-zinc-400">
+                    <Loader2 className="w-10 h-10 animate-spin mb-3" />
+                    <p className="text-sm">Loading forms…</p>
+                  </div>
+                ) : (
                 <FormsPage
                   forms={forms}
                   setForms={setForms}
@@ -754,6 +806,7 @@ export default function App() {
                       : undefined
                   }
                 />
+                )
               )}
           </motion.div>
           )}
