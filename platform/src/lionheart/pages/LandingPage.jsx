@@ -112,8 +112,8 @@ export default function LandingPage() {
                     </div>
                   ) : (
                     <img
-                      src="/stock-images/image4-b32b7720-e993-4df4-a31a-d52335f42928.png"
-                      alt="Students and staff"
+                      src="/stock-images/hero-classroom.png"
+                      alt="Teacher and students in classroom"
                       className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700"
                       onError={() => setHeroImgError(true)}
                     />
