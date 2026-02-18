@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Sparkles, Calendar, ShieldCheck, Map, ArrowRight, Check } from 'lucide-react'
 import { getSubdomain } from '../utils/subdomain'
 
-const PLATFORM_URL = import.meta.env.VITE_PLATFORM_URL?.trim() || 'http://localhost:3001'
+const PLATFORM_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PLATFORM_URL?.trim()) || (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_PLATFORM_URL?.trim()) || 'http://localhost:3001'
 
 const PRICING_PLANS = [
   {

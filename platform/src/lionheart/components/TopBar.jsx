@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, Bell, User, LogOut, Settings, ChevronDown } from 'lucide-react'
 import { buildNotifications } from '../utils/pendingApprovals'
 import { clearAuthToken } from '../services/platformApi'
 
 const LOGIN_PATH = '/login'
+
+function handleSignOut() {
+  clearAuthToken()
+  window.location.replace(LOGIN_PATH)
+}
 
 export default function TopBar({
   currentUser,
@@ -15,6 +21,7 @@ export default function TopBar({
 }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [accountMenuPosition, setAccountMenuPosition] = useState(null)
   const notificationsRef = useRef(null)
   const accountRef = useRef(null)
 
@@ -37,10 +44,20 @@ export default function TopBar({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onOpenCommandBar])
 
+  // Position account dropdown when it opens (for portal)
+  useEffect(() => {
+    if (!accountOpen || !accountRef.current) return
+    const el = accountRef.current
+    const rect = el.getBoundingClientRect()
+    setAccountMenuPosition({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    return () => setAccountMenuPosition(null)
+  }, [accountOpen])
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notificationsRef.current && !notificationsRef.current.contains(e.target)) setNotificationsOpen(false)
-      if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false)
+      const inAccount = accountRef.current?.contains(e.target) || e.target.closest?.('[data-account-menu]')
+      if (!inAccount) setAccountOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -129,10 +146,15 @@ export default function TopBar({
           <span className="hidden sm:block text-sm font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate">
             {name || '…'}
           </span>
-          <ChevronDown className={`hidden sm:block w-4 h-4 text-zinc-400 transition-transform ${accountOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform shrink-0 ${accountOpen ? 'rotate-180' : ''}`} aria-hidden />
         </button>
-        {accountOpen && (
-          <div className="absolute right-0 top-full mt-1 w-56 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xl z-[100] py-1">
+        {accountOpen && accountMenuPosition && typeof document !== 'undefined' && createPortal(
+          <div
+            data-account-menu
+            role="menu"
+            className="fixed w-56 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xl z-[9999] py-1"
+            style={{ top: accountMenuPosition.top, right: accountMenuPosition.right, left: 'auto' }}
+          >
             <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
               <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{name || '…'}</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">{currentUser?.email ?? 'Signed in'}</p>
@@ -141,6 +163,7 @@ export default function TopBar({
               <li>
                 <button
                   type="button"
+                  role="menuitem"
                   onClick={() => {
                     setAccountOpen(false)
                     onNavigateToSettings?.('account')
@@ -154,6 +177,7 @@ export default function TopBar({
               <li>
                 <button
                   type="button"
+                  role="menuitem"
                   onClick={() => {
                     setAccountOpen(false)
                     onNavigateToSettings?.()
@@ -167,10 +191,10 @@ export default function TopBar({
               <li className="border-t border-zinc-200 dark:border-zinc-700 mt-1 pt-1">
                 <button
                   type="button"
+                  role="menuitem"
                   onClick={() => {
                     setAccountOpen(false)
-                    clearAuthToken()
-                    window.location.href = LOGIN_PATH
+                    handleSignOut()
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
@@ -179,7 +203,8 @@ export default function TopBar({
                 </button>
               </li>
             </ul>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
       </div>

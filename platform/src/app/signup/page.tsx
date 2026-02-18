@@ -1,5 +1,5 @@
 import LionheartSPA from '../LionheartSPA'
 
-export default function LoginPage() {
+export default function SignupPage() {
   return <LionheartSPA />
 }

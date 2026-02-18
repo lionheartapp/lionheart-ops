@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
+import '@/lionheart/index.css'
 
 export const metadata: Metadata = {
   title: 'School Facility Management',
