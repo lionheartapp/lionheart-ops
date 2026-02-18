@@ -13,6 +13,7 @@ function handleSignOut() {
 
 export default function TopBar({
   currentUser,
+  teamLabel = '',
   formSubmissions = [],
   forms = [],
           onNavigateToSettings,
@@ -143,9 +144,16 @@ export default function TopBar({
           <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
             {initial}
           </div>
-          <span className="hidden sm:block text-sm font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate">
-            {name || '…'}
-          </span>
+          <div className="hidden sm:flex flex-col items-start text-left min-w-0 max-w-[140px]">
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate w-full">
+              {name || '…'}
+            </span>
+            {teamLabel ? (
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate w-full">
+                {teamLabel}
+              </span>
+            ) : null}
+          </div>
           <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform shrink-0 ${accountOpen ? 'rotate-180' : ''}`} aria-hidden />
         </button>
         {accountOpen && accountMenuPosition && typeof document !== 'undefined' && createPortal(
@@ -157,6 +165,9 @@ export default function TopBar({
           >
             <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
               <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{name || '…'}</p>
+              {teamLabel ? (
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">{teamLabel}</p>
+              ) : null}
               <p className="text-xs text-zinc-500 dark:text-zinc-400">{currentUser?.email ?? 'Signed in'}</p>
             </div>
             <ul className="py-1">

@@ -160,6 +160,24 @@ export async function PATCH(req: NextRequest) {
       sport?: string
     }
 
+    // Resolve user early so we can avoid overwriting Super Admin/Admin when they set job function (e.g. A/V, global) in onboarding
+    let existing = await prismaBase.user.findUnique({
+      where: { id: payload.userId },
+    })
+    if (!existing && payload.email && payload.orgId) {
+      const byEmail = await prismaBase.user.findFirst({
+        where: { email: payload.email.trim().toLowerCase(), organizationId: payload.orgId },
+      })
+      if (byEmail) existing = byEmail
+    }
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'User not found. Please sign in again.', code: 'SESSION_INVALID' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+    const isAdminOrSuperAdmin = existing.role === 'SUPER_ADMIN' || existing.role === 'ADMIN'
+
     const updates: {
       name?: string
       role?: UserRole
@@ -181,7 +199,10 @@ export async function PATCH(req: NextRequest) {
       const mapped = ROLE_MAP[body.role.toLowerCase()] || ROLE_MAP[body.role] || body.role.toUpperCase()
       const asRole = mapped as UserRole
       if (SELF_ASSIGNABLE_ROLES.includes(asRole)) {
-        updates.role = asRole
+        // Do not overwrite Super Admin or Admin — account creators stay Super Admin; only apply role for member-level users.
+        if (!isAdminOrSuperAdmin) {
+          updates.role = asRole
+        }
       }
       // Always add default team for visibility (admin team for Administration, etc.)
       const roleTeam = ROLE_TO_DEFAULT_TEAM[body.role] || ROLE_TO_DEFAULT_TEAM[body.role.trim()] || ROLE_TO_DEFAULT_TEAM[body.role.toLowerCase()]
@@ -214,30 +235,10 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
-    // Ensure user still exists (e.g. after DB reset or stale token)
-    let existing = await prismaBase.user.findUnique({
-      where: { id: payload.userId },
-    })
-    // Fallback: token may have stale userId (e.g. different DB or after restore); find by email + org
-    if (!existing && payload.email && payload.orgId) {
-      const byEmail = await prismaBase.user.findFirst({
-        where: { email: payload.email.trim().toLowerCase(), organizationId: payload.orgId },
-        include: { organization: true },
-      })
-      if (byEmail) existing = byEmail
-    }
-    if (!existing) {
-      return NextResponse.json(
-        { error: 'User not found. Please sign in again.', code: 'SESSION_INVALID' },
-        { status: 401, headers: corsHeaders }
-      )
-    }
-
-    const userId = existing.id
     let user
     try {
       user = await prismaBase.user.update({
-        where: { id: userId },
+        where: { id: existing.id },
         data: updates as Prisma.UserUpdateInput,
         include: { organization: true },
       })

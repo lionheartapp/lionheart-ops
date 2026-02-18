@@ -5,12 +5,8 @@ const STORAGE_KEY = 'lionheart-theme'
 const ThemeContext = createContext({ theme: 'light', setTheme: () => {} })
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
-    if (typeof window === 'undefined') return 'light'
-    // Default to light; only use dark if user explicitly chose it (stored in localStorage).
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored === 'dark' ? 'dark' : 'light'
-  })
+  // Always start in light mode (do not read from localStorage, so no stuck dark mode).
+  const [theme, setThemeState] = useState('light')
 
   useEffect(() => {
     const root = document.documentElement

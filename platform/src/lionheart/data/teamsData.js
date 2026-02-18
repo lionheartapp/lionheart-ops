@@ -148,6 +148,21 @@ export function isSuperAdmin(user) {
   return user?.role === 'super-admin' || user?.role === 'SUPER_ADMIN'
 }
 
+/** Teams that have their own inventory (can be extended via org settings later) */
+export const INVENTORY_TEAM_IDS = ['av', 'facilities', 'it', 'security']
+
+/** Display label for header: "Global - A/V" for super admin, "A/V" / "Maintenance" / "IT" for team members */
+export function getTeamDisplayLabel(user, teams) {
+  if (!user) return ''
+  const ids = getUserTeamIds(user)
+  const primaryId = ids[0] ?? null
+  const teamName = primaryId ? getTeamName(teams, primaryId) : null
+  if (isSuperAdmin(user)) {
+    return teamName ? `Global - ${teamName}` : 'Global'
+  }
+  return teamName || 'Staff'
+}
+
 /** IT Admin: admin/super-admin, or member-level user within the IT team */
 export function isITAdmin(user, teams) {
   if (!user) return false

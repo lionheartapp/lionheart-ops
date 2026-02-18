@@ -159,7 +159,7 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
     setEditingStock({ id: null, itemId, location: LOCATIONS[0], quantity: 0, usageNotes: '' })
   }
 
-  const scopeLabel = inventoryScope === 'personal' ? 'Personal' : inventoryScope === 'av' ? 'A/V' : inventoryScope === 'it' ? 'IT' : 'Facilities'
+  const scopeLabel = inventoryScope === 'av' ? 'A/V' : inventoryScope === 'it' ? 'IT' : inventoryScope === 'security' ? 'Campus Safety' : 'Maintenance'
 
   function StockRowBlock({ item }) {
     const byLocation = getStockByLocation(item.id)
@@ -259,9 +259,7 @@ export default function InventoryPage({ items = [], setItems, stock = [], setSto
             {scopeLabel} Inventory
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            {inventoryScope === 'personal'
-              ? 'Your personal inventory. Track items and stock by location.'
-              : `Manage and track ${scopeLabel.toLowerCase()} equipment.`}
+            Manage and track {scopeLabel.toLowerCase()} equipment.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">

@@ -24,7 +24,7 @@ import InventoryPage from './InventoryPage'
 import FormsPage from './FormsPage'
 import { userStartedEventWithTicketSales } from '../data/eventsData'
 import { getItemsByScope, getStockByScope, checkItemsAvailable } from '../data/inventoryData'
-import { canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, EVENT_SCHEDULING_MESSAGE } from '../data/teamsData'
+import { canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, INVENTORY_TEAM_IDS, getTeamName, EVENT_SCHEDULING_MESSAGE } from '../data/teamsData'
 import { createForm } from '../data/formsData'
 
 /** Tab content switch: water-management | settings | dashboard (showAll) | default (events, forms, facilities, etc.) */
@@ -82,8 +82,6 @@ function AppTabContentInner({ tabState }) {
     showWaterManagementForUser,
     hasVisualCampus,
     hasTeamInventory,
-    inventoryPrefs,
-    setInventoryPref,
     orgLogoUrl,
     orgName,
     orgWebsite,
@@ -125,8 +123,6 @@ function AppTabContentInner({ tabState }) {
           users={users}
           setUsers={setUsers}
           hasTeamInventory={hasTeamInventory}
-          showInventoryPref={inventoryPrefs[effectiveUser?.id] === true}
-          onInventoryPrefChange={(enabled) => setInventoryPref(effectiveUser?.id, enabled)}
           orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
           orgName={orgName || searchParams.get('orgName')}
           orgWebsite={orgWebsite || searchParams.get('orgWebsite')}
@@ -421,9 +417,9 @@ function AppTabContentInner({ tabState }) {
                     onChange={(e) => setInventoryScopeOverride(e.target.value)}
                     className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="av">A/V</option>
-                    <option value="facilities">Facilities</option>
-                    <option value="it">IT</option>
+                    {INVENTORY_TEAM_IDS.map((id) => (
+                      <option key={id} value={id}>{getTeamName(teams, id)}</option>
+                    ))}
                   </select>
                 </div>
               )}

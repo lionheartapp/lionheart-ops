@@ -16,7 +16,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
-import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin } from '../data/teamsData'
+import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin, getUserTeamIds, getTeamName, INVENTORY_TEAM_IDS } from '../data/teamsData'
 import { platformPost, platformFetch, platformPatch, getAuthToken } from '../services/platformApi'
 
 // --- CONSTANTS ---
@@ -247,35 +247,37 @@ function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
   )
 }
 
-function AppsSection({ currentUser, teams, hasTeamInventory, showInventoryPref, onInventoryPrefChange }) {
+function AppsSection({ currentUser, teams, hasTeamInventory }) {
+  const isSA = isSuperAdmin(currentUser)
+  const teamIds = getUserTeamIds(currentUser)
+  const primaryInventoryTeamId = INVENTORY_TEAM_IDS.find((id) => teamIds.includes(id))
+  const teamLabel = primaryInventoryTeamId ? getTeamName(teams, primaryInventoryTeamId) : null
+  const inventoryTeamNames = INVENTORY_TEAM_IDS.map((id) => getTeamName(teams, id)).join(', ')
+
   const APP_MODULES = [
     {
       id: 'inventory',
       label: 'Inventory',
-      description: 'Track items and stock by location. Team members (A/V, IT, Facilities) see their team inventory; others can enable a personal inventory.',
+      description: hasTeamInventory
+        ? `Track items and stock by location. You see your team's inventory (${teamLabel}).`
+        : isSA
+          ? 'Track items and stock by team. Use the Inventory page to switch between A/V, Maintenance, IT, and Campus Safety team inventories.'
+          : `Inventory is available to team members: ${inventoryTeamNames}. Contact an admin to be added to a team.`,
       icon: Package,
     },
   ]
-
-  const getTeamLabel = () => {
-    if (isAVTeam(currentUser, teams)) return 'A/V'
-    if (isFacilitiesTeam(currentUser, teams)) return 'Facilities'
-    if (isITTeam(currentUser, teams)) return 'IT'
-    return null
-  }
-  const teamLabel = getTeamLabel()
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Apps</h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        Enable or disable modules to customize your sidebar.
+        Module visibility is based on your team. Super Admins can switch between team inventories from the Inventory page.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         {APP_MODULES.map((module) => {
           const Icon = module.icon
           const isTeamModule = module.id === 'inventory' && hasTeamInventory
-          const canToggle = module.id === 'inventory' && !hasTeamInventory
+          const isSAModule = module.id === 'inventory' && isSA && !hasTeamInventory
 
           return (
             <div
@@ -288,28 +290,16 @@ function AppsSection({ currentUser, teams, hasTeamInventory, showInventoryPref, 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-medium text-zinc-900 dark:text-zinc-100">{module.label}</h3>
-                  {canToggle ? (
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={showInventoryPref}
-                      onClick={() => onInventoryPrefChange?.(!showInventoryPref)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                        showInventoryPref ? 'bg-blue-500' : 'bg-zinc-300 dark:bg-zinc-600'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition ${
-                          showInventoryPref ? 'translate-x-5' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                  ) : isTeamModule ? (
+                  {isTeamModule ? (
                     <span className="text-xs px-2 py-1 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 font-medium">
                       Enabled ({teamLabel} Team)
                     </span>
+                  ) : isSAModule ? (
+                    <span className="text-xs px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 font-medium">
+                      Switch on Inventory page
+                    </span>
                   ) : (
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">Off</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">By team only</span>
                   )}
                 </div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{module.description}</p>
@@ -756,8 +746,6 @@ function SettingsSectionContent({
   users,
   setUsers,
   hasTeamInventory,
-  showInventoryPref,
-  onInventoryPrefChange,
   orgLogoUrl,
   orgName,
   orgWebsite,
@@ -800,8 +788,6 @@ function SettingsSectionContent({
         currentUser={currentUser}
         teams={teams}
         hasTeamInventory={hasTeamInventory}
-        showInventoryPref={showInventoryPref}
-        onInventoryPrefChange={onInventoryPrefChange}
       />
     ),
     subscription: (
@@ -872,8 +858,6 @@ export default function SettingsPage({
   users,
   setUsers,
   hasTeamInventory = false,
-  showInventoryPref = false,
-  onInventoryPrefChange,
   onOrgBrandingUpdated,
   orgLogoUrl,
   orgName,
@@ -971,8 +955,6 @@ export default function SettingsPage({
           users={users}
           setUsers={setUsers}
           hasTeamInventory={hasTeamInventory}
-          showInventoryPref={showInventoryPref}
-          onInventoryPrefChange={onInventoryPrefChange}
           orgLogoUrl={orgLogoUrl}
           orgName={orgName}
           orgWebsite={orgWebsite}

@@ -18,20 +18,10 @@ import {
   getItemsByScope,
   getStockByScope,
 } from './data/inventoryData'
-import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
+import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, getTeamDisplayLabel, INVENTORY_TEAM_IDS, getTeamName, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, platformFetch, platformPost, setCurrentOrgId } from './services/platformApi'
 
-const INVENTORY_PREFS_KEY = 'schoolops-inventory-prefs'
-
-function loadInventoryPrefs() {
-  try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(INVENTORY_PREFS_KEY) : null
-    return raw ? JSON.parse(raw) : {}
-  } catch {
-    return {}
-  }
-}
 import FormBuilderModal from './components/FormBuilderModal'
 import AIFormModal from './components/AIFormModal'
 import DrawerModal from './components/DrawerModal'
@@ -86,7 +76,6 @@ export default function App() {
   const [formIdToViewResponses, setFormIdToViewResponses] = useState(null)
   const [aiFormModalOpen, setAIFormModalOpen] = useState(false)
   const [settingsSection, setSettingsSection] = useState('account')
-  const [inventoryPrefs, setInventoryPrefs] = useState(loadInventoryPrefs)
   const [commandBarOpen, setCommandBarOpen] = useState(false)
   const [campusMapModalOpen, setCampusMapModalOpen] = useState(false)
   const [formsDataLoaded, setFormsDataLoaded] = useState(false)
@@ -229,7 +218,7 @@ export default function App() {
       if (Array.isArray(submissionsRes)) setFormSubmissions(submissionsRes)
       setFormsDataLoaded(true)
     }).catch(() => {}).finally(() => {
-      if (!cancelled) setFormsLoading(false)
+      setFormsLoading(false)
     })
     return () => { cancelled = true }
   }, [activeTab, formsDataLoaded, formsLoading])
@@ -248,7 +237,7 @@ export default function App() {
         setInventoryDataLoaded(true)
       })
       .catch(() => {})
-      .finally(() => { if (!cancelled) setInventoryLoading(false) })
+      .finally(() => { setInventoryLoading(false) })
     return () => { cancelled = true }
   }, [activeTab, inventoryDataLoaded, inventoryLoading])
 
@@ -323,9 +312,10 @@ export default function App() {
   const isFacilitiesUser = isFacilitiesTeam(effectiveUser, teams)
   const isITUser = isITTeam(effectiveUser, teams)
   const isAVUser = isAVTeam(effectiveUser, teams)
-  const hasTeamInventory = isAVUser || isFacilitiesUser || isITUser
+  const isSecurityUser = getUserTeamIds(effectiveUser).includes('security')
+  const hasTeamInventory = isAVUser || isFacilitiesUser || isITUser || isSecurityUser
   const isSA = effectiveUser?.role === 'super-admin' || effectiveUser?.role === 'SUPER_ADMIN'
-  const showInventory = hasAdvancedInventory && (hasTeamInventory || isSA || (inventoryPrefs[effectiveUser?.id] === true))
+  const showInventory = hasAdvancedInventory && (hasTeamInventory || isSA)
   // Water Management: Maintenance team OR Super Admin only (hide from A/V, IT, Teachers, etc.)
   const showWaterManagementForUser = hasWaterManagement && (isFacilitiesUser || isSuperAdmin(effectiveUser))
 
@@ -335,20 +325,11 @@ export default function App() {
     }
   }, [activeTab, showWaterManagementForUser])
 
-  const defaultInventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : (inventoryPrefs[effectiveUser?.id] ? 'personal' : null)
+  const defaultInventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : isSecurityUser ? 'security' : null
   const [inventoryScopeOverride, setInventoryScopeOverride] = useState(null)
   const effectiveScope = defaultInventoryScope ?? (isSA ? 'av' : null)
   const inventoryScope = (isSA && inventoryScopeOverride) ? inventoryScopeOverride : effectiveScope
 
-  const setInventoryPref = (userId, enabled) => {
-    setInventoryPrefs((prev) => {
-      const next = { ...prev, [userId]: enabled }
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(INVENTORY_PREFS_KEY, JSON.stringify(next))
-      }
-      return next
-    })
-  }
   const pageTitle =
     activeTab === 'facilities' && isFacilitiesUser
       ? 'Team Tickets'
@@ -416,6 +397,7 @@ export default function App() {
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
         <TopBar
           currentUser={effectiveUser}
+          teamLabel={getTeamDisplayLabel(effectiveUser, teams)}
           formSubmissions={formSubmissions}
           forms={forms}
           onNavigateToSettings={(section) => { setActiveTab('settings'); setSettingsSection(section || 'account') }}
@@ -487,8 +469,7 @@ export default function App() {
                 showWaterManagementForUser,
                 hasVisualCampus,
                 hasTeamInventory,
-                inventoryPrefs,
-                setInventoryPref,
+                teams,
                 orgLogoUrl,
                 orgName,
                 orgWebsite,

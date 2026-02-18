@@ -133,12 +133,27 @@ export async function PATCH(req: NextRequest) {
       if (trimmed) updates.name = trimmed
     }
     // Onboarding / primary role: allow self-assignment of member-level roles only (job function: Teacher, A/V, etc.). Cannot self-assign Admin or Super Admin.
+    // Account creators (Super Admin) and Admins must never be downgraded by onboarding — only teamIds/name are updated so they get the right dashboard view (e.g. A/V, global).
+    const existing = await prismaBase.user.findUnique({
+      where: { id: payload.userId },
+    })
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'User not found. Please sign in again.', code: 'SESSION_INVALID' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+    const isAdminOrSuperAdmin = existing.role === 'SUPER_ADMIN' || existing.role === 'ADMIN'
+
     if (body.role != null && typeof body.role === 'string') {
       const mapped = ROLE_MAP[body.role.toLowerCase()] || ROLE_MAP[body.role] || body.role.toUpperCase()
       const asRole = mapped as UserRole
       if (SELF_ASSIGNABLE_ROLES.includes(asRole)) {
-        updates.role = asRole
-        // Set default team from onboarding choice so they see the right dashboard (e.g. A/V -> av, Teacher -> teachers).
+        // Do not overwrite Super Admin or Admin — they stay as-is; only apply role for member-level users.
+        if (!isAdminOrSuperAdmin) {
+          updates.role = asRole
+        }
+        // Set default team from onboarding choice so they see the right dashboard (e.g. A/V -> av, Teacher -> teachers). Apply for everyone including Super Admin.
         if (!Array.isArray(body.teamIds) || body.teamIds.length === 0) {
           const defaultTeam = ROLE_TO_DEFAULT_TEAM[body.role] || ROLE_TO_DEFAULT_TEAM[body.role.trim()]
           if (defaultTeam) updates.teamIds = [defaultTeam]
@@ -154,17 +169,6 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json(
         { error: 'No valid updates' },
         { status: 400, headers: corsHeaders }
-      )
-    }
-
-    // Ensure user still exists (e.g. after DB reset or stale token)
-    const existing = await prismaBase.user.findUnique({
-      where: { id: payload.userId },
-    })
-    if (!existing) {
-      return NextResponse.json(
-        { error: 'User not found. Please sign in again.', code: 'SESSION_INVALID' },
-        { status: 401, headers: corsHeaders }
       )
     }
 
