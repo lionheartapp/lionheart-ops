@@ -3,15 +3,24 @@ import { corsHeaders } from '@/lib/cors'
 
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
 
+/** Apex/main site hostnames — never redirect / to /app; always show marketing. */
+const APEX_HOSTS = new Set([
+  'lionheartapp.com',
+  'www.lionheartapp.com',
+  'localhost',
+  '127.0.0.1',
+])
+
 function getSubdomainFromHost(host: string): string | null {
-  const base = host.replace(/^www\./, '')
-  // subdomain.lionheartapp.com or subdomain.localhost — only when there is an actual subdomain (not apex)
+  const hostname = host.split(':')[0].toLowerCase()
+  if (APEX_HOSTS.has(hostname)) return null
+
+  const base = hostname.replace(/^www\./, '')
   if (base.endsWith('.localhost')) {
     const sub = base.replace(/\.localhost$/, '')
     return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
   }
   const parts = base.split('.')
-  // Apex domain (e.g. lionheartapp.com) has 2 parts → no subdomain, show marketing. School subdomain (e.g. linfield.lionheartapp.com) has 3+ parts.
   if (parts.length > 2) {
     const sub = parts[0]
     return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null

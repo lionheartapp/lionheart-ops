@@ -21,9 +21,9 @@ export function getSubdomain() {
     return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
   }
 
-  // production: subdomain.lionheartapp.com
+  // production: only real school subdomains (subdomain.lionheartapp.com). Apex (lionheartapp.com) and www (www.lionheartapp.com) = no subdomain.
   const parts = host.split('.')
-  if (parts.length >= 2) {
+  if (parts.length > 2) {
     const sub = parts[0]
     if (sub && !RESERVED_SUBDOMAINS.has(sub)) return sub
   }
