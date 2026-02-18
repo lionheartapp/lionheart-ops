@@ -53,7 +53,7 @@ const PRICING_PLANS = [
 
 // --- SUB-COMPONENTS ---
 
-function InventoryAddOnCard({ hasAdvancedInventory, inventoryTeamIds, teams, onRefresh }) {
+function InventoryAddOnCard({ hasAdvancedInventory, inventoryTeamIds, teams = [], onRefresh }) {
   const [saving, setSaving] = useState(false)
   const effectiveIds = Array.isArray(inventoryTeamIds) && inventoryTeamIds.length > 0 ? inventoryTeamIds : DEFAULT_INVENTORY_TEAM_IDS
   const [selectedIds, setSelectedIds] = useState(() => (hasAdvancedInventory ? effectiveIds : DEFAULT_INVENTORY_TEAM_IDS))
@@ -160,7 +160,7 @@ function InventoryAddOnCard({ hasAdvancedInventory, inventoryTeamIds, teams, onR
   )
 }
 
-function SubscriptionSection({ hasWaterManagement = false, hasAdvancedInventory = false, inventoryTeamIds, currentUser, teams, onOpenAddOn, onRefreshOrg }) {
+function SubscriptionSection({ hasWaterManagement = false, hasAdvancedInventory = false, inventoryTeamIds, currentUser, teams = [], onOpenAddOn, onRefreshOrg }) {
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const currentPlanId = 'pro'
@@ -362,7 +362,7 @@ function SubscriptionSection({ hasWaterManagement = false, hasAdvancedInventory 
   )
 }
 
-function AppsSection({ currentUser, teams, hasTeamInventory, effectiveInventoryTeamIds = [] }) {
+function AppsSection({ currentUser, teams = [], hasTeamInventory, effectiveInventoryTeamIds = [] }) {
   const isSA = isSuperAdmin(currentUser)
   const teamIds = getUserTeamIds(currentUser)
   const primaryInventoryTeamId = effectiveInventoryTeamIds.find((id) => teamIds.includes(id))
@@ -863,6 +863,9 @@ function SettingsSectionContent({
   users,
   setUsers,
   hasTeamInventory,
+  effectiveInventoryTeamIds = [],
+  hasAdvancedInventory = false,
+  inventoryTeamIds,
   orgLogoUrl,
   orgName,
   orgWebsite,
@@ -1083,6 +1086,9 @@ export default function SettingsPage({
           users={users}
           setUsers={setUsers}
           hasTeamInventory={hasTeamInventory}
+          effectiveInventoryTeamIds={effectiveInventoryTeamIds}
+          hasAdvancedInventory={hasAdvancedInventory}
+          inventoryTeamIds={inventoryTeamIds}
           orgLogoUrl={orgLogoUrl}
           orgName={orgName}
           orgWebsite={orgWebsite}
@@ -1092,9 +1098,9 @@ export default function SettingsPage({
           orgLoading={orgLoading}
           allowTeacherEventRequests={allowTeacherEventRequests}
           onAllowTeacherEventRequestsChange={onAllowTeacherEventRequestsChange}
-        onOrgBrandingUpdated={onOrgBrandingUpdated}
-        hasWaterManagement={hasWaterManagement}
-        onOpenAddOn={onOpenAddOn}
+          onOrgBrandingUpdated={onOrgBrandingUpdated}
+          hasWaterManagement={hasWaterManagement}
+          onOpenAddOn={onOpenAddOn}
         />
       </div>
     </div>
