@@ -264,7 +264,7 @@ export default function App() {
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [activeTab, formsDataLoaded, formsLoading])
+  }, [activeTab, formsDataLoaded])
 
   // Lazy load inventory when user opens Inventory tab
   useEffect(() => {
