@@ -87,7 +87,7 @@ export default function Sidebar({
   const supportItems = isITUser ? itSupportSection.items : isFacilitiesUser ? facilitiesSupportSection.items : supportSection.items
 
   return (
-    <aside className="sticky top-0 w-56 h-full min-h-0 flex flex-col overflow-hidden border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/50 bg-zinc-50/80 dark:bg-zinc-900/90 backdrop-blur-xl shrink-0">
+    <aside className="sticky top-0 w-56 h-full min-h-0 flex flex-col overflow-hidden border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/50 bg-white dark:bg-zinc-900/90 backdrop-blur-xl shrink-0">
       <div className="h-20 shrink-0 flex items-center justify-center px-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40">
         {showLogo ? (
           <img src={orgLogoUrl} alt={orgName || 'School'} className="h-10 w-auto max-w-full object-contain" referrerPolicy="no-referrer" onError={() => setLogoError(true)} />

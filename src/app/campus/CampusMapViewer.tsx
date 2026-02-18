@@ -180,10 +180,10 @@ export function CampusMapViewer({ initialRoomId }: Props) {
           />
         )}
         {!showGoogleMap && !showPanorama && (
-          <div className="w-full h-[calc(100vh-72px)] min-h-[400px] bg-zinc-900 flex items-center justify-center">
+          <div className="w-full h-[calc(100vh-72px)] min-h-[400px] bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center">
             <div className="text-center p-8 max-w-md">
               <MapPin className="w-12 h-12 text-zinc-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-300 mb-2">No campus address yet</h3>
+              <h3 className="text-lg font-medium text-zinc-600 dark:text-zinc-300 mb-2">No campus address yet</h3>
               <p className="text-sm text-zinc-500">
                 Add your campus address in Settings → Workspace so we can show a map of your campus here.
               </p>

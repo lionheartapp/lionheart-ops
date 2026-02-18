@@ -105,16 +105,16 @@ export default function PondHealthWidget({
           ) : (
             <>
             <div className="grid grid-cols-3 gap-4">
-              <div className={`rounded-lg p-3 border ${alerts.pH ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
+              <div className={`rounded-lg p-3 border ${alerts.pH ? 'border-red-600 bg-red-50 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
                 <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">pH</p>
-                <p className={`text-xl font-semibold ${alerts.pH ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                <p className={`text-xl font-semibold ${alerts.pH ? 'text-red-700 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
                   {latest.pH?.toFixed(1) ?? '—'}
                 </p>
                 <p className="text-[10px] text-zinc-500">Safe: {SAFE.pHMin}–{SAFE.pHMax}</p>
               </div>
-              <div className={`rounded-lg p-3 border ${alerts.turbidity ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
+              <div className={`rounded-lg p-3 border ${alerts.turbidity ? 'border-red-600 bg-red-50 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
                 <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Turbidity (NTU)</p>
-                <p className={`text-xl font-semibold ${alerts.turbidity ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                <p className={`text-xl font-semibold ${alerts.turbidity ? 'text-red-700 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
                   {latest.turbidity?.toFixed(1) ?? '—'}
                 </p>
                 <p className="text-[10px] text-zinc-500">Warn: &gt;{SAFE.turbidityWarn} NTU</p>
@@ -129,18 +129,18 @@ export default function PondHealthWidget({
             {(latest.dissolvedOxygen != null || latest.alkalinity != null) && (
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {latest.dissolvedOxygen != null && (
-                  <div className={`rounded-lg p-3 border ${alerts.do ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
+                  <div className={`rounded-lg p-3 border ${alerts.do ? 'border-red-600 bg-red-50 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
                     <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">DO (ppm)</p>
-                    <p className={`text-lg font-semibold ${alerts.do ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                    <p className={`text-lg font-semibold ${alerts.do ? 'text-red-700 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
                       {latest.dissolvedOxygen?.toFixed(1) ?? '—'}
                     </p>
                     <p className="text-[10px] text-zinc-500">Min: {SAFE.doMin} ppm</p>
                   </div>
                 )}
                 {latest.alkalinity != null && (
-                  <div className={`rounded-lg p-3 border ${alerts.alkalinity ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
+                  <div className={`rounded-lg p-3 border ${alerts.alkalinity ? 'border-red-600 bg-red-50 dark:bg-red-500/20' : 'border-zinc-200 dark:border-zinc-700'}`}>
                     <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Alkalinity (ppm)</p>
-                    <p className={`text-lg font-semibold ${alerts.alkalinity ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>{latest.alkalinity ?? '—'}</p>
+                    <p className={`text-lg font-semibold ${alerts.alkalinity ? 'text-red-700 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}>{latest.alkalinity ?? '—'}</p>
                     <p className="text-[10px] text-zinc-500">Min 50 for Copper</p>
                   </div>
                 )}
@@ -148,8 +148,8 @@ export default function PondHealthWidget({
             )}
 
             {alerts.do && (
-              <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-red-500/10 dark:bg-red-500/20 border border-red-500/30">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+              <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-500/20 border border-red-600/40">
+                <AlertTriangle className="w-5 h-5 text-red-700 dark:text-red-400 shrink-0" />
                 <div>
                   <p className="text-sm text-red-800 dark:text-red-200 font-medium">
                     Oxygen levels low (Current: {latest.dissolvedOxygen?.toFixed(1)} ppm). Aerator engaged.
@@ -164,16 +164,16 @@ export default function PondHealthWidget({
               </div>
             )}
             {alerts.alkalinity && (
-              <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-red-500/10 dark:bg-red-500/20 border border-red-500/30">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+              <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-500/20 border border-red-600/40">
+                <AlertTriangle className="w-5 h-5 text-red-700 dark:text-red-400 shrink-0" />
                 <p className="text-sm text-red-800 dark:text-red-200">
                   <strong>Alkalinity too low</strong> ({latest.alkalinity} ppm &lt; 50). Do not apply Copper Sulfate. Use aquatic dye or aeration instead.
                 </p>
               </div>
             )}
             {needsAction && !alerts.do && (
-              <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30">
-                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-500/20 border border-amber-600/40">
+                <AlertTriangle className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0" />
                 <p className="text-sm text-amber-800 dark:text-amber-200">
                   Reading outside SafeZone. Use the <strong>Dosage Calculator</strong> for treatment amounts safe for animals.
                 </p>

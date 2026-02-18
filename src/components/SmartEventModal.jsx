@@ -732,8 +732,8 @@ export default function SmartEventModal({
       time: effectiveParsed.time || eventDraft?.time,
       location: effectiveParsed.location || eventDraft?.location,
       name: effectiveParsed.name || eventDraft?.name,
-      tablesRequested: parsed.tablesRequested ?? eventDraft?.tablesRequested,
-      chairsRequested: parsed.chairsRequested ?? eventDraft?.chairsRequested,
+      tablesRequested: effectiveParsed.tablesRequested ?? parsed.tablesRequested ?? eventDraft?.tablesRequested,
+      chairsRequested: effectiveParsed.chairsRequested ?? parsed.chairsRequested ?? eventDraft?.chairsRequested,
       chairsSetup: parsed.chairsSetup || eventDraft?.chairsSetup,
       notes: parsed.notes ? (eventDraft?.notes ? `${eventDraft.notes}\n\n${parsed.notes}` : parsed.notes) : eventDraft?.notes,
       avNotes: parsed.avNotes ? (eventDraft?.avNotes ? `${eventDraft.avNotes}\n\n${parsed.avNotes}` : parsed.avNotes) : eventDraft?.avNotes,
@@ -784,8 +784,8 @@ export default function SmartEventModal({
       location: effectiveParsed.location || prev?.location || 'TBD',
       resources: parsed.resources?.length ? parsed.resources : prev?.resources ?? [],
       eventType: parsed.eventType || prev?.eventType || 'Special Event',
-      tablesRequested: parsed.tablesRequested != null ? parsed.tablesRequested : prev?.tablesRequested,
-      chairsRequested: parsed.chairsRequested != null ? parsed.chairsRequested : prev?.chairsRequested,
+      tablesRequested: effectiveParsed.tablesRequested != null ? effectiveParsed.tablesRequested : parsed.tablesRequested != null ? parsed.tablesRequested : prev?.tablesRequested,
+      chairsRequested: effectiveParsed.chairsRequested != null ? effectiveParsed.chairsRequested : parsed.chairsRequested != null ? parsed.chairsRequested : prev?.chairsRequested,
       chairsSetup: parsed.chairsSetup || prev?.chairsSetup,
       notes: parsed.notes ? (prev?.notes ? `${prev.notes}\n\n${parsed.notes}` : parsed.notes) : prev?.notes,
       avNotes: parsed.avNotes ? (prev?.avNotes ? `${prev.avNotes}\n\n${parsed.avNotes}` : parsed.avNotes) : prev?.avNotes,
@@ -876,7 +876,7 @@ export default function SmartEventModal({
           <button
             type="button"
             onClick={onClose}
-            className="pointer-events-auto p-2 rounded-xl bg-zinc-900/80 text-zinc-100 hover:bg-zinc-900 transition-colors shadow-lg shadow-black/30"
+            className="pointer-events-auto p-2 rounded-xl bg-zinc-200/90 dark:bg-zinc-900/80 text-zinc-800 dark:text-zinc-100 hover:bg-zinc-300 dark:hover:bg-zinc-900 transition-colors shadow-lg shadow-zinc-900/10 dark:shadow-black/30"
             aria-label="Close"
           >
             <X className="w-5 h-5" />

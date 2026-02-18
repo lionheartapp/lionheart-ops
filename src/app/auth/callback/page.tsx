@@ -22,15 +22,15 @@ function AuthCallbackContent() {
   }, [searchParams, router])
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-      <p className="text-zinc-400">Signing you in…</p>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
+      <p className="text-zinc-500 dark:text-zinc-400">Signing you in…</p>
     </div>
   )
 }
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center"><p className="text-zinc-400">Loading…</p></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center"><p className="text-zinc-500 dark:text-zinc-400">Loading…</p></div>}>
       <AuthCallbackContent />
     </Suspense>
   )

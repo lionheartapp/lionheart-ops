@@ -32,18 +32,11 @@ export async function GET(
       tickets: room.tickets.map((t) => ({ id: t.id, title: t.title, status: t.status })),
     })
     })
-  } catch {
-    const mock: Record<string, { name: string; buildingName: string; teacher: { id: string; name: string } | null; tickets: Array<{ id: string; title: string; status: string }> }> = {
-      r1: { name: 'Room 101', buildingName: 'Main Building', teacher: { id: 'u1', name: 'Sarah Johnson' }, tickets: [{ id: 't1', title: 'Leaking faucet', status: 'NEW' }] },
-      r2: { name: 'Room 204', buildingName: 'Main Building', teacher: { id: 'u2', name: 'Mrs. Smith' }, tickets: [] },
+  } catch (err) {
+    if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
+      return NextResponse.json({ error: err.message }, { status: 401 })
     }
-    const m = mock[roomId]
-    return NextResponse.json({
-      id: roomId,
-      name: m?.name ?? 'Room',
-      buildingName: m?.buildingName ?? '',
-      teacher: m?.teacher ?? null,
-      tickets: m?.tickets ?? [],
-    })
+    console.error('Room fetch error:', err)
+    return NextResponse.json({ error: 'Room not found' }, { status: 404 })
   }
 }

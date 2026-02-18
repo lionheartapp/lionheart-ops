@@ -1,34 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Loader2 } from 'lucide-react'
 import Sidebar from './components/Sidebar'
-import CreateDropdown from './components/CreateDropdown'
 import EventCreatorModal from './components/EventCreatorModal'
 import SmartEventModal from './components/SmartEventModal'
 import EventLandingPageModal from './components/EventLandingPageModal'
-import EventsPage from './components/EventsPage'
-import TicketingTable from './components/TicketingTable'
-import SupportQueue from './components/SupportQueue'
-import ITSupportPage from './components/ITSupportPage'
-import MyTicketsPage from './components/MyTicketsPage'
-import FacilitiesPage from './components/FacilitiesPage'
-import FacilitiesMyTicketsPage from './components/FacilitiesMyTicketsPage'
-import DashboardEventsList from './components/DashboardEventsList'
-import DashboardTodoWidget from './components/DashboardTodoWidget'
-import OnboardingChecklist from './components/OnboardingChecklist'
-import PendingApprovalsWidget from './components/PendingApprovalsWidget'
-import ITDashboardRequests from './components/ITDashboardRequests'
-import FacilitiesDashboardRequests from './components/FacilitiesDashboardRequests'
-import WaterOpsWidget from './components/WaterOpsWidget'
-import WidgetErrorBoundary from './components/WidgetErrorBoundary'
-import AVEventNotifications from './components/AVEventNotifications'
 import TopBar from './components/TopBar'
 import CommandBar from './components/CommandBar'
 import EventInfoModal from './components/EventInfoModal'
 import CampusMapModal from './components/CampusMapModal'
-import SettingsPage from './components/SettingsPage'
-import WaterManagementPage from './components/WaterManagementPage'
+import AppTabContent from './components/AppTabContent'
 import OnboardingModal from './components/OnboardingModal'
 import { INITIAL_EVENTS, userStartedEventWithTicketSales } from './data/eventsData'
 import {
@@ -52,8 +32,6 @@ function loadInventoryPrefs() {
     return {}
   }
 }
-import InventoryPage from './components/InventoryPage'
-import FormsPage from './components/FormsPage'
 import FormBuilderModal from './components/FormBuilderModal'
 import AIFormModal from './components/AIFormModal'
 import DrawerModal from './components/DrawerModal'
@@ -115,6 +93,7 @@ export default function App() {
   const [formsLoading, setFormsLoading] = useState(false)
   const [inventoryDataLoaded, setInventoryDataLoaded] = useState(false)
   const [inventoryLoading, setInventoryLoading] = useState(false)
+  const [roomsFromApi, setRoomsFromApi] = useState([])
 
   const updateTicket = (ticketId, updates) => {
     if (typeof ticketId !== 'string' || ticketId.length < 10) return // Skip mock tickets (numeric id)
@@ -209,11 +188,14 @@ export default function App() {
     Promise.allSettled([
       platformFetch('/api/tickets').then(toJson),
       platformFetch('/api/events').then(toJson),
-    ]).then(([tickets, events]) => {
+      platformFetch('/api/rooms').then(toJson),
+    ]).then(([tickets, events, rooms]) => {
       if (cancelled) return
       const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
       const eventsData = events.status === 'fulfilled' ? events.value : null
+      const roomsData = rooms.status === 'fulfilled' ? rooms.value : null
       if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
+      if (Array.isArray(roomsData)) setRoomsFromApi(roomsData)
       if (eventsData && Array.isArray(eventsData)) {
         setEvents(eventsData.map((e) => ({
           id: e.id,
@@ -448,375 +430,81 @@ export default function App() {
           <div
             className={`min-h-full flex flex-col min-h-0 w-full ${!['settings', 'water-management'].includes(activeTab) ? 'p-6 lg:p-8' : ''}`}
           >
-          {activeTab === 'water-management' ? (
-            <div className="flex-1 flex min-h-0 w-full min-w-0 p-6 lg:p-8">
-              <WaterManagementPage
-                supportRequests={supportRequests}
-                setSupportRequests={setSupportRequests}
-                currentUser={effectiveUser}
-              />
-            </div>
-          ) : activeTab === 'settings' ? (
-            <div className="flex-1 flex min-h-0 w-full min-w-0">
-              <SettingsPage
-                settingsSection={settingsSection}
-                onSettingsSectionChange={setSettingsSection}
-                currentUser={effectiveUser}
-                teams={teams}
-                setTeams={setTeams}
-                users={users}
-                setUsers={setUsers}
-                hasTeamInventory={hasTeamInventory}
-                showInventoryPref={inventoryPrefs[effectiveUser?.id] === true}
-                onInventoryPrefChange={(enabled) => setInventoryPref(effectiveUser?.id, enabled)}
-                orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
-                orgName={orgName || searchParams.get('orgName')}
-                orgWebsite={orgWebsite || searchParams.get('orgWebsite')}
-                orgAddress={orgAddress || searchParams.get('orgAddress')}
-                orgLatitude={orgLatitude}
-                orgLongitude={orgLongitude}
-                orgLoading={orgLoading}
-                onOrgBrandingUpdated={refreshOrg}
-                allowTeacherEventRequests={allowTeacherEventRequests}
-                onAllowTeacherEventRequestsChange={refreshOrg}
-                hasWaterManagement={hasWaterManagement}
-                onOpenAddOn={(tab) => setActiveTab(tab)}
-              />
-            </div>
-          ) : activeTab === 'dashboard' && showAll ? (
-            <>
-              <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  {pageTitle}
-                </h1>
-                <CreateDropdown
-                  mode="dashboard"
-                  onCreateEvent={canCreateEvent(effectiveUser, allowTeacherEventRequests) ? () => setEventModalOpen(true) : undefined}
-                  onCreateSmartEvent={canCreateEvent(effectiveUser, allowTeacherEventRequests) ? () => setSmartEventModalOpen(true) : undefined}
-                  onFormsRequest={
-                    canEdit(effectiveUser)
-                      ? () => {
-                          const newForm = createForm(effectiveUser?.name)
-                          setForms((prev) => [...prev, newForm])
-                          setFormToEdit(newForm)
-                          setFormBuilderOpen(true)
-                        }
-                      : undefined
-                  }
-                  onFormsAIRequest={canEdit(effectiveUser) ? () => setAIFormModalOpen(true) : undefined}
-                  onFacilitiesRequest={() => setFacilitiesDrawerOpen(true)}
-                  onITRequest={() => setITDrawerOpen(true)}
-                />
-              </header>
-              <div className="flex-1 flex min-h-0 gap-6 lg:gap-8 pt-6">
-                <div className="flex-1 min-w-0 overflow-auto space-y-8">
-                  {(isSuperAdmin(effectiveUser) || (effectiveUser?.role && String(effectiveUser.role).toLowerCase() === 'admin')) && (
-                    <OnboardingChecklist
-                      onOpenMap={() => setCampusMapModalOpen(true)}
-                      onCreateEvent={canCreateEvent(effectiveUser, allowTeacherEventRequests) ? () => setEventModalOpen(true) : () => setActiveTab('events')}
-                      onNavigateToMembers={() => { setActiveTab('settings'); setSettingsSection('members') }}
-                      isEventCreated={events.length > 0}
-                      isTeamSetup={(users?.length ?? 0) > 1}
-                      hasVisualCampus={hasVisualCampus}
-                    />
-                  )}
-                  {!isITTeam(effectiveUser, teams) && !isFacilitiesTeam(effectiveUser, teams) && (
-                    <section>
-                      <DashboardEventsList
-                        events={events}
-                        currentUser={effectiveUser?.name}
-                        onEventClick={openEventInfo}
-                      />
-                    </section>
-                  )}
-                  {userStartedEventWithTicketSales(events, effectiveUser?.name) && (
-                    <section>
-                      <TicketingTable />
-                    </section>
-                  )}
-                  {isITTeam(effectiveUser, teams) && (
-                    <section>
-                      <ITDashboardRequests
-                        requests={supportRequests}
-                        setSupportRequests={setSupportRequests}
-                        updateTicket={updateTicket}
-                        currentUser={effectiveUser}
-                        users={users}
-                        teams={teams}
-                        onNavigateToSupport={() => setActiveTab('it-support')}
-                      />
-                    </section>
-                  )}
-                  {(isFacilitiesTeam(effectiveUser, teams) || isSuperAdmin(effectiveUser)) && showWaterManagementForUser && (
-                    <>
-                      <section>
-                        <WidgetErrorBoundary>
-                          <WaterOpsWidget
-                            setSupportRequests={setSupportRequests}
-                            currentUser={effectiveUser}
-                          />
-                        </WidgetErrorBoundary>
-                      </section>
-                      {isFacilitiesTeam(effectiveUser, teams) && (
-                        <section>
-                          <FacilitiesDashboardRequests
-                            requests={supportRequests}
-                            setSupportRequests={setSupportRequests}
-                            updateTicket={updateTicket}
-                            currentUser={effectiveUser}
-                            onNavigateToSupport={() => setActiveTab('facilities')}
-                          />
-                        </section>
-                      )}
-                    </>
-                  )}
-                  {isAVTeam(effectiveUser, teams) && (
-                    <section>
-                      <AVEventNotifications
-                        requests={supportRequests}
-                        currentUser={effectiveUser}
-                        onNavigateToEvents={() => setActiveTab('events')}
-                      />
-                    </section>
-                  )}
-                  <PendingApprovalsWidget
-                      formSubmissions={formSubmissions}
-                      forms={forms}
-                      currentUser={effectiveUser}
-                      onNavigateToFormResponses={(formId) => {
-                        setFormIdToViewResponses(formId)
-                        setActiveTab('forms')
-                      }}
-                  />
-                  <section>
-                    <SupportQueue
-                      type="all"
-                      requests={supportRequests}
-                      currentUser={effectiveUser}
-                      viewMode="my-tickets"
-                      title="My support requests"
-                      emptyMessage="You haven't submitted any requests yet."
-                    />
-                  </section>
-                </div>
-                <div className="shrink-0 pl-2">
-                  <DashboardTodoWidget
-                    key={effectiveUser?.id}
-                    currentUser={effectiveUser}
-                    users={users}
-                    events={events}
-                    orgLogoUrl={orgLogoUrl}
-                    onNavigateToTab={setActiveTab}
-                    onNavigateToSettings={(section) => {
-                      setActiveTab('settings')
-                      setSettingsSection(section)
-                    }}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            className="flex flex-col flex-1 min-h-0 gap-6"
-          >
-              <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  {pageTitle}
-                </h1>
-                {activeTab === 'events' && canCreateEvent(effectiveUser, allowTeacherEventRequests) && (
-                  <CreateDropdown
-                    mode="events"
-                    onCreateEvent={() => setEventModalOpen(true)}
-                    onCreateSmartEvent={() => setSmartEventModalOpen(true)}
-                  />
-                )}
-                {activeTab === 'forms' && canEdit(effectiveUser) && (
-                  <CreateDropdown
-                    mode="forms"
-                    onFormsRequest={() => {
-                      const newForm = createForm(effectiveUser?.name)
-                      setForms((prev) => [...prev, newForm])
-                      setFormToEdit(newForm)
-                      setFormBuilderOpen(true)
-                    }}
-                    onFormsAIRequest={() => setAIFormModalOpen(true)}
-                  />
-                )}
-              </header>
-
-              {/* Events: Linfield message when user cannot create events */}
-              {activeTab === 'events' && !canCreateEvent(effectiveUser, allowTeacherEventRequests) && (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg px-4 py-2 border border-zinc-200 dark:border-zinc-700">
-                  {EVENT_SCHEDULING_MESSAGE}
-                </p>
-              )}
-              {/* Events: calendar, My Events, Generate Landing Page */}
-              {activeTab === 'events' && (
-                <EventsPage
-                  events={events}
-                  setEvents={setEvents}
-                  currentUser={effectiveUser}
-                  currentUserTeamIds={getUserTeamIds(effectiveUser)}
-                  onCreateEvent={() => setEventModalOpen(true)}
-                  onCreateSmartEvent={() => setSmartEventModalOpen(true)}
-                  onGenerateLandingPage={() => setLandingPageModalOpen(true)}
-                  onOpenEventInfo={openEventInfo}
-                  onEditEvent={handleEventInfoEdit}
-                  liveEvent={liveEvent}
-                />
-              )}
-
-              {showAll && (
-                <>
-                  {userStartedEventWithTicketSales(events, effectiveUser?.name) && (
-                    <section>
-                      <TicketingTable />
-                    </section>
-                  )}
-                  <section>
-                    <SupportQueue
-                      type="all"
-                      requests={supportRequests}
-                      currentUser={effectiveUser}
-                      viewMode="my-tickets"
-                      title="My support requests"
-                      emptyMessage="You haven’t submitted any requests yet."
-                    />
-                  </section>
-                </>
-              )}
-
-              {activeTab === 'it-support' && (
-                <ITSupportPage
-                  supportRequests={supportRequests}
-                  setSupportRequests={setSupportRequests}
-                  currentUser={effectiveUser}
-                  teams={teams}
-                  itDrawerOpen={itDrawerOpen}
-                  setITDrawerOpen={setITDrawerOpen}
-                  mode="team"
-                />
-              )}
-
-              {activeTab === 'my-tickets' && (
-                <MyTicketsPage
-                  supportRequests={supportRequests}
-                  currentUser={effectiveUser}
-                  itDrawerOpen={itDrawerOpen}
-                  setITDrawerOpen={setITDrawerOpen}
-                />
-              )}
-
-              {activeTab === 'facilities' && (
-                <FacilitiesPage
-                  supportRequests={supportRequests}
-                  setSupportRequests={setSupportRequests}
-                  currentUser={effectiveUser}
-                  teams={teams}
-                  inventoryItems={getItemsByScope(inventoryItems, 'facilities')}
-                  inventoryStock={getStockByScope(inventoryStock, inventoryItems, 'facilities')}
-                  onInventoryCheck={(requested) =>
-                    checkItemsAvailable(
-                      getItemsByScope(inventoryItems, 'facilities'),
-                      getStockByScope(inventoryStock, inventoryItems, 'facilities'),
-                      requested
-                    )
-                  }
-                  facilitiesDrawerOpen={facilitiesDrawerOpen}
-                  setFacilitiesDrawerOpen={setFacilitiesDrawerOpen}
-                  mode={isFacilitiesUser ? 'team' : 'default'}
-                />
-              )}
-
-              {activeTab === 'facilities-my-tickets' && (
-                <FacilitiesMyTicketsPage
-                  supportRequests={supportRequests}
-                  currentUser={effectiveUser}
-                  facilitiesDrawerOpen={facilitiesDrawerOpen}
-                  setFacilitiesDrawerOpen={setFacilitiesDrawerOpen}
-                />
-              )}
-
-              {activeTab === 'inventory' && inventoryScope && (
-                <>
-                  {inventoryLoading ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-zinc-500 dark:text-zinc-400">
-                      <Loader2 className="w-10 h-10 animate-spin mb-3" />
-                      <p className="text-sm">Loading inventory…</p>
-                    </div>
-                  ) : (
-                    <>
-                      {isSA && (
-                        <div className="flex items-center gap-2 mb-4">
-                          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">View inventory:</span>
-                          <select
-                            value={inventoryScope}
-                            onChange={(e) => setInventoryScopeOverride(e.target.value)}
-                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="av">A/V</option>
-                            <option value="facilities">Facilities</option>
-                            <option value="it">IT</option>
-                          </select>
-                        </div>
-                      )}
-                      <InventoryPage
-                    items={inventoryItems}
-                    setItems={setInventoryItems}
-                    stock={inventoryStock}
-                    setStock={setInventoryStock}
-                    inventoryScope={inventoryScope}
-                    users={users}
-                    currentUser={effectiveUser}
-                  />
-                    </>
-                  )}
-                </>
-              )}
-
-              {activeTab === 'forms' && (
-                formsLoading ? (
-                  <div className="flex flex-col items-center justify-center py-24 text-zinc-500 dark:text-zinc-400">
-                    <Loader2 className="w-10 h-10 animate-spin mb-3" />
-                    <p className="text-sm">Loading forms…</p>
-                  </div>
-                ) : (
-                <FormsPage
-                  forms={forms}
-                  setForms={setForms}
-                  formSubmissions={formSubmissions}
-                  setFormSubmissions={setFormSubmissions}
-                  currentUser={effectiveUser}
-                  users={users}
-                  canEdit={canEdit(effectiveUser)}
-                  formIdToFill={formIdToFill}
-                  onClearFormIdToFill={() => setFormIdToFill(null)}
-                  formIdToPreview={formIdToPreview}
-                  onClearFormIdToPreview={() => setFormIdToPreview(null)}
-                  formIdToViewResponses={formIdToViewResponses}
-                  onClearFormIdToViewResponses={() => setFormIdToViewResponses(null)}
-                  onEventCreated={(event) => {
-                    setEvents((prev) => [...prev, event])
-                  }}
-                  onCreateForm={
-                    canEdit(effectiveUser)
-                      ? () => {
-                          const newForm = createForm(effectiveUser?.name)
-                          setForms((prev) => [...prev, newForm])
-                          setFormToEdit(newForm)
-                          setFormBuilderOpen(true)
-                        }
-                      : undefined
-                  }
-                />
-                )
-              )}
-          </motion.div>
-          )}
+            <AppTabContent
+              tabState={{
+                activeTab,
+                pageTitle,
+                showAll,
+                events,
+                setEvents,
+                supportRequests,
+                setSupportRequests,
+                updateTicket,
+                effectiveUser,
+                users,
+                teams,
+                setTeams,
+                setUsers,
+                setEventModalOpen,
+                setSmartEventModalOpen,
+                setFormBuilderOpen,
+                setFormToEdit,
+                setForms,
+                createForm,
+                formSubmissions,
+                setFormIdToViewResponses,
+                setActiveTab,
+                setSettingsSection,
+                setFacilitiesDrawerOpen,
+                setITDrawerOpen,
+                setCampusMapModalOpen,
+                setAIFormModalOpen,
+                openEventInfo,
+                handleEventInfoEdit,
+                liveEvent,
+                setLandingPageModalOpen,
+                facilitiesDrawerOpen,
+                itDrawerOpen,
+                inventoryItems,
+                inventoryStock,
+                inventoryScope,
+                inventoryScopeOverride,
+                setInventoryScopeOverride,
+                inventoryLoading,
+                isSA,
+                formsLoading,
+                forms,
+                setFormSubmissions,
+                formIdToFill,
+                setFormIdToFill,
+                formIdToPreview,
+                setFormIdToPreview,
+                formIdToViewResponses,
+                setFormIdToViewResponses,
+                allowTeacherEventRequests,
+                isFacilitiesUser,
+                isITUser,
+                showWaterManagementForUser,
+                hasVisualCampus,
+                hasTeamInventory,
+                inventoryPrefs,
+                setInventoryPref,
+                orgLogoUrl,
+                orgName,
+                orgWebsite,
+                orgAddress,
+                orgLatitude,
+                orgLongitude,
+                orgLoading,
+                refreshOrg,
+                hasWaterManagement,
+                settingsSection,
+                searchParams,
+                setInventoryItems,
+                setInventoryStock,
+              }}
+            />
+          {/* Tab content extracted to AppTabContent.jsx */}
           </div>
         </div>
         </div>
@@ -833,6 +521,13 @@ export default function App() {
         initialEvent={editingEvent}
         onSave={async (payload) => {
           const id = payload.id || String(Date.now())
+          let roomId = payload.roomId
+          if (!roomId && payload.location && roomsFromApi.length) {
+            const room = roomsFromApi.find(
+              (r) => r.name?.toLowerCase() === payload.location?.toLowerCase()
+            )
+            if (room) roomId = room.id
+          }
           if (getAuthToken()) {
             try {
               const chairs = payload.facilitiesRequested?.find((f) => /chair/i.test(f.item || f.name || ''))?.quantity
@@ -843,6 +538,7 @@ export default function App() {
                 date: payload.date,
                 startTime: payload.time || '00:00',
                 endTime: payload.endTime || undefined,
+                roomId: roomId || undefined,
                 chairsRequested: chairs ?? payload.chairsRequested,
                 tablesRequested: tables ?? payload.tablesRequested,
                 submittedById: effectiveUser?.id || undefined,
@@ -876,7 +572,16 @@ export default function App() {
             repeatRule: payload.repeatRule,
             communications: payload.communications,
           }
-          const eventWithNotifications = notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests)
+          const createTicket = async (payload) => {
+            try {
+              const res = await platformPost('/api/tickets', payload)
+              if (!res.ok) return null
+              return await res.json()
+            } catch {
+              return null
+            }
+          }
+          const eventWithNotifications = await notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests, createTicket)
           const existing = events.find((e) => e.id === id)
           const merged = {
             ...eventWithNotifications,
@@ -898,6 +603,13 @@ export default function App() {
         calendarEvents={events}
         onSave={async (payload) => {
           const id = payload.id || String(Date.now())
+          let roomId = payload.roomId
+          if (!roomId && payload.location && roomsFromApi.length) {
+            const room = roomsFromApi.find(
+              (r) => r.name?.toLowerCase() === payload.location?.toLowerCase()
+            )
+            if (room) roomId = room.id
+          }
           if (getAuthToken()) {
             try {
               await platformPost('/api/events', {
@@ -906,6 +618,7 @@ export default function App() {
                 date: payload.date,
                 startTime: payload.time || '00:00',
                 endTime: payload.endTime || undefined,
+                roomId: roomId || undefined,
                 chairsRequested: payload.chairsRequested,
                 tablesRequested: payload.tablesRequested,
                 submittedById: effectiveUser?.id || undefined,
@@ -936,7 +649,16 @@ export default function App() {
             repeatRule: payload.repeatRule,
             communications: payload.communications ?? [],
           }
-          const eventWithNotifications = notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests)
+          const createTicket = async (payload) => {
+            try {
+              const res = await platformPost('/api/tickets', payload)
+              if (!res.ok) return null
+              return await res.json()
+            } catch {
+              return null
+            }
+          }
+          const eventWithNotifications = await notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests, createTicket)
           setEvents((prev) => {
             const existing = prev.find((e) => e.id === id)
             if (existing) return prev.map((e) => (e.id === id ? eventWithNotifications : e))

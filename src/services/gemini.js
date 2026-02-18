@@ -56,7 +56,7 @@ const DEFAULT_SYSTEM = `${getOrgContextForAI()}\n\n${DEFAULT_SYSTEM_BASE}`
 const EVENT_EXTRACTION_SYSTEM = `You extract event details from a user's message in a chat about scheduling an event. Consider the conversation context.
 
 Return ONLY valid JSON, no markdown or extra text:
-{"name": "Event Name" or null, "date": "YYYY-MM-DD" or null, "time": "HH:MM" in 24hr or null, "location": "..." or null}
+{"name": "Event Name" or null, "date": "YYYY-MM-DD" or null, "time": "HH:MM" in 24hr or null, "location": "..." or null, "chairsRequested": number or null, "tablesRequested": number or null}
 
 Rules for the EVENT NAME:
 - If they say "call it X", "call it the X", "lets call it X", "name it X", "its X", "it's X", "we'll call it X" → name is just X (proper title case, e.g. "Worship Night" not "call it worship night").
@@ -80,7 +80,30 @@ Rules for LOCATION:
 - "gym" → "Gym", "PAC" → "PAC", "cafeteria" → "Cafeteria". Use proper casing.
 - Return null if no location given.
 
+Rules for chairsRequested and tablesRequested:
+- Extract numbers from phrases like "50 chairs", "10 tables", "we need 100 chairs and 15 tables", "no chairs", "0 tables".
+- chairsRequested: integer >= 0, or null if not mentioned.
+- tablesRequested: integer >= 0, or null if not mentioned.
+
 Output ONLY the JSON object, nothing else.`
+
+/**
+ * Parse JSON string tolerating leading/trailing text (e.g. "Here is the JSON: {...} Sorry for the delay").
+ * @param {string} jsonStr
+ * @returns {object | null}
+ */
+function safeParseEventJson(jsonStr) {
+  if (!jsonStr || typeof jsonStr !== 'string') return null
+  const trimmed = jsonStr.trim()
+  const start = trimmed.indexOf('{')
+  const end = trimmed.lastIndexOf('}') + 1
+  if (start === -1 || end <= start) return null
+  try {
+    return JSON.parse(trimmed.slice(start, end))
+  } catch {
+    return null
+  }
+}
 
 /**
  * Extract event fields (name, date, time, location) from user message using natural language understanding.
@@ -118,7 +141,7 @@ export async function extractEventFieldsWithGemini(messages = []) {
     const codeMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/)
     if (codeMatch) jsonStr = codeMatch[1].trim()
 
-    const parsed = JSON.parse(jsonStr)
+    const parsed = safeParseEventJson(jsonStr)
     if (!parsed || typeof parsed !== 'object') return {}
 
     const result = {}
@@ -139,6 +162,12 @@ export async function extractEventFieldsWithGemini(messages = []) {
     }
     if (parsed.location && typeof parsed.location === 'string' && parsed.location.trim()) {
       result.location = parsed.location.trim()
+    }
+    if (typeof parsed.chairsRequested === 'number' && parsed.chairsRequested >= 0) {
+      result.chairsRequested = Math.floor(parsed.chairsRequested)
+    }
+    if (typeof parsed.tablesRequested === 'number' && parsed.tablesRequested >= 0) {
+      result.tablesRequested = Math.floor(parsed.tablesRequested)
     }
     return result
   } catch {

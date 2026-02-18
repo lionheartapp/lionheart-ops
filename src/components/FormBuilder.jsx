@@ -5,29 +5,10 @@ import {
   Trash2,
   Columns2,
   Columns,
-  Type,
-  AlignLeft,
-  Mail,
-  Phone,
-  Hash,
-  ChevronDown,
-  Circle,
-  CheckSquare,
-  PenTool,
-  EyeOff,
   Settings2,
   Search,
-  Layers,
-  Table as TableIcon,
-  Calendar,
-  CalendarClock,
-  ToggleLeft,
-  ListChecks,
-  Users,
-  Paperclip,
   Image,
   ImagePlus,
-  SlidersHorizontal,
   LayoutGrid,
   ListOrdered,
   Sparkles,
@@ -35,6 +16,8 @@ import {
   Upload,
 } from 'lucide-react'
 import { FIELD_CATEGORIES, createField } from '../data/formsData'
+import { getFieldIcon } from '../data/formFieldTypes'
+import FormBuilderToolbar from './FormBuilderToolbar'
 import {
   STOCK_IMAGES,
   HEADER_TEMPLATES,
@@ -92,29 +75,6 @@ function groupPreambleIntoRows(preamble) {
     }
   }
   return rows
-}
-
-const ICONS = {
-  section: Layers,
-  table: TableIcon,
-  text: Type,
-  textarea: AlignLeft,
-  email: Mail,
-  phone: Phone,
-  number: Hash,
-  date: Calendar,
-  datetime: CalendarClock,
-  yesno: ToggleLeft,
-  dropdown: ChevronDown,
-  checkbox: CheckSquare,
-  checklist: ListChecks,
-  radio: Circle,
-  profiles: Users,
-  attachment: Paperclip,
-  image: Image,
-  slider: SlidersHorizontal,
-  signature: PenTool,
-  hidden: EyeOff,
 }
 
 const CONDITION_OPS = [
@@ -295,24 +255,7 @@ const FormBuilder = forwardRef(function FormBuilder(
       animate={{ opacity: 1 }}
       className="flex flex-col h-full"
     >
-      {!embedded && (
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
-          >
-            Save form
-          </button>
-        </div>
-      )}
+      <FormBuilderToolbar onBack={onBack} onSave={handleSave} embedded={embedded} />
       <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
         {/* Left: Component palette OR Images & Templates */}
         <div className="form-builder-palette glass-card p-4 w-full lg:w-[440px] shrink-0 max-h-[calc(100vh-280px)] lg:max-h-none overflow-hidden flex flex-col">
@@ -356,7 +299,7 @@ const FormBuilder = forwardRef(function FormBuilder(
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                       {cat.items.map((item) => {
-                        const Icon = ICONS[item.id] || Type
+                        const Icon = getFieldIcon(item.id)
                         return (
                           <div
                             key={item.id}

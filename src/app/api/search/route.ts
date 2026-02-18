@@ -92,33 +92,15 @@ export async function GET(req: NextRequest) {
     })
   } catch (err) {
     if (err instanceof Error && (err.message === 'Organization ID is required' || err.message === 'Invalid organization')) {
-      return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
+      return NextResponse.json(
+        { error: err.message, rooms: [], teachers: [], tickets: [] },
+        { status: 401, headers: corsHeaders }
+      )
     }
-    return NextResponse.json(getMockSearchData(qLower), { headers: corsHeaders })
+    console.error('Search error:', err)
+    return NextResponse.json(
+      { error: 'Search failed', rooms: [], teachers: [], tickets: [] },
+      { status: 500, headers: corsHeaders }
+    )
   }
-}
-
-function getMockSearchData(qLower: string) {
-  const rooms: Array<{ id: string; name: string; buildingName: string; teacherName?: string | null; ticketCount: number }> = []
-  const teachers: Array<{ id: string; name: string | null; roomId: string; roomName: string; buildingName: string }> = []
-  const tickets: Array<{ id: string; title: string; roomId: string; roomName: string; status: string }> = []
-  const mockTeachers = [
-    { id: 'u1', name: 'Sarah Johnson', roomId: 'r1', roomName: 'Room 101', buildingName: 'Main Building' },
-    { id: 'u2', name: 'Mrs. Smith', roomId: 'r2', roomName: 'Room 204', buildingName: 'Main Building' },
-  ]
-  const words = qLower.split(/\s+/).filter(Boolean)
-  const match = (s: string) => s && words.some((w) => (s ?? '').toLowerCase().includes(w))
-  for (const t of mockTeachers) {
-    if (match(t.name ?? '') || match(t.roomName) || match(t.buildingName)) {
-      teachers.push(t)
-      rooms.push({ id: t.roomId, name: t.roomName, buildingName: t.buildingName, teacherName: t.name, ticketCount: t.roomId === 'r1' ? 1 : 0 })
-      if (t.roomId === 'r1') tickets.push({ id: 't1', title: 'Leaking faucet', roomId: 'r1', roomName: 'Room 101', status: 'NEW' })
-    }
-  }
-  if (qLower.includes('101') || qLower.includes('204') || qLower.includes('room')) {
-    if (!rooms.some((r) => r.id === 'r1')) rooms.push({ id: 'r1', name: 'Room 101', buildingName: 'Main Building', teacherName: 'Sarah Johnson', ticketCount: 1 })
-    if (!rooms.some((r) => r.id === 'r2')) rooms.push({ id: 'r2', name: 'Room 204', buildingName: 'Main Building', teacherName: 'Mrs. Smith', ticketCount: 0 })
-    if (!tickets.length) tickets.push({ id: 't1', title: 'Leaking faucet', roomId: 'r1', roomName: 'Room 101', status: 'NEW' })
-  }
-  return { rooms, teachers, tickets }
 }

@@ -74,6 +74,7 @@ model User {
   imageUrl         String?
   role             UserRole          @default(VIEWER)
   teamIds          String[]          @default([])  // e.g. ['teachers'], ['it','facilities'] — drives visibility/features
+  profileMetadata  Json?             // e.g. { grade, subject, sport } from onboarding
   canSubmitEvents  Boolean           @default(false)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt

@@ -30,7 +30,7 @@ export default function DrawerModal({ isOpen, onClose, title, children }) {
         >
           <button
             onClick={onClose}
-            className="pointer-events-auto p-2 rounded-xl bg-zinc-900/80 text-zinc-100 hover:bg-zinc-900 transition-colors shadow-lg shadow-black/30"
+            className="pointer-events-auto p-2 rounded-xl bg-zinc-200/90 dark:bg-zinc-900/80 text-zinc-800 dark:text-zinc-100 hover:bg-zinc-300 dark:hover:bg-zinc-900 transition-colors shadow-lg shadow-zinc-900/10 dark:shadow-black/30"
             aria-label="Close"
           >
             <X className="w-5 h-5" />

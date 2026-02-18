@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { Prisma } from '@prisma/client'
 import { UserRole } from '@prisma/client'
 import { prismaBase } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
@@ -18,22 +19,31 @@ const ROLE_MAP: Record<string, string> = {
   administrator: 'ADMIN',
   secretary: 'SITE_SECRETARY',
   av: 'MAINTENANCE',
+  staff: 'SITE_SECRETARY',
+  'office staff': 'SITE_SECRETARY',
+  athletics: 'TEACHER',
+  coach: 'TEACHER',
   // Display label variants
   Teacher: 'TEACHER',
   Maintenance: 'MAINTENANCE',
   'IT Support': 'MAINTENANCE',
   Administrator: 'ADMIN',
   Secretary: 'SITE_SECRETARY',
+  'Office Staff': 'SITE_SECRETARY',
+  Staff: 'SITE_SECRETARY',
   AV: 'MAINTENANCE',
+  'A/V': 'MAINTENANCE',
   Media: 'MAINTENANCE',
   Security: 'MAINTENANCE',
   Coach: 'TEACHER',
+  Athletics: 'TEACHER',
   Viewer: 'VIEWER',
 }
 
-/** When user sets role via onboarding, set default team so they see the right views (e.g. A/V -> av, Teacher -> teachers). */
+/** When user sets role via onboarding, set default team so they see the right views. */
 const ROLE_TO_DEFAULT_TEAM: Record<string, string> = {
   AV: 'av',
+  'A/V': 'av',
   Media: 'av',
   Teacher: 'teachers',
   Maintenance: 'facilities',
@@ -42,6 +52,18 @@ const ROLE_TO_DEFAULT_TEAM: Record<string, string> = {
   Administrator: 'admin',
   Security: 'security',
   Coach: 'athletics',
+  Athletics: 'athletics',
+  Staff: 'admin',
+  'Office Staff': 'admin',
+}
+
+/** Division label -> team id for onboarding */
+const DIVISION_TO_TEAM: Record<string, string> = {
+  'High School': 'high-school',
+  'Middle School': 'middle-school',
+  'Elementary School': 'elementary-school',
+  Global: 'global',
+  Athletics: 'athletics',
 }
 
 /** Division/area and role team ids allowed for self-assignment (onboarding, settings). */
@@ -76,10 +98,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401, headers: corsHeaders })
     }
 
-    const user = await prismaBase.user.findUnique({
+    let user = await prismaBase.user.findUnique({
       where: { id: payload.userId },
       include: { organization: true },
     })
+    // Fallback: token may have stale userId; find by email + org so session keeps working
+    if (!user && payload.email && payload.orgId) {
+      user = await prismaBase.user.findFirst({
+        where: { email: payload.email.trim().toLowerCase(), organizationId: payload.orgId },
+        include: { organization: true },
+      })
+    }
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders })
     }
@@ -125,29 +154,57 @@ export async function PATCH(req: NextRequest) {
       name?: string
       role?: string
       teamIds?: string[]
+      division?: string
+      grade?: string
+      subject?: string
+      sport?: string
     }
 
-    const updates: { name?: string; role?: UserRole; teamIds?: string[] } = {}
+    const updates: {
+      name?: string
+      role?: UserRole
+      teamIds?: string[]
+      profileMetadata?: unknown
+    } = {}
     if (body.name != null && typeof body.name === 'string') {
       const trimmed = body.name.trim()
       if (trimmed) updates.name = trimmed
     }
-    // Onboarding / primary role: allow self-assignment of member-level roles only (job function: Teacher, A/V, etc.). Cannot self-assign Admin or Super Admin.
+
+    // Onboarding: division (e.g. High School) + role (e.g. Teacher) -> teamIds; optional grade, subject, sport stored in profileMetadata
+    const teamIdsSet = new Set<string>()
+    if (body.division != null && typeof body.division === 'string') {
+      const divTeam = DIVISION_TO_TEAM[body.division.trim()] || DIVISION_TO_TEAM[body.division]
+      if (divTeam && VALID_TEAM_IDS.includes(divTeam)) teamIdsSet.add(divTeam)
+    }
     if (body.role != null && typeof body.role === 'string') {
       const mapped = ROLE_MAP[body.role.toLowerCase()] || ROLE_MAP[body.role] || body.role.toUpperCase()
       const asRole = mapped as UserRole
       if (SELF_ASSIGNABLE_ROLES.includes(asRole)) {
         updates.role = asRole
-        // Set default team from onboarding choice so they see the right dashboard (e.g. A/V -> av, Teacher -> teachers).
-        if (!Array.isArray(body.teamIds) || body.teamIds.length === 0) {
-          const defaultTeam = ROLE_TO_DEFAULT_TEAM[body.role] || ROLE_TO_DEFAULT_TEAM[body.role.trim()]
-          if (defaultTeam) updates.teamIds = [defaultTeam]
-        }
       }
+      // Always add default team for visibility (admin team for Administration, etc.)
+      const roleTeam = ROLE_TO_DEFAULT_TEAM[body.role] || ROLE_TO_DEFAULT_TEAM[body.role.trim()] || ROLE_TO_DEFAULT_TEAM[body.role.toLowerCase()]
+      if (roleTeam && VALID_TEAM_IDS.includes(roleTeam)) teamIdsSet.add(roleTeam)
     }
-    // Teams: self-assign team membership (e.g. onboarding or settings). Valid ids include divisions and roles.
-    if (Array.isArray(body.teamIds)) {
+    if (teamIdsSet.size > 0) {
+      updates.teamIds = Array.from(teamIdsSet)
+    }
+    // Explicit teamIds from client (e.g. settings) override or merge
+    if (Array.isArray(body.teamIds) && body.teamIds.length > 0) {
       updates.teamIds = body.teamIds.filter((id) => typeof id === 'string' && VALID_TEAM_IDS.includes(id.trim().toLowerCase()))
+    }
+
+    if (body.grade != null || body.subject != null || body.sport != null) {
+      const existing = await prismaBase.user.findUnique({ where: { id: payload.userId }, select: { profileMetadata: true } })
+      const prev = (existing?.profileMetadata as Record<string, unknown>) || {}
+      const meta = {
+        ...prev,
+        ...(body.grade != null && { grade: String(body.grade).trim() || undefined }),
+        ...(body.subject != null && { subject: String(body.subject).trim() || undefined }),
+        ...(body.sport != null && { sport: String(body.sport).trim() || undefined }),
+      }
+      updates.profileMetadata = meta as Prisma.InputJsonValue
     }
 
     if (Object.keys(updates).length === 0) {
@@ -158,9 +215,17 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Ensure user still exists (e.g. after DB reset or stale token)
-    const existing = await prismaBase.user.findUnique({
+    let existing = await prismaBase.user.findUnique({
       where: { id: payload.userId },
     })
+    // Fallback: token may have stale userId (e.g. different DB or after restore); find by email + org
+    if (!existing && payload.email && payload.orgId) {
+      const byEmail = await prismaBase.user.findFirst({
+        where: { email: payload.email.trim().toLowerCase(), organizationId: payload.orgId },
+        include: { organization: true },
+      })
+      if (byEmail) existing = byEmail
+    }
     if (!existing) {
       return NextResponse.json(
         { error: 'User not found. Please sign in again.', code: 'SESSION_INVALID' },
@@ -168,11 +233,12 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
+    const userId = existing.id
     let user
     try {
       user = await prismaBase.user.update({
-        where: { id: payload.userId },
-        data: updates,
+        where: { id: userId },
+        data: updates as Prisma.UserUpdateInput,
         include: { organization: true },
       })
     } catch (updateErr: unknown) {
