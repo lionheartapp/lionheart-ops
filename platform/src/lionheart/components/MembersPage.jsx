@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { UserPlus, Pencil, Trash2, Download, Search, Filter, Plus, Upload, Users } from 'lucide-react'
 import { parseMembersCsv } from '../utils/parseMembersCsv'
 import { ROLES, getTeamName, getUserTeamIds, canManageTeams, DEFAULT_TEAMS, TEAM_SUGGESTIONS } from '../data/teamsData'
-import { platformPatch } from '../services/platformApi'
+import { platformPatch, platformPost } from '../services/platformApi'
 import DrawerModal from './DrawerModal'
 
 /** Map frontend role id to backend UserRole for PATCH /api/admin/users */
@@ -148,9 +148,11 @@ function AddTeamModal({ teams, setTeams, isOpen, onClose }) {
   )
 }
 
-function AddUserModal({ teams, setTeams, users, setUsers, currentUser, isOpen, onClose }) {
+function AddUserModal({ teams, setTeams, users, setUsers, currentUser, isOpen, onClose, onUserAdded }) {
   const [form, setForm] = useState({ name: '', email: '', teamIds: [], role: 'viewer' })
   const [newTagName, setNewTagName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const canAssignRole = canManageTeams(currentUser)
   const safeTeams = Array.isArray(teams) ? teams : []
 
@@ -168,14 +170,35 @@ function AddUserModal({ teams, setTeams, users, setUsers, currentUser, isOpen, o
     setNewTagName('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim() || form.teamIds.length === 0) return
-    const id = 'u' + Date.now()
-    setUsers((prev) => [...prev, { ...form, id }])
-    setForm({ name: '', email: '', teamIds: [], role: 'viewer' })
-    setNewTagName('')
-    onClose()
+    const email = (form.email || '').trim().toLowerCase()
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address.')
+      return
+    }
+    setError('')
+    setSaving(true)
+    try {
+      const res = await platformPost('/api/admin/users', {
+        name: (form.name || '').trim() || undefined,
+        email,
+        role: form.role,
+        teamIds: form.teamIds,
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to add user')
+      }
+      if (typeof onUserAdded === 'function') onUserAdded()
+      setForm({ name: '', email: '', teamIds: [], role: 'viewer' })
+      setNewTagName('')
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add user')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const toggleTeam = (teamId) => {
@@ -253,7 +276,7 @@ function AddUserModal({ teams, setTeams, users, setUsers, currentUser, isOpen, o
             </form>
           )}
           {form.teamIds.length === 0 && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Select or create at least one team tag</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Optional: assign team tags</p>
           )}
         </div>
         {canAssignRole && (
@@ -270,13 +293,16 @@ function AddUserModal({ teams, setTeams, users, setUsers, currentUser, isOpen, o
             </select>
           </div>
         )}
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        )}
         <div className="flex gap-2 pt-2">
           <button
             type="submit"
-            disabled={!form.name.trim() || form.teamIds.length === 0}
+            disabled={!form.email.trim() || saving}
             className="px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add user
+            {saving ? 'Adding…' : 'Add user'}
           </button>
           <button
             type="button"
@@ -495,7 +521,7 @@ function EditUserDrawer({ user, teams, setTeams, users, setUsers, currentUser, i
   )
 }
 
-export default function MembersPage({ teams = [], setTeams, users = [], setUsers, currentUser }) {
+export default function MembersPage({ teams = [], setTeams, users = [], setUsers, currentUser, onUserAdded }) {
   const [showAddUser, setShowAddUser] = useState(false)
   const [showAddTeam, setShowAddTeam] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
@@ -879,6 +905,7 @@ export default function MembersPage({ teams = [], setTeams, users = [], setUsers
           currentUser={currentUser}
           isOpen={showAddUser}
           onClose={() => setShowAddUser(false)}
+          onUserAdded={onUserAdded}
         />
       )}
 

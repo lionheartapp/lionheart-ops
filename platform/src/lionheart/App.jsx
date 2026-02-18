@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
@@ -285,15 +285,14 @@ export default function App() {
   }, [activeTab, inventoryDataLoaded, inventoryLoading])
 
   // Fetch full member list for Admin/Super Admin (after /me so we know role)
-  useEffect(() => {
+  const refetchMembers = useCallback(() => {
     if (!getAuthToken() || !currentUser?.id) return
     const role = (currentUser.role || '').toLowerCase()
     if (role !== 'admin' && role !== 'super-admin') return
-    let cancelled = false
     platformFetch('/api/admin/users')
       .then((r) => (r.ok ? r.json() : null))
       .then((list) => {
-        if (cancelled || !Array.isArray(list)) return
+        if (!Array.isArray(list)) return
         const mapped = list.map((u) => ({
           id: u.id,
           name: u.name ?? u.email?.split('@')[0] ?? 'User',
@@ -304,8 +303,11 @@ export default function App() {
         setUsers(mapped)
       })
       .catch(() => {})
-    return () => { cancelled = true }
   }, [currentUser?.id, currentUser?.role])
+
+  useEffect(() => {
+    refetchMembers()
+  }, [refetchMembers])
 
   const openEventInfo = (ev) => {
     setSelectedEvent(ev)
@@ -477,6 +479,7 @@ export default function App() {
                 setTeams={setTeams}
                 users={users}
                 setUsers={setUsers}
+                refetchMembers={refetchMembers}
                 hasTeamInventory={hasTeamInventory}
                 hasAdvancedInventory={hasAdvancedInventory}
                 inventoryTeamIds={inventoryTeamIds}

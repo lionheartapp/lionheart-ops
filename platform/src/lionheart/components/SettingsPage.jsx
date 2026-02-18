@@ -862,6 +862,7 @@ function SettingsSectionContent({
   setTeams,
   users,
   setUsers,
+  refetchMembers,
   hasTeamInventory,
   effectiveInventoryTeamIds = [],
   hasAdvancedInventory = false,
@@ -879,13 +880,16 @@ function SettingsSectionContent({
   hasWaterManagement,
   onOpenAddOn,
 }) {
+  const onUserAdded = refetchMembers
   if (section === 'members') {
     return (
       <MembersPage
         teams={teams}
+        setTeams={setTeams}
         users={users}
         setUsers={setUsers}
         currentUser={currentUser}
+        onUserAdded={onUserAdded}
       />
     )
   }
@@ -983,6 +987,7 @@ export default function SettingsPage({
   setTeams,
   users,
   setUsers,
+  refetchMembers,
   hasTeamInventory = false,
   onOrgBrandingUpdated,
   orgLogoUrl,
@@ -1085,6 +1090,7 @@ export default function SettingsPage({
           setTeams={setTeams}
           users={users}
           setUsers={setUsers}
+          refetchMembers={refetchMembers}
           hasTeamInventory={hasTeamInventory}
           effectiveInventoryTeamIds={effectiveInventoryTeamIds}
           hasAdvancedInventory={hasAdvancedInventory}
