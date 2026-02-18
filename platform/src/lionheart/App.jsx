@@ -235,18 +235,35 @@ export default function App() {
     let cancelled = false
     setFormsLoading(true)
     const toJson = (r) => (r.ok ? r.json() : null)
+    const timeout = setTimeout(() => {
+      if (cancelled) return
+      setForms((prev) => (prev.length ? prev : []))
+      setFormSubmissions((prev) => (prev.length ? prev : []))
+      setFormsDataLoaded(true)
+      setFormsLoading(false)
+    }, 12000)
     Promise.all([
       platformFetch('/api/forms').then(toJson),
       platformFetch('/api/forms/submissions').then(toJson),
     ]).then(([formsRes, submissionsRes]) => {
       if (cancelled) return
-      if (Array.isArray(formsRes)) setForms(formsRes)
-      if (Array.isArray(submissionsRes)) setFormSubmissions(submissionsRes)
+      setForms(Array.isArray(formsRes) ? formsRes : [])
+      setFormSubmissions(Array.isArray(submissionsRes) ? submissionsRes : [])
       setFormsDataLoaded(true)
-    }).catch(() => {}).finally(() => {
-      setFormsLoading(false)
+    }).catch(() => {
+      if (!cancelled) {
+        setForms([])
+        setFormSubmissions([])
+        setFormsDataLoaded(true)
+      }
+    }).finally(() => {
+      clearTimeout(timeout)
+      if (!cancelled) setFormsLoading(false)
     })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+    }
   }, [activeTab, formsDataLoaded, formsLoading])
 
   // Lazy load inventory when user opens Inventory tab
