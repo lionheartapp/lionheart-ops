@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { OrgModulesProvider } from './context/OrgModulesContext'
 import { ThemeProvider } from './context/ThemeContext'
-import SubdomainResolver from './components/SubdomainResolver'
+import { SubdomainResolver } from './components/SubdomainResolver'
 import GlobalErrorBoundary from './components/GlobalErrorBoundary'
 import LandingPage from './pages/LandingPage'
 import SignupPage from './pages/SignupPage'
