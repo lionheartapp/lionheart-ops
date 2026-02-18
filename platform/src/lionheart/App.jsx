@@ -167,49 +167,56 @@ export default function App() {
     }
   }, [searchParams])
 
-  // Bootstrap: fetch user first so name and nav show fast, then tickets+events (Forms/Inventory load when tab is opened)
+  // Bootstrap: fetch /me, tickets, events, and admin/users in parallel so the shell fills in as fast as possible
   useEffect(() => {
     if (!getAuthToken()) return
     let cancelled = false
     const toJson = (r) => (r.ok ? r.json() : null)
-    platformFetch('/api/user/me')
-      .then(toJson)
-      .then((meData) => {
-        if (cancelled || !meData?.user) return
+    Promise.allSettled([
+      platformFetch('/api/user/me').then(toJson),
+      platformFetch('/api/tickets').then(toJson),
+      platformFetch('/api/events').then(toJson),
+      platformFetch('/api/admin/users').then(toJson),
+    ]).then(([meRes, ticketsRes, eventsRes, adminUsersRes]) => {
+      if (cancelled) return
+      const meData = meRes.status === 'fulfilled' ? meRes.value : null
+      const ticketsData = ticketsRes.status === 'fulfilled' ? ticketsRes.value : null
+      const eventsData = eventsRes.status === 'fulfilled' ? eventsRes.value : null
+      const adminList = adminUsersRes.status === 'fulfilled' ? adminUsersRes.value : null
+
+      if (meData?.user) {
         const u = meData.user
         const userMe = {
           id: u.id,
           name: u.name ?? u.email?.split('@')[0] ?? 'User',
           email: u.email ?? '',
           teamIds: u.teamIds ?? [],
-          role: u.role ?? 'super-admin',
+          role: (u.role ?? 'super-admin').toLowerCase().replace('_', '-'),
         }
         setCurrentUser(userMe)
-        setUsers((prev) => {
-          const idx = prev.findIndex((p) => p.id === userMe.id)
-          if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...userMe } : p))
-          const placeholderIdx = prev.findIndex((p) => p.id === 'u0')
-          if (placeholderIdx >= 0) {
-            return prev.map((p, i) => (i === placeholderIdx ? { ...userMe, positionTitle: p.positionTitle } : p))
-          }
-          return [userMe, ...prev]
-        })
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
+        const role = (u.role ?? '').toLowerCase()
+        const isAdmin = role === 'admin' || role === 'super_admin' || role === 'super-admin'
+        if (isAdmin && Array.isArray(adminList) && adminList.length > 0) {
+          setUsers(adminList.map((au) => ({
+            id: au.id,
+            name: au.name ?? au.email?.split('@')[0] ?? 'User',
+            email: au.email ?? '',
+            teamIds: au.teamIds ?? [],
+            role: (au.role || '').toLowerCase().replace('_', '-'),
+          })))
+        } else {
+          setUsers((prev) => {
+            const idx = prev.findIndex((p) => p.id === userMe.id)
+            if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...userMe } : p))
+            const placeholderIdx = prev.findIndex((p) => p.id === 'u0')
+            if (placeholderIdx >= 0) {
+              return prev.map((p, i) => (i === placeholderIdx ? { ...userMe, positionTitle: p.positionTitle } : p))
+            }
+            return [userMe, ...prev]
+          })
+        }
+      }
 
-  useEffect(() => {
-    if (!getAuthToken()) return
-    let cancelled = false
-    const toJson = (r) => (r.ok ? r.json() : null)
-    Promise.allSettled([
-      platformFetch('/api/tickets').then(toJson),
-      platformFetch('/api/events').then(toJson),
-    ]).then(([tickets, events]) => {
-      if (cancelled) return
-      const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
-      const eventsData = events.status === 'fulfilled' ? events.value : null
       if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
       if (eventsData && Array.isArray(eventsData)) {
         setEvents(eventsData.map((e) => ({
@@ -241,7 +248,7 @@ export default function App() {
       setFormSubmissions((prev) => (prev.length ? prev : []))
       setFormsDataLoaded(true)
       setFormsLoading(false)
-    }, 12000)
+    }, 5000)
     Promise.all([
       platformFetch('/api/forms').then(toJson),
       platformFetch('/api/forms/submissions').then(toJson),
@@ -304,10 +311,6 @@ export default function App() {
       })
       .catch(() => {})
   }, [currentUser?.id, currentUser?.role])
-
-  useEffect(() => {
-    refetchMembers()
-  }, [refetchMembers])
 
   const openEventInfo = (ev) => {
     setSelectedEvent(ev)
