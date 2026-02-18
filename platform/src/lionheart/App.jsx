@@ -38,7 +38,7 @@ import {
   getItemsByScope,
   getStockByScope,
 } from './data/inventoryData'
-import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, getTeamDisplayLabel, INVENTORY_TEAM_IDS, getTeamName, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
+import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, getTeamDisplayLabel, DEFAULT_INVENTORY_TEAM_IDS, getTeamName, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, setAuthToken, platformFetch, platformPost } from './services/platformApi'
 
@@ -69,7 +69,7 @@ export default function App() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, allowTeacherEventRequests, refreshOrg, loading: orgLoading } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, inventoryTeamIds, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, allowTeacherEventRequests, refreshOrg, loading: orgLoading } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -356,9 +356,13 @@ export default function App() {
   const isITUser = isITTeam(effectiveUser, teams)
   const isAVUser = isAVTeam(effectiveUser, teams)
   const isSecurityUser = getUserTeamIds(effectiveUser).includes('security')
-  const hasTeamInventory = isAVUser || isFacilitiesUser || isITUser || isSecurityUser
+  const effectiveInventoryTeamIds = hasAdvancedInventory
+    ? (Array.isArray(inventoryTeamIds) && inventoryTeamIds.length > 0 ? inventoryTeamIds : DEFAULT_INVENTORY_TEAM_IDS)
+    : []
+  const hasTeamInventory = effectiveInventoryTeamIds.some((id) => getUserTeamIds(effectiveUser).includes(id))
   const isSA = effectiveUser?.role === 'super-admin' || effectiveUser?.role === 'SUPER_ADMIN'
-  const showInventory = hasAdvancedInventory && (hasTeamInventory || isSA)
+  // Super Admin always sees Inventory (and can switch between teams that have inventory). Others need add-on + team.
+  const showInventory = isSA || (hasAdvancedInventory && hasTeamInventory)
   // Water Management: Maintenance team OR Super Admin only (hide from A/V, IT, Teachers, etc.)
   const showWaterManagementForUser = hasWaterManagement && (isFacilitiesUser || isSuperAdmin(effectiveUser))
 
@@ -370,7 +374,8 @@ export default function App() {
 
   const defaultInventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : isSecurityUser ? 'security' : null
   const [inventoryScopeOverride, setInventoryScopeOverride] = useState(null)
-  const effectiveScope = defaultInventoryScope ?? (isSA ? 'av' : null)
+  const firstInventoryScope = effectiveInventoryTeamIds[0] ?? 'av'
+  const effectiveScope = defaultInventoryScope ?? (isSA ? firstInventoryScope : null)
   const inventoryScope = (isSA && inventoryScopeOverride) ? inventoryScopeOverride : effectiveScope
   const pageTitle =
     activeTab === 'facilities' && isFacilitiesUser
@@ -473,6 +478,8 @@ export default function App() {
                 users={users}
                 setUsers={setUsers}
                 hasTeamInventory={hasTeamInventory}
+                hasAdvancedInventory={hasAdvancedInventory}
+                inventoryTeamIds={inventoryTeamIds}
                 orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}
                 orgName={orgName || searchParams.get('orgName')}
                 orgWebsite={orgWebsite || searchParams.get('orgWebsite')}
@@ -762,7 +769,7 @@ export default function App() {
                             onChange={(e) => setInventoryScopeOverride(e.target.value)}
                             className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:ring-2 focus:ring-blue-500"
                           >
-                            {INVENTORY_TEAM_IDS.map((id) => (
+                            {(effectiveInventoryTeamIds.length > 0 ? effectiveInventoryTeamIds : DEFAULT_INVENTORY_TEAM_IDS).map((id) => (
                               <option key={id} value={id}>{getTeamName(teams, id)}</option>
                             ))}
                           </select>

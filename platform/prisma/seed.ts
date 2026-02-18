@@ -21,7 +21,7 @@ async function main() {
             core: true,
             waterManagement: true,
             visualCampus: { enabled: true },
-            advancedInventory: false,
+            advancedInventory: true,
           },
         },
       },

@@ -16,7 +16,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
-import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin, getUserTeamIds, getTeamName, INVENTORY_TEAM_IDS } from '../data/teamsData'
+import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin, getUserTeamIds, getTeamName, DEFAULT_INVENTORY_TEAM_IDS, AVAILABLE_INVENTORY_TEAM_IDS } from '../data/teamsData'
 import { platformPost, platformFetch, platformPatch, getAuthToken } from '../services/platformApi'
 
 // --- CONSTANTS ---
@@ -53,7 +53,114 @@ const PRICING_PLANS = [
 
 // --- SUB-COMPONENTS ---
 
-function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
+function InventoryAddOnCard({ hasAdvancedInventory, inventoryTeamIds, teams, onRefresh }) {
+  const [saving, setSaving] = useState(false)
+  const effectiveIds = Array.isArray(inventoryTeamIds) && inventoryTeamIds.length > 0 ? inventoryTeamIds : DEFAULT_INVENTORY_TEAM_IDS
+  const [selectedIds, setSelectedIds] = useState(() => (hasAdvancedInventory ? effectiveIds : DEFAULT_INVENTORY_TEAM_IDS))
+  useEffect(() => {
+    setSelectedIds(hasAdvancedInventory ? effectiveIds : DEFAULT_INVENTORY_TEAM_IDS)
+  }, [hasAdvancedInventory, Array.isArray(inventoryTeamIds) && inventoryTeamIds.length ? inventoryTeamIds.join(',') : ''])
+  const handleEnableDisable = async () => {
+    setSaving(true)
+    try {
+      const res = await platformPatch('/api/organization/settings', {
+        modules: { advancedInventory: !hasAdvancedInventory },
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Update failed')
+      }
+      onRefresh?.()
+    } catch (err) {
+      alert(err?.message || 'Failed to update')
+    } finally {
+      setSaving(false)
+    }
+  }
+  const handleTeamToggle = (teamId) => {
+    const next = selectedIds.includes(teamId) ? selectedIds.filter((id) => id !== teamId) : [...selectedIds, teamId]
+    if (next.length === 0) return
+    setSelectedIds(next)
+  }
+  const saveTeamIds = async () => {
+    setSaving(true)
+    try {
+      const res = await platformPatch('/api/organization/settings', {
+        modules: { inventoryTeamIds: selectedIds },
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Update failed')
+      }
+      onRefresh?.()
+    } catch (err) {
+      alert(err?.message || 'Failed to update')
+    } finally {
+      setSaving(false)
+    }
+  }
+  return (
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/40 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <p className="font-medium text-zinc-900 dark:text-zinc-100">Advanced Inventory</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {hasAdvancedInventory
+                ? 'Choose which teams get their own inventory. Default: A/V, Maintenance, IT. You can add Campus Safety or others.'
+                : 'Enable to give A/V, Maintenance, and IT their own inventories. Optionally add Campus Safety or other teams in Settings.'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleEnableDisable}
+          disabled={saving}
+          className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            hasAdvancedInventory
+              ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+              : 'bg-blue-500 text-white hover:bg-blue-600'
+          } disabled:opacity-50`}
+        >
+          {saving ? 'Saving...' : hasAdvancedInventory ? 'Disable' : 'Enable'}
+        </button>
+      </div>
+      {hasAdvancedInventory && (
+        <div className="px-4 pb-4 pt-0 border-t border-zinc-100 dark:border-zinc-700/80">
+          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">Teams with inventory</p>
+          <div className="flex flex-wrap gap-3">
+            {AVAILABLE_INVENTORY_TEAM_IDS.map((id) => (
+              <label key={id} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(id)}
+                  onChange={() => handleTeamToggle(id)}
+                  className="rounded border-zinc-300 dark:border-zinc-600 text-blue-500 focus:ring-blue-500"
+                />
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">{getTeamName(teams, id)}</span>
+              </label>
+            ))}
+          </div>
+          {selectedIds.join(',') !== effectiveIds.join(',') && (
+            <button
+              type="button"
+              onClick={saveTeamIds}
+              disabled={saving}
+              className="mt-3 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save teams'}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SubscriptionSection({ hasWaterManagement = false, hasAdvancedInventory = false, inventoryTeamIds, currentUser, teams, onOpenAddOn, onRefreshOrg }) {
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const currentPlanId = 'pro'
@@ -219,6 +326,14 @@ function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
               <ExternalLink className="w-4 h-4 text-zinc-400" />
             </button>
           )}
+          {isSuperAdmin(currentUser) && (
+            <InventoryAddOnCard
+              hasAdvancedInventory={hasAdvancedInventory}
+              inventoryTeamIds={inventoryTeamIds}
+              teams={teams}
+              onRefresh={onRefreshOrg}
+            />
+          )}
         </div>
       </div>
 
@@ -247,12 +362,12 @@ function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
   )
 }
 
-function AppsSection({ currentUser, teams, hasTeamInventory }) {
+function AppsSection({ currentUser, teams, hasTeamInventory, effectiveInventoryTeamIds = [] }) {
   const isSA = isSuperAdmin(currentUser)
   const teamIds = getUserTeamIds(currentUser)
-  const primaryInventoryTeamId = INVENTORY_TEAM_IDS.find((id) => teamIds.includes(id))
+  const primaryInventoryTeamId = effectiveInventoryTeamIds.find((id) => teamIds.includes(id))
   const teamLabel = primaryInventoryTeamId ? getTeamName(teams, primaryInventoryTeamId) : null
-  const inventoryTeamNames = INVENTORY_TEAM_IDS.map((id) => getTeamName(teams, id)).join(', ')
+  const inventoryTeamNames = effectiveInventoryTeamIds.map((id) => getTeamName(teams, id)).join(', ')
 
   const APP_MODULES = [
     {
@@ -261,8 +376,10 @@ function AppsSection({ currentUser, teams, hasTeamInventory }) {
       description: hasTeamInventory
         ? `Track items and stock by location. You see your team's inventory (${teamLabel}).`
         : isSA
-          ? 'Track items and stock by team. Use the Inventory page to switch between A/V, Maintenance, IT, and Campus Safety team inventories.'
-          : `Inventory is available to team members: ${inventoryTeamNames}. Contact an admin to be added to a team.`,
+          ? 'Track items and stock by team. Use the Inventory page to switch between team inventories. Super Admins can choose which teams have inventory in Subscription settings.'
+          : inventoryTeamNames
+            ? `Inventory is available to: ${inventoryTeamNames}. Contact an admin to be added to a team.`
+            : 'Inventory can be enabled by a Super Admin in Subscription settings.',
       icon: Package,
     },
   ]
@@ -788,12 +905,18 @@ function SettingsSectionContent({
         currentUser={currentUser}
         teams={teams}
         hasTeamInventory={hasTeamInventory}
+        effectiveInventoryTeamIds={effectiveInventoryTeamIds}
       />
     ),
     subscription: (
       <SubscriptionSection
         hasWaterManagement={hasWaterManagement}
+        hasAdvancedInventory={hasAdvancedInventory}
+        inventoryTeamIds={inventoryTeamIds}
+        currentUser={currentUser}
+        teams={teams}
         onOpenAddOn={onOpenAddOn}
+        onRefreshOrg={onOrgBrandingUpdated}
       />
     ),
     'data-export': <DataExportSection />,
@@ -869,8 +992,13 @@ export default function SettingsPage({
   allowTeacherEventRequests = false,
   onAllowTeacherEventRequestsChange,
   hasWaterManagement = false,
+  hasAdvancedInventory = false,
+  inventoryTeamIds,
   onOpenAddOn,
 }) {
+  const effectiveInventoryTeamIds = hasAdvancedInventory
+    ? (Array.isArray(inventoryTeamIds) && inventoryTeamIds.length > 0 ? inventoryTeamIds : DEFAULT_INVENTORY_TEAM_IDS)
+    : []
   const canSeeWorkspace = isSuperAdmin(currentUser) || (currentUser?.role && String(currentUser.role).toLowerCase() === 'admin')
   const allSections = canSeeWorkspace ? [...generalSettings, ...workspaceSettings] : generalSettings
   const activeSection = allSections.some((s) => s.id === settingsSection)

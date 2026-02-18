@@ -39,6 +39,7 @@ export function OrgModulesProvider({ children }) {
   const [brandfetchLogoUrl, setBrandfetchLogoUrl] = useState(null)
   const [trialDaysLeft, setTrialDaysLeft] = useState(null)
   const [allowTeacherEventRequests, setAllowTeacherEventRequests] = useState(false)
+  const [inventoryTeamIds, setInventoryTeamIds] = useState(undefined)
 
   const fetchOrg = () => {
     platformGet('/api/organization/settings')
@@ -57,6 +58,8 @@ export function OrgModulesProvider({ children }) {
             advancedInventory: m.advancedInventory ?? DEFAULT_MODULES.advancedInventory,
           })
         }
+        if (Array.isArray(data?.inventoryTeamIds)) setInventoryTeamIds(data.inventoryTeamIds)
+        else setInventoryTeamIds(undefined)
         if (data?.name != null) setOrgName(data.name)
         if (data?.logoUrl != null) setOrgLogoUrl(data.logoUrl)
         else setOrgLogoUrl(null)
@@ -114,6 +117,8 @@ export function OrgModulesProvider({ children }) {
             advancedInventory: m.advancedInventory ?? DEFAULT_MODULES.advancedInventory,
           })
         }
+        if (Array.isArray(data?.inventoryTeamIds)) setInventoryTeamIds(data.inventoryTeamIds)
+        else setInventoryTeamIds(undefined)
         if (data?.name != null) setOrgName(data.name)
         if (data?.logoUrl != null) setOrgLogoUrl(data.logoUrl)
         else setOrgLogoUrl(null)
@@ -163,6 +168,7 @@ export function OrgModulesProvider({ children }) {
     hasWaterManagement: modules.waterManagement === true,
     hasVisualCampus: modules.visualCampus?.enabled === true,
     hasAdvancedInventory: modules.advancedInventory === true,
+    inventoryTeamIds,
     orgName,
     orgLogoUrl: displayLogoUrl,
     orgWebsite,
@@ -185,5 +191,5 @@ export function OrgModulesProvider({ children }) {
 
 export function useOrgModules() {
   const ctx = useContext(OrgModulesContext)
-  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null, allowTeacherEventRequests: false }
+  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, inventoryTeamIds: undefined, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null, allowTeacherEventRequests: false }
 }

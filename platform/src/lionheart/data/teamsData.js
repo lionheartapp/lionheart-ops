@@ -148,8 +148,14 @@ export function isSuperAdmin(user) {
   return user?.role === 'super-admin' || user?.role === 'SUPER_ADMIN'
 }
 
-/** Teams that have their own inventory (can be extended via org settings later) */
-export const INVENTORY_TEAM_IDS = ['av', 'facilities', 'it', 'security']
+/** Default teams with inventory when Advanced Inventory is on (Security is opt-in via Settings) */
+export const DEFAULT_INVENTORY_TEAM_IDS = ['av', 'facilities', 'it']
+
+/** Teams that can be granted inventory by Super Admin (default three + Security opt-in) */
+export const AVAILABLE_INVENTORY_TEAM_IDS = ['av', 'facilities', 'it', 'security']
+
+/** @deprecated Use DEFAULT_INVENTORY_TEAM_IDS or effective list from org settings */
+export const INVENTORY_TEAM_IDS = DEFAULT_INVENTORY_TEAM_IDS
 
 /** Display label for header: "Global - A/V" for super admin, "A/V" / "Maintenance" / "IT" for team members */
 export function getTeamDisplayLabel(user, teams) {
