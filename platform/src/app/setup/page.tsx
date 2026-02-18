@@ -334,6 +334,7 @@ function SetupWizard({
         // non-blocking
       }
     }
+    const tokenToPass = typeof window !== 'undefined' ? getToken() : null
     if (typeof window !== 'undefined' && window.location.hash) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     }
@@ -346,8 +347,9 @@ function SetupWizard({
     if (schoolData.address) params.set('orgAddress', schoolData.address)
     if (schoolData.logoUrl && schoolData.logoUrl.startsWith('http')) params.set('orgLogoUrl', schoolData.logoUrl)
     const qs = params.toString()
+    const hashFragment = tokenToPass ? `#token=${encodeURIComponent(tokenToPass)}` : ''
     setTimeout(() => {
-      window.location.href = `${LIONHEART_URL}/app?${qs}`
+      window.location.href = `${LIONHEART_URL}/app?${qs}${hashFragment}`
     }, 2000)
   }
 

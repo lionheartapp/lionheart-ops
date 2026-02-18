@@ -40,7 +40,7 @@ import {
 } from './data/inventoryData'
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
-import { getAuthToken, platformFetch, platformPost } from './services/platformApi'
+import { getAuthToken, setAuthToken, platformFetch, platformPost } from './services/platformApi'
 
 const INVENTORY_PREFS_KEY = 'schoolops-inventory-prefs'
 
@@ -132,6 +132,20 @@ export default function App() {
       })
       .catch(() => {})
   }
+
+  // When arriving from setup redirect with #token=..., store it so onboarding PATCH is authenticated
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash
+    const match = hash?.match(/#token=([^&]+)/)
+    if (match) {
+      try {
+        const token = decodeURIComponent(match[1])
+        if (token) setAuthToken(token)
+      } catch (_) {}
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+  }, [])
 
   // Command Bar (K-Bar): Cmd+K / Ctrl+K
   useEffect(() => {

@@ -15,8 +15,8 @@
   --bg-base: 9 9 11;     /* zinc-950 */
   --bg-card: 39 39 42;   /* zinc-800 */
   --text-primary: 250 250 250;
-  --text-muted: 161 161 170;
-  --border: 63 63 70;
+  --text-muted: 212 212 216;  /* zinc-300, ≥4.5:1 on zinc-950 for WCAG AA */
+  --border: 82 82 91;        /* zinc-600, improved contrast */
   --accent: 59 130 246;
 }
 
@@ -24,6 +24,18 @@ body {
   @apply antialiased font-sans;
   background-color: rgb(var(--bg-base));
   color: rgb(var(--text-primary));
+}
+
+/* Dark mode: sidebar logos (org + default) appear white for contrast on dark background */
+.dark .sidebar-org-logo,
+.dark .sidebar-default-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* Dark mode: ensure placeholders and secondary text meet WCAG AA contrast (≥4.5:1) */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(212 212 216);
 }
 
 /* Glassmorphism – dark zinc with subtle blue tint */
