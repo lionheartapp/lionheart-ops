@@ -1,13 +1,16 @@
 /**
  * Extract text content from uploaded files (txt, md, pdf).
  * Returns a Promise that resolves to the extracted text, or rejects with an error.
+ * pdfjs-dist is loaded dynamically to avoid "Object.defineProperty called on non-object" at app load.
  */
-import * as pdfjsLib from 'pdfjs-dist'
 
-// Next.js doesn't support ?url for workers; use CDN so we don't need to bundle the worker
-if (typeof window !== 'undefined') {
-  const version = pdfjsLib.version || '5.4.624'
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.mjs`
+async function getPdfJs() {
+  const pdfjsLib = await import('pdfjs-dist')
+  if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+    const version = pdfjsLib.version || '5.4.624'
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.mjs`
+  }
+  return pdfjsLib
 }
 
 /**
@@ -16,6 +19,7 @@ if (typeof window !== 'undefined') {
  * @returns {Promise<{ data: string, mimeType: string }>}
  */
 export async function renderPdfFirstPageAsImage(file) {
+  const pdfjsLib = await getPdfJs()
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
   const page = await pdf.getPage(1)
@@ -44,6 +48,7 @@ export async function extractDocumentText(file) {
 
   if (ext === 'pdf') {
     try {
+      const pdfjsLib = await getPdfJs()
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       let fullText = ''

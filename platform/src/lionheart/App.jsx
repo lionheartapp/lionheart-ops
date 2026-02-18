@@ -236,19 +236,12 @@ export default function App() {
     return () => { cancelled = true }
   }, [])
 
-  // Lazy load forms when user opens Forms tab
+  // Lazy load forms when user opens Forms tab (no artificial delay — loading clears as soon as API returns)
   useEffect(() => {
     if (!getAuthToken() || activeTab !== 'forms' || formsDataLoaded || formsLoading) return
     let cancelled = false
     setFormsLoading(true)
     const toJson = (r) => (r.ok ? r.json() : null)
-    const timeout = setTimeout(() => {
-      if (cancelled) return
-      setForms((prev) => (prev.length ? prev : []))
-      setFormSubmissions((prev) => (prev.length ? prev : []))
-      setFormsDataLoaded(true)
-      setFormsLoading(false)
-    }, 5000)
     Promise.all([
       platformFetch('/api/forms').then(toJson),
       platformFetch('/api/forms/submissions').then(toJson),
@@ -264,13 +257,9 @@ export default function App() {
         setFormsDataLoaded(true)
       }
     }).finally(() => {
-      clearTimeout(timeout)
       if (!cancelled) setFormsLoading(false)
     })
-    return () => {
-      cancelled = true
-      clearTimeout(timeout)
-    }
+    return () => { cancelled = true }
   }, [activeTab, formsDataLoaded])
 
   // Lazy load inventory when user opens Inventory tab
