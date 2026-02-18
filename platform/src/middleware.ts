@@ -5,13 +5,14 @@ const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
 
 function getSubdomainFromHost(host: string): string | null {
   const base = host.replace(/^www\./, '')
-  // subdomain.lionheartapp.com or subdomain.localhost
+  // subdomain.lionheartapp.com or subdomain.localhost — only when there is an actual subdomain (not apex)
   if (base.endsWith('.localhost')) {
     const sub = base.replace(/\.localhost$/, '')
     return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
   }
   const parts = base.split('.')
-  if (parts.length >= 2) {
+  // Apex domain (e.g. lionheartapp.com) has 2 parts → no subdomain, show marketing. School subdomain (e.g. linfield.lionheartapp.com) has 3+ parts.
+  if (parts.length > 2) {
     const sub = parts[0]
     return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
   }
