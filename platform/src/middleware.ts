@@ -44,6 +44,11 @@ export function middleware(req: NextRequest) {
     return new NextResponse(null, { status: 204, headers: corsHeaders })
   }
 
+  // Only enforce API auth for /api/* routes (allow /, /login, /app, etc. for marketing and app)
+  if (!req.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   // Require x-org-id or Authorization Bearer for API requests (multi-tenant context)
   // Exclude: cron, auth, setup, billing webhook (Stripe signature auth)
   if (
