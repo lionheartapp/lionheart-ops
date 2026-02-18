@@ -3,7 +3,7 @@
  * name and details so users don't have to type them in every time.
  *
  * Dynamic data from API takes precedence. Fallback to .env:
- * - VITE_ORG_NAME, VITE_ORG_WEBSITE, VITE_ORG_CONTEXT
+ * - NEXT_PUBLIC_ORG_NAME, NEXT_PUBLIC_ORG_WEBSITE, NEXT_PUBLIC_ORG_CONTEXT (or legacy VITE_*)
  */
 
 const getEnv = (key) => (typeof process !== 'undefined' && process.env?.[key]?.trim()) || ''

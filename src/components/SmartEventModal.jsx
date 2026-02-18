@@ -816,8 +816,8 @@ export default function SmartEventModal({
         conflictNote,
       })
     } catch (err) {
-      replyText = err?.message?.includes('VITE_GEMINI_API_KEY')
-        ? "I can't reach the AI right now. Add your Gemini API key in the project's .env file as VITE_GEMINI_API_KEY, then restart the dev server."
+      replyText = err?.message?.includes('Gemini API key') || err?.message?.includes('VITE_GEMINI_API_KEY')
+        ? "I can't reach the AI right now. Add NEXT_PUBLIC_GEMINI_API_KEY (or VITE_GEMINI_API_KEY) in .env and restart."
         : `Something went wrong: ${err?.message || 'please try again.'}`
     }
 

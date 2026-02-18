@@ -32,7 +32,10 @@ class GlobalErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      const orgName = this.props.orgName || import.meta.env.VITE_ORG_NAME || 'School'
+      const orgName = this.props.orgName
+        || (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_ORG_NAME?.trim())
+        || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ORG_NAME?.trim())
+        || 'School'
       return (
         <div
           className="min-h-screen flex flex-col items-center justify-center p-6 bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100"

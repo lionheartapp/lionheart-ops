@@ -1,6 +1,13 @@
 import { GoogleGenAI } from '@google/genai'
 import { getOrgContextForAI } from '../config/orgContext'
 
+/** Safe read: works in Next.js (process.env.NEXT_PUBLIC_*) and Vite (import.meta.env.VITE_*). */
+function getGeminiApiKey() {
+  return (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_GEMINI_API_KEY?.trim()) ||
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY?.trim()) ||
+    ''
+}
+
 // Exponential backoff delays (ms): 15s, 30s, 60s
 const RATE_LIMIT_BACKOFF_MS = [15000, 30000, 60000]
 const RATE_LIMIT_MAX_RETRIES = 3
@@ -89,8 +96,8 @@ Output ONLY the JSON object, nothing else.`
  * @returns {Promise<{ name?: string, date?: string, time?: string, location?: string }>}
  */
 export async function extractEventFieldsWithGemini(messages = []) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-  if (!apiKey?.trim()) {
+  const apiKey = getGeminiApiKey()
+  if (!apiKey) {
     return {}
   }
 
@@ -154,9 +161,9 @@ export async function extractEventFieldsWithGemini(messages = []) {
  * @returns {Promise<string>} Model reply text
  */
 export async function chatWithGemini({ messages = [], systemInstruction, conflictNote }) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-  if (!apiKey?.trim()) {
-    throw new Error('Missing VITE_GEMINI_API_KEY. Add your key in .env and restart the dev server.')
+  const apiKey = getGeminiApiKey()
+  if (!apiKey) {
+    throw new Error('Missing Gemini API key. Add NEXT_PUBLIC_GEMINI_API_KEY (or VITE_GEMINI_API_KEY) in .env and restart.')
   }
 
   const ai = new GoogleGenAI({ apiKey: apiKey.trim() })
@@ -268,9 +275,9 @@ async function fileToBase64(file) {
  * @param {Array<{ id: string, name: string }>} [users] - Team members for resolving @ mentions to approver names
  */
 export async function generateFormWithGemini(userDescription, referenceContent, referenceImage, users = []) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-  if (!apiKey?.trim()) {
-    throw new Error('Missing VITE_GEMINI_API_KEY. Add your key in .env and restart the dev server.')
+  const apiKey = getGeminiApiKey()
+  if (!apiKey) {
+    throw new Error('Missing Gemini API key. Add NEXT_PUBLIC_GEMINI_API_KEY (or VITE_GEMINI_API_KEY) in .env and restart.')
   }
 
   const hasReference = !!(referenceContent?.trim() || referenceImage)
@@ -391,9 +398,9 @@ export async function generateFormWithGemini(userDescription, referenceContent, 
  * @returns {Promise<string>} Base64 data URL (e.g. "data:image/png;base64,...") or empty string on failure
  */
 export async function generateFormImageWithGemini(prompt) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-  if (!apiKey?.trim()) {
-    throw new Error('Missing VITE_GEMINI_API_KEY. Add your key in .env and restart the dev server.')
+  const apiKey = getGeminiApiKey()
+  if (!apiKey) {
+    throw new Error('Missing Gemini API key. Add NEXT_PUBLIC_GEMINI_API_KEY (or VITE_GEMINI_API_KEY) in .env and restart.')
   }
 
   const ai = new GoogleGenAI({ apiKey: apiKey.trim() })

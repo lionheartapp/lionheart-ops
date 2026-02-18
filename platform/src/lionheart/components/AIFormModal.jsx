@@ -188,8 +188,8 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
       onClose?.()
     } catch (err) {
       const msg = err?.message ?? 'Something went wrong. Please try again.'
-      setError(msg.includes('VITE_GEMINI_API_KEY')
-        ? "Can't reach AI. Add your Gemini API key in .env as VITE_GEMINI_API_KEY and restart."
+      setError(msg.includes('Gemini API key') || msg.includes('VITE_GEMINI_API_KEY')
+        ? "Can't reach AI. Add NEXT_PUBLIC_GEMINI_API_KEY (or VITE_GEMINI_API_KEY) in .env and restart."
         : msg)
     } finally {
       setLoading(false)

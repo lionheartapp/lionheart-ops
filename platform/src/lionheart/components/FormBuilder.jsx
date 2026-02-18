@@ -1039,8 +1039,8 @@ Available image refs: template:logo, template:template-header-1, template:templa
     } catch (err) {
       const msg = err?.message ?? ''
       const isRateLimit = /rate limit|429/i.test(msg)
-      setError(msg?.includes('VITE_GEMINI_API_KEY')
-        ? 'Add VITE_GEMINI_API_KEY in .env to use AI help.'
+      setError(msg?.includes('Gemini API key') || msg?.includes('VITE_GEMINI_API_KEY')
+        ? 'Add NEXT_PUBLIC_GEMINI_API_KEY (or VITE_GEMINI_API_KEY) in .env to use AI help.'
         : msg || 'Something went wrong.')
       if (isRateLimit) setCooldownRemaining(RATE_LIMIT_COOLDOWN_SEC)
     } finally {
