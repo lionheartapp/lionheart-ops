@@ -14,10 +14,15 @@ import {
   Upload,
   Droplets,
   ExternalLink,
+  FileText,
+  Pencil,
+  PlusCircle,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
 import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin, getUserTeamIds, getTeamName, INVENTORY_TEAM_IDS } from '../data/teamsData'
 import { platformPost, platformFetch, platformPatch, getAuthToken } from '../services/platformApi'
+import { useOrgModules } from '../context/OrgModulesContext'
+import { SYSTEM_FORM_SLOTS, getSystemFormTemplate } from '../data/systemFormTemplates'
 
 // --- CONSTANTS ---
 const PRICING_PLANS = [
@@ -738,6 +743,121 @@ function DataExportSection() {
   )
 }
 
+function SystemFormsSection({
+  forms,
+  setForms,
+  setFormToEdit,
+  setFormBuilderOpen,
+  currentUser,
+}) {
+  const { systemFormIds, setSystemFormIds, refreshOrg } = useOrgModules()
+  const [loadingSlot, setLoadingSlot] = useState(null)
+
+  const handleSetUpFromTemplate = async (slotId) => {
+    if (!setForms || !setFormToEdit || !setFormBuilderOpen) return
+    setLoadingSlot(slotId)
+    try {
+      const template = getSystemFormTemplate(slotId, currentUser?.name ?? '')
+      const payload = {
+        title: template.title,
+        description: template.description ?? '',
+        showTitle: template.showTitle ?? true,
+        fields: template.fields ?? [],
+        layout: template.layout ?? 'default',
+        formWidth: template.formWidth ?? 'standard',
+        headerImage: template.headerImage ?? '',
+        sideImage: template.sideImage ?? '',
+        steps: template.steps ?? [],
+        approvalWorkflow: template.approvalWorkflow ?? null,
+        submissionType: template.submissionType ?? 'general',
+        visibility: 'org',
+      }
+      const res = await platformPost('/api/forms', payload)
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error || 'Failed to create form')
+      }
+      const newForm = await res.json()
+      setForms((prev) => (prev.some((f) => f.id === newForm.id) ? prev : [...prev, newForm]))
+      const nextIds = { ...systemFormIds, [slotId]: newForm.id }
+      const patchRes = await platformPatch('/api/organization/settings', { systemFormIds: nextIds })
+      if (patchRes.ok) {
+        setSystemFormIds(nextIds)
+        refreshOrg?.()
+      }
+      setFormToEdit(newForm)
+      setFormBuilderOpen(true)
+    } catch (e) {
+      alert(e?.message || 'Something went wrong')
+    } finally {
+      setLoadingSlot(null)
+    }
+  }
+
+  const handleEditForm = (form) => {
+    if (setFormToEdit && setFormBuilderOpen) {
+      setFormToEdit(form)
+      setFormBuilderOpen(true)
+    }
+  }
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <div>
+        <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">System forms</h2>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          These forms are used across the app (Create Event, Tech request, Facilities request, IT request). Set up from a template, then edit as needed.
+        </p>
+      </div>
+      <div className="space-y-4">
+        {SYSTEM_FORM_SLOTS.map((slot) => {
+          const formId = systemFormIds[slot.id]
+          const form = formId ? forms.find((f) => f.id === formId) : null
+          const isLoading = loadingSlot === slot.id
+          return (
+            <div
+              key={slot.id}
+              className="glass-card p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+            >
+              <div className="min-w-0">
+                <h3 className="font-medium text-zinc-900 dark:text-zinc-100">{slot.label}</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{slot.description}</p>
+                {form && (
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 truncate">
+                    Form: {form.title}
+                  </p>
+                )}
+              </div>
+              <div className="shrink-0 flex items-center gap-2">
+                {form ? (
+                  <button
+                    type="button"
+                    onClick={() => handleEditForm(form)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Edit form
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSetUpFromTemplate(slot.id)}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    {isLoading ? 'Creating…' : 'Set up from template'}
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function SettingsSectionContent({
   section,
   currentUser,
@@ -758,6 +878,10 @@ function SettingsSectionContent({
   onAllowTeacherEventRequestsChange,
   hasWaterManagement,
   onOpenAddOn,
+  forms,
+  setForms,
+  setFormToEdit,
+  setFormBuilderOpen,
 }) {
   if (section === 'members') {
     return (
@@ -779,6 +903,7 @@ function SettingsSectionContent({
     language: 'Language & Region',
     general: 'General',
     school: 'School Information',
+    forms: 'Forms',
   }
 
   const content = {
@@ -816,6 +941,15 @@ function SettingsSectionContent({
         onAllowTeacherEventRequestsChange={onAllowTeacherEventRequestsChange}
       />
     ),
+    forms: (
+      <SystemFormsSection
+        forms={forms ?? []}
+        setForms={setForms}
+        setFormToEdit={setFormToEdit}
+        setFormBuilderOpen={setFormBuilderOpen}
+        currentUser={currentUser}
+      />
+    ),
   }
 
   if (content[section]) return content[section]
@@ -844,6 +978,7 @@ const generalSettings = [
 const workspaceSettings = [
   { id: 'school', label: 'School Information', icon: Building2 },
   { id: 'general', label: 'General', icon: Wrench },
+  { id: 'forms', label: 'Forms', icon: FileText },
   { id: 'members', label: 'Members', icon: Users },
   { id: 'subscription', label: 'Subscription', icon: CreditCard },
   { id: 'data-export', label: 'Data Export', icon: Download },
@@ -870,6 +1005,10 @@ export default function SettingsPage({
   onAllowTeacherEventRequestsChange,
   hasWaterManagement = false,
   onOpenAddOn,
+  forms = [],
+  setForms,
+  setFormToEdit,
+  setFormBuilderOpen,
 }) {
   const canSeeWorkspace = isSuperAdmin(currentUser) || (currentUser?.role && String(currentUser.role).toLowerCase() === 'admin')
   const allSections = canSeeWorkspace ? [...generalSettings, ...workspaceSettings] : generalSettings
@@ -964,9 +1103,13 @@ export default function SettingsPage({
           orgLoading={orgLoading}
           allowTeacherEventRequests={allowTeacherEventRequests}
           onAllowTeacherEventRequestsChange={onAllowTeacherEventRequestsChange}
-        onOrgBrandingUpdated={onOrgBrandingUpdated}
-        hasWaterManagement={hasWaterManagement}
-        onOpenAddOn={onOpenAddOn}
+          onOrgBrandingUpdated={onOrgBrandingUpdated}
+          hasWaterManagement={hasWaterManagement}
+          onOpenAddOn={onOpenAddOn}
+          forms={forms}
+          setForms={setForms}
+          setFormToEdit={setFormToEdit}
+          setFormBuilderOpen={setFormBuilderOpen}
         />
       </div>
     </div>

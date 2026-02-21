@@ -135,6 +135,10 @@ function AppTabContentInner({ tabState }) {
           onAllowTeacherEventRequestsChange={refreshOrg}
           hasWaterManagement={hasWaterManagement}
           onOpenAddOn={(tab) => setActiveTab(tab)}
+          forms={forms}
+          setForms={setForms}
+          setFormToEdit={setFormToEdit}
+          setFormBuilderOpen={setFormBuilderOpen}
         />
       </div>
     )

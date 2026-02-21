@@ -23,7 +23,9 @@ function extractDomain(website) {
   }
 }
 
-const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: null, secondaryColor: null, trialDaysLeft: null, allowTeacherEventRequests: false })
+const DEFAULT_SYSTEM_FORM_IDS = { event: null, tech: null, facilities: null, it: null }
+
+const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: null, secondaryColor: null, trialDaysLeft: null, allowTeacherEventRequests: false, systemFormIds: DEFAULT_SYSTEM_FORM_IDS })
 
 export function OrgModulesProvider({ children }) {
   const [modules, setModules] = useState(DEFAULT_MODULES)
@@ -39,6 +41,7 @@ export function OrgModulesProvider({ children }) {
   const [brandfetchLogoUrl, setBrandfetchLogoUrl] = useState(null)
   const [trialDaysLeft, setTrialDaysLeft] = useState(null)
   const [allowTeacherEventRequests, setAllowTeacherEventRequests] = useState(false)
+  const [systemFormIds, setSystemFormIds] = useState(DEFAULT_SYSTEM_FORM_IDS)
 
   const fetchOrg = () => {
     platformGet('/api/organization/settings')
@@ -75,6 +78,14 @@ export function OrgModulesProvider({ children }) {
         if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
         if (typeof data?.allowTeacherEventRequests === 'boolean') setAllowTeacherEventRequests(data.allowTeacherEventRequests)
         else setAllowTeacherEventRequests(false)
+        if (data?.systemFormIds && typeof data.systemFormIds === 'object') {
+          setSystemFormIds({
+            event: data.systemFormIds.event ?? null,
+            tech: data.systemFormIds.tech ?? null,
+            facilities: data.systemFormIds.facilities ?? null,
+            it: data.systemFormIds.it ?? null,
+          })
+        } else setSystemFormIds(DEFAULT_SYSTEM_FORM_IDS)
         setOrgContextFromAPI({ name: data?.name, website: data?.website })
 
         // When no saved logo but we have website, try Brandfetch/Clearbit
@@ -132,6 +143,14 @@ export function OrgModulesProvider({ children }) {
         if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
         if (typeof data?.allowTeacherEventRequests === 'boolean') setAllowTeacherEventRequests(data.allowTeacherEventRequests)
         else setAllowTeacherEventRequests(false)
+        if (data?.systemFormIds && typeof data.systemFormIds === 'object') {
+          setSystemFormIds({
+            event: data.systemFormIds.event ?? null,
+            tech: data.systemFormIds.tech ?? null,
+            facilities: data.systemFormIds.facilities ?? null,
+            it: data.systemFormIds.it ?? null,
+          })
+        } else setSystemFormIds(DEFAULT_SYSTEM_FORM_IDS)
         setOrgContextFromAPI({ name: data?.name, website: data?.website })
 
         // When no saved logo but we have website, try Brandfetch/Clearbit
@@ -173,6 +192,8 @@ export function OrgModulesProvider({ children }) {
     secondaryColor: secondaryColor || '#f59e0b',
     trialDaysLeft,
     allowTeacherEventRequests,
+    systemFormIds,
+    setSystemFormIds,
     refreshOrg: fetchOrg,
   }
 
@@ -185,5 +206,5 @@ export function OrgModulesProvider({ children }) {
 
 export function useOrgModules() {
   const ctx = useContext(OrgModulesContext)
-  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null, allowTeacherEventRequests: false }
+  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null, allowTeacherEventRequests: false, systemFormIds: DEFAULT_SYSTEM_FORM_IDS, setSystemFormIds: () => {} }
 }

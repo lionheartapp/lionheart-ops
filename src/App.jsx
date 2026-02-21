@@ -223,22 +223,37 @@ export default function App() {
     return () => { cancelled = true }
   }, [activeTab, formsDataLoaded, formsLoading])
 
-  // Lazy load inventory when user opens Inventory tab
+  // Lazy load inventory when user opens Inventory tab (with timeout so spinner doesn't hang)
   useEffect(() => {
     if (!getAuthToken() || activeTab !== 'inventory' || inventoryDataLoaded || inventoryLoading) return
     let cancelled = false
     setInventoryLoading(true)
+    const timeoutMs = 15000
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        setInventoryLoading(false)
+        setInventoryDataLoaded(true)
+      }
+    }, timeoutMs)
     platformFetch('/api/inventory')
       .then((r) => (r.ok ? r.json() : null))
       .then((invData) => {
-        if (cancelled || !invData) return
-        if (Array.isArray(invData.items)) setInventoryItems(invData.items)
-        if (Array.isArray(invData.stock)) setInventoryStock(invData.stock)
+        if (cancelled) return
+        if (Array.isArray(invData?.items)) setInventoryItems(invData.items)
+        if (Array.isArray(invData?.stock)) setInventoryStock(invData.stock)
         setInventoryDataLoaded(true)
       })
-      .catch(() => {})
-      .finally(() => { setInventoryLoading(false) })
-    return () => { cancelled = true }
+      .catch(() => {
+        if (!cancelled) setInventoryDataLoaded(true)
+      })
+      .finally(() => {
+        clearTimeout(timeoutId)
+        setInventoryLoading(false)
+      })
+    return () => {
+      cancelled = true
+      clearTimeout(timeoutId)
+    }
   }, [activeTab, inventoryDataLoaded, inventoryLoading])
 
   // Fetch full member list for Admin/Super Admin (after /me so we know role)
@@ -328,7 +343,7 @@ export default function App() {
   const defaultInventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : isSecurityUser ? 'security' : null
   const [inventoryScopeOverride, setInventoryScopeOverride] = useState(null)
   const effectiveScope = defaultInventoryScope ?? (isSA ? 'av' : null)
-  const inventoryScope = (isSA && inventoryScopeOverride) ? inventoryScopeOverride : effectiveScope
+  const inventoryScope = (isSA && inventoryScopeOverride) ? inventoryScopeOverride : (effectiveScope ?? 'facilities')
 
   const pageTitle =
     activeTab === 'facilities' && isFacilitiesUser
