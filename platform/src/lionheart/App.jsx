@@ -36,6 +36,7 @@ import {
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, getTeamDisplayLabel, DEFAULT_INVENTORY_TEAM_IDS, getTeamName, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, setAuthToken, platformFetch, platformPost } from './services/platformApi'
+import { getCachedBootstrap, setCachedBootstrap } from '../lib/cacheBootstrap'
 
 import InventoryPage from './components/InventoryPage'
 import FormsPage from './components/FormsPage'
@@ -237,48 +238,82 @@ export default function App() {
     }
   }, [searchParams])
 
-  // Bootstrap: fetch /me, tickets, events, and admin/users in parallel so the shell fills in as fast as possible
+  // Bootstrap: unified single request for user + tickets + events with local caching for instant loads
   useEffect(() => {
     if (!getAuthToken()) {
       setUserBootstrapDone(true)
       setSummaryBootstrapDone(true)
       return
     }
+    
     let cancelled = false
     const toJson = (r) => (r.ok ? r.json() : null)
-    Promise.allSettled([
-      platformFetch('/api/user/me').then(toJson),
-      platformFetch('/api/tickets?summary=1').then(toJson),
-      platformFetch('/api/events?summary=1').then(toJson),
-      platformFetch('/api/admin/users').then(toJson),
-    ]).then(([meRes, ticketsRes, eventsRes, adminUsersRes]) => {
-      if (cancelled) return
-      const meData = meRes.status === 'fulfilled' ? meRes.value : null
-      const ticketsData = ticketsRes.status === 'fulfilled' ? ticketsRes.value : null
-      const eventsData = eventsRes.status === 'fulfilled' ? eventsRes.value : null
-      const adminList = adminUsersRes.status === 'fulfilled' ? adminUsersRes.value : null
-
-      if (meData?.user) {
-        const u = meData.user
+    
+    // Load from cache immediately for instant first paint
+    const cached = getCachedBootstrap()
+    if (cached) {
+      if (cached.user) {
         const userMe = {
-          id: u.id,
-          name: u.name ?? u.email?.split('@')[0] ?? 'User',
-          email: u.email ?? '',
-          teamIds: u.teamIds ?? [],
-          role: (u.role ?? 'super-admin').toLowerCase().replace('_', '-'),
+          id: cached.user.id,
+          name: cached.user.name ?? 'User',
+          email: cached.user.email ?? '',
+          teamIds: cached.user.teamIds ?? [],
+          role: cached.user.role ?? 'super-admin',
         }
         setCurrentUser(userMe)
-        const role = (u.role ?? '').toLowerCase()
-        const isAdmin = role === 'admin' || role === 'super_admin' || role === 'super-admin'
-        if (isAdmin && Array.isArray(adminList) && adminList.length > 0) {
-          setUsers(adminList.map((au) => ({
-            id: au.id,
-            name: au.name ?? au.email?.split('@')[0] ?? 'User',
-            email: au.email ?? '',
-            teamIds: au.teamIds ?? [],
-            role: (au.role || '').toLowerCase().replace('_', '-'),
-          })))
-        } else {
+        setUsers((prev) => {
+          const idx = prev.findIndex((p) => p.id === userMe.id)
+          if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...userMe } : p))
+          const placeholderIdx = prev.findIndex((p) => p.id === 'u0')
+          if (placeholderIdx >= 0) {
+            return prev.map((p, i) => (i === placeholderIdx ? { ...userMe, positionTitle: p.positionTitle } : p))
+          }
+          return [userMe, ...prev]
+        })
+      }
+      if (Array.isArray(cached.tickets)) setSupportRequests(cached.tickets)
+      if (Array.isArray(cached.events)) {
+        setEvents(cached.events.map((e) => ({
+          id: e.id,
+          name: e.name,
+          description: e.description,
+          date: e.date,
+          time: e.startTime,
+          endTime: e.endTime,
+          location: e.location || 'TBD',
+          owner: e.submittedBy,
+          creator: e.submittedBy,
+          watchers: [],
+        })))
+      }
+      setUserBootstrapDone(true)
+      setSummaryBootstrapDone(true)
+    }
+    
+    // Fetch fresh data in background (will update UI with newer data if available)
+    platformFetch('/api/bootstrap')
+      .then(toJson)
+      .then((data) => {
+        if (cancelled || !data) return
+        
+        // Save to cache for next reload
+        setCachedBootstrap({
+          user: data.user,
+          tickets: data.tickets || [],
+          events: data.events || [],
+          timestamp: Date.now(),
+        })
+        
+        // Update UI with fresh data
+        if (data.user) {
+          const userMe = {
+            id: data.user.id,
+            name: data.user.name ?? 'User',
+            email: data.user.email ?? '',
+            teamIds: data.user.teamIds ?? [],
+            role: data.user.role ?? 'super-admin',
+          }
+          setCurrentUser(userMe)
           setUsers((prev) => {
             const idx = prev.findIndex((p) => p.id === userMe.id)
             if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...userMe } : p))
@@ -289,30 +324,42 @@ export default function App() {
             return [userMe, ...prev]
           })
         }
-      }
-
-      if (Array.isArray(ticketsData)) {
-        setSupportRequests(ticketsData)
-        setFullTicketsLoaded(false)
-      }
-      if (eventsData && Array.isArray(eventsData)) {
-        setEvents(eventsData.map((e) => ({
-          id: e.id,
-          name: e.name,
-          description: e.description,
-          date: e.date,
-          time: e.startTime,
-          endTime: e.endTime,
-          location: e.room?.name || e.location || 'TBD',
-          owner: e.submittedBy?.name,
-          creator: e.submittedBy?.name,
-          watchers: [],
-        })))
-        setFullEventsLoaded(false)
-      }
-      setUserBootstrapDone(true)
-      setSummaryBootstrapDone(true)
-    })
+        
+        if (Array.isArray(data.tickets)) {
+          setSupportRequests(data.tickets)
+          setFullTicketsLoaded(false)
+        }
+        
+        if (Array.isArray(data.events)) {
+          setEvents(data.events.map((e) => ({
+            id: e.id,
+            name: e.name,
+            description: e.description,
+            date: e.date,
+            time: e.startTime,
+            endTime: e.endTime,
+            location: e.location || 'TBD',
+            owner: e.submittedBy,
+            creator: e.submittedBy,
+            watchers: [],
+          })))
+          setFullEventsLoaded(false)
+        }
+        
+        // Mark bootstrap as done if we didn't load from cache
+        if (!cached) {
+          setUserBootstrapDone(true)
+          setSummaryBootstrapDone(true)
+        }
+      })
+      .catch(() => {
+        // Network error - if we had cache, we're already loaded, otherwise mark done anyway
+        if (!cached) {
+          setUserBootstrapDone(true)
+          setSummaryBootstrapDone(true)
+        }
+      })
+    
     return () => { cancelled = true }
   }, [])
 
