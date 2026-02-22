@@ -163,7 +163,8 @@ export function OrgModulesProvider({ children }) {
   // Use useMemo to prevent unnecessary changes that trigger sidebar logo reset
   const displayLogoUrl = useMemo(() => orgLogoUrl || brandfetchLogoUrl, [orgLogoUrl, brandfetchLogoUrl])
 
-  const value = {
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const value = useMemo(() => ({
     modules,
     loading,
     hasWaterManagement: modules.waterManagement === true,
@@ -181,7 +182,22 @@ export function OrgModulesProvider({ children }) {
     trialDaysLeft,
     allowTeacherEventRequests,
     refreshOrg: fetchOrg,
-  }
+  }), [
+    modules,
+    loading,
+    inventoryTeamIds,
+    displayLogoUrl,
+    orgName,
+    orgWebsite,
+    orgAddress,
+    orgLatitude,
+    orgLongitude,
+    primaryColor,
+    secondaryColor,
+    trialDaysLeft,
+    allowTeacherEventRequests,
+    fetchOrg,
+  ])
 
   return (
     <OrgModulesContext.Provider value={value}>
