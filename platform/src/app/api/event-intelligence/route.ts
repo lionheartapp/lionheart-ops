@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withOrg, getOrgId } from '../../../lib/orgContext'
-import { verifyToken } from '../../../lib/auth'
-import { corsHeaders } from '../../../lib/cors'
-import { prismaBase } from '../../../lib/prisma'
-import { analyzeEventIntelligence } from '../../lib/eventIntelligence'
+import { withOrg, getOrgId } from '@/lib/orgContext'
+import { verifyToken } from '@/lib/auth'
+import { corsHeaders } from '@/lib/cors'
+import { prismaBase } from '@/lib/prisma'
+import { analyzeEventIntelligence } from '@/lib/eventIntelligence'
 
 /**
  * POST /api/event-intelligence

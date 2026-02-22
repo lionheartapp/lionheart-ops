@@ -34,7 +34,7 @@ import {
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, getTeamDisplayLabel, DEFAULT_INVENTORY_TEAM_IDS, getTeamName, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, setAuthToken, platformFetch, platformPost } from './services/platformApi'
-import { getCachedBootstrap, setCachedBootstrap } from '../lib/cacheBootstrap'
+import { getCachedBootstrap, setCachedBootstrap } from '@/lib/cacheBootstrap'
 
 import InventoryPage from './components/InventoryPage'
 import FormsPage from './components/FormsPage'

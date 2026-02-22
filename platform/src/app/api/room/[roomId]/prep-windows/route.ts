@@ -11,7 +11,7 @@ import { corsHeaders } from '@/lib/cors'
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: any
 ) {
   try {
     return await withOrg(req, prisma, async () => {
