@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg } from '@/lib/orgContext'
+import { withOrg, getOrgId } from '@/lib/orgContext'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
+import { getModules } from '@/lib/modules'
 
 /**
  * GET /api/bootstrap - Unified endpoint for initial app data
@@ -20,8 +21,10 @@ export async function GET(req: NextRequest) {
         if (payload?.userId) userId = payload.userId
       }
 
-      // Fetch all three in parallel
-      const [user, tickets, events] = await Promise.all([
+      const orgId = getOrgId()
+
+      // Fetch all in parallel
+      const [user, tickets, events, org] = await Promise.all([
         // User data
         userId
           ? prisma.user.findUnique({
@@ -66,7 +69,49 @@ export async function GET(req: NextRequest) {
           orderBy: { date: 'desc' },
           take: 200,
         }),
+
+        orgId
+          ? prismaBase.organization.findUnique({
+              where: { id: orgId },
+              select: {
+                settings: true,
+                name: true,
+                logoUrl: true,
+                website: true,
+                address: true,
+                city: true,
+                state: true,
+                zip: true,
+                primaryColor: true,
+                secondaryColor: true,
+                plan: true,
+                trialEndsAt: true,
+                latitude: true,
+                longitude: true,
+                allowTeacherEventRequests: true,
+              },
+            })
+          : Promise.resolve(null),
       ])
+
+      const settings = org?.settings && typeof org.settings === 'object' ? (org.settings as Record<string, unknown>) : {}
+      const branding = settings?.branding && typeof settings.branding === 'object' ? (settings.branding as Record<string, unknown>) : {}
+      const rawModules = (org?.settings && typeof org.settings === 'object' ? (org.settings as Record<string, unknown>).modules : undefined) as Record<string, unknown> | undefined
+      const inventoryTeamIds = Array.isArray(rawModules?.inventoryTeamIds) ? (rawModules.inventoryTeamIds as string[]) : undefined
+      const addr = org?.address?.trim() || (branding?.address as string)?.trim() || null
+      const primaryColor = org?.primaryColor?.trim() || (branding?.colors as { primary?: string })?.primary || null
+      const secondaryColor = org?.secondaryColor?.trim() || (branding?.colors as { secondary?: string })?.secondary || null
+      let modules = getModules(org?.settings ?? null)
+      let trialDaysLeft: number | null = null
+      if (org?.plan === 'PRO_TRIAL' && org.trialEndsAt) {
+        if (new Date() > org.trialEndsAt) {
+          modules = { ...modules, waterManagement: false, visualCampus: { enabled: false, maxBuildings: null }, advancedInventory: false }
+        } else {
+          trialDaysLeft = Math.ceil((org.trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        }
+      }
+      const addressParts = [addr, org?.city, org?.state, org?.zip].filter(Boolean)
+      const address = addressParts.length > 0 ? addressParts.join(', ') : addr
 
       // Format response (minimal transformation)
       return NextResponse.json(
@@ -99,6 +144,25 @@ export async function GET(req: NextRequest) {
             location: e.room?.name || 'TBD',
             submittedBy: e.submittedBy?.name,
           })),
+          org: org
+            ? {
+                modules,
+                inventoryTeamIds,
+                name: org?.name ?? null,
+                logoUrl: org?.logoUrl ?? null,
+                website: org?.website ?? null,
+                address,
+                city: org?.city ?? null,
+                state: org?.state ?? null,
+                zip: org?.zip ?? null,
+                primaryColor,
+                secondaryColor,
+                trialDaysLeft,
+                latitude: org?.latitude ?? null,
+                longitude: org?.longitude ?? null,
+                allowTeacherEventRequests: org?.allowTeacherEventRequests ?? false,
+              }
+            : null,
           timestamp: new Date().toISOString(),
         },
         { headers: corsHeaders }

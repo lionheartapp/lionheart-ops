@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
 import { platformGet } from '../services/platformApi'
 import { PLATFORM_URL } from '../services/platformApi'
 import { setOrgContextFromAPI } from '../config/orgContext'
@@ -24,154 +24,139 @@ function extractDomain(website) {
 }
 
 const DEFAULT_SYSTEM_FORM_IDS = { event: null, tech: null, facilities: null, it: null }
+const ORG_SETTINGS_CACHE_KEY = 'lionheart_org_settings_v1'
 
-const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: null, secondaryColor: null, trialDaysLeft: null, allowTeacherEventRequests: false, systemFormIds: DEFAULT_SYSTEM_FORM_IDS })
+function normalizeOrgSettings(data) {
+  if (!data || typeof data !== 'object') return null
+  const m = data.modules ?? {}
+  return {
+    modules: {
+      core: m.core ?? DEFAULT_MODULES.core,
+      waterManagement: m.waterManagement ?? DEFAULT_MODULES.waterManagement,
+      visualCampus: {
+        enabled: m.visualCampus?.enabled ?? DEFAULT_MODULES.visualCampus.enabled,
+        maxBuildings: m.visualCampus?.maxBuildings ?? DEFAULT_MODULES.visualCampus.maxBuildings,
+      },
+      advancedInventory: m.advancedInventory ?? DEFAULT_MODULES.advancedInventory,
+    },
+    orgName: data?.name ?? null,
+    orgLogoUrl: data?.logoUrl ?? null,
+    orgWebsite: data?.website ?? null,
+    orgAddress: data?.address ?? null,
+    orgLatitude: typeof data?.latitude === 'number' ? data.latitude : null,
+    orgLongitude: typeof data?.longitude === 'number' ? data.longitude : null,
+    primaryColor: data?.primaryColor ?? null,
+    secondaryColor: data?.secondaryColor ?? null,
+    trialDaysLeft: typeof data?.trialDaysLeft === 'number' ? data.trialDaysLeft : null,
+    allowTeacherEventRequests: typeof data?.allowTeacherEventRequests === 'boolean' ? data.allowTeacherEventRequests : false,
+    systemFormIds: data?.systemFormIds && typeof data.systemFormIds === 'object'
+      ? {
+          event: data.systemFormIds.event ?? null,
+          tech: data.systemFormIds.tech ?? null,
+          facilities: data.systemFormIds.facilities ?? null,
+          it: data.systemFormIds.it ?? null,
+        }
+      : DEFAULT_SYSTEM_FORM_IDS,
+  }
+}
+
+function readCachedOrgSettings() {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(ORG_SETTINGS_CACHE_KEY)
+    if (!raw) return null
+    return normalizeOrgSettings(JSON.parse(raw))
+  } catch {
+    return null
+  }
+}
+
+function writeCachedOrgSettings(data) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(ORG_SETTINGS_CACHE_KEY, JSON.stringify(data))
+  } catch {}
+}
+
+const OrgModulesContext = createContext({ modules: DEFAULT_MODULES, loading: true, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: null, secondaryColor: null, trialDaysLeft: null, allowTeacherEventRequests: false, systemFormIds: DEFAULT_SYSTEM_FORM_IDS, hydrateOrgFromBootstrap: () => {} })
 
 export function OrgModulesProvider({ children }) {
-  const [modules, setModules] = useState(DEFAULT_MODULES)
-  const [loading, setLoading] = useState(true)
-  const [orgName, setOrgName] = useState(null)
-  const [orgLogoUrl, setOrgLogoUrl] = useState(null)
-  const [orgWebsite, setOrgWebsite] = useState(null)
-  const [orgAddress, setOrgAddress] = useState(null)
-  const [orgLatitude, setOrgLatitude] = useState(null)
-  const [orgLongitude, setOrgLongitude] = useState(null)
-  const [primaryColor, setPrimaryColor] = useState(null)
-  const [secondaryColor, setSecondaryColor] = useState(null)
+  const cachedOrg = useMemo(() => readCachedOrgSettings(), [])
+  const [modules, setModules] = useState(cachedOrg?.modules ?? DEFAULT_MODULES)
+  const [loading, setLoading] = useState(cachedOrg == null)
+  const [orgName, setOrgName] = useState(cachedOrg?.orgName ?? null)
+  const [orgLogoUrl, setOrgLogoUrl] = useState(cachedOrg?.orgLogoUrl ?? null)
+  const [orgWebsite, setOrgWebsite] = useState(cachedOrg?.orgWebsite ?? null)
+  const [orgAddress, setOrgAddress] = useState(cachedOrg?.orgAddress ?? null)
+  const [orgLatitude, setOrgLatitude] = useState(cachedOrg?.orgLatitude ?? null)
+  const [orgLongitude, setOrgLongitude] = useState(cachedOrg?.orgLongitude ?? null)
+  const [primaryColor, setPrimaryColor] = useState(cachedOrg?.primaryColor ?? null)
+  const [secondaryColor, setSecondaryColor] = useState(cachedOrg?.secondaryColor ?? null)
   const [brandfetchLogoUrl, setBrandfetchLogoUrl] = useState(null)
-  const [trialDaysLeft, setTrialDaysLeft] = useState(null)
-  const [allowTeacherEventRequests, setAllowTeacherEventRequests] = useState(false)
-  const [systemFormIds, setSystemFormIds] = useState(DEFAULT_SYSTEM_FORM_IDS)
+  const [trialDaysLeft, setTrialDaysLeft] = useState(cachedOrg?.trialDaysLeft ?? null)
+  const [allowTeacherEventRequests, setAllowTeacherEventRequests] = useState(cachedOrg?.allowTeacherEventRequests ?? false)
+  const [systemFormIds, setSystemFormIds] = useState(cachedOrg?.systemFormIds ?? DEFAULT_SYSTEM_FORM_IDS)
+  const [hasHydratedFromBootstrap, setHasHydratedFromBootstrap] = useState(false)
 
-  const fetchOrg = () => {
+  const hydrateOrgFromBootstrap = useCallback((orgData) => {
+    const normalized = normalizeOrgSettings(orgData)
+    if (!normalized) return
+    setModules(normalized.modules)
+    setOrgName(normalized.orgName)
+    setOrgLogoUrl(normalized.orgLogoUrl)
+    setOrgWebsite(normalized.orgWebsite)
+    setOrgAddress(normalized.orgAddress)
+    setOrgLatitude(normalized.orgLatitude)
+    setOrgLongitude(normalized.orgLongitude)
+    setPrimaryColor(normalized.primaryColor)
+    setSecondaryColor(normalized.secondaryColor)
+    setTrialDaysLeft(normalized.trialDaysLeft)
+    setAllowTeacherEventRequests(normalized.allowTeacherEventRequests)
+    setSystemFormIds(normalized.systemFormIds)
+    writeCachedOrgSettings(orgData)
+    setOrgContextFromAPI({ name: orgData?.name, website: orgData?.website })
+
+    if (!orgData?.logoUrl && orgData?.website) {
+      const domain = extractDomain(orgData.website)
+      if (domain) {
+        fetch(`${PLATFORM_URL}/api/setup/logo-url?domain=${encodeURIComponent(domain)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((json) => {
+            if (json?.url) setBrandfetchLogoUrl(json.url)
+          })
+          .catch(() => {})
+      }
+    } else {
+      setBrandfetchLogoUrl(null)
+    }
+    setLoading(false)
+    setHasHydratedFromBootstrap(true)
+  }, [])
+
+  const fetchOrg = useCallback(({ suppressLoading = false } = {}) => {
+    if (!suppressLoading) setLoading(true)
     platformGet('/api/organization/settings')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data) return
-        if (data?.modules) {
-          const m = data.modules
-          setModules({
-            core: m.core ?? DEFAULT_MODULES.core,
-            waterManagement: m.waterManagement ?? DEFAULT_MODULES.waterManagement,
-            visualCampus: {
-              enabled: m.visualCampus?.enabled ?? DEFAULT_MODULES.visualCampus.enabled,
-              maxBuildings: m.visualCampus?.maxBuildings ?? DEFAULT_MODULES.visualCampus.maxBuildings,
-            },
-            advancedInventory: m.advancedInventory ?? DEFAULT_MODULES.advancedInventory,
-          })
-        }
-        if (data?.name != null) setOrgName(data.name)
-        if (data?.logoUrl != null) setOrgLogoUrl(data.logoUrl)
-        else setOrgLogoUrl(null)
-        if (data?.website != null) setOrgWebsite(data.website)
-        else setOrgWebsite(null)
-        if (data?.address != null) setOrgAddress(data.address)
-        else setOrgAddress(null)
-        if (typeof data?.latitude === 'number') setOrgLatitude(data.latitude)
-        else setOrgLatitude(null)
-        if (typeof data?.longitude === 'number') setOrgLongitude(data.longitude)
-        else setOrgLongitude(null)
-        if (data?.primaryColor != null) setPrimaryColor(data.primaryColor)
-        else setPrimaryColor(null)
-        if (data?.secondaryColor != null) setSecondaryColor(data.secondaryColor)
-        else setSecondaryColor(null)
-        if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
-        if (typeof data?.allowTeacherEventRequests === 'boolean') setAllowTeacherEventRequests(data.allowTeacherEventRequests)
-        else setAllowTeacherEventRequests(false)
-        if (data?.systemFormIds && typeof data.systemFormIds === 'object') {
-          setSystemFormIds({
-            event: data.systemFormIds.event ?? null,
-            tech: data.systemFormIds.tech ?? null,
-            facilities: data.systemFormIds.facilities ?? null,
-            it: data.systemFormIds.it ?? null,
-          })
-        } else setSystemFormIds(DEFAULT_SYSTEM_FORM_IDS)
-        setOrgContextFromAPI({ name: data?.name, website: data?.website })
-
-        // When no saved logo but we have website, try Brandfetch/Clearbit
-        if (!data?.logoUrl && data?.website) {
-          const domain = extractDomain(data.website)
-          if (domain) {
-            fetch(`${PLATFORM_URL}/api/setup/logo-url?domain=${encodeURIComponent(domain)}`)
-              .then((r) => (r.ok ? r.json() : null))
-              .then((json) => {
-                if (json?.url) setBrandfetchLogoUrl(json.url)
-              })
-              .catch(() => {})
-          }
-        } else {
-          setBrandfetchLogoUrl(null)
-        }
+        const normalized = normalizeOrgSettings(data)
+        if (!normalized) return
+        hydrateOrgFromBootstrap(data)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }
+  }, [hydrateOrgFromBootstrap])
 
   useEffect(() => {
-    let cancelled = false
-    platformGet('/api/organization/settings')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (cancelled || !data) return
-        if (data?.modules) {
-          const m = data.modules
-          setModules({
-            core: m.core ?? DEFAULT_MODULES.core,
-            waterManagement: m.waterManagement ?? DEFAULT_MODULES.waterManagement,
-            visualCampus: {
-              enabled: m.visualCampus?.enabled ?? DEFAULT_MODULES.visualCampus.enabled,
-              maxBuildings: m.visualCampus?.maxBuildings ?? DEFAULT_MODULES.visualCampus.maxBuildings,
-            },
-            advancedInventory: m.advancedInventory ?? DEFAULT_MODULES.advancedInventory,
-          })
-        }
-        if (data?.name != null) setOrgName(data.name)
-        if (data?.logoUrl != null) setOrgLogoUrl(data.logoUrl)
-        else setOrgLogoUrl(null)
-        if (data?.website != null) setOrgWebsite(data.website)
-        else setOrgWebsite(null)
-        if (data?.address != null) setOrgAddress(data.address)
-        else setOrgAddress(null)
-        if (typeof data?.latitude === 'number') setOrgLatitude(data.latitude)
-        else setOrgLatitude(null)
-        if (typeof data?.longitude === 'number') setOrgLongitude(data.longitude)
-        else setOrgLongitude(null)
-        if (data?.primaryColor != null) setPrimaryColor(data.primaryColor)
-        else setPrimaryColor(null)
-        if (data?.secondaryColor != null) setSecondaryColor(data.secondaryColor)
-        else setSecondaryColor(null)
-        if (typeof data?.trialDaysLeft === 'number') setTrialDaysLeft(data.trialDaysLeft)
-        if (typeof data?.allowTeacherEventRequests === 'boolean') setAllowTeacherEventRequests(data.allowTeacherEventRequests)
-        else setAllowTeacherEventRequests(false)
-        if (data?.systemFormIds && typeof data.systemFormIds === 'object') {
-          setSystemFormIds({
-            event: data.systemFormIds.event ?? null,
-            tech: data.systemFormIds.tech ?? null,
-            facilities: data.systemFormIds.facilities ?? null,
-            it: data.systemFormIds.it ?? null,
-          })
-        } else setSystemFormIds(DEFAULT_SYSTEM_FORM_IDS)
-        setOrgContextFromAPI({ name: data?.name, website: data?.website })
-
-        // When no saved logo but we have website, try Brandfetch/Clearbit
-        if (!data?.logoUrl && data?.website) {
-          const domain = extractDomain(data.website)
-          if (domain) {
-            fetch(`${PLATFORM_URL}/api/setup/logo-url?domain=${encodeURIComponent(domain)}`)
-              .then((r) => (r.ok ? r.json() : null))
-              .then((json) => {
-                if (!cancelled && json?.url) setBrandfetchLogoUrl(json.url)
-              })
-              .catch(() => {})
-          }
-        } else {
-          setBrandfetchLogoUrl(null)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-    return () => { cancelled = true }
-  }, [])
+    if (cachedOrg != null) {
+      fetchOrg({ suppressLoading: true })
+      return undefined
+    }
+    const timeoutId = setTimeout(() => {
+      if (!hasHydratedFromBootstrap) fetchOrg({ suppressLoading: false })
+    }, 250)
+    return () => clearTimeout(timeoutId)
+  }, [fetchOrg, cachedOrg, hasHydratedFromBootstrap])
 
   // Resolved logo: saved logo, or Brandfetch/Clearbit fallback when no saved logo
   // Use useMemo to prevent unnecessary changes that trigger sidebar logo reset
@@ -196,6 +181,7 @@ export function OrgModulesProvider({ children }) {
     allowTeacherEventRequests,
     systemFormIds,
     setSystemFormIds,
+    hydrateOrgFromBootstrap,
     refreshOrg: fetchOrg,
   }), [
     modules,
@@ -211,6 +197,7 @@ export function OrgModulesProvider({ children }) {
     trialDaysLeft,
     allowTeacherEventRequests,
     systemFormIds,
+    hydrateOrgFromBootstrap,
     fetchOrg,
   ])
 
@@ -223,5 +210,5 @@ export function OrgModulesProvider({ children }) {
 
 export function useOrgModules() {
   const ctx = useContext(OrgModulesContext)
-  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null, allowTeacherEventRequests: false, systemFormIds: DEFAULT_SYSTEM_FORM_IDS, setSystemFormIds: () => {} }
+  return ctx ?? { modules: DEFAULT_MODULES, loading: false, hasWaterManagement: false, hasVisualCampus: true, hasAdvancedInventory: false, orgName: null, orgLogoUrl: null, orgWebsite: null, orgAddress: null, orgLatitude: null, orgLongitude: null, primaryColor: '#3b82f6', secondaryColor: '#f59e0b', trialDaysLeft: null, allowTeacherEventRequests: false, systemFormIds: DEFAULT_SYSTEM_FORM_IDS, setSystemFormIds: () => {}, hydrateOrgFromBootstrap: () => {} }
 }

@@ -63,6 +63,7 @@ export default function Sidebar({
   showInventory = false,
   showCampusMap = true,
   showWaterManagement = false,
+  orgLoading = false,
   orgName,
   orgLogoUrl,
   primaryColor = '#3b82f6',
@@ -95,7 +96,7 @@ export default function Sidebar({
 
   return (
     <aside className="sticky top-0 w-56 h-full min-h-0 flex flex-col overflow-hidden border-r border-zinc-200 dark:border-zinc-800 dark:border-blue-950/50 bg-white dark:bg-zinc-900/90 backdrop-blur-xl shrink-0">
-      <div className="h-20 shrink-0 flex items-center justify-center px-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40">
+      <div className="relative h-20 shrink-0 flex items-center justify-center px-4 border-b border-zinc-200 dark:border-zinc-800 dark:border-blue-950/40">
         {showLogo ? (
           <img src={orgLogoUrl} alt={orgName || 'School'} className="h-10 w-auto max-w-full object-contain" referrerPolicy="no-referrer" onError={() => setLogoError(true)} />
         ) : (
@@ -118,6 +119,11 @@ export default function Sidebar({
               <span className="text-xs text-zinc-500 dark:text-zinc-400">Loading school…</span>
             )}
           </div>
+        )}
+        {orgLoading && (
+          <span className="absolute bottom-1.5 right-3 text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+            Refreshing…
+          </span>
         )}
       </div>
 

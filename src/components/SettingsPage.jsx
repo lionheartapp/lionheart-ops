@@ -5,8 +5,6 @@ import {
   Bell,
   Globe,
   Users,
-  Package,
-  LayoutGrid,
   CreditCard,
   Check,
   Download,
@@ -19,7 +17,7 @@ import {
   PlusCircle,
 } from 'lucide-react'
 import MembersPage from './MembersPage'
-import { isAVTeam, isFacilitiesTeam, isITTeam, isSuperAdmin, getUserTeamIds, getTeamName, INVENTORY_TEAM_IDS } from '../data/teamsData'
+import { isSuperAdmin } from '../data/teamsData'
 import { platformPost, platformFetch, platformPatch, getAuthToken } from '../services/platformApi'
 import { useOrgModules } from '../context/OrgModulesContext'
 import { SYSTEM_FORM_SLOTS, getSystemFormTemplate } from '../data/systemFormTemplates'
@@ -58,7 +56,7 @@ const PRICING_PLANS = [
 
 // --- SUB-COMPONENTS ---
 
-function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
+function SubscriptionSection() {
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const currentPlanId = 'pro'
@@ -199,34 +197,6 @@ function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
         })}
       </div>
 
-      {/* Add-ons */}
-      <div className="border-t border-zinc-200 dark:border-zinc-800 pt-8">
-        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Add-ons</h3>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-          Manage and access add-on modules included in your plan.
-        </p>
-        <div className="space-y-2">
-          {hasWaterManagement && (
-            <button
-              type="button"
-              onClick={() => onOpenAddOn?.('water-management')}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors text-left"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Droplets className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <p className="font-medium text-zinc-900 dark:text-zinc-100">Water Management</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Pond health, dosage logs, IoT probes</p>
-                </div>
-              </div>
-              <ExternalLink className="w-4 h-4 text-zinc-400" />
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* 4. Payment Method (Placeholder for Stripe) */}
       <div className="border-t border-zinc-200 dark:border-zinc-800 pt-8">
         <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Payment Method</h3>
@@ -252,66 +222,32 @@ function SubscriptionSection({ hasWaterManagement = false, onOpenAddOn }) {
   )
 }
 
-function AppsSection({ currentUser, teams, hasTeamInventory }) {
-  const isSA = isSuperAdmin(currentUser)
-  const teamIds = getUserTeamIds(currentUser)
-  const primaryInventoryTeamId = INVENTORY_TEAM_IDS.find((id) => teamIds.includes(id))
-  const teamLabel = primaryInventoryTeamId ? getTeamName(teams, primaryInventoryTeamId) : null
-  const inventoryTeamNames = INVENTORY_TEAM_IDS.map((id) => getTeamName(teams, id)).join(', ')
-
-  const APP_MODULES = [
-    {
-      id: 'inventory',
-      label: 'Inventory',
-      description: hasTeamInventory
-        ? `Track items and stock by location. You see your team's inventory (${teamLabel}).`
-        : isSA
-          ? 'Track items and stock by team. Use the Inventory page to switch between A/V, Maintenance, IT, and Campus Safety team inventories.'
-          : `Inventory is available to team members: ${inventoryTeamNames}. Contact an admin to be added to a team.`,
-      icon: Package,
-    },
-  ]
-
+function AddOnsSection({ hasWaterManagement = false, onOpenAddOn }) {
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Apps</h2>
+    <div className="space-y-8 max-w-5xl">
+      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Add-ons</h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        Module visibility is based on your team. Super Admins can switch between team inventories from the Inventory page.
+        Manage and access add-on modules included in your plan.
       </p>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {APP_MODULES.map((module) => {
-          const Icon = module.icon
-          const isTeamModule = module.id === 'inventory' && hasTeamInventory
-          const isSAModule = module.id === 'inventory' && isSA && !hasTeamInventory
-
-          return (
-            <div
-              key={module.id}
-              className="flex items-start gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 dark:border-blue-950/30 bg-white dark:bg-zinc-800/50"
-            >
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center shrink-0">
-                <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <div className="space-y-2">
+        {hasWaterManagement && (
+          <button
+            type="button"
+            onClick={() => onOpenAddOn?.('water-management')}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <Droplets className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-medium text-zinc-900 dark:text-zinc-100">{module.label}</h3>
-                  {isTeamModule ? (
-                    <span className="text-xs px-2 py-1 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 font-medium">
-                      Enabled ({teamLabel} Team)
-                    </span>
-                  ) : isSAModule ? (
-                    <span className="text-xs px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 font-medium">
-                      Switch on Inventory page
-                    </span>
-                  ) : (
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">By team only</span>
-                  )}
-                </div>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{module.description}</p>
+              <div>
+                <p className="font-medium text-zinc-900 dark:text-zinc-100">Water Management</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Pond health, dosage logs, IoT probes</p>
               </div>
             </div>
-          )
-        })}
+            <ExternalLink className="w-4 h-4 text-zinc-400" />
+          </button>
+        )}
       </div>
     </div>
   )
@@ -862,10 +798,8 @@ function SettingsSectionContent({
   section,
   currentUser,
   teams,
-  setTeams,
   users,
   setUsers,
-  hasTeamInventory,
   orgLogoUrl,
   orgName,
   orgWebsite,
@@ -895,7 +829,7 @@ function SettingsSectionContent({
   }
 
   const labels = {
-    apps: 'Apps',
+    'add-ons': 'Add-ons',
     account: 'Account',
     subscription: 'Subscription',
     'data-export': 'Data Export',
@@ -908,18 +842,14 @@ function SettingsSectionContent({
 
   const content = {
     account: <AccountSection currentUser={currentUser} />,
-    apps: (
-      <AppsSection
-        currentUser={currentUser}
-        teams={teams}
-        hasTeamInventory={hasTeamInventory}
-      />
-    ),
-    subscription: (
-      <SubscriptionSection
+    'add-ons': (
+      <AddOnsSection
         hasWaterManagement={hasWaterManagement}
         onOpenAddOn={onOpenAddOn}
       />
+    ),
+    subscription: (
+      <SubscriptionSection />
     ),
     'data-export': <DataExportSection />,
     school: (
@@ -969,7 +899,6 @@ function SettingsSectionContent({
 // --- MAIN PAGE COMPONENT ---
 
 const generalSettings = [
-  { id: 'apps', label: 'Apps', icon: LayoutGrid },
   { id: 'account', label: 'Account', icon: User },
   { id: 'notification', label: 'Notification', icon: Bell },
   { id: 'language', label: 'Language & Region', icon: Globe },
@@ -981,6 +910,7 @@ const workspaceSettings = [
   { id: 'forms', label: 'Forms', icon: FileText },
   { id: 'members', label: 'Members', icon: Users },
   { id: 'subscription', label: 'Subscription', icon: CreditCard },
+  { id: 'add-ons', label: 'Add-ons', icon: Droplets },
   { id: 'data-export', label: 'Data Export', icon: Download },
 ]
 
@@ -1093,7 +1023,6 @@ export default function SettingsPage({
           setTeams={setTeams}
           users={users}
           setUsers={setUsers}
-          hasTeamInventory={hasTeamInventory}
           orgLogoUrl={orgLogoUrl}
           orgName={orgName}
           orgWebsite={orgWebsite}

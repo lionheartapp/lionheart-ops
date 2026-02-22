@@ -108,7 +108,7 @@ export default function App() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
-  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, inventoryTeamIds, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, allowTeacherEventRequests, refreshOrg, loading: orgLoading } = useOrgModules()
+  const { hasWaterManagement, hasVisualCampus, hasAdvancedInventory, inventoryTeamIds, orgName, orgLogoUrl, orgWebsite, orgAddress, orgLatitude, orgLongitude, primaryColor, secondaryColor, trialDaysLeft, allowTeacherEventRequests, refreshOrg, loading: orgLoading, hydrateOrgFromBootstrap } = useOrgModules()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [eventModalOpen, setEventModalOpen] = useState(false)
   const [smartEventModalOpen, setSmartEventModalOpen] = useState(false)
@@ -286,6 +286,7 @@ export default function App() {
           watchers: [],
         })))
       }
+      if (cached.org) hydrateOrgFromBootstrap(cached.org)
       setUserBootstrapDone(true)
       setSummaryBootstrapDone(true)
     }
@@ -301,6 +302,7 @@ export default function App() {
           user: data.user,
           tickets: data.tickets || [],
           events: data.events || [],
+          org: data.org || null,
           timestamp: Date.now(),
         })
         
@@ -345,6 +347,7 @@ export default function App() {
           })))
           setFullEventsLoaded(false)
         }
+        if (data.org) hydrateOrgFromBootstrap(data.org)
         
         // Mark bootstrap as done if we didn't load from cache
         if (!cached) {
@@ -361,7 +364,7 @@ export default function App() {
       })
     
     return () => { cancelled = true }
-  }, [])
+  }, [hydrateOrgFromBootstrap])
 
   useEffect(() => {
     const needsFullTickets = activeTab === 'facilities' || activeTab === 'facilities-my-tickets' || activeTab === 'it-support' || activeTab === 'my-tickets'
@@ -525,7 +528,11 @@ export default function App() {
   // Super Admin always sees Inventory (and can switch between teams that have inventory). Others need add-on + team.
   const showInventory = isSA || (hasAdvancedInventory && hasTeamInventory)
   // Water Management: Maintenance team OR Super Admin only (hide from A/V, IT, Teachers, etc.)
-  const showWaterManagementForUser = hasWaterManagement && (isFacilitiesUser || isSuperAdmin(effectiveUser))
+  const showWaterManagementForUser = hasWaterManagement && (
+    isFacilitiesUser ||
+    isSuperAdmin(effectiveUser) ||
+    isSuperAdmin(currentUser)
+  )
 
   useEffect(() => {
     if (activeTab === 'water-management' && !showWaterManagementForUser) {
@@ -595,6 +602,7 @@ export default function App() {
         showInventory={showInventory}
         showCampusMap={hasVisualCampus}
         showWaterManagement={showWaterManagementForUser}
+        orgLoading={orgLoading}
         onOpenCampusMap={() => setCampusMapModalOpen(true)}
         orgName={orgName || searchParams.get('orgName')}
         orgLogoUrl={orgLogoUrl || searchParams.get('orgLogoUrl')}

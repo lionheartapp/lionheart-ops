@@ -10,6 +10,7 @@ interface CachedData {
   user: any
   tickets: any[]
   events: any[]
+  org?: any
   timestamp: number
 }
 
