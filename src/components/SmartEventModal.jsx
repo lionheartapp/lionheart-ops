@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Send, Sparkles, Calendar, MapPin, Mic, Monitor, Lightbulb, Ticket, LayoutTemplate, Check, Package, Zap, Shield, Thermometer, AlertTriangle, TrendingUp } from 'lucide-react'
 import { chatWithGemini, extractEventFieldsWithGemini } from '../services/gemini'
-import { analyzeEventIntelligence } from '../lib/eventIntelligence'
 
 const VOICE_BLUE = '#3b82f6'
 /** How long to wait with no speech (after final results) before auto-submitting. */
@@ -672,12 +671,29 @@ export default function SmartEventModal({
         // extrapolate organizationId from context or user; caller should provide via props if needed
         const org = currentUser?.organizationId || 'default'
         const building = currentUser?.buildingDivision || 'ELEMENTARY'
-        analysis = await analyzeEventIntelligence({
-          ...eventDraft,
-          facilitiesRequested,
-          techRequested,
-        }, org, building)
-        setIntelligenceAnalysis(analysis)
+        
+        // Call API to analyze event
+        const res = await fetch('/api/event-intelligence', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${typeof document !== 'undefined' ? localStorage.getItem('auth_token') || '' : ''}`,
+          },
+          body: JSON.stringify({
+            event: {
+              ...eventDraft,
+              facilitiesRequested,
+              techRequested,
+            },
+            buildingDivision: building,
+          }),
+        })
+        
+        if (res.ok) {
+          const data = await res.json()
+          setIntelligenceAnalysis(data)
+          analysis = data
+        }
       } catch (err) {
         console.warn('Event intelligence analysis failed (non-blocking):', err)
         // Continue with publish even if analysis fails

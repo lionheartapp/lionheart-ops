@@ -198,18 +198,6 @@ export default function ScheduleCheck({ roomId = '', rooms = [] }) {
           )}
         </motion.div>
       )}
-          <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-xs">
-            {blocks.map((b, i) => (
-              <li key={i}>
-                {b.startTime}–{b.endTime} {b.subject || '—'} {b.roomName ? `(${b.roomName})` : ''}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-            Avoid these times when scheduling repairs or tech support.
-          </p>
-        </div>
-      )}
     </div>
   )
 }
