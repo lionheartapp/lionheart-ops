@@ -20,7 +20,9 @@
       "@/lib/*": ["../packages/core/src/lib/*"],
       "bcryptjs": ["./node_modules/bcryptjs"],
       "jose": ["./node_modules/jose"],
-      "@prisma/client": ["./node_modules/@prisma/client"]
+      "@prisma/client": ["./node_modules/@prisma/client"],
+      "next": ["./node_modules/next"],
+      "next/*": ["./node_modules/next/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
