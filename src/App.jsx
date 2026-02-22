@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Sidebar from './components/Sidebar'
 import EventCreatorModal from './components/EventCreatorModal'
@@ -100,6 +100,7 @@ export default function App() {
   const [inventoryDataLoaded, setInventoryDataLoaded] = useState(false)
   const [inventoryLoading, setInventoryLoading] = useState(false)
   const [roomsFromApi, setRoomsFromApi] = useState([])
+  const lastPushedPathRef = useRef(null)
 
   const updateTicket = (ticketId, updates) => {
     if (typeof ticketId !== 'string' || ticketId.length < 10) return // Skip mock tickets (numeric id)
@@ -130,22 +131,26 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Sync URL pathname -> active tab/settings (so refresh keeps you on the same page)
-  useEffect(() => {
-    const { tab, section } = parsePathname(pathname ?? '')
-    setActiveTab(tab)
-    setSettingsSection(section)
-  }, [pathname])
-
-  // Sync active tab/settings -> URL when user navigates in-app
+  // Sync active tab/settings -> URL when user navigates in-app (run first so ref is set before pathname effect)
   useEffect(() => {
     const desired = getPathForTab(activeTab, settingsSection)
     const current = (pathname ?? '').split('?')[0]
     if (current !== desired) {
+      lastPushedPathRef.current = desired
       const query = searchParams?.toString?.()
       router.replace(query ? `${desired}?${query}` : desired)
     }
   }, [activeTab, settingsSection])
+
+  // Sync URL pathname -> active tab/settings (so refresh keeps you on the same page)
+  useEffect(() => {
+    const p = pathname ?? ''
+    if (lastPushedPathRef.current != null && p.split('?')[0] !== lastPushedPathRef.current) return
+    if (lastPushedPathRef.current != null) lastPushedPathRef.current = null
+    const { tab, section } = parsePathname(p)
+    setActiveTab(tab)
+    setSettingsSection(section)
+  }, [pathname])
 
   // Set org from URL so API calls include x-org-id (e.g. /app?orgId=xxx after setup)
   useEffect(() => {
