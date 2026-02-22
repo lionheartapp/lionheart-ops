@@ -494,15 +494,6 @@ export default function App() {
             : current?.title ?? 'Dashboard'
 
   const isTrialActive = trialDaysLeft != null && trialDaysLeft > 0
-  const shellLoading = orgLoading || !userBootstrapDone || !summaryBootstrapDone
-
-  if (shellLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-        <p className="text-zinc-500">Loading…</p>
-      </div>
-    )
-  }
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
