@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -16,7 +17,10 @@
     "plugins": [{ "name": "next" }],
     "paths": { 
       "@/*": ["./src/*"],
-      "@/lib/*": ["../packages/core/src/lib/*"]
+      "@/lib/*": ["../packages/core/src/lib/*"],
+      "bcryptjs": ["./node_modules/bcryptjs"],
+      "jose": ["./node_modules/jose"],
+      "@prisma/client": ["./node_modules/@prisma/client"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
