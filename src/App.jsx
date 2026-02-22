@@ -1,13 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import Sidebar from './components/Sidebar'
-import EventCreatorModal from './components/EventCreatorModal'
-import SmartEventModal from './components/SmartEventModal'
-import EventLandingPageModal from './components/EventLandingPageModal'
 import TopBar from './components/TopBar'
-import CommandBar from './components/CommandBar'
-import EventInfoModal from './components/EventInfoModal'
-import CampusMapModal from './components/CampusMapModal'
 import AppTabContent from './components/AppTabContent'
 import OnboardingModal from './components/OnboardingModal'
 import { INITIAL_EVENTS, userStartedEventWithTicketSales } from './data/eventsData'
@@ -22,13 +17,20 @@ import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFac
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, platformFetch, platformPost, setCurrentOrgId } from './services/platformApi'
 
-import FormBuilderModal from './components/FormBuilderModal'
-import AIFormModal from './components/AIFormModal'
-import DrawerModal from './components/DrawerModal'
 import FacilitiesRequestForm from './components/FacilitiesRequestForm'
 import ITRequestForm from './components/ITRequestForm'
 import { INITIAL_FORMS, INITIAL_SUBMISSIONS, createForm } from './data/formsData'
 import { notifyTeamsForScheduledEvent } from './data/eventNotifications'
+
+const EventCreatorModal = dynamic(() => import('./components/EventCreatorModal'))
+const SmartEventModal = dynamic(() => import('./components/SmartEventModal'))
+const EventLandingPageModal = dynamic(() => import('./components/EventLandingPageModal'))
+const EventInfoModal = dynamic(() => import('./components/EventInfoModal'))
+const CampusMapModal = dynamic(() => import('./components/CampusMapModal'))
+const DrawerModal = dynamic(() => import('./components/DrawerModal'))
+const FormBuilderModal = dynamic(() => import('./components/FormBuilderModal'))
+const CommandBar = dynamic(() => import('./components/CommandBar'))
+const AIFormModal = dynamic(() => import('./components/AIFormModal'))
 
 const tabContent = {
   dashboard: { title: 'Dashboard', showAll: true },
@@ -568,6 +570,7 @@ export default function App() {
       </main>
       </div>
 
+      {eventModalOpen && (
       <EventCreatorModal
         isOpen={eventModalOpen}
         onClose={() => {
@@ -652,7 +655,9 @@ export default function App() {
         }}
         onGenerateLandingPage={() => setLandingPageModalOpen(true)}
       />
+      )}
 
+      {smartEventModalOpen && (
       <SmartEventModal
         isOpen={smartEventModalOpen}
         onClose={() => setSmartEventModalOpen(false)}
@@ -725,13 +730,17 @@ export default function App() {
         }}
         onGenerateLandingPage={() => setLandingPageModalOpen(true)}
       />
+      )}
 
+      {landingPageModalOpen && (
       <EventLandingPageModal
         isOpen={landingPageModalOpen}
         onClose={() => setLandingPageModalOpen(false)}
         event={liveEvent}
       />
+      )}
 
+      {infoModalOpen && (
       <EventInfoModal
         isOpen={infoModalOpen}
         onClose={closeEventInfo}
@@ -746,12 +755,16 @@ export default function App() {
         }}
         currentUser={effectiveUser}
       />
+      )}
 
+      {campusMapModalOpen && (
       <CampusMapModal
         isOpen={campusMapModalOpen}
         onClose={() => setCampusMapModalOpen(false)}
       />
+      )}
 
+      {facilitiesDrawerOpen && (
       <DrawerModal
         isOpen={facilitiesDrawerOpen}
         onClose={() => setFacilitiesDrawerOpen(false)}
@@ -803,7 +816,9 @@ export default function App() {
           inDrawer
         />
       </DrawerModal>
+      )}
 
+      {itDrawerOpen && (
       <DrawerModal
         isOpen={itDrawerOpen}
         onClose={() => setITDrawerOpen(false)}
@@ -849,7 +864,9 @@ export default function App() {
           inDrawer
         />
       </DrawerModal>
+      )}
 
+      {formBuilderOpen && (
       <FormBuilderModal
         isOpen={formBuilderOpen}
         onClose={() => {
@@ -873,14 +890,18 @@ export default function App() {
           setActiveTab('forms')
         }}
       />
+      )}
 
+      {commandBarOpen && (
       <CommandBar
         isOpen={commandBarOpen}
         onClose={() => setCommandBarOpen(false)}
         supportRequests={supportRequests}
         onNavigateToTab={(tab) => setActiveTab(tab)}
       />
+      )}
 
+      {aiFormModalOpen && (
       <AIFormModal
         isOpen={aiFormModalOpen}
         onClose={() => setAIFormModalOpen(false)}
@@ -893,6 +914,7 @@ export default function App() {
           setAIFormModalOpen(false)
         }}
       />
+      )}
 
       {searchParams.get('onboarding') === '1' && (
         <OnboardingModal
