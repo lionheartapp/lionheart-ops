@@ -16,6 +16,7 @@ import {
 import { DEFAULT_TEAMS, INITIAL_USERS, canCreate, canCreateEvent, canEdit, isFacilitiesTeam, isITTeam, isAVTeam, isSuperAdmin, getUserTeamIds, getTeamDisplayLabel, INVENTORY_TEAM_IDS, getTeamName, EVENT_SCHEDULING_MESSAGE } from './data/teamsData'
 import { useOrgModules } from './context/OrgModulesContext'
 import { getAuthToken, platformFetch, platformPost, setCurrentOrgId } from './services/platformApi'
+import { getCachedBootstrap, setCachedBootstrap } from './lib/cacheBootstrap'
 
 import FacilitiesRequestForm from './components/FacilitiesRequestForm'
 import ITRequestForm from './components/ITRequestForm'
@@ -209,25 +210,27 @@ export default function App() {
     }
   }, [searchParams])
 
-  // Bootstrap: fetch user first so name and nav show fast, then tickets+events (Forms/Inventory load when tab is opened)
+  // Bootstrap: unified single request for user + tickets + events with local caching for instant loads
   useEffect(() => {
     if (!getAuthToken()) {
       setUserBootstrapDone(true)
+      setSummaryBootstrapDone(true)
       return
     }
+    
     let cancelled = false
     const toJson = (r) => (r.ok ? r.json() : null)
-    platformFetch('/api/user/me')
-      .then(toJson)
-      .then((meData) => {
-        if (cancelled || !meData?.user) return
-        const u = meData.user
+    
+    // Load from cache immediately for instant first paint
+    const cached = getCachedBootstrap()
+    if (cached) {
+      if (cached.user) {
         const userMe = {
-          id: u.id,
-          name: u.name ?? u.email?.split('@')[0] ?? 'User',
-          email: u.email ?? '',
-          teamIds: u.teamIds ?? [],
-          role: u.role ?? 'super-admin',
+          id: cached.user.id,
+          name: cached.user.name ?? 'User',
+          email: cached.user.email ?? '',
+          teamIds: cached.user.teamIds ?? [],
+          role: cached.user.role ?? 'super-admin',
         }
         setCurrentUser(userMe)
         setUsers((prev) => {
@@ -239,47 +242,96 @@ export default function App() {
           }
           return [userMe, ...prev]
         })
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setUserBootstrapDone(true)
-      })
-    return () => { cancelled = true }
-  }, [])
-
-  useEffect(() => {
-    if (!getAuthToken()) {
-      setSummaryBootstrapDone(true)
-      return
-    }
-    let cancelled = false
-    const toJson = (r) => (r.ok ? r.json() : null)
-    Promise.allSettled([
-      platformFetch('/api/tickets?summary=1').then(toJson),
-      platformFetch('/api/events?summary=1').then(toJson),
-    ]).then(([tickets, events]) => {
-      if (cancelled) return
-      const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
-      const eventsData = events.status === 'fulfilled' ? events.value : null
-      if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
-      setFullTicketsLoaded(false)
-      if (eventsData && Array.isArray(eventsData)) {
-        setEvents(eventsData.map((e) => ({
+      }
+      if (Array.isArray(cached.tickets)) setSupportRequests(cached.tickets)
+      if (Array.isArray(cached.events)) {
+        setEvents(cached.events.map((e) => ({
           id: e.id,
           name: e.name,
           description: e.description,
           date: e.date,
           time: e.startTime,
           endTime: e.endTime,
-          location: e.room?.name || e.location || 'TBD',
-          owner: e.submittedBy?.name,
-          creator: e.submittedBy?.name,
+          location: e.location || 'TBD',
+          owner: e.submittedBy,
+          creator: e.submittedBy,
           watchers: [],
         })))
       }
-      setFullEventsLoaded(false)
+      setUserBootstrapDone(true)
       setSummaryBootstrapDone(true)
-    })
+    }
+    
+    // Fetch fresh data in background (will update UI with newer data if available)
+    platformFetch('/api/bootstrap')
+      .then(toJson)
+      .then((data) => {
+        if (cancelled || !data) return
+        
+        // Save to cache for next reload
+        setCachedBootstrap({
+          user: data.user,
+          tickets: data.tickets || [],
+          events: data.events || [],
+          timestamp: Date.now(),
+        })
+        
+        // Update UI with fresh data
+        if (data.user) {
+          const userMe = {
+            id: data.user.id,
+            name: data.user.name ?? 'User',
+            email: data.user.email ?? '',
+            teamIds: data.user.teamIds ?? [],
+            role: data.user.role ?? 'super-admin',
+          }
+          setCurrentUser(userMe)
+          setUsers((prev) => {
+            const idx = prev.findIndex((p) => p.id === userMe.id)
+            if (idx >= 0) return prev.map((p, i) => (i === idx ? { ...p, ...userMe } : p))
+            const placeholderIdx = prev.findIndex((p) => p.id === 'u0')
+            if (placeholderIdx >= 0) {
+              return prev.map((p, i) => (i === placeholderIdx ? { ...userMe, positionTitle: p.positionTitle } : p))
+            }
+            return [userMe, ...prev]
+          })
+        }
+        
+        if (Array.isArray(data.tickets)) {
+          setSupportRequests(data.tickets)
+          setFullTicketsLoaded(false)
+        }
+        
+        if (Array.isArray(data.events)) {
+          setEvents(data.events.map((e) => ({
+            id: e.id,
+            name: e.name,
+            description: e.description,
+            date: e.date,
+            time: e.startTime,
+            endTime: e.endTime,
+            location: e.location || 'TBD',
+            owner: e.submittedBy,
+            creator: e.submittedBy,
+            watchers: [],
+          })))
+          setFullEventsLoaded(false)
+        }
+        
+        // Mark bootstrap as done if we didn't load from cache
+        if (!cached) {
+          setUserBootstrapDone(true)
+          setSummaryBootstrapDone(true)
+        }
+      })
+      .catch(() => {
+        // Network error - if we had cache, we're already loaded, otherwise mark done anyway
+        if (!cached) {
+          setUserBootstrapDone(true)
+          setSummaryBootstrapDone(true)
+        }
+      })
+    
     return () => { cancelled = true }
   }, [])
 
