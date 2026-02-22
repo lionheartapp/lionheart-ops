@@ -82,6 +82,25 @@ function parsePathname(pathname) {
   return { tab, section }
 }
 
+function parseNavigation(pathname, searchParams) {
+  const parsed = parsePathname(pathname)
+  const queryTab = searchParams?.get?.('tab') || ''
+  const querySection = searchParams?.get?.('section') || ''
+
+  if (parsed.tab === 'dashboard' && queryTab && VALID_TABS.has(queryTab)) {
+    return {
+      tab: queryTab,
+      section: queryTab === 'settings' ? (querySection || 'account') : 'account',
+    }
+  }
+
+  if (parsed.tab === 'settings' && querySection) {
+    return { tab: 'settings', section: querySection }
+  }
+
+  return parsed
+}
+
 export default function App() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -160,7 +179,10 @@ export default function App() {
     const current = (pathname ?? '').split('?')[0]
     if (current !== desired) {
       lastPushedPathRef.current = desired
-      const query = searchParams?.toString?.()
+      const params = new URLSearchParams(searchParams?.toString?.() || '')
+      params.delete('tab')
+      params.delete('section')
+      const query = params.toString()
       router.replace(query ? `${desired}?${query}` : desired)
     }
   }, [activeTab, settingsSection])
@@ -170,10 +192,10 @@ export default function App() {
     const p = pathname ?? ''
     if (lastPushedPathRef.current != null && p.split('?')[0] !== lastPushedPathRef.current) return
     if (lastPushedPathRef.current != null) lastPushedPathRef.current = null
-    const { tab, section } = parsePathname(p)
+    const { tab, section } = parseNavigation(p, searchParams)
     setActiveTab(tab)
     setSettingsSection(section)
-  }, [pathname])
+  }, [pathname, searchParams])
 
   // Command Bar (K-Bar): Cmd+K / Ctrl+K
   useEffect(() => {
