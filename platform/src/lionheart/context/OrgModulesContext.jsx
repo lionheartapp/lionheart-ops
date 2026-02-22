@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { platformGet } from '../services/platformApi'
 import { PLATFORM_URL } from '../services/platformApi'
 import { setOrgContextFromAPI } from '../config/orgContext'
@@ -160,7 +160,8 @@ export function OrgModulesProvider({ children }) {
   }, [])
 
   // Resolved logo: saved logo, or Brandfetch/Clearbit fallback when no saved logo
-  const displayLogoUrl = orgLogoUrl || brandfetchLogoUrl
+  // Use useMemo to prevent unnecessary changes that trigger sidebar logo reset
+  const displayLogoUrl = useMemo(() => orgLogoUrl || brandfetchLogoUrl, [orgLogoUrl, brandfetchLogoUrl])
 
   const value = {
     modules,

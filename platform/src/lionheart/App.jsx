@@ -431,7 +431,7 @@ export default function App() {
 
   // Lazy load inventory when user opens Inventory tab
   useEffect(() => {
-    if (!getAuthToken() || activeTab !== 'inventory' || inventoryDataLoaded || inventoryLoading) return
+    if (!getAuthToken() || activeTab !== 'inventory' || inventoryDataLoaded) return
     let cancelled = false
     setInventoryLoading(true)
     platformFetch('/api/inventory')
@@ -443,9 +443,9 @@ export default function App() {
         setInventoryDataLoaded(true)
       })
       .catch(() => {})
-      .finally(() => { setInventoryLoading(false) })
+      .finally(() => { if (!cancelled) setInventoryLoading(false) })
     return () => { cancelled = true }
-  }, [activeTab, inventoryDataLoaded, inventoryLoading])
+  }, [activeTab, inventoryDataLoaded])
 
   // Fetch full member list for Admin/Super Admin (after /me so we know role)
   const refetchMembers = useCallback(() => {

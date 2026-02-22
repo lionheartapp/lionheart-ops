@@ -414,7 +414,7 @@ export default function App() {
 
   // Lazy load inventory when user opens Inventory tab (with timeout so spinner doesn't hang)
   useEffect(() => {
-    if (!getAuthToken() || activeTab !== 'inventory' || inventoryDataLoaded || inventoryLoading) return
+    if (!getAuthToken() || activeTab !== 'inventory' || inventoryDataLoaded) return
     let cancelled = false
     setInventoryLoading(true)
     const timeoutMs = 15000
@@ -437,13 +437,13 @@ export default function App() {
       })
       .finally(() => {
         clearTimeout(timeoutId)
-        setInventoryLoading(false)
+        if (!cancelled) setInventoryLoading(false)
       })
     return () => {
       cancelled = true
       clearTimeout(timeoutId)
     }
-  }, [activeTab, inventoryDataLoaded, inventoryLoading])
+  }, [activeTab, inventoryDataLoaded])
 
   // Fetch full member list for Admin/Super Admin (after /me so we know role)
   useEffect(() => {

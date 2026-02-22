@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -70,7 +70,14 @@ export default function Sidebar({
   onNavigateToSettings,
 }) {
   const [logoError, setLogoError] = useState(false)
-  useEffect(() => { setLogoError(false) }, [orgLogoUrl])
+  const prevOrgLogoRef = useRef(orgLogoUrl)
+  useEffect(() => {
+    // Only reset logoError if URL actually changed
+    if (prevOrgLogoRef.current !== orgLogoUrl) {
+      prevOrgLogoRef.current = orgLogoUrl
+      setLogoError(false)
+    }
+  }, [orgLogoUrl])
   const isFacilitiesUser = isFacilitiesTeam(currentUser, teams)
   const isITUser = isITTeam(currentUser, teams)
   const superAdmin = isSuperAdmin(currentUser)
