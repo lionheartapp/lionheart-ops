@@ -93,21 +93,22 @@ export default function Sidebar({
           <img src={orgLogoUrl} alt={orgName || 'School'} className="h-10 w-auto max-w-full object-contain" referrerPolicy="no-referrer" onError={() => setLogoError(true)} />
         ) : (
           <div className="flex flex-col items-center justify-center min-w-0">
-            <img src="/lionheart-logo.svg" alt="Lionheart" className="h-10 w-auto max-w-full object-contain dark:opacity-90" />
-            {orgName && (
+            {orgName ? (
               <>
-                <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 truncate max-w-full text-center px-1 mt-1">{orgName}</span>
+                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-full text-center px-1">{orgName}</span>
                 {onNavigateToSettings && (
                   <button
                     type="button"
                     onClick={() => onNavigateToSettings('school')}
-                    className="text-[11px] hover:underline mt-0.5"
+                    className="text-xs hover:underline mt-1"
                     style={{ color: primaryColor }}
                   >
                     Upload school logo
                   </button>
                 )}
               </>
+            ) : (
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">Loading school…</span>
             )}
           </div>
         )}
