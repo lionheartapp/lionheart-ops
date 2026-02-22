@@ -151,6 +151,14 @@ export default function App() {
   const lastPushedPathRef = useRef(null)
   const hasSyncedFromUrlRef = useRef(false)
 
+  const haveSameIds = (prev = [], next = []) => {
+    if (prev.length !== next.length) return false
+    for (let i = 0; i < prev.length; i += 1) {
+      if (String(prev[i]?.id) !== String(next[i]?.id)) return false
+    }
+    return true
+  }
+
   const updateTicket = (ticketId, updates) => {
     if (typeof ticketId !== 'string' || ticketId.length < 10) return // Skip mock tickets (numeric id)
     platformFetch(`/api/tickets/${ticketId}`, {
@@ -276,9 +284,11 @@ export default function App() {
           return [userMe, ...prev]
         })
       }
-      if (Array.isArray(cached.tickets)) setSupportRequests(cached.tickets)
+      if (Array.isArray(cached.tickets)) {
+        setSupportRequests((prev) => (haveSameIds(prev, cached.tickets) ? prev : cached.tickets))
+      }
       if (Array.isArray(cached.events)) {
-        setEvents(cached.events.map((e) => ({
+        const nextEvents = cached.events.map((e) => ({
           id: e.id,
           name: e.name,
           description: e.description,
@@ -289,7 +299,8 @@ export default function App() {
           owner: e.submittedBy,
           creator: e.submittedBy,
           watchers: [],
-        })))
+        }))
+        setEvents((prev) => (haveSameIds(prev, nextEvents) ? prev : nextEvents))
       }
       if (cached.org) hydrateOrgFromBootstrap(cached.org)
       setUserBootstrapDone(true)
@@ -333,12 +344,12 @@ export default function App() {
         }
         
         if (Array.isArray(data.tickets)) {
-          setSupportRequests(data.tickets)
+          setSupportRequests((prev) => (haveSameIds(prev, data.tickets) ? prev : data.tickets))
           setFullTicketsLoaded(false)
         }
         
         if (Array.isArray(data.events)) {
-          setEvents(data.events.map((e) => ({
+          const nextEvents = data.events.map((e) => ({
             id: e.id,
             name: e.name,
             description: e.description,
@@ -349,7 +360,8 @@ export default function App() {
             owner: e.submittedBy,
             creator: e.submittedBy,
             watchers: [],
-          })))
+          }))
+          setEvents((prev) => (haveSameIds(prev, nextEvents) ? prev : nextEvents))
           setFullEventsLoaded(false)
         }
         if (data.org) hydrateOrgFromBootstrap(data.org)
