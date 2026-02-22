@@ -120,6 +120,8 @@ export default function App() {
   const [formsLoading, setFormsLoading] = useState(false)
   const [inventoryDataLoaded, setInventoryDataLoaded] = useState(false)
   const [inventoryLoading, setInventoryLoading] = useState(false)
+  const [fullTicketsLoaded, setFullTicketsLoaded] = useState(false)
+  const [fullEventsLoaded, setFullEventsLoaded] = useState(false)
   const [roomsFromApi, setRoomsFromApi] = useState([])
   const [roomsLoaded, setRoomsLoaded] = useState(false)
   const lastPushedPathRef = useRef(null)
@@ -242,13 +244,14 @@ export default function App() {
     let cancelled = false
     const toJson = (r) => (r.ok ? r.json() : null)
     Promise.allSettled([
-      platformFetch('/api/tickets').then(toJson),
-      platformFetch('/api/events').then(toJson),
+      platformFetch('/api/tickets?summary=1').then(toJson),
+      platformFetch('/api/events?summary=1').then(toJson),
     ]).then(([tickets, events]) => {
       if (cancelled) return
       const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
       const eventsData = events.status === 'fulfilled' ? events.value : null
       if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
+      setFullTicketsLoaded(false)
       if (eventsData && Array.isArray(eventsData)) {
         setEvents(eventsData.map((e) => ({
           id: e.id,
@@ -263,9 +266,50 @@ export default function App() {
           watchers: [],
         })))
       }
+      setFullEventsLoaded(false)
     })
     return () => { cancelled = true }
   }, [])
+
+  useEffect(() => {
+    const needsFullTickets = activeTab === 'facilities' || activeTab === 'facilities-my-tickets' || activeTab === 'it-support' || activeTab === 'my-tickets'
+    if (!getAuthToken() || !needsFullTickets || fullTicketsLoaded) return
+    let cancelled = false
+    platformFetch('/api/tickets')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((ticketsData) => {
+        if (cancelled || !Array.isArray(ticketsData)) return
+        setSupportRequests(ticketsData)
+        setFullTicketsLoaded(true)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [activeTab, fullTicketsLoaded])
+
+  useEffect(() => {
+    if (!getAuthToken() || activeTab !== 'events' || fullEventsLoaded) return
+    let cancelled = false
+    platformFetch('/api/events')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((eventsData) => {
+        if (cancelled || !Array.isArray(eventsData)) return
+        setEvents(eventsData.map((e) => ({
+          id: e.id,
+          name: e.name,
+          description: e.description,
+          date: e.date,
+          time: e.startTime,
+          endTime: e.endTime,
+          location: e.room?.name || e.location || 'TBD',
+          owner: e.submittedBy?.name,
+          creator: e.submittedBy?.name,
+          watchers: [],
+        })))
+        setFullEventsLoaded(true)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [activeTab, fullEventsLoaded])
 
   // Load rooms only when event creation tools are used (not required for initial dashboard paint)
   useEffect(() => {

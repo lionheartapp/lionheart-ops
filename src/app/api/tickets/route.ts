@@ -79,12 +79,15 @@ function formatTicket(t: {
 export async function GET(req: NextRequest) {
   try {
     return await withOrg(req, prismaBase, async () => {
+      const url = new URL(req.url)
+      const summary = url.searchParams.get('summary') === '1'
       const tickets = await prisma.ticket.findMany({
         include: {
           submittedBy: { select: { name: true } },
           assignedTo: { select: { name: true } },
         },
         orderBy: { createdAt: 'desc' },
+        ...(summary ? { take: 120 } : {}),
       })
       const formatted = tickets.map(formatTicket)
       return NextResponse.json(formatted, { headers: corsHeaders })

@@ -142,6 +142,8 @@ export default function App() {
   const [formsLoading, setFormsLoading] = useState(false)
   const [inventoryDataLoaded, setInventoryDataLoaded] = useState(false)
   const [inventoryLoading, setInventoryLoading] = useState(false)
+  const [fullTicketsLoaded, setFullTicketsLoaded] = useState(false)
+  const [fullEventsLoaded, setFullEventsLoaded] = useState(false)
   const lastPushedPathRef = useRef(null)
   const hasSyncedFromUrlRef = useRef(false)
 
@@ -240,8 +242,8 @@ export default function App() {
     const toJson = (r) => (r.ok ? r.json() : null)
     Promise.allSettled([
       platformFetch('/api/user/me').then(toJson),
-      platformFetch('/api/tickets').then(toJson),
-      platformFetch('/api/events').then(toJson),
+      platformFetch('/api/tickets?summary=1').then(toJson),
+      platformFetch('/api/events?summary=1').then(toJson),
       platformFetch('/api/admin/users').then(toJson),
     ]).then(([meRes, ticketsRes, eventsRes, adminUsersRes]) => {
       if (cancelled) return
@@ -283,7 +285,10 @@ export default function App() {
         }
       }
 
-      if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
+      if (Array.isArray(ticketsData)) {
+        setSupportRequests(ticketsData)
+        setFullTicketsLoaded(false)
+      }
       if (eventsData && Array.isArray(eventsData)) {
         setEvents(eventsData.map((e) => ({
           id: e.id,
@@ -297,10 +302,51 @@ export default function App() {
           creator: e.submittedBy?.name,
           watchers: [],
         })))
+        setFullEventsLoaded(false)
       }
     })
     return () => { cancelled = true }
   }, [])
+
+  useEffect(() => {
+    const needsFullTickets = activeTab === 'facilities' || activeTab === 'facilities-my-tickets' || activeTab === 'it-support' || activeTab === 'my-tickets'
+    if (!getAuthToken() || !needsFullTickets || fullTicketsLoaded) return
+    let cancelled = false
+    platformFetch('/api/tickets')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((ticketsData) => {
+        if (cancelled || !Array.isArray(ticketsData)) return
+        setSupportRequests(ticketsData)
+        setFullTicketsLoaded(true)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [activeTab, fullTicketsLoaded])
+
+  useEffect(() => {
+    if (!getAuthToken() || activeTab !== 'events' || fullEventsLoaded) return
+    let cancelled = false
+    platformFetch('/api/events')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((eventsData) => {
+        if (cancelled || !Array.isArray(eventsData)) return
+        setEvents(eventsData.map((e) => ({
+          id: e.id,
+          name: e.name,
+          description: e.description,
+          date: e.date,
+          time: e.startTime,
+          endTime: e.endTime,
+          location: e.room?.name || e.location || 'TBD',
+          owner: e.submittedBy?.name,
+          creator: e.submittedBy?.name,
+          watchers: [],
+        })))
+        setFullEventsLoaded(true)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [activeTab, fullEventsLoaded])
 
   // Lazy load forms when user opens Forms tab (no artificial delay — loading clears as soon as API returns)
   useEffect(() => {

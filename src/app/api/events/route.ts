@@ -57,12 +57,14 @@ export async function GET(req: NextRequest) {
       if (!orgId) return NextResponse.json([], { status: 200 })
       const url = new URL(req.url)
       const includePending = url.searchParams.get('includePending') === 'true'
+      const summary = url.searchParams.get('summary') === '1'
       const list = await prisma.event.findMany({
         where: {
           organizationId: orgId,
           ...(includePending ? {} : { status: 'APPROVED' }),
         },
         orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+        ...(summary ? { take: 120 } : {}),
         include: {
           room: { select: { name: true } },
           submittedBy: { select: { name: true } },
