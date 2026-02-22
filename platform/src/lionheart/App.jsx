@@ -151,6 +151,21 @@ export default function App() {
   const lastPushedPathRef = useRef(null)
   const hasSyncedFromUrlRef = useRef(false)
 
+  const getBootstrapEtag = () => {
+    try {
+      return localStorage.getItem('lionheart_bootstrap_etag')
+    } catch {
+      return null
+    }
+  }
+
+  const setBootstrapEtag = (etag) => {
+    if (!etag) return
+    try {
+      localStorage.setItem('lionheart_bootstrap_etag', etag)
+    } catch {}
+  }
+
   const haveSameIds = (prev = [], next = []) => {
     if (prev.length !== next.length) return false
     for (let i = 0; i < prev.length; i += 1) {
@@ -260,7 +275,13 @@ export default function App() {
     }
     
     let cancelled = false
-    const toJson = (r) => (r.ok ? r.json() : null)
+    const toJson = async (r) => {
+      const etagHeader = r.headers.get('etag')
+      if (r.status === 304) return { data: null, etag: etagHeader }
+      if (!r.ok) return { data: null, etag: etagHeader }
+      const data = await r.json().catch(() => null)
+      return { data, etag: etagHeader }
+    }
     
     // Load from cache immediately for instant first paint
     const cached = getCachedBootstrap()
@@ -308,10 +329,16 @@ export default function App() {
     }
     
     // Fetch fresh data in background (will update UI with newer data if available)
-    platformFetch('/api/bootstrap')
+    const etag = getBootstrapEtag()
+    platformFetch('/api/bootstrap', {
+      headers: etag ? { 'If-None-Match': etag } : undefined,
+    })
       .then(toJson)
-      .then((data) => {
-        if (cancelled || !data) return
+      .then((result) => {
+        if (cancelled || !result) return
+        if (result.etag) setBootstrapEtag(result.etag)
+        const data = result.data
+        if (!data) return
         
         // Save to cache for next reload
         setCachedBootstrap({

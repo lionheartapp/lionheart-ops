@@ -4,6 +4,7 @@ import { withOrg, getOrgId } from '@/lib/orgContext'
 import { verifyToken } from '@/lib/auth'
 import { corsHeaders } from '@/lib/cors'
 import { getModules } from '@/lib/modules'
+import { createHash } from 'crypto'
 
 const DEFAULT_SYSTEM_FORM_IDS = { event: null as string | null, tech: null as string | null, facilities: null as string | null, it: null as string | null }
 
@@ -120,9 +121,7 @@ export async function GET(req: NextRequest) {
       const addressParts = [addr, org?.city, org?.state, org?.zip].filter(Boolean)
       const address = addressParts.length > 0 ? addressParts.join(', ') : addr
 
-      // Format response (minimal transformation)
-      return NextResponse.json(
-        {
+      const responseBody = {
           user: user
             ? {
                 id: user.id,
@@ -171,9 +170,21 @@ export async function GET(req: NextRequest) {
               }
             : null,
           timestamp: new Date().toISOString(),
-        },
-        { headers: corsHeaders }
-      )
+        }
+
+      const etag = `W/"${createHash('sha1').update(JSON.stringify(responseBody)).digest('hex')}"`
+      const ifNoneMatch = req.headers.get('if-none-match')
+      if (ifNoneMatch && ifNoneMatch === etag) {
+        return new NextResponse(null, {
+          status: 304,
+          headers: { ...corsHeaders, ETag: etag, 'Cache-Control': 'no-cache' },
+        })
+      }
+
+      // Format response (minimal transformation)
+      return NextResponse.json(responseBody, {
+        headers: { ...corsHeaders, ETag: etag, 'Cache-Control': 'no-cache' },
+      })
     })
   } catch (err) {
     if (
