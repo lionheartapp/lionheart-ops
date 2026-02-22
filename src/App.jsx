@@ -181,10 +181,14 @@ export default function App() {
     if (lastPushedPathRef.current != null && p.split('?')[0] !== lastPushedPathRef.current) return
     if (lastPushedPathRef.current != null) lastPushedPathRef.current = null
     const { tab, section } = parseNavigation(p, searchParams)
+    if (tab === activeTab && section === settingsSection) {
+      hasSyncedFromUrlRef.current = true
+      return
+    }
     setActiveTab(tab)
     setSettingsSection(section)
     hasSyncedFromUrlRef.current = true
-  }, [pathname, searchParams])
+  }, [pathname, searchParams, activeTab, settingsSection])
 
   // Set org from URL so API calls include x-org-id (e.g. /app?orgId=xxx after setup)
   useEffect(() => {
@@ -532,10 +536,10 @@ export default function App() {
   )
 
   useEffect(() => {
-    if (activeTab === 'water-management' && !showWaterManagementForUser) {
+    if (activeTab === 'water-management' && !showWaterManagementForUser && !orgLoading) {
       setActiveTab('dashboard')
     }
-  }, [activeTab, showWaterManagementForUser])
+  }, [activeTab, showWaterManagementForUser, orgLoading])
 
   const defaultInventoryScope = isAVUser ? 'av' : isFacilitiesUser ? 'facilities' : isITUser ? 'it' : isSecurityUser ? 'security' : null
   const [inventoryScopeOverride, setInventoryScopeOverride] = useState(null)
