@@ -27,8 +27,6 @@ import WaterManagementPage from './components/WaterManagementPage'
 import OnboardingModal from './components/OnboardingModal'
 import { INITIAL_EVENTS, userStartedEventWithTicketSales } from './data/eventsData'
 import {
-  INITIAL_INVENTORY_ITEMS,
-  INITIAL_INVENTORY_STOCK,
   checkItemsAvailable,
   getItemsByScope,
   getStockByScope,
@@ -125,8 +123,8 @@ export default function App() {
   const [viewAsUser, setViewAsUser] = useState(null) // when set, we're "viewing as" this user
   const effectiveUser = viewAsUser ?? currentUser
   const [supportRequests, setSupportRequests] = useState([])
-  const [inventoryItems, setInventoryItems] = useState(INITIAL_INVENTORY_ITEMS)
-  const [inventoryStock, setInventoryStock] = useState(INITIAL_INVENTORY_STOCK)
+  const [inventoryItems, setInventoryItems] = useState([])
+  const [inventoryStock, setInventoryStock] = useState([])
   const [forms, setForms] = useState(INITIAL_FORMS)
   const [formSubmissions, setFormSubmissions] = useState(INITIAL_SUBMISSIONS)
   const [facilitiesDrawerOpen, setFacilitiesDrawerOpen] = useState(false)
@@ -1102,7 +1100,7 @@ export default function App() {
             repeatRule: payload.repeatRule,
             communications: payload.communications,
           }
-          const eventWithNotifications = notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests)
+          const eventWithNotifications = await notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests)
           const existing = events.find((e) => e.id === id)
           const merged = {
             ...eventWithNotifications,
@@ -1164,7 +1162,74 @@ export default function App() {
             repeatRule: payload.repeatRule,
             communications: payload.communications ?? [],
           }
-          const eventWithNotifications = notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests)
+          const createTicket = async (payload) => {
+            try {
+              const res = await platformPost('/api/tickets', payload)
+              if (!res.ok) return null
+              return await res.json()
+            } catch {
+              return null
+            }
+          }
+          const appendTicket = (ticket) => {
+            if (!ticket) return
+            setSupportRequests((prev) => [...(prev || []), { ...ticket, eventId: id }])
+          }
+          const createLocalTicket = (type, title, description, priority = 'normal') => ({
+            id: `local-${Date.now()}`,
+            type,
+            title,
+            description,
+            priority,
+            time: 'Just now',
+            submittedBy: effectiveUser?.name || 'System',
+            status: 'new',
+            createdAt: new Date().toISOString(),
+            order: Date.now(),
+            eventId: id,
+          })
+          const safetyChecklist = Array.isArray(payload.safetyChecklist) ? payload.safetyChecklist : []
+          if (safetyChecklist.length > 0 && payload.safetyAcknowledged) {
+            const safetyDescription = `Safety checklist for ${payload.name || 'event'} (${payload.date || 'TBD'}${payload.time ? ` at ${payload.time}` : ''}):\n- ${safetyChecklist.join('\n- ')}`
+            const created = await createTicket({
+              title: `Safety protocol review — ${payload.name || 'Event'}`,
+              description: safetyDescription,
+              type: 'Facilities',
+              priority: 'high',
+              safetyProtocolChecklist: safetyChecklist,
+            })
+            if (created) appendTicket(created)
+            else setSupportRequests((prev) => [...(prev || []), createLocalTicket('Facilities', `Safety protocol review — ${payload.name || 'Event'}`, safetyDescription, 'high')])
+          }
+          if (inventoryItems.length > 0 && inventoryStock.length > 0) {
+            const requested = []
+            const tableItem = inventoryItems.find((item) => /table/i.test(item?.name || ''))
+            const chairItem = inventoryItems.find((item) => /chair/i.test(item?.name || ''))
+            if (payload.tablesRequested > 0 && tableItem?.id) {
+              requested.push({ itemId: tableItem.id, quantity: payload.tablesRequested })
+            }
+            if (payload.chairsRequested > 0 && chairItem?.id) {
+              requested.push({ itemId: chairItem.id, quantity: payload.chairsRequested })
+            }
+            if (requested.length > 0) {
+              const availability = checkItemsAvailable(inventoryItems, inventoryStock, requested)
+              if (!availability.available && availability.shortages.length > 0) {
+                const shortageList = availability.shortages
+                  .map((s) => `${s.itemName}: need ${s.needed}, available ${s.available}`)
+                  .join('\n')
+                const shortageDescription = `Inventory shortfall for ${payload.name || 'event'} (${payload.date || 'TBD'}${payload.time ? ` at ${payload.time}` : ''}):\n${shortageList}`
+                const created = await createTicket({
+                  title: `Inventory shortage — ${payload.name || 'Event'}`,
+                  description: shortageDescription,
+                  type: 'Facilities',
+                  priority: 'high',
+                })
+                if (created) appendTicket(created)
+                else setSupportRequests((prev) => [...(prev || []), createLocalTicket('Facilities', `Inventory shortage — ${payload.name || 'Event'}`, shortageDescription, 'high')])
+              }
+            }
+          }
+          const eventWithNotifications = await notifyTeamsForScheduledEvent(newEvent, users, setSupportRequests, createTicket)
           setEvents((prev) => {
             const existing = prev.find((e) => e.id === id)
             if (existing) return prev.map((e) => (e.id === id ? eventWithNotifications : e))

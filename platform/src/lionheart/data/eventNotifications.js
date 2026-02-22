@@ -7,8 +7,9 @@ import { eventNeedsAV, eventNeedsFacilities } from './eventsData'
  * @param {Object} event - The event being saved
  * @param {Array} users - All users (for team lookup)
  * @param {Function} setSupportRequests - State setter for support requests
+ * @param {Function} [createTicket] - Optional async (payload) => ticket. If provided, tickets are persisted via API and the returned ticket is added to state.
  */
-export function notifyTeamsForScheduledEvent(event, users, setSupportRequests) {
+export async function notifyTeamsForScheduledEvent(event, users, setSupportRequests, createTicket) {
   if (!event) return event
 
   const facilitiesNames = getTeamMemberNames(users, 'facilities')
@@ -31,44 +32,42 @@ export function notifyTeamsForScheduledEvent(event, users, setSupportRequests) {
   }
 
   const eventWithWatchers = { ...event, watchers: newWatchers }
-  const ts = Date.now()
-  const timeStr = 'Just now'
   const submittedBy = event.creator || event.owner || 'System'
 
   if (needsFacilities && setSupportRequests) {
     const facilitiesSummary = buildFacilitiesSummary(event)
-    const ticket = {
-      id: ts + 1,
-      type: 'Facilities',
-      title: `${event.name || 'Event'} — ${event.date} at ${event.location || 'TBD'}`,
-      priority: 'normal',
-      time: timeStr,
-      submittedBy,
-      status: 'new',
-      createdAt: new Date().toISOString(),
-      order: 9999,
-      eventId: event.id,
-      description: `Event setup: ${facilitiesSummary}`,
+    const title = `${event.name || 'Event'} — ${event.date} at ${event.location || 'TBD'}`
+    const description = `Event setup: ${facilitiesSummary}`
+    if (typeof createTicket === 'function') {
+      try {
+        const created = await createTicket({ title, description, type: 'Facilities', priority: 'normal' })
+        if (created) setSupportRequests((prev) => [...(prev || []), { ...created, eventId: event.id }])
+      } catch {
+        const fallback = { id: `f-${Date.now()}`, type: 'Facilities', title, description, priority: 'normal', time: 'Just now', submittedBy, status: 'new', createdAt: new Date().toISOString(), order: 9999, eventId: event.id }
+        setSupportRequests((prev) => [...(prev || []), fallback])
+      }
+    } else {
+      const ticket = { id: Date.now() + 1, type: 'Facilities', title, priority: 'normal', time: 'Just now', submittedBy, status: 'new', createdAt: new Date().toISOString(), order: 9999, eventId: event.id, description }
+      setSupportRequests((prev) => [...(prev || []), ticket])
     }
-    setSupportRequests((prev) => [...(prev || []), ticket])
   }
 
   if (needsAV && setSupportRequests) {
     const avSummary = buildAVSummary(event)
-    const ticket = {
-      id: ts + 2,
-      type: 'AV',
-      title: `${event.name || 'Event'} — ${event.date} at ${event.location || 'TBD'}`,
-      priority: 'normal',
-      time: timeStr,
-      submittedBy,
-      status: 'new',
-      createdAt: new Date().toISOString(),
-      order: 9999,
-      eventId: event.id,
-      description: `A/V needs: ${avSummary}`,
+    const title = `${event.name || 'Event'} — ${event.date} at ${event.location || 'TBD'}`
+    const description = `A/V needs: ${avSummary}`
+    if (typeof createTicket === 'function') {
+      try {
+        const created = await createTicket({ title, description, type: 'AV', priority: 'normal' })
+        if (created) setSupportRequests((prev) => [...(prev || []), { ...created, eventId: event.id }])
+      } catch {
+        const fallback = { id: `a-${Date.now()}`, type: 'AV', title, description, priority: 'normal', time: 'Just now', submittedBy, status: 'new', createdAt: new Date().toISOString(), order: 9999, eventId: event.id }
+        setSupportRequests((prev) => [...(prev || []), fallback])
+      }
+    } else {
+      const ticket = { id: Date.now() + 2, type: 'AV', title, priority: 'normal', time: 'Just now', submittedBy, status: 'new', createdAt: new Date().toISOString(), order: 9999, eventId: event.id, description }
+      setSupportRequests((prev) => [...(prev || []), ticket])
     }
-    setSupportRequests((prev) => [...(prev || []), ticket])
   }
 
   return eventWithWatchers

@@ -101,6 +101,11 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
     }
   }, [mentionQuery, mentionOpen])
 
+  const mentionListId = 'ai-form-mention-list'
+  const activeOptionId = mentionOpen && filteredUsers[highlightedIndex]
+    ? `${mentionListId}-option-${filteredUsers[highlightedIndex].id ?? highlightedIndex}`
+    : undefined
+
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -216,6 +221,10 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
             onChange={handleDescriptionChange}
             onKeyDown={handleKeyDown}
             onBlur={() => setTimeout(closeMention, 150)}
+            aria-autocomplete="list"
+            aria-controls={mentionOpen ? mentionListId : undefined}
+            aria-expanded={mentionOpen}
+            aria-activedescendant={activeOptionId}
             placeholder="e.g. Volunteer form with a header image, or Event RSVP..."
             rows={4}
             disabled={loading}
@@ -224,7 +233,10 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
           <AnimatePresence>
             {mentionOpen && filteredUsers.length > 0 && (
               <motion.ul
+                id={mentionListId}
                 ref={mentionListRef}
+                role="listbox"
+                aria-label="Mention suggestions"
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
@@ -233,10 +245,13 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
                 {filteredUsers.slice(0, 8).map((user, i) => (
                   <li key={user.id}>
                     <button
+                      id={`${mentionListId}-option-${user.id ?? i}`}
+                      role="option"
+                      aria-selected={i === highlightedIndex}
                       type="button"
                       onMouseDown={(e) => { e.preventDefault(); insertMention(user) }}
                       onMouseEnter={() => setHighlightedIndex(i)}
-                      className={`w-full text-left px-4 py-2 text-sm ${
+                      className={`w-full min-h-[44px] text-left px-4 py-2 text-sm ${
                         i === highlightedIndex
                           ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
                           : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
@@ -256,7 +271,7 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
             Reference document (optional)
           </label>
           <div className="flex flex-col sm:flex-row gap-2">
-            <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
+            <label className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
               <Upload className="w-4 h-4" />
               Upload file
               <input
@@ -305,7 +320,7 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
             type="button"
             onClick={handleGenerate}
             disabled={loading || !description.trim()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+            className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:pointer-events-none transition-colors"
           >
             {loading ? (
               <>
@@ -322,7 +337,7 @@ export default function AIFormModal({ isOpen, onClose, onFormCreated, users = []
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="min-h-[44px] px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             Cancel
           </button>

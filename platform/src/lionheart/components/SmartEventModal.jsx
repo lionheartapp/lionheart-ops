@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Send, Sparkles, Calendar, MapPin, Mic, Monitor, Lightbulb, Ticket, LayoutTemplate, Check, Package, Zap, Shield, Thermometer } from 'lucide-react'
+import { X, Send, Sparkles, Calendar, MapPin, Mic, Monitor, Lightbulb, Ticket, LayoutTemplate, Check, Package, Zap, Shield, Thermometer, AlertTriangle, TrendingUp } from 'lucide-react'
 import { chatWithGemini, extractEventFieldsWithGemini } from '../services/gemini'
+import { analyzeEventIntelligence } from '../../lib/eventIntelligence'
 
 const VOICE_BLUE = '#3b82f6'
 /** How long to wait with no speech (after final results) before auto-submitting. */
@@ -404,6 +405,21 @@ function buildFacilitiesSummary(draft) {
   return parts.join(', ')
 }
 
+function buildSafetyChecklist(draft) {
+  if (!draft?.location) return []
+  const startHour = draft.time ? parseInt(draft.time.split(':')[0], 10) : 17
+  const endHour = startHour + 4
+  const isAfterHours = endHour >= 20
+  const endHourDisplay = endHour > 12 ? endHour - 12 : endHour
+  const period = endHour >= 12 ? 'PM' : 'AM'
+  const items = []
+  if (isAfterHours) {
+    items.push(`Security monitoring for ${draft.location} until ${endHourDisplay}:00 ${period}.`)
+  }
+  items.push(`HVAC override for ${draft.location} from 4–10 PM.`)
+  return items
+}
+
 function buildSummaryCard(draft) {
   const dateStr = draft.date || 'TBD'
   const timeStr = draft.time ? formatTime24To12(draft.time) : ''
@@ -452,6 +468,9 @@ export default function SmartEventModal({
   const [logisticsHealth, setLogisticsHealth] = useState('clear')
   const [logisticsStep, setLogisticsStep] = useState(0) // 0–3: Time locked → Resources → Safety → Ready
   const [showSummaryForPublish, setShowSummaryForPublish] = useState(false)
+  const [safetyAcknowledged, setSafetyAcknowledged] = useState(false)
+  const [safetyError, setSafetyError] = useState(null)
+  const [intelligenceAnalysis, setIntelligenceAnalysis] = useState(null)
   const [listening, setListening] = useState(false)
   const [interimTranscript, setInterimTranscript] = useState('')
   const [voiceError, setVoiceError] = useState(null)
@@ -471,6 +490,9 @@ export default function SmartEventModal({
       setLogisticsHealth('clear')
       setLogisticsStep(0)
       setShowSummaryForPublish(false)
+      setSafetyAcknowledged(false)
+      setSafetyError(null)
+      setIntelligenceAnalysis(null)
       setInterimTranscript('')
       voiceTranscriptRef.current = ''
       setVoiceError(null)
@@ -625,8 +647,13 @@ export default function SmartEventModal({
     ])
   }
 
-  const handlePublishEvent = (createLandingPage = false) => {
+  const handlePublishEvent = async (createLandingPage = false) => {
     if (!eventDraft?.name) return
+    const safetyChecklist = buildSafetyChecklist(eventDraft)
+    if (safetyChecklist.length > 0 && !safetyAcknowledged) {
+      setSafetyError('Please acknowledge the safety checklist to publish this event.')
+      return
+    }
     const descParts = [eventDraft.avNotes, eventDraft.notes].filter(Boolean)
     const facilitiesRequested = []
     if (eventDraft.tablesRequested != null && eventDraft.tablesRequested > 0) {
@@ -636,6 +663,26 @@ export default function SmartEventModal({
       facilitiesRequested.push({ item: 'Folding chair', quantity: eventDraft.chairsRequested })
     }
     const techRequested = (eventDraft.resources || []).map((r) => ({ item: typeof r === 'string' ? r : r?.item || 'Item', quantity: 1 }))
+    
+    // Analyze event for HVAC overrides, inventory issues, and setup windows
+    let analysis = intelligenceAnalysis
+    if (!analysis) {
+      try {
+        // extrapolate organizationId from context or user; caller should provide via props if needed
+        const org = currentUser?.organizationId || 'default'
+        const building = currentUser?.buildingDivision || 'ELEMENTARY'
+        analysis = await analyzeEventIntelligence({
+          ...eventDraft,
+          facilitiesRequested,
+          techRequested,
+        }, org, building)
+        setIntelligenceAnalysis(analysis)
+      } catch (err) {
+        console.warn('Event intelligence analysis failed (non-blocking):', err)
+        // Continue with publish even if analysis fails
+      }
+    }
+    
     onSave({
       ...eventDraft,
       description: descParts.length > 0 ? descParts.join('\n\n') : eventDraft.description,
@@ -647,6 +694,10 @@ export default function SmartEventModal({
       techRequested: techRequested.length ? techRequested : undefined,
       tablesRequested: eventDraft.tablesRequested,
       chairsRequested: eventDraft.chairsRequested,
+      safetyChecklist: safetyChecklist.length > 0 ? safetyChecklist : undefined,
+      safetyAcknowledged: safetyChecklist.length > 0 ? safetyAcknowledged : undefined,
+      // Include intelligence analysis results for auditing
+      intelligenceAnalysis: analysis || undefined,
     })
     onClose()
     if (createLandingPage) onGenerateLandingPage?.()
@@ -1058,6 +1109,69 @@ export default function SmartEventModal({
                                         </div>
                                       ))}
                                       <div className="p-3 border-t border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800/50 space-y-2">
+                                        {buildSafetyChecklist(eventDraft).length > 0 && (
+                                          <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/30 p-3 space-y-2">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                                              Safety checklist (required)
+                                            </p>
+                                            <ul className="list-disc list-inside text-sm text-amber-800 dark:text-amber-200 space-y-1">
+                                              {buildSafetyChecklist(eventDraft).map((item, i) => (
+                                                <li key={i}>{item}</li>
+                                              ))}
+                                            </ul>
+                                            <label className="flex items-start gap-2 text-sm text-amber-900 dark:text-amber-100">
+                                              <input
+                                                type="checkbox"
+                                                checked={safetyAcknowledged}
+                                                onChange={(e) => {
+                                                  setSafetyAcknowledged(e.target.checked)
+                                                  if (e.target.checked) setSafetyError(null)
+                                                }}
+                                                className="mt-1 h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                                              />
+                                              <span>I reviewed the safety checklist and want to proceed.</span>
+                                            </label>
+                                            {safetyError && (
+                                              <p className="text-xs text-rose-600 dark:text-rose-400">{safetyError}</p>
+                                            )}
+                                          </div>
+                                        )}
+                                        {intelligenceAnalysis && (intelligenceAnalysis.hvacOverride || intelligenceAnalysis.lowStockAlert || intelligenceAnalysis.setupSuggestion) && (
+                                          <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/70 dark:bg-blue-950/30 p-3 space-y-2">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                                              Event Intelligence
+                                            </p>
+                                            {intelligenceAnalysis.hvacOverride && (
+                                              <div className="flex items-start gap-2 text-sm text-blue-800 dark:text-blue-200">
+                                                <Thermometer className="w-4 h-4 shrink-0 mt-0.5" />
+                                                <div>
+                                                  <p className="font-medium">HVAC Override Ticket Created</p>
+                                                  <p className="text-xs opacity-80">A maintenance ticket for HVAC override has been created to handle building power management.</p>
+                                                </div>
+                                              </div>
+                                            )}
+                                            {intelligenceAnalysis.lowStockAlert && (
+                                              <div className="flex items-start gap-2 text-sm text-blue-800 dark:text-blue-200">
+                                                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                                                <div>
+                                                  <p className="font-medium">Inventory Pressure Alert</p>
+                                                  <p className="text-xs opacity-80">{intelligenceAnalysis.lowStockAlert.itemsAtRisk?.length || 0} item(s) exceed 80% utilization. A high-priority ticket has been created.</p>
+                                                </div>
+                                              </div>
+                                            )}
+                                            {intelligenceAnalysis.setupSuggestion && (
+                                              <div className="flex items-start gap-2 text-sm text-blue-800 dark:text-blue-200">
+                                                <TrendingUp className="w-4 h-4 shrink-0 mt-0.5" />
+                                                <div>
+                                                  <p className="font-medium">Setup Window Available</p>
+                                                  <p className="text-xs opacity-80">
+                                                    Recommended setup: {intelligenceAnalysis.setupSuggestion.startTime} – {intelligenceAnalysis.setupSuggestion.endTime} ({intelligenceAnalysis.setupSuggestion.durationMinutes} min)
+                                                  </p>
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
                                         <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                                           Create an event landing page for this event?
                                         </p>
@@ -1065,7 +1179,7 @@ export default function SmartEventModal({
                                           <button
                                             type="button"
                                             onClick={() => msg.onPublish?.(true)}
-                                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+                                            className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
                                           >
                                             <Check className="w-4 h-4" />
                                             Yes, save & create landing page
@@ -1073,7 +1187,7 @@ export default function SmartEventModal({
                                           <button
                                             type="button"
                                             onClick={() => msg.onPublish?.(false)}
-                                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-sm font-medium transition-colors"
+                                            className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-sm font-medium transition-colors"
                                           >
                                             No, just save to calendar
                                           </button>
@@ -1091,7 +1205,7 @@ export default function SmartEventModal({
                                       key={opt.id}
                                       type="button"
                                       onClick={() => msg.onOption?.(opt.id, opt)}
-                                      className="block w-full text-left px-4 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-800 text-sm font-medium text-zinc-800 dark:text-zinc-200 transition-colors"
+                                      className="block w-full min-h-[44px] text-left px-4 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-800 text-sm font-medium text-zinc-800 dark:text-zinc-200 transition-colors"
                                     >
                                       {opt.label}
                                     </button>
@@ -1116,7 +1230,7 @@ export default function SmartEventModal({
                                       key={act.id}
                                       type="button"
                                       onClick={() => msg.onBranch?.(act.id)}
-                                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-violet-500/90 to-fuchsia-500/90 text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                                      className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-violet-500/90 to-fuchsia-500/90 text-white text-sm font-medium hover:opacity-90 transition-opacity"
                                     >
                                       {act.icon === 'check' && <Check className="w-4 h-4" />}
                                       {act.icon === 'ticket' && <Ticket className="w-4 h-4" />}

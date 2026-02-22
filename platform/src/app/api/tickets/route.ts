@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
         type?: string
         priority?: string
         roomId?: string
+        safetyProtocolChecklist?: unknown
       }
 
       const { title } = body
@@ -147,6 +148,9 @@ export async function POST(req: NextRequest) {
           priority,
           roomId: body.roomId || null,
           submittedById: submittedById || null,
+          ...(body.safetyProtocolChecklist != null
+            ? { safetyProtocolChecklist: body.safetyProtocolChecklist }
+            : {}),
         },
         include: {
           submittedBy: { select: { name: true } },
