@@ -121,7 +121,9 @@ export default function App() {
   const [inventoryDataLoaded, setInventoryDataLoaded] = useState(false)
   const [inventoryLoading, setInventoryLoading] = useState(false)
   const [roomsFromApi, setRoomsFromApi] = useState([])
+  const [roomsLoaded, setRoomsLoaded] = useState(false)
   const lastPushedPathRef = useRef(null)
+  const hasSyncedFromUrlRef = useRef(false)
 
   const updateTicket = (ticketId, updates) => {
     if (typeof ticketId !== 'string' || ticketId.length < 10) return // Skip mock tickets (numeric id)
@@ -154,6 +156,7 @@ export default function App() {
 
   // Sync active tab/settings -> URL when user navigates in-app (run first so ref is set before pathname effect)
   useEffect(() => {
+    if (!hasSyncedFromUrlRef.current) return
     const desired = getPathForTab(activeTab, settingsSection)
     const current = (pathname ?? '').split('?')[0]
     if (current !== desired) {
@@ -174,6 +177,7 @@ export default function App() {
     const { tab, section } = parseNavigation(p, searchParams)
     setActiveTab(tab)
     setSettingsSection(section)
+    hasSyncedFromUrlRef.current = true
   }, [pathname, searchParams])
 
   // Set org from URL so API calls include x-org-id (e.g. /app?orgId=xxx after setup)
@@ -240,14 +244,11 @@ export default function App() {
     Promise.allSettled([
       platformFetch('/api/tickets').then(toJson),
       platformFetch('/api/events').then(toJson),
-      platformFetch('/api/rooms').then(toJson),
-    ]).then(([tickets, events, rooms]) => {
+    ]).then(([tickets, events]) => {
       if (cancelled) return
       const ticketsData = tickets.status === 'fulfilled' ? tickets.value : null
       const eventsData = events.status === 'fulfilled' ? events.value : null
-      const roomsData = rooms.status === 'fulfilled' ? rooms.value : null
       if (Array.isArray(ticketsData)) setSupportRequests(ticketsData)
-      if (Array.isArray(roomsData)) setRoomsFromApi(roomsData)
       if (eventsData && Array.isArray(eventsData)) {
         setEvents(eventsData.map((e) => ({
           id: e.id,
@@ -265,6 +266,23 @@ export default function App() {
     })
     return () => { cancelled = true }
   }, [])
+
+  // Load rooms only when event creation tools are used (not required for initial dashboard paint)
+  useEffect(() => {
+    if (!getAuthToken() || roomsLoaded || (!eventModalOpen && !smartEventModalOpen)) return
+    let cancelled = false
+    platformFetch('/api/rooms')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((roomsData) => {
+        if (cancelled) return
+        if (Array.isArray(roomsData)) {
+          setRoomsFromApi(roomsData)
+          setRoomsLoaded(true)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [eventModalOpen, smartEventModalOpen, roomsLoaded])
 
   // Lazy load forms when user opens Forms tab
   useEffect(() => {

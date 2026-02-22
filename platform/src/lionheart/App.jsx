@@ -143,6 +143,7 @@ export default function App() {
   const [inventoryDataLoaded, setInventoryDataLoaded] = useState(false)
   const [inventoryLoading, setInventoryLoading] = useState(false)
   const lastPushedPathRef = useRef(null)
+  const hasSyncedFromUrlRef = useRef(false)
 
   const updateTicket = (ticketId, updates) => {
     if (typeof ticketId !== 'string' || ticketId.length < 10) return // Skip mock tickets (numeric id)
@@ -177,6 +178,7 @@ export default function App() {
 
   // Sync active tab/settings -> URL when user navigates in-app (run first so ref is set before pathname effect)
   useEffect(() => {
+    if (!hasSyncedFromUrlRef.current) return
     const desired = getPathForTab(activeTab, settingsSection)
     const current = (pathname ?? '').split('?')[0]
     if (current !== desired) {
@@ -197,6 +199,7 @@ export default function App() {
     const { tab, section } = parseNavigation(p, searchParams)
     setActiveTab(tab)
     setSettingsSection(section)
+    hasSyncedFromUrlRef.current = true
   }, [pathname, searchParams])
 
   // Command Bar (K-Bar): Cmd+K / Ctrl+K
