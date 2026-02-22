@@ -1,0 +1,127 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prismaBase } from '@/lib/prisma'
+import { verifyToken } from '@/lib/auth'
+import { corsHeaders } from '@/lib/cors'
+import { geocodeAddress } from '@/lib/geocode'
+
+function normalizeWebsite(raw: string | null | undefined): string | null {
+  const s = raw?.trim()
+  if (!s) return null
+  if (/^https?:\/\//i.test(s)) return s
+  return `https://${s}`
+}
+
+/**
+ * PATCH /api/setup/branding - Save org branding (address, logo, etc.) from setup wizard.
+ * Requires Bearer token; user must belong to the org.
+ */
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = (await req.json()) as {
+      orgId?: string
+      address?: string
+      city?: string
+      state?: string
+      zip?: string
+      logoUrl?: string | null
+      loginHeroImageUrl?: string | null
+      name?: string
+      website?: string
+      primaryColor?: string
+      secondaryColor?: string
+      colors?: { primary?: string; secondary?: string }
+    }
+
+    const orgId = body.orgId?.trim()
+    if (!orgId) {
+      return NextResponse.json({ error: 'Missing orgId' }, { status: 400, headers: corsHeaders })
+    }
+
+    // Require auth: Bearer token with user in this org
+    const authHeader = req.headers.get('authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    if (!token) {
+      return NextResponse.json({ error: 'Authorization required' }, { status: 401, headers: corsHeaders })
+    }
+
+    const payload = await verifyToken(token)
+    if (!payload) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401, headers: corsHeaders })
+    }
+
+    // User must belong to this org (or be super-admin - we'd need to check role)
+    const userOrgId = payload.orgId
+    if (userOrgId !== orgId) {
+      return NextResponse.json({ error: 'Not authorized to update this organization' }, { status: 403, headers: corsHeaders })
+    }
+
+    const org = await prismaBase.organization.findUnique({
+      where: { id: orgId },
+      select: { id: true, settings: true },
+    })
+
+    if (!org) {
+      return NextResponse.json({ error: 'Organization not found' }, { status: 404, headers: corsHeaders })
+    }
+
+    const updates: Record<string, unknown> = {}
+
+    if (body.logoUrl !== undefined) {
+      updates.logoUrl = body.logoUrl && String(body.logoUrl).trim() ? body.logoUrl.trim() : null
+    }
+    if (body.name !== undefined && body.name?.trim()) {
+      updates.name = body.name.trim()
+    }
+    if (body.website !== undefined) {
+      updates.website = normalizeWebsite(body.website)
+    }
+    if (body.address !== undefined) updates.address = body.address?.trim() || null
+    if (body.city !== undefined) updates.city = body.city?.trim() || null
+
+    // Auto-geocode address during onboarding for weather-based Water Management alerts
+    if (body.address?.trim()) {
+      try {
+        const coords = await geocodeAddress(body.address.trim())
+        if (coords) {
+          updates.latitude = coords.latitude
+          updates.longitude = coords.longitude
+        }
+      } catch {
+        // Ignore geocode failures; coordinates can be set later in Settings
+      }
+    }
+    if (body.state !== undefined) updates.state = body.state?.trim() || null
+    if (body.zip !== undefined) updates.zip = body.zip?.trim() || null
+    if (body.primaryColor !== undefined) updates.primaryColor = body.primaryColor?.trim() || null
+    if (body.secondaryColor !== undefined) updates.secondaryColor = body.secondaryColor?.trim() || null
+
+    // Legacy: also sync to settings.branding for backward compat
+    if (body.address !== undefined || body.colors !== undefined || body.loginHeroImageUrl !== undefined || body.primaryColor !== undefined || body.secondaryColor !== undefined) {
+      const currentSettings = (org.settings && typeof org.settings === 'object'
+        ? org.settings as Record<string, unknown>
+        : {}) as Record<string, unknown>
+      const branding = (currentSettings.branding && typeof currentSettings.branding === 'object'
+        ? { ...(currentSettings.branding as Record<string, unknown>) }
+        : {}) as Record<string, unknown>
+      if (body.address !== undefined) branding.address = body.address?.trim() ?? null
+      if (body.loginHeroImageUrl !== undefined) branding.loginHeroImageUrl = body.loginHeroImageUrl && String(body.loginHeroImageUrl).trim() ? body.loginHeroImageUrl.trim() : null
+      const primary = body.primaryColor ?? body.colors?.primary ?? (branding.colors as { primary?: string })?.primary ?? '#003366'
+      const secondary = body.secondaryColor ?? body.colors?.secondary ?? (branding.colors as { secondary?: string })?.secondary ?? '#c4a006'
+      branding.colors = { primary, secondary }
+      updates.settings = { ...currentSettings, branding }
+    }
+
+    await prismaBase.organization.update({
+      where: { id: orgId },
+      data: updates,
+    })
+
+    return NextResponse.json({ ok: true }, { headers: corsHeaders })
+  } catch (err) {
+    console.error('setup/branding error:', err)
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Failed' },
+      { status: 500, headers: corsHeaders }
+    )
+  }
+}

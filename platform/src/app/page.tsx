@@ -1,3 +1,5 @@
-// Re-export root page for platform app
-export { default } from '@/app/page'
-export * from '@/app/page'
+import LionheartSPA from './LionheartSPA'
+
+export default function Home() {
+  return <LionheartSPA />
+}
