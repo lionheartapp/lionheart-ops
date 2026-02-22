@@ -23,13 +23,7 @@ function DashboardContent() {
 
 export default function AppDashboardSlugPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-          <p className="text-zinc-500">Loading…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       <DashboardContent />
     </Suspense>
   )
