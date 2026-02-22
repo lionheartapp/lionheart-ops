@@ -325,22 +325,13 @@ function SubscriptionSection() {
   )
 }
 
-function AppsSection({ currentUser, teams = [], hasTeamInventory, effectiveInventoryTeamIds = [] }) {
-  const isSA = isSuperAdmin(currentUser)
-  const teamIds = getUserTeamIds(currentUser)
-  const primaryInventoryTeamId = effectiveInventoryTeamIds.find((id) => teamIds.includes(id))
-  const teamLabel = primaryInventoryTeamId ? getTeamName(teams, primaryInventoryTeamId) : null
-  const inventoryTeamNames = effectiveInventoryTeamIds.map((id) => getTeamName(teams, id)).join(', ')
-
-  const APP_MODULES = [
-    {
 function AddOnsSection({ hasWaterManagement = false, hasAdvancedInventory = false, inventoryTeamIds, currentUser, teams = [], onOpenAddOn, onRefreshOrg }) {
-          const isTeamModule = module.id === 'inventory' && hasTeamInventory
+  return (
     <div className="space-y-8 max-w-5xl">
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Add-ons</h2>
-          return (
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
         Manage and access add-on modules included in your plan.
-              key={module.id}
+      </p>
       <div className="space-y-2">
         {hasWaterManagement && (
           <button
@@ -368,6 +359,15 @@ function AddOnsSection({ hasWaterManagement = false, hasAdvancedInventory = fals
             onRefresh={onRefreshOrg}
           />
         )}
+      </div>
+    </div>
+  )
+}
+
+function GeneralSection({ currentUser, allowTeacherEventRequests, onAllowTeacherEventRequestsChange }) {
+  const isSuperAdmin = currentUser?.role === 'super-admin'
+  const [saving, setSaving] = useState(false)
+  const [value, setValue] = useState(!!allowTeacherEventRequests)
   useEffect(() => setValue(!!allowTeacherEventRequests), [allowTeacherEventRequests])
 
   const handleToggle = async () => {
