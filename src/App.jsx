@@ -43,6 +43,23 @@ const tabContent = {
   settings: { title: 'Settings', showAll: false },
 }
 
+const VALID_TABS = new Set(Object.keys(tabContent))
+
+function getPathForTab(tab, settingsSection = 'account') {
+  if (tab === 'dashboard') return '/app'
+  if (tab === 'settings') return settingsSection && settingsSection !== 'account' ? `/app/settings/${settingsSection}` : '/app/settings'
+  return `/app/${tab}`
+}
+
+function parsePathname(pathname) {
+  if (!pathname || !pathname.startsWith('/app')) return { tab: 'dashboard', section: 'account' }
+  const rest = pathname.replace(/^\/app\/?/, '')
+  const segments = rest ? rest.split('/').filter(Boolean) : []
+  const tab = segments[0] && VALID_TABS.has(segments[0]) ? segments[0] : 'dashboard'
+  const section = tab === 'settings' && segments[1] ? segments[1] : 'account'
+  return { tab, section }
+}
+
 export default function App() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -112,6 +129,23 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Sync URL pathname -> active tab/settings (so refresh keeps you on the same page)
+  useEffect(() => {
+    const { tab, section } = parsePathname(pathname ?? '')
+    setActiveTab(tab)
+    setSettingsSection(section)
+  }, [pathname])
+
+  // Sync active tab/settings -> URL when user navigates in-app
+  useEffect(() => {
+    const desired = getPathForTab(activeTab, settingsSection)
+    const current = (pathname ?? '').split('?')[0]
+    if (current !== desired) {
+      const query = searchParams?.toString?.()
+      router.replace(query ? `${desired}?${query}` : desired)
+    }
+  }, [activeTab, settingsSection])
 
   // Set org from URL so API calls include x-org-id (e.g. /app?orgId=xxx after setup)
   useEffect(() => {

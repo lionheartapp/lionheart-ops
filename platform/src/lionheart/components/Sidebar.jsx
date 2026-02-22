@@ -12,7 +12,7 @@ import {
   Droplets,
 } from 'lucide-react'
 import ViewAsDropdown from './ViewAsDropdown'
-import { isFacilitiesTeam, isITTeam, isSuperAdmin, canCreate, canManageTeams } from '../data/teamsData'
+import { isFacilitiesTeam, isITTeam, isSuperAdmin, canManageTeams } from '../data/teamsData'
 
 const mainNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -119,7 +119,6 @@ export default function Sidebar({
           {/* Main links */}
           {mainNavItems.map((item) => {
             if (item.id === 'inventory' && !showInventory) return null
-            if (item.id === 'forms' && !canCreate(currentUser)) return null
             const Icon = item.icon
             const isActive = activeTab === item.id
             const label = getNavLabel(item)
