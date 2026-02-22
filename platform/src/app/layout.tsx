@@ -1,24 +1,3 @@
-import type { Metadata } from 'next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import './globals.css'
-import '@/lionheart/index.css'
-
-export const metadata: Metadata = {
-  title: 'School Facility Management',
-  description: 'School Facility Management Platform',
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  return (
-    <html lang="en">
-      <body className="antialiased min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        {children}
-        <SpeedInsights />
-      </body>
-    </html>
-  )
-}
+// Re-export root layout for platform app
+export { default } from '@/app/layout'
+export * from '@/app/layout'
