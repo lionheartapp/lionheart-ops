@@ -19,7 +19,7 @@
     "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
-    "@google/genai": "^1.40.0",
+    "@google/genai": "^1.42.0",
     "@prisma/client": "^5.22.0",
     "@react-google-maps/api": "^2.20.8",
     "@supabase/supabase-js": "^2.47.10",
