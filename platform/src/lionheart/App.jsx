@@ -144,6 +144,8 @@ export default function App() {
   const [inventoryLoading, setInventoryLoading] = useState(false)
   const [fullTicketsLoaded, setFullTicketsLoaded] = useState(false)
   const [fullEventsLoaded, setFullEventsLoaded] = useState(false)
+  const [userBootstrapDone, setUserBootstrapDone] = useState(false)
+  const [summaryBootstrapDone, setSummaryBootstrapDone] = useState(false)
   const lastPushedPathRef = useRef(null)
   const hasSyncedFromUrlRef = useRef(false)
 
@@ -237,7 +239,11 @@ export default function App() {
 
   // Bootstrap: fetch /me, tickets, events, and admin/users in parallel so the shell fills in as fast as possible
   useEffect(() => {
-    if (!getAuthToken()) return
+    if (!getAuthToken()) {
+      setUserBootstrapDone(true)
+      setSummaryBootstrapDone(true)
+      return
+    }
     let cancelled = false
     const toJson = (r) => (r.ok ? r.json() : null)
     Promise.allSettled([
@@ -304,6 +310,8 @@ export default function App() {
         })))
         setFullEventsLoaded(false)
       }
+      setUserBootstrapDone(true)
+      setSummaryBootstrapDone(true)
     })
     return () => { cancelled = true }
   }, [])
@@ -495,6 +503,15 @@ export default function App() {
             : current?.title ?? 'Dashboard'
 
   const isTrialActive = trialDaysLeft != null && trialDaysLeft > 0
+  const shellLoading = orgLoading || !userBootstrapDone || !summaryBootstrapDone
+
+  if (shellLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+        <p className="text-zinc-500">Loading…</p>
+      </div>
+    )
+  }
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">

@@ -93,9 +93,10 @@ export default function Sidebar({
           <img src={orgLogoUrl} alt={orgName || 'School'} className="sidebar-org-logo h-10 w-auto max-w-full object-contain" referrerPolicy="no-referrer" onError={() => setLogoError(true)} />
         ) : (
           <div className="flex flex-col items-center justify-center min-w-0">
-            {orgName ? (
+            <img src="/lionheart-logo.svg" alt="Lionheart" className="sidebar-default-logo h-10 w-auto max-w-full object-contain" />
+            {orgName && (
               <>
-                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-full text-center px-1">{orgName}</span>
+                <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 truncate max-w-full text-center px-1 mt-1">{orgName}</span>
                 {onNavigateToSettings && (
                   <button
                     type="button"
@@ -107,8 +108,6 @@ export default function Sidebar({
                   </button>
                 )}
               </>
-            ) : (
-              <img src="/lionheart-logo.svg" alt="Lionheart" className="sidebar-default-logo h-10 w-auto max-w-full object-contain" />
             )}
           </div>
         )}
