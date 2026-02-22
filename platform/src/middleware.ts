@@ -52,6 +52,7 @@ export function middleware(req: NextRequest) {
   // Require x-org-id or Authorization Bearer for API requests (multi-tenant context)
   // Exclude: cron, auth, setup, billing webhook (Stripe signature auth)
   if (
+    req.nextUrl.pathname.startsWith('/api/public/') ||
     req.nextUrl.pathname === '/api/billing/webhook' ||
     req.nextUrl.pathname.startsWith('/api/cron/') ||
     req.nextUrl.pathname === '/api/auth/check-school' ||

@@ -3,15 +3,24 @@ import { corsHeaders } from '@/lib/cors'
 
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
 
+const APEX_HOSTS = new Set([
+  'lionheartapp.com',
+  'www.lionheartapp.com',
+  'localhost',
+  '127.0.0.1',
+])
+
 function getSubdomainFromHost(host: string): string | null {
-  const base = host.replace(/^www\./, '')
+  const hostname = host.split(':')[0].toLowerCase()
+  if (APEX_HOSTS.has(hostname)) return null
+  const base = hostname.replace(/^www\./, '')
   // subdomain.lionheartapp.com or subdomain.localhost
   if (base.endsWith('.localhost')) {
     const sub = base.replace(/\.localhost$/, '')
     return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
   }
   const parts = base.split('.')
-  if (parts.length >= 2) {
+  if (parts.length > 2) {
     const sub = parts[0]
     return sub && !RESERVED_SUBDOMAINS.has(sub) ? sub : null
   }
@@ -32,6 +41,11 @@ export function middleware(req: NextRequest) {
 
   if (req.method === 'OPTIONS') {
     return new NextResponse(null, { status: 204, headers: corsHeaders })
+  }
+
+  // Only enforce API auth for /api/* routes (allow /, /login, /app, etc.)
+  if (!req.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next()
   }
 
   // Require x-org-id or Authorization Bearer for API requests (multi-tenant context)
