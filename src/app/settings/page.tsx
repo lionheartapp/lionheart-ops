@@ -76,129 +76,128 @@ export default function SettingsPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="space-y-6 pb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
           <p className="text-sm text-gray-600 mt-1">Manage your account and organization</p>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 overflow-x-auto" aria-label="Settings tabs">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition
-                    ${
-                      isActive
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }
-                  `}
-                >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <div className="pb-8">
-          {activeTab === 'profile' && (
-            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
-              {/* Profile Section */}
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Name
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      className="ui-input"
-                      placeholder="Your name"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      className="ui-input"
-                      placeholder="your.email@school.edu"
-                    />
-                  </div>
-                  <button
-                    className="px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                  >
-                    Save Changes
-                  </button>
-                </div>
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
+            <aside className="bg-gray-50 border-b border-gray-200 lg:border-b-0 lg:border-r border-gray-200">
+              <div className="p-4 border-b border-gray-200">
+                <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">General Settings</p>
               </div>
+              <nav className="p-3 space-y-1" aria-label="Settings sections">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon
+                  const isActive = activeTab === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                        isActive
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {tab.label}
+                    </button>
+                  )
+                })}
+              </nav>
+            </aside>
 
-              {/* Password Section */}
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-2">
-                      Current Password
-                    </label>
-                    <input
-                      id="current-password"
-                      type="password"
-                      className="ui-input"
-                    />
+            <section className="p-4 sm:p-6 lg:p-8 bg-white">
+              {activeTab === 'profile' && (
+                <div className="rounded-lg border border-gray-200 divide-y divide-gray-200 overflow-hidden">
+                  <div className="p-6 bg-white">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                          Name
+                        </label>
+                        <input
+                          id="name"
+                          type="text"
+                          className="ui-input"
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                          Email
+                        </label>
+                        <input
+                          id="email"
+                          type="email"
+                          className="ui-input"
+                          placeholder="your.email@school.edu"
+                        />
+                      </div>
+                      <button
+                        className="px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-2">
-                      New Password
-                    </label>
-                    <input
-                      id="new-password"
-                      type="password"
-                      className="ui-input"
-                    />
+
+                  <div className="p-6 bg-white">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-2">
+                          Current Password
+                        </label>
+                        <input
+                          id="current-password"
+                          type="password"
+                          className="ui-input"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-2">
+                          New Password
+                        </label>
+                        <input
+                          id="new-password"
+                          type="password"
+                          className="ui-input"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+                          Confirm New Password
+                        </label>
+                        <input
+                          id="confirm-password"
+                          type="password"
+                          className="ui-input"
+                        />
+                      </div>
+                      <button
+                        className="px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                      >
+                        Update Password
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
-                      Confirm New Password
-                    </label>
-                    <input
-                      id="confirm-password"
-                      type="password"
-                      className="ui-input"
-                    />
-                  </div>
-                  <button
-                    className="px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                  >
-                    Update Password
-                  </button>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {activeTab === 'roles' && <RolesTab />}
-          
-          {activeTab === 'teams' && <TeamsTab />}
-          
-          {activeTab === 'users' && <MembersTab />}
+              {activeTab === 'roles' && <RolesTab />}
 
-          {activeTab === 'campus' && <CampusTab />}
+              {activeTab === 'teams' && <TeamsTab />}
+
+              {activeTab === 'users' && <MembersTab />}
+
+              {activeTab === 'campus' && <CampusTab />}
+            </section>
+          </div>
         </div>
       </div>
     </DashboardLayout>
