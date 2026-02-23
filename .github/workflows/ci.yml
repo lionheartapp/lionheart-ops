@@ -11,20 +11,8 @@ permissions:
 
 jobs:
   build:
-    name: Build (${{ matrix.app }})
+    name: Build
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - app: root
-            working-directory: .
-          - app: platform
-            working-directory: platform
-
-    defaults:
-      run:
-        working-directory: ${{ matrix.working-directory }}
 
     steps:
       - name: Checkout
@@ -35,12 +23,13 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            platform/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Architecture boundaries
+        run: npm run check:architecture
 
       - name: Prisma generate
         run: npx prisma generate

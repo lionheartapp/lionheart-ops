@@ -1,3 +1,88 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Accessibility: Smooth scrolling for all and reduced motion support */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Global focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #2563eb; /* blue-600 */
+  outline-offset: 2px;
+}
+
+/* Ensure buttons and links have proper focus indicators */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Body styles: Dark mode default but will be overridden by landing page's light mode */
+body {
+  @apply bg-zinc-950 text-zinc-100;
+}
+
+/* Landing page light mode */
+body.light-mode {
+  @apply bg-white text-gray-900;
+}
+
+/* Skip to main content link for keyboard users */
+.skip-to-main {
+  position: absolute;
+  left: -10000px;
+  z-index: 999;
+  padding: 0.5rem;
+}
+
+.skip-to-main:focus {
+  position: static;
+  left: auto;
+  top: auto;
+  background-color: #2563eb;
+  color: white;
+  padding: 0.5rem 1rem;
+}
+
+/* Ensure touch targets are at minimum 44x44px */
+button,
+a[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"] {
+  min-height: calc(2.75rem); /* 44px */
+}
+
+/* Improve input visibility with better focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* Color contrast improvements */
+a {
+  color: #2563eb;
+}
+
+a:visited {
+  color: #1e40af;
+}

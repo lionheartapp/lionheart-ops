@@ -1,101 +1,437 @@
-import { PrismaClient } from '@prisma/client'
-import * as bcrypt from 'bcryptjs'
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-const DEV_ORG_SLUG = 'lionheart-dev'
-const DEV_USER_EMAIL = 'dev@lionheart.app'
-const DEV_USER_PASSWORD = 'LionheartDev1!'
+// Permission definitions
+const PERMISSIONS = [
+  // Tickets
+  { resource: 'tickets', action: 'create', scope: 'global', description: 'Create tickets' },
+  { resource: 'tickets', action: 'read', scope: 'own', description: 'Read own tickets' },
+  { resource: 'tickets', action: 'read', scope: 'team', description: 'Read team tickets' },
+  { resource: 'tickets', action: 'read', scope: 'all', description: 'Read all tickets' },
+  { resource: 'tickets', action: 'update', scope: 'own', description: 'Update own tickets' },
+  { resource: 'tickets', action: 'update', scope: 'team', description: 'Update team tickets' },
+  { resource: 'tickets', action: 'update', scope: 'all', description: 'Update all tickets' },
+  { resource: 'tickets', action: 'delete', scope: 'global', description: 'Delete tickets' },
+  { resource: 'tickets', action: 'assign', scope: 'global', description: 'Assign tickets' },
+  
+  // Events
+  { resource: 'events', action: 'create', scope: 'global', description: 'Create events' },
+  { resource: 'events', action: 'read', scope: 'global', description: 'Read events' },
+  { resource: 'events', action: 'update', scope: 'own', description: 'Update own events' },
+  { resource: 'events', action: 'update', scope: 'all', description: 'Update all events' },
+  { resource: 'events', action: 'delete', scope: 'global', description: 'Delete events' },
+  { resource: 'events', action: 'approve', scope: 'global', description: 'Approve events' },
+  
+  // Inventory
+  { resource: 'inventory', action: 'read', scope: 'global', description: 'Read inventory' },
+  { resource: 'inventory', action: 'create', scope: 'global', description: 'Create inventory items' },
+  { resource: 'inventory', action: 'update', scope: 'global', description: 'Update inventory' },
+  { resource: 'inventory', action: 'delete', scope: 'global', description: 'Delete inventory items' },
+  
+  // Settings
+  { resource: 'settings', action: 'read', scope: 'global', description: 'Read settings' },
+  { resource: 'settings', action: 'update', scope: 'global', description: 'Update settings' },
+  { resource: 'settings', action: 'billing', scope: 'global', description: 'Manage billing' },
+  
+  // Users
+  { resource: 'users', action: 'read', scope: 'global', description: 'Read user list' },
+  { resource: 'users', action: 'invite', scope: 'global', description: 'Invite users' },
+  { resource: 'users', action: 'update', scope: 'global', description: 'Update users' },
+  { resource: 'users', action: 'delete', scope: 'global', description: 'Delete users' },
+  { resource: 'users', action: 'manage', scope: 'roles', description: 'Manage user roles' },
+  
+  // Roles & Teams
+  { resource: 'roles', action: 'read', scope: 'global', description: 'Read roles' },
+  { resource: 'roles', action: 'create', scope: 'global', description: 'Create roles' },
+  { resource: 'roles', action: 'update', scope: 'global', description: 'Update roles' },
+  { resource: 'roles', action: 'delete', scope: 'global', description: 'Delete roles' },
+  { resource: 'teams', action: 'read', scope: 'global', description: 'Read teams' },
+  { resource: 'teams', action: 'create', scope: 'global', description: 'Create teams' },
+  { resource: 'teams', action: 'update', scope: 'global', description: 'Update teams' },
+  { resource: 'teams', action: 'delete', scope: 'global', description: 'Delete teams' },
+  
+  // Wildcard
+  { resource: '*', action: '*', scope: 'global', description: 'All permissions (Super Admin)' },
+];
 
-async function main() {
-  // --- Lionheart Dev account (for internal development) ---
-  let devOrg = await prisma.organization.findUnique({ where: { slug: DEV_ORG_SLUG } })
-  if (!devOrg) {
-    devOrg = await prisma.organization.create({
-      data: {
-        name: 'Lionheart Dev',
-        slug: DEV_ORG_SLUG,
-        plan: 'CORE',
-        settings: {
-          modules: {
-            core: true,
-            waterManagement: true,
-            visualCampus: { enabled: true },
-            advancedInventory: false,
-          },
+async function seedPermissions() {
+  console.log('📋 Seeding permissions...');
+  
+  for (const perm of PERMISSIONS) {
+    await prisma.permission.upsert({
+      where: {
+        resource_action_scope: {
+          resource: perm.resource,
+          action: perm.action,
+          scope: perm.scope,
         },
       },
-    })
-    const passwordHash = await bcrypt.hash(DEV_USER_PASSWORD, 10)
-    await prisma.user.create({
-      data: {
-        email: DEV_USER_EMAIL,
-        name: 'Lionheart Dev',
-        passwordHash,
-        organizationId: devOrg.id,
-        role: 'SUPER_ADMIN',
-        canSubmitEvents: true,
-      },
-    })
-    console.log(`Created dev org + user: ${DEV_USER_EMAIL} / ${DEV_USER_PASSWORD}`)
-  } else {
-    console.log('Dev org already exists (dev@lionheart.app)')
+      update: { description: perm.description },
+      create: perm,
+    });
   }
+  
+  console.log(`✅ ${PERMISSIONS.length} permissions created`);
+}
 
-  // --- Knowledge base (optional seed data) ---
-  const count = await prisma.knowledgeBaseEntry.count()
-  if (count > 0) return
+async function seedRolesAndPermissions(organizationId: string) {
+  console.log('👥 Seeding roles...');
+  
+  // Get all permissions
+  const allPermissions = await prisma.permission.findMany();
+  const wildcard = allPermissions.find(
+    (p) => p.resource === '*' && p.action === '*' && p.scope === 'global'
+  );
+  
+  // Super Admin - has wildcard permission
+  const superAdmin = await prisma.role.upsert({
+    where: {
+      organizationId_slug: {
+        organizationId,
+        slug: 'super-admin',
+      },
+    },
+    update: {},
+    create: {
+      organizationId,
+      name: 'Super Admin',
+      slug: 'super-admin',
+      description: 'Full system access including billing and user management',
+      isSystem: true,
+    },
+  });
+  
+  if (wildcard) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: superAdmin.id,
+          permissionId: wildcard.id,
+        },
+      },
+      update: {},
+      create: {
+        roleId: superAdmin.id,
+        permissionId: wildcard.id,
+      },
+    });
+  }
+  
+  // Admin - most permissions except billing
+  const adminPermissionSlugs = [
+    'tickets:create', 'tickets:read:all', 'tickets:update:all', 'tickets:delete', 'tickets:assign',
+    'events:create', 'events:read', 'events:update:all', 'events:delete', 'events:approve',
+    'inventory:read', 'inventory:create', 'inventory:update', 'inventory:delete',
+    'settings:read', 'settings:update',
+    'users:read', 'users:invite', 'users:update', 'users:manage:roles',
+    'roles:read', 'roles:create', 'teams:read', 'teams:create', 'teams:update', 'teams:delete',
+  ];
+  
+  const admin = await prisma.role.upsert({
+    where: {
+      organizationId_slug: {
+        organizationId,
+        slug: 'admin',
+      },
+    },
+    update: {},
+    create: {
+      organizationId,
+      name: 'Administrator',
+      slug: 'admin',
+      description: 'Full operational access, can manage users and approve events',
+      isSystem: true,
+    },
+  });
+  
+  for (const slug of adminPermissionSlugs) {
+    const [resource, action, scope] = slug.split(':');
+    const permission = allPermissions.find(
+      (p) => p.resource === resource && p.action === action && p.scope === (scope || 'global')
+    );
+    
+    if (permission) {
+      await prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: admin.id,
+            permissionId: permission.id,
+          },
+        },
+        update: {},
+        create: {
+          roleId: admin.id,
+          permissionId: permission.id,
+        },
+      });
+    }
+  }
+  
+  // Member - basic permissions
+  const memberPermissionSlugs = [
+    'tickets:create', 'tickets:read:own', 'tickets:update:own',
+    'events:read',
+    'inventory:read',
+    'settings:read',
+  ];
+  
+  const member = await prisma.role.upsert({
+    where: {
+      organizationId_slug: {
+        organizationId,
+        slug: 'member',
+      },
+    },
+    update: {},
+    create: {
+      organizationId,
+      name: 'Member',
+      slug: 'member',
+      description: 'Standard user with ability to create and manage own tickets',
+      isSystem: true,
+    },
+  });
+  
+  for (const slug of memberPermissionSlugs) {
+    const [resource, action, scope] = slug.split(':');
+    const permission = allPermissions.find(
+      (p) => p.resource === resource && p.action === action && p.scope === (scope || 'global')
+    );
+    
+    if (permission) {
+      await prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: member.id,
+            permissionId: permission.id,
+          },
+        },
+        update: {},
+        create: {
+          roleId: member.id,
+          permissionId: permission.id,
+        },
+      });
+    }
+  }
+  
+  // Viewer - read-only
+  const viewerPermissionSlugs = [
+    'tickets:read:own',
+    'events:read',
+    'inventory:read',
+  ];
+  
+  const viewer = await prisma.role.upsert({
+    where: {
+      organizationId_slug: {
+        organizationId,
+        slug: 'viewer',
+      },
+    },
+    update: {},
+    create: {
+      organizationId,
+      name: 'Viewer',
+      slug: 'viewer',
+      description: 'Read-only access',
+      isSystem: true,
+    },
+  });
+  
+  for (const slug of viewerPermissionSlugs) {
+    const [resource, action, scope] = slug.split(':');
+    const permission = allPermissions.find(
+      (p) => p.resource === resource && p.action === action && p.scope === (scope || 'global')
+    );
+    
+    if (permission) {
+      await prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: viewer.id,
+            permissionId: permission.id,
+          },
+        },
+        update: {},
+        create: {
+          roleId: viewer.id,
+          permissionId: permission.id,
+        },
+      });
+    }
+  }
+  
+  console.log('✅ 4 system roles created with permissions');
+  
+  return { superAdmin, admin, member, viewer };
+}
 
-  await prisma.knowledgeBaseEntry.createMany({
-    data: [
-      {
-        partName: 'Projector lamp',
-        keywords: ['projector bulb', 'projector lamp', 'lamp'],
-        manualUrl: 'https://example.com/manuals/projector-lamp.pdf',
-        repairSteps: [
-          'Power off projector and allow to cool 30+ minutes.',
-          'Locate lamp door, remove screws, extract old lamp assembly.',
-          'Insert new lamp, secure door, reset lamp hours in menu.',
-        ],
+async function seedTeams(organizationId: string) {
+  console.log('🏢 Seeding teams...');
+  
+  const teams = [
+    {
+      slug: 'it-support',
+      name: 'IT Support',
+      description: 'Technical infrastructure, hardware, and software support',
+    },
+    {
+      slug: 'maintenance',
+      name: 'Facility Maintenance',
+      description: 'Physical campus upkeep and repairs',
+    },
+    {
+      slug: 'av-production',
+      name: 'A/V Production',
+      description: 'Audio/visual equipment and event support',
+    },
+    {
+      slug: 'teachers',
+      name: 'Teachers',
+      description: 'Teaching staff',
+    },
+    {
+      slug: 'administration',
+      name: 'Administration',
+      description: 'School administration and office staff',
+    },
+  ];
+  
+  for (const team of teams) {
+    await prisma.team.upsert({
+      where: {
+        organizationId_slug: {
+          organizationId,
+          slug: team.slug,
+        },
       },
-      {
-        partName: 'HVAC air filter',
-        keywords: ['hvac filter', 'air filter', 'filter', 'furnace filter'],
-        manualUrl: 'https://example.com/manuals/hvac-filter.pdf',
-        repairSteps: [
-          'Turn off HVAC unit at thermostat.',
-          'Remove filter panel, slide out old filter.',
-          'Insert new filter (check arrow for airflow direction), replace panel.',
-        ],
+      update: {},
+      create: {
+        organizationId,
+        ...team,
       },
-      {
-        partName: 'Document camera',
-        keywords: ['doc cam', 'document camera', 'elmo'],
-        manualUrl: 'https://example.com/manuals/doc-camera.pdf',
-        repairSteps: [
-          'Unplug power and USB, inspect arm/lens for damage.',
-          'Clean lens with microfiber; check mount screws.',
-          'Reconnect and recalibrate via software if needed.',
-        ],
+    });
+  }
+  
+  console.log(`✅ ${teams.length} teams created`);
+}
+
+async function main() {
+  console.log('🌱 Seeding database...');
+
+  // Seed global permissions first
+  await seedPermissions();
+
+  // Create test organization with branding
+  const org = await prisma.organization.upsert({
+    where: { slug: 'demo' },
+    update: {
+      logoUrl: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=200',
+      heroImageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2000',
+      imagePosition: 'LEFT',
+    },
+    create: {
+      name: 'Demo Academy',
+      slug: 'demo',
+      logoUrl: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=200',
+      heroImageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2000',
+      imagePosition: 'LEFT',
+    },
+  });
+
+  console.log('✅ Organization created:', org.slug);
+
+  // Seed roles and permissions
+  const roles = await seedRolesAndPermissions(org.id);
+  
+  // Seed teams
+  await seedTeams(org.id);
+
+  // Create test users
+  const passwordHash = await bcrypt.hash('test123', 10);
+  
+  const adminUser = await prisma.user.upsert({
+    where: {
+      organizationId_email: {
+        organizationId: org.id,
+        email: 'admin@demo.com',
       },
-      {
-        partName: 'Smartboard power supply',
-        keywords: ['smartboard', 'power supply', 'interactive whiteboard'],
-        manualUrl: 'https://example.com/manuals/smartboard-psu.pdf',
-        repairSteps: [
-          'Power off and disconnect Smartboard.',
-          'Remove rear cover, disconnect and replace power supply module.',
-          'Reconnect cables, replace cover, power on and test.',
-        ],
+    },
+    update: {
+      roleId: roles.admin.id,
+      status: 'ACTIVE',
+      firstName: 'Admin',
+      lastName: 'User',
+    },
+    create: {
+      organizationId: org.id,
+      email: 'admin@demo.com',
+      name: 'Admin User',
+      firstName: 'Admin',
+      lastName: 'User',
+      passwordHash,
+      role: 'ADMIN',
+      roleId: roles.admin.id,
+      teamIds: ['administration'],
+      status: 'ACTIVE',
+      employmentType: 'FULL_TIME',
+      jobTitle: 'Administrator',
+    },
+  });
+
+  const teacherUser = await prisma.user.upsert({
+    where: {
+      organizationId_email: {
+        organizationId: org.id,
+        email: 'teacher@demo.com',
       },
-    ],
-  })
-  console.log('KnowledgeBase seeded')
+    },
+    update: {
+      roleId: roles.member.id,
+      teamIds: ['teachers'],
+      status: 'ACTIVE',
+      firstName: 'Test',
+      lastName: 'Teacher',
+    },
+    create: {
+      organizationId: org.id,
+      email: 'teacher@demo.com',
+      name: 'Test Teacher',
+      firstName: 'Test',
+      lastName: 'Teacher',
+      passwordHash,
+      role: 'TEACHER',
+      roleId: roles.member.id,
+      teamIds: ['teachers'],
+      status: 'ACTIVE',
+      employmentType: 'FULL_TIME',
+      jobTitle: 'Teacher',
+    },
+  });
+
+  console.log('✅ Users created:', adminUser.email, teacherUser.email);
+
+  console.log('\n🎉 Seed complete! Test credentials:');
+  console.log('\n📊 Admin:');
+  console.log('  📧 Email: admin@demo.com');
+  console.log('  🔑 Password: test123');
+  console.log('  👤 Role: Administrator');
+  console.log('\n👨‍🏫 Teacher:');
+  console.log('  📧 Email: teacher@demo.com');
+  console.log('  🔑 Password: test123');
+  console.log('  👤 Role: Member (Teachers team)');
+  console.log(`\n🏢 Organization ID: ${org.id}`);
+  console.log(`🔗 Login at: https://demo.lionheartapp.com/login\n`);
 }
 
 main()
   .catch((e) => {
-    console.error(e)
-    process.exit(1)
+    console.error('❌ Seed failed:', e);
+    process.exit(1);
   })
-  .finally(() => prisma.$disconnect())
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -9,427 +9,254 @@ datasource db {
 }
 
 model Organization {
-  id                   String               @id @default(cuid())
-  name                 String
-  slug                 String               @unique
-  plan                 String               @default("PRO_TRIAL")  // FREE | PRO_TRIAL | CORE | PRO | ENTERPRISE
-  trialEndsAt          DateTime?
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
-  subscriptionStatus   String?               // 'active' | 'past_due' | 'canceled'
-  logoUrl              String?
-  website              String?
-  address              String?               // Street address
-  city                 String?
-  state                String?
-  zip                  String?
-  latitude             Float?                // For weather-based logic
-  longitude            Float?
-  primaryColor         String?               // e.g. #3b82f6
-  secondaryColor       String?               // e.g. #f59e0b
-  allowTeacherEventRequests Boolean          @default(false)  // Linfield (false): only Admins create events; Alternative (true): teachers submit PENDING_APPROVAL
-  settings             Json?
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  budgets              Budget[]
-  teams                Team[]
-  buildings            Building[]
-  events               Event[]
-  expenses             Expense[]
-  forms               Form[]
-  inventoryItems      InventoryItem[]
-  knowledgeBaseEntries KnowledgeBaseEntry[]
-  maintenanceTips      MaintenanceTip[]
-  waterAssetConfigs    WaterAssetConfig[]
-  waterLogs            WaterLog[]
-  waterAssets          WaterAsset[]
-  tickets              Ticket[]
-  users                User[]
-  auditLogs            AuditLog[]
-
-  @@index([plan])
-}
-
-model AuditLog {
-  id             String   @id @default(cuid())
-  organizationId String?
-  userId         String?
-  action         String   // CREATE | UPDATE | DELETE
-  entityType     String   // Ticket, Event, Form, User, etc.
-  entityId       String?
-  metadata       Json?    // additional context (old/new values, etc.)
-  createdAt      DateTime @default(now())
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([entityType, entityId])
-  @@index([createdAt])
+  id            String            @id @default(cuid())
+  name          String
+  slug          String            @unique
+  logoUrl       String?
+  heroImageUrl  String?
+  imagePosition ImagePosition     @default(LEFT)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  users         User[]
+  tickets       Ticket[]
+  events        Event[]
+  draftEvents   DraftEvent[]
+  inventory     InventoryItem[]
+  schedules     TeacherSchedule[]
+  roles         Role[]
+  teams         Team[]
 }
 
 model User {
-  id               String            @id @default(cuid())
-  organizationId   String?
-  email            String            @unique
-  name             String?
-  imageUrl         String?
-  role             UserRole          @default(VIEWER)
-  teamIds          String[]          @default([])  // e.g. ['teachers'], ['it','facilities'] — drives visibility/features
-  profileMetadata  Json?             // e.g. { grade, subject, sport } from onboarding
-  canSubmitEvents  Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  passwordHash     String?
-  submittedEvents  Event[]           @relation("SubmittedEvents")
-  teacherSchedules TeacherSchedule[]
-  assignedTickets  Ticket[]          @relation("AssignedTickets")
-  submittedTickets Ticket[]          @relation("SubmittedTickets")
-  organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ownedInventoryItems InventoryItem[] @relation("OwnedInventoryItems")
+  id             String           @id @default(cuid())
+  organizationId String
+  email          String
+  name           String?          // Legacy: Use firstName + lastName
+  firstName      String?
+  lastName       String?
+  phone          String?
+  avatar         String?          // Profile image URL
+  jobTitle       String?          // Job title separate from role
+  employmentType EmploymentType?
+  passwordHash   String
+  status         UserStatus       @default(PENDING)
+  role           UserRole         @default(VIEWER) // Deprecated: Use roleId instead
+  roleId         String?
+  teamIds        String[]         @default([])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userRole       Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  submittedEvent Event[]          @relation("SubmittedEventUser")
+  submittedDraft DraftEvent[]     @relation("DraftEventUser")
+  assignedTicket Ticket[]         @relation("AssignedTicketUser")
+  schedules      TeacherSchedule[]
+  passwordSetupTokens PasswordSetupToken[]
 
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([roleId])
+  @@index([status])
+}
+
+model PasswordSetupToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+model Ticket {
+  id             String         @id @default(cuid())
+  organizationId String
+  title          String
+  description    String?
+  status         TicketStatus   @default(OPEN)
+  source         TicketSource   @default(MANUAL)
+  assignedToId   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedTo     User?          @relation("AssignedTicketUser", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status])
+}
+
+model Event {
+  id             String        @id @default(cuid())
+  organizationId String
+  title          String
+  description    String?
+  room           String?
+  startsAt       DateTime
+  endsAt         DateTime
+  status         EventStatus   @default(CONFIRMED)
+  submittedById  String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submittedBy    User?         @relation("SubmittedEventUser", fields: [submittedById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, startsAt])
+}
+
+model DraftEvent {
+  id             String          @id @default(cuid())
+  organizationId String
+  title          String          @default("")
+  description    String?         @default("")
+  room           String?         @default("")
+  startsAt       DateTime?
+  endsAt         DateTime?
+  status         DraftEventStatus @default(DRAFT)
+  createdById    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User?           @relation("DraftEventUser", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, updatedAt])
+}
+
+model InventoryItem {
+  id               String        @id @default(cuid())
+  organizationId   String
+  name             String
+  quantityOnHand   Int           @default(0)
+  reorderThreshold Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
   @@index([organizationId])
 }
 
-model Team {
-  id             String   @id @default(cuid())
+model TeacherSchedule {
+  id             String       @id @default(cuid())
   organizationId String
-  name           String   // e.g. "IT", "Maintenance", "Teachers"
-  slug           String   // e.g. "it", "facilities", "teachers" — used in User.teamIds
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  teacherName    String
+  dayOfWeek      Int
+  periodStart    String
+  periodEnd      String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  teacherId      String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teacher        User?        @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, dayOfWeek])
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  resource    String           // "tickets", "events", "inventory", "settings"
+  action      String           // "create", "read", "update", "delete", "approve"
+  scope       String           @default("global") // "own", "team", "all", "global"
+  description String?
+  createdAt   DateTime         @default(now())
+  roles       RolePermission[]
+
+  @@unique([resource, action, scope])
+  @@index([resource, action])
+}
+
+model Role {
+  id             String           @id @default(cuid())
+  organizationId String
+  name           String           // "Super Admin", "IT Staff", "Teacher"
+  slug           String           // "super-admin", "it-staff", "teacher"
+  description    String?
+  isSystem       Boolean          @default(false) // true for pre-built roles
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions    RolePermission[]
+  users          User[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+model Team {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String       // "IT Support", "Maintenance", "Room 102"
+  slug           String       // "it-support", "maintenance", "room-102"
+  description    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, slug])
   @@index([organizationId])
 }
 
-model Building {
-  id             String            @id @default(cuid())
-  organizationId String?
-  name           String
-  division       BuildingDivision?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  organization   Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  rooms          Room[]
-
-  @@index([organizationId])
-}
-
-model Room {
-  id               String            @id @default(cuid())
-  buildingId       String
-  name             String
-  matterportUrl    String?
-  panoramaImageUrl String?
-  coordinates      Json?
-  pinYaw           Float?
-  pinPitch         Float?
-  adjacentRoomIds  String[]          @default([])
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  organizationId   String?           @db.Uuid
-  events           Event[]
-  building         Building          @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-  teacherSchedules TeacherSchedule[]
-  tickets          Ticket[]
-}
-
-model TeacherSchedule {
-  id        String   @id @default(cuid())
-  userId    String
-  roomId    String
-  dayOfWeek Int
-  startTime String
-  endTime   String
-  subject   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([roomId])
-  @@index([dayOfWeek])
-}
-
-model Ticket {
-  id                      String           @id @default(cuid())
-  organizationId          String?
-  title                   String
-  description             String?
-  category                TicketCategory
-  status                  TicketStatus     @default(NEW)
-  priority                TicketPriority   @default(NORMAL)
-  manHours                Float?
-  safetyProtocolChecklist Json?
-  roomId                  String?
-  submittedById           String?
-  assignedToId            String?
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
-  Expense                 Expense[]
-  MaintenanceTip          MaintenanceTip[]
-  assignedTo              User?            @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  organization            Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  room                    Room?            @relation(fields: [roomId], references: [id])
-  submittedBy             User?            @relation("SubmittedTickets", fields: [submittedById], references: [id])
-
-  @@index([organizationId])
-  @@index([category])
-  @@index([status])
-  @@index([submittedById])
-  @@index([assignedToId])
-}
-
-model Event {
-  id              String        @id @default(cuid())
-  organizationId  String?
-  name            String
-  description     String?
-  date            String
-  startTime       String
-  endTime         String?
-  roomId          String?
-  chairsRequested Int?
-  tablesRequested Int?
-  status          EventStatus   @default(PENDING_APPROVAL)
-  submittedById   String?
-  routedToIds     String[]      @default([])
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  room            Room?         @relation(fields: [roomId], references: [id])
-  submittedBy     User?         @relation("SubmittedEvents", fields: [submittedById], references: [id])
-
-  @@index([organizationId])
-  @@index([date])
-  @@index([roomId])
-  @@index([submittedById])
-}
-
-model Expense {
-  id             String        @id @default(cuid())
-  organizationId String?
-  ticketId       String?
-  vendor         String
-  expenseDate    String
-  total          Float
-  receiptUrl     String?
-  ocrData        Json?
-  manHours       Float?
-  createdAt      DateTime      @default(now())
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  Ticket         Ticket?       @relation(fields: [ticketId], references: [id])
-
-  @@index([organizationId])
-  @@index([expenseDate])
-  @@index([ticketId])
-}
-
-model Budget {
-  id             String        @id @default(cuid())
-  organizationId String?
-  category       String
-  amount         Float
-  yearMonth      String
-  createdAt      DateTime      @default(now())
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([category, yearMonth])
-  @@index([organizationId])
-  @@index([yearMonth])
-}
-
-model MaintenanceTip {
-  id             String        @id @default(cuid())
-  organizationId String?
-  content        String
-  sourceTicketId String?
-  createdAt      DateTime      @default(now())
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  Ticket         Ticket?       @relation(fields: [sourceTicketId], references: [id])
-
-  @@index([organizationId])
-  @@index([sourceTicketId])
-}
-
-model Form {
-  id               String            @id @default(cuid())
-  organizationId   String?
-  title            String
-  description      String            @default("")
-  config           Json?             // fields, layout, approvalWorkflow, submissionType, etc.
-  visibility       String            @default("org")  // 'org' = everyone in org; 'personal' = only creator sees it
-  createdBy        String?
-  createdByUserId  String?           // for personal forms: only this user sees the form
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submissions      FormSubmission[]
-
-  @@index([organizationId])
-  @@index([createdByUserId])
-}
-
-model FormSubmission {
-  id         String   @id @default(cuid())
-  formId     String
-  data       Json     // field id -> value map
-  status     String   @default("submitted") // submitted | pending | approved | rejected
-  approvals  Json?    // [{ approverId, approved, at }]
-  submittedBy String?
-  eventId    String?
-  createdAt  DateTime @default(now())
-  form       Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
-
-  @@index([formId])
-  @@index([submittedBy])
-}
-
-model KnowledgeBaseEntry {
-  id             String        @id @default(cuid())
-  organizationId String?
-  partName       String
-  keywords       String[]      @default([])
-  manualUrl      String?
-  repairSteps    String[]      @default([])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([partName])
-}
-
-model InventoryItem {
-  id                 String           @id @default(cuid())
-  organizationId     String?
-  name               String
-  teamId             String?
-  description        String?
-  ownerId            String?
-  allowCheckout      Boolean          @default(false)
-  checkoutCategory   String?
-  manufacturer       String?
-  model              String?
-  serialNumbers      String?          // JSON array of strings
-  imageUrl           String?
-  documentationLinks String?          // JSON array of { url, title, type }
-  tags               String?          // JSON array of { id?, name, color? }
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  organization       Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  owner              User?            @relation("OwnedInventoryItems", fields: [ownerId], references: [id], onDelete: SetNull)
-  stock              InventoryStock[]
-
-  @@index([organizationId])
-  @@index([ownerId])
-}
-
-model InventoryStock {
-  id         String        @id @default(cuid())
-  itemId     String
-  location   String
-  quantity   Int           @default(0)
-  usageNotes String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  item       InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-
-  @@index([itemId])
-  @@index([location])
-}
-
-enum WaterAssetType {
-  POND
-  POOL
-  FOUNTAIN
-  OTHER
-}
-
-model WaterAsset {
-  id             String         @id @default(cuid())
-  organizationId String
-  name           String         // e.g. "Main Pool", "North Pond"
-  type           WaterAssetType
-  volumeGallons  Float          @default(5000)
-  thresholds     Json?          // asset-specific pH, DO, chlorine ranges
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  waterLogs      WaterLog[]
-
-  @@index([organizationId])
-}
-
-model WaterLog {
-  id             String        @id @default(cuid())
-  organizationId String?
-  waterAssetId   String?
-  pH             Float
-  turbidity      Float
-  temperature    Float
-  dissolvedOxygen Float?
-  alkalinity     Float?
-  chlorine       Float?        // For pools
-  source         String        @default("manual")
-  notes          String?
-  createdAt      DateTime      @default(now())
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  waterAsset     WaterAsset?   @relation(fields: [waterAssetId], references: [id], onDelete: SetNull)
-
-  @@index([organizationId])
-  @@index([waterAssetId])
-  @@index([createdAt])
-}
-
-model WaterAssetConfig {
-  id             String        @id @default(cuid())
-  organizationId String?
-  key            String        @unique
-  value          Json
-  updatedAt      DateTime      @updatedAt
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-}
-
 enum UserRole {
   SUPER_ADMIN
-  TEACHER
-  MAINTENANCE
   ADMIN
-  SITE_SECRETARY
+  OPERATIONS
+  TEACHER
   VIEWER
 }
 
-enum BuildingDivision {
-  ELEMENTARY
-  MIDDLE
-  HIGH
-}
-
-enum TicketCategory {
-  MAINTENANCE
-  IT
-  EVENT
-}
-
 enum TicketStatus {
-  NEW
+  OPEN
   IN_PROGRESS
   RESOLVED
 }
 
-enum TicketPriority {
-  LOW
-  NORMAL
-  HIGH
-  CRITICAL
+enum TicketSource {
+  MANUAL
+  SHADOW_EVENT_AUTOMATION
 }
 
 enum EventStatus {
-  PENDING_APPROVAL
-  APPROVED
-  REJECTED
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum DraftEventStatus {
+  DRAFT
+  READY
+  SUBMITTED
+}
+
+enum ImagePosition {
+  LEFT
+  RIGHT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACTOR
+  INTERN
+  VOLUNTEER
 }

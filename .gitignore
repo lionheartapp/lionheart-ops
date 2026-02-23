@@ -3,4 +3,8 @@ dist
 .next
 .env
 .env.local
+.env.production
 .env.*.local
+.vercel
+.env*.local
+.DS_Store

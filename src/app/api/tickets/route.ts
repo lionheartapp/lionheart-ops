@@ -1,190 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, prismaBase } from '@/lib/prisma'
-import { withOrg, getOrgId } from '@/lib/orgContext'
-import { verifyToken } from '@/lib/auth'
-import { corsHeaders } from '@/lib/cors'
-import { requireActivePlan, PlanRestrictedError } from '@/lib/planCheck'
-import { logAction } from '@/lib/audit'
+import { ok, fail } from '@/lib/api-response'
+import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+import { getUserContext } from '@/lib/request-context'
+import * as ticketService from '@/lib/services/ticketService'
+import { z } from 'zod'
 
-type TicketCategory = 'MAINTENANCE' | 'IT' | 'EVENT'
-type TicketStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED'
-type TicketPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL'
-
-/** Map frontend type to DB category */
-function toCategory(type: string): TicketCategory {
-  const t = (type || '').toUpperCase()
-  if (t === 'IT') return 'IT'
-  if (t === 'FACILITIES' || t === 'AV') return 'MAINTENANCE'
-  return 'MAINTENANCE'
-}
-
-/** Map frontend priority to DB */
-function toPriority(p: string): TicketPriority {
-  const lower = (p || 'normal').toLowerCase()
-  if (lower === 'critical') return 'CRITICAL'
-  if (lower === 'high') return 'HIGH'
-  if (lower === 'low') return 'LOW'
-  return 'NORMAL'
-}
-
-/** Map DB status to frontend */
-function toFrontendStatus(s: string): string {
-  if (s === 'IN_PROGRESS') return 'in-progress'
-  if (s === 'RESOLVED') return 'resolved'
-  return 'new'
-}
-
-/** Map DB priority to frontend */
-function toFrontendPriority(p: string): string {
-  return (p || 'NORMAL').toLowerCase()
-}
-
-/** Format ticket for frontend consumption */
-function formatTicket(t: {
-  id: string
-  title: string
-  description: string | null
-  category: TicketCategory
-  status: TicketStatus
-  priority: TicketPriority
-  createdAt: Date
-  submittedBy: { name: string | null } | null
-  assignedTo: { name: string | null } | null
-}) {
-  const now = Date.now()
-  const created = new Date(t.createdAt).getTime()
-  const diffMs = now - created
-  let timeStr = 'Just now'
-  if (diffMs > 60000) timeStr = `${Math.floor(diffMs / 60000)} min ago`
-  if (diffMs > 3600000) timeStr = `${Math.floor(diffMs / 3600000)} hrs ago`
-  if (diffMs > 86400000) timeStr = `${Math.floor(diffMs / 86400000)} days ago`
-
-  const type = t.category === 'IT' ? 'IT' : 'Facilities'
-  return {
-    id: t.id,
-    type,
-    title: t.title,
-    description: t.description,
-    priority: toFrontendPriority(t.priority),
-    time: timeStr,
-    submittedBy: t.submittedBy?.name ?? 'Unknown',
-    status: toFrontendStatus(t.status),
-    assignedTo: t.assignedTo?.name ?? null,
-    createdAt: t.createdAt.toISOString(),
-    order: created,
-  }
-}
-
-/** GET /api/tickets — Fetch all tickets for the current organization */
 export async function GET(req: NextRequest) {
   try {
-    return await withOrg(req, prismaBase, async () => {
-      const url = new URL(req.url)
-      const summary = url.searchParams.get('summary') === '1'
-      const tickets = await prisma.ticket.findMany({
-        include: {
-          submittedBy: { select: { name: true } },
-          assignedTo: { select: { name: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        ...(summary ? { take: 120 } : {}),
-      })
-      const formatted = tickets.map(formatTicket)
-      return NextResponse.json(formatted, { headers: corsHeaders })
+    const orgId = getOrgIdFromRequest(req)
+    const userContext = await getUserContext(req)
+
+    return await runWithOrgContext(orgId, async () => {
+      const { searchParams } = new URL(req.url)
+      const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50
+      const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0
+      const status = searchParams.get('status') || undefined
+      const assignedToId = searchParams.get('assignedToId') || undefined
+
+      const tickets = await ticketService.listTickets(
+        { limit, offset, status: status as any, assignedToId },
+        userContext.userId
+      )
+
+      return NextResponse.json(ok(tickets))
     })
-  } catch (err) {
-    if (
-      err instanceof Error &&
-      (err.message === 'Organization ID is required' || err.message === 'Invalid organization')
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
-    console.error('GET /api/tickets error:', err)
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Failed to fetch tickets' },
-      { status: 500, headers: corsHeaders }
+      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
+      { status: 500 }
     )
   }
 }
 
-/** POST /api/tickets — Create a new ticket */
 export async function POST(req: NextRequest) {
   try {
-    return await withOrg(req, prismaBase, async () => {
-      await requireActivePlan(prismaBase, getOrgId()!)
-      const body = (await req.json()) as {
-        title: string
-        description?: string
-        category?: string
-        type?: string
-        priority?: string
-        roomId?: string
-        safetyProtocolChecklist?: unknown
-      }
+    const orgId = getOrgIdFromRequest(req)
+    const userContext = await getUserContext(req)
+    const body = await req.json()
 
-      const { title } = body
-      if (!title?.trim()) {
-        return NextResponse.json(
-          { error: 'Missing title' },
-          { status: 400, headers: corsHeaders }
-        )
-      }
-
-      const category = toCategory(body.category || body.type || 'MAINTENANCE')
-      const priority = toPriority(body.priority || 'normal')
-
-      let submittedById: string | undefined
-      const authHeader = req.headers.get('authorization')
-      if (authHeader?.startsWith('Bearer ')) {
-        const payload = await verifyToken(authHeader.slice(7))
-        if (payload?.userId) submittedById = payload.userId
-      }
-
-      const ticket = await prisma.ticket.create({
-        data: {
-          title: title.trim(),
-          description: body.description?.trim() || null,
-          category,
-          priority,
-          roomId: body.roomId || null,
-          submittedById: submittedById || null,
-          ...(body.safetyProtocolChecklist != null
-            ? { safetyProtocolChecklist: body.safetyProtocolChecklist }
-            : {}),
-        },
-        include: {
-          submittedBy: { select: { name: true } },
-          assignedTo: { select: { name: true } },
-        },
-      })
-
-      await logAction({
-        action: 'CREATE',
-        entityType: 'Ticket',
-        entityId: ticket.id,
-        userId: submittedById,
-        metadata: { title: ticket.title },
-      })
-
-      return NextResponse.json(formatTicket(ticket), { headers: corsHeaders })
-    })
-  } catch (err) {
-    if (err instanceof PlanRestrictedError) {
-      return NextResponse.json(
-        { error: err.message, code: err.code },
-        { status: 402, headers: corsHeaders }
+    return await runWithOrgContext(orgId, async () => {
+      const ticket = await ticketService.createTicket(
+        body,
+        userContext.userId
       )
+
+      return NextResponse.json(ok(ticket), { status: 201 })
+    })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
-    if (
-      err instanceof Error &&
-      (err.message === 'Organization ID is required' || err.message === 'Invalid organization')
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 401, headers: corsHeaders })
+    if (error instanceof Error && error.message.includes('permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('POST /api/tickets error:', err)
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Failed to create ticket' },
-      { status: 500, headers: corsHeaders }
+      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
+      { status: 500 }
     )
   }
 }

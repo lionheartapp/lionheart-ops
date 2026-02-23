@@ -1,15 +1,21 @@
-# Lionheart Operations & Event Management Dashboard
+# Lionheart Platform
 
-A single-page prototype dashboard with a dark-mode-ready, minimalist aesthetic (Vercel-inspired). Built with React, Tailwind CSS, Lucide React, and Framer Motion.
+Multi-tenant school operations platform built on Next.js + Prisma.
 
-## Features
+## Architecture Conventions
 
-- **Sidebar navigation**: Dashboard, Events, IT Support, Facilities
-- **Smart Event Creator**: Modal with an "AI Suggest" button that generates a mock event description and suggests Facilities (tables, chairs, etc.) or IT (projector, mics) based on the event name
-- **Landing page preview**: Live card/mini-site preview of the event being created
-- **Ticketing & Sales Hub**: Table of recent ticket sales with a "Fundraising Mode" toggle
-- **Support Queue**: Combined IT & Facilities request list with priority labels (Critical = red, Normal = yellow/amber)
-- **Glassmorphism** cards and **Framer Motion** transitions between tabs
+The codebase follows this app-level structure:
+
+- `src/app` - Routes and API handlers
+- `src/components` - Reusable UI components
+- `src/lib/services` - Business logic and domain services
+- `src/lib/db` - Prisma client and org-scoped DB access
+- `src/lib/auth` - Auth token signing/verification and permission-related auth utilities
+- `prisma` - Prisma schema
+- `types` - Shared TypeScript types
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for import boundaries and layering rules.
+See [docs/DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md) for Vercel deployment requirements.
 
 ## Run locally
 
@@ -18,18 +24,37 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Open [http://127.0.0.1:3004](http://127.0.0.1:3004).
+
+## Email setup (welcome/invite links)
+
+Set these optional environment variables to enable automatic welcome emails:
+
+- `APP_URL` (example: `http://127.0.0.1:3004`)
+- `MAIL_FROM` (example: `no-reply@lionheartapp.com`)
+
+Provider A (Resend):
+- `RESEND_API_KEY`
+
+Provider B (SMTP):
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_SECURE` (`true` for TLS, commonly with port 465)
+
+The app tries Resend first, then SMTP. If neither is configured, the API still returns a setup link that can be copied manually.
 
 ## Build
 
 ```bash
 npm run build
-npm run preview
+npm run start
 ```
 
 ## Stack
 
-- React 18 + Vite
-- Tailwind CSS (neutral/gray + primary indigo accent)
-- Lucide React (icons)
-- Framer Motion (animations)
+- Next.js 15 + React 18
+- Prisma ORM
+- Tailwind CSS
+- TanStack Query
