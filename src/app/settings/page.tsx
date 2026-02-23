@@ -40,6 +40,14 @@ export default function SettingsPage() {
     if (!token) return
 
     const fetchPermissions = async () => {
+      const normalizedRole = (userRole || '').toLowerCase()
+      const optimisticWorkspaceAccess =
+        normalizedRole.includes('admin') || normalizedRole.includes('super')
+
+      if (optimisticWorkspaceAccess) {
+        setCanManageWorkspace(true)
+      }
+
       try {
         const response = await fetch('/api/auth/permissions', {
           headers: {
@@ -55,9 +63,8 @@ export default function SettingsPage() {
         const allowed = Boolean(data?.data?.canManageWorkspace)
         setCanManageWorkspace(allowed)
       } catch {
-        const normalizedRole = (userRole || '').toLowerCase()
         setCanManageWorkspace(
-          normalizedRole.includes('admin') || normalizedRole.includes('super')
+          optimisticWorkspaceAccess
         )
       } finally {
         setPermissionsLoaded(true)

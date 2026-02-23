@@ -47,40 +47,6 @@ export default function RolesTab() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-7 w-48 bg-gray-200 rounded" />
-            <div className="h-4 w-64 bg-gray-200 rounded mt-2" />
-          </div>
-          <div className="h-10 w-28 bg-gray-200 rounded-lg" />
-        </div>
-        <div className="divide-y divide-gray-200 border-y border-gray-200">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="py-5">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 bg-gray-200 rounded-lg" />
-                  <div>
-                    <div className="h-5 w-40 bg-gray-200 rounded" />
-                    <div className="h-4 w-28 bg-gray-200 rounded mt-2" />
-                    <div className="h-4 w-36 bg-gray-200 rounded mt-2" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 bg-gray-200 rounded" />
-                  <div className="h-8 w-8 bg-gray-200 rounded" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -98,59 +64,30 @@ export default function RolesTab() {
         </button>
       </div>
 
-      {/* Roles List */}
-      <div className="divide-y divide-gray-200 border-y border-gray-200">
-        {roles.map((role) => (
-          <div
-            key={role.id}
-            className="py-5"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <Shield className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{role.name}</h3>
-                    {role.isSystem && (
-                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
-                        System
-                      </span>
-                    )}
+      {loading ? (
+        <div className="space-y-6 animate-pulse">
+          <div className="divide-y divide-gray-200 border-y border-gray-200">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="py-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 bg-gray-200 rounded-lg" />
+                    <div>
+                      <div className="h-5 w-40 bg-gray-200 rounded" />
+                      <div className="h-4 w-28 bg-gray-200 rounded mt-2" />
+                      <div className="h-4 w-36 bg-gray-200 rounded mt-2" />
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">@{role.slug}</p>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                    <span>{role._count?.permissions || 0} permissions</span>
-                    <span>•</span>
-                    <span>{role._count?.users || 0} users</span>
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 bg-gray-200 rounded" />
+                    <div className="h-8 w-8 bg-gray-200 rounded" />
                   </div>
                 </div>
               </div>
-              
-              {!role.isSystem && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedRole(role)}
-                    className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
-                    title="Edit role"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                    title="Delete role"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
-
-      {roles.length === 0 && (
+        </div>
+      ) : roles.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-md">
           <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 mb-4">No roles found</p>
@@ -160,6 +97,57 @@ export default function RolesTab() {
           >
             Create your first role
           </button>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-200 border-y border-gray-200">
+          {roles.map((role) => (
+            <div
+              key={role.id}
+              className="py-5"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <Shield className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{role.name}</h3>
+                      {role.isSystem && (
+                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                          System
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">@{role.slug}</p>
+                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                      <span>{role._count?.permissions || 0} permissions</span>
+                      <span>•</span>
+                      <span>{role._count?.users || 0} users</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {!role.isSystem && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedRole(role)}
+                      className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
+                      title="Edit role"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                      title="Delete role"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

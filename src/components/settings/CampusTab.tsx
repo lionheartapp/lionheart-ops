@@ -335,50 +335,32 @@ export default function CampusTab() {
     await deactivateEntity(type, id)
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6 animate-pulse py-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-7 w-28 bg-gray-200 rounded" />
-            <div className="h-4 w-64 bg-gray-200 rounded mt-2" />
-          </div>
-          <div className="h-6 w-28 bg-gray-200 rounded" />
-        </div>
-
-        <div className="border-b border-gray-200 pb-3">
-          <div className="flex gap-6">
-            <div className="h-5 w-20 bg-gray-200 rounded" />
-            <div className="h-5 w-16 bg-gray-200 rounded" />
-            <div className="h-5 w-16 bg-gray-200 rounded" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pb-4 border-b border-gray-200">
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-        </div>
-
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center py-3 border-b border-gray-200">
-              <div className="h-10 bg-gray-200 rounded" />
-              <div className="h-10 bg-gray-200 rounded" />
-              <div className="h-10 bg-gray-200 rounded" />
-              <div className="h-6 w-16 bg-gray-200 rounded" />
-              <div className="h-4 w-24 bg-gray-200 rounded" />
-              <div className="flex justify-end gap-2">
-                <div className="h-8 w-8 bg-gray-200 rounded" />
-                <div className="h-8 w-8 bg-gray-200 rounded" />
-              </div>
-            </div>
-          ))}
-        </div>
+  const renderDataSkeleton = () => (
+    <div className="space-y-6 animate-pulse py-2">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pb-4 border-b border-gray-200">
+        <div className="h-10 bg-gray-200 rounded" />
+        <div className="h-10 bg-gray-200 rounded" />
+        <div className="h-10 bg-gray-200 rounded" />
+        <div className="h-10 bg-gray-200 rounded" />
       </div>
-    )
-  }
+
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center py-3 border-b border-gray-200">
+            <div className="h-10 bg-gray-200 rounded" />
+            <div className="h-10 bg-gray-200 rounded" />
+            <div className="h-10 bg-gray-200 rounded" />
+            <div className="h-6 w-16 bg-gray-200 rounded" />
+            <div className="h-4 w-24 bg-gray-200 rounded" />
+            <div className="flex justify-end gap-2">
+              <div className="h-8 w-8 bg-gray-200 rounded" />
+              <div className="h-8 w-8 bg-gray-200 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div className="space-y-6">
@@ -433,7 +415,9 @@ export default function CampusTab() {
         </nav>
       </div>
 
-      {activeView === 'buildings' && (
+      {loading ? (
+        renderDataSkeleton()
+      ) : activeView === 'buildings' && (
         <div className="space-y-4">
           <form onSubmit={createBuilding} className="grid grid-cols-1 md:grid-cols-4 gap-3 pb-4 border-b border-gray-200">
             <input className="ui-input" placeholder="Building name" value={buildingForm.name} onChange={(event) => setBuildingForm((prev) => ({ ...prev, name: event.target.value }))} required />
@@ -478,7 +462,7 @@ export default function CampusTab() {
         </div>
       )}
 
-      {activeView === 'areas' && (
+      {!loading && activeView === 'areas' && (
         <div className="space-y-4">
           <form onSubmit={createArea} className="grid grid-cols-1 md:grid-cols-4 gap-3 pb-4 border-b border-gray-200">
             <input className="ui-input" placeholder="Area name" value={areaForm.name} onChange={(event) => setAreaForm((prev) => ({ ...prev, name: event.target.value }))} required />
@@ -538,7 +522,7 @@ export default function CampusTab() {
         </div>
       )}
 
-      {activeView === 'rooms' && (
+      {!loading && activeView === 'rooms' && (
         <div className="space-y-4">
           <form onSubmit={createRoom} className="grid grid-cols-1 md:grid-cols-6 gap-3 pb-4 border-b border-gray-200">
             <select className="ui-select" value={roomForm.buildingId} onChange={(event) => setRoomForm((prev) => ({ ...prev, buildingId: event.target.value }))} required>
