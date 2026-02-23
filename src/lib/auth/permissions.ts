@@ -118,7 +118,7 @@ export async function assertCan(
   const hasPermission = await can(userId, permission)
   
   if (!hasPermission) {
-    throw new Error(message || `Permission denied: ${permission}`)
+    throw new Error(message || `Insufficient permissions: ${permission}`)
   }
 }
 
