@@ -59,10 +59,10 @@ export default function SettingsPage() {
 
   const generalTabs = [
     { id: 'profile' as Tab, label: 'Account', icon: User },
-    { id: 'roles' as Tab, label: 'Roles', icon: Shield },
   ]
 
   const workspaceTabs = [
+    { id: 'roles' as Tab, label: 'Roles', icon: Shield },
     { id: 'teams' as Tab, label: 'Teams', icon: Users },
     { id: 'users' as Tab, label: 'Members', icon: UserCog },
     { id: 'campus' as Tab, label: 'Campus', icon: Building2 },
