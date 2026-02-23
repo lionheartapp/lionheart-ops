@@ -57,7 +57,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Search Bar */}
-        <div className="flex-1 mx-6 max-w-md">
+        <div className="flex-1 pl-10 pr-6 max-w-md">
           <input
             type="search"
             placeholder="Search here..."
@@ -99,6 +99,18 @@ export default function DashboardLayout({
                 >
                   Settings
                 </Link>
+                {onLogout && (
+                  <button
+                    onClick={() => {
+                      onLogout()
+                      setIsDropdownOpen(false)
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition rounded-b-lg border-t border-gray-100"
+                    aria-label="Log out"
+                  >
+                    Log Out
+                  </button>
+                )}
               </div>
             )}
           </div>

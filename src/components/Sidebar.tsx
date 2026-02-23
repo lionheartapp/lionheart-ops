@@ -5,8 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Home,
-  Settings,
-  LogOut,
   ChevronDown,
   Menu,
   X,
@@ -37,16 +35,6 @@ export default function Sidebar({
 
   const sidebarContent = (
     <>
-      {/* School Logo Card */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
-            DA
-          </div>
-          <p className="text-sm font-semibold text-gray-900">Demo Academy</p>
-        </div>
-      </div>
-
       {/* Navigation Menu */}
       <nav className="p-4 flex-1" role="navigation" aria-label="Main navigation">
         <ul className="space-y-2" role="list">
@@ -73,19 +61,7 @@ export default function Sidebar({
         </ul>
       </nav>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-gray-200">
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg text-gray-700 hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            aria-label="Log out"
-          >
-            <LogOut className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-            <span className="text-sm">Log Out</span>
-          </button>
-        )}
-      </div>
+
     </>
   )
 
