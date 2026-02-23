@@ -9,21 +9,64 @@ import { PERMISSIONS } from '@/lib/permissions'
 export const CreateTicketSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().optional().nullable(),
+  category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).default('MAINTENANCE'),
+  priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).default('NORMAL'),
   source: z.enum(['MANUAL', 'SHADOW_EVENT_AUTOMATION']).default('MANUAL'),
+  locationRefType: z.enum(['ROOM', 'AREA', 'BUILDING', 'FREE_TEXT']).optional().nullable(),
+  locationRefId: z.string().optional().nullable(),
+  locationText: z.string().trim().min(1).max(300).optional().nullable(),
   assignedToId: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  const hasRefType = !!data.locationRefType
+  const hasRefId = !!data.locationRefId
+  const hasLocationText = !!data.locationText
+
+  if ((hasRefType && !hasRefId) || (!hasRefType && hasRefId)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'locationRefType and locationRefId must be provided together',
+      path: hasRefType ? ['locationRefId'] : ['locationRefType'],
+    })
+  }
+
+  if (!hasRefType && !hasRefId && !hasLocationText) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Provide either a structured location reference or locationText',
+      path: ['locationText'],
+    })
+  }
 })
 
 export const UpdateTicketSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional().nullable(),
+  category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).optional(),
+  priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
   status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED']).optional(),
+  locationRefType: z.enum(['ROOM', 'AREA', 'BUILDING', 'FREE_TEXT']).optional().nullable(),
+  locationRefId: z.string().optional().nullable(),
+  locationText: z.string().trim().min(1).max(300).optional().nullable(),
   assignedToId: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  const refTypeProvided = data.locationRefType !== undefined
+  const refIdProvided = data.locationRefId !== undefined
+
+  if (refTypeProvided !== refIdProvided) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'locationRefType and locationRefId must be updated together',
+      path: refTypeProvided ? ['locationRefId'] : ['locationRefType'],
+    })
+  }
 })
 
 export const ListTicketsSchema = z.object({
   limit: z.number().int().min(1).max(100).default(50),
   offset: z.number().int().min(0).default(0),
   status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED']).optional(),
+  category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).optional(),
+  priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
   assignedToId: z.string().optional(),
 })
 
@@ -48,6 +91,12 @@ export async function listTickets(
   const where: any = {}
   if (validated.status) {
     where.status = validated.status
+  }
+  if (validated.category) {
+    where.category = validated.category
+  }
+  if (validated.priority) {
+    where.priority = validated.priority
   }
   if (validated.assignedToId) {
     where.assignedToId = validated.assignedToId
@@ -124,7 +173,12 @@ export async function createTicket(
     data: {
       title: validated.title,
       description: validated.description,
+      category: validated.category,
+      priority: validated.priority,
       source: validated.source,
+      locationRefType: validated.locationRefType,
+      locationRefId: validated.locationRefId,
+      locationText: validated.locationText,
       status: 'OPEN',
       assignedToId: validated.assignedToId,
     } as any, // Temp workaround for org-scoped extension typing
@@ -162,14 +216,31 @@ export async function updateTicket(
   const validated = UpdateTicketSchema.parse(input)
 
   // Users with tickets:update_own can only update status
-  if (!canUpdateAll && (validated.title || validated.description || validated.assignedToId)) {
+  if (
+    !canUpdateAll &&
+    (
+      validated.title !== undefined ||
+      validated.description !== undefined ||
+      validated.assignedToId !== undefined ||
+      validated.category !== undefined ||
+      validated.priority !== undefined ||
+      validated.locationRefType !== undefined ||
+      validated.locationRefId !== undefined ||
+      validated.locationText !== undefined
+    )
+  ) {
     throw new Error('Insufficient permissions to update ticket details')
   }
 
   const updateData: any = {}
   if (validated.title !== undefined) updateData.title = validated.title
   if (validated.description !== undefined) updateData.description = validated.description
+  if (validated.category !== undefined) updateData.category = validated.category
+  if (validated.priority !== undefined) updateData.priority = validated.priority
   if (validated.status !== undefined) updateData.status = validated.status
+  if (validated.locationRefType !== undefined) updateData.locationRefType = validated.locationRefType
+  if (validated.locationRefId !== undefined) updateData.locationRefId = validated.locationRefId
+  if (validated.locationText !== undefined) updateData.locationText = validated.locationText
   if (validated.assignedToId !== undefined) updateData.assignedToId = validated.assignedToId
 
   const ticket = await prisma.ticket.update({
@@ -232,7 +303,12 @@ export async function bulkCreateTickets(
         data: {
           title: data.title,
           description: data.description,
+          category: data.category,
+          priority: data.priority,
           source: data.source,
+          locationRefType: data.locationRefType,
+          locationRefId: data.locationRefId,
+          locationText: data.locationText,
           status: 'OPEN',
           assignedToId: data.assignedToId,
         } as any,

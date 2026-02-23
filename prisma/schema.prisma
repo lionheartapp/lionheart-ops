@@ -26,6 +26,10 @@ model Organization {
   schedules     TeacherSchedule[]
   roles         Role[]
   teams         Team[]
+  buildings     Building[]
+  areas         Area[]
+  rooms         Room[]
+  roomAssignments UserRoomAssignment[]
 }
 
 model User {
@@ -54,6 +58,7 @@ model User {
   assignedTicket Ticket[]         @relation("AssignedTicketUser")
   schedules      TeacherSchedule[]
   passwordSetupTokens PasswordSetupToken[]
+  roomAssignments UserRoomAssignment[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -80,8 +85,13 @@ model Ticket {
   organizationId String
   title          String
   description    String?
+  category       TicketCategory @default(MAINTENANCE)
+  priority       TicketPriority @default(NORMAL)
   status         TicketStatus   @default(OPEN)
   source         TicketSource   @default(MANUAL)
+  locationRefType LocationRefType?
+  locationRefId   String?
+  locationText    String?
   assignedToId   String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -89,6 +99,89 @@ model Ticket {
   assignedTo     User?          @relation("AssignedTicketUser", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, status])
+  @@index([organizationId, category])
+  @@index([organizationId, priority])
+}
+
+model Building {
+  id             String         @id @default(cuid())
+  organizationId String
+  name           String
+  code           String?
+  schoolDivision SchoolDivision @default(GLOBAL)
+  isActive       Boolean        @default(true)
+  sortOrder      Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  areas          Area[]
+  rooms          Room[]
+
+  @@unique([organizationId, name])
+  @@unique([organizationId, code])
+  @@index([organizationId, isActive])
+}
+
+model Area {
+  id             String       @id @default(cuid())
+  organizationId String
+  buildingId     String?
+  name           String
+  areaType       AreaType     @default(OTHER)
+  isActive       Boolean      @default(true)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  rooms          Room[]
+
+  @@unique([organizationId, buildingId, name])
+  @@index([organizationId, isActive])
+  @@index([buildingId])
+}
+
+model Room {
+  id             String       @id @default(cuid())
+  organizationId String
+  buildingId     String
+  areaId         String?
+  roomNumber     String
+  displayName    String?
+  floor          String?
+  isActive       Boolean      @default(true)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building       Building     @relation(fields: [buildingId], references: [id], onDelete: Restrict)
+  area           Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  assignments    UserRoomAssignment[]
+
+  @@unique([organizationId, buildingId, roomNumber])
+  @@index([organizationId, isActive])
+  @@index([buildingId])
+  @@index([areaId])
+}
+
+model UserRoomAssignment {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  roomId         String
+  isPrimary      Boolean      @default(false)
+  startsAt       DateTime?
+  endsAt         DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room           Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([organizationId, roomId])
+  @@index([isActive])
 }
 
 model Event {
@@ -225,6 +318,42 @@ enum TicketStatus {
   OPEN
   IN_PROGRESS
   RESOLVED
+}
+
+enum TicketCategory {
+  MAINTENANCE
+  IT
+  EVENT
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum LocationRefType {
+  ROOM
+  AREA
+  BUILDING
+  FREE_TEXT
+}
+
+enum SchoolDivision {
+  ELEMENTARY
+  MIDDLE_SCHOOL
+  HIGH_SCHOOL
+  GLOBAL
+}
+
+enum AreaType {
+  FIELD
+  COURT
+  GYM
+  COMMON
+  PARKING
+  OTHER
 }
 
 enum TicketSource {

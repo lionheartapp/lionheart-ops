@@ -6,9 +6,10 @@ import DashboardLayout from '@/components/DashboardLayout'
 import RolesTab from '@/components/settings/RolesTab'
 import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
-import { User, Shield, Users, UserCog } from 'lucide-react'
+import CampusTab from '@/components/settings/CampusTab'
+import { User, Shield, Users, UserCog, Building2 } from 'lucide-react'
 
-type Tab = 'profile' | 'roles' | 'teams' | 'users'
+type Tab = 'profile' | 'roles' | 'teams' | 'users' | 'campus'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -61,6 +62,7 @@ export default function SettingsPage() {
     { id: 'roles' as Tab, label: 'Roles', icon: Shield },
     { id: 'teams' as Tab, label: 'Teams', icon: Users },
     { id: 'users' as Tab, label: 'Users', icon: UserCog },
+    { id: 'campus' as Tab, label: 'Campus', icon: Building2 },
   ]
 
   return (
@@ -195,6 +197,8 @@ export default function SettingsPage() {
           {activeTab === 'teams' && <TeamsTab />}
           
           {activeTab === 'users' && <MembersTab />}
+
+          {activeTab === 'campus' && <CampusTab />}
         </div>
       </div>
     </DashboardLayout>

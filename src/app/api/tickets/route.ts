@@ -15,10 +15,12 @@ export async function GET(req: NextRequest) {
       const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50
       const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0
       const status = searchParams.get('status') || undefined
+      const category = searchParams.get('category') || undefined
+      const priority = searchParams.get('priority') || undefined
       const assignedToId = searchParams.get('assignedToId') || undefined
 
       const tickets = await ticketService.listTickets(
-        { limit, offset, status: status as any, assignedToId },
+        { limit, offset, status: status as any, category: category as any, priority: priority as any, assignedToId },
         userContext.userId
       )
 

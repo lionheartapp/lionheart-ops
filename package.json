@@ -18,7 +18,9 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "smoke:campus": "node scripts/smoke-campus-auth-crud.mjs",
+    "smoke:it": "npm run smoke:campus"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
