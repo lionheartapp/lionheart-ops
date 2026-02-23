@@ -47,17 +47,19 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
       role="presentation"
       aria-hidden={!isOpen}
     >
-      {/* Overlay */}
+      {/* Overlay with backdrop blur */}
       <div
-        className="absolute inset-0 bg-black/50 transition-opacity"
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0'
+        }`}
         onClick={onClose}
         role="presentation"
       />
 
-      {/* Modal Container - Full width bottom slide */}
+      {/* Modal Container - Full width bottom slide up to 80px from top */}
       <div
         ref={modalRef}
-        className={`fixed inset-x-0 bottom-0 max-h-[90vh] bg-white rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 z-50 ${
+        className={`fixed inset-x-0 bottom-0 top-20 bg-white rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-500 ease-out z-50 ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         role="dialog"
