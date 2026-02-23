@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useRef } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 
 interface CreateModalProps {
@@ -13,6 +13,7 @@ interface CreateModalProps {
 export default function CreateModal({ isOpen, onClose, title, children }: CreateModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -22,6 +23,7 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
     }
 
     if (isOpen) {
+      setIsAnimating(true)
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
       // Focus trap - focus first interactive element
@@ -31,15 +33,22 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
         ) as HTMLElement
         firstInput?.focus()
       }, 100)
+    } else {
+      document.body.style.overflow = 'unset'
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isOpen && !isAnimating) return null
+
+  const handleTransitionEnd = () => {
+    if (!isOpen) {
+      setIsAnimating(false)
+    }
+  }
 
   return (
     <div
@@ -62,6 +71,7 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
         className={`fixed inset-x-0 bottom-0 top-20 bg-white rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-500 ease-out z-50 ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
+        onTransitionEnd={handleTransitionEnd}
         role="dialog"
         aria-labelledby="modal-title"
         aria-modal="true"
