@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useRef } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 
 interface DetailDrawerProps {
@@ -9,6 +9,7 @@ interface DetailDrawerProps {
   title: string
   children: ReactNode
   width?: 'sm' | 'md' | 'lg' | 'xl'
+  onEdit?: () => void
 }
 
 const widths = {
@@ -24,20 +25,32 @@ export default function DetailDrawer({
   title,
   children,
   width = 'md',
+  onEdit,
 }: DetailDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [shouldShow, setShouldShow] = useState(false)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose()
+        handleClose()
       }
     }
 
     if (isOpen) {
+      setIsAnimating(true)
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflowY = 'hidden'
+      
+      // Double requestAnimationFrame for proper animation timing
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setShouldShow(true)
+        })
+      })
+      
       // Focus trap - focus first interactive element
       setTimeout(() => {
         const firstButton = drawerRef.current?.querySelector(
@@ -45,15 +58,25 @@ export default function DetailDrawer({
         ) as HTMLElement
         firstButton?.focus()
       }, 100)
+    } else if (isAnimating) {
+      setShouldShow(false)
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflowY = 'unset'
     }
-  }, [isOpen, onClose])
+  }, [isOpen, isAnimating])
 
-  if (!isOpen) return null
+  const handleClose = () => {
+    setShouldShow(false)
+    setTimeout(() => {
+      setIsAnimating(false)
+      onClose()
+    }, 300)
+  }
+
+  if (!isOpen && !isAnimating) return null
 
   return (
     <div
@@ -61,18 +84,20 @@ export default function DetailDrawer({
       role="presentation"
       aria-hidden={!isOpen}
     >
-      {/* Overlay */}
+      {/* Overlay - Darker with backdrop blur like CreateModal */}
       <div
-        className="absolute inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+          shouldShow ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={handleClose}
         role="presentation"
       />
 
       {/* Drawer - Right side slide */}
       <div
         ref={drawerRef}
-        className={`fixed right-0 top-0 h-screen ${widths[width]} bg-white shadow-lg flex flex-col transition-transform duration-300 z-50 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed right-0 top-0 h-screen ${widths[width]} bg-white shadow-lg flex flex-col transition-transform duration-500 ease-out z-50 ${
+          shouldShow ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
         aria-labelledby="drawer-title"
@@ -87,7 +112,7 @@ export default function DetailDrawer({
             {title}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg flex-shrink-0"
             aria-label="Close drawer"
           >
@@ -102,6 +127,18 @@ export default function DetailDrawer({
         >
           {children}
         </div>
+
+        {/* Footer with Edit button */}
+        {onEdit && (
+          <div className="border-t border-gray-200 p-4 sm:p-6 flex-shrink-0">
+            <button
+              onClick={onEdit}
+              className="w-full px-4 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            >
+              Edit
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

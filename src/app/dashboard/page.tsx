@@ -363,6 +363,10 @@ export default function DashboardPage() {
         onClose={() => setIsDetailOpen(false)}
         title="Task Details"
         width="md"
+        onEdit={() => {
+          // Handle edit action
+          console.log('Edit clicked')
+        }}
       >
         <div className="space-y-6">
           <p className="text-gray-600">
@@ -383,17 +387,6 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-gray-700 mb-1">Due Date</p>
               <p className="text-gray-600">Today</p>
             </div>
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setIsDetailOpen(false)}
-              className="flex-1 px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            >
-              Close
-            </button>
-            <button className="flex-1 px-4 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-              Edit
-            </button>
           </div>
         </div>
       </DetailDrawer>
