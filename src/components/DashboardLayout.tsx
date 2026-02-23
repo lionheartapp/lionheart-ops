@@ -35,7 +35,7 @@ export default function DashboardLayout({
   const subtitleParts = [formattedSchoolLabel, teamLabel].filter(Boolean)
 
   return (
-    <div className="flex w-full min-h-screen bg-white flex-col">
+    <div className="flex w-full min-h-screen bg-gray-50 flex-col">
       {/* Top Bar Header */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between z-30">
         {/* Logo and Organization Name */}
