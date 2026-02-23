@@ -49,8 +49,34 @@ export default function RolesTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-600">Loading roles...</div>
+      <div className="space-y-6 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-7 w-48 bg-gray-200 rounded" />
+            <div className="h-4 w-64 bg-gray-200 rounded mt-2" />
+          </div>
+          <div className="h-10 w-28 bg-gray-200 rounded-lg" />
+        </div>
+        <div className="divide-y divide-gray-200 border-y border-gray-200">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="py-5">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 bg-gray-200 rounded-lg" />
+                  <div>
+                    <div className="h-5 w-40 bg-gray-200 rounded" />
+                    <div className="h-4 w-28 bg-gray-200 rounded mt-2" />
+                    <div className="h-4 w-36 bg-gray-200 rounded mt-2" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 bg-gray-200 rounded" />
+                  <div className="h-8 w-8 bg-gray-200 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
