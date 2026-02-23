@@ -15,6 +15,8 @@ export default function SettingsPage() {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('profile')
+  const [canManageWorkspace, setCanManageWorkspace] = useState(false)
+  const [permissionsLoaded, setPermissionsLoaded] = useState(false)
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
@@ -33,6 +35,45 @@ export default function SettingsPage() {
       router.push('/login')
     }
   }, [token, orgId, router])
+
+  useEffect(() => {
+    if (!token) return
+
+    const fetchPermissions = async () => {
+      try {
+        const response = await fetch('/api/auth/permissions', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to load permissions')
+        }
+
+        const data = await response.json()
+        const allowed = Boolean(data?.data?.canManageWorkspace)
+        setCanManageWorkspace(allowed)
+      } catch {
+        const normalizedRole = (userRole || '').toLowerCase()
+        setCanManageWorkspace(
+          normalizedRole.includes('admin') || normalizedRole.includes('super')
+        )
+      } finally {
+        setPermissionsLoaded(true)
+      }
+    }
+
+    fetchPermissions()
+  }, [token, userRole])
+
+  useEffect(() => {
+    if (!permissionsLoaded || canManageWorkspace) return
+
+    if (activeTab !== 'profile') {
+      setActiveTab('profile')
+    }
+  }, [activeTab, canManageWorkspace, permissionsLoaded])
 
   const handleLogout = () => {
     localStorage.removeItem('auth-token')
@@ -110,29 +151,31 @@ export default function SettingsPage() {
                 </nav>
               </div>
 
-              <div className="p-4">
-                <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">Workspace Settings</p>
-                <nav className="mt-2 space-y-1" aria-label="Workspace settings sections">
-                  {workspaceTabs.map((tab) => {
-                    const Icon = tab.icon
-                    const isActive = activeTab === tab.id
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                          isActive
-                            ? 'bg-gray-200 text-gray-900'
-                            : 'text-gray-600 hover:bg-blue-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        {tab.label}
-                      </button>
-                    )
-                  })}
-                </nav>
-              </div>
+              {canManageWorkspace && (
+                <div className="p-4">
+                  <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">Workspace Settings</p>
+                  <nav className="mt-2 space-y-1" aria-label="Workspace settings sections">
+                    {workspaceTabs.map((tab) => {
+                      const Icon = tab.icon
+                      const isActive = activeTab === tab.id
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                            isActive
+                              ? 'bg-gray-200 text-gray-900'
+                              : 'text-gray-600 hover:bg-blue-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {tab.label}
+                        </button>
+                      )
+                    })}
+                  </nav>
+                </div>
+              )}
             </aside>
 
             <section className="p-5 sm:p-7 lg:p-8">
@@ -225,13 +268,13 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {activeTab === 'roles' && <RolesTab />}
+              {canManageWorkspace && activeTab === 'roles' && <RolesTab />}
 
-              {activeTab === 'teams' && <TeamsTab />}
+              {canManageWorkspace && activeTab === 'teams' && <TeamsTab />}
 
-              {activeTab === 'users' && <MembersTab />}
+              {canManageWorkspace && activeTab === 'users' && <MembersTab />}
 
-              {activeTab === 'campus' && <CampusTab />}
+              {canManageWorkspace && activeTab === 'campus' && <CampusTab />}
             </section>
         </div>
       </div>
