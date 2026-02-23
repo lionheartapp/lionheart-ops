@@ -209,7 +209,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                   id="school-type"
                   value={schoolType}
                   onChange={(e) => setSchoolType(e.target.value as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL')}
-                  className="ui-input"
+                  className="ui-select w-full py-3"
                 >
                   <option value="ELEMENTARY">Elementary School</option>
                   <option value="MIDDLE_SCHOOL">Middle School</option>

@@ -594,7 +594,7 @@ export default function MembersTab() {
             <select
               value={form.schoolScope}
               onChange={(e) => setForm((prev) => ({ ...prev, schoolScope: e.target.value as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="ui-select w-full"
             >
               <option value="ELEMENTARY">Elementary School</option>
               <option value="MIDDLE_SCHOOL">Middle School</option>
@@ -606,7 +606,7 @@ export default function MembersTab() {
               <select
                 value={form.roleId}
                 onChange={(e) => setForm((prev) => ({ ...prev, roleId: e.target.value }))}
-                className="px-3 py-2 border border-gray-300 rounded-lg"
+                className="ui-select"
               >
                 <option value="">Select Role</option>
                 {roles.map((role) => (
@@ -617,7 +617,7 @@ export default function MembersTab() {
               <select
                 value={form.employmentType}
                 onChange={(e) => setForm((prev) => ({ ...prev, employmentType: e.target.value }))}
-                className="px-3 py-2 border border-gray-300 rounded-lg"
+                className="ui-select"
               >
                 <option value="FULL_TIME">Full Time</option>
                 <option value="PART_TIME">Part Time</option>
@@ -632,7 +632,7 @@ export default function MembersTab() {
               <select
                 value={form.provisioningMode}
                 onChange={(e) => setForm((prev) => ({ ...prev, provisioningMode: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="ui-select w-full"
               >
                 <option value="ADMIN_CREATE">Super Admin Creator (Active immediately)</option>
                 <option value="INVITE_ONLY">Invite-Only / Self-Signup (Pending)</option>
@@ -727,7 +727,7 @@ export default function MembersTab() {
                 <select
                   value={selectedMember.schoolScope}
                   onChange={(e) => setSelectedMember({ ...selectedMember, schoolScope: e.target.value as Member['schoolScope'] })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="ui-select w-full"
                 >
                   <option value="ELEMENTARY">Elementary School</option>
                   <option value="MIDDLE_SCHOOL">Middle School</option>
@@ -745,7 +745,7 @@ export default function MembersTab() {
                         name: roles.find((role) => role.id === e.target.value)?.name || 'No Role',
                       },
                     })}
-                    className="px-3 py-2 border border-gray-300 rounded-lg"
+                    className="ui-select"
                   >
                     <option value="">No Role</option>
                     {roles.map((role) => (
@@ -756,7 +756,7 @@ export default function MembersTab() {
                   <select
                     value={selectedMember.employmentType || 'FULL_TIME'}
                     onChange={(e) => setSelectedMember({ ...selectedMember, employmentType: e.target.value })}
-                    className="px-3 py-2 border border-gray-300 rounded-lg"
+                    className="ui-select"
                   >
                     <option value="FULL_TIME">Full Time</option>
                     <option value="PART_TIME">Part Time</option>
@@ -769,7 +769,7 @@ export default function MembersTab() {
                 <select
                   value={selectedMember.status}
                   onChange={(e) => setSelectedMember({ ...selectedMember, status: e.target.value as Member['status'] })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="ui-select w-full"
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="INACTIVE">Inactive</option>
