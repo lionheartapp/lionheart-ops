@@ -126,7 +126,8 @@ async function seedRolesAndPermissions(organizationId: string) {
     'inventory:read', 'inventory:create', 'inventory:update', 'inventory:delete',
     'settings:read', 'settings:update',
     'users:read', 'users:invite', 'users:update', 'users:manage:roles',
-    'roles:read', 'roles:create', 'teams:read', 'teams:create', 'teams:update', 'teams:delete',
+    'roles:read', 'roles:create', 'roles:update', 'roles:delete',
+    'teams:read', 'teams:create', 'teams:update', 'teams:delete',
   ];
   
   const admin = await prisma.role.upsert({

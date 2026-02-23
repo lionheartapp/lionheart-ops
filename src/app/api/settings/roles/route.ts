@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+
+const CreateRoleSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  slug: z.string().trim().min(1).max(120).optional(),
+})
+
+function toSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,16 +66,26 @@ export async function POST(req: NextRequest) {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
     const body = await req.json()
+    const input = CreateRoleSchema.parse(body)
 
     // Check permission to create roles
     await assertCan(userContext.userId, PERMISSIONS.ROLES_CREATE)
 
     return await runWithOrgContext(orgId, async () => {
+      const slug = toSlug(input.slug || input.name)
+
+      if (!slug) {
+        return NextResponse.json(
+          fail('VALIDATION_ERROR', 'Role name must include letters or numbers'),
+          { status: 400 }
+        )
+      }
+
       const role = await prisma.role.create({
         data: {
           organizationId: orgId,
-          name: body.name,
-          slug: body.slug,
+          name: input.name,
+          slug,
           isSystem: false,
         },
         include: {
@@ -75,8 +101,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(ok(role), { status: 201 })
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Invalid role input', error.issues),
+        { status: 400 }
+      )
+    }
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code?: string }).code === 'P2002'
+    ) {
+      return NextResponse.json(
+        fail('CONFLICT', 'A role with this name/slug already exists'),
+        { status: 409 }
+      )
     }
     console.error('Failed to create role:', error)
     return NextResponse.json(

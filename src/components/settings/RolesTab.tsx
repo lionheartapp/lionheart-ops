@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Shield, Plus, Edit2, Trash2, Check, X } from 'lucide-react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Shield, Plus, Edit2, Trash2, X } from 'lucide-react'
 
 interface Role {
   id: string
@@ -18,7 +18,20 @@ export default function RolesTab() {
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+  const [roleName, setRoleName] = useState('')
+  const [createLoading, setCreateLoading] = useState(false)
+  const [deletingRoleId, setDeletingRoleId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('auth-token')
+    const orgId = localStorage.getItem('org-id')
+
+    return {
+      'Authorization': `Bearer ${token}`,
+      'X-Organization-ID': orgId || '',
+    }
+  }
 
   useEffect(() => {
     loadRoles()
@@ -26,14 +39,8 @@ export default function RolesTab() {
 
   const loadRoles = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
-      const orgId = localStorage.getItem('org-id')
-      
       const response = await fetch('/api/settings/roles', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Organization-ID': orgId || '',
-        },
+        headers: getAuthHeaders(),
       })
       
       if (response.ok) {
@@ -44,6 +51,74 @@ export default function RolesTab() {
       console.error('Failed to load roles:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCreateRole = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setActionError(null)
+
+    const trimmedName = roleName.trim()
+    if (!trimmedName) {
+      setActionError('Role name is required')
+      return
+    }
+
+    setCreateLoading(true)
+    try {
+      const response = await fetch('/api/settings/roles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ name: trimmedName }),
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setActionError(payload?.error?.message || 'Failed to create role')
+        return
+      }
+
+      setRoleName('')
+      setShowCreateModal(false)
+      await loadRoles()
+    } catch (error) {
+      console.error('Failed to create role:', error)
+      setActionError('Failed to create role')
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
+  const handleDeleteRole = async (role: Role) => {
+    setActionError(null)
+
+    const confirmed = window.confirm(`Delete role \"${role.name}\"? This cannot be undone.`)
+    if (!confirmed) return
+
+    setDeletingRoleId(role.id)
+    try {
+      const response = await fetch(`/api/settings/roles/${role.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setActionError(payload?.error?.message || 'Failed to delete role')
+        return
+      }
+
+      setRoles((previous) => previous.filter((item) => item.id !== role.id))
+    } catch (error) {
+      console.error('Failed to delete role:', error)
+      setActionError('Failed to delete role')
+    } finally {
+      setDeletingRoleId(null)
     }
   }
 
@@ -63,6 +138,12 @@ export default function RolesTab() {
           Create Role
         </button>
       </div>
+
+      {actionError && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-6 animate-pulse">
@@ -131,13 +212,15 @@ export default function RolesTab() {
                 {!role.isSystem && (
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setSelectedRole(role)}
+                      type="button"
                       className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
                       title="Edit role"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
+                      onClick={() => handleDeleteRole(role)}
+                      disabled={deletingRoleId === role.id}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                       title="Delete role"
                     >
@@ -148,6 +231,66 @@ export default function RolesTab() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Create Role</h3>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setRoleName('')
+                  setActionError(null)
+                }}
+                className="rounded p-1 text-gray-500 hover:bg-gray-100"
+                aria-label="Close create role modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRole} className="space-y-4">
+              <div>
+                <label htmlFor="role-name" className="mb-1 block text-sm font-medium text-gray-700">
+                  Role name
+                </label>
+                <input
+                  id="role-name"
+                  value={roleName}
+                  onChange={(e) => setRoleName(e.target.value)}
+                  placeholder="e.g. Attendance Coordinator"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  disabled={createLoading}
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false)
+                    setRoleName('')
+                    setActionError(null)
+                  }}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  disabled={createLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60"
+                  disabled={createLoading}
+                >
+                  {createLoading ? 'Creating...' : 'Create Role'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

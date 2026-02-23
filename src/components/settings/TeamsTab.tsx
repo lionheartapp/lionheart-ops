@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Users, Plus, Edit2, Trash2, X } from 'lucide-react'
 
 interface Team {
   id: string
@@ -17,6 +17,21 @@ export default function TeamsTab() {
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [teamName, setTeamName] = useState('')
+  const [teamDescription, setTeamDescription] = useState('')
+  const [createLoading, setCreateLoading] = useState(false)
+  const [deletingTeamId, setDeletingTeamId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('auth-token')
+    const orgId = localStorage.getItem('org-id')
+
+    return {
+      'Authorization': `Bearer ${token}`,
+      'X-Organization-ID': orgId || '',
+    }
+  }
 
   useEffect(() => {
     loadTeams()
@@ -24,14 +39,8 @@ export default function TeamsTab() {
 
   const loadTeams = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
-      const orgId = localStorage.getItem('org-id')
-      
       const response = await fetch('/api/settings/teams', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Organization-ID': orgId || '',
-        },
+        headers: getAuthHeaders(),
       })
       
       if (response.ok) {
@@ -42,6 +51,78 @@ export default function TeamsTab() {
       console.error('Failed to load teams:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCreateTeam = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setActionError(null)
+
+    const trimmedName = teamName.trim()
+    if (!trimmedName) {
+      setActionError('Team name is required')
+      return
+    }
+
+    setCreateLoading(true)
+    try {
+      const response = await fetch('/api/settings/teams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          description: teamDescription.trim() || null,
+        }),
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setActionError(payload?.error?.message || 'Failed to create team')
+        return
+      }
+
+      setTeamName('')
+      setTeamDescription('')
+      setShowCreateModal(false)
+      await loadTeams()
+    } catch (error) {
+      console.error('Failed to create team:', error)
+      setActionError('Failed to create team')
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
+  const handleDeleteTeam = async (team: Team) => {
+    setActionError(null)
+
+    const confirmed = window.confirm(`Delete team \"${team.name}\"? This cannot be undone.`)
+    if (!confirmed) return
+
+    setDeletingTeamId(team.id)
+    try {
+      const response = await fetch(`/api/settings/teams/${team.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setActionError(payload?.error?.message || 'Failed to delete team')
+        return
+      }
+
+      setTeams((previous) => previous.filter((item) => item.id !== team.id))
+    } catch (error) {
+      console.error('Failed to delete team:', error)
+      setActionError('Failed to delete team')
+    } finally {
+      setDeletingTeamId(null)
     }
   }
 
@@ -61,6 +142,12 @@ export default function TeamsTab() {
           Create Team
         </button>
       </div>
+
+      {actionError && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-6 animate-pulse">
@@ -106,12 +193,15 @@ export default function TeamsTab() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
                     title="Edit team"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
+                    onClick={() => handleDeleteTeam(team)}
+                    disabled={deletingTeamId === team.id}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                     title="Delete team"
                   >
@@ -130,6 +220,83 @@ export default function TeamsTab() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Create Team</h3>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setTeamName('')
+                  setTeamDescription('')
+                  setActionError(null)
+                }}
+                className="rounded p-1 text-gray-500 hover:bg-gray-100"
+                aria-label="Close create team modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTeam} className="space-y-4">
+              <div>
+                <label htmlFor="team-name" className="mb-1 block text-sm font-medium text-gray-700">
+                  Team name
+                </label>
+                <input
+                  id="team-name"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="e.g. Front Office"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  disabled={createLoading}
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label htmlFor="team-description" className="mb-1 block text-sm font-medium text-gray-700">
+                  Description (optional)
+                </label>
+                <textarea
+                  id="team-description"
+                  value={teamDescription}
+                  onChange={(e) => setTeamDescription(e.target.value)}
+                  placeholder="What this team is responsible for"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  rows={3}
+                  disabled={createLoading}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false)
+                    setTeamName('')
+                    setTeamDescription('')
+                    setActionError(null)
+                  }}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  disabled={createLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60"
+                  disabled={createLoading}
+                >
+                  {createLoading ? 'Creating...' : 'Create Team'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
