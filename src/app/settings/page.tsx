@@ -80,12 +80,11 @@ export default function SettingsPage() {
       onLogout={handleLogout}
     >
       <div className="pb-8">
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div className="px-6 sm:px-8 py-5 border-b border-gray-200">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Account Settings</h1>
-          </div>
+        <div className="px-2 sm:px-4 lg:px-6">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Account Settings</h1>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] lg:min-h-[calc(100vh-180px)]">
             <aside className="bg-gray-50 border-b border-gray-200 lg:border-b-0 lg:border-r border-gray-200">
               <div className="p-4 border-b border-gray-200">
                 <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">General Settings</p>
@@ -136,7 +135,7 @@ export default function SettingsPage() {
               </div>
             </aside>
 
-            <section className="p-5 sm:p-7 lg:p-8 bg-white">
+            <section className="p-5 sm:p-7 lg:p-8">
               {activeTab === 'profile' && (
                 <div className="space-y-8">
                   <section>
@@ -234,7 +233,6 @@ export default function SettingsPage() {
 
               {activeTab === 'campus' && <CampusTab />}
             </section>
-          </div>
         </div>
       </div>
     </DashboardLayout>
