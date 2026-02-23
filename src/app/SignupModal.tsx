@@ -16,6 +16,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
 
   // Step 1: School info
   const [schoolName, setSchoolName] = useState('')
+  const [schoolType, setSchoolType] = useState<'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'>('GLOBAL')
   const [slug, setSlug] = useState('')
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
   const [checkingSlug, setCheckingSlug] = useState(false)
@@ -120,6 +121,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: schoolName,
+          schoolType,
           slug,
           adminEmail,
           adminName,
@@ -155,7 +157,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1 transition"
+            className="ui-icon-muted rounded p-1"
             aria-label="Close signup modal"
           >
             <X className="w-6 h-6" aria-hidden="true" />
@@ -190,13 +192,30 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                   value={schoolName}
                   onChange={(e) => setSchoolName(e.target.value)}
                   placeholder="e.g., Mitchell Academy"
-                  className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                  className="ui-input"
                   aria-describedby="school-name-hint"
                   required
                 />
                 <p id="school-name-hint" className="text-xs text-gray-500 mt-1">
                   Enter your school's official name
                 </p>
+              </div>
+
+              <div>
+                <label htmlFor="school-type" className="block text-sm font-medium text-gray-700 mb-2">
+                  School Type
+                </label>
+                <select
+                  id="school-type"
+                  value={schoolType}
+                  onChange={(e) => setSchoolType(e.target.value as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL')}
+                  className="ui-input"
+                >
+                  <option value="ELEMENTARY">Elementary School</option>
+                  <option value="MIDDLE_SCHOOL">Middle School</option>
+                  <option value="HIGH_SCHOOL">High School</option>
+                  <option value="GLOBAL">Global</option>
+                </select>
               </div>
 
               <div>
@@ -210,7 +229,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="e.g., mitchell-academy"
-                    className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-48"
+                    className="ui-input pr-48"
                     aria-describedby="subdomain-hint subdomain-status"
                   />
                   <span className="absolute right-4 top-3 text-gray-500 text-sm pointer-events-none">
@@ -281,7 +300,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                   value={adminName}
                   onChange={(e) => setAdminName(e.target.value)}
                   placeholder="e.g., Sarah Mitchell"
-                  className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                  className="ui-input"
                   required
                 />
               </div>
@@ -296,7 +315,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="e.g., principal@mitchell.edu"
-                  className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                  className="ui-input"
                   required
                 />
               </div>
@@ -311,7 +330,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   placeholder="Min 8 characters"
-                  className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                  className="ui-input"
                   aria-describedby="password-hint"
                   required
                 />
@@ -330,7 +349,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                  className="ui-input"
                   required
                 />
               </div>

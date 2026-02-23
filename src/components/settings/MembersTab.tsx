@@ -8,6 +8,7 @@ interface Member {
   email: string
   firstName: string | null
   lastName: string | null
+  schoolScope: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'
   avatar: string | null
   jobTitle: string | null
   employmentType: string | null
@@ -40,6 +41,7 @@ export default function MembersTab() {
   const [filterRole, setFilterRole] = useState('')
   const [filterTeam, setFilterTeam] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [filterSchoolScope, setFilterSchoolScope] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [createError, setCreateError] = useState('')
@@ -54,6 +56,7 @@ export default function MembersTab() {
     firstName: '',
     lastName: '',
     email: '',
+    schoolScope: 'GLOBAL' as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL',
     phone: '',
     jobTitle: '',
     employmentType: 'FULL_TIME',
@@ -73,7 +76,7 @@ export default function MembersTab() {
 
   useEffect(() => {
     fetchData()
-  }, [filterRole, filterTeam, filterStatus, searchQuery])
+  }, [filterRole, filterTeam, filterStatus, filterSchoolScope, searchQuery])
 
   const fetchData = async () => {
     setLoading(true)
@@ -83,6 +86,7 @@ export default function MembersTab() {
       if (filterRole) params.append('roleId', filterRole)
       if (filterTeam) params.append('teamSlug', filterTeam)
       if (filterStatus) params.append('status', filterStatus)
+      if (filterSchoolScope) params.append('schoolScope', filterSchoolScope)
 
       const [membersRes, teamsRes, rolesRes] = await Promise.all([
         fetch(`/api/settings/users?${params}`, { headers: getAuthHeaders() }),
@@ -115,6 +119,7 @@ export default function MembersTab() {
       firstName: '',
       lastName: '',
       email: '',
+      schoolScope: 'GLOBAL',
       phone: '',
       jobTitle: '',
       employmentType: 'FULL_TIME',
@@ -206,6 +211,7 @@ export default function MembersTab() {
           firstName: selectedMember.firstName,
           lastName: selectedMember.lastName,
           email: selectedMember.email,
+          schoolScope: selectedMember.schoolScope,
           phone: selectedMember.phone,
           jobTitle: selectedMember.jobTitle,
           employmentType: selectedMember.employmentType,
@@ -275,6 +281,10 @@ export default function MembersTab() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
   }
 
+  const formatSchoolScope = (scope: Member['schoolScope']) => {
+    return scope.replace('_', ' ')
+  }
+
   const getMemberTeams = (teamIds: string[]) => {
     return teamIds
       .map(slug => teams.find(t => t.slug === slug)?.name || slug)
@@ -313,14 +323,14 @@ export default function MembersTab() {
             placeholder="Search members"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="settings-search-input"
           />
         </div>
         
         <select
           value={filterTeam}
           onChange={(e) => setFilterTeam(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="ui-select"
         >
           <option value="">All Teams</option>
           {teams.map(team => (
@@ -331,7 +341,7 @@ export default function MembersTab() {
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="ui-select"
         >
           <option value="">All Roles</option>
           {roles.map(role => (
@@ -342,12 +352,24 @@ export default function MembersTab() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="ui-select"
         >
           <option value="">All Status</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
           <option value="PENDING">Pending</option>
+        </select>
+
+        <select
+          value={filterSchoolScope}
+          onChange={(e) => setFilterSchoolScope(e.target.value)}
+          className="ui-select"
+        >
+          <option value="">All Scopes</option>
+          <option value="ELEMENTARY">Elementary School</option>
+          <option value="MIDDLE_SCHOOL">Middle School</option>
+          <option value="HIGH_SCHOOL">High School</option>
+          <option value="GLOBAL">Global</option>
         </select>
       </div>
 
@@ -395,7 +417,7 @@ export default function MembersTab() {
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
                   {member.status === 'ACTIVE' ? '✓ Active' : member.status}
                 </span>
-                <button className="text-gray-400 hover:text-gray-600">
+                <button className="ui-icon-muted">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
@@ -433,6 +455,9 @@ export default function MembersTab() {
                     {member.employmentType.replace('_', ' ')}
                   </span>
                 )}
+                <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
+                  {formatSchoolScope(member.schoolScope)}
+                </span>
               </div>
 
               {/* Contact Info */}
@@ -506,6 +531,17 @@ export default function MembersTab() {
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
+
+            <select
+              value={form.schoolScope}
+              onChange={(e) => setForm((prev) => ({ ...prev, schoolScope: e.target.value as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="ELEMENTARY">Elementary School</option>
+              <option value="MIDDLE_SCHOOL">Middle School</option>
+              <option value="HIGH_SCHOOL">High School</option>
+              <option value="GLOBAL">Global</option>
+            </select>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <select
@@ -628,6 +664,17 @@ export default function MembersTab() {
                   placeholder="Job title"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
+
+                <select
+                  value={selectedMember.schoolScope}
+                  onChange={(e) => setSelectedMember({ ...selectedMember, schoolScope: e.target.value as Member['schoolScope'] })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="ELEMENTARY">Elementary School</option>
+                  <option value="MIDDLE_SCHOOL">Middle School</option>
+                  <option value="HIGH_SCHOOL">High School</option>
+                  <option value="GLOBAL">Global</option>
+                </select>
 
                 <div className="grid grid-cols-2 gap-3">
                   <select

@@ -33,6 +33,7 @@ export const SlugSchema = z
  */
 export const CreateOrganizationSchema = z.object({
   name: z.string().min(2, 'School name must be at least 2 characters').max(100),
+  schoolType: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).default('GLOBAL'),
   slug: SlugSchema,
   adminEmail: z.string().email('Invalid email address'),
   adminName: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -116,6 +117,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
   const result = await rawPrisma.organization.create({
     data: {
       name: validated.name,
+      schoolType: validated.schoolType,
       slug: validated.slug.toLowerCase(),
       users: {
         create: {

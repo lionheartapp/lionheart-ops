@@ -88,7 +88,7 @@ export default function DetailDrawer({
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-2 min-h-[44px] min-w-[44px] rounded-lg flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            className="ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg flex-shrink-0"
             aria-label="Close drawer"
           >
             <X className="w-6 h-6" aria-hidden="true" />

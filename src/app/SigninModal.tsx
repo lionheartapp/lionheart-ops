@@ -54,7 +54,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1 transition"
+            className="ui-icon-muted rounded p-1"
             aria-label="Close sign in modal"
           >
             <X className="w-6 h-6" aria-hidden="true" />
@@ -88,7 +88,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-48"
+                  className="ui-input pr-48"
                   aria-describedby="subdomain-hint"
                   required
                 />

@@ -93,7 +93,11 @@ export default async function LoginPage() {
               </p>
             </div>
 
-            <LoginForm organizationId={branding.id} organizationName={branding.name} />
+            <LoginForm
+              organizationId={branding.id}
+              organizationName={branding.name}
+              organizationLogoUrl={branding.logoUrl || undefined}
+            />
           </div>
         </div>
       </div>

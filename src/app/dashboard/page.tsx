@@ -17,6 +17,13 @@ export default function DashboardPage() {
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
   const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user-email') : null
+  const userAvatar = typeof window !== 'undefined' ? localStorage.getItem('user-avatar') : null
+  const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
+  const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
+  const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
+  const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
+  const orgLogoUrl = typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
 
   useEffect(() => {
     setIsClient(true)
@@ -30,6 +37,13 @@ export default function DashboardPage() {
     localStorage.removeItem('org-id')
     localStorage.removeItem('user-name')
     localStorage.removeItem('user-email')
+    localStorage.removeItem('user-avatar')
+    localStorage.removeItem('user-team')
+    localStorage.removeItem('user-school-scope')
+    localStorage.removeItem('user-role')
+    localStorage.removeItem('org-name')
+    localStorage.removeItem('org-school-type')
+    localStorage.removeItem('org-logo-url')
     router.push('/login')
   }
 
@@ -102,6 +116,11 @@ export default function DashboardPage() {
     <DashboardLayout
       userName={userName || 'User'}
       userEmail={userEmail || 'user@school.edu'}
+      userAvatar={userAvatar || undefined}
+      organizationName={orgName || 'School'}
+      organizationLogoUrl={orgLogoUrl || undefined}
+      schoolLabel={userSchoolScope || orgSchoolType || orgName || 'School'}
+      teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
       {/* Greeting Section */}
@@ -139,7 +158,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 transition">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
-            <button className="text-gray-400 hover:text-gray-600 p-2 min-h-[44px] min-w-[44px] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <button className="ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg">
               ⋯
             </button>
           </div>
@@ -219,7 +238,7 @@ export default function DashboardPage() {
             </label>
             <select
               id="request-type"
-              className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="ui-input"
             >
               <option>IT Request</option>
               <option>Maintenance Request</option>

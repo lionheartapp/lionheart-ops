@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     const roleId = searchParams.get('roleId') || ''
     const teamSlug = searchParams.get('teamSlug') || ''
     const status = searchParams.get('status') || ''
+    const schoolScope = searchParams.get('schoolScope') || ''
 
     return await runWithOrgContext(orgId, async () => {
       const where: any = {
@@ -55,6 +56,11 @@ export async function GET(req: NextRequest) {
         where.status = status
       }
 
+      // Filter by school scope
+      if (schoolScope) {
+        where.schoolScope = schoolScope
+      }
+
       const users = await prisma.user.findMany({
         where,
         select: {
@@ -64,6 +70,7 @@ export async function GET(req: NextRequest) {
           lastName: true,
           avatar: true,
           jobTitle: true,
+          schoolScope: true,
           employmentType: true,
           phone: true,
           status: true,
@@ -121,6 +128,11 @@ export async function POST(req: NextRequest) {
       const employmentType = allowedEmploymentTypes.includes(rawEmploymentType as (typeof allowedEmploymentTypes)[number])
         ? (rawEmploymentType as (typeof allowedEmploymentTypes)[number])
         : null
+      const rawSchoolScope = body.schoolScope ? String(body.schoolScope) : null
+      const allowedSchoolScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
+      const schoolScope = allowedSchoolScopes.includes(rawSchoolScope as (typeof allowedSchoolScopes)[number])
+        ? (rawSchoolScope as (typeof allowedSchoolScopes)[number])
+        : 'GLOBAL'
       const provisioningMode = body.provisioningMode === 'INVITE_ONLY' ? 'INVITE_ONLY' : 'ADMIN_CREATE'
 
       if (!email || !firstName || !lastName || !roleId) {
@@ -173,6 +185,7 @@ export async function POST(req: NextRequest) {
           name: `${firstName} ${lastName}`.trim(),
           phone,
           jobTitle,
+          schoolScope,
           employmentType,
           passwordHash,
           roleId,

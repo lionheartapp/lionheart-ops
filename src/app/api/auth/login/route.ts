@@ -16,7 +16,16 @@ export async function POST(req: NextRequest) {
   }
 
   return await runWithOrgContext(organizationId, async () => {
-    const user = await prisma.user.findFirst({ where: { email } })
+    const user = await prisma.user.findFirst({
+      where: { email },
+      include: {
+        userRole: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    })
     if (!user) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Invalid credentials'), { status: 401 })
     }
@@ -39,6 +48,45 @@ export async function POST(req: NextRequest) {
       email: user.email,
     })
 
-    return NextResponse.json(ok({ token, organizationId, user: { id: user.id, email: user.email, name: user.name } }))
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        name: true,
+        logoUrl: true,
+        schoolType: true,
+      },
+    })
+
+    const teams = user.teamIds.length
+      ? await prisma.team.findMany({
+          where: {
+            organizationId,
+            slug: {
+              in: user.teamIds,
+            },
+          },
+          select: {
+            name: true,
+          },
+          take: 1,
+        })
+      : []
+
+    return NextResponse.json(
+      ok({
+        token,
+        organizationId,
+        organization,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          schoolScope: user.schoolScope,
+          role: user.userRole?.name || null,
+          team: teams[0]?.name || null,
+        },
+      })
+    )
   })
 }

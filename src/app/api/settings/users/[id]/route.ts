@@ -31,6 +31,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
           email: true,
           firstName: true,
           lastName: true,
+          schoolScope: true,
           avatar: true,
           jobTitle: true,
           employmentType: true,
@@ -117,6 +118,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       const email = body.email ? String(body.email).trim().toLowerCase() : undefined
       const firstName = body.firstName !== undefined ? String(body.firstName).trim() : undefined
       const lastName = body.lastName !== undefined ? String(body.lastName).trim() : undefined
+      const allowedSchoolScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
+      const schoolScope = allowedSchoolScopes.includes(body.schoolScope)
+        ? body.schoolScope
+        : undefined
 
       const updated = await prisma.user.update({
         where: { id },
@@ -129,6 +134,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
             : {}),
           ...(body.phone !== undefined ? { phone: body.phone ? String(body.phone).trim() : null } : {}),
           ...(body.jobTitle !== undefined ? { jobTitle: body.jobTitle ? String(body.jobTitle).trim() : null } : {}),
+          ...(schoolScope !== undefined ? { schoolScope } : {}),
           ...(body.employmentType !== undefined ? { employmentType: body.employmentType || null } : {}),
           ...(body.roleId !== undefined ? { roleId: body.roleId || null } : {}),
           ...(body.teamIds !== undefined
@@ -141,6 +147,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           email: true,
           firstName: true,
           lastName: true,
+          schoolScope: true,
           avatar: true,
           jobTitle: true,
           employmentType: true,

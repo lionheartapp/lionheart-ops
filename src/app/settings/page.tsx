@@ -18,6 +18,13 @@ export default function SettingsPage() {
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
   const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user-email') : null
+  const userAvatar = typeof window !== 'undefined' ? localStorage.getItem('user-avatar') : null
+  const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
+  const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
+  const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
+  const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
+  const orgLogoUrl = typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
 
   useEffect(() => {
     setIsClient(true)
@@ -31,6 +38,13 @@ export default function SettingsPage() {
     localStorage.removeItem('org-id')
     localStorage.removeItem('user-name')
     localStorage.removeItem('user-email')
+    localStorage.removeItem('user-avatar')
+    localStorage.removeItem('user-team')
+    localStorage.removeItem('user-school-scope')
+    localStorage.removeItem('user-role')
+    localStorage.removeItem('org-name')
+    localStorage.removeItem('org-school-type')
+    localStorage.removeItem('org-logo-url')
     router.push('/login')
   }
 
@@ -53,6 +67,11 @@ export default function SettingsPage() {
     <DashboardLayout
       userName={userName || 'User'}
       userEmail={userEmail || 'user@school.edu'}
+      userAvatar={userAvatar || undefined}
+      organizationName={orgName || 'School'}
+      organizationLogoUrl={orgLogoUrl || undefined}
+      schoolLabel={userSchoolScope || orgSchoolType || orgName || 'School'}
+      teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
       <div className="space-y-6">
@@ -104,7 +123,7 @@ export default function SettingsPage() {
                     <input
                       id="name"
                       type="text"
-                      className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      className="ui-input"
                       placeholder="Your name"
                     />
                   </div>
@@ -115,7 +134,7 @@ export default function SettingsPage() {
                     <input
                       id="email"
                       type="email"
-                      className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      className="ui-input"
                       placeholder="your.email@school.edu"
                     />
                   </div>
@@ -138,7 +157,7 @@ export default function SettingsPage() {
                     <input
                       id="current-password"
                       type="password"
-                      className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      className="ui-input"
                     />
                   </div>
                   <div>
@@ -148,7 +167,7 @@ export default function SettingsPage() {
                     <input
                       id="new-password"
                       type="password"
-                      className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      className="ui-input"
                     />
                   </div>
                   <div>
@@ -158,7 +177,7 @@ export default function SettingsPage() {
                     <input
                       id="confirm-password"
                       type="password"
-                      className="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      className="ui-input"
                     />
                   </div>
                   <button

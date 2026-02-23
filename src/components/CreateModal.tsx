@@ -74,7 +74,7 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-2 min-h-[44px] min-w-[44px] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            className="ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg"
             aria-label="Close modal"
           >
             <X className="w-6 h-6" aria-hidden="true" />
