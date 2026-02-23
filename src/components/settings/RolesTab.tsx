@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { Shield, Plus, Edit2, Trash2, Check, X } from 'lucide-react'
-import { PERMISSIONS } from '@/lib/permissions'
 
 interface Role {
   id: string
@@ -15,23 +14,14 @@ interface Role {
   }
 }
 
-interface Permission {
-  resource: string
-  action: string
-  scope: string
-  description?: string
-}
-
 export default function RolesTab() {
   const [roles, setRoles] = useState<Role[]>([])
-  const [permissions, setPermissions] = useState<Permission[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
 
   useEffect(() => {
     loadRoles()
-    loadPermissions()
   }, [])
 
   const loadRoles = async () => {
@@ -54,27 +44,6 @@ export default function RolesTab() {
       console.error('Failed to load roles:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const loadPermissions = async () => {
-    try {
-      const token = localStorage.getItem('auth-token')
-      const orgId = localStorage.getItem('org-id')
-      
-      const response = await fetch('/api/settings/permissions', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Organization-ID': orgId || '',
-        },
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setPermissions(data.data || [])
-      }
-    } catch (error) {
-      console.error('Failed to load permissions:', error)
     }
   }
 

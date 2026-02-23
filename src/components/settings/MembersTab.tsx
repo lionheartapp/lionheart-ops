@@ -37,7 +37,10 @@ export default function MembersTab() {
   const [teams, setTeams] = useState<Team[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
+  const [metadataLoading, setMetadataLoading] = useState(true)
+  const [hasLoadedMembers, setHasLoadedMembers] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [filterRole, setFilterRole] = useState('')
   const [filterTeam, setFilterTeam] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -75,29 +78,20 @@ export default function MembersTab() {
   }
 
   useEffect(() => {
-    fetchData()
-  }, [filterRole, filterTeam, filterStatus, filterSchoolScope, searchQuery])
+    const timeout = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300)
 
-  const fetchData = async () => {
-    setLoading(true)
+    return () => clearTimeout(timeout)
+  }, [searchQuery])
+
+  const fetchMetadata = async () => {
     try {
-      const params = new URLSearchParams()
-      if (searchQuery) params.append('search', searchQuery)
-      if (filterRole) params.append('roleId', filterRole)
-      if (filterTeam) params.append('teamSlug', filterTeam)
-      if (filterStatus) params.append('status', filterStatus)
-      if (filterSchoolScope) params.append('schoolScope', filterSchoolScope)
-
-      const [membersRes, teamsRes, rolesRes] = await Promise.all([
-        fetch(`/api/settings/users?${params}`, { headers: getAuthHeaders() }),
+      const [teamsRes, rolesRes] = await Promise.all([
         fetch('/api/settings/teams', { headers: getAuthHeaders() }),
         fetch('/api/settings/roles', { headers: getAuthHeaders() }),
       ])
 
-      if (membersRes.ok) {
-        const data = await membersRes.json()
-        setMembers(data.data || [])
-      }
       if (teamsRes.ok) {
         const data = await teamsRes.json()
         setTeams(data.data || [])
@@ -107,11 +101,46 @@ export default function MembersTab() {
         setRoles(data.data || [])
       }
     } catch (error) {
-      console.error('Failed to fetch data:', error)
+      console.error('Failed to fetch metadata:', error)
     } finally {
-      setLoading(false)
+      setMetadataLoading(false)
     }
   }
+
+  const fetchMembers = async () => {
+    if (!hasLoadedMembers) {
+      setLoading(true)
+    }
+
+    try {
+      const params = new URLSearchParams()
+      if (debouncedSearchQuery) params.append('search', debouncedSearchQuery)
+      if (filterRole) params.append('roleId', filterRole)
+      if (filterTeam) params.append('teamSlug', filterTeam)
+      if (filterStatus) params.append('status', filterStatus)
+      if (filterSchoolScope) params.append('schoolScope', filterSchoolScope)
+
+      const membersRes = await fetch(`/api/settings/users?${params}`, { headers: getAuthHeaders() })
+
+      if (membersRes.ok) {
+        const data = await membersRes.json()
+        setMembers(data.data || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch members:', error)
+    } finally {
+      setLoading(false)
+      setHasLoadedMembers(true)
+    }
+  }
+
+  useEffect(() => {
+    fetchMetadata()
+  }, [])
+
+  useEffect(() => {
+    fetchMembers()
+  }, [filterRole, filterTeam, filterStatus, filterSchoolScope, debouncedSearchQuery])
 
   const openCreateModal = () => {
     setCreateError('')
@@ -169,7 +198,7 @@ export default function MembersTab() {
       }
 
       setIsCreateOpen(false)
-      await fetchData()
+      await fetchMembers()
     } catch {
       setCreateError('Failed to create member')
     } finally {
@@ -228,7 +257,7 @@ export default function MembersTab() {
       }
 
       setSelectedMember(data.data)
-      await fetchData()
+      await fetchMembers()
     } catch {
       setDrawerError('Failed to save member')
     } finally {
@@ -395,7 +424,7 @@ export default function MembersTab() {
       )}
 
       {/* Members Grid */}
-      {loading ? (
+      {(loading || metadataLoading) ? (
         <div className="text-center py-12 text-gray-500">Loading members...</div>
       ) : members.length === 0 ? (
         <div className="text-center py-12">
