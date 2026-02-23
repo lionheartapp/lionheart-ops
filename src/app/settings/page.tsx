@@ -57,11 +57,14 @@ export default function SettingsPage() {
     )
   }
 
-  const tabs = [
-    { id: 'profile' as Tab, label: 'Profile', icon: User },
+  const generalTabs = [
+    { id: 'profile' as Tab, label: 'Account', icon: User },
     { id: 'roles' as Tab, label: 'Roles', icon: Shield },
+  ]
+
+  const workspaceTabs = [
     { id: 'teams' as Tab, label: 'Teams', icon: Users },
-    { id: 'users' as Tab, label: 'Users', icon: UserCog },
+    { id: 'users' as Tab, label: 'Members', icon: UserCog },
     { id: 'campus' as Tab, label: 'Campus', icon: Building2 },
   ]
 
@@ -76,116 +79,150 @@ export default function SettingsPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <div className="space-y-6 pb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-sm text-gray-600 mt-1">Manage your account and organization</p>
-        </div>
-
+      <div className="pb-8">
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="px-6 sm:px-8 py-5 border-b border-gray-200">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Account Settings</h1>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
             <aside className="bg-gray-50 border-b border-gray-200 lg:border-b-0 lg:border-r border-gray-200">
               <div className="p-4 border-b border-gray-200">
-                <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">General Settings</p>
+                <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">General Settings</p>
+                <nav className="mt-2 space-y-1" aria-label="General settings sections">
+                  {generalTabs.map((tab) => {
+                    const Icon = tab.icon
+                    const isActive = activeTab === tab.id
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                          isActive
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {tab.label}
+                      </button>
+                    )
+                  })}
+                </nav>
               </div>
-              <nav className="p-3 space-y-1" aria-label="Settings sections">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon
-                  const isActive = activeTab === tab.id
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                        isActive
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {tab.label}
-                    </button>
-                  )
-                })}
-              </nav>
+
+              <div className="p-4">
+                <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">Workspace Settings</p>
+                <nav className="mt-2 space-y-1" aria-label="Workspace settings sections">
+                  {workspaceTabs.map((tab) => {
+                    const Icon = tab.icon
+                    const isActive = activeTab === tab.id
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                          isActive
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {tab.label}
+                      </button>
+                    )
+                  })}
+                </nav>
+              </div>
             </aside>
 
-            <section className="p-4 sm:p-6 lg:p-8 bg-white">
+            <section className="p-5 sm:p-7 lg:p-8 bg-white">
               {activeTab === 'profile' && (
-                <div className="rounded-lg border border-gray-200 divide-y divide-gray-200 overflow-hidden">
-                  <div className="p-6 bg-white">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile</h2>
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                          Name
-                        </label>
-                        <input
-                          id="name"
-                          type="text"
-                          className="ui-input"
-                          placeholder="Your name"
-                        />
+                <div className="space-y-8">
+                  <section>
+                    <h2 className="text-3xl font-semibold text-gray-900">My Profile</h2>
+                    <div className="h-px bg-gray-200 mt-4 mb-6" />
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden">
+                        {userAvatar ? (
+                          <img src={userAvatar} alt={userName || 'User'} className="w-14 h-14 rounded-full object-cover" />
+                        ) : (
+                          (userName || 'U').charAt(0).toUpperCase()
+                        )}
                       </div>
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                          Email
-                        </label>
-                        <input
-                          id="email"
-                          type="email"
-                          className="ui-input"
-                          placeholder="your.email@school.edu"
-                        />
+                      <div className="flex flex-wrap gap-3">
+                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition">
+                          + Change Image
+                        </button>
+                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition">
+                          Remove Image
+                        </button>
                       </div>
-                      <button
-                        className="px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                      >
-                        Save Changes
-                      </button>
                     </div>
-                  </div>
 
-                  <div className="p-6 bg-white">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-2">
-                          Current Password
-                        </label>
-                        <input
-                          id="current-password"
-                          type="password"
-                          className="ui-input"
-                        />
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <input id="name" type="text" className="ui-input" defaultValue={(userName || '').split(' ')[0] || ''} />
                       </div>
                       <div>
-                        <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-2">
-                          New Password
-                        </label>
-                        <input
-                          id="new-password"
-                          type="password"
-                          className="ui-input"
-                        />
+                        <label htmlFor="last-name" className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input id="last-name" type="text" className="ui-input" defaultValue={(userName || '').split(' ').slice(1).join(' ')} />
                       </div>
-                      <div>
-                        <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
-                          Confirm New Password
-                        </label>
-                        <input
-                          id="confirm-password"
-                          type="password"
-                          className="ui-input"
-                        />
-                      </div>
-                      <button
-                        className="px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                      >
-                        Update Password
-                      </button>
                     </div>
-                  </div>
+                  </section>
+
+                  <section>
+                    <h3 className="text-3xl font-semibold text-gray-900">Account Security</h3>
+                    <div className="h-px bg-gray-200 mt-4 mb-6" />
+                    <div className="space-y-6">
+                      <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
+                        <div className="flex-1">
+                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                          <input id="email" type="email" className="ui-input" defaultValue={userEmail || ''} />
+                        </div>
+                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                          Change email
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
+                        <div className="flex-1">
+                          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                          <input id="password" type="password" className="ui-input" value="**********" readOnly />
+                        </div>
+                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                          Change password
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="text-3xl font-semibold text-gray-900">Support Access</h3>
+                    <div className="h-px bg-gray-200 mt-4 mb-6" />
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-base font-medium text-gray-900">Log out of all devices</p>
+                          <p className="text-sm text-gray-600">Log out of all other active sessions on other devices besides this one.</p>
+                        </div>
+                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                          Log out
+                        </button>
+                      </div>
+
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-base font-medium text-red-600">Delete my account</p>
+                          <p className="text-sm text-gray-600">Permanently delete the account and remove access from all workspaces.</p>
+                        </div>
+                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-900 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                          Delete Account
+                        </button>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               )}
 
