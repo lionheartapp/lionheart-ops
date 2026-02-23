@@ -5,13 +5,17 @@ import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import CreateModal from '@/components/CreateModal'
 import DetailDrawer from '@/components/DetailDrawer'
-import { Plus, Clock, AlertCircle, CheckCircle } from 'lucide-react'
+import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react'
+
+type RequestType = 'event' | 'smart-event' | 'facilities' | 'it' | null
 
 export default function DashboardPage() {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
+  const [selectedRequestType, setSelectedRequestType] = useState<RequestType>(null)
   
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
@@ -24,6 +28,21 @@ export default function DashboardPage() {
   const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
   const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
   const orgLogoUrl = typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('[aria-expanded]') && !target.closest('.relative')) {
+        setIsCreateDropdownOpen(false)
+      }
+    }
+
+    if (isCreateDropdownOpen) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isCreateDropdownOpen])
 
   useEffect(() => {
     setIsClient(true)
@@ -123,7 +142,7 @@ export default function DashboardPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      {/* Greeting Section with Create Request Button */}
+      {/* Greeting Section with Create Dropdown Button */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-gray-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
@@ -131,14 +150,93 @@ export default function DashboardPage() {
             {getGreeting()}, {userName?.split(' ')[0] || 'there'}
           </h1>
         </div>
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="px-4 sm:px-6 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center gap-2 self-start sm:self-center"
-          aria-label="Create new request"
-        >
-          <Plus className="w-5 h-5" aria-hidden="true" />
-          Create Request
-        </button>
+        <div className="relative self-start sm:self-center">
+          <button
+            onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
+            className="px-4 sm:px-6 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center gap-2"
+            aria-label="Create new request"
+            aria-expanded={isCreateDropdownOpen}
+          >
+            <Plus className="w-5 h-5" aria-hidden="true" />
+            Create
+            <ChevronDown className={`w-4 h-4 transition-transform ${isCreateDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+          </button>
+
+          {/* Create Dropdown Menu */}
+          {isCreateDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-40">
+              {/* Events Section */}
+              <div className="p-3 space-y-2">
+                <button
+                  onClick={() => {
+                    setSelectedRequestType('event')
+                    setIsCreateOpen(true)
+                    setIsCreateDropdownOpen(false)
+                  }}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                >
+                  <span className="text-xl mt-1">📅</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Event</p>
+                    <p className="text-xs text-gray-600">Create a new event</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedRequestType('smart-event')
+                    setIsCreateOpen(true)
+                    setIsCreateDropdownOpen(false)
+                  }}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                >
+                  <span className="text-xl mt-1">✨</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Smart Event</p>
+                    <p className="text-xs text-gray-600">Create with AI</p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="px-3">
+                <div className="h-px bg-gray-200" />
+              </div>
+
+              {/* Support Section */}
+              <div className="p-3 space-y-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-2">Support</p>
+                <button
+                  onClick={() => {
+                    setSelectedRequestType('facilities')
+                    setIsCreateOpen(true)
+                    setIsCreateDropdownOpen(false)
+                  }}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                >
+                  <span className="text-xl mt-1">🏢</span>
+                  <div>
+                    <p className="font-medium text-gray-900">Facilities Request</p>
+                    <p className="text-xs text-gray-600">Submit a facilities request</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedRequestType('it')
+                    setIsCreateOpen(true)
+                    setIsCreateDropdownOpen(false)
+                  }}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                >
+                  <span className="text-xl mt-1">🎧</span>
+                  <div>
+                    <p className="font-medium text-gray-900">IT Request</p>
+                    <p className="text-xs text-gray-600">Submit an IT support request</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Dashboard Panels Grid */}
@@ -214,26 +312,37 @@ export default function DashboardPage() {
       {/* Create Modal */}
       <CreateModal
         isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        title="Create New Request"
+        onClose={() => {
+          setIsCreateOpen(false)
+          setSelectedRequestType(null)
+        }}
+        title={`Create ${selectedRequestType === 'event' ? 'Event' : selectedRequestType === 'smart-event' ? 'Smart Event' : selectedRequestType === 'facilities' ? 'Facilities Request' : selectedRequestType === 'it' ? 'IT Request' : 'Request'}`}
+        requestType={selectedRequestType}
       >
         <div className="space-y-6">
-          <p className="text-gray-600">
-            This is a reusable modal container. Add your form fields here.
-          </p>
-          <div>
-            <label htmlFor="request-type" className="block text-sm font-medium text-gray-700 mb-2">
-              Request Type
-            </label>
-            <select
-              id="request-type"
-              className="ui-input"
-            >
-              <option>IT Request</option>
-              <option>Maintenance Request</option>
-              <option>Facility Request</option>
-            </select>
-          </div>
+          {!selectedRequestType && (
+            <p className="text-gray-600">
+              Please select a request type from the dropdown.
+            </p>
+          )}
+          {selectedRequestType && (
+            <>
+              <p className="text-gray-600">
+                Form fields for {selectedRequestType} request will appear here.
+              </p>
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Describe your request..."
+                  rows={4}
+                />
+              </div>
+            </>
+          )}
           <div className="flex gap-3 pt-4">
             <button
               onClick={() => setIsCreateOpen(false)}

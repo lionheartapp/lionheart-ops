@@ -8,9 +8,10 @@ interface CreateModalProps {
   onClose: () => void
   title: string
   children: ReactNode
+  requestType?: string | null
 }
 
-export default function CreateModal({ isOpen, onClose, title, children }: CreateModalProps) {
+export default function CreateModal({ isOpen, onClose, title, children, requestType }: CreateModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [isAnimating, setIsAnimating] = useState(false)
