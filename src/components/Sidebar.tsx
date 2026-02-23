@@ -37,21 +37,13 @@ export default function Sidebar({
 
   const sidebarContent = (
     <>
-      {/* User Profile Card */}
+      {/* School Logo Card */}
       <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
-            {userAvatar ? (
-              <img src={userAvatar} alt={userName} className="w-10 h-10 rounded-full object-cover" />
-            ) : (
-              userName.charAt(0).toUpperCase()
-            )}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+            DA
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">{userName}</p>
-            <p className="text-xs text-gray-500 truncate">{userEmail}</p>
-          </div>
-          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+          <p className="text-sm font-semibold text-gray-900">Demo Academy</p>
         </div>
       </div>
 
@@ -81,21 +73,8 @@ export default function Sidebar({
         </ul>
       </nav>
 
-      {/* Settings & Logout */}
-      <div className="p-4 border-t border-gray-200 space-y-2">
-        <Link
-          href="/settings"
-          className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            isActive('/settings')
-              ? 'bg-blue-100 text-blue-600 font-medium'
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
-          aria-current={isActive('/settings') ? 'page' : undefined}
-        >
-          <Settings className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-          <span className="text-sm">Settings</span>
-        </Link>
-
+      {/* Logout */}
+      <div className="p-4 border-t border-gray-200">
         {onLogout && (
           <button
             onClick={onLogout}
