@@ -123,32 +123,24 @@ export default function DashboardPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      {/* Greeting Section */}
-      <div className="mb-8">
-        <p className="text-gray-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-          {getGreeting()}, {userName?.split(' ')[0] || 'there'}
-        </h1>
-        <p className="text-lg text-blue-600 font-medium">
-          How can I help you today?
-        </p>
-      </div>
-
-      {/* Quick Action Buttons */}
-      <div className="mb-8 flex flex-wrap gap-3">
+      {/* Greeting Section with Create Request Button */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-gray-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+            {getGreeting()}, {userName?.split(' ')[0] || 'there'}
+          </h1>
+          <p className="text-lg text-blue-600 font-medium">
+            How can I help you today?
+          </p>
+        </div>
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 sm:px-6 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center gap-2"
+          className="px-4 sm:px-6 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center gap-2 self-start sm:self-center"
           aria-label="Create new request"
         >
           <Plus className="w-5 h-5" aria-hidden="true" />
           Create Request
-        </button>
-        <button className="px-4 sm:px-6 py-3 min-h-[44px] border-2 border-cyan-400 text-cyan-600 font-medium rounded-lg hover:bg-cyan-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
-          Get Updates
-        </button>
-        <button className="px-4 sm:px-6 py-3 min-h-[44px] border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
-          Search
         </button>
       </div>
 
