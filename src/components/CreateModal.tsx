@@ -14,6 +14,7 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
   const modalRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [shouldShow, setShouldShow] = useState(false)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -26,6 +27,14 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
       setIsAnimating(true)
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
+      
+      // Trigger animation after component mounts
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setShouldShow(true)
+        })
+      })
+      
       // Focus trap - focus first interactive element
       setTimeout(() => {
         const firstInput = contentRef.current?.querySelector(
@@ -34,6 +43,7 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
         firstInput?.focus()
       }, 100)
     } else {
+      setShouldShow(false)
       document.body.style.overflow = 'unset'
     }
 
@@ -59,7 +69,7 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
       {/* Overlay with backdrop blur */}
       <div
         className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
+          shouldShow ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
         role="presentation"
@@ -69,7 +79,7 @@ export default function CreateModal({ isOpen, onClose, title, children }: Create
       <div
         ref={modalRef}
         className={`fixed inset-x-0 bottom-0 top-20 bg-white rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-500 ease-out z-50 ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
+          shouldShow ? 'translate-y-0' : 'translate-y-full'
         }`}
         onTransitionEnd={handleTransitionEnd}
         role="dialog"
