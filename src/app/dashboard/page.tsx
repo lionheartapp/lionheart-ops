@@ -127,12 +127,9 @@ export default function DashboardPage() {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-gray-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
             {getGreeting()}, {userName?.split(' ')[0] || 'there'}
           </h1>
-          <p className="text-lg text-blue-600 font-medium">
-            How can I help you today?
-          </p>
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}
