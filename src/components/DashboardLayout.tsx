@@ -25,8 +25,8 @@ export default function DashboardLayout({
       />
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
-        <div className="p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 pt-16 lg:pt-0">
+        <div className="py-4 sm:py-6 lg:py-8 px-4 sm:px-10">
           {children}
         </div>
       </main>
