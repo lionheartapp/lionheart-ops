@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import CreateModal from '@/components/CreateModal'
 import DetailDrawer from '@/components/DetailDrawer'
-import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react'
+import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones } from 'lucide-react'
 
 type RequestType = 'event' | 'smart-event' | 'facilities' | 'it' | null
 
@@ -175,7 +175,7 @@ export default function DashboardPage() {
                   }}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
-                  <span className="text-xl mt-1">📅</span>
+                  <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">Event</p>
                     <p className="text-xs text-gray-600">Create a new event</p>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                   }}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
-                  <span className="text-xl mt-1">✨</span>
+                  <Sparkles className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">Smart Event</p>
                     <p className="text-xs text-gray-600">Create with AI</p>
@@ -213,7 +213,7 @@ export default function DashboardPage() {
                   }}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
-                  <span className="text-xl mt-1">🏢</span>
+                  <Building2 className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">Facilities Request</p>
                     <p className="text-xs text-gray-600">Submit a facilities request</p>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
                   }}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
-                  <span className="text-xl mt-1">🎧</span>
+                  <Headphones className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">IT Request</p>
                     <p className="text-xs text-gray-600">Submit an IT support request</p>
