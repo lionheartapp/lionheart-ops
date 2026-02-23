@@ -254,7 +254,7 @@ export default function DashboardPage() {
             {sampleTickets.map((ticket) => (
               <li
                 key={ticket.id}
-                className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition"
+                className="flex items-center gap-4 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition"
                 onClick={() => setIsDetailOpen(true)}
               >
                 <div className="flex-shrink-0">
@@ -290,17 +290,17 @@ export default function DashboardPage() {
             <h3 className="font-bold text-gray-900 mb-4">Quick Links</h3>
             <ul className="space-y-2" role="list">
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                   Pending Approvals
                 </button>
               </li>
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                   Overdue Tasks
                 </button>
               </li>
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                   My Reports
                 </button>
               </li>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
           <div className="flex gap-3 pt-4">
             <button
               onClick={() => setIsCreateOpen(false)}
-              className="flex-1 px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="flex-1 px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             >
               Cancel
             </button>

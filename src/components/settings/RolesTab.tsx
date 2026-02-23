@@ -137,7 +137,7 @@ export default function RolesTab() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSelectedRole(role)}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
                     title="Edit role"
                   >
                     <Edit2 className="w-4 h-4" />

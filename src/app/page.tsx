@@ -74,7 +74,7 @@ export default function Landing() {
             </button>
             <button
               onClick={() => setShowSignin(true)}
-              className="px-6 sm:px-8 py-4 min-h-[44px] border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+              className="px-6 sm:px-8 py-4 min-h-[44px] border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-gray-400 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
               aria-label="Sign in to existing account"
             >
               Sign In
@@ -169,7 +169,7 @@ export default function Landing() {
           </p>
           <button
             onClick={() => setShowSignup(true)}
-            className="px-6 sm:px-8 py-4 min-h-[44px] bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 transition inline-flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-4 min-h-[44px] bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 transition inline-flex items-center justify-center gap-2"
             aria-label="Get started free - create account"
           >
             Get Started Free <ChevronRight className="w-5 h-5" aria-hidden="true" />

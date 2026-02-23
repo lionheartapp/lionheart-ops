@@ -424,10 +424,10 @@ export default function CampusTab() {
                   {editingBuildingId === building.id ? (
                     <>
                       <button onClick={() => saveBuilding(building)} className="p-2 text-green-700 hover:bg-green-50 rounded" title="Save"><Save className="w-4 h-4" /></button>
-                      <button onClick={() => { setEditingBuildingId(null); loadData() }} className="p-2 text-gray-600 hover:bg-gray-100 rounded" title="Cancel"><XCircle className="w-4 h-4" /></button>
+                      <button onClick={() => { setEditingBuildingId(null); loadData() }} className="p-2 text-gray-600 hover:bg-blue-50 rounded" title="Cancel"><XCircle className="w-4 h-4" /></button>
                     </>
                   ) : (
-                    <button onClick={() => setEditingBuildingId(building.id)} className="p-2 text-gray-700 hover:bg-gray-100 rounded" title="Edit"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => setEditingBuildingId(building.id)} className="p-2 text-gray-700 hover:bg-blue-50 rounded" title="Edit"><Edit2 className="w-4 h-4" /></button>
                   )}
                   <button onClick={() => requestDeactivate('buildings', building.id, building.name)} className="p-2 text-red-600 hover:bg-red-50 rounded" title="Deactivate"><Trash2 className="w-4 h-4" /></button>
                 </div>
@@ -484,10 +484,10 @@ export default function CampusTab() {
                   {editingAreaId === area.id ? (
                     <>
                       <button onClick={() => saveArea(area)} className="p-2 text-green-700 hover:bg-green-50 rounded" title="Save"><Save className="w-4 h-4" /></button>
-                      <button onClick={() => { setEditingAreaId(null); loadData() }} className="p-2 text-gray-600 hover:bg-gray-100 rounded" title="Cancel"><XCircle className="w-4 h-4" /></button>
+                      <button onClick={() => { setEditingAreaId(null); loadData() }} className="p-2 text-gray-600 hover:bg-blue-50 rounded" title="Cancel"><XCircle className="w-4 h-4" /></button>
                     </>
                   ) : (
-                    <button onClick={() => setEditingAreaId(area.id)} className="p-2 text-gray-700 hover:bg-gray-100 rounded" title="Edit"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => setEditingAreaId(area.id)} className="p-2 text-gray-700 hover:bg-blue-50 rounded" title="Edit"><Edit2 className="w-4 h-4" /></button>
                   )}
                   <button onClick={() => requestDeactivate('areas', area.id, area.name)} className="p-2 text-red-600 hover:bg-red-50 rounded" title="Deactivate"><Trash2 className="w-4 h-4" /></button>
                 </div>
@@ -543,10 +543,10 @@ export default function CampusTab() {
                   {editingRoomId === room.id ? (
                     <>
                       <button onClick={() => saveRoom(room)} className="p-2 text-green-700 hover:bg-green-50 rounded" title="Save"><Save className="w-4 h-4" /></button>
-                      <button onClick={() => { setEditingRoomId(null); loadData() }} className="p-2 text-gray-600 hover:bg-gray-100 rounded" title="Cancel"><XCircle className="w-4 h-4" /></button>
+                      <button onClick={() => { setEditingRoomId(null); loadData() }} className="p-2 text-gray-600 hover:bg-blue-50 rounded" title="Cancel"><XCircle className="w-4 h-4" /></button>
                     </>
                   ) : (
-                    <button onClick={() => setEditingRoomId(room.id)} className="p-2 text-gray-700 hover:bg-gray-100 rounded" title="Edit"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => setEditingRoomId(room.id)} className="p-2 text-gray-700 hover:bg-blue-50 rounded" title="Edit"><Edit2 className="w-4 h-4" /></button>
                   )}
                   <button onClick={() => requestDeactivate('rooms', room.id, room.displayName || room.roomNumber)} className="p-2 text-red-600 hover:bg-red-50 rounded" title="Deactivate"><Trash2 className="w-4 h-4" /></button>
                 </div>
@@ -567,7 +567,7 @@ export default function CampusTab() {
               <button
                 onClick={() => setConfirmDeactivate(null)}
                 disabled={isDeactivating}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-blue-50"
               >
                 Cancel
               </button>

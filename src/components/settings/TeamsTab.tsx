@@ -83,7 +83,7 @@ export default function TeamsTab() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                  className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
                   title="Edit team"
                 >
                   <Edit2 className="w-4 h-4" />

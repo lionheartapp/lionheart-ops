@@ -48,7 +48,7 @@ export default function Sidebar({
                   className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     active
                       ? 'bg-blue-100 text-blue-600 font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-blue-50'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
@@ -70,7 +70,7 @@ export default function Sidebar({
       {/* Mobile Menu Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-40 p-2 min-h-[44px] min-w-[44px] rounded-lg bg-white border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="lg:hidden fixed top-4 left-4 z-40 p-2 min-h-[44px] min-w-[44px] rounded-lg bg-white border border-gray-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
       >

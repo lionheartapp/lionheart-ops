@@ -358,7 +358,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                  className="px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                 >
                   Back
                 </button>
@@ -412,7 +412,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
 
               <button
                 onClick={onClose}
-                className="w-full px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                className="w-full px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
               >
                 Close
               </button>

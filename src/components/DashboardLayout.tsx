@@ -75,7 +75,7 @@ export default function DashboardLayout({
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg transition"
+              className="flex items-center gap-2 p-1 hover:bg-blue-50 rounded-lg transition"
               aria-label="User menu"
               aria-expanded={isDropdownOpen}
             >
@@ -94,7 +94,7 @@ export default function DashboardLayout({
               <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                 <Link
                   href="/settings"
-                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition rounded-t-lg"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 transition rounded-t-lg"
                   onClick={() => setIsDropdownOpen(false)}
                 >
                   Settings
@@ -105,7 +105,7 @@ export default function DashboardLayout({
                       onLogout()
                       setIsDropdownOpen(false)
                     }}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition rounded-b-lg border-t border-gray-100"
+                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 transition rounded-b-lg border-t border-gray-100"
                     aria-label="Log out"
                   >
                     Log Out
