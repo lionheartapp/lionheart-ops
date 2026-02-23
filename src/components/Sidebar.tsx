@@ -92,7 +92,7 @@ export default function Sidebar({
 
       {/* Sidebar Desktop */}
       <aside
-        className={`hidden lg:flex flex-col fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 transition-all duration-300 z-20 ${
+        className={`hidden lg:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-white border-r border-gray-200 transition-all duration-300 z-20 ${
           isExpanded ? 'w-64' : 'w-20'
         }`}
         aria-label="Sidebar navigation"
@@ -102,7 +102,7 @@ export default function Sidebar({
 
       {/* Sidebar Mobile */}
       <aside
-        className={`lg:hidden fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 z-30 ${
+        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 z-30 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="navigation"
