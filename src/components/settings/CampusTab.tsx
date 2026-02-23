@@ -394,7 +394,7 @@ export default function CampusTab() {
 
       {activeView === 'buildings' && (
         <div className="space-y-4">
-          <form onSubmit={createBuilding} className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-lg p-4">
+          <form onSubmit={createBuilding} className="grid grid-cols-1 md:grid-cols-4 gap-3 pb-4 border-b border-gray-200">
             <input className="ui-input" placeholder="Building name" value={buildingForm.name} onChange={(event) => setBuildingForm((prev) => ({ ...prev, name: event.target.value }))} required />
             <input className="ui-input" placeholder="Code (optional)" value={buildingForm.code} onChange={(event) => setBuildingForm((prev) => ({ ...prev, code: event.target.value }))} />
             <select className="ui-select" value={buildingForm.schoolDivision} onChange={(event) => setBuildingForm((prev) => ({ ...prev, schoolDivision: event.target.value }))}>
@@ -406,9 +406,9 @@ export default function CampusTab() {
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add Building</button>
           </form>
 
-          <div className="space-y-2">
+          <div>
             {buildings.map((building) => (
-              <div key={building.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center bg-white border border-gray-200 rounded-lg p-3">
+              <div key={building.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center py-3 border-b border-gray-200">
                 <input className="ui-input" disabled={editingBuildingId !== building.id} value={building.name} onChange={(event) => setBuildings((prev) => prev.map((entry) => entry.id === building.id ? { ...entry, name: event.target.value } : entry))} />
                 <input className="ui-input" disabled={editingBuildingId !== building.id} value={building.code || ''} onChange={(event) => setBuildings((prev) => prev.map((entry) => entry.id === building.id ? { ...entry, code: event.target.value || null } : entry))} />
                 <select className="ui-select" disabled={editingBuildingId !== building.id} value={building.schoolDivision} onChange={(event) => setBuildings((prev) => prev.map((entry) => entry.id === building.id ? { ...entry, schoolDivision: event.target.value as Building['schoolDivision'] } : entry))}>
@@ -439,7 +439,7 @@ export default function CampusTab() {
 
       {activeView === 'areas' && (
         <div className="space-y-4">
-          <form onSubmit={createArea} className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-lg p-4">
+          <form onSubmit={createArea} className="grid grid-cols-1 md:grid-cols-4 gap-3 pb-4 border-b border-gray-200">
             <input className="ui-input" placeholder="Area name" value={areaForm.name} onChange={(event) => setAreaForm((prev) => ({ ...prev, name: event.target.value }))} required />
             <select className="ui-select" value={areaForm.areaType} onChange={(event) => setAreaForm((prev) => ({ ...prev, areaType: event.target.value }))}>
               <option value="OTHER">Other</option>
@@ -458,9 +458,9 @@ export default function CampusTab() {
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add Area</button>
           </form>
 
-          <div className="space-y-2">
+          <div>
             {areas.map((area) => (
-              <div key={area.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center bg-white border border-gray-200 rounded-lg p-3">
+              <div key={area.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center py-3 border-b border-gray-200">
                 <input className="ui-input" disabled={editingAreaId !== area.id} value={area.name} onChange={(event) => setAreas((prev) => prev.map((entry) => entry.id === area.id ? { ...entry, name: event.target.value } : entry))} />
                 <select className="ui-select" disabled={editingAreaId !== area.id} value={area.areaType} onChange={(event) => setAreas((prev) => prev.map((entry) => entry.id === area.id ? { ...entry, areaType: event.target.value as Area['areaType'] } : entry))}>
                   <option value="OTHER">Other</option>
@@ -499,7 +499,7 @@ export default function CampusTab() {
 
       {activeView === 'rooms' && (
         <div className="space-y-4">
-          <form onSubmit={createRoom} className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-white border border-gray-200 rounded-lg p-4">
+          <form onSubmit={createRoom} className="grid grid-cols-1 md:grid-cols-6 gap-3 pb-4 border-b border-gray-200">
             <select className="ui-select" value={roomForm.buildingId} onChange={(event) => setRoomForm((prev) => ({ ...prev, buildingId: event.target.value }))} required>
               <option value="">Select building</option>
               {activeBuildings.map((building) => (
@@ -518,9 +518,9 @@ export default function CampusTab() {
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add Room</button>
           </form>
 
-          <div className="space-y-2">
+          <div>
             {rooms.map((room) => (
-              <div key={room.id} className="grid grid-cols-1 md:grid-cols-8 gap-2 items-center bg-white border border-gray-200 rounded-lg p-3">
+              <div key={room.id} className="grid grid-cols-1 md:grid-cols-8 gap-2 items-center py-3 border-b border-gray-200">
                 <select className="ui-select" disabled={editingRoomId !== room.id} value={room.buildingId} onChange={(event) => setRooms((prev) => prev.map((entry) => entry.id === room.id ? { ...entry, buildingId: event.target.value } : entry))}>
                   {activeBuildings.map((building) => (
                     <option key={building.id} value={building.id}>{building.name}</option>

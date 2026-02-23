@@ -70,12 +70,12 @@ export default function TeamsTab() {
         </button>
       </div>
 
-      {/* Teams Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Teams List */}
+      <div className="divide-y divide-gray-200 border-y border-gray-200">
         {teams.map((team) => (
           <div
             key={team.id}
-            className="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition"
+            className="py-5"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="p-3 bg-purple-50 rounded-lg">
@@ -110,7 +110,7 @@ export default function TeamsTab() {
       </div>
 
       {teams.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-md">
           <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 mb-4">No teams found</p>
           <button

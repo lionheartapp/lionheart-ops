@@ -104,11 +104,11 @@ export default function RolesTab() {
       </div>
 
       {/* Roles List */}
-      <div className="grid gap-4">
+      <div className="divide-y divide-gray-200 border-y border-gray-200">
         {roles.map((role) => (
           <div
             key={role.id}
-            className="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition"
+            className="py-5"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
@@ -156,7 +156,7 @@ export default function RolesTab() {
       </div>
 
       {roles.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-md">
           <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 mb-4">No roles found</p>
           <button
