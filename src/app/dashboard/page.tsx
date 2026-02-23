@@ -173,7 +173,7 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
                   <span className="text-xl mt-1">📅</span>
                   <div>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
                   <span className="text-xl mt-1">✨</span>
                   <div>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
                   <span className="text-xl mt-1">🏢</span>
                   <div>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
                 >
                   <span className="text-xl mt-1">🎧</span>
                   <div>
