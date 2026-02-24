@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Plus, Edit2, Trash2, X } from 'lucide-react'
 import type { School } from '@prisma/client'
 
@@ -33,6 +34,11 @@ export default function SchoolsManagement() {
   const [form, setForm] = useState<SchoolFormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const getAuthHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
@@ -283,125 +289,128 @@ export default function SchoolsManagement() {
         </table>
       </div>
 
-      {/* School Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {editingId ? 'Edit School' : 'Add New School'}
-              </h3>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                disabled={saving}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveSchool} className="space-y-4">
-              {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {error}
+      {/* School Modal - Rendered via portal to avoid nesting in parent form */}
+      {showModal && mounted
+        ? createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {editingId ? 'Edit School' : 'Add New School'}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    disabled={saving}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  School Name
-                </label>
-                <input
-                  className="ui-input"
-                  value={form.name}
-                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                  required
-                />
-              </div>
+                <form onSubmit={handleSaveSchool} className="space-y-4">
+                  {error && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Grade Level
-                </label>
-                <select
-                  className="ui-select w-full"
-                  value={form.gradeLevel}
-                  onChange={(e) => setForm((prev) => ({ ...prev, gradeLevel: e.target.value as any }))}
-                >
-                  <option value="ELEMENTARY">Elementary</option>
-                  <option value="MIDDLE_SCHOOL">Middle School</option>
-                  <option value="HIGH_SCHOOL">High School</option>
-                </select>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      School Name
+                    </label>
+                    <input
+                      className="ui-input"
+                      value={form.name}
+                      onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                      required
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Principal Name
-                </label>
-                <input
-                  className="ui-input"
-                  value={form.principalName}
-                  onChange={(e) => setForm((prev) => ({ ...prev, principalName: e.target.value }))}
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Grade Level
+                    </label>
+                    <select
+                      className="ui-select w-full"
+                      value={form.gradeLevel}
+                      onChange={(e) => setForm((prev) => ({ ...prev, gradeLevel: e.target.value as any }))}
+                    >
+                      <option value="ELEMENTARY">Elementary</option>
+                      <option value="MIDDLE_SCHOOL">Middle School</option>
+                      <option value="HIGH_SCHOOL">High School</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Principal Email
-                </label>
-                <input
-                  className="ui-input"
-                  type="email"
-                  value={form.principalEmail}
-                  onChange={(e) => setForm((prev) => ({ ...prev, principalEmail: e.target.value }))}
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Principal Name
+                    </label>
+                    <input
+                      className="ui-input"
+                      value={form.principalName}
+                      onChange={(e) => setForm((prev) => ({ ...prev, principalName: e.target.value }))}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Principal Phone
-                  </label>
-                  <input
-                    className="ui-input"
-                    value={form.principalPhone}
-                    onChange={(e) => setForm((prev) => ({ ...prev, principalPhone: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Extension
-                  </label>
-                  <input
-                    className="ui-input"
-                    value={form.principalPhoneExt}
-                    onChange={(e) => setForm((prev) => ({ ...prev, principalPhoneExt: e.target.value }))}
-                  />
-                </div>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Principal Email
+                    </label>
+                    <input
+                      className="ui-input"
+                      type="email"
+                      value={form.principalEmail}
+                      onChange={(e) => setForm((prev) => ({ ...prev, principalEmail: e.target.value }))}
+                    />
+                  </div>
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Save'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  disabled={saving}
-                  className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Principal Phone
+                      </label>
+                      <input
+                        className="ui-input"
+                        value={form.principalPhone}
+                        onChange={(e) => setForm((prev) => ({ ...prev, principalPhone: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Extension
+                      </label>
+                      <input
+                        className="ui-input"
+                        value={form.principalPhoneExt}
+                        onChange={(e) => setForm((prev) => ({ ...prev, principalPhoneExt: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                    >
+                      {saving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      disabled={saving}
+                      className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   )
 }
