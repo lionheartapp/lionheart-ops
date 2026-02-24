@@ -45,6 +45,11 @@ export default function SettingsPage() {
   }, [])
 
   const handleAvatarUpload = async (file: File) => {
+    if (!token) {
+      setAvatarError('Authentication token not found. Please refresh the page.')
+      return
+    }
+
     if (!file.type.startsWith('image/')) {
       setAvatarError('Please select an image file')
       return
@@ -60,34 +65,55 @@ export default function SettingsPage() {
 
     try {
       const reader = new FileReader()
+      
       reader.onload = async (e) => {
-        const base64Data = e.target?.result as string
+        try {
+          const base64Data = e.target?.result as string
 
-        const response = await fetch('/api/auth/profile/avatar', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ avatar: base64Data }),
-        })
+          // Create an AbortController with a 30 second timeout
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-        const data = await response.json()
+          try {
+            const response = await fetch('/api/auth/profile/avatar', {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ avatar: base64Data }),
+              signal: controller.signal,
+            })
 
-        if (!response.ok || !data.ok) {
-          throw new Error(data?.error?.message || 'Failed to update avatar')
+            clearTimeout(timeoutId)
+
+            const data = await response.json()
+
+            if (!response.ok || !data.ok) {
+              throw new Error(data?.error?.message || `Failed to update avatar (${response.status})`)
+            }
+
+            // Update localStorage and display state
+            localStorage.setItem('user-avatar', data.data.user.avatar || '')
+            setDisplayAvatar(data.data.user.avatar)
+            
+            // Notify other components of avatar change
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: data.data.user.avatar } }))
+            }
+
+            setAvatarUpdating(false)
+          } catch (fetchErr) {
+            clearTimeout(timeoutId)
+            if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+              throw new Error('Upload timed out. Please try a smaller image or check your connection.')
+            }
+            throw fetchErr
+          }
+        } catch (err) {
+          setAvatarError(err instanceof Error ? err.message : 'Failed to upload image')
+          setAvatarUpdating(false)
         }
-
-        // Update localStorage and display state
-        localStorage.setItem('user-avatar', data.data.user.avatar || '')
-        setDisplayAvatar(data.data.user.avatar)
-        
-        // Notify other components of avatar change
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: data.data.user.avatar } }))
-        }
-
-        setAvatarUpdating(false)
       }
 
       reader.onerror = () => {
@@ -95,43 +121,68 @@ export default function SettingsPage() {
         setAvatarUpdating(false)
       }
 
+      reader.onabort = () => {
+        setAvatarError('File read was cancelled')
+        setAvatarUpdating(false)
+      }
+
       reader.readAsDataURL(file)
     } catch (err) {
-      setAvatarError(err instanceof Error ? err.message : 'Failed to update avatar')
+      setAvatarError(err instanceof Error ? err.message : 'Failed to process file')
       setAvatarUpdating(false)
     }
   }
 
   const handleRemoveAvatar = async () => {
+    if (!token) {
+      setAvatarError('Authentication token not found. Please refresh the page.')
+      return
+    }
+
     setAvatarUpdating(true)
     setAvatarError('')
 
     try {
-      const response = await fetch('/api/auth/profile/avatar', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ avatar: null }),
-      })
+      // Create an AbortController with a 30 second timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-      const data = await response.json()
+      try {
+        const response = await fetch('/api/auth/profile/avatar', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ avatar: null }),
+          signal: controller.signal,
+        })
 
-      if (!response.ok || !data.ok) {
-        throw new Error(data?.error?.message || 'Failed to remove avatar')
+        clearTimeout(timeoutId)
+
+        const data = await response.json()
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data?.error?.message || `Failed to remove avatar (${response.status})`)
+        }
+
+        // Update localStorage and display state
+        localStorage.removeItem('user-avatar')
+        setDisplayAvatar(null)
+        
+        // Notify other components of avatar change
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: null } }))
+        }
+
+        setAvatarUpdating(false)
+      } catch (fetchErr) {
+        clearTimeout(timeoutId)
+        if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your connection.')
+        }
+        throw fetchErr
       }
-
-      // Update localStorage and display state
-      localStorage.removeItem('user-avatar')
-      setDisplayAvatar(null)
-      
-      // Notify other components of avatar change
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: null } }))
-      }
-
-      setAvatarUpdating(false)
     } catch (err) {
       setAvatarError(err instanceof Error ? err.message : 'Failed to remove avatar')
       setAvatarUpdating(false)

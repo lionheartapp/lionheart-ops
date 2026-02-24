@@ -16,6 +16,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
+      console.error('[AVATAR] Missing auth header')
       return NextResponse.json(
         fail('UNAUTHORIZED', 'Missing or invalid authorization header'),
         { status: 401 }
@@ -23,17 +24,43 @@ export async function PATCH(request: NextRequest) {
     }
 
     const token = authHeader.slice(7)
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
-    const userId = payload.sub
-
-    if (!userId) {
+    
+    let userId: string | undefined
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) {
+        throw new Error('Invalid token format')
+      }
+      const padding = '='.repeat((4 - (parts[1].length % 4)) % 4)
+      const payload = JSON.parse(Buffer.from(parts[1] + padding, 'base64').toString())
+      userId = payload.sub
+    } catch (err) {
+      console.error('[AVATAR] Token parsing error:', err)
       return NextResponse.json(
         fail('UNAUTHORIZED', 'Invalid token'),
         { status: 401 }
       )
     }
 
-    const body = await request.json()
+    if (!userId) {
+      console.error('[AVATAR] No userId in token')
+      return NextResponse.json(
+        fail('UNAUTHORIZED', 'Invalid token'),
+        { status: 401 }
+      )
+    }
+
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (err) {
+      console.error('[AVATAR] JSON parse error:', err)
+      return NextResponse.json(
+        fail('INVALID_JSON', 'Invalid JSON in request body'),
+        { status: 400 }
+      )
+    }
+
     const input = AvatarUpdateSchema.parse(body)
 
     // Update user avatar
@@ -50,6 +77,8 @@ export async function PATCH(request: NextRequest) {
       },
     })
 
+    console.log('[AVATAR] Updated avatar for user:', userId)
+
     return NextResponse.json(
       ok({
         user,
@@ -57,22 +86,16 @@ export async function PATCH(request: NextRequest) {
     )
   } catch (err) {
     if (err instanceof z.ZodError) {
+      console.error('[AVATAR] Validation error:', err.issues)
       return NextResponse.json(
         fail('INVALID_INPUT', err.issues[0]?.message || 'Invalid input'),
         { status: 400 }
       )
     }
 
-    if (err instanceof SyntaxError) {
-      return NextResponse.json(
-        fail('INVALID_JSON', 'Invalid JSON'),
-        { status: 400 }
-      )
-    }
-
-    console.error('[AVATAR UPDATE]', err)
+    console.error('[AVATAR UPDATE] Error:', err)
     return NextResponse.json(
-      fail('INTERNAL_SERVER_ERROR', 'Failed to update avatar'),
+      fail('INTERNAL_SERVER_ERROR', err instanceof Error ? err.message : 'Failed to update avatar'),
       { status: 500 }
     )
   }
