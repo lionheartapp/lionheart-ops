@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Plus, MoreVertical, UserCog, X } from 'lucide-react'
+import { Search, Plus, MoreVertical, UserCog, X, Eye, Trash2 } from 'lucide-react'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 interface Member {
   id: string
@@ -55,6 +56,10 @@ export default function MembersTab() {
   const [isSavingDrawer, setIsSavingDrawer] = useState(false)
   const [drawerError, setDrawerError] = useState('')
   const [latestSetupLink, setLatestSetupLink] = useState('')
+  const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(null)
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null)
+  const [isDeletingMember, setIsDeletingMember] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -84,6 +89,33 @@ export default function MembersTab() {
 
     return () => clearTimeout(timeout)
   }, [searchQuery])
+
+  useEffect(() => {
+    if (!openMenuMemberId) return
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as HTMLElement | null
+      if (!target) return
+      if (target.closest(`[data-member-menu-id="${openMenuMemberId}"]`)) return
+      setOpenMenuMemberId(null)
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenMenuMemberId(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [openMenuMemberId])
 
   const fetchMetadata = async () => {
     try {
@@ -274,6 +306,47 @@ export default function MembersTab() {
     }
   }
 
+  const openDeleteDialog = (member: Member) => {
+    setDeleteError('')
+    setOpenMenuMemberId(null)
+    setMemberToDelete(member)
+  }
+
+  const closeDeleteDialog = () => {
+    if (!isDeletingMember) {
+      setMemberToDelete(null)
+      setDeleteError('')
+    }
+  }
+
+  const handleDeleteMember = async () => {
+    if (!memberToDelete) return
+
+    setIsDeletingMember(true)
+    setDeleteError('')
+
+    try {
+      const res = await fetch(`/api/settings/users/${memberToDelete.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok || !data?.ok) {
+        setDeleteError(data?.error?.message || 'Failed to delete member')
+        return
+      }
+
+      setMembers((previous) => previous.filter((member) => member.id !== memberToDelete.id))
+      setMemberToDelete(null)
+      setOpenMenuMemberId(null)
+    } catch {
+      setDeleteError('Failed to delete member')
+    } finally {
+      setIsDeletingMember(false)
+    }
+  }
+
   const toggleTeamInCreate = (slug: string) => {
     setForm((prev) => ({
       ...prev,
@@ -310,8 +383,19 @@ export default function MembersTab() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
   }
 
+  const formatEmploymentType = (value: string | null) => {
+    if (!value) return 'Unspecified'
+    return value
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+  }
+
   const formatSchoolScope = (scope: Member['schoolScope']) => {
-    return scope.replace('_', ' ')
+    return scope
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase())
   }
 
   const getMemberTeams = (teamIds: string[]) => {
@@ -326,30 +410,30 @@ export default function MembersTab() {
     return (first + last).toUpperCase() || '?'
   }
 
+  const getFullName = (member: Member) => {
+    const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim()
+    return fullName || 'Unnamed Member'
+  }
+
   const renderMemberSkeletons = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {Array.from({ length: 8 }).map((_, index) => (
-        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
-          <div className="flex justify-between items-start mb-3">
-            <div className="h-6 w-20 rounded-full bg-gray-200" />
-            <div className="h-6 w-6 rounded bg-gray-200" />
+        <div key={index} className="overflow-hidden rounded-3xl border border-gray-200 bg-white animate-pulse">
+          <div className="relative h-64 bg-gray-200">
+            <div className="absolute left-4 top-4 h-8 w-20 rounded-full bg-white/70" />
+            <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-white/70" />
           </div>
-          <div className="flex flex-col items-center text-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-gray-200 mb-2" />
-            <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
-            <div className="h-3 w-20 bg-gray-200 rounded" />
-          </div>
-          <div className="flex gap-2 justify-center mb-3">
-            <div className="h-5 w-16 bg-gray-200 rounded" />
-            <div className="h-5 w-14 bg-gray-200 rounded" />
-          </div>
-          <div className="space-y-2 mb-3">
-            <div className="h-3 w-full bg-gray-200 rounded" />
-            <div className="h-3 w-3/4 bg-gray-200 rounded" />
-          </div>
-          <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-            <div className="h-3 w-20 bg-gray-200 rounded" />
-            <div className="h-6 w-16 bg-gray-200 rounded" />
+          <div className="space-y-4 p-5">
+            <div className="h-8 w-28 rounded-full bg-gray-200" />
+            <div className="space-y-3">
+              <div className="h-8 w-1/2 rounded bg-gray-200" />
+              <div className="h-6 w-2/3 rounded bg-gray-200" />
+            </div>
+            <div className="h-6 w-3/4 rounded bg-gray-200" />
+            <div className="flex gap-2">
+              <div className="h-7 w-24 rounded-full bg-gray-200" />
+              <div className="h-7 w-24 rounded-full bg-gray-200" />
+            </div>
           </div>
         </div>
       ))}
@@ -359,14 +443,14 @@ export default function MembersTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Members</h2>
           <p className="text-sm text-gray-500 mt-1">Manage members</p>
         </div>
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
+          className="min-h-[44px] px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Add Member
@@ -374,7 +458,7 @@ export default function MembersTab() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -382,14 +466,16 @@ export default function MembersTab() {
             placeholder="Search members"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="settings-search-input"
+            aria-label="Search members"
+            className="settings-search-input h-11"
           />
         </div>
         
         <select
           value={filterTeam}
           onChange={(e) => setFilterTeam(e.target.value)}
-          className="ui-select"
+          aria-label="Filter members by team"
+          className="ui-select min-h-[44px]"
         >
           <option value="">All Teams</option>
           {teams.map(team => (
@@ -400,7 +486,8 @@ export default function MembersTab() {
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
-          className="ui-select"
+          aria-label="Filter members by role"
+          className="ui-select min-h-[44px]"
         >
           <option value="">All Roles</option>
           {roles.map(role => (
@@ -411,7 +498,8 @@ export default function MembersTab() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="ui-select"
+          aria-label="Filter members by status"
+          className="ui-select min-h-[44px]"
         >
           <option value="">All Status</option>
           <option value="ACTIVE">Active</option>
@@ -422,7 +510,8 @@ export default function MembersTab() {
         <select
           value={filterSchoolScope}
           onChange={(e) => setFilterSchoolScope(e.target.value)}
-          className="ui-select"
+          aria-label="Filter members by school scope"
+          className="ui-select min-h-[44px]"
         >
           <option value="">All Scopes</option>
           <option value="ELEMENTARY">Elementary School</option>
@@ -439,17 +528,23 @@ export default function MembersTab() {
           <div className="mt-2 flex gap-2">
             <button
               onClick={() => navigator.clipboard.writeText(latestSetupLink)}
-              className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="min-h-[44px] px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Copy Link
             </button>
             <button
               onClick={() => setLatestSetupLink('')}
-              className="px-3 py-1 text-xs border border-blue-300 text-blue-700 rounded hover:bg-blue-100"
+              className="min-h-[44px] px-3 py-1 text-xs border border-blue-300 text-blue-700 rounded hover:bg-blue-100"
             >
               Dismiss
             </button>
           </div>
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+          <p className="text-sm text-red-700">{deleteError}</p>
         </div>
       )}
 
@@ -460,82 +555,137 @@ export default function MembersTab() {
         <div className="text-center py-12">
           <UserCog className="w-12 h-12 text-gray-400 mx-auto mb-3" />
           <p className="text-gray-500">No members found</p>
-          <button onClick={openCreateModal} className="mt-4 text-blue-600 hover:text-blue-700 font-medium">
+          <button onClick={openCreateModal} className="mt-4 min-h-[44px] px-2 text-blue-600 hover:text-blue-700 font-medium">
             Add your first member
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {members.map((member) => (
             <div
               key={member.id}
-              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="overflow-hidden rounded-3xl border border-gray-200 bg-white"
             >
-              {/* Status Badge & Menu */}
-              <div className="flex justify-between items-start mb-3">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
-                  {member.status === 'ACTIVE' ? '✓ Active' : member.status}
-                </span>
-                <button className="ui-icon-muted">
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Avatar & Name */}
-              <div className="flex flex-col items-center text-center mb-4">
+              <div className="relative h-56 bg-gray-100 sm:h-64">
                 {member.avatar ? (
                   <img
                     src={member.avatar}
-                    alt={`${member.firstName} ${member.lastName}`}
-                    className="w-16 h-16 rounded-full mb-2 object-cover"
+                    alt={getFullName(member)}
+                    className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
-                    <span className="text-xl font-semibold text-gray-600">
+                  <div className="flex h-full w-full items-center justify-center bg-gray-200">
+                    <span className="text-4xl font-semibold text-gray-600 sm:text-5xl">
                       {getInitials(member.firstName, member.lastName)}
                     </span>
                   </div>
                 )}
-                <h3 className="font-semibold text-gray-900">
-                  {member.firstName} {member.lastName}
-                </h3>
-                <p className="text-sm text-blue-600">{member.jobTitle || member.userRole?.name || 'No Role'}</p>
-              </div>
 
-              {/* Employment Info */}
-              <div className="flex flex-wrap gap-1 justify-center mb-3">
-                {member.teamIds.length > 0 && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                    {getMemberTeams(member.teamIds).split(', ')[0]}
+                <div className="absolute left-4 top-4">
+                  <span className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${getStatusColor(member.status)}`}>
+                    {member.status === 'ACTIVE' ? 'Active' : member.status}
                   </span>
-                )}
-                {member.employmentType && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                    {member.employmentType.replace('_', ' ')}
-                  </span>
-                )}
-                <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
-                  {formatSchoolScope(member.schoolScope)}
-                </span>
-              </div>
+                </div>
 
-              {/* Contact Info */}
-              <div className="space-y-1 text-sm text-gray-600 mb-3">
-                <p className="truncate">Email: {member.email}</p>
-                {member.phone && <p>Phone: {member.phone}</p>}
-              </div>
-
-              {/* Footer */}
-              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                <span className="text-xs text-gray-500">
-                  Joint: {formatDate(member.createdAt)}
-                </span>
-                <button
-                  onClick={() => openDetailsDrawer(member.id)}
-                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                <div
+                  data-member-menu-id={member.id}
+                  className="absolute right-4 top-4"
+                  onMouseEnter={() => setOpenMenuMemberId(member.id)}
+                  onMouseLeave={() => setOpenMenuMemberId((current) => (current === member.id ? null : current))}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                      setOpenMenuMemberId((current) => (current === member.id ? null : current))
+                    }
+                  }}
                 >
-                  Details
-                </button>
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={openMenuMemberId === member.id}
+                    aria-label={`Open actions for ${getFullName(member)}`}
+                    onClick={() => setOpenMenuMemberId((current) => (current === member.id ? null : member.id))}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        setOpenMenuMemberId((current) => (current === member.id ? null : member.id))
+                      }
+                    }}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-gray-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 sm:h-12 sm:w-12"
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+
+                  {openMenuMemberId === member.id && (
+                    <div
+                      role="menu"
+                      aria-label={`Actions for ${getFullName(member)}`}
+                      className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setOpenMenuMemberId(null)
+                          openDetailsDrawer(member.id)
+                        }}
+                        className="flex min-h-[44px] w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View Details
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => openDeleteDialog(member)}
+                        className="flex min-h-[44px] w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 focus:bg-red-50 focus:outline-none"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete {member.firstName || 'Member'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4 p-5">
+                <div>
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-1.5 text-sm font-medium text-blue-700">
+                    {formatEmploymentType(member.employmentType)}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
+                    {getFullName(member)}
+                  </h3>
+                  <p className="text-base text-gray-900 break-all sm:text-lg lg:text-2xl">
+                    <span className="font-semibold">Email:</span> {member.email}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
+                    {formatSchoolScope(member.schoolScope)}
+                  </span>
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
+                    {member.jobTitle || member.userRole?.name || 'No Role'}
+                  </span>
+                  {member.teamIds.length > 0 && (
+                    <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
+                      {getMemberTeams(member.teamIds).split(', ')[0]}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                  <span className="text-xs text-gray-500">Joined: {formatDate(member.createdAt)}</span>
+                  <button
+                    onClick={() => openDetailsDrawer(member.id)}
+                    className="min-h-[44px] rounded-lg bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+                  >
+                    Details
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -548,7 +698,7 @@ export default function MembersTab() {
           <form onSubmit={handleCreateMember} className="relative bg-white w-full max-w-xl rounded-lg border border-gray-200 p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Add Member</h3>
-              <button type="button" onClick={closeCreateModal} className="text-gray-500 hover:text-gray-700">
+              <button type="button" onClick={closeCreateModal} className="min-h-[44px] min-w-[44px] text-gray-500 hover:text-gray-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -558,13 +708,15 @@ export default function MembersTab() {
                 value={form.firstName}
                 onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
                 placeholder="First name"
-                className="px-3 py-2 border border-gray-300 rounded-lg"
+                aria-label="First name"
+                className="h-11 px-3 py-2 border border-gray-300 rounded-lg"
               />
               <input
                 value={form.lastName}
                 onChange={(e) => setForm((prev) => ({ ...prev, lastName: e.target.value }))}
                 placeholder="Last name"
-                className="px-3 py-2 border border-gray-300 rounded-lg"
+                aria-label="Last name"
+                className="h-11 px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
@@ -573,7 +725,8 @@ export default function MembersTab() {
               value={form.email}
               onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
               placeholder="Email"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              aria-label="Email"
+              className="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg"
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -581,20 +734,23 @@ export default function MembersTab() {
                 value={form.phone}
                 onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
                 placeholder="Phone (optional)"
-                className="px-3 py-2 border border-gray-300 rounded-lg"
+                aria-label="Phone"
+                className="h-11 px-3 py-2 border border-gray-300 rounded-lg"
               />
               <input
                 value={form.jobTitle}
                 onChange={(e) => setForm((prev) => ({ ...prev, jobTitle: e.target.value }))}
                 placeholder="Job title"
-                className="px-3 py-2 border border-gray-300 rounded-lg"
+                aria-label="Job title"
+                className="h-11 px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
             <select
               value={form.schoolScope}
               onChange={(e) => setForm((prev) => ({ ...prev, schoolScope: e.target.value as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' }))}
-              className="ui-select w-full"
+              aria-label="School scope"
+              className="ui-select w-full min-h-[44px]"
             >
               <option value="ELEMENTARY">Elementary School</option>
               <option value="MIDDLE_SCHOOL">Middle School</option>
@@ -606,7 +762,8 @@ export default function MembersTab() {
               <select
                 value={form.roleId}
                 onChange={(e) => setForm((prev) => ({ ...prev, roleId: e.target.value }))}
-                className="ui-select"
+                aria-label="Role"
+                className="ui-select min-h-[44px]"
               >
                 <option value="">Select Role</option>
                 {roles.map((role) => (
@@ -617,7 +774,8 @@ export default function MembersTab() {
               <select
                 value={form.employmentType}
                 onChange={(e) => setForm((prev) => ({ ...prev, employmentType: e.target.value }))}
-                className="ui-select"
+                aria-label="Employment type"
+                className="ui-select min-h-[44px]"
               >
                 <option value="FULL_TIME">Full Time</option>
                 <option value="PART_TIME">Part Time</option>
@@ -632,7 +790,8 @@ export default function MembersTab() {
               <select
                 value={form.provisioningMode}
                 onChange={(e) => setForm((prev) => ({ ...prev, provisioningMode: e.target.value }))}
-                className="ui-select w-full"
+                aria-label="Provisioning mode"
+                className="ui-select w-full min-h-[44px]"
               >
                 <option value="ADMIN_CREATE">Super Admin Creator (Active immediately)</option>
                 <option value="INVITE_ONLY">Invite-Only / Self-Signup (Pending)</option>
@@ -661,8 +820,8 @@ export default function MembersTab() {
             {createError && <p className="text-sm text-red-600">{createError}</p>}
 
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={closeCreateModal} className="px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
-              <button type="submit" disabled={isCreating} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">
+              <button type="button" onClick={closeCreateModal} className="min-h-[44px] px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
+              <button type="submit" disabled={isCreating} className="min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">
                 {isCreating ? 'Creating...' : 'Create Member'}
               </button>
             </div>
@@ -676,7 +835,7 @@ export default function MembersTab() {
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white border-l border-gray-200 shadow-xl p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Member Details</h3>
-              <button onClick={closeDrawer} className="text-gray-500 hover:text-gray-700">
+              <button onClick={closeDrawer} className="min-h-[44px] min-w-[44px] text-gray-500 hover:text-gray-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -692,13 +851,15 @@ export default function MembersTab() {
                     value={selectedMember.firstName || ''}
                     onChange={(e) => setSelectedMember({ ...selectedMember, firstName: e.target.value })}
                     placeholder="First name"
-                    className="px-3 py-2 border border-gray-300 rounded-lg"
+                    aria-label="First name"
+                    className="h-11 px-3 py-2 border border-gray-300 rounded-lg"
                   />
                   <input
                     value={selectedMember.lastName || ''}
                     onChange={(e) => setSelectedMember({ ...selectedMember, lastName: e.target.value })}
                     placeholder="Last name"
-                    className="px-3 py-2 border border-gray-300 rounded-lg"
+                    aria-label="Last name"
+                    className="h-11 px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
 
@@ -707,27 +868,31 @@ export default function MembersTab() {
                   value={selectedMember.email}
                   onChange={(e) => setSelectedMember({ ...selectedMember, email: e.target.value })}
                   placeholder="Email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-label="Email"
+                  className="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
 
                 <input
                   value={selectedMember.phone || ''}
                   onChange={(e) => setSelectedMember({ ...selectedMember, phone: e.target.value })}
                   placeholder="Phone"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-label="Phone"
+                  className="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
 
                 <input
                   value={selectedMember.jobTitle || ''}
                   onChange={(e) => setSelectedMember({ ...selectedMember, jobTitle: e.target.value })}
                   placeholder="Job title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-label="Job title"
+                  className="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
 
                 <select
                   value={selectedMember.schoolScope}
                   onChange={(e) => setSelectedMember({ ...selectedMember, schoolScope: e.target.value as Member['schoolScope'] })}
-                  className="ui-select w-full"
+                  aria-label="School scope"
+                  className="ui-select w-full min-h-[44px]"
                 >
                   <option value="ELEMENTARY">Elementary School</option>
                   <option value="MIDDLE_SCHOOL">Middle School</option>
@@ -745,7 +910,8 @@ export default function MembersTab() {
                         name: roles.find((role) => role.id === e.target.value)?.name || 'No Role',
                       },
                     })}
-                    className="ui-select"
+                    aria-label="Role"
+                    className="ui-select min-h-[44px]"
                   >
                     <option value="">No Role</option>
                     {roles.map((role) => (
@@ -756,7 +922,8 @@ export default function MembersTab() {
                   <select
                     value={selectedMember.employmentType || 'FULL_TIME'}
                     onChange={(e) => setSelectedMember({ ...selectedMember, employmentType: e.target.value })}
-                    className="ui-select"
+                    aria-label="Employment type"
+                    className="ui-select min-h-[44px]"
                   >
                     <option value="FULL_TIME">Full Time</option>
                     <option value="PART_TIME">Part Time</option>
@@ -769,7 +936,8 @@ export default function MembersTab() {
                 <select
                   value={selectedMember.status}
                   onChange={(e) => setSelectedMember({ ...selectedMember, status: e.target.value as Member['status'] })}
-                  className="ui-select w-full"
+                  aria-label="Status"
+                  className="ui-select w-full min-h-[44px]"
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="INACTIVE">Inactive</option>
@@ -795,11 +963,11 @@ export default function MembersTab() {
                 {drawerError && <p className="text-sm text-red-600">{drawerError}</p>}
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <button onClick={closeDrawer} className="px-4 py-2 border border-gray-300 rounded-lg">Close</button>
+                  <button onClick={closeDrawer} className="min-h-[44px] px-4 py-2 border border-gray-300 rounded-lg">Close</button>
                   <button
                     onClick={handleSaveDrawer}
                     disabled={isSavingDrawer}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+                    className="min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
                   >
                     {isSavingDrawer ? 'Saving...' : 'Save'}
                   </button>
@@ -809,6 +977,17 @@ export default function MembersTab() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={memberToDelete !== null}
+        onClose={closeDeleteDialog}
+        onConfirm={handleDeleteMember}
+        title="Delete Member"
+        message={`Are you sure you want to delete ${memberToDelete?.firstName || 'this member'}? This action cannot be undone.`}
+        confirmText={`Delete ${memberToDelete?.firstName || 'Member'}`}
+        variant="danger"
+        isLoading={isDeletingMember}
+      />
     </div>
   )
 }

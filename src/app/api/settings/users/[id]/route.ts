@@ -178,3 +178,50 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     })
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params
+    const orgId = getOrgIdFromRequest(req)
+    const userContext = await getUserContext(req)
+
+    await assertCan(userContext.userId, PERMISSIONS.USERS_DELETE)
+
+    if (id === userContext.userId) {
+      return NextResponse.json(fail('BAD_REQUEST', 'You cannot delete your own account'), {
+        status: 400,
+      })
+    }
+
+    return await runWithOrgContext(orgId, async () => {
+      const targetUser = await prisma.user.findFirst({
+        where: {
+          id,
+          organizationId: orgId,
+        },
+        select: {
+          id: true,
+        },
+      })
+
+      if (!targetUser) {
+        return NextResponse.json(fail('NOT_FOUND', 'User not found'), { status: 404 })
+      }
+
+      await prisma.user.delete({
+        where: { id },
+      })
+
+      return NextResponse.json(ok({ id }))
+    })
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+
+    console.error('Failed to delete user:', error)
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete user'), {
+      status: 500,
+    })
+  }
+}
