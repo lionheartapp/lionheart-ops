@@ -36,9 +36,13 @@ export default function SchoolsManagement() {
 
   const getAuthHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+    const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
     const headers: Record<string, string> = {}
     if (token) {
       headers.Authorization = `Bearer ${token}`
+    }
+    if (orgId) {
+      headers['x-org-id'] = orgId
     }
     return headers
   }
