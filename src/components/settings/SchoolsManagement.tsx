@@ -86,9 +86,20 @@ export default function SchoolsManagement() {
         body: JSON.stringify(form),
       })
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error('Failed to parse response JSON:', jsonError)
+        throw new Error(`Server error (${response.status}): Failed to parse response`)
+      }
 
-      if (!response.ok || !data.ok) {
+      if (!response.ok) {
+        const errorMessage = data?.error?.message || data?.error || `Server error (${response.status})`
+        throw new Error(errorMessage)
+      }
+
+      if (!data.ok) {
         throw new Error(data?.error?.message || `Failed to ${editingId ? 'update' : 'create'} school`)
       }
 
