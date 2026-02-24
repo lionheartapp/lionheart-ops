@@ -7,9 +7,10 @@ import RolesTab from '@/components/settings/RolesTab'
 import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
 import CampusTab from '@/components/settings/CampusTab'
-import { User, Shield, Users, UserCog, Building2 } from 'lucide-react'
+import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
+import { User, Shield, Users, UserCog, Building2, School } from 'lucide-react'
 
-type Tab = 'profile' | 'roles' | 'teams' | 'users' | 'campus'
+type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -110,6 +111,7 @@ export default function SettingsPage() {
   ]
 
   const workspaceTabs = [
+    { id: 'school-info' as Tab, label: 'School Information', icon: School },
     { id: 'roles' as Tab, label: 'Roles', icon: Shield },
     { id: 'teams' as Tab, label: 'Teams', icon: Users },
     { id: 'users' as Tab, label: 'Members', icon: UserCog },
@@ -276,6 +278,8 @@ export default function SettingsPage() {
               )}
 
               {canManageWorkspace && activeTab === 'roles' && <RolesTab />}
+
+              {canManageWorkspace && activeTab === 'school-info' && <SchoolInfoTab />}
 
               {canManageWorkspace && activeTab === 'teams' && <TeamsTab />}
 

@@ -20,6 +20,8 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "smoke:campus": "node scripts/smoke-campus-auth-crud.mjs",
+    "smoke:set-password": "node scripts/smoke-set-password.mjs",
+    "smoke:all": "node scripts/smoke-roles-teams.mjs && node scripts/smoke-settings-permissions.mjs && node scripts/smoke-campus-auth-crud.mjs && node scripts/smoke-set-password.mjs && node scripts/test-ui-permissions.mjs",
     "smoke:it": "npm run smoke:campus"
   },
   "prisma": {

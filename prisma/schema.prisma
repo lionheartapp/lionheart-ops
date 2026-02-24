@@ -13,6 +13,17 @@ model Organization {
   name          String
   schoolType    SchoolType        @default(GLOBAL)
   slug          String            @unique
+  physicalAddress String?
+  district      String?
+  website       String?
+  phone         String?
+  principalTitle String?
+  principalName String?
+  principalEmail String?
+  principalPhone String?
+  gradeRange    String?
+  studentCount  Int?
+  staffCount    Int?
   logoUrl       String?
   heroImageUrl  String?
   imagePosition ImagePosition     @default(LEFT)

@@ -20,6 +20,17 @@ export default function SignupModal({ onClose }: SignupModalProps) {
   const [slug, setSlug] = useState('')
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
   const [checkingSlug, setCheckingSlug] = useState(false)
+  const [physicalAddress, setPhysicalAddress] = useState('')
+  const [district, setDistrict] = useState('')
+  const [website, setWebsite] = useState('')
+  const [schoolPhone, setSchoolPhone] = useState('')
+  const [principalTitle, setPrincipalTitle] = useState('')
+  const [principalName, setPrincipalName] = useState('')
+  const [principalEmail, setPrincipalEmail] = useState('')
+  const [principalPhone, setPrincipalPhone] = useState('')
+  const [gradeRange, setGradeRange] = useState('')
+  const [studentCount, setStudentCount] = useState('')
+  const [staffCount, setStaffCount] = useState('')
 
   // Step 2: Admin info
   const [adminName, setAdminName] = useState('')
@@ -116,6 +127,12 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         throw new Error('Password must be at least 8 characters')
       }
 
+      const normalizedWebsite = website.trim()
+        ? website.startsWith('http://') || website.startsWith('https://')
+          ? website.trim()
+          : `https://${website.trim()}`
+        : ''
+
       const res = await fetch('/api/organizations/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -123,6 +140,17 @@ export default function SignupModal({ onClose }: SignupModalProps) {
           name: schoolName,
           schoolType,
           slug,
+          physicalAddress,
+          district,
+          website: normalizedWebsite,
+          phone: schoolPhone,
+          principalTitle,
+          principalName: principalName.trim() || adminName.trim(),
+          principalEmail: principalEmail.trim() || adminEmail.trim(),
+          principalPhone,
+          gradeRange,
+          studentCount: studentCount.trim() === '' ? null : Number(studentCount),
+          staffCount: staffCount.trim() === '' ? null : Number(staffCount),
           adminEmail,
           adminName,
           adminPassword,
@@ -147,7 +175,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" role="presentation">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" role="dialog" aria-labelledby="modal-title" aria-modal="true">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
           <h2 id="modal-title" className="text-lg sm:text-xl font-bold text-gray-900">
@@ -261,6 +289,159 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                       <AlertCircle className="w-4 h-4" aria-hidden="true" /> Not available
                     </div>
                   )}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="physical-address" className="block text-sm font-medium text-gray-700 mb-2">
+                  Physical Address
+                </label>
+                <input
+                  id="physical-address"
+                  type="text"
+                  value={physicalAddress}
+                  onChange={(e) => setPhysicalAddress(e.target.value)}
+                  placeholder="e.g., 123 Main St, Springfield, OR"
+                  className="ui-input"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="district" className="block text-sm font-medium text-gray-700 mb-2">
+                  District
+                </label>
+                <input
+                  id="district"
+                  type="text"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  placeholder="e.g., Springfield Public Schools"
+                  className="ui-input"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
+                  Website
+                </label>
+                <input
+                  id="website"
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="e.g., mitchell.edu"
+                  className="ui-input"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="school-phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  School Phone
+                </label>
+                <input
+                  id="school-phone"
+                  type="text"
+                  value={schoolPhone}
+                  onChange={(e) => setSchoolPhone(e.target.value)}
+                  placeholder="e.g., (555) 010-1000"
+                  className="ui-input"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="grade-range" className="block text-sm font-medium text-gray-700 mb-2">
+                  Grade Range
+                </label>
+                <input
+                  id="grade-range"
+                  type="text"
+                  value={gradeRange}
+                  onChange={(e) => setGradeRange(e.target.value)}
+                  placeholder="e.g., K-8 or 9-12"
+                  className="ui-input"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="student-count" className="block text-sm font-medium text-gray-700 mb-2">
+                    Student Count
+                  </label>
+                  <input
+                    id="student-count"
+                    type="number"
+                    min={0}
+                    value={studentCount}
+                    onChange={(e) => setStudentCount(e.target.value)}
+                    className="ui-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="staff-count" className="block text-sm font-medium text-gray-700 mb-2">
+                    Staff Count
+                  </label>
+                  <input
+                    id="staff-count"
+                    type="number"
+                    min={0}
+                    value={staffCount}
+                    onChange={(e) => setStaffCount(e.target.value)}
+                    className="ui-input"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="principal-title" className="block text-sm font-medium text-gray-700 mb-2">
+                    Principal Title
+                  </label>
+                  <input
+                    id="principal-title"
+                    type="text"
+                    value={principalTitle}
+                    onChange={(e) => setPrincipalTitle(e.target.value)}
+                    placeholder="e.g., Principal"
+                    className="ui-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="principal-name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Principal Name
+                  </label>
+                  <input
+                    id="principal-name"
+                    type="text"
+                    value={principalName}
+                    onChange={(e) => setPrincipalName(e.target.value)}
+                    placeholder="Defaults to admin name"
+                    className="ui-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="principal-email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Principal Email
+                  </label>
+                  <input
+                    id="principal-email"
+                    type="email"
+                    value={principalEmail}
+                    onChange={(e) => setPrincipalEmail(e.target.value)}
+                    placeholder="Defaults to admin email"
+                    className="ui-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="principal-phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Principal Phone
+                  </label>
+                  <input
+                    id="principal-phone"
+                    type="text"
+                    value={principalPhone}
+                    onChange={(e) => setPrincipalPhone(e.target.value)}
+                    className="ui-input"
+                  />
                 </div>
               </div>
 

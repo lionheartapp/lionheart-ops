@@ -7,7 +7,19 @@
  * POST /api/organizations/signup
  * {
  *   "name": "Mitchell Academy",
+ *   "schoolType": "HIGH_SCHOOL",
  *   "slug": "mitchell-academy",
+ *   "physicalAddress": "123 Main St, Springfield, OR 97477",
+ *   "district": "Springfield Public Schools",
+ *   "website": "https://mitchell.edu",
+ *   "phone": "(555) 010-1000",
+ *   "principalTitle": "Principal",
+ *   "principalName": "Sarah Mitchell",
+ *   "principalEmail": "principal@mitchell.edu",
+ *   "principalPhone": "(555) 010-1001",
+ *   "gradeRange": "9-12",
+ *   "studentCount": 1200,
+ *   "staffCount": 95,
  *   "adminEmail": "principal@mitchell.edu",
  *   "adminName": "Sarah Mitchell",
  *   "adminPassword": "SecurePass123!"

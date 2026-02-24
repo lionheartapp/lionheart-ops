@@ -28,6 +28,16 @@ export const SlugSchema = z
     'Slug can only contain lowercase letters, numbers, and hyphens (no consecutive hyphens)'
   )
 
+const NullableText = (max: number) =>
+  z.preprocess(
+    (value) => {
+      if (typeof value !== 'string') return value
+      const trimmed = value.trim()
+      return trimmed.length === 0 ? null : trimmed
+    },
+    z.string().max(max).nullable().optional()
+  )
+
 /**
  * Organization signup request schema
  */
@@ -35,6 +45,31 @@ export const CreateOrganizationSchema = z.object({
   name: z.string().min(2, 'School name must be at least 2 characters').max(100),
   schoolType: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).default('GLOBAL'),
   slug: SlugSchema,
+  physicalAddress: NullableText(400),
+  district: NullableText(160),
+  website: z.preprocess(
+    (value) => {
+      if (typeof value !== 'string') return value
+      const trimmed = value.trim()
+      return trimmed.length === 0 ? null : trimmed
+    },
+    z.string().url('Website must be a valid URL (include https://)').max(300).nullable().optional()
+  ),
+  phone: NullableText(40),
+  principalTitle: NullableText(120),
+  principalName: NullableText(120),
+  principalEmail: z.preprocess(
+    (value) => {
+      if (typeof value !== 'string') return value
+      const trimmed = value.trim()
+      return trimmed.length === 0 ? null : trimmed
+    },
+    z.string().email('Principal email must be valid').max(255).nullable().optional()
+  ),
+  principalPhone: NullableText(40),
+  gradeRange: NullableText(80),
+  studentCount: z.number().int().min(0).max(1000000).nullable().optional(),
+  staffCount: z.number().int().min(0).max(1000000).nullable().optional(),
   adminEmail: z.string().email('Invalid email address'),
   adminName: z.string().min(2, 'Name must be at least 2 characters').max(100),
   adminPassword: z.string().min(8, 'Password must be at least 8 characters'),
@@ -119,6 +154,17 @@ export async function createOrganization(input: CreateOrganizationInput) {
       name: validated.name,
       schoolType: validated.schoolType,
       slug: validated.slug.toLowerCase(),
+      physicalAddress: validated.physicalAddress ?? null,
+      district: validated.district ?? null,
+      website: validated.website ?? null,
+      phone: validated.phone ?? null,
+      principalTitle: validated.principalTitle ?? null,
+      principalName: validated.principalName ?? validated.adminName,
+      principalEmail: validated.principalEmail ?? validated.adminEmail,
+      principalPhone: validated.principalPhone ?? null,
+      gradeRange: validated.gradeRange ?? null,
+      studentCount: validated.studentCount ?? null,
+      staffCount: validated.staffCount ?? null,
       users: {
         create: {
           email: validated.adminEmail,
