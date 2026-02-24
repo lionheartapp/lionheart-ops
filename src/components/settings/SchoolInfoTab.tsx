@@ -14,11 +14,9 @@ type SchoolInfo = {
   district: string | null
   website: string | null
   phone: string | null
-  principalTitle: string | null
   principalName: string | null
   principalEmail: string | null
   principalPhone: string | null
-  headOfSchoolsTitle: string | null
   headOfSchoolsName: string | null
   headOfSchoolsEmail: string | null
   headOfSchoolsPhone: string | null
@@ -52,11 +50,9 @@ type FormState = {
   district: string
   website: string
   phone: string
-  principalTitle: string
   principalName: string
   principalEmail: string
   principalPhone: string
-  headOfSchoolsTitle: string
   headOfSchoolsName: string
   headOfSchoolsEmail: string
   headOfSchoolsPhone: string
@@ -77,11 +73,9 @@ const EMPTY_FORM: FormState = {
   district: '',
   website: '',
   phone: '',
-  principalTitle: '',
   principalName: '',
   principalEmail: '',
   principalPhone: '',
-  headOfSchoolsTitle: '',
   headOfSchoolsName: '',
   headOfSchoolsEmail: '',
   headOfSchoolsPhone: '',
@@ -103,11 +97,9 @@ function toFormState(data: SchoolInfo): FormState {
     district: data.district || '',
     website: data.website || '',
     phone: data.phone || '',
-    principalTitle: data.principalTitle || '',
     principalName: data.principalName || '',
     principalEmail: data.principalEmail || '',
     principalPhone: data.principalPhone || '',
-    headOfSchoolsTitle: data.headOfSchoolsTitle || '',
     headOfSchoolsName: data.headOfSchoolsName || '',
     headOfSchoolsEmail: data.headOfSchoolsEmail || '',
     headOfSchoolsPhone: data.headOfSchoolsPhone || '',
@@ -424,10 +416,6 @@ export default function SchoolInfoTab() {
           <div className="h-px bg-gray-200 mt-4 mb-6" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-              <input className="ui-input" placeholder="Superintendent" value={form.headOfSchoolsTitle} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsTitle: event.target.value }))} />
-            </div>
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
               <input className="ui-input" value={form.headOfSchoolsName} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsName: event.target.value }))} />
             </div>
@@ -449,10 +437,6 @@ export default function SchoolInfoTab() {
           <h3 className="text-2xl font-semibold text-gray-900">Principal Contact</h3>
           <div className="h-px bg-gray-200 mt-4 mb-6" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-              <input className="ui-input" placeholder="Principal" value={form.principalTitle} onChange={(event) => setForm((prev) => ({ ...prev, principalTitle: event.target.value }))} />
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
               <input className="ui-input" value={form.principalName} onChange={(event) => setForm((prev) => ({ ...prev, principalName: event.target.value }))} />

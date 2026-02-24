@@ -10,10 +10,10 @@ import { z } from 'zod'
 const UpdateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional(),
-  principalTitle: z.string().trim().max(100).nullable().optional(),
   principalName: z.string().trim().max(100).nullable().optional(),
   principalEmail: z.string().email().nullable().optional(),
   principalPhone: z.string().trim().max(20).nullable().optional(),
+  principalPhoneExt: z.string().trim().max(20).nullable().optional(),
 })
 
 type UpdateSchoolInput = z.infer<typeof UpdateSchoolSchema>
@@ -64,19 +64,19 @@ export async function PATCH(
         data: {
           ...(input.name !== undefined && { name: input.name }),
           ...(input.gradeLevel !== undefined && { gradeLevel: input.gradeLevel }),
-          ...(input.principalTitle !== undefined && { principalTitle: input.principalTitle }),
           ...(input.principalName !== undefined && { principalName: input.principalName }),
           ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
           ...(input.principalPhone !== undefined && { principalPhone: input.principalPhone }),
+          ...(input.principalPhoneExt !== undefined && { principalPhoneExt: input.principalPhoneExt }),
         },
         select: {
           id: true,
           name: true,
           gradeLevel: true,
-          principalTitle: true,
           principalName: true,
           principalEmail: true,
           principalPhone: true,
+          principalPhoneExt: true,
           createdAt: true,
           updatedAt: true,
         },

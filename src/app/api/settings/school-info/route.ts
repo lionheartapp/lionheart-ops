@@ -38,7 +38,6 @@ const SchoolInfoSchema = z.object({
     z.string().url('Website must be a valid URL (include https://)').max(300).nullable().optional()
   ),
   phone: nullableText(40),
-  principalTitle: nullableText(120),
   principalName: nullableText(120),
   principalEmail: z.preprocess(
     (value) => {
@@ -49,7 +48,6 @@ const SchoolInfoSchema = z.object({
     z.string().email('Principal email must be valid').max(255).nullable().optional()
   ),
   principalPhone: nullableText(40),
-  headOfSchoolsTitle: nullableText(120),
   headOfSchoolsName: nullableText(120),
   headOfSchoolsEmail: z.preprocess(
     (value) => {
@@ -108,11 +106,9 @@ export async function GET(req: NextRequest) {
           district: true,
           website: true,
           phone: true,
-          principalTitle: true,
           principalName: true,
           principalEmail: true,
           principalPhone: true,
-          headOfSchoolsTitle: true,
           headOfSchoolsName: true,
           headOfSchoolsEmail: true,
           headOfSchoolsPhone: true,
@@ -201,11 +197,9 @@ export async function PATCH(req: NextRequest) {
         district: toNullable(input.district),
         website: toNullable(input.website),
         phone: toNullable(input.phone),
-        principalTitle: toNullable(input.principalTitle),
         principalName: toNullable(input.principalName),
         principalEmail: toNullable(input.principalEmail),
         principalPhone: toNullable(input.principalPhone),
-        headOfSchoolsTitle: toNullable(input.headOfSchoolsTitle),
         headOfSchoolsName: toNullable(input.headOfSchoolsName),
         headOfSchoolsEmail: toNullable(input.headOfSchoolsEmail),
         headOfSchoolsPhone: toNullable(input.headOfSchoolsPhone),
@@ -226,11 +220,9 @@ export async function PATCH(req: NextRequest) {
         district: true,
         website: true,
         phone: true,
-        principalTitle: true,
         principalName: true,
         principalEmail: true,
         principalPhone: true,
-        headOfSchoolsTitle: true,
         headOfSchoolsName: true,
         headOfSchoolsEmail: true,
         headOfSchoolsPhone: true,

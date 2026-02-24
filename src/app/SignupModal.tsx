@@ -24,7 +24,6 @@ export default function SignupModal({ onClose }: SignupModalProps) {
   const [district, setDistrict] = useState('')
   const [website, setWebsite] = useState('')
   const [schoolPhone, setSchoolPhone] = useState('')
-  const [principalTitle, setPrincipalTitle] = useState('')
   const [principalName, setPrincipalName] = useState('')
   const [principalEmail, setPrincipalEmail] = useState('')
   const [principalPhone, setPrincipalPhone] = useState('')
@@ -144,7 +143,6 @@ export default function SignupModal({ onClose }: SignupModalProps) {
           district,
           website: normalizedWebsite,
           phone: schoolPhone,
-          principalTitle,
           principalName: principalName.trim() || adminName.trim(),
           principalEmail: principalEmail.trim() || adminEmail.trim(),
           principalPhone,
@@ -392,19 +390,6 @@ export default function SignupModal({ onClose }: SignupModalProps) {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="principal-title" className="block text-sm font-medium text-gray-700 mb-2">
-                    Principal Title
-                  </label>
-                  <input
-                    id="principal-title"
-                    type="text"
-                    value={principalTitle}
-                    onChange={(e) => setPrincipalTitle(e.target.value)}
-                    placeholder="e.g., Principal"
-                    className="ui-input"
-                  />
-                </div>
                 <div>
                   <label htmlFor="principal-name" className="block text-sm font-medium text-gray-700 mb-2">
                     Principal Name

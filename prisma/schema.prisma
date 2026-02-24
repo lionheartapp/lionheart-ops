@@ -19,12 +19,10 @@ model Organization {
   website       String?
   phone         String?
   // Single-school contact info
-  principalTitle String?
   principalName String?
   principalEmail String?
   principalPhone String?
   // Multi-school contact info (used when gradeLevel = MULTI_SCHOOL_CAMPUS)
-  headOfSchoolsTitle String?
   headOfSchoolsName String?
   headOfSchoolsEmail String?
   headOfSchoolsPhone String?
@@ -207,16 +205,16 @@ model UserRoomAssignment {
 }
 
 model School {
-  id             String        @id @default(cuid())
-  organizationId String
-  name           String        // e.g., "Elementary Campus", "High School", "Middle School"
-  gradeLevel     SchoolType    @default(ELEMENTARY) // ELEMENTARY | MIDDLE_SCHOOL | HIGH_SCHOOL
-  principalTitle String?
-  principalName  String?
-  principalEmail String?
-  principalPhone String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id               String        @id @default(cuid())
+  organizationId   String
+  name             String        // e.g., "Elementary Campus", "High School", "Middle School"
+  gradeLevel       SchoolType    @default(ELEMENTARY) // ELEMENTARY | MIDDLE_SCHOOL | HIGH_SCHOOL
+  principalName    String?
+  principalEmail   String?
+  principalPhone   String?
+  principalPhoneExt String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   users          User[]
 

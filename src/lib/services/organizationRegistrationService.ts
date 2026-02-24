@@ -57,7 +57,6 @@ export const CreateOrganizationSchema = z.object({
     z.string().url('Website must be a valid URL (include https://)').max(300).nullable().optional()
   ),
   phone: NullableText(40),
-  principalTitle: NullableText(120),
   principalName: NullableText(120),
   principalEmail: z.preprocess(
     (value) => {
@@ -160,7 +159,6 @@ export async function createOrganization(input: CreateOrganizationInput) {
       district: validated.district ?? null,
       website: validated.website ?? null,
       phone: validated.phone ?? null,
-      principalTitle: validated.principalTitle ?? null,
       principalName: validated.principalName ?? validated.adminName,
       principalEmail: validated.principalEmail ?? validated.adminEmail,
       principalPhone: validated.principalPhone ?? null,

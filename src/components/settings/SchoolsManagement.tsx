@@ -4,24 +4,24 @@ import { useEffect, useState } from 'react'
 import { Plus, Edit2, Trash2, X } from 'lucide-react'
 import type { School } from '@prisma/client'
 
-type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'principalTitle' | 'principalName' | 'principalEmail' | 'principalPhone' | 'createdAt' | 'updatedAt'>
+type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
 type SchoolFormData = {
   name: string
   gradeLevel: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL'
-  principalTitle: string
   principalName: string
   principalEmail: string
   principalPhone: string
+  principalPhoneExt: string
 }
 
 const EMPTY_FORM: SchoolFormData = {
   name: '',
   gradeLevel: 'ELEMENTARY',
-  principalTitle: '',
   principalName: '',
   principalEmail: '',
   principalPhone: '',
+  principalPhoneExt: '',
 }
 
 export default function SchoolsManagement() {
@@ -100,10 +100,10 @@ export default function SchoolsManagement() {
                   ...s,
                   name: form.name,
                   gradeLevel: form.gradeLevel,
-                  principalTitle: form.principalTitle || null,
                   principalName: form.principalName || null,
                   principalEmail: form.principalEmail || null,
                   principalPhone: form.principalPhone || null,
+                  principalPhoneExt: form.principalPhoneExt || null,
                 }
               : s
           )
@@ -116,7 +116,10 @@ export default function SchoolsManagement() {
       setEditingId(null)
       setForm(EMPTY_FORM)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save school')
+      const message = err instanceof Error ? err.message : 'Failed to save school'
+      console.error('Save error:', message, err)
+      setError(message)
+      // Do NOT close modal on error
     } finally {
       setSaving(false)
     }
@@ -152,10 +155,10 @@ export default function SchoolsManagement() {
     setForm({
       name: school.name,
       gradeLevel: school.gradeLevel as any,
-      principalTitle: school.principalTitle || '',
       principalName: school.principalName || '',
       principalEmail: school.principalEmail || '',
       principalPhone: school.principalPhone || '',
+      principalPhoneExt: '',
     })
     setShowModal(true)
   }
@@ -217,7 +220,7 @@ export default function SchoolsManagement() {
                     {school.gradeLevel.replace(/_/g, ' ')}
                   </td>
                   <td className="px-4 py-3 text-gray-600">
-                    {school.principalName ? `${school.principalTitle ? school.principalTitle + ' ' : ''}${school.principalName}` : '—'}
+                    {school.principalName || '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -284,6 +287,12 @@ export default function SchoolsManagement() {
             </div>
 
             <form onSubmit={handleSaveSchool} className="space-y-4">
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   School Name
@@ -313,18 +322,6 @@ export default function SchoolsManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Principal Title
-                </label>
-                <input
-                  className="ui-input"
-                  placeholder="Principal"
-                  value={form.principalTitle}
-                  onChange={(e) => setForm((prev) => ({ ...prev, principalTitle: e.target.value }))}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Principal Name
                 </label>
                 <input
@@ -346,15 +343,27 @@ export default function SchoolsManagement() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Principal Phone
-                </label>
-                <input
-                  className="ui-input"
-                  value={form.principalPhone}
-                  onChange={(e) => setForm((prev) => ({ ...prev, principalPhone: e.target.value }))}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Principal Phone
+                  </label>
+                  <input
+                    className="ui-input"
+                    value={form.principalPhone}
+                    onChange={(e) => setForm((prev) => ({ ...prev, principalPhone: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Extension
+                  </label>
+                  <input
+                    className="ui-input"
+                    value={form.principalPhoneExt}
+                    onChange={(e) => setForm((prev) => ({ ...prev, principalPhoneExt: e.target.value }))}
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
