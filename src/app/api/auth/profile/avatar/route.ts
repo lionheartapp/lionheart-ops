@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { verifyAuthToken } from '@/lib/auth'
 import { ok, fail } from '@/lib/api-response'
 import { z } from 'zod'
 
@@ -24,31 +25,17 @@ export async function PATCH(request: NextRequest) {
     }
 
     const token = authHeader.slice(7)
-    
-    let userId: string | undefined
-    try {
-      const parts = token.split('.')
-      if (parts.length !== 3) {
-        throw new Error('Invalid token format')
-      }
-      const padding = '='.repeat((4 - (parts[1].length % 4)) % 4)
-      const payload = JSON.parse(Buffer.from(parts[1] + padding, 'base64').toString())
-      userId = payload.sub
-    } catch (err) {
-      console.error('[AVATAR] Token parsing error:', err)
+    const claims = await verifyAuthToken(token)
+
+    if (!claims?.userId) {
+      console.error('[AVATAR] Invalid token')
       return NextResponse.json(
         fail('UNAUTHORIZED', 'Invalid token'),
         { status: 401 }
       )
     }
 
-    if (!userId) {
-      console.error('[AVATAR] No userId in token')
-      return NextResponse.json(
-        fail('UNAUTHORIZED', 'Invalid token'),
-        { status: 401 }
-      )
-    }
+    const userId = claims.userId
 
     let body: unknown
     try {
