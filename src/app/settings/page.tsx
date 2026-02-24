@@ -373,7 +373,7 @@ export default function SettingsPage() {
                   <section>
                     <h2 className="text-3xl font-semibold text-gray-900">My Profile</h2>
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 relative">
                       <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden">
                         {displayAvatar ? (
                           <img src={displayAvatar} alt={userName || 'User'} className="w-14 h-14 rounded-full object-cover" />
@@ -408,7 +408,7 @@ export default function SettingsPage() {
                         </button>
                       </div>
                       {avatarError && (
-                        <div className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="absolute -bottom-16 left-0 right-0 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-nowrap">
                           {avatarError}
                         </div>
                       )}
