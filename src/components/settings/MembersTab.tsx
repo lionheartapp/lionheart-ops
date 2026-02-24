@@ -475,7 +475,7 @@ export default function MembersTab() {
           value={filterTeam}
           onChange={(e) => setFilterTeam(e.target.value)}
           aria-label="Filter members by team"
-          className="ui-select min-h-[44px]"
+          className="ui-select w-full"
         >
           <option value="">All Teams</option>
           {teams.map(team => (
@@ -487,7 +487,7 @@ export default function MembersTab() {
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
           aria-label="Filter members by role"
-          className="ui-select min-h-[44px]"
+          className="ui-select w-full"
         >
           <option value="">All Roles</option>
           {roles.map(role => (
@@ -499,7 +499,7 @@ export default function MembersTab() {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           aria-label="Filter members by status"
-          className="ui-select min-h-[44px]"
+          className="ui-select w-full"
         >
           <option value="">All Status</option>
           <option value="ACTIVE">Active</option>
@@ -511,7 +511,7 @@ export default function MembersTab() {
           value={filterSchoolScope}
           onChange={(e) => setFilterSchoolScope(e.target.value)}
           aria-label="Filter members by school scope"
-          className="ui-select min-h-[44px]"
+          className="ui-select w-full"
         >
           <option value="">All Scopes</option>
           <option value="ELEMENTARY">Elementary School</option>
@@ -745,7 +745,7 @@ export default function MembersTab() {
               value={form.schoolScope}
               onChange={(e) => setForm((prev) => ({ ...prev, schoolScope: e.target.value as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' }))}
               aria-label="School scope"
-              className="ui-select w-full min-h-[44px]"
+              className="ui-select w-full"
             >
               <option value="ELEMENTARY">Elementary School</option>
               <option value="MIDDLE_SCHOOL">Middle School</option>
@@ -758,7 +758,7 @@ export default function MembersTab() {
                 value={form.roleId}
                 onChange={(e) => setForm((prev) => ({ ...prev, roleId: e.target.value }))}
                 aria-label="Role"
-                className="ui-select min-h-[44px]"
+                className="ui-select w-full"
               >
                 <option value="">Select Role</option>
                 {roles.map((role) => (
@@ -770,7 +770,7 @@ export default function MembersTab() {
                 value={form.employmentType}
                 onChange={(e) => setForm((prev) => ({ ...prev, employmentType: e.target.value }))}
                 aria-label="Employment type"
-                className="ui-select min-h-[44px]"
+                className="ui-select w-full"
               >
                 <option value="FULL_TIME">Full Time</option>
                 <option value="PART_TIME">Part Time</option>
@@ -786,7 +786,7 @@ export default function MembersTab() {
                 value={form.provisioningMode}
                 onChange={(e) => setForm((prev) => ({ ...prev, provisioningMode: e.target.value }))}
                 aria-label="Provisioning mode"
-                className="ui-select w-full min-h-[44px]"
+                className="ui-select w-full"
               >
                 <option value="ADMIN_CREATE">Super Admin Creator (Active immediately)</option>
                 <option value="INVITE_ONLY">Invite-Only / Self-Signup (Pending)</option>
@@ -887,7 +887,7 @@ export default function MembersTab() {
                   value={selectedMember.schoolScope}
                   onChange={(e) => setSelectedMember({ ...selectedMember, schoolScope: e.target.value as Member['schoolScope'] })}
                   aria-label="School scope"
-                  className="ui-select w-full min-h-[44px]"
+                  className="ui-select w-full"
                 >
                   <option value="ELEMENTARY">Elementary School</option>
                   <option value="MIDDLE_SCHOOL">Middle School</option>
@@ -906,7 +906,7 @@ export default function MembersTab() {
                       },
                     })}
                     aria-label="Role"
-                    className="ui-select min-h-[44px]"
+                    className="ui-select w-full"
                   >
                     <option value="">No Role</option>
                     {roles.map((role) => (
@@ -918,7 +918,7 @@ export default function MembersTab() {
                     value={selectedMember.employmentType || 'FULL_TIME'}
                     onChange={(e) => setSelectedMember({ ...selectedMember, employmentType: e.target.value })}
                     aria-label="Employment type"
-                    className="ui-select min-h-[44px]"
+                    className="ui-select w-full"
                   >
                     <option value="FULL_TIME">Full Time</option>
                     <option value="PART_TIME">Part Time</option>
@@ -932,7 +932,7 @@ export default function MembersTab() {
                   value={selectedMember.status}
                   onChange={(e) => setSelectedMember({ ...selectedMember, status: e.target.value as Member['status'] })}
                   aria-label="Status"
-                  className="ui-select w-full min-h-[44px]"
+                  className="ui-select w-full"
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="INACTIVE">Inactive</option>
