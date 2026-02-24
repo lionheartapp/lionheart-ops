@@ -11,16 +11,23 @@ datasource db {
 model Organization {
   id            String            @id @default(cuid())
   name          String
-  schoolType    SchoolType        @default(GLOBAL)
   slug          String            @unique
+  institutionType InstitutionType  @default(PUBLIC)
+  gradeLevel    SchoolType        @default(GLOBAL) // ELEMENTARY, MIDDLE_SCHOOL, HIGH_SCHOOL, or MULTI_SCHOOL_CAMPUS
   physicalAddress String?
   district      String?
   website       String?
   phone         String?
+  // Single-school contact info
   principalTitle String?
   principalName String?
   principalEmail String?
   principalPhone String?
+  // Multi-school contact info (used when gradeLevel = MULTI_SCHOOL_CAMPUS)
+  headOfSchoolsTitle String?
+  headOfSchoolsName String?
+  headOfSchoolsEmail String?
+  headOfSchoolsPhone String?
   gradeRange    String?
   studentCount  Int?
   staffCount    Int?
@@ -41,11 +48,13 @@ model Organization {
   areas         Area[]
   rooms         Room[]
   roomAssignments UserRoomAssignment[]
+  schools       School[]
 }
 
 model User {
   id             String           @id @default(cuid())
   organizationId String
+  schoolId       String?          // For users in multi-school campus organizations
   email          String
   name           String?          // Legacy: Use firstName + lastName
   firstName      String?
@@ -63,6 +72,7 @@ model User {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school         School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   userRole       Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
   submittedEvent Event[]          @relation("SubmittedEventUser")
   submittedDraft DraftEvent[]     @relation("DraftEventUser")
@@ -73,6 +83,7 @@ model User {
 
   @@unique([organizationId, email])
   @@index([organizationId])
+  @@index([schoolId])
   @@index([roleId])
   @@index([status])
 }
@@ -193,6 +204,24 @@ model UserRoomAssignment {
   @@index([organizationId, userId])
   @@index([organizationId, roomId])
   @@index([isActive])
+}
+
+model School {
+  id             String        @id @default(cuid())
+  organizationId String
+  name           String        // e.g., "Elementary Campus", "High School", "Middle School"
+  gradeLevel     SchoolType    @default(ELEMENTARY) // ELEMENTARY | MIDDLE_SCHOOL | HIGH_SCHOOL
+  principalTitle String?
+  principalName  String?
+  principalEmail String?
+  principalPhone String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users          User[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
 }
 
 model Event {
@@ -394,6 +423,14 @@ enum SchoolType {
   MIDDLE_SCHOOL
   HIGH_SCHOOL
   GLOBAL
+  MULTI_SCHOOL_CAMPUS
+}
+
+enum InstitutionType {
+  PUBLIC
+  PRIVATE
+  CHARTER
+  HYBRID
 }
 
 enum UserStatus {

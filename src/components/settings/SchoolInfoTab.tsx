@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { Save } from 'lucide-react'
+import SchoolsManagement from './SchoolsManagement'
 
 type SchoolInfo = {
   id: string
   name: string
-  schoolType: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'
+  institutionType: 'PUBLIC' | 'PRIVATE' | 'CHARTER' | 'HYBRID' | null
+  gradeLevel: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' | 'MULTI_SCHOOL_CAMPUS' | null
   slug: string
   physicalAddress: string | null
   district: string | null
@@ -16,6 +18,10 @@ type SchoolInfo = {
   principalName: string | null
   principalEmail: string | null
   principalPhone: string | null
+  headOfSchoolsTitle: string | null
+  headOfSchoolsName: string | null
+  headOfSchoolsEmail: string | null
+  headOfSchoolsPhone: string | null
   gradeRange: string | null
   studentCount: number | null
   staffCount: number | null
@@ -39,7 +45,8 @@ type SchoolInfo = {
 
 type FormState = {
   name: string
-  schoolType: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'
+  institutionType: 'PUBLIC' | 'PRIVATE' | 'CHARTER' | 'HYBRID' | ''
+  gradeLevel: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' | 'MULTI_SCHOOL_CAMPUS' | ''
   slug: string
   physicalAddress: string
   district: string
@@ -49,6 +56,10 @@ type FormState = {
   principalName: string
   principalEmail: string
   principalPhone: string
+  headOfSchoolsTitle: string
+  headOfSchoolsName: string
+  headOfSchoolsEmail: string
+  headOfSchoolsPhone: string
   gradeRange: string
   studentCount: string
   staffCount: string
@@ -59,7 +70,8 @@ type FormState = {
 
 const EMPTY_FORM: FormState = {
   name: '',
-  schoolType: 'GLOBAL',
+  institutionType: '',
+  gradeLevel: '',
   slug: '',
   physicalAddress: '',
   district: '',
@@ -69,6 +81,10 @@ const EMPTY_FORM: FormState = {
   principalName: '',
   principalEmail: '',
   principalPhone: '',
+  headOfSchoolsTitle: '',
+  headOfSchoolsName: '',
+  headOfSchoolsEmail: '',
+  headOfSchoolsPhone: '',
   gradeRange: '',
   studentCount: '',
   staffCount: '',
@@ -80,7 +96,8 @@ const EMPTY_FORM: FormState = {
 function toFormState(data: SchoolInfo): FormState {
   return {
     name: data.name,
-    schoolType: data.schoolType,
+    institutionType: data.institutionType || '',
+    gradeLevel: data.gradeLevel || '',
     slug: data.slug,
     physicalAddress: data.physicalAddress || '',
     district: data.district || '',
@@ -90,6 +107,10 @@ function toFormState(data: SchoolInfo): FormState {
     principalName: data.principalName || '',
     principalEmail: data.principalEmail || '',
     principalPhone: data.principalPhone || '',
+    headOfSchoolsTitle: data.headOfSchoolsTitle || '',
+    headOfSchoolsName: data.headOfSchoolsName || '',
+    headOfSchoolsEmail: data.headOfSchoolsEmail || '',
+    headOfSchoolsPhone: data.headOfSchoolsPhone || '',
     gradeRange: data.gradeRange || '',
     studentCount: data.studentCount == null ? '' : String(data.studentCount),
     staffCount: data.staffCount == null ? '' : String(data.staffCount),
@@ -173,6 +194,8 @@ export default function SchoolInfoTab() {
       slug: form.slug.trim().toLowerCase(),
       studentCount: form.studentCount.trim() === '' ? null : Number(form.studentCount),
       staffCount: form.staffCount.trim() === '' ? null : Number(form.staffCount),
+      institutionType: form.institutionType || null,
+      gradeLevel: form.gradeLevel || null,
     }
 
     try {
@@ -202,7 +225,6 @@ export default function SchoolInfoTab() {
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('org-name', data.data.name)
-        localStorage.setItem('org-school-type', data.data.schoolType)
         if (data.data.logoUrl) {
           localStorage.setItem('org-logo-url', data.data.logoUrl)
         } else {
@@ -340,12 +362,25 @@ export default function SchoolInfoTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">School Type</label>
-            <select className="ui-select w-full" value={form.schoolType} onChange={(event) => setForm((prev) => ({ ...prev, schoolType: event.target.value as FormState['schoolType'] }))}>
-              <option value="ELEMENTARY">Elementary</option>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Institution Type</label>
+            <select className="ui-select w-full" value={form.institutionType} onChange={(event) => setForm((prev) => ({ ...prev, institutionType: event.target.value as any }))}>
+              <option value="">-- Select Institution Type --</option>
+              <option value="PUBLIC">Public</option>
+              <option value="PRIVATE">Private</option>
+              <option value="CHARTER">Charter</option>
+              <option value="HYBRID">Hybrid</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level / Organization Type</label>
+            <select className="ui-select w-full" value={form.gradeLevel} onChange={(event) => setForm((prev) => ({ ...prev, gradeLevel: event.target.value as any }))}>
+              <option value="">-- Select Type --</option>
+              <option value="ELEMENTARY">Elementary School</option>
               <option value="MIDDLE_SCHOOL">Middle School</option>
               <option value="HIGH_SCHOOL">High School</option>
               <option value="GLOBAL">Global</option>
+              <option value="MULTI_SCHOOL_CAMPUS">Multi-School Campus</option>
             </select>
           </div>
 
@@ -382,28 +417,66 @@ export default function SchoolInfoTab() {
         </div>
       </section>
 
-      <section>
-        <h3 className="text-2xl font-semibold text-gray-900">Principal Contact</h3>
-        <div className="h-px bg-gray-200 mt-4 mb-6" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-            <input className="ui-input" placeholder="Principal" value={form.principalTitle} onChange={(event) => setForm((prev) => ({ ...prev, principalTitle: event.target.value }))} />
+      {/* Conditional: Multi-School Campus Section */}
+      {form.gradeLevel === 'MULTI_SCHOOL_CAMPUS' && (
+        <section>
+          <h3 className="text-2xl font-semibold text-gray-900">Head of Schools Contact</h3>
+          <div className="h-px bg-gray-200 mt-4 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <input className="ui-input" placeholder="Superintendent" value={form.headOfSchoolsTitle} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsTitle: event.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+              <input className="ui-input" value={form.headOfSchoolsName} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsName: event.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input className="ui-input" type="email" value={form.headOfSchoolsEmail} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsEmail: event.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <input className="ui-input" value={form.headOfSchoolsPhone} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsPhone: event.target.value }))} />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-            <input className="ui-input" value={form.principalName} onChange={(event) => setForm((prev) => ({ ...prev, principalName: event.target.value }))} />
+        </section>
+      )}
+
+      {/* Conditional: Single School Principal Contact */}
+      {form.gradeLevel !== 'MULTI_SCHOOL_CAMPUS' && form.gradeLevel !== '' && (
+        <section>
+          <h3 className="text-2xl font-semibold text-gray-900">Principal Contact</h3>
+          <div className="h-px bg-gray-200 mt-4 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <input className="ui-input" placeholder="Principal" value={form.principalTitle} onChange={(event) => setForm((prev) => ({ ...prev, principalTitle: event.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+              <input className="ui-input" value={form.principalName} onChange={(event) => setForm((prev) => ({ ...prev, principalName: event.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input className="ui-input" type="email" value={form.principalEmail} onChange={(event) => setForm((prev) => ({ ...prev, principalEmail: event.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <input className="ui-input" value={form.principalPhone} onChange={(event) => setForm((prev) => ({ ...prev, principalPhone: event.target.value }))} />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input className="ui-input" type="email" value={form.principalEmail} onChange={(event) => setForm((prev) => ({ ...prev, principalEmail: event.target.value }))} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-            <input className="ui-input" value={form.principalPhone} onChange={(event) => setForm((prev) => ({ ...prev, principalPhone: event.target.value }))} />
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Schools Management - Multi-School Campus */}
+      {form.gradeLevel === 'MULTI_SCHOOL_CAMPUS' && (
+        <section>
+          <h3 className="text-2xl font-semibold text-gray-900">Manage Schools</h3>
+          <div className="h-px bg-gray-200 mt-4 mb-6" />
+          <SchoolsManagement />
+        </section>
+      )}
 
       <section>
         <h3 className="text-2xl font-semibold text-gray-900">Enrollment & Staffing</h3>

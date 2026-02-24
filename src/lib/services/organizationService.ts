@@ -7,7 +7,7 @@
  * Note: Uses raw PrismaClient to bypass org-scoping for public lookups.
  */
 
-import { PrismaClient, ImagePosition, SchoolType } from '@prisma/client';
+import { PrismaClient, ImagePosition, SchoolType, InstitutionType } from '@prisma/client';
 
 // Use raw Prisma client to bypass org-scoping for public branding lookups
 const rawPrisma = new PrismaClient();
@@ -15,7 +15,8 @@ const rawPrisma = new PrismaClient();
 export interface OrganizationBranding {
   id: string;
   name: string;
-  schoolType: SchoolType;
+  institutionType: InstitutionType;
+  gradeLevel: SchoolType;
   slug: string;
   logoUrl: string | null;
   heroImageUrl: string | null;
@@ -38,7 +39,8 @@ export async function getOrganizationBranding(
       select: {
         id: true,
         name: true,
-        schoolType: true,
+        institutionType: true,
+        gradeLevel: true,
         slug: true,
         logoUrl: true,
         heroImageUrl: true,

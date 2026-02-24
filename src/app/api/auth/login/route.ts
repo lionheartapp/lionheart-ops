@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       select: {
         name: true,
         logoUrl: true,
-        schoolType: true,
+        gradeLevel: true,
       },
     })
 

@@ -43,7 +43,8 @@ const NullableText = (max: number) =>
  */
 export const CreateOrganizationSchema = z.object({
   name: z.string().min(2, 'School name must be at least 2 characters').max(100),
-  schoolType: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).default('GLOBAL'),
+  institutionType: z.enum(['PUBLIC', 'PRIVATE', 'CHARTER', 'HYBRID']).default('PUBLIC'),
+  gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).default('GLOBAL'),
   slug: SlugSchema,
   physicalAddress: NullableText(400),
   district: NullableText(160),
@@ -152,7 +153,8 @@ export async function createOrganization(input: CreateOrganizationInput) {
   const result = await rawPrisma.organization.create({
     data: {
       name: validated.name,
-      schoolType: validated.schoolType,
+      institutionType: validated.institutionType,
+      gradeLevel: validated.gradeLevel,
       slug: validated.slug.toLowerCase(),
       physicalAddress: validated.physicalAddress ?? null,
       district: validated.district ?? null,

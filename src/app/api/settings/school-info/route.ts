@@ -19,7 +19,8 @@ const nullableText = (max: number) =>
 
 const SchoolInfoSchema = z.object({
   name: z.string().trim().min(2).max(100),
-  schoolType: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']),
+  institutionType: z.enum(['PUBLIC', 'PRIVATE', 'CHARTER', 'HYBRID']).nullable().optional(),
+  gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL', 'MULTI_SCHOOL_CAMPUS']).nullable().optional(),
   slug: z
     .string()
     .trim()
@@ -48,6 +49,17 @@ const SchoolInfoSchema = z.object({
     z.string().email('Principal email must be valid').max(255).nullable().optional()
   ),
   principalPhone: nullableText(40),
+  headOfSchoolsTitle: nullableText(120),
+  headOfSchoolsName: nullableText(120),
+  headOfSchoolsEmail: z.preprocess(
+    (value) => {
+      if (typeof value !== 'string') return value
+      const trimmed = value.trim()
+      return trimmed.length === 0 ? null : trimmed
+    },
+    z.string().email('Head of Schools email must be valid').max(255).nullable().optional()
+  ),
+  headOfSchoolsPhone: nullableText(40),
   gradeRange: nullableText(80),
   studentCount: z.number().int().min(0).max(1000000).nullable().optional(),
   staffCount: z.number().int().min(0).max(1000000).nullable().optional(),
@@ -89,7 +101,8 @@ export async function GET(req: NextRequest) {
         select: {
           id: true,
           name: true,
-          schoolType: true,
+          institutionType: true,
+          gradeLevel: true,
           slug: true,
           physicalAddress: true,
           district: true,
@@ -99,6 +112,10 @@ export async function GET(req: NextRequest) {
           principalName: true,
           principalEmail: true,
           principalPhone: true,
+          headOfSchoolsTitle: true,
+          headOfSchoolsName: true,
+          headOfSchoolsEmail: true,
+          headOfSchoolsPhone: true,
           gradeRange: true,
           studentCount: true,
           staffCount: true,
@@ -177,7 +194,8 @@ export async function PATCH(req: NextRequest) {
       where: { id: orgId },
       data: {
         name: input.name,
-        schoolType: input.schoolType,
+        institutionType: input.institutionType ? input.institutionType : undefined,
+        gradeLevel: input.gradeLevel ? input.gradeLevel : undefined,
         slug: input.slug,
         physicalAddress: toNullable(input.physicalAddress),
         district: toNullable(input.district),
@@ -187,6 +205,10 @@ export async function PATCH(req: NextRequest) {
         principalName: toNullable(input.principalName),
         principalEmail: toNullable(input.principalEmail),
         principalPhone: toNullable(input.principalPhone),
+        headOfSchoolsTitle: toNullable(input.headOfSchoolsTitle),
+        headOfSchoolsName: toNullable(input.headOfSchoolsName),
+        headOfSchoolsEmail: toNullable(input.headOfSchoolsEmail),
+        headOfSchoolsPhone: toNullable(input.headOfSchoolsPhone),
         gradeRange: toNullable(input.gradeRange),
         studentCount: input.studentCount ?? null,
         staffCount: input.staffCount ?? null,
@@ -197,7 +219,8 @@ export async function PATCH(req: NextRequest) {
       select: {
         id: true,
         name: true,
-        schoolType: true,
+        institutionType: true,
+        gradeLevel: true,
         slug: true,
         physicalAddress: true,
         district: true,
@@ -207,6 +230,10 @@ export async function PATCH(req: NextRequest) {
         principalName: true,
         principalEmail: true,
         principalPhone: true,
+        headOfSchoolsTitle: true,
+        headOfSchoolsName: true,
+        headOfSchoolsEmail: true,
+        headOfSchoolsPhone: true,
         gradeRange: true,
         studentCount: true,
         staffCount: true,
