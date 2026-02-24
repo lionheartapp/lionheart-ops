@@ -140,7 +140,7 @@ export default function DashboardLayout({
         <Sidebar
           userName={userName}
           userEmail={userEmail}
-          userAvatar={userAvatar}
+          userAvatar={userAvatar || undefined}
           onLogout={onLogout}
         />
 
