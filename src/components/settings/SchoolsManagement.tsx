@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Edit2, Trash2, X } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, ChevronDown } from 'lucide-react'
 import type { School } from '@prisma/client'
 
 type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
@@ -14,6 +14,19 @@ type SchoolFormData = {
   principalEmail: string
   principalPhone: string
   principalPhoneExt: string
+}
+
+type PrincipalOption = {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  jobTitle: string
+}
+
+type SuccessModalData = {
+  schoolName: string
+  principalName: string
 }
 
 const EMPTY_FORM: SchoolFormData = {
@@ -35,6 +48,16 @@ export default function SchoolsManagement() {
   const [saving, setSaving] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  
+  // Principal search/create
+  const [principalSearch, setPrincipalSearch] = useState('')
+  const [principalOptions, setPrincipalOptions] = useState<PrincipalOption[]>([])
+  const [showPrincipalDropdown, setShowPrincipalDropdown] = useState(false)
+  const [searchingPrincipals, setSearchingPrincipals] = useState(false)
+  const [creatingPrincipal, setCreatingPrincipal] = useState(false)
+  
+  // Success modal
+  const [successData, setSuccessData] = useState<SuccessModalData | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -51,6 +74,100 @@ export default function SchoolsManagement() {
       headers['x-org-id'] = orgId
     }
     return headers
+  }
+
+  // Search for principals by name
+  const searchPrincipals = async (query: string) => {
+    if (!query.trim()) {
+      setPrincipalOptions([])
+      return
+    }
+
+    setSearchingPrincipals(true)
+    try {
+      const response = await fetch(`/api/settings/principals?q=${encodeURIComponent(query)}`, {
+        headers: getAuthHeaders(),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('Search failed:', data)
+        setPrincipalOptions([])
+      } else {
+        setPrincipalOptions(data.data || [])
+      }
+    } catch (err) {
+      console.error('Principal search error:', err)
+      setPrincipalOptions([])
+    } finally {
+      setSearchingPrincipals(false)
+    }
+  }
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (principalSearch) {
+        searchPrincipals(principalSearch)
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [principalSearch])
+
+  // Create a new principal
+  const createNewPrincipal = async () => {
+    if (!principalSearch.trim()) return
+
+    setCreatingPrincipal(true)
+    try {
+      const response = await fetch('/api/settings/principals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          name: principalSearch,
+          phone: form.principalPhone || null,
+          phoneExt: form.principalPhoneExt || null,
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message || 'Failed to create principal')
+      }
+
+      // Update form with the newly created principal
+      const principal = data.data
+      setForm((prev) => ({
+        ...prev,
+        principalName: principal.name,
+        principalEmail: principal.email,
+        principalPhone: principal.phone || '',
+      }))
+      setPrincipalSearch('')
+      setShowPrincipalDropdown(false)
+      setPrincipalOptions([])
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create principal'
+      console.error('Create principal error:', message, err)
+    } finally {
+      setCreatingPrincipal(false)
+    }
+  }
+
+  // Select an existing principal
+  const selectPrincipal = (principal: PrincipalOption) => {
+    setForm((prev) => ({
+      ...prev,
+      principalName: principal.name,
+      principalEmail: principal.email,
+      principalPhone: principal.phone || '',
+    }))
+    setPrincipalSearch(principal.name)
+    setShowPrincipalDropdown(false)
+    setPrincipalOptions([])
   }
 
   const loadSchools = async () => {
@@ -114,6 +231,7 @@ export default function SchoolsManagement() {
       }
 
       if (editingId) {
+        // Update existing school
         setSchools((prev) =>
           prev.map((s) =>
             s.id === editingId
@@ -129,13 +247,23 @@ export default function SchoolsManagement() {
               : s
           )
         )
+        // Close immediately for edits
+        setShowModal(false)
+        setEditingId(null)
+        setForm(EMPTY_FORM)
+        setPrincipalSearch('')
       } else {
+        // For new schools, show success modal
+        setSuccessData({
+          schoolName: form.name,
+          principalName: form.principalName,
+        })
         setSchools((prev) => [...prev, data.data])
+        setShowModal(false)
+        setEditingId(null)
+        setForm(EMPTY_FORM)
+        setPrincipalSearch('')
       }
-
-      setShowModal(false)
-      setEditingId(null)
-      setForm(EMPTY_FORM)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save school'
       console.error('Save error:', message, err)
@@ -194,6 +322,16 @@ export default function SchoolsManagement() {
     setShowModal(false)
     setEditingId(null)
     setForm(EMPTY_FORM)
+    setPrincipalSearch('')
+    setShowPrincipalDropdown(false)
+  }
+
+  const handleSuccessClose = (goToEditPrincipal: boolean = false) => {
+    setSuccessData(null)
+    if (goToEditPrincipal) {
+      // TODO: In a full implementation, could open an edit principal dialog
+      // For now, just close the success modal
+    }
   }
 
   if (loading) {
@@ -293,7 +431,7 @@ export default function SchoolsManagement() {
       {showModal && mounted
         ? createPortal(
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
                     {editingId ? 'Edit School' : 'Add New School'}
@@ -301,7 +439,7 @@ export default function SchoolsManagement() {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    disabled={saving}
+                    disabled={saving || searchingPrincipals || creatingPrincipal}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     <X className="w-5 h-5" />
@@ -342,15 +480,70 @@ export default function SchoolsManagement() {
                     </select>
                   </div>
 
-                  <div>
+                  {/* Principal Search/Create */}
+                  <div className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Principal Name
                     </label>
-                    <input
-                      className="ui-input"
-                      value={form.principalName}
-                      onChange={(e) => setForm((prev) => ({ ...prev, principalName: e.target.value }))}
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        className="ui-input w-full pr-10"
+                        placeholder="Search or add a principal..."
+                        value={principalSearch}
+                        onChange={(e) => {
+                          setPrincipalSearch(e.target.value)
+                          setShowPrincipalDropdown(true)
+                        }}
+                        onFocus={() => setShowPrincipalDropdown(true)}
+                        disabled={creatingPrincipal}
+                      />
+                      {showPrincipalDropdown && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPrincipalDropdown(false)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Dropdown */}
+                    {showPrincipalDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                        {searchingPrincipals ? (
+                          <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
+                        ) : principalOptions.length > 0 ? (
+                          <>
+                            {principalOptions.map((principal) => (
+                              <button
+                                key={principal.id}
+                                type="button"
+                                onClick={() => selectPrincipal(principal)}
+                                className="w-full text-left px-4 py-2 hover:bg-blue-50 transition"
+                              >
+                                <div className="font-medium text-gray-900">{principal.name}</div>
+                                <div className="text-xs text-gray-500">{principal.email}</div>
+                              </button>
+                            ))}
+                            <div className="border-t border-gray-200" />
+                          </>
+                        ) : null}
+
+                        {/* Create new option */}
+                        {principalSearch.trim() && (
+                          <button
+                            type="button"
+                            onClick={createNewPrincipal}
+                            disabled={creatingPrincipal}
+                            className="w-full text-left px-4 py-2 hover:bg-green-50 transition text-green-600 font-medium"
+                          >
+                            {creatingPrincipal ? '+ Creating...' : `+ Add new principal: "${principalSearch}"`}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -372,6 +565,8 @@ export default function SchoolsManagement() {
                       </label>
                       <input
                         className="ui-input"
+                        type="tel"
+                        placeholder="(555) 123-4567"
                         value={form.principalPhone}
                         onChange={(e) => setForm((prev) => ({ ...prev, principalPhone: e.target.value }))}
                       />
@@ -382,6 +577,8 @@ export default function SchoolsManagement() {
                       </label>
                       <input
                         className="ui-input"
+                        type="number"
+                        placeholder="123"
                         value={form.principalPhoneExt}
                         onChange={(e) => setForm((prev) => ({ ...prev, principalPhoneExt: e.target.value }))}
                       />
@@ -391,7 +588,7 @@ export default function SchoolsManagement() {
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      disabled={saving}
+                      disabled={saving || searchingPrincipals || creatingPrincipal}
                       className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
                     >
                       {saving ? 'Saving...' : 'Save'}
@@ -399,13 +596,51 @@ export default function SchoolsManagement() {
                     <button
                       type="button"
                       onClick={handleCloseModal}
-                      disabled={saving}
+                      disabled={saving || searchingPrincipals || creatingPrincipal}
                       className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
                     >
                       Cancel
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+
+      {/* Success Modal */}
+      {successData && mounted
+        ? createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Congratulations!</h3>
+                  <p className="text-gray-600">
+                    <strong>{successData.schoolName}</strong> has been added and <strong>{successData.principalName}</strong> has been added as principal.
+                  </p>
+                </div>
+
+                <p className="text-gray-600 mb-6 text-sm">
+                  Would you like to edit the principal's information more?
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleSuccessClose(true)}
+                    className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSuccessClose(false)}
+                    className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>,
             document.body
