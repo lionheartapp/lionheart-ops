@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import RolesTab from '@/components/settings/RolesTab'
@@ -14,10 +14,14 @@ type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
 
 export default function SettingsPage() {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('profile')
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
   const [permissionsLoaded, setPermissionsLoaded] = useState(false)
+  const [avatarUpdating, setAvatarUpdating] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+  const [displayAvatar, setDisplayAvatar] = useState<string | null>(null)
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
@@ -34,6 +38,120 @@ export default function SettingsPage() {
   const optimisticCanManageWorkspace = userRole
     ? (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('super'))
     : false
+
+  useEffect(() => {
+    // Initialize display avatar on client
+    setDisplayAvatar(userAvatar)
+  }, [])
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please select an image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError('Image must be less than 5MB')
+      return
+    }
+
+    setAvatarUpdating(true)
+    setAvatarError('')
+
+    try {
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const base64Data = e.target?.result as string
+
+        const response = await fetch('/api/auth/profile/avatar', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ avatar: base64Data }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data?.error?.message || 'Failed to update avatar')
+        }
+
+        // Update localStorage and display state
+        localStorage.setItem('user-avatar', data.data.user.avatar || '')
+        setDisplayAvatar(data.data.user.avatar)
+        
+        // Notify other components of avatar change
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: data.data.user.avatar } }))
+        }
+
+        setAvatarUpdating(false)
+      }
+
+      reader.onerror = () => {
+        setAvatarError('Failed to read file')
+        setAvatarUpdating(false)
+      }
+
+      reader.readAsDataURL(file)
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Failed to update avatar')
+      setAvatarUpdating(false)
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    setAvatarUpdating(true)
+    setAvatarError('')
+
+    try {
+      const response = await fetch('/api/auth/profile/avatar', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ avatar: null }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data?.error?.message || 'Failed to remove avatar')
+      }
+
+      // Update localStorage and display state
+      localStorage.removeItem('user-avatar')
+      setDisplayAvatar(null)
+      
+      // Notify other components of avatar change
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: null } }))
+      }
+
+      setAvatarUpdating(false)
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Failed to remove avatar')
+      setAvatarUpdating(false)
+    }
+  }
+
+  const handleChangeImageClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleAvatarUpload(file)
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
 
   useEffect(() => {
     setIsClient(true)
@@ -206,20 +324,43 @@ export default function SettingsPage() {
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
                       <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden">
-                        {userAvatar ? (
-                          <img src={userAvatar} alt={userName || 'User'} className="w-14 h-14 rounded-full object-cover" />
+                        {displayAvatar ? (
+                          <img src={displayAvatar} alt={userName || 'User'} className="w-14 h-14 rounded-full object-cover" />
                         ) : (
                           (userName || 'U').charAt(0).toUpperCase()
                         )}
                       </div>
                       <div className="flex flex-wrap gap-3">
-                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition">
-                          + Change Image
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          disabled={avatarUpdating}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleChangeImageClick}
+                          disabled={avatarUpdating}
+                          className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {avatarUpdating ? 'Uploading...' : '+ Change Image'}
                         </button>
-                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition">
+                        <button
+                          type="button"
+                          onClick={handleRemoveAvatar}
+                          disabled={avatarUpdating || !displayAvatar}
+                          className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                           Remove Image
                         </button>
                       </div>
+                      {avatarError && (
+                        <div className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                          {avatarError}
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

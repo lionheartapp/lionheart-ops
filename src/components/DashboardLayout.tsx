@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import Sidebar, { type SidebarProps } from './Sidebar'
@@ -17,7 +17,7 @@ export default function DashboardLayout({
   children,
   userName,
   userEmail,
-  userAvatar,
+  userAvatar: initialUserAvatar,
   organizationName,
   organizationLogoUrl,
   schoolLabel,
@@ -25,6 +25,24 @@ export default function DashboardLayout({
   onLogout,
 }: DashboardLayoutProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar || null)
+  
+  useEffect(() => {
+    setUserAvatar(initialUserAvatar || null)
+  }, [initialUserAvatar])
+
+  useEffect(() => {
+    // Listen for custom avatar update event (from same window)
+    const handleAvatarUpdate = (e: Event) => {
+      const event = e as CustomEvent
+      if (event.detail?.avatar !== undefined) {
+        setUserAvatar(event.detail.avatar)
+      }
+    }
+
+    window.addEventListener('avatar-updated', handleAvatarUpdate)
+    return () => window.removeEventListener('avatar-updated', handleAvatarUpdate)
+  }, [])
   
   const formattedSchoolLabel = (schoolLabel || organizationName || 'School')
     .toString()
