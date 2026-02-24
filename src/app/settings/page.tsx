@@ -30,12 +30,23 @@ export default function SettingsPage() {
   const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
   const orgLogoUrl = typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
 
+  // Optimistic check: show workspace settings immediately for admins
+  const optimisticCanManageWorkspace = userRole
+    ? (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('super'))
+    : false
+
   useEffect(() => {
     setIsClient(true)
     if (!token || !orgId) {
       router.push('/login')
     }
   }, [token, orgId, router])
+
+  useEffect(() => {
+    if (!optimisticCanManageWorkspace) return
+    // Set optimistic state immediately on client
+    setCanManageWorkspace(true)
+  }, [optimisticCanManageWorkspace])
 
   useEffect(() => {
     if (!token) return

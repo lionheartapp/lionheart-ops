@@ -225,8 +225,88 @@ export default function SchoolInfoTab() {
     setSuccess('')
   }
 
+  const renderSkeleton = () => (
+    <div className="space-y-8 animate-pulse py-2">
+      {/* Header skeleton */}
+      <div>
+        <div className="h-8 w-48 bg-gray-200 rounded mb-2" />
+        <div className="h-4 w-96 bg-gray-100 rounded" />
+      </div>
+
+      {/* School Info section */}
+      <div className="space-y-4 pb-6 border-b border-gray-200">
+        <div className="h-6 w-32 bg-gray-200 rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+        </div>
+      </div>
+
+      {/* Principal Contact section */}
+      <div className="space-y-4 pb-6 border-b border-gray-200">
+        <div className="h-6 w-40 bg-gray-200 rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+        </div>
+      </div>
+
+      {/* Enrollment & Staffing section */}
+      <div className="space-y-4 pb-6 border-b border-gray-200">
+        <div className="h-6 w-44 bg-gray-200 rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+        </div>
+      </div>
+
+      {/* Branding section */}
+      <div className="space-y-4 pb-6 border-b border-gray-200">
+        <div className="h-6 w-32 bg-gray-200 rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="flex gap-2">
+            <div className="h-10 w-24 bg-gray-200 rounded" />
+            <div className="h-10 w-24 bg-gray-200 rounded" />
+          </div>
+        </div>
+      </div>
+
+      {/* Metadata section */}
+      <div className="rounded-lg bg-gray-50 p-4 space-y-3">
+        <div className="h-6 w-24 bg-gray-200 rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <div className="h-4 w-20 bg-gray-200 rounded" />
+            <div className="h-5 w-32 bg-gray-200 rounded" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-20 bg-gray-200 rounded" />
+            <div className="h-5 w-32 bg-gray-200 rounded" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-20 bg-gray-200 rounded" />
+            <div className="h-5 w-32 bg-gray-200 rounded" />
+          </div>
+        </div>
+      </div>
+
+      {/* Action buttons skeleton */}
+      <div className="flex gap-2 pt-4">
+        <div className="h-10 w-24 bg-gray-200 rounded" />
+        <div className="h-10 w-24 bg-gray-200 rounded" />
+      </div>
+    </div>
+  )
+
   if (loading) {
-    return <div className="text-gray-600">Loading school information...</div>
+    return renderSkeleton()
   }
 
   if (error && !schoolInfo) {
