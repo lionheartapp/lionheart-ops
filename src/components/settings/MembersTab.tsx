@@ -446,7 +446,7 @@ export default function MembersTab() {
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Members</h2>
-          <p className="text-sm text-gray-500 mt-1">Manage members</p>
+          <p className="text-sm text-gray-600 mt-1">Manage members</p>
         </div>
         <button
           onClick={openCreateModal}

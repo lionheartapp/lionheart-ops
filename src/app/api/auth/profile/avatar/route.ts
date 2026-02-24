@@ -54,8 +54,26 @@ export async function PATCH(request: NextRequest) {
 
     // Update user avatar with organization context
     return await runWithOrgContext(organizationId, async () => {
-      const user = await prisma.user.update({
+      // First get the user to retrieve their email for the compound key
+      const existingUser = await prisma.user.findUnique({
         where: { id: userId },
+        select: { email: true },
+      })
+
+      if (!existingUser) {
+        return NextResponse.json(
+          fail('NOT_FOUND', 'User not found'),
+          { status: 404 }
+        )
+      }
+
+      const user = await prisma.user.update({
+        where: {
+          organizationId_email: {
+            organizationId,
+            email: existingUser.email,
+          },
+        },
         data: {
           avatar: input.avatar ?? null,
         },

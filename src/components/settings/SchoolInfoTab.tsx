@@ -327,7 +327,7 @@ export default function SchoolInfoTab() {
   return (
     <form onSubmit={handleSave} className="space-y-8">
       <section>
-        <h2 className="text-3xl font-semibold text-gray-900">School Information</h2>
+        <h2 className="text-2xl font-semibold text-gray-900">School Information</h2>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
 
         {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -433,7 +433,7 @@ export default function SchoolInfoTab() {
       </section>
 
       <section>
-        <h3 className="text-2xl font-semibold text-gray-900">Branding</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Branding</h3>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -455,7 +455,7 @@ export default function SchoolInfoTab() {
       </section>
 
       <section>
-        <h3 className="text-2xl font-semibold text-gray-900">Workspace Metadata</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Workspace Metadata</h3>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">

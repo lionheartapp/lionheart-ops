@@ -123,8 +123,23 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         ? body.schoolScope
         : undefined
 
-      const updated = await prisma.user.update({
+      // Get current email for compound constraint update
+      const currentUser = await prisma.user.findUnique({
         where: { id },
+        select: { email: true },
+      })
+
+      if (!currentUser) {
+        return NextResponse.json(fail('NOT_FOUND', 'User not found'), { status: 404 })
+      }
+
+      const updated = await prisma.user.update({
+        where: {
+          organizationId_email: {
+            organizationId: orgId,
+            email: currentUser.email,
+          },
+        },
         data: {
           ...(email !== undefined ? { email } : {}),
           ...(firstName !== undefined ? { firstName } : {}),
@@ -201,6 +216,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
         },
         select: {
           id: true,
+          email: true,
         },
       })
 
@@ -209,7 +225,12 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       }
 
       await prisma.user.delete({
-        where: { id },
+        where: {
+          organizationId_email: {
+            organizationId: orgId,
+            email: targetUser.email,
+          },
+        },
       })
 
       return NextResponse.json(ok({ id }))

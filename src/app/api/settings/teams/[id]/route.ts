@@ -123,7 +123,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
               has: team.slug,
             },
           },
-          select: { id: true, teamIds: true },
+          select: { id: true, email: true, teamIds: true },
         })
 
         await prisma.$transaction(
@@ -132,7 +132,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
               slug === team.slug ? nextSlug : slug
             )
             return prisma.user.update({
-              where: { id: user.id },
+              where: {
+                organizationId_email: {
+                  organizationId: orgId,
+                  email: user.email,
+                },
+              },
               data: { teamIds: nextTeams },
             })
           })
@@ -241,6 +246,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
           },
           select: {
             id: true,
+            email: true,
             teamIds: true,
           },
         })
@@ -298,7 +304,12 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
             const targetSlug = targetId ? targetSlugMap.get(targetId) : null
             if (!targetSlug) {
               return prisma.user.update({
-                where: { id: user.id },
+                where: {
+                  organizationId_email: {
+                    organizationId: orgId,
+                    email: user.email,
+                  },
+                },
                 data: { teamIds: user.teamIds.filter((slug) => slug !== team.slug) },
               })
             }
@@ -308,7 +319,12 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
               nextTeams.push(targetSlug)
             }
             return prisma.user.update({
-              where: { id: user.id },
+              where: {
+                organizationId_email: {
+                  organizationId: orgId,
+                  email: user.email,
+                },
+              },
               data: { teamIds: nextTeams },
             })
           })

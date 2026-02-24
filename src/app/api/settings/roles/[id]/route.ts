@@ -307,21 +307,33 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
           )
         }
 
-        const updatesByRole = new Map<string, string[]>()
-        assignedUserIds.forEach((userId) => {
+        const updatesByRole = new Map<string, { userId: string; email: string }[]>()
+        const assignedUsersWithEmail = await prisma.user.findMany({
+          where: { id: { in: assignedUserIds }, organizationId: orgId },
+          select: { id: true, email: true },
+        })
+
+        assignedUsersWithEmail.forEach(({ id: userId, email }) => {
           const target = assignmentMap.get(userId) || reassignRoleId
           if (!target) return
           const list = updatesByRole.get(target) || []
-          list.push(userId)
+          list.push({ userId, email })
           updatesByRole.set(target, list)
         })
 
         await prisma.$transaction(
-          Array.from(updatesByRole.entries()).map(([targetRoleId, userIds]) =>
-            prisma.user.updateMany({
-              where: { id: { in: userIds } },
-              data: { roleId: targetRoleId },
-            })
+          Array.from(updatesByRole.entries()).flatMap(([targetRoleId, users]) =>
+            users.map((user) =>
+              prisma.user.update({
+                where: {
+                  organizationId_email: {
+                    organizationId: orgId,
+                    email: user.email,
+                  },
+                },
+                data: { roleId: targetRoleId },
+              })
+            )
           )
         )
       }

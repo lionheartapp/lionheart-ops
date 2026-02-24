@@ -366,7 +366,7 @@ export default function CampusTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Campus</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Campus</h2>
           <p className="text-sm text-gray-600 mt-1">Manage buildings, areas, and rooms</p>
         </div>
         <label className="inline-flex items-center gap-2 text-sm text-gray-700">
