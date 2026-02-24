@@ -10,6 +10,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 const CreateRoleSchema = z.object({
   name: z.string().trim().min(1).max(120),
   slug: z.string().trim().min(1).max(120).optional(),
+  permissionIds: z.array(z.string().trim().min(1)).optional(),
 })
 
 function toSlug(value: string) {
@@ -97,6 +98,28 @@ export async function POST(req: NextRequest) {
           },
         },
       })
+
+      if (input.permissionIds && input.permissionIds.length > 0) {
+        const permissions = await prisma.permission.findMany({
+          where: { id: { in: input.permissionIds } },
+          select: { id: true },
+        })
+
+        if (permissions.length !== input.permissionIds.length) {
+          return NextResponse.json(
+            fail('VALIDATION_ERROR', 'One or more permissions are invalid'),
+            { status: 400 }
+          )
+        }
+
+        await prisma.rolePermission.createMany({
+          data: permissions.map((permission) => ({
+            roleId: role.id,
+            permissionId: permission.id,
+          })),
+          skipDuplicates: true,
+        })
+      }
 
       return NextResponse.json(ok(role), { status: 201 })
     })

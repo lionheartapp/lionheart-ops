@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Users, Plus, Edit2, Trash2, X } from 'lucide-react'
+import ConfirmDialog from '@/components/ConfirmDialog'
+import DetailDrawer from '@/components/DetailDrawer'
 
 interface Team {
   id: string
@@ -13,6 +15,13 @@ interface Team {
   }
 }
 
+interface TeamUserSummary {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+}
+
 export default function TeamsTab() {
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
@@ -20,7 +29,18 @@ export default function TeamsTab() {
   const [teamName, setTeamName] = useState('')
   const [teamDescription, setTeamDescription] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
+  const [editTeam, setEditTeam] = useState<Team | null>(null)
+  const [editTeamName, setEditTeamName] = useState('')
+  const [editTeamDescription, setEditTeamDescription] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
   const [deletingTeamId, setDeletingTeamId] = useState<string | null>(null)
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null)
+  const [reassignTeamId, setReassignTeamId] = useState('')
+  const [teamUsers, setTeamUsers] = useState<TeamUserSummary[]>([])
+  const [teamUsersLoading, setTeamUsersLoading] = useState(false)
+  const [teamUserReassignments, setTeamUserReassignments] = useState<Record<string, string>>({})
   const [actionError, setActionError] = useState<string | null>(null)
 
   const getAuthHeaders = () => {
@@ -97,30 +117,180 @@ export default function TeamsTab() {
     }
   }
 
-  const handleDeleteTeam = async (team: Team) => {
-    setActionError(null)
+  const openEditDrawer = async (team: Team) => {
+    setEditError(null)
+    setEditTeam(team)
+    setEditTeamName(team.name)
+    setEditTeamDescription(team.description || '')
+    setEditLoading(true)
 
-    const confirmed = window.confirm(`Delete team \"${team.name}\"? This cannot be undone.`)
-    if (!confirmed) return
-
-    setDeletingTeamId(team.id)
     try {
       const response = await fetch(`/api/settings/teams/${team.id}`, {
-        method: 'DELETE',
         headers: getAuthHeaders(),
       })
 
       const payload = await response.json().catch(() => null)
 
       if (!response.ok) {
-        setActionError(payload?.error?.message || 'Failed to delete team')
+        setEditError(payload?.error?.message || 'Failed to load team details')
         return
       }
 
-      setTeams((previous) => previous.filter((item) => item.id !== team.id))
+      setEditTeamName(payload?.data?.name || team.name)
+      setEditTeamDescription(payload?.data?.description || '')
+    } catch (error) {
+      console.error('Failed to load team details:', error)
+      setEditError('Failed to load team details')
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  const closeEditDrawer = () => {
+    if (editSaving) return
+    setEditTeam(null)
+    setEditTeamName('')
+    setEditTeamDescription('')
+    setEditError(null)
+  }
+
+  const handleEditTeam = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!editTeam) return
+
+    setEditError(null)
+    const trimmedName = editTeamName.trim()
+    if (!trimmedName) {
+      setEditError('Team name is required')
+      return
+    }
+
+    setEditSaving(true)
+    try {
+      const response = await fetch(`/api/settings/teams/${editTeam.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          description: editTeamDescription.trim() || null,
+        }),
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setEditError(payload?.error?.message || 'Failed to update team')
+        return
+      }
+
+      setEditTeam(null)
+      setEditTeamName('')
+      setEditTeamDescription('')
+      await loadTeams()
+    } catch (error) {
+      console.error('Failed to update team:', error)
+      setEditError('Failed to update team')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  const handleDeleteTeam = (team: Team) => {
+    setActionError(null)
+    setTeamToDelete(team)
+  }
+
+  const loadTeamUsers = async (slug: string) => {
+    setTeamUsersLoading(true)
+    try {
+      const response = await fetch(`/api/settings/users?teamSlug=${slug}`, {
+        headers: getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        setTeamUsers([])
+        return
+      }
+
+      const payload = await response.json().catch(() => null)
+      setTeamUsers(payload?.data || [])
+    } catch (error) {
+      console.error('Failed to load team members:', error)
+      setTeamUsers([])
+    } finally {
+      setTeamUsersLoading(false)
+    }
+  }
+
+  const availableReassignTeams = useMemo(() => {
+    if (!teamToDelete) return []
+    return teams.filter((team) => team.id !== teamToDelete.id)
+  }, [teams, teamToDelete])
+
+  useEffect(() => {
+    if (!teamToDelete) {
+      setReassignTeamId('')
+      setTeamUsers([])
+      setTeamUserReassignments({})
+      return
+    }
+
+    if ((teamToDelete._count?.members || 0) > 0) {
+      setReassignTeamId(availableReassignTeams[0]?.id || '')
+      loadTeamUsers(teamToDelete.slug)
+    } else {
+      setReassignTeamId('')
+      setTeamUsers([])
+      setTeamUserReassignments({})
+    }
+  }, [teamToDelete, availableReassignTeams])
+
+  const confirmDeleteTeam = async () => {
+    if (!teamToDelete) return
+
+    setActionError(null)
+    const assignedMembers = teamToDelete._count?.members || 0
+    if (assignedMembers > 0 && !reassignTeamId) {
+      setActionError('Select a team to reassign members before deleting.')
+      return
+    }
+
+    setDeletingTeamId(teamToDelete.id)
+
+    try {
+      const userReassignments = Object.entries(teamUserReassignments)
+        .filter(([, teamId]) => teamId)
+        .map(([userId, teamId]) => ({ userId, teamId }))
+
+      const response = await fetch(`/api/settings/teams/${teamToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          reassignTeamId: reassignTeamId || null,
+          userReassignments,
+        }),
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setActionError(payload?.error?.message || 'Failed to delete team')
+        setTeamToDelete(null)
+        return
+      }
+
+      setTeams((previous) => previous.filter((item) => item.id !== teamToDelete.id))
+      setTeamToDelete(null)
     } catch (error) {
       console.error('Failed to delete team:', error)
       setActionError('Failed to delete team')
+      setTeamToDelete(null)
     } finally {
       setDeletingTeamId(null)
     }
@@ -194,6 +364,7 @@ export default function TeamsTab() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => openEditDrawer(team)}
                     className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
                     title="Edit team"
                   >
@@ -252,7 +423,7 @@ export default function TeamsTab() {
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
                   placeholder="e.g. Front Office"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
                   disabled={createLoading}
                   autoFocus
                 />
@@ -267,7 +438,7 @@ export default function TeamsTab() {
                   value={teamDescription}
                   onChange={(e) => setTeamDescription(e.target.value)}
                   placeholder="What this team is responsible for"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
                   rows={3}
                   disabled={createLoading}
                 />
@@ -299,6 +470,200 @@ export default function TeamsTab() {
           </div>
         </div>
       )}
+
+      <DetailDrawer
+        isOpen={editTeam !== null}
+        onClose={closeEditDrawer}
+        title={editTeam ? `Edit ${editTeam.name}` : 'Edit Team'}
+        width="lg"
+      >
+        {editLoading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="h-16 rounded-lg border border-gray-200 bg-gray-50" />
+            ))}
+          </div>
+        ) : (
+          <form onSubmit={handleEditTeam} className="space-y-6">
+            {editError && (
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {editError}
+              </div>
+            )}
+
+            <section className="space-y-4">
+              <div className="border-b border-gray-200 pb-3">
+                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                  Naming the Team
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Update how this team appears in assignments and filters.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="edit-team-name" className="mb-1 block text-sm font-medium text-gray-700">
+                  Team name
+                </label>
+                <input
+                  id="edit-team-name"
+                  value={editTeamName}
+                  onChange={(e) => setEditTeamName(e.target.value)}
+                  placeholder="e.g. Front Office"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
+                  disabled={editSaving}
+                  autoFocus
+                />
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <div className="border-b border-gray-200 pb-3">
+                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                  Description
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Add context for what this team handles.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="edit-team-description" className="mb-1 block text-sm font-medium text-gray-700">
+                  Description (optional)
+                </label>
+                <textarea
+                  id="edit-team-description"
+                  value={editTeamDescription}
+                  onChange={(e) => setEditTeamDescription(e.target.value)}
+                  placeholder="What this team is responsible for"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
+                  rows={4}
+                  disabled={editSaving}
+                />
+              </div>
+            </section>
+
+            <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
+              <button
+                type="button"
+                onClick={closeEditDrawer}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                disabled={editSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60"
+                disabled={editSaving}
+              >
+                {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        )}
+      </DetailDrawer>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={teamToDelete !== null}
+        onClose={() => setTeamToDelete(null)}
+        onConfirm={confirmDeleteTeam}
+        title="Delete Team"
+        message={`Are you sure you want to delete "${teamToDelete?.name}"? This action cannot be undone.`}
+        requireText="DELETE"
+        confirmText="Delete Team"
+        variant="danger"
+        isLoading={deletingTeamId !== null}
+        confirmDisabled={
+          (teamToDelete?._count?.members || 0) > 0 &&
+          !reassignTeamId &&
+          Object.values(teamUserReassignments).every((value) => !value)
+        }
+      >
+        {teamToDelete && (teamToDelete._count?.members || 0) > 0 && (
+          <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <p className="font-medium">
+              This team has {teamToDelete._count?.members} assigned members.
+            </p>
+            {availableReassignTeams.length > 0 ? (
+              <div className="mt-3">
+                <label htmlFor="reassign-team" className="mb-1 block text-sm font-medium text-amber-900">
+                  Move members to
+                </label>
+                <select
+                  id="reassign-team"
+                  value={reassignTeamId}
+                  onChange={(event) => setReassignTeamId(event.target.value)}
+                  className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-400 focus:outline-none"
+                >
+                  <option value="">Select a team</option>
+                  {availableReassignTeams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="mt-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                    Reassign individually
+                  </p>
+                  {teamUsersLoading ? (
+                    <div className="mt-2 space-y-2">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div key={index} className="h-10 rounded-md bg-amber-100" />
+                      ))}
+                    </div>
+                  ) : teamUsers.length === 0 ? (
+                    <p className="mt-2 text-sm text-amber-700">
+                      No assigned members found.
+                    </p>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      {teamUsers.map((user) => {
+                        const displayName = [user.firstName, user.lastName]
+                          .filter(Boolean)
+                          .join(' ')
+                        return (
+                          <div key={user.id} className="flex flex-col gap-2 rounded-lg bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-amber-900">
+                                {displayName || user.email}
+                              </p>
+                              <p className="text-xs text-amber-700">{user.email}</p>
+                            </div>
+                            <select
+                              value={teamUserReassignments[user.id] || ''}
+                              onChange={(event) =>
+                                setTeamUserReassignments((previous) => ({
+                                  ...previous,
+                                  [user.id]: event.target.value,
+                                }))
+                              }
+                              className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-400 focus:outline-none sm:w-56"
+                            >
+                              <option value="">Use bulk team</option>
+                              {availableReassignTeams.map((team) => (
+                                <option key={team.id} value={team.id}>
+                                  {team.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm">
+                Create another team before deleting so members can be reassigned.
+              </p>
+            )}
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   )
 }

@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const permissions = await prisma.permission.findMany({
         select: {
+          id: true,
           resource: true,
           action: true,
           scope: true,
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
         orderBy: [
           { resource: 'asc' },
           { action: 'asc' },
+          { scope: 'asc' },
         ],
       })
 
