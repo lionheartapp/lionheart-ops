@@ -592,11 +592,6 @@ export default function MembersTab() {
                   className="absolute right-4 top-4"
                   onMouseEnter={() => setOpenMenuMemberId(member.id)}
                   onMouseLeave={() => setOpenMenuMemberId((current) => (current === member.id ? null : current))}
-                  onBlur={(event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                      setOpenMenuMemberId((current) => (current === member.id ? null : current))
-                    }
-                  }}
                 >
                   <button
                     type="button"
