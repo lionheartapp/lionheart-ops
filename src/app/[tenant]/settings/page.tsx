@@ -1,8 +1,13 @@
+
 import { getSettingsForTenant } from '@/lib/services/settings.service';
 
-export default async function Page({ params }: { params: { tenant: string } }) {
-  // Server-side data fetching scoped by tenant
-  const settings = await getSettingsForTenant(params.tenant);
+type PageProps = {
+  params: Promise<{ tenant: string }>;
+};
+
+export default async function Page({ params }: PageProps) {
+  const { tenant } = await params;
+  const settings = await getSettingsForTenant(tenant);
 
   return (
     <div>
