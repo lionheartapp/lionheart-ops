@@ -1,144 +1,32 @@
 'use client'
 
-import { ReactNode, useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { type ReactNode } from 'react'
 
-interface DetailDrawerProps {
+type DetailDrawerProps = {
+  children?: ReactNode
   isOpen: boolean
   onClose: () => void
   title: string
-  children: ReactNode
-  width?: 'sm' | 'md' | 'lg' | 'xl'
-  onEdit?: () => void
+  width?: string
 }
 
-const widths = {
-  sm: 'w-80',
-  md: 'w-96',
-  lg: 'w-[32rem]',
-  xl: 'w-[40rem]',
-} as const
-
-export default function DetailDrawer({
-  isOpen,
-  onClose,
-  title,
-  children,
-  width = 'md',
-  onEdit,
-}: DetailDrawerProps) {
-  const drawerRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [shouldShow, setShouldShow] = useState(false)
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose()
-      }
-    }
-
-    if (isOpen) {
-      setIsAnimating(true)
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflowY = 'hidden'
-      
-      // Double requestAnimationFrame for proper animation timing
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setShouldShow(true)
-        })
-      })
-      
-      // Focus trap - focus first interactive element
-      setTimeout(() => {
-        const firstButton = drawerRef.current?.querySelector(
-          'button, [tabindex]:not([tabindex="-1"])'
-        ) as HTMLElement
-        firstButton?.focus()
-      }, 100)
-    } else if (isAnimating) {
-      setShouldShow(false)
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflowY = 'unset'
-    }
-  }, [isOpen, isAnimating])
-
-  const handleClose = () => {
-    setShouldShow(false)
-    setTimeout(() => {
-      setIsAnimating(false)
-      onClose()
-    }, 300)
-  }
-
-  if (!isOpen && !isAnimating) return null
-
+export default function DetailDrawer({ children, isOpen, onClose, title, width }: DetailDrawerProps) {
+  if (!isOpen) return null
   return (
-    <div
-      className="fixed inset-0 z-50 overflow-hidden"
-      role="presentation"
-      aria-hidden={!isOpen}
-    >
-      {/* Overlay - Darker with backdrop blur like CreateModal */}
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} aria-hidden />
       <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-          shouldShow ? 'opacity-100' : 'opacity-0'
-        }`}
-        onClick={handleClose}
-        role="presentation"
-      />
-
-      {/* Drawer - Right side slide */}
-      <div
-        ref={drawerRef}
-        className={`fixed right-0 top-0 h-screen ${widths[width]} bg-white shadow-lg flex flex-col transition-transform duration-500 ease-out z-50 ${
-          shouldShow ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`relative bg-white shadow-xl ${width === 'lg' ? 'max-w-2xl' : 'max-w-md'} w-full h-full overflow-auto`}
         role="dialog"
-        aria-labelledby="drawer-title"
-        aria-modal="true"
+        aria-label={title}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
-          <h2
-            id="drawer-title"
-            className="text-lg sm:text-xl font-bold text-gray-900 truncate"
-          >
-            {title}
-          </h2>
-          <button
-            onClick={handleClose}
-            className="ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg flex-shrink-0"
-            aria-label="Close drawer"
-          >
-            <X className="w-6 h-6" aria-hidden="true" />
+        <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          <button type="button" onClick={onClose} className="rounded p-1 hover:bg-gray-100" aria-label="Close">
+            ×
           </button>
         </div>
-
-        {/* Content - Scrollable */}
-        <div
-          ref={contentRef}
-          className="flex-1 overflow-y-auto p-4 sm:p-6"
-        >
-          {children}
-        </div>
-
-        {/* Footer with Edit button */}
-        {onEdit && (
-          <div className="border-t border-gray-200 p-4 sm:p-6 flex-shrink-0">
-            <button
-              onClick={onEdit}
-              className="w-full px-4 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            >
-              Edit
-            </button>
-          </div>
-        )}
+        <div className="p-4">{children}</div>
       </div>
     </div>
   )

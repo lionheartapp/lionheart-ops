@@ -406,15 +406,12 @@ export default function SettingsPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <div className="pb-8">
-        <div className="px-2 sm:px-4 lg:px-6">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Account Settings</h1>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] lg:min-h-[calc(100vh-180px)]">
-            <aside className="bg-gray-50 border-b border-gray-200 lg:border-b-0 lg:border-r border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">General Settings</p>
+      <div className="-mx-4 sm:-mx-10 -my-4 sm:-my-6 lg:-my-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] lg:min-h-[calc(100vh-64px)]">
+            <aside className="bg-slate-100 border-b border-slate-300 lg:border-b-0 lg:border-r border-slate-300">
+              <div className="p-4 border-b border-slate-300">
+                <p className="text-lg font-semibold text-slate-700 mb-3">Settings</p>
+                <p className="text-[10px] font-semibold tracking-wide text-slate-500 uppercase">General Settings</p>
                 <nav className="mt-2 space-y-1" aria-label="General settings sections">
                   {generalTabs.map((tab) => {
                     const Icon = tab.icon
@@ -425,8 +422,8 @@ export default function SettingsPage() {
                         onClick={() => requestTabChange(tab.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
                           isActive
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-gray-600 hover:bg-blue-50 hover:text-gray-900'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                         }`}
                       >
                         <Icon className="w-4 h-4" />
@@ -439,7 +436,7 @@ export default function SettingsPage() {
 
               {canManageWorkspace && (
                 <div className="p-4">
-                  <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">Workspace Settings</p>
+                  <p className="text-[10px] font-semibold tracking-wide text-slate-500 uppercase">Workspace Settings</p>
                   <nav className="mt-2 space-y-1" aria-label="Workspace settings sections">
                     {workspaceTabs.map((tab) => {
                       const Icon = tab.icon
@@ -450,8 +447,8 @@ export default function SettingsPage() {
                           onClick={() => requestTabChange(tab.id)}
                           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
                             isActive
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'text-gray-600 hover:bg-blue-50 hover:text-gray-900'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                           }`}
                         >
                           <Icon className="w-4 h-4" />
@@ -464,7 +461,7 @@ export default function SettingsPage() {
               )}
             </aside>
 
-            <section className="p-5 sm:p-7 lg:p-8">
+            <section className="p-5 sm:p-7 lg:p-8" style={{ background: '#FDFEFF' }}>
               {activeTab === 'profile' && (
                 <div className="space-y-8">
                   <section>

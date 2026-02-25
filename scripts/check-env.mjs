@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const required = ['DATABASE_URL', 'DIRECT_URL', 'AUTH_SECRET']
-const optional = ['GEMINI_API_KEY', 'APP_URL', 'MAIL_FROM', 'RESEND_API_KEY', 'SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'SMTP_SECURE']
+const optional = ['GEMINI_API_KEY']
 
 function loadEnvFile(filePath) {
   if (!existsSync(filePath)) return

@@ -1,52 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
-import { rawPrisma as prisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 
+/** GET /api/auth/set-password/validate?token=... — check if a setup token is valid and unused. */
 export async function GET(req: NextRequest) {
-  try {
-    const passwordSetupTokenModel = (prisma as any).passwordSetupToken
-    const { searchParams } = new URL(req.url)
-    const token = searchParams.get('token')?.trim()
-
-    if (!token) {
-      return NextResponse.json(fail('BAD_REQUEST', 'token is required'), { status: 400 })
-    }
-
-    const tokenHash = hashSetupToken(token)
-    const setupToken = await passwordSetupTokenModel.findUnique({
-      where: { tokenHash },
-      include: {
-        user: {
-          select: {
-            email: true,
-            status: true,
-          },
-        },
-      },
-    })
-
-    if (!setupToken) {
-      return NextResponse.json(fail('INVALID_TOKEN', 'Invalid setup token'), { status: 400 })
-    }
-
-    if (setupToken.usedAt) {
-      return NextResponse.json(fail('TOKEN_USED', 'This setup link has already been used'), { status: 400 })
-    }
-
-    if (setupToken.expiresAt < new Date()) {
-      return NextResponse.json(fail('TOKEN_EXPIRED', 'This setup link has expired'), { status: 400 })
-    }
-
-    return NextResponse.json(
-      ok({
-        valid: true,
-        email: setupToken.user.email,
-        userStatus: setupToken.user.status,
-      })
-    )
-  } catch (error) {
-    console.error('Validate setup token error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to validate setup token'), { status: 500 })
+  const token = req.nextUrl.searchParams.get('token')?.trim()
+  if (!token) {
+    return NextResponse.json(fail('BAD_REQUEST', 'token query parameter is required'), { status: 400 })
   }
+
+  const tokenHash = hashSetupToken(token)
+  const passwordSetupTokenModel = (prisma as { passwordSetupToken: { findUnique: (args: unknown) => Promise<unknown> } }).passwordSetupToken
+  const setupToken = await passwordSetupTokenModel.findUnique({
+    where: { tokenHash },
+    select: {
+      id: true,
+      usedAt: true,
+      expiresAt: true,
+    },
+  }) as { id: string; usedAt: Date | null; expiresAt: Date } | null
+
+  if (!setupToken) {
+    return NextResponse.json(ok({ valid: false, reason: 'INVALID_TOKEN' }))
+  }
+  if (setupToken.usedAt) {
+    return NextResponse.json(ok({ valid: false, reason: 'TOKEN_USED' }))
+  }
+  if (setupToken.expiresAt < new Date()) {
+    return NextResponse.json(ok({ valid: false, reason: 'TOKEN_EXPIRED' }))
+  }
+
+  return NextResponse.json(ok({ valid: true }))
 }

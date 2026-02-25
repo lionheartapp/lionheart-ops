@@ -1,141 +1,70 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
-interface LoginFormProps {
+type Props = {
   organizationId: string
   organizationName: string
   organizationLogoUrl?: string
 }
 
-export default function LoginForm({ organizationId, organizationName, organizationLogoUrl }: LoginFormProps) {
-  const router = useRouter()
+export default function LoginForm({ organizationId, organizationName, organizationLogoUrl }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  async function handleSubmit(e: FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, organizationId }),
       })
-
       const data = await res.json()
-
-      if (!data.ok) {
-        setError(data.error?.message || 'Login failed')
+      if (!res.ok) {
+        setError(data?.message || 'Login failed')
         return
       }
-
-      // Store auth token and org ID for 30 days (matching JWT expiration)
-      localStorage.setItem('auth-token', data.data.token)
-      localStorage.setItem('org-id', data.data.organizationId)
-      localStorage.setItem('user-name', data.data.user.name || 'User')
-      localStorage.setItem('user-email', data.data.user.email)
-      if (data.data.user.avatar) {
-        localStorage.setItem('user-avatar', data.data.user.avatar)
-      } else {
-        localStorage.removeItem('user-avatar')
+      if (data?.data?.token) {
+        window.location.href = '/dashboard'
       }
-      if (data.data.user.team) {
-        localStorage.setItem('user-team', data.data.user.team)
-      } else {
-        localStorage.removeItem('user-team')
-      }
-      if (data.data.user.schoolScope) {
-        localStorage.setItem('user-school-scope', data.data.user.schoolScope)
-      } else {
-        localStorage.removeItem('user-school-scope')
-      }
-      if (data.data.user.role) {
-        localStorage.setItem('user-role', data.data.user.role)
-      } else {
-        localStorage.removeItem('user-role')
-      }
-      localStorage.setItem('org-name', data.data.organization?.name || organizationName)
-      if (data.data.organization?.schoolType) {
-        localStorage.setItem('org-school-type', data.data.organization.schoolType)
-      } else {
-        localStorage.removeItem('org-school-type')
-      }
-      const logo = data.data.organization?.logoUrl || organizationLogoUrl
-      if (logo) {
-        localStorage.setItem('org-logo-url', logo)
-      } else {
-        localStorage.removeItem('org-logo-url')
-      }
-      
-      router.push('/dashboard')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error')
+    } catch {
+      setError('Network error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-zinc-700">
-            Email address
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
-            required
-            autoComplete="email"
-            autoFocus
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-zinc-700">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
-            required
-            autoComplete="current-password"
-          />
-        </div>
-      </div>
-
-      {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          <p className="font-medium">Sign in failed</p>
-          <p className="mt-1">{error}</p>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {organizationLogoUrl && (
+        <img src={organizationLogoUrl} alt={organizationName} className="mx-auto h-12 object-contain" />
       )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        {loading ? 'Signing in...' : `Sign in to ${organizationName}`}
+      <h2 className="text-center text-lg font-semibold">{organizationName}</h2>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        className="w-full rounded border border-zinc-300 px-3 py-2"
+        required
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        className="w-full rounded border border-zinc-300 px-3 py-2"
+        required
+      />
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <button type="submit" disabled={loading} className="w-full rounded bg-zinc-900 py-2 text-white disabled:opacity-50">
+        {loading ? 'Signing in…' : 'Sign in'}
       </button>
-
-      <p className="text-center text-xs text-zinc-500">
-        By signing in, you&apos;ll stay logged in for 30 days
-      </p>
     </form>
   )
 }

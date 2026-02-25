@@ -8,8 +8,8 @@ export default async function LoginPage() {
   const headersList = await headers()
   const subdomain = headersList.get('x-org-subdomain')
   
-  // Fetch organization branding (default to Linfield if no subdomain)
-  const slug = subdomain || 'linfield'
+  // Fetch organization branding (default to demo if no subdomain)
+  const slug = subdomain || 'demo'
   const branding = await organizationService.getOrganizationBranding(slug)
 
   if (!branding) {

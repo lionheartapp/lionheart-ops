@@ -1,18 +1,19 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Providers } from '@/components/providers'
 
 export const metadata: Metadata = {
-  title: 'Lionheart Operations Platform',
-  description: 'Single-app, strict multi-tenant school operations platform',
+  title: 'Lionheart Platform',
+  description: 'School operations and facilities management',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">
-        <Providers>{children}</Providers>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }

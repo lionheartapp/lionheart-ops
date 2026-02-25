@@ -1,156 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { prisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+import { getOrgIdFromRequest } from '@/lib/org-context'
+import { runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
-const CreateTeamSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  slug: z.string().trim().min(1).max(120).optional(),
-  description: z.string().trim().max(500).optional().nullable(),
-})
-
-function toSlug(value: string) {
-  return value
+function nameToSlug(name: string): string {
+  return name
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
     .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/^-|-$/g, '') || 'team'
 }
 
 export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-
-    // Check permission to view teams
-    await assertCan(userContext.userId, PERMISSIONS.TEAMS_READ)
-
-    return await runWithOrgContext(orgId, async () => {
-      const teams = await prisma.team.findMany({
-        where: { organizationId: orgId },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-        },
-        orderBy: { name: 'asc' },
-      })
-
-      // For each team, count users manually since teamIds is a string array
-      const teamsWithCounts = await Promise.all(
-        teams.map(async (team) => {
-          const userCount = await prisma.user.count({
-            where: {
-              organizationId: orgId,
-              teamIds: {
-                has: team.slug,
-              },
-            },
-          })
-          
-          return {
-            ...team,
-            _count: {
-              members: userCount,
-            },
-          }
-        })
-      )
-
-      return NextResponse.json(ok(teamsWithCounts))
+  const orgId = getOrgIdFromRequest(req)
+  const userContext = await getUserContext(req)
+  await assertCan(userContext.userId, PERMISSIONS.TEAMS_READ)
+  return runWithOrgContext(orgId, async () => {
+    const list = await prisma.team.findMany({
+      where: { organizationId: orgId },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('Failed to fetch teams:', error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to fetch teams'),
-      { status: 500 }
-    )
-  }
+    return NextResponse.json(ok(list))
+  })
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    const body = await req.json()
-    const input = CreateTeamSchema.parse(body)
-
-    // Check permission to create teams
-    await assertCan(userContext.userId, PERMISSIONS.TEAMS_CREATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const slug = toSlug(input.slug || input.name)
-
-      if (!slug) {
-        return NextResponse.json(
-          fail('VALIDATION_ERROR', 'Team name must include letters or numbers'),
-          { status: 400 }
-        )
-      }
-
-      const team = await prisma.team.create({
-        data: {
-          organizationId: orgId,
-          name: input.name,
-          slug,
-          description: input.description || null,
-        },
-      })
-
-      const userCount = await prisma.user.count({
-        where: {
-          organizationId: orgId,
-          teamIds: {
-            has: team.slug,
-          },
-        },
-      })
-
-      return NextResponse.json(
-        ok({
-          ...team,
-          _count: {
-            members: userCount,
-          },
-        }),
-        { status: 201 }
-      )
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid team input', error.issues),
-        { status: 400 }
-      )
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code?: string }).code === 'P2002'
-    ) {
-      return NextResponse.json(
-        fail('CONFLICT', 'A team with this name/slug already exists'),
-        { status: 409 }
-      )
-    }
-    console.error('Failed to create team:', error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to create team'),
-      { status: 500 }
-    )
+  const orgId = getOrgIdFromRequest(req)
+  const userContext = await getUserContext(req)
+  await assertCan(userContext.userId, PERMISSIONS.TEAMS_UPDATE)
+  const body = (await req.json()) as { name?: string; description?: string }
+  const name = body.name?.trim()
+  if (!name) {
+    return NextResponse.json(fail('BAD_REQUEST', 'name is required'), { status: 400 })
   }
+  return runWithOrgContext(orgId, async () => {
+    const slug = nameToSlug(name)
+    const existing = await prisma.team.findUnique({
+      where: { organizationId_slug: { organizationId: orgId, slug } },
+      select: { id: true },
+    })
+    if (existing) {
+      return NextResponse.json(fail('CONFLICT', 'A team with this name already exists'), { status: 409 })
+    }
+    const created = await prisma.team.create({
+      data: {
+        organizationId: orgId,
+        name,
+        slug,
+        description: body.description?.trim() ?? null,
+      },
+      select: { id: true, name: true, slug: true, description: true, createdAt: true, updatedAt: true },
+    })
+    return NextResponse.json(ok(created), { status: 201 })
+  })
 }

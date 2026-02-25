@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 
 export default function AppPage() {
   const router = useRouter()
-
   useEffect(() => {
-    router.push('/dashboard')
+    router.replace('/dashboard')
   }, [router])
-
-  return null
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <p className="text-zinc-500">Redirecting…</p>
+    </div>
+  )
 }
