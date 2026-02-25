@@ -5,7 +5,7 @@ import { fail, ok } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { signAuthToken } from '@/lib/auth'
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<Response> {
   const body = (await req.json()) as { email?: string; password?: string; organizationId?: string }
   const email = body.email?.trim().toLowerCase()
   const password = body.password

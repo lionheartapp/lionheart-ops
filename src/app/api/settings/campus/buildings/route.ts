@@ -1,81 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { prisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+import { getOrgIdFromRequest } from '@/lib/org-context'
+import { runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
-const CreateBuildingSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  code: z.string().trim().min(1).max(30).optional().nullable(),
-  schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
-  sortOrder: z.number().int().optional(),
-  isActive: z.boolean().optional(),
-})
-
 export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
-
-    return await runWithOrgContext(orgId, async () => {
-      const includeInactive = new URL(req.url).searchParams.get('includeInactive') === 'true'
-      const db = prisma as any
-
-      const buildings = await db.building.findMany({
-        where: {
-          organizationId: orgId,
-          ...(includeInactive ? {} : { isActive: true }),
-        },
-        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      })
-
-      return NextResponse.json(ok(buildings))
+  const orgId = getOrgIdFromRequest(req)
+  const userContext = await getUserContext(req)
+  await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
+  return runWithOrgContext(orgId, async () => {
+    const list = await prisma.building.findMany({
+      where: { organizationId: orgId },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch buildings'), { status: 500 })
-  }
+    return NextResponse.json(ok(list))
+  })
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    const body = await req.json()
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const input = CreateBuildingSchema.parse(body)
-      const db = prisma as any
-
-      const building = await db.building.create({
-        data: {
-          organizationId: orgId,
-          name: input.name,
-          code: input.code || null,
-          schoolDivision: input.schoolDivision || 'GLOBAL',
-          sortOrder: input.sortOrder ?? 0,
-          isActive: input.isActive ?? true,
-        },
-      })
-
-      return NextResponse.json(ok(building), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create building'), { status: 500 })
+  const orgId = getOrgIdFromRequest(req)
+  const userContext = await getUserContext(req)
+  await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+  const body = (await req.json()) as { name?: string; code?: string | null; schoolDivision?: string }
+  const name = body.name?.trim()
+  if (!name) {
+    return NextResponse.json(fail('BAD_REQUEST', 'name is required'), { status: 400 })
   }
+  return runWithOrgContext(orgId, async () => {
+    const created = await prisma.building.create({
+      data: {
+        organizationId: orgId,
+        name,
+        code: body.code?.trim() || null,
+        schoolDivision: (body.schoolDivision as 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL') || 'GLOBAL',
+      },
+    })
+    return NextResponse.json(ok(created), { status: 201 })
+  })
 }

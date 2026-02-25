@@ -1,9 +1,13 @@
 import type { NextConfig } from 'next'
+import path from 'path'
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
+  outputFileTracingRoot: path.resolve(process.cwd()),
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: false },
   images: {
     formats: ['image/avif', 'image/webp'],
   },

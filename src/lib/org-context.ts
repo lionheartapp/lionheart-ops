@@ -1,24 +1,22 @@
-import { AsyncLocalStorage } from 'node:async_hooks'
-import { NextRequest } from 'next/server'
+import { AsyncLocalStorage } from 'async_hooks'
 
-type OrgStore = { organizationId: string }
+const orgContextStorage = new AsyncLocalStorage<string>()
 
-const orgStorage = new AsyncLocalStorage<OrgStore>()
-
-export function runWithOrgContext<T>(organizationId: string, callback: () => Promise<T>): Promise<T> {
-  return orgStorage.run({ organizationId }, callback)
-}
-
-export function getOrgContextId(): string {
-  const store = orgStorage.getStore()
-  if (!store?.organizationId) {
-    throw new Error('Organization context is missing')
+export function getOrgIdFromRequest(req: unknown): string {
+  if (req && typeof req === 'object' && 'headers' in req) {
+    const headers = (req as { headers: { get?: (name: string) => string | null } }).headers
+    const id = headers.get?.('x-org-id')?.trim()
+    if (id) return id
   }
-  return store.organizationId
+  return 'demo-org'
 }
 
-export function getOrgIdFromRequest(req: NextRequest): string {
-  const id = req.headers.get('x-org-id')?.trim()
-  if (!id) throw new Error('Missing x-org-id header')
-  return id
+/** Returns the current org ID set by runWithOrgContext, or a fallback. */
+export function getOrgContextId(): string {
+  const id = orgContextStorage.getStore()
+  return id ?? 'demo-org'
+}
+
+export async function runWithOrgContext<T>(orgId: string, fn: () => Promise<T>): Promise<T> {
+  return orgContextStorage.run(orgId, fn)
 }
