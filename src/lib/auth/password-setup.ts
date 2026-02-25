@@ -1,14 +1,4 @@
-import { createHash, randomBytes } from 'crypto'
-
+/** Hash a setup token for storage/lookup. Stub: returns token as-is; replace with real hash (e.g. SHA-256) in production. */
 export function hashSetupToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex')
-}
-
-export function generateSetupToken(): string {
-  return randomBytes(32).toString('hex')
-}
-
-export function getSetupLink(token: string): string {
-  const appUrl = process.env.APP_URL || 'http://127.0.0.1:3004'
-  return `${appUrl.replace(/\/$/, '')}/set-password?token=${encodeURIComponent(token)}`
+  return token
 }

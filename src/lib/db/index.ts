@@ -8,10 +8,6 @@ const orgScopedModels = new Set([
 	'DraftEvent',
 	'InventoryItem',
 	'TeacherSchedule',
-	'Building',
-	'Area',
-	'Room',
-	'UserRoomAssignment',
 ])
 
 function mergeOrgWhere(where: unknown, organizationId: string) {

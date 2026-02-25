@@ -26,25 +26,6 @@ npm run dev
 
 Open [http://127.0.0.1:3004](http://127.0.0.1:3004).
 
-## Email setup (welcome/invite links)
-
-Set these optional environment variables to enable automatic welcome emails:
-
-- `APP_URL` (example: `http://127.0.0.1:3004`)
-- `MAIL_FROM` (example: `no-reply@lionheartapp.com`)
-
-Provider A (Resend):
-- `RESEND_API_KEY`
-
-Provider B (SMTP):
-- `SMTP_HOST`
-- `SMTP_PORT`
-- `SMTP_USER`
-- `SMTP_PASS`
-- `SMTP_SECURE` (`true` for TLS, commonly with port 465)
-
-The app tries Resend first, then SMTP. If neither is configured, the API still returns a setup link that can be copied manually.
-
 ## Build
 
 ```bash

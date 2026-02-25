@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/app', '/dashboard', '/settings'])
+const PUBLIC_PATHS = new Set(['/', '/login'])
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
 const APEX_HOSTS = new Set(['lionheartapp.com', 'www.lionheartapp.com', 'localhost', '127.0.0.1'])
 
@@ -30,21 +30,15 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/favicon')) return true
   if (pathname.startsWith('/api/auth/login')) return true
   if (pathname.startsWith('/api/auth/set-password')) return true
-  if (pathname.startsWith('/api/branding')) return true
-  if (pathname.startsWith('/api/organizations/slug-check')) return true
-  if (pathname.startsWith('/api/organizations/signup')) return true
+  if (pathname === '/api/branding') return true
+  if (pathname === '/api/organizations/slug-check') return true
+  if (pathname === '/api/organizations/signup') return true
   return false
 }
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const requestHeaders = new Headers(req.headers)
-
-  if (pathname === '/app/settings') {
-    const url = req.nextUrl.clone()
-    url.pathname = '/settings'
-    return NextResponse.redirect(url)
-  }
 
   const host = req.headers.get('host') || ''
   const sub = getSubdomainFromHost(host)

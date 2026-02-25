@@ -26,7 +26,7 @@ async function main() {
   console.log('✅ Organization found:', org.name, '(' + org.slug + ')');
   console.log('   ID:', org.id);
 
-  // Check user with exact match
+  // Check user
   const user = await prisma.user.findFirst({
     where: {
       organizationId: orgId,
@@ -35,16 +35,16 @@ async function main() {
   });
 
   if (!user) {
-    console.log('\n❌ User not found with exact match');
-    console.log('\n📋 All users in database:');
-    const allUsers = await prisma.user.findMany();
-    allUsers.forEach(u => {
-      console.log(`  - Email: ${u.email}`);
-      console.log(`    OrgId: ${u.organizationId}`);
-      console.log(`    Name: ${u.name || 'no name'}`);
-      console.log(`    Match: email=${u.email === email}, org=${u.organizationId === orgId}`);
-      console.log('');
+    console.log('\n❌ User not found');
+    console.log('\n📋 Users in this org:');
+    const users = await prisma.user.findMany({
+      where: { organizationId: orgId },
     });
+    if (users.length === 0) {
+      console.log('   (no users found)');
+    } else {
+      users.forEach(u => console.log(`  - ${u.email} (${u.name || 'no name'})`));
+    }
     return;
   }
 
@@ -52,25 +52,12 @@ async function main() {
   console.log('   Name:', user.name);
   console.log('   Role:', user.role);
   console.log('   ID:', user.id);
-  console.log('   OrgID:', user.organizationId);
 
   // Test password
   const match = await bcrypt.compare(testPassword, user.passwordHash);
   console.log('\n🔑 Password verification:', match ? '✅ MATCH' : '❌ NO MATCH');
 
-  // Test with AND clause
-  console.log('\n🔍 Testing with AND clause (like org-scoped query)...');
-  const andUser = await prisma.user.findFirst({
-    where: {
-      AND: [
-        { email: email },
-        { organizationId: orgId }
-      ]
-    }
-  });
-  console.log('   Result:', andUser ? '✅ FOUND' : '❌ NOT FOUND');
-
-  if (match && andUser) {
+  if (match) {
     console.log('\n✅ All credentials are correct!');
     console.log('\n🎯 If login is still failing, check:');
     console.log('   1. Network/CORS issues');

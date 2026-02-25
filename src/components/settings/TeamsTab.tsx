@@ -1,7 +1,9 @@
+
 'use client'
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Users, Plus, Edit2, Trash2, X } from 'lucide-react'
+// ...existing code...
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 
@@ -46,6 +48,8 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
   const [teamUsersLoading, setTeamUsersLoading] = useState(false)
   const [teamUserReassignments, setTeamUserReassignments] = useState<Record<string, string>>({})
   const [actionError, setActionError] = useState<string | null>(null)
+
+// (Sorting logic removed)
 
   const hasCreateDraft = showCreateModal && (teamName.trim().length > 0 || teamDescription.trim().length > 0)
   const hasEditDraft =
@@ -327,12 +331,12 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ background: '#FDFEFF', minHeight: '100vh' }}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-2">
+          <Users className="w-6 h-6 text-blue-600" />
           <h2 className="text-2xl font-semibold text-gray-900">Teams</h2>
-          <p className="text-sm text-gray-600 mt-1">Organize users into teams for better collaboration</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -351,20 +355,29 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
       {loading ? (
         <div className="space-y-6 animate-pulse">
-          <div className="divide-y divide-gray-200 border-y border-gray-200">
+          <div className="rounded-lg border border-gray-200 overflow-hidden bg-white">
+            <div className="hidden md:grid grid-cols-[minmax(0,1.6fr)_1fr_120px_96px] gap-4 bg-gray-50 border-b border-gray-200 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <span>Team</span>
+              <span className="text-center">Description</span>
+              <span className="text-center">Members</span>
+              <span className="text-right">Actions</span>
+            </div>
             {Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className="py-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="h-12 w-12 bg-gray-200 rounded-lg" />
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-gray-200 rounded" />
-                    <div className="h-8 w-8 bg-gray-200 rounded" />
-                  </div>
+              <div key={index} className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_1fr_120px_96px] gap-3 md:gap-4 px-4 py-4 border-b border-gray-200 last:border-b-0">
+                <div>
+                  <div className="h-5 w-40 bg-gray-200 rounded mb-2" />
+                  <div className="h-4 w-28 bg-gray-200 rounded" />
                 </div>
-                <div className="h-5 w-40 bg-gray-200 rounded mb-2" />
-                <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
-                <div className="h-4 w-2/3 bg-gray-200 rounded mb-2" />
-                <div className="h-4 w-20 bg-gray-200 rounded" />
+                <div className="hidden md:flex justify-center">
+                  <div className="h-4 w-2/3 bg-gray-200 rounded" />
+                </div>
+                <div className="hidden md:flex justify-center">
+                  <div className="h-4 w-20 bg-gray-200 rounded" />
+                </div>
+                <div className="flex md:justify-end items-center gap-2">
+                  <div className="h-8 w-8 bg-gray-200 rounded" />
+                  <div className="h-8 w-8 bg-gray-200 rounded" />
+                </div>
               </div>
             ))}
           </div>
@@ -381,17 +394,30 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
           </button>
         </div>
       ) : (
-        <div className="divide-y divide-gray-200 border-y border-gray-200">
-          {teams.map((team) => (
-            <div
-              key={team.id}
-              className="py-5"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <Users className="w-6 h-6 text-purple-600" />
+        <div className="rounded-lg border border-gray-200 overflow-hidden bg-white">
+          <div className="hidden md:grid grid-cols-[minmax(0,1.6fr)_1fr_120px_96px] gap-4 border-b border-gray-200 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500" style={{ background: '#F7F8FA' }}>
+            <span>Team</span>
+            <span className="text-center">Description</span>
+            <span className="text-center">Members</span>
+            <span className="text-right">Actions</span>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {teams.map((team) => (
+              <div
+                key={team.id}
+                className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_1fr_120px_96px] gap-3 md:gap-4 px-4 py-4 items-center"
+              >
+                <div className="min-w-0">
+                  <h3 className="text-base font-semibold text-gray-900 truncate mb-1">{team.name}</h3>
+                  <p className="text-sm text-gray-600 truncate">@{team.slug}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="hidden md:flex items-center justify-center text-sm text-gray-500">
+                  {team.description || <span className="italic text-gray-300">No description</span>}
+                </div>
+                <div className="hidden md:flex items-center justify-center text-sm text-gray-600">
+                  {team._count?.members || 0}
+                </div>
+                <div className="flex md:justify-end items-center gap-2">
                   <button
                     type="button"
                     onClick={() => openEditDrawer(team)}
@@ -410,17 +436,8 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                   </button>
                 </div>
               </div>
-              
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{team.name}</h3>
-              <p className="text-sm text-gray-600 mb-3">@{team.slug}</p>
-              {team.description && (
-                <p className="text-sm text-gray-500 mb-3">{team.description}</p>
-              )}
-              <div className="text-sm text-gray-500">
-                {team._count?.members || 0} members
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 

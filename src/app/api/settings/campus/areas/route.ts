@@ -1,104 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { prisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+import { getOrgIdFromRequest } from '@/lib/org-context'
+import { runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
-const CreateAreaSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  areaType: z.enum(['FIELD', 'COURT', 'GYM', 'COMMON', 'PARKING', 'OTHER']).optional(),
-  buildingId: z.string().optional().nullable(),
-  sortOrder: z.number().int().optional(),
-  isActive: z.boolean().optional(),
-})
-
 export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
-
-    return await runWithOrgContext(orgId, async () => {
-      const searchParams = new URL(req.url).searchParams
-      const includeInactive = searchParams.get('includeInactive') === 'true'
-      const buildingId = searchParams.get('buildingId') || undefined
-      const db = prisma as any
-
-      const areas = await db.area.findMany({
-        where: {
-          organizationId: orgId,
-          ...(includeInactive ? {} : { isActive: true }),
-          ...(buildingId ? { buildingId } : {}),
-        },
-        include: {
-          building: {
-            select: { id: true, name: true, code: true },
-          },
-        },
-        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      })
-
-      return NextResponse.json(ok(areas))
+  const orgId = getOrgIdFromRequest(req)
+  const userContext = await getUserContext(req)
+  await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
+  return runWithOrgContext(orgId, async () => {
+    const list = await prisma.area.findMany({
+      where: { organizationId: orgId },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch areas'), { status: 500 })
-  }
+    return NextResponse.json(ok(list))
+  })
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    const body = await req.json()
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const input = CreateAreaSchema.parse(body)
-      const db = prisma as any
-
-      if (input.buildingId) {
-        const building = await db.building.findFirst({
-          where: { id: input.buildingId, organizationId: orgId },
-          select: { id: true },
-        })
-        if (!building) {
-          return NextResponse.json(fail('BAD_REQUEST', 'Invalid buildingId for this organization'), { status: 400 })
-        }
-      }
-
-      const area = await db.area.create({
-        data: {
-          organizationId: orgId,
-          name: input.name,
-          areaType: input.areaType || 'OTHER',
-          buildingId: input.buildingId || null,
-          sortOrder: input.sortOrder ?? 0,
-          isActive: input.isActive ?? true,
-        },
-        include: {
-          building: {
-            select: { id: true, name: true, code: true },
-          },
-        },
-      })
-
-      return NextResponse.json(ok(area), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create area'), { status: 500 })
+  const orgId = getOrgIdFromRequest(req)
+  const userContext = await getUserContext(req)
+  await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+  const body = (await req.json()) as { name?: string; areaType?: string; buildingId?: string | null }
+  const name = body.name?.trim()
+  if (!name) {
+    return NextResponse.json(fail('BAD_REQUEST', 'name is required'), { status: 400 })
   }
+  return runWithOrgContext(orgId, async () => {
+    const created = await prisma.area.create({
+      data: {
+        organizationId: orgId,
+        name,
+        areaType: (body.areaType as 'FIELD' | 'COURT' | 'GYM' | 'COMMON' | 'PARKING' | 'OTHER') || 'OTHER',
+        buildingId: body.buildingId?.trim() || null,
+      },
+    })
+    return NextResponse.json(ok(created), { status: 201 })
+  })
 }
