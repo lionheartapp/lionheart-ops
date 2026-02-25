@@ -1,21 +1,61 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Dev: Next.js (3004)",
-      "type": "shell",
-      "command": "npm run dev",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": false
-      },
-      "problemMatcher": []
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Dev: Next.js (3004)",
+			"type": "shell",
+			"command": "npm run dev",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": false
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Smoke Test: Build, Test, Lint",
+			"type": "shell",
+			"command": "npm run build && npm run test && npm run lint",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Smoke Test: Build, Test, Lint (Retry)",
+			"type": "shell",
+			"command": "npm run build && npm run test && npm run lint",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Smoke Test: Build, Test, Lint (Final Retry)",
+			"type": "shell",
+			"command": "npm run build && npm run test && npm run lint",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc",
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Smoke Test: Build, Test, Lint (Final Retry)",
+			"type": "shell",
+			"command": "npm run build && npm run test && npm run lint",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
 }
