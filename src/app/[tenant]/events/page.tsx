@@ -1,6 +1,6 @@
 import { getEventsForTenant } from '@/lib/services/events.service';
 
-export default async function EventsPage({ params }: { params: { tenant: string } }) {
+export default async function Page({ params }: { params: { tenant: string } }) {
   // Server-side data fetching scoped by tenant
   const events = await getEventsForTenant(params.tenant);
 

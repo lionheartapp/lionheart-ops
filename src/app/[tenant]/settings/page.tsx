@@ -1,6 +1,6 @@
 import { getSettingsForTenant } from '@/lib/services/settings.service';
 
-export default async function SettingsPage({ params }: { params: { tenant: string } }) {
+export default async function Page({ params }: { params: { tenant: string } }) {
   // Server-side data fetching scoped by tenant
   const settings = await getSettingsForTenant(params.tenant);
 

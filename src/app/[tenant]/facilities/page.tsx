@@ -1,6 +1,6 @@
 import { getFacilitiesForTenant } from '@/lib/services/facilities.service';
 
-export default async function FacilitiesPage({ params }: { params: { tenant: string } }) {
+export default async function Page({ params }: { params: { tenant: string } }) {
   // Server-side data fetching scoped by tenant
   const facilities = await getFacilitiesForTenant(params.tenant);
 
