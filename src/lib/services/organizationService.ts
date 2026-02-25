@@ -35,7 +35,7 @@ export async function getOrganizationBranding(
 ): Promise<OrganizationBranding | null> {
   try {
     const org = await rawPrisma.organization.findUnique({
-      where: { slug },
+      where: { slug: slug.toLowerCase() },
       select: {
         id: true,
         name: true,
