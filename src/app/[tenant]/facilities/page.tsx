@@ -1,8 +1,13 @@
+
 import { getFacilitiesForTenant } from '@/lib/services/facilities.service';
 
-export default async function Page({ params }: { params: { tenant: string } }) {
-  // Server-side data fetching scoped by tenant
-  const facilities = await getFacilitiesForTenant(params.tenant);
+type PageProps = {
+  params: Promise<{ tenant: string }>;
+};
+
+export default async function Page({ params }: PageProps) {
+  const { tenant } = await params;
+  const facilities = await getFacilitiesForTenant(tenant);
 
   return (
     <div>
