@@ -16,7 +16,7 @@ export default async function Page({ params }: PageProps) {
         <div className="text-gray-500">No facilities found for this workspace.</div>
       ) : (
         <ul className="space-y-2">
-          {facilities.map(facility => (
+          {facilities.map((facility: { id: string; name: string; location: string }) => (
             <li key={facility.id} className="bg-white p-4 rounded shadow">
               <div className="font-semibold text-primary-900">{facility.name}</div>
               <div className="text-xs text-gray-600">{facility.location}</div>
