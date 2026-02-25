@@ -1,9 +1,15 @@
+
 import { ReactNode } from 'react';
 import { getTenantConfig } from '@/lib/services/tenant.service';
 
-export default async function TenantLayout({ children, params }: { children: ReactNode; params: { tenant: string } }) {
-  // Server-side tenant resolution
-  const tenantConfig = await getTenantConfig(params.tenant);
+type LayoutProps = {
+  children: ReactNode;
+  params: Promise<{ tenant: string }>;
+};
+
+export default async function TenantLayout({ children, params }: LayoutProps) {
+  const { tenant } = await params;
+  const tenantConfig = await getTenantConfig(tenant);
   if (!tenantConfig) {
     // Optionally redirect or show error
     return <div className="min-h-screen flex items-center justify-center text-red-600">Invalid tenant</div>;
