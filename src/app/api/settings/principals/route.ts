@@ -6,6 +6,58 @@ import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
+const isValidPhone = (value: string) => {
+  const digits = value.replace(/\D/g, '')
+  return digits.length >= 10 && digits.length <= 15
+}
+
+const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
+
+const normalizeNameToken = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+const splitPrincipalName = (value: string) => {
+  const cleaned = value.trim().replace(/\s+/g, ' ')
+  const parts = cleaned.split(' ').filter(Boolean)
+  const firstName = parts[0] || ''
+  const lastName = parts.length > 1 ? parts.slice(1).join(' ') : firstName
+  return { firstName, lastName }
+}
+
+const extractDomainFromUrl = (value: string | null | undefined) => {
+  if (!value) return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  try {
+    const parsed = new URL(trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`)
+    return parsed.hostname.replace(/^www\./i, '').toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+const buildPrincipalEmailLocalPart = (firstName: string, lastName: string) => {
+  const firstInitial = normalizeNameToken(firstName).charAt(0) || 'p'
+  const normalizedLastName = normalizeNameToken(lastName)
+  const fallbackLastName = normalizeNameToken(firstName) || 'principal'
+  return `${firstInitial}${normalizedLastName || fallbackLastName}`
+}
+
+const toPrincipalResponse = (user: {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+  phone: string | null
+  jobTitle: string | null
+}) => ({
+  id: user.id,
+  name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+  email: user.email,
+  phone: user.phone,
+  jobTitle: user.jobTitle || '',
+})
+
 // GET - Search for principals by name
 export async function GET(req: NextRequest) {
   try {
@@ -16,16 +68,25 @@ export async function GET(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     const { searchParams } = new URL(req.url)
-    const query = searchParams.get('q') || ''
+    const query = (searchParams.get('q') || '').trim()
+
+    if (!query) {
+      return NextResponse.json(ok([]))
+    }
+
+    const queryTokens = query.split(/\s+/).map((token) => token.trim()).filter(Boolean)
 
     const users = await prisma.user.findMany({
       where: {
         organizationId: orgId,
-        OR: [
-          { firstName: { contains: query, mode: 'insensitive' } },
-          { lastName: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
-        ],
+        AND: queryTokens.map((token) => ({
+          OR: [
+            { firstName: { contains: token, mode: 'insensitive' } },
+            { lastName: { contains: token, mode: 'insensitive' } },
+            { name: { contains: token, mode: 'insensitive' } },
+            { email: { contains: token, mode: 'insensitive' } },
+          ],
+        })),
       },
       select: {
         id: true,
@@ -35,20 +96,14 @@ export async function GET(req: NextRequest) {
         phone: true,
         jobTitle: true,
       },
-      take: 10,
+      orderBy: [
+        { firstName: 'asc' },
+        { lastName: 'asc' },
+      ],
+      take: 15,
     })
 
-    return NextResponse.json(
-      ok({
-        data: users.map((u) => ({
-          id: u.id,
-          name: `${u.firstName} ${u.lastName}`.trim(),
-          email: u.email,
-          phone: u.phone,
-          jobTitle: u.jobTitle,
-        })),
-      })
-    )
+    return NextResponse.json(ok(users.map(toPrincipalResponse)))
   } catch (err) {
     console.error('Failed to search principals:', err)
     return NextResponse.json(
@@ -68,7 +123,7 @@ export async function POST(req: NextRequest) {
     // Check permission
     await assertCan(userContext.userId, PERMISSIONS.USERS_INVITE)
 
-    const principalName = String(body.name || '').trim()
+    const principalName = String(body.name || '').trim().replace(/\s+/g, ' ')
     const phone = String(body.phone || '').trim() || null
     const phoneExt = String(body.phoneExt || '').trim() || null
 
@@ -79,28 +134,64 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Split name into first and last
-    const [firstName, ...lastNameParts] = principalName.split(' ')
-    const lastName = lastNameParts.join(' ') || firstName
-
-    // Generate email from name (for now, we'll use a placeholder that can be updated later)
-    const email = `principal-${Date.now()}@temp.local`
-
-    // Check if email already exists (shouldn't happen with our temp email)
-    const existing = await prisma.user.findUnique({
-      where: {
-        organizationId_email: {
-          organizationId: orgId,
-          email,
-        },
-      },
-    })
-
-    if (existing) {
+    if (phone && !isValidPhone(phone)) {
       return NextResponse.json(
-        fail('CONFLICT', 'Principal already exists'),
-        { status: 409 }
+        fail('VALIDATION_ERROR', 'Principal phone must be a valid phone number'),
+        { status: 400 }
       )
+    }
+
+    if (phoneExt && !isValidExtension(phoneExt)) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Extension must be numeric and up to 6 digits'),
+        { status: 400 }
+      )
+    }
+
+    const { firstName, lastName } = splitPrincipalName(principalName)
+
+    const [organization, existingUserForDomain] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: orgId },
+        select: { slug: true, website: true },
+      }),
+      prisma.user.findFirst({
+        where: {
+          organizationId: orgId,
+          email: {
+            not: {
+              endsWith: '@temp.local',
+            },
+          },
+        },
+        select: { email: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ])
+
+    const websiteDomain = extractDomainFromUrl(organization?.website)
+    const existingEmailDomain = existingUserForDomain?.email.split('@')[1]?.toLowerCase() || null
+    const fallbackDomain = `${(organization?.slug || 'school').toLowerCase()}.com`
+    const emailDomain = websiteDomain || existingEmailDomain || fallbackDomain
+
+    const baseLocalPart = buildPrincipalEmailLocalPart(firstName, lastName)
+    let email = `${baseLocalPart}@${emailDomain}`
+    let suffix = 2
+
+    while (true) {
+      const emailExists = await prisma.user.findUnique({
+        where: {
+          organizationId_email: {
+            organizationId: orgId,
+            email,
+          },
+        },
+        select: { id: true },
+      })
+
+      if (!emailExists) break
+      email = `${baseLocalPart}${suffix}@${emailDomain}`
+      suffix += 1
     }
 
     // Get a basic role for the principal (e.g., "Staff" or similar)
@@ -146,18 +237,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return NextResponse.json(
-      ok({
-        data: {
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`.trim(),
-          email: user.email,
-          phone: user.phone,
-          jobTitle: user.jobTitle,
-        },
-      }),
-      { status: 201 }
-    )
+    return NextResponse.json(ok(toPrincipalResponse(user)), { status: 201 })
   } catch (err) {
     console.error('Failed to create principal:', err)
     return NextResponse.json(

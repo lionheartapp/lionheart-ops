@@ -7,6 +7,13 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 
+const isValidPhone = (value: string) => {
+  const digits = value.replace(/\D/g, '')
+  return digits.length >= 10 && digits.length <= 15
+}
+
+const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
+
 const CreateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']),
@@ -59,6 +66,22 @@ export async function POST(req: NextRequest) {
     const userContext = await getUserContext(req)
     const body = await req.json()
     const input = CreateSchoolSchema.parse(body)
+    const principalPhone = (input.principalPhone || '').trim()
+    const principalPhoneExt = (input.principalPhoneExt || '').trim()
+
+    if (principalPhone && !isValidPhone(principalPhone)) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Principal phone must be a valid phone number'),
+        { status: 400 }
+      )
+    }
+
+    if (principalPhoneExt && !isValidExtension(principalPhoneExt)) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Extension must be numeric and up to 6 digits'),
+        { status: 400 }
+      )
+    }
 
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
 
@@ -85,8 +108,8 @@ export async function POST(req: NextRequest) {
           gradeLevel: input.gradeLevel,
           principalName: input.principalName || null,
           principalEmail: input.principalEmail || null,
-          principalPhone: input.principalPhone || null,
-          principalPhoneExt: input.principalPhoneExt || null,
+          principalPhone: principalPhone || null,
+          principalPhoneExt: principalPhoneExt || null,
         },
         select: {
           id: true,

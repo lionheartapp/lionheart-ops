@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Save } from 'lucide-react'
 import SchoolsManagement from './SchoolsManagement'
 
@@ -118,13 +118,30 @@ function formatTimestamp(value: string) {
   return date.toLocaleString()
 }
 
-export default function SchoolInfoTab() {
+type SchoolInfoTabProps = {
+  onDirtyChange?: (isDirty: boolean) => void
+  onRegisterSave?: (handler: () => Promise<boolean>) => void
+  onRegisterDiscard?: (handler: () => void) => void
+}
+
+function areFormsEqual(a: FormState, b: FormState) {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
+export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegisterDiscard }: SchoolInfoTabProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [schoolInfo, setSchoolInfo] = useState<SchoolInfo | null>(null)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [savedForm, setSavedForm] = useState<FormState>(EMPTY_FORM)
+  const formRef = useRef<FormState>(EMPTY_FORM)
+  const isDirty = useMemo(() => !areFormsEqual(form, savedForm), [form, savedForm])
+
+  useEffect(() => {
+    formRef.current = form
+  }, [form])
 
   const getAuthHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
@@ -149,8 +166,10 @@ export default function SchoolInfoTab() {
         throw new Error(data?.error?.message || 'Failed to load school information')
       }
 
+      const nextForm = toFormState(data.data)
       setSchoolInfo(data.data)
-      setForm(toFormState(data.data))
+      setForm(nextForm)
+      setSavedForm(nextForm)
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load school information')
     } finally {
@@ -168,26 +187,43 @@ export default function SchoolInfoTab() {
     return () => clearTimeout(timeout)
   }, [success])
 
-  const handleSave = async (event: React.FormEvent) => {
-    event.preventDefault()
+  useEffect(() => {
+    onDirtyChange?.(isDirty)
+  }, [isDirty, onDirtyChange])
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isDirty) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [isDirty])
+
+  const saveSchoolInfo = useCallback(async () => {
+    const currentForm = formRef.current
     setSaving(true)
     setError('')
     setSuccess('')
 
-    const normalizedWebsite = form.website.trim()
-      ? form.website.startsWith('http://') || form.website.startsWith('https://')
-        ? form.website.trim()
-        : `https://${form.website.trim()}`
+    const normalizedWebsite = currentForm.website.trim()
+      ? currentForm.website.startsWith('http://') || currentForm.website.startsWith('https://')
+        ? currentForm.website.trim()
+        : `https://${currentForm.website.trim()}`
       : ''
 
     const payload = {
-      ...form,
+      ...currentForm,
       website: normalizedWebsite,
-      slug: form.slug.trim().toLowerCase(),
-      studentCount: form.studentCount.trim() === '' ? null : Number(form.studentCount),
-      staffCount: form.staffCount.trim() === '' ? null : Number(form.staffCount),
-      institutionType: form.institutionType || null,
-      gradeLevel: form.gradeLevel || null,
+      slug: currentForm.slug.trim().toLowerCase(),
+      studentCount: currentForm.studentCount.trim() === '' ? null : Number(currentForm.studentCount),
+      staffCount: currentForm.staffCount.trim() === '' ? null : Number(currentForm.staffCount),
+      institutionType: currentForm.institutionType || null,
+      gradeLevel: currentForm.gradeLevel || null,
     }
 
     try {
@@ -213,7 +249,9 @@ export default function SchoolInfoTab() {
             }
           : data.data
       )
-      setForm(toFormState(data.data))
+      const nextForm = toFormState(data.data)
+      setForm(nextForm)
+      setSavedForm(nextForm)
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('org-name', data.data.name)
@@ -225,18 +263,32 @@ export default function SchoolInfoTab() {
       }
 
       setSuccess('School information saved')
+      return true
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Failed to save school information')
+      return false
     } finally {
       setSaving(false)
     }
-  }
+  }, [])
 
-  const resetForm = () => {
-    if (!schoolInfo) return
-    setForm(toFormState(schoolInfo))
+  useEffect(() => {
+    onRegisterSave?.(saveSchoolInfo)
+  }, [onRegisterSave, saveSchoolInfo])
+
+  const resetForm = useCallback(() => {
+    setForm(savedForm)
     setError('')
     setSuccess('')
+  }, [savedForm])
+
+  useEffect(() => {
+    onRegisterDiscard?.(resetForm)
+  }, [onRegisterDiscard, resetForm])
+
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault()
+    await saveSchoolInfo()
   }
 
   const renderSkeleton = () => (
@@ -339,7 +391,7 @@ export default function SchoolInfoTab() {
   }
 
   return (
-    <form onSubmit={handleSave} className="space-y-8">
+    <form onSubmit={handleSave} className="space-y-8 pb-24">
       <section>
         <h2 className="text-2xl font-semibold text-gray-900">School Information</h2>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
@@ -557,6 +609,33 @@ export default function SchoolInfoTab() {
           Reset
         </button>
       </div>
+
+      {isDirty && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-10 lg:px-8">
+            <p className="text-sm text-gray-700">You have unsaved school information changes.</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={resetForm}
+                disabled={saving}
+                className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                onClick={saveSchoolInfo}
+                disabled={saving}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }

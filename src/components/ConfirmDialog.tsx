@@ -15,7 +15,14 @@ interface ConfirmDialogProps {
   cancelText?: string
   variant?: 'danger' | 'warning' | 'info'
   isLoading?: boolean
+  loadingText?: string
   confirmDisabled?: boolean
+  extraAction?: {
+    label: string
+    onClick: () => void
+    disabled?: boolean
+    className?: string
+  }
 }
 
 export default function ConfirmDialog({
@@ -30,7 +37,9 @@ export default function ConfirmDialog({
   cancelText = 'Cancel',
   variant = 'danger',
   isLoading = false,
+  loadingText = 'Working...',
   confirmDisabled = false,
+  extraAction,
 }: ConfirmDialogProps) {
   const [confirmInput, setConfirmInput] = useState('')
 
@@ -116,7 +125,7 @@ export default function ConfirmDialog({
                     disabled={isLoading || !canConfirm}
                     className={`w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${styles.button}`}
                   >
-                    {isLoading ? 'Deleting...' : confirmText}
+                    {isLoading ? loadingText : confirmText}
                   </button>
                 </div>
                 <div className="mt-4">
@@ -142,13 +151,26 @@ export default function ConfirmDialog({
                 >
                   {cancelText}
                 </button>
+                {extraAction && (
+                  <button
+                    type="button"
+                    onClick={extraAction.onClick}
+                    disabled={isLoading || extraAction.disabled}
+                    className={
+                      extraAction.className ||
+                      'flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition'
+                    }
+                  >
+                    {extraAction.label}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={onConfirm}
                   disabled={isLoading}
                   className={`flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${styles.button}`}
                 >
-                  {isLoading ? 'Deleting...' : confirmText}
+                  {isLoading ? loadingText : confirmText}
                 </button>
               </div>
             )}

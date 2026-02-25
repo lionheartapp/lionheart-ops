@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "SchoolType" ADD VALUE 'MULTI_SCHOOL_CAMPUS';
+
+-- AlterTable
+ALTER TABLE "School" ALTER COLUMN "gradeLevel" SET DEFAULT 'ELEMENTARY';

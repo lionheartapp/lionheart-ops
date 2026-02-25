@@ -22,7 +22,11 @@ interface TeamUserSummary {
   email: string
 }
 
-export default function TeamsTab() {
+type TeamsTabProps = {
+  onDirtyChange?: (isDirty: boolean) => void
+}
+
+export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -43,6 +47,19 @@ export default function TeamsTab() {
   const [teamUserReassignments, setTeamUserReassignments] = useState<Record<string, string>>({})
   const [actionError, setActionError] = useState<string | null>(null)
 
+  const hasCreateDraft = showCreateModal && (teamName.trim().length > 0 || teamDescription.trim().length > 0)
+  const hasEditDraft =
+    Boolean(editTeam) &&
+    (
+      editTeamName.trim() !== (editTeam?.name || '').trim() ||
+      editTeamDescription.trim() !== (editTeam?.description || '').trim()
+    )
+  const hasUnsavedChanges = hasCreateDraft || hasEditDraft
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedChanges)
+  }, [hasUnsavedChanges, onDirtyChange])
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem('auth-token')
     const orgId = localStorage.getItem('org-id')
@@ -56,6 +73,19 @@ export default function TeamsTab() {
   useEffect(() => {
     loadTeams()
   }, [])
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [hasUnsavedChanges])
 
   const loadTeams = async () => {
     try {

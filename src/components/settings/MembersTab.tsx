@@ -33,7 +33,35 @@ interface Role {
   name: string
 }
 
-export default function MembersTab() {
+type MembersTabProps = {
+  onDirtyChange?: (isDirty: boolean) => void
+}
+
+function areStringArraysEqual(a: string[], b: string[]) {
+  if (a.length !== b.length) return false
+  const left = [...a].sort()
+  const right = [...b].sort()
+  return left.every((value, index) => value === right[index])
+}
+
+function hasMemberDraft(current: Member | null, initial: Member | null) {
+  if (!current || !initial) return false
+
+  return (
+    (current.firstName || '') !== (initial.firstName || '') ||
+    (current.lastName || '') !== (initial.lastName || '') ||
+    current.email !== initial.email ||
+    current.schoolScope !== initial.schoolScope ||
+    (current.phone || '') !== (initial.phone || '') ||
+    (current.jobTitle || '') !== (initial.jobTitle || '') ||
+    (current.employmentType || '') !== (initial.employmentType || '') ||
+    current.status !== initial.status ||
+    (current.userRole?.id || '') !== (initial.userRole?.id || '') ||
+    !areStringArraysEqual(current.teamIds, initial.teamIds)
+  )
+}
+
+export default function MembersTab({ onDirtyChange }: MembersTabProps = {}) {
   const [members, setMembers] = useState<Member[]>([])
   const [teams, setTeams] = useState<Team[]>([])
   const [roles, setRoles] = useState<Role[]>([])
@@ -51,6 +79,7 @@ export default function MembersTab() {
   const [createError, setCreateError] = useState('')
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
+  const [initialDrawerMember, setInitialDrawerMember] = useState<Member | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [drawerLoading, setDrawerLoading] = useState(false)
   const [isSavingDrawer, setIsSavingDrawer] = useState(false)
@@ -72,6 +101,28 @@ export default function MembersTab() {
     roleId: '',
     teamIds: [] as string[],
   })
+
+  const createDefaultRoleId = roles[0]?.id || ''
+  const hasCreateDraft =
+    isCreateOpen &&
+    (
+      form.firstName.trim().length > 0 ||
+      form.lastName.trim().length > 0 ||
+      form.email.trim().length > 0 ||
+      form.schoolScope !== 'GLOBAL' ||
+      form.phone.trim().length > 0 ||
+      form.jobTitle.trim().length > 0 ||
+      form.employmentType !== 'FULL_TIME' ||
+      form.provisioningMode !== 'ADMIN_CREATE' ||
+      form.roleId !== createDefaultRoleId ||
+      form.teamIds.length > 0
+    )
+  const hasDrawerDraft = isDrawerOpen && hasMemberDraft(selectedMember, initialDrawerMember)
+  const hasUnsavedChanges = hasCreateDraft || hasDrawerDraft
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedChanges)
+  }, [hasUnsavedChanges, onDirtyChange])
 
   const getAuthHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
@@ -174,6 +225,19 @@ export default function MembersTab() {
     fetchMembers()
   }, [filterRole, filterTeam, filterStatus, filterSchoolScope, debouncedSearchQuery])
 
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [hasUnsavedChanges])
+
   const openCreateModal = () => {
     setCreateError('')
     setForm({
@@ -252,6 +316,7 @@ export default function MembersTab() {
         return
       }
       setSelectedMember(data.data)
+      setInitialDrawerMember(data.data)
     } catch {
       setDrawerError('Failed to load member details')
     } finally {
@@ -289,6 +354,7 @@ export default function MembersTab() {
       }
 
       setSelectedMember(data.data)
+      setInitialDrawerMember(data.data)
       await fetchMembers()
     } catch {
       setDrawerError('Failed to save member')
@@ -302,6 +368,7 @@ export default function MembersTab() {
       setIsDrawerOpen(false)
       setSelectedMemberId(null)
       setSelectedMember(null)
+      setInitialDrawerMember(null)
       setDrawerError('')
     }
   }

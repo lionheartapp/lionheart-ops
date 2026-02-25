@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Plus, Edit2, Trash2, X, ChevronDown } from 'lucide-react'
 import type { School } from '@prisma/client'
+import DetailDrawer from '@/components/DetailDrawer'
 
 type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
@@ -25,8 +26,24 @@ type PrincipalOption = {
 }
 
 type SuccessModalData = {
+  schoolId: string
   schoolName: string
+  principalId: string | null
   principalName: string
+  principalEmail: string
+  principalPhone: string
+  principalPhoneExt: string
+  principalJobTitle: string
+}
+
+type PrincipalEditorData = {
+  schoolId: string
+  principalId: string | null
+  principalName: string
+  principalEmail: string
+  principalPhone: string
+  principalPhoneExt: string
+  principalJobTitle: string
 }
 
 const EMPTY_FORM: SchoolFormData = {
@@ -38,6 +55,48 @@ const EMPTY_FORM: SchoolFormData = {
   principalPhoneExt: '',
 }
 
+const formatPhoneInput = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 10)
+  if (!digits) return ''
+  if (digits.length <= 3) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+}
+
+const normalizeExtensionInput = (value: string) => value.replace(/\D/g, '').slice(0, 6)
+
+const normalizeSearchText = (value: string) => value.toLowerCase().trim().replace(/\s+/g, ' ')
+
+const splitSearchTokens = (value: string) => normalizeSearchText(value).split(' ').filter(Boolean)
+
+const matchesWordPrefixSequence = (name: string, query: string) => {
+  const nameTokens = splitSearchTokens(name)
+  const queryTokens = splitSearchTokens(query)
+  if (queryTokens.length === 0) return false
+  if (queryTokens.length > nameTokens.length) return false
+
+  let nameIndex = 0
+  for (const queryToken of queryTokens) {
+    let found = false
+    while (nameIndex < nameTokens.length) {
+      if (nameTokens[nameIndex].startsWith(queryToken)) {
+        found = true
+        nameIndex += 1
+        break
+      }
+      nameIndex += 1
+    }
+    if (!found) return false
+  }
+
+  return true
+}
+
+const isValidPhoneValue = (value: string) => {
+  const digits = value.replace(/\D/g, '')
+  return digits.length >= 10 && digits.length <= 15
+}
+
 export default function SchoolsManagement() {
   const [schools, setSchools] = useState<SchoolData[]>([])
   const [loading, setLoading] = useState(true)
@@ -45,6 +104,7 @@ export default function SchoolsManagement() {
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<SchoolFormData>(EMPTY_FORM)
+  const [selectedPrincipalId, setSelectedPrincipalId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -55,9 +115,14 @@ export default function SchoolsManagement() {
   const [showPrincipalDropdown, setShowPrincipalDropdown] = useState(false)
   const [searchingPrincipals, setSearchingPrincipals] = useState(false)
   const [creatingPrincipal, setCreatingPrincipal] = useState(false)
+  const [createdPrincipalInFlow, setCreatedPrincipalInFlow] = useState(false)
   
   // Success modal
   const [successData, setSuccessData] = useState<SuccessModalData | null>(null)
+  const [principalEditor, setPrincipalEditor] = useState<PrincipalEditorData | null>(null)
+  const [principalEditorOpen, setPrincipalEditorOpen] = useState(false)
+  const [savingPrincipalEditor, setSavingPrincipalEditor] = useState(false)
+  const [principalEditorError, setPrincipalEditorError] = useState('')
 
   useEffect(() => {
     setMounted(true)
@@ -107,12 +172,52 @@ export default function SchoolsManagement() {
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (principalSearch) {
-        searchPrincipals(principalSearch)
+      const normalizedSearch = principalSearch.trim()
+      if (normalizedSearch) {
+        searchPrincipals(normalizedSearch)
+      } else {
+        setPrincipalOptions([])
       }
     }, 300)
     return () => clearTimeout(timer)
   }, [principalSearch])
+
+  const rankedPrincipalOptions = useMemo(() => {
+    const query = normalizeSearchText(principalSearch)
+    if (!query) return principalOptions
+
+    const queryTokens = splitSearchTokens(query)
+
+    const scored = principalOptions
+      .map((principal) => {
+        const name = normalizeSearchText(principal.name)
+        const email = normalizeSearchText(principal.email)
+
+        const exactNamePrefix = name.startsWith(query)
+        const phraseInName = name.includes(query)
+        const wordPrefixSequence = matchesWordPrefixSequence(principal.name, query)
+        const allTokensInName = queryTokens.every((token) => name.includes(token))
+        const allTokensInEmail = queryTokens.every((token) => email.includes(token))
+
+        let score = 0
+        if (exactNamePrefix) score = 500
+        else if (wordPrefixSequence) score = 450
+        else if (phraseInName) score = 300
+        else if (allTokensInName) score = 200
+        else if (allTokensInEmail) score = 100
+
+        return { principal, score }
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score || a.principal.name.localeCompare(b.principal.name))
+
+    const strictPrefixMatches = scored.filter((entry) => entry.score >= 450)
+    if (queryTokens.length >= 2 && strictPrefixMatches.length > 0) {
+      return strictPrefixMatches.map((entry) => entry.principal)
+    }
+
+    return scored.map((entry) => entry.principal)
+  }, [principalOptions, principalSearch])
 
   // Create a new principal
   const createNewPrincipal = async () => {
@@ -127,7 +232,7 @@ export default function SchoolsManagement() {
           ...getAuthHeaders(),
         },
         body: JSON.stringify({
-          name: principalSearch,
+          name: principalSearch.trim(),
           phone: form.principalPhone || null,
           phoneExt: form.principalPhoneExt || null,
         }),
@@ -146,7 +251,9 @@ export default function SchoolsManagement() {
         principalEmail: principal.email,
         principalPhone: principal.phone || '',
       }))
-      setPrincipalSearch('')
+      setSelectedPrincipalId(principal.id)
+      setCreatedPrincipalInFlow(true)
+      setPrincipalSearch(principal.name)
       setShowPrincipalDropdown(false)
       setPrincipalOptions([])
     } catch (err) {
@@ -165,6 +272,8 @@ export default function SchoolsManagement() {
       principalEmail: principal.email,
       principalPhone: principal.phone || '',
     }))
+    setSelectedPrincipalId(principal.id)
+    setCreatedPrincipalInFlow(false)
     setPrincipalSearch(principal.name)
     setShowPrincipalDropdown(false)
     setPrincipalOptions([])
@@ -201,6 +310,14 @@ export default function SchoolsManagement() {
     setError('')
 
     try {
+      if (form.principalPhone && !isValidPhoneValue(form.principalPhone)) {
+        throw new Error('Principal phone must be a valid phone number')
+      }
+
+      if (form.principalPhoneExt && !/^\d{1,6}$/.test(form.principalPhoneExt)) {
+        throw new Error('Extension must be numeric and up to 6 digits')
+      }
+
       const url = editingId ? `/api/settings/schools/${editingId}` : '/api/settings/schools'
       const method = editingId ? 'PATCH' : 'POST'
 
@@ -251,17 +368,28 @@ export default function SchoolsManagement() {
         setShowModal(false)
         setEditingId(null)
         setForm(EMPTY_FORM)
+        setCreatedPrincipalInFlow(false)
         setPrincipalSearch('')
       } else {
-        // For new schools, show success modal
-        setSuccessData({
-          schoolName: form.name,
-          principalName: form.principalName,
-        })
+        // For new schools, show success modal only when principal was created via Add Principal
+        if (createdPrincipalInFlow) {
+          setSuccessData({
+            schoolId: data.data.id,
+            schoolName: form.name,
+            principalId: selectedPrincipalId,
+            principalName: form.principalName,
+            principalEmail: form.principalEmail,
+            principalPhone: form.principalPhone,
+            principalPhoneExt: form.principalPhoneExt,
+            principalJobTitle: 'Principal',
+          })
+        }
         setSchools((prev) => [...prev, data.data])
         setShowModal(false)
         setEditingId(null)
         setForm(EMPTY_FORM)
+        setSelectedPrincipalId(null)
+        setCreatedPrincipalInFlow(false)
         setPrincipalSearch('')
       }
     } catch (err) {
@@ -307,14 +435,19 @@ export default function SchoolsManagement() {
       principalName: school.principalName || '',
       principalEmail: school.principalEmail || '',
       principalPhone: school.principalPhone || '',
-      principalPhoneExt: '',
+      principalPhoneExt: school.principalPhoneExt || '',
     })
+    setPrincipalSearch(school.principalName || '')
+    setSelectedPrincipalId(null)
+    setCreatedPrincipalInFlow(false)
     setShowModal(true)
   }
 
   const handleOpenNew = () => {
     setEditingId(null)
     setForm(EMPTY_FORM)
+    setSelectedPrincipalId(null)
+    setCreatedPrincipalInFlow(false)
     setShowModal(true)
   }
 
@@ -322,15 +455,108 @@ export default function SchoolsManagement() {
     setShowModal(false)
     setEditingId(null)
     setForm(EMPTY_FORM)
+    setSelectedPrincipalId(null)
+    setCreatedPrincipalInFlow(false)
     setPrincipalSearch('')
     setShowPrincipalDropdown(false)
   }
 
   const handleSuccessClose = (goToEditPrincipal: boolean = false) => {
+    if (goToEditPrincipal && successData) {
+      setPrincipalEditor({
+        schoolId: successData.schoolId,
+        principalId: successData.principalId,
+        principalName: successData.principalName,
+        principalEmail: successData.principalEmail,
+        principalPhone: successData.principalPhone,
+        principalPhoneExt: successData.principalPhoneExt,
+        principalJobTitle: successData.principalJobTitle || 'Principal',
+      })
+      setPrincipalEditorError('')
+      setPrincipalEditorOpen(true)
+    }
     setSuccessData(null)
-    if (goToEditPrincipal) {
-      // TODO: In a full implementation, could open an edit principal dialog
-      // For now, just close the success modal
+  }
+
+  const handlePrincipalEditorClose = () => {
+    if (savingPrincipalEditor) return
+    setPrincipalEditorOpen(false)
+    setPrincipalEditor(null)
+    setPrincipalEditorError('')
+  }
+
+  const handleSavePrincipalEditor = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!principalEditor) return
+
+    setSavingPrincipalEditor(true)
+    setPrincipalEditorError('')
+
+    try {
+      if (!principalEditor.principalName.trim()) {
+        throw new Error('Principal name is required')
+      }
+
+      if (!principalEditor.principalEmail.trim()) {
+        throw new Error('Principal email is required')
+      }
+
+      if (principalEditor.principalPhone && !isValidPhoneValue(principalEditor.principalPhone)) {
+        throw new Error('Principal phone must be a valid phone number')
+      }
+
+      if (principalEditor.principalPhoneExt && !/^\d{1,6}$/.test(principalEditor.principalPhoneExt)) {
+        throw new Error('Extension must be numeric and up to 6 digits')
+      }
+
+      const schoolResponse = await fetch(`/api/settings/schools/${principalEditor.schoolId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          principalName: principalEditor.principalName.trim(),
+          principalEmail: principalEditor.principalEmail.trim(),
+          principalPhone: principalEditor.principalPhone || null,
+          principalPhoneExt: principalEditor.principalPhoneExt || null,
+        }),
+      })
+
+      const schoolData = await schoolResponse.json()
+      if (!schoolResponse.ok || !schoolData.ok) {
+        throw new Error(schoolData?.error?.message || 'Failed to update school principal details')
+      }
+
+      if (principalEditor.principalId) {
+        const principalResponse = await fetch(`/api/settings/principals/${principalEditor.principalId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+          },
+          body: JSON.stringify({
+            name: principalEditor.principalName.trim(),
+            email: principalEditor.principalEmail.trim(),
+            phone: principalEditor.principalPhone || null,
+            jobTitle: principalEditor.principalJobTitle || 'Principal',
+          }),
+        })
+
+        const principalData = await principalResponse.json()
+        if (!principalResponse.ok || !principalData.ok) {
+          throw new Error(principalData?.error?.message || 'Failed to update principal details')
+        }
+      }
+
+      setSchools((prev) => prev.map((school) => (school.id === principalEditor.schoolId ? schoolData.data : school)))
+      setPrincipalEditorOpen(false)
+      setPrincipalEditor(null)
+      setPrincipalEditorError('')
+    } catch (err) {
+      setPrincipalEditorError(err instanceof Error ? err.message : 'Failed to update principal details')
+    } finally {
+      setSavingPrincipalEditor(false)
     }
   }
 
@@ -492,7 +718,11 @@ export default function SchoolsManagement() {
                         placeholder="Search or add a principal..."
                         value={principalSearch}
                         onChange={(e) => {
-                          setPrincipalSearch(e.target.value)
+                          const value = e.target.value
+                          setPrincipalSearch(value)
+                          setSelectedPrincipalId(null)
+                          setCreatedPrincipalInFlow(false)
+                          setForm((prev) => ({ ...prev, principalName: value }))
                           setShowPrincipalDropdown(true)
                         }}
                         onFocus={() => setShowPrincipalDropdown(true)}
@@ -514,9 +744,9 @@ export default function SchoolsManagement() {
                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
                         {searchingPrincipals ? (
                           <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
-                        ) : principalOptions.length > 0 ? (
+                        ) : rankedPrincipalOptions.length > 0 ? (
                           <>
-                            {principalOptions.map((principal) => (
+                            {rankedPrincipalOptions.map((principal) => (
                               <button
                                 key={principal.id}
                                 type="button"
@@ -566,9 +796,14 @@ export default function SchoolsManagement() {
                       <input
                         className="ui-input"
                         type="tel"
+                        inputMode="tel"
+                        pattern="\(\d{3}\) \d{3}-\d{4}"
                         placeholder="(555) 123-4567"
                         value={form.principalPhone}
-                        onChange={(e) => setForm((prev) => ({ ...prev, principalPhone: e.target.value }))}
+                        onChange={(e) => {
+                          const formatted = formatPhoneInput(e.target.value)
+                          setForm((prev) => ({ ...prev, principalPhone: formatted }))
+                        }}
                       />
                     </div>
                     <div>
@@ -577,10 +812,15 @@ export default function SchoolsManagement() {
                       </label>
                       <input
                         className="ui-input"
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="\d{1,6}"
                         placeholder="123"
                         value={form.principalPhoneExt}
-                        onChange={(e) => setForm((prev) => ({ ...prev, principalPhoneExt: e.target.value }))}
+                        onChange={(e) => {
+                          const extension = normalizeExtensionInput(e.target.value)
+                          setForm((prev) => ({ ...prev, principalPhoneExt: extension }))
+                        }}
                       />
                     </div>
                   </div>
@@ -615,14 +855,14 @@ export default function SchoolsManagement() {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
               <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
                 <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Congratulations!</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">New principal created</h3>
                   <p className="text-gray-600">
-                    <strong>{successData.schoolName}</strong> has been added and <strong>{successData.principalName}</strong> has been added as principal.
+                    <strong>{successData.schoolName}</strong> has been added and <strong>{successData.principalName}</strong> was created as a new principal.
                   </p>
                 </div>
 
                 <p className="text-gray-600 mb-6 text-sm">
-                  Would you like to edit the principal's information more?
+                  Would you like to edit this new principal’s information now?
                 </p>
 
                 <div className="flex gap-3">
@@ -646,6 +886,104 @@ export default function SchoolsManagement() {
             document.body
           )
         : null}
+
+      <DetailDrawer
+        isOpen={principalEditorOpen}
+        onClose={handlePrincipalEditorClose}
+        title="Edit Principal Information"
+        width="md"
+      >
+        {principalEditor && (
+          <form onSubmit={handleSavePrincipalEditor} className="space-y-4">
+            {principalEditorError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {principalEditorError}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Principal Name</label>
+              <input
+                className="ui-input"
+                value={principalEditor.principalName}
+                onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalName: e.target.value } : prev))}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Principal Email</label>
+              <input
+                className="ui-input"
+                type="email"
+                value={principalEditor.principalEmail}
+                onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalEmail: e.target.value } : prev))}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Principal Phone</label>
+                <input
+                  className="ui-input"
+                  type="tel"
+                  inputMode="tel"
+                  pattern="\(\d{3}\) \d{3}-\d{4}"
+                  placeholder="(555) 123-4567"
+                  value={principalEditor.principalPhone}
+                  onChange={(e) => {
+                    const formatted = formatPhoneInput(e.target.value)
+                    setPrincipalEditor((prev) => (prev ? { ...prev, principalPhone: formatted } : prev))
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Extension</label>
+                <input
+                  className="ui-input"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{1,6}"
+                  placeholder="123"
+                  value={principalEditor.principalPhoneExt}
+                  onChange={(e) => {
+                    const extension = normalizeExtensionInput(e.target.value)
+                    setPrincipalEditor((prev) => (prev ? { ...prev, principalPhoneExt: extension } : prev))
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+              <input
+                className="ui-input"
+                value={principalEditor.principalJobTitle}
+                onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalJobTitle: e.target.value } : prev))}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={savingPrincipalEditor}
+                className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+              >
+                {savingPrincipalEditor ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={handlePrincipalEditorClose}
+                disabled={savingPrincipalEditor}
+                className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </DetailDrawer>
     </div>
   )
 }

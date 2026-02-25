@@ -7,6 +7,13 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 
+const isValidPhone = (value: string) => {
+  const digits = value.replace(/\D/g, '')
+  return digits.length >= 10 && digits.length <= 15
+}
+
+const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
+
 const UpdateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional(),
@@ -28,6 +35,26 @@ export async function PATCH(
     const userContext = await getUserContext(req)
     const body = await req.json()
     const input = UpdateSchoolSchema.parse(body)
+    const principalPhone = input.principalPhone === undefined || input.principalPhone === null
+      ? input.principalPhone
+      : input.principalPhone.trim()
+    const principalPhoneExt = input.principalPhoneExt === undefined || input.principalPhoneExt === null
+      ? input.principalPhoneExt
+      : input.principalPhoneExt.trim()
+
+    if (typeof principalPhone === 'string' && principalPhone && !isValidPhone(principalPhone)) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Principal phone must be a valid phone number'),
+        { status: 400 }
+      )
+    }
+
+    if (typeof principalPhoneExt === 'string' && principalPhoneExt && !isValidExtension(principalPhoneExt)) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Extension must be numeric and up to 6 digits'),
+        { status: 400 }
+      )
+    }
 
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
 
@@ -66,8 +93,8 @@ export async function PATCH(
           ...(input.gradeLevel !== undefined && { gradeLevel: input.gradeLevel }),
           ...(input.principalName !== undefined && { principalName: input.principalName }),
           ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
-          ...(input.principalPhone !== undefined && { principalPhone: input.principalPhone }),
-          ...(input.principalPhoneExt !== undefined && { principalPhoneExt: input.principalPhoneExt }),
+          ...(input.principalPhone !== undefined && { principalPhone }),
+          ...(input.principalPhoneExt !== undefined && { principalPhoneExt }),
         },
         select: {
           id: true,

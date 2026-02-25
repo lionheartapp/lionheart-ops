@@ -49,7 +49,11 @@ type Room = {
   } | null
 }
 
-export default function CampusTab() {
+type CampusTabProps = {
+  onDirtyChange?: (isDirty: boolean) => void
+}
+
+export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [activeView, setActiveView] = useState<CampusSubview>('buildings')
   const [showInactive, setShowInactive] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -90,6 +94,27 @@ export default function CampusTab() {
     floor: '',
   })
 
+  const hasBuildingCreateDraft =
+    buildingForm.name.trim().length > 0 ||
+    buildingForm.code.trim().length > 0 ||
+    buildingForm.schoolDivision !== 'GLOBAL'
+  const hasAreaCreateDraft =
+    areaForm.name.trim().length > 0 ||
+    areaForm.areaType !== 'OTHER' ||
+    areaForm.buildingId !== ''
+  const hasRoomCreateDraft =
+    roomForm.buildingId !== '' ||
+    roomForm.areaId !== '' ||
+    roomForm.roomNumber.trim().length > 0 ||
+    roomForm.displayName.trim().length > 0 ||
+    roomForm.floor.trim().length > 0
+  const hasInlineEditDraft = Boolean(editingBuildingId || editingAreaId || editingRoomId)
+  const hasUnsavedChanges = hasBuildingCreateDraft || hasAreaCreateDraft || hasRoomCreateDraft || hasInlineEditDraft
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedChanges)
+  }, [hasUnsavedChanges, onDirtyChange])
+
   const getAuthHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
     const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
@@ -108,6 +133,19 @@ export default function CampusTab() {
     const timeout = setTimeout(() => setSuccessMessage(''), 2500)
     return () => clearTimeout(timeout)
   }, [successMessage])
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [hasUnsavedChanges])
 
   const loadData = async () => {
     setLoading(true)

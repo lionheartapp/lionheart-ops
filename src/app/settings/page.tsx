@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import RolesTab from '@/components/settings/RolesTab'
 import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
@@ -12,6 +13,8 @@ import { User, Shield, Users, UserCog, Building2, School } from 'lucide-react'
 
 type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
 
+type WorkspaceTab = Exclude<Tab, 'profile'>
+
 export default function SettingsPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -19,6 +22,17 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('profile')
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
   const [permissionsLoaded, setPermissionsLoaded] = useState(false)
+  const [schoolInfoDirty, setSchoolInfoDirty] = useState(false)
+  const [rolesDirty, setRolesDirty] = useState(false)
+  const [teamsDirty, setTeamsDirty] = useState(false)
+  const [usersDirty, setUsersDirty] = useState(false)
+  const [campusDirty, setCampusDirty] = useState(false)
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
+  const [pendingTab, setPendingTab] = useState<Tab | null>(null)
+  const [blockedTab, setBlockedTab] = useState<WorkspaceTab | null>(null)
+  const [leavingWithSave, setLeavingWithSave] = useState(false)
+  const [schoolInfoSaveHandler, setSchoolInfoSaveHandler] = useState<(() => Promise<boolean>) | null>(null)
+  const [schoolInfoDiscardHandler, setSchoolInfoDiscardHandler] = useState<(() => void) | null>(null)
   const [avatarUpdating, setAvatarUpdating] = useState(false)
   const [avatarError, setAvatarError] = useState('')
   const [displayAvatar, setDisplayAvatar] = useState<string | null>(null)
@@ -263,6 +277,89 @@ export default function SettingsPage() {
     }
   }, [activeTab, canManageWorkspace, permissionsLoaded])
 
+  const requestTabChange = (nextTab: Tab) => {
+    if (nextTab === activeTab) return
+
+    const isActiveTabDirty =
+      (activeTab === 'school-info' && schoolInfoDirty) ||
+      (activeTab === 'roles' && rolesDirty) ||
+      (activeTab === 'teams' && teamsDirty) ||
+      (activeTab === 'users' && usersDirty) ||
+      (activeTab === 'campus' && campusDirty)
+
+    if (isActiveTabDirty) {
+      setPendingTab(nextTab)
+      setBlockedTab(activeTab)
+      setShowUnsavedDialog(true)
+      return
+    }
+
+    setActiveTab(nextTab)
+  }
+
+  const handleStayOnCurrentTab = () => {
+    setShowUnsavedDialog(false)
+    setPendingTab(null)
+    setBlockedTab(null)
+  }
+
+  const handleDiscardAndLeave = () => {
+    if (blockedTab === 'school-info') {
+      schoolInfoDiscardHandler?.()
+      setSchoolInfoDirty(false)
+    }
+    if (blockedTab === 'roles') setRolesDirty(false)
+    if (blockedTab === 'teams') setTeamsDirty(false)
+    if (blockedTab === 'users') setUsersDirty(false)
+    if (blockedTab === 'campus') setCampusDirty(false)
+
+    if (pendingTab) {
+      setActiveTab(pendingTab)
+    }
+    setShowUnsavedDialog(false)
+    setPendingTab(null)
+    setBlockedTab(null)
+  }
+
+  const handleSaveAndLeave = async () => {
+    if (blockedTab !== 'school-info') {
+      handleDiscardAndLeave()
+      return
+    }
+
+    if (!schoolInfoSaveHandler) {
+      if (pendingTab) {
+        setActiveTab(pendingTab)
+      }
+      setShowUnsavedDialog(false)
+      setPendingTab(null)
+      setBlockedTab(null)
+      return
+    }
+
+    setLeavingWithSave(true)
+    const didSave = await schoolInfoSaveHandler()
+    setLeavingWithSave(false)
+
+    if (!didSave) return
+
+    setSchoolInfoDirty(false)
+    if (pendingTab) {
+      setActiveTab(pendingTab)
+    }
+    setShowUnsavedDialog(false)
+    setPendingTab(null)
+    setBlockedTab(null)
+  }
+
+  const unsavedDialogTitle = blockedTab === 'school-info'
+    ? 'Unsaved school information'
+    : 'Unsaved changes'
+
+  const unsavedDialogMessage = blockedTab === 'school-info'
+    ? 'You have unsaved changes. Do you want to save before leaving this tab?'
+    : 'You have unsaved changes in this tab. If you leave now, they will be discarded.'
+
   const handleLogout = () => {
     localStorage.removeItem('auth-token')
     localStorage.removeItem('org-id')
@@ -325,7 +422,7 @@ export default function SettingsPage() {
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => requestTabChange(tab.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
                           isActive
                             ? 'bg-blue-50 text-blue-700'
@@ -350,7 +447,7 @@ export default function SettingsPage() {
                       return (
                         <button
                           key={tab.id}
-                          onClick={() => setActiveTab(tab.id)}
+                          onClick={() => requestTabChange(tab.id)}
                           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
                             isActive
                               ? 'bg-blue-50 text-blue-700'
@@ -480,18 +577,47 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {canManageWorkspace && activeTab === 'roles' && <RolesTab />}
+              {canManageWorkspace && activeTab === 'roles' && <RolesTab onDirtyChange={setRolesDirty} />}
 
-              {canManageWorkspace && activeTab === 'school-info' && <SchoolInfoTab />}
+              {canManageWorkspace && (
+                <div className={activeTab === 'school-info' ? '' : 'hidden'} aria-hidden={activeTab !== 'school-info'}>
+                  <SchoolInfoTab
+                    onDirtyChange={setSchoolInfoDirty}
+                    onRegisterSave={(handler) => setSchoolInfoSaveHandler(() => handler)}
+                    onRegisterDiscard={(handler) => setSchoolInfoDiscardHandler(() => handler)}
+                  />
+                </div>
+              )}
 
-              {canManageWorkspace && activeTab === 'teams' && <TeamsTab />}
+              {canManageWorkspace && activeTab === 'teams' && <TeamsTab onDirtyChange={setTeamsDirty} />}
 
-              {canManageWorkspace && activeTab === 'users' && <MembersTab />}
+              {canManageWorkspace && activeTab === 'users' && <MembersTab onDirtyChange={setUsersDirty} />}
 
-              {canManageWorkspace && activeTab === 'campus' && <CampusTab />}
+              {canManageWorkspace && activeTab === 'campus' && <CampusTab onDirtyChange={setCampusDirty} />}
             </section>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showUnsavedDialog}
+        onClose={handleStayOnCurrentTab}
+        onConfirm={blockedTab === 'school-info' ? handleSaveAndLeave : handleDiscardAndLeave}
+        title={unsavedDialogTitle}
+        message={unsavedDialogMessage}
+        confirmText={blockedTab === 'school-info' ? 'Save & Leave' : 'Discard & Leave'}
+        cancelText="Stay Here"
+        variant="warning"
+        isLoading={leavingWithSave}
+        loadingText="Saving..."
+        extraAction={blockedTab === 'school-info'
+          ? {
+              label: 'Discard & Leave',
+              onClick: handleDiscardAndLeave,
+              className:
+                'flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition',
+            }
+          : undefined}
+      />
     </DashboardLayout>
   )
 }

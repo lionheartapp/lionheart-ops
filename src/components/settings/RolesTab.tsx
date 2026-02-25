@@ -35,7 +35,11 @@ interface RoleUserSummary {
   } | null
 }
 
-export default function RolesTab() {
+type RolesTabProps = {
+  onDirtyChange?: (isDirty: boolean) => void
+}
+
+export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -48,6 +52,7 @@ export default function RolesTab() {
   const [editRole, setEditRole] = useState<Role | null>(null)
   const [editRoleName, setEditRoleName] = useState('')
   const [editPermissionIds, setEditPermissionIds] = useState<string[]>([])
+  const [editInitialPermissionIds, setEditInitialPermissionIds] = useState<string[]>([])
   const [editLoading, setEditLoading] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
@@ -58,6 +63,18 @@ export default function RolesTab() {
   const [roleUsersLoading, setRoleUsersLoading] = useState(false)
   const [roleUserReassignments, setRoleUserReassignments] = useState<Record<string, string>>({})
   const [actionError, setActionError] = useState<string | null>(null)
+
+  const hasCreateDraft = showCreateModal && (roleName.trim().length > 0 || selectedPermissionIds.length > 0)
+  const hasEditNameDraft = Boolean(editRole) && editRoleName.trim() !== (editRole?.name || '').trim()
+  const hasEditPermissionDraft =
+    editPermissionIds.length !== editInitialPermissionIds.length ||
+    [...editPermissionIds].sort().join('|') !== [...editInitialPermissionIds].sort().join('|')
+  const hasEditDraft = Boolean(editRole) && (hasEditNameDraft || hasEditPermissionDraft)
+  const hasUnsavedChanges = hasCreateDraft || hasEditDraft
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedChanges)
+  }, [hasUnsavedChanges, onDirtyChange])
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('auth-token')
@@ -73,6 +90,19 @@ export default function RolesTab() {
     loadRoles()
     loadPermissions()
   }, [])
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [hasUnsavedChanges])
 
   const loadRoles = async () => {
     try {
@@ -125,6 +155,8 @@ export default function RolesTab() {
   const closeCreateDrawer = () => {
     if (createLoading) return
     setShowCreateModal(false)
+    setRoleName('')
+    setSelectedPermissionIds([])
     setActionError(null)
   }
 
@@ -133,6 +165,7 @@ export default function RolesTab() {
     setEditRole(role)
     setEditRoleName(role.name)
     setEditPermissionIds([])
+    setEditInitialPermissionIds([])
     setEditLoading(true)
 
     try {
@@ -147,7 +180,9 @@ export default function RolesTab() {
         return
       }
 
-      setEditPermissionIds(payload?.data?.permissionIds || [])
+      const nextPermissionIds = payload?.data?.permissionIds || []
+      setEditPermissionIds(nextPermissionIds)
+      setEditInitialPermissionIds(nextPermissionIds)
     } catch (error) {
       console.error('Failed to load role details:', error)
       setEditError('Failed to load role details')
@@ -161,6 +196,7 @@ export default function RolesTab() {
     setEditRole(null)
     setEditRoleName('')
     setEditPermissionIds([])
+    setEditInitialPermissionIds([])
     setEditError(null)
   }
 
@@ -339,6 +375,7 @@ export default function RolesTab() {
       setEditRole(null)
       setEditRoleName('')
       setEditPermissionIds([])
+      setEditInitialPermissionIds([])
       await loadRoles()
     } catch (error) {
       console.error('Failed to update role:', error)
