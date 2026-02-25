@@ -1,59 +1,34 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, MoreVertical } from "lucide-react";
 
-const MOCK_USERS = [
-  {
-    id: "1",
-    name: "Shane Nguyen",
-    email: "shanengu@labourlink.com",
-    status: "Onboarded",
-    statusType: "new",
-    permissions: "Consultant",
-    dateAdded: "07 Jun 2023",
-    avatar: "SN",
-  },
-  {
-    id: "2",
-    name: "Arlene McCoy",
-    email: "arlenemccoy@labourlink.com",
-    status: "Active",
-    statusType: "active",
-    permissions: "Consultant",
-    dateAdded: "24 Jan 2022",
-    avatar: "AM",
-  },
-  {
-    id: "3",
-    name: "Guy Hawkins",
-    email: "guyhawk@labourlink.com",
-    status: "Inactive",
-    statusType: "inactive",
-    permissions: "Administrator",
-    dateAdded: "18 Apr 2020",
-    avatar: "GH",
-  },
-  {
-    id: "4",
-    name: "Dianne Russell",
-    email: "diannerussell@labourlink.com",
-    status: "Active",
-    statusType: "active",
-    permissions: "Manager",
-    dateAdded: "02 Feb 2022",
-    avatar: "DR",
-  },
-  {
-    id: "5",
-    name: "Albert Flores",
-    email: "albertflores@labourlink.com",
-    status: "Pending",
-    statusType: "pending",
-    permissions: "Consultant",
-    dateAdded: "29 Jun 2022",
-    avatar: "AF",
-  },
-];
+// Fetch members from API
+function useMembers() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchMembers() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/settings/users");
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.result)) {
+          setUsers(data.result);
+        } else {
+          setError("Failed to load members");
+        }
+      } catch (err) {
+        setError("Failed to load members");
+      }
+      setLoading(false);
+    }
+    fetchMembers();
+  }, []);
+  return { users, loading, error };
+}
 
 const TABS = [
   { label: "All users", value: "all" },
@@ -79,13 +54,26 @@ function statusBadge(status: string, type: string) {
   );
 }
 
+
 type MembersTabProps = { onDirtyChange?: (isDirty: boolean) => void }
 const MembersTab = (_props: MembersTabProps) => {
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
-  const [users] = useState(MOCK_USERS);
+  const { users, loading, error } = useMembers();
 
-  const filtered = users.filter(
+  // Map API data to UI shape
+  const mappedUsers = users.map((u: any) => ({
+    id: u.id,
+    name: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+    email: u.email,
+    status: u.status || 'Active',
+    statusType: u.status === 'Active' ? 'active' : u.status === 'Pending' ? 'pending' : u.status === 'Inactive' ? 'inactive' : 'new',
+    permissions: u.userRole?.name || 'Consultant',
+    dateAdded: u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+    avatar: u.avatar || (u.firstName && u.lastName ? `${u.firstName[0]}${u.lastName[0]}` : 'NA'),
+  }));
+
+  const filtered = mappedUsers.filter(
     (u) =>
       (tab === "all" || u.permissions === tab) &&
       (u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))
@@ -123,48 +111,54 @@ const MembersTab = (_props: MembersTabProps) => {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-gray-700 border-b bg-primary-50">
-              <th className="py-3 px-4 text-left font-semibold">Name</th>
-              <th className="py-3 px-4 text-left font-semibold">Email</th>
-              <th className="py-3 px-4 text-left font-semibold">Status</th>
-              <th className="py-3 px-4 text-left font-semibold">Permissions</th>
-              <th className="py-3 px-4 text-left font-semibold">Date Added</th>
-              <th className="py-3 px-4 text-left font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
-                  No members found.
-                </td>
+        {loading ? (
+          <div className="py-12 text-center text-gray-400 font-medium">Loading members...</div>
+        ) : error ? (
+          <div className="py-12 text-center text-red-500 font-medium">{error}</div>
+        ) : (
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-gray-700 border-b bg-primary-50">
+                <th className="py-3 px-4 text-left font-semibold">Name</th>
+                <th className="py-3 px-4 text-left font-semibold">Email</th>
+                <th className="py-3 px-4 text-left font-semibold">Status</th>
+                <th className="py-3 px-4 text-left font-semibold">Permissions</th>
+                <th className="py-3 px-4 text-left font-semibold">Date Added</th>
+                <th className="py-3 px-4 text-left font-semibold">Actions</th>
               </tr>
-            ) : (
-              filtered.map((u) => (
-                <tr key={u.id} className="border-b last:border-b-0 hover:bg-primary-50 transition">
-                  <td className="py-3 px-4 flex items-center gap-3">
-                    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary-100 font-bold text-primary-700 border border-primary-200">
-                      {u.avatar}
-                    </span>
-                    <div className="font-semibold text-primary-900">{u.name}</div>
-                  </td>
-                  <td className="py-3 px-4 text-xs text-gray-700 font-medium">{u.email}</td>
-                  <td className="py-3 px-4">{statusBadge(u.status, u.statusType)}</td>
-                  <td className="py-3 px-4 text-sm text-primary-700 font-semibold">{u.permissions}</td>
-                  <td className="py-3 px-4 text-xs text-gray-700 font-medium">{u.dateAdded}</td>
-                  <td className="py-3 px-4">
-                    <button className="text-primary-600 hover:underline mr-2 font-semibold">View profile</button>
-                    <button className="p-2 hover:bg-primary-50 rounded-full">
-                      <MoreVertical className="w-4 h-4 text-primary-700" />
-                    </button>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
+                    No members found.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtered.map((u) => (
+                  <tr key={u.id} className="border-b last:border-b-0 hover:bg-primary-50 transition">
+                    <td className="py-3 px-4 flex items-center gap-3">
+                      <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary-100 font-bold text-primary-700 border border-primary-200">
+                        {u.avatar}
+                      </span>
+                      <div className="font-semibold text-primary-900">{u.name}</div>
+                    </td>
+                    <td className="py-3 px-4 text-xs text-gray-700 font-medium">{u.email}</td>
+                    <td className="py-3 px-4">{statusBadge(u.status, u.statusType)}</td>
+                    <td className="py-3 px-4 text-sm text-primary-700 font-semibold">{u.permissions}</td>
+                    <td className="py-3 px-4 text-xs text-gray-700 font-medium">{u.dateAdded}</td>
+                    <td className="py-3 px-4">
+                      <button className="text-primary-600 hover:underline mr-2 font-semibold">View profile</button>
+                      <button className="p-2 hover:bg-primary-50 rounded-full">
+                        <MoreVertical className="w-4 h-4 text-primary-700" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
