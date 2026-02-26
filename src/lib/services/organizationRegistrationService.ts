@@ -1,15 +1,14 @@
 /**
  * Organization Registration Service
- * 
+ *
  * Handles school signup/onboarding, including slug validation and uniqueness checks.
  * This is the entry point for new schools joining the platform.
  */
 
 import { z } from 'zod'
-import { PrismaClient } from '@prisma/client'
+import { rawPrisma } from '@/lib/db'
 import * as bcrypt from 'bcryptjs'
-
-const rawPrisma = new PrismaClient()
+import { DEFAULT_ROLES, DEFAULT_TEAMS } from '@/lib/permissions'
 
 /**
  * Slug validation schema
@@ -129,11 +128,109 @@ export async function validateSlug(
 }
 
 /**
- * Create a new organization (used in signup/onboarding)
- * Validates all inputs including slug uniqueness before creating
- * 
+ * Parse a permission string into its component parts for DB storage.
+ *   "tickets:create"   → { resource: 'tickets', action: 'create', scope: 'global' }
+ *   "tickets:read:own" → { resource: 'tickets', action: 'read',   scope: 'own'    }
+ *   "*:*"              → { resource: '*',        action: '*',      scope: 'global' }
+ */
+function parsePermissionString(perm: string): { resource: string; action: string; scope: string } {
+  const parts = perm.split(':')
+  return {
+    resource: parts[0] ?? '*',
+    action:   parts[1] ?? '*',
+    scope:    parts[2] ?? 'global',
+  }
+}
+
+/**
+ * Seed default roles, permissions, and teams for a newly created organization.
+ *
+ * - Permissions are global (no org ID) and upserted so they're safe to call many times.
+ * - Roles and Teams are org-scoped and created fresh for each new org.
+ *
+ * @returns The ID of the newly created super-admin role (to assign to the first admin user)
+ */
+export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId: string }> {
+  // ── Step 1: Collect every unique permission string used across all default roles ──
+  const allPermStrings = new Set<string>()
+  for (const roleDef of Object.values(DEFAULT_ROLES)) {
+    for (const perm of roleDef.permissions) {
+      allPermStrings.add(perm)
+    }
+  }
+
+  // ── Step 2: Upsert permissions into the global Permission table ──
+  // Permission rows are shared across orgs; if they already exist (from a prior signup)
+  // we simply reuse them.
+  const permissionMap = new Map<string, string>() // permString → db id
+
+  await Promise.all(
+    Array.from(allPermStrings).map(async (permString) => {
+      const { resource, action, scope } = parsePermissionString(permString)
+      const row = await rawPrisma.permission.upsert({
+        where: { resource_action_scope: { resource, action, scope } },
+        create: { resource, action, scope },
+        update: {}, // already exists — nothing to change
+        select: { id: true },
+      })
+      permissionMap.set(permString, row.id)
+    })
+  )
+
+  // ── Step 3: Create org-scoped roles and link their permissions ──
+  let superAdminRoleId = ''
+
+  for (const roleDef of Object.values(DEFAULT_ROLES)) {
+    const role = await rawPrisma.role.create({
+      data: {
+        organizationId: orgId,
+        name:           roleDef.name,
+        slug:           roleDef.slug,
+        description:    roleDef.description,
+        isSystem:       roleDef.isSystem,
+        permissions: {
+          create: roleDef.permissions.map((permString) => ({
+            permissionId: permissionMap.get(permString)!,
+          })),
+        },
+      },
+      select: { id: true, slug: true },
+    })
+
+    if (role.slug === 'super-admin') {
+      superAdminRoleId = role.id
+    }
+  }
+
+  if (!superAdminRoleId) {
+    throw new Error('seedOrgDefaults: super-admin role was not created')
+  }
+
+  // ── Step 4: Create org-scoped default teams ──
+  await Promise.all(
+    Object.values(DEFAULT_TEAMS).map((teamDef) =>
+      rawPrisma.team.create({
+        data: {
+          organizationId: orgId,
+          name:           teamDef.name,
+          slug:           teamDef.slug,
+          description:    teamDef.description,
+        },
+      })
+    )
+  )
+
+  return { superAdminRoleId }
+}
+
+/**
+ * Create a new organization (used in signup/onboarding).
+ * Validates all inputs including slug uniqueness before creating.
+ * After creation, seeds default roles/permissions/teams and assigns
+ * the super-admin role to the first admin user.
+ *
  * @param input - Organization and admin user data
- * @returns Created organization with admin user
+ * @returns Created organization with the admin user (role assigned)
  */
 export async function createOrganization(input: CreateOrganizationInput) {
   // Validate schema
@@ -148,43 +245,59 @@ export async function createOrganization(input: CreateOrganizationInput) {
   // Hash password
   const passwordHash = await bcrypt.hash(validated.adminPassword, 10)
 
-  // Create organization and admin user
-  const result = await rawPrisma.organization.create({
+  // ── Step 1: Create the organization and its first admin user ──
+  const org = await rawPrisma.organization.create({
     data: {
-      name: validated.name,
+      name:            validated.name,
       institutionType: validated.institutionType,
-      gradeLevel: validated.gradeLevel,
-      slug: validated.slug.toLowerCase(),
+      gradeLevel:      validated.gradeLevel,
+      slug:            validated.slug.toLowerCase(),
       physicalAddress: validated.physicalAddress ?? null,
-      district: validated.district ?? null,
-      website: validated.website ?? null,
-      phone: validated.phone ?? null,
-      principalName: validated.principalName ?? validated.adminName,
-      principalEmail: validated.principalEmail ?? validated.adminEmail,
-      principalPhone: validated.principalPhone ?? null,
-      gradeRange: validated.gradeRange ?? null,
-      studentCount: validated.studentCount ?? null,
-      staffCount: validated.staffCount ?? null,
+      district:        validated.district ?? null,
+      website:         validated.website ?? null,
+      phone:           validated.phone ?? null,
+      principalName:   validated.principalName ?? validated.adminName,
+      principalEmail:  validated.principalEmail ?? validated.adminEmail,
+      principalPhone:  validated.principalPhone ?? null,
+      gradeRange:      validated.gradeRange ?? null,
+      studentCount:    validated.studentCount ?? null,
+      staffCount:      validated.staffCount ?? null,
       users: {
         create: {
-          email: validated.adminEmail,
-          name: validated.adminName,
+          email:        validated.adminEmail,
+          name:         validated.adminName,
           passwordHash,
-          role: 'ADMIN',
+          status:       'ACTIVE',
         },
       },
     },
     include: {
-      users: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-        },
-      },
+      users: { select: { id: true } },
     },
   })
 
-  return result
+  const adminUser = org.users[0]
+  if (!adminUser) {
+    throw new Error('createOrganization: admin user was not created')
+  }
+
+  // ── Step 2: Seed default roles, permissions, and teams ──
+  const { superAdminRoleId } = await seedOrgDefaults(org.id)
+
+  // ── Step 3: Assign the super-admin role to the first admin user ──
+  const updatedUser = await rawPrisma.user.update({
+    where: { id: adminUser.id },
+    data:  { roleId: superAdminRoleId },
+    select: {
+      id:     true,
+      email:  true,
+      name:   true,
+      roleId: true,
+    },
+  })
+
+  return {
+    ...org,
+    users: [updatedUser],
+  }
 }

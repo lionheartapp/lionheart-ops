@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 interface DetailDrawerProps {
@@ -78,7 +79,7 @@ export default function DetailDrawer({
 
   if (!isOpen && !isAnimating) return null
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 overflow-hidden"
       role="presentation"
@@ -140,6 +141,7 @@ export default function DetailDrawer({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

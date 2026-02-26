@@ -4,20 +4,38 @@ import LoginForm from './LoginForm'
 import { ImagePosition } from '@prisma/client'
 
 export default async function LoginPage() {
-  // Get subdomain from middleware header
+  // Get subdomain from middleware header (set by middleware from the host)
   const headersList = await headers()
   const subdomain = headersList.get('x-org-subdomain')
-  
-  // Fetch organization branding (default to Linfield if no subdomain)
-  const slug = subdomain || 'linfield'
-  const branding = await organizationService.getOrganizationBranding(slug)
+
+  // No subdomain — show a generic landing screen directing users to their school URL
+  if (!subdomain) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-3xl font-bold text-white mb-3">Lionheart Platform</h1>
+          <p className="text-zinc-400 mb-6">
+            Sign in through your school&apos;s unique URL.
+          </p>
+          <p className="text-sm text-zinc-500">
+            Example:{' '}
+            <span className="text-zinc-300 font-mono">your-school.lionheartapp.com</span>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const branding = await organizationService.getOrganizationBranding(subdomain)
 
   if (!branding) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white">Organization Not Found</h1>
-          <p className="mt-2 text-zinc-400">The subdomain &quot;{slug}&quot; is not configured.</p>
+          <p className="mt-2 text-zinc-400">
+            No school is configured at &quot;{subdomain}.lionheartapp.com&quot;.
+          </p>
         </div>
       </div>
     )

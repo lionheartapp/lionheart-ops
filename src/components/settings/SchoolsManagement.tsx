@@ -653,206 +653,188 @@ export default function SchoolsManagement() {
         </table>
       </div>
 
-      {/* School Modal - Rendered via portal to avoid nesting in parent form */}
-      {showModal && mounted
-        ? createPortal(
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {editingId ? 'Edit School' : 'Add New School'}
-                  </h3>
+      {/* School Drawer */}
+      <DetailDrawer
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        title={editingId ? 'Edit School' : 'Add New School'}
+        width="lg"
+      >
+        <form onSubmit={handleSaveSchool} className="p-8 space-y-6">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <section className="space-y-4">
+            <div className="border-b border-gray-200 pb-3">
+              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">School Details</h3>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">School Name</label>
+              <input
+                className="ui-input"
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Grade Level</label>
+              <select
+                className="ui-select w-full"
+                value={form.gradeLevel}
+                onChange={(e) => setForm((prev) => ({ ...prev, gradeLevel: e.target.value as any }))}
+              >
+                <option value="ELEMENTARY">Elementary</option>
+                <option value="MIDDLE_SCHOOL">Middle School</option>
+                <option value="HIGH_SCHOOL">High School</option>
+              </select>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <div className="border-b border-gray-200 pb-3">
+              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Principal</h3>
+            </div>
+
+            {/* Principal Search/Create */}
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="ui-input w-full pr-10"
+                  placeholder="Search or add a principal..."
+                  value={principalSearch}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setPrincipalSearch(value)
+                    setSelectedPrincipalId(null)
+                    setCreatedPrincipalInFlow(false)
+                    setForm((prev) => ({ ...prev, principalName: value }))
+                    setShowPrincipalDropdown(true)
+                  }}
+                  onFocus={() => setShowPrincipalDropdown(true)}
+                  disabled={creatingPrincipal}
+                />
+                {showPrincipalDropdown && (
                   <button
                     type="button"
-                    onClick={handleCloseModal}
-                    disabled={saving || searchingPrincipals || creatingPrincipal}
-                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => setShowPrincipalDropdown(false)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                   >
-                    <X className="w-5 h-5" />
+                    <ChevronDown className="w-4 h-4" />
                   </button>
-                </div>
+                )}
+              </div>
 
-                <form onSubmit={handleSaveSchool} className="space-y-4">
-                  {error && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                      {error}
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      School Name
-                    </label>
-                    <input
-                      className="ui-input"
-                      value={form.name}
-                      onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Grade Level
-                    </label>
-                    <select
-                      className="ui-select w-full"
-                      value={form.gradeLevel}
-                      onChange={(e) => setForm((prev) => ({ ...prev, gradeLevel: e.target.value as any }))}
-                    >
-                      <option value="ELEMENTARY">Elementary</option>
-                      <option value="MIDDLE_SCHOOL">Middle School</option>
-                      <option value="HIGH_SCHOOL">High School</option>
-                    </select>
-                  </div>
-
-                  {/* Principal Search/Create */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Principal Name
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        className="ui-input w-full pr-10"
-                        placeholder="Search or add a principal..."
-                        value={principalSearch}
-                        onChange={(e) => {
-                          const value = e.target.value
-                          setPrincipalSearch(value)
-                          setSelectedPrincipalId(null)
-                          setCreatedPrincipalInFlow(false)
-                          setForm((prev) => ({ ...prev, principalName: value }))
-                          setShowPrincipalDropdown(true)
-                        }}
-                        onFocus={() => setShowPrincipalDropdown(true)}
-                        disabled={creatingPrincipal}
-                      />
-                      {showPrincipalDropdown && (
+              {showPrincipalDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                  {searchingPrincipals ? (
+                    <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
+                  ) : rankedPrincipalOptions.length > 0 ? (
+                    <>
+                      {rankedPrincipalOptions.map((principal) => (
                         <button
+                          key={principal.id}
                           type="button"
-                          onClick={() => setShowPrincipalDropdown(false)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                          onClick={() => selectPrincipal(principal)}
+                          className="w-full text-left px-4 py-2 hover:bg-blue-50 transition"
                         >
-                          <ChevronDown className="w-4 h-4" />
+                          <div className="font-medium text-gray-900">{principal.name}</div>
+                          <div className="text-xs text-gray-500">{principal.email}</div>
                         </button>
-                      )}
-                    </div>
+                      ))}
+                      <div className="border-t border-gray-200" />
+                    </>
+                  ) : null}
 
-                    {/* Dropdown */}
-                    {showPrincipalDropdown && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                        {searchingPrincipals ? (
-                          <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
-                        ) : rankedPrincipalOptions.length > 0 ? (
-                          <>
-                            {rankedPrincipalOptions.map((principal) => (
-                              <button
-                                key={principal.id}
-                                type="button"
-                                onClick={() => selectPrincipal(principal)}
-                                className="w-full text-left px-4 py-2 hover:bg-blue-50 transition"
-                              >
-                                <div className="font-medium text-gray-900">{principal.name}</div>
-                                <div className="text-xs text-gray-500">{principal.email}</div>
-                              </button>
-                            ))}
-                            <div className="border-t border-gray-200" />
-                          </>
-                        ) : null}
-
-                        {/* Create new option */}
-                        {principalSearch.trim() && (
-                          <button
-                            type="button"
-                            onClick={createNewPrincipal}
-                            disabled={creatingPrincipal}
-                            className="w-full text-left px-4 py-2 hover:bg-green-50 transition text-green-600 font-medium"
-                          >
-                            {creatingPrincipal ? '+ Creating...' : `+ Add new principal: "${principalSearch}"`}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Principal Email
-                    </label>
-                    <input
-                      className="ui-input"
-                      type="email"
-                      value={form.principalEmail}
-                      onChange={(e) => setForm((prev) => ({ ...prev, principalEmail: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Principal Phone
-                      </label>
-                      <input
-                        className="ui-input"
-                        type="tel"
-                        inputMode="tel"
-                        pattern="\(\d{3}\) \d{3}-\d{4}"
-                        placeholder="(555) 123-4567"
-                        value={form.principalPhone}
-                        onChange={(e) => {
-                          const formatted = formatPhoneInput(e.target.value)
-                          setForm((prev) => ({ ...prev, principalPhone: formatted }))
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Extension
-                      </label>
-                      <input
-                        className="ui-input"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="\d{1,6}"
-                        placeholder="123"
-                        value={form.principalPhoneExt}
-                        onChange={(e) => {
-                          const extension = normalizeExtensionInput(e.target.value)
-                          setForm((prev) => ({ ...prev, principalPhoneExt: extension }))
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="submit"
-                      disabled={saving || searchingPrincipals || creatingPrincipal}
-                      className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
-                    >
-                      {saving ? 'Saving...' : 'Save'}
-                    </button>
+                  {principalSearch.trim() && (
                     <button
                       type="button"
-                      onClick={handleCloseModal}
-                      disabled={saving || searchingPrincipals || creatingPrincipal}
-                      className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
+                      onClick={createNewPrincipal}
+                      disabled={creatingPrincipal}
+                      className="w-full text-left px-4 py-2 hover:bg-green-50 transition text-green-600 font-medium"
                     >
-                      Cancel
+                      {creatingPrincipal ? '+ Creating...' : `+ Add new principal: "${principalSearch}"`}
                     </button>
-                  </div>
-                </form>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <input
+                className="ui-input"
+                type="email"
+                value={form.principalEmail}
+                onChange={(e) => setForm((prev) => ({ ...prev, principalEmail: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+                <input
+                  className="ui-input"
+                  type="tel"
+                  inputMode="tel"
+                  pattern="\(\d{3}\) \d{3}-\d{4}"
+                  placeholder="(555) 123-4567"
+                  value={form.principalPhone}
+                  onChange={(e) => {
+                    const formatted = formatPhoneInput(e.target.value)
+                    setForm((prev) => ({ ...prev, principalPhone: formatted }))
+                  }}
+                />
               </div>
-            </div>,
-            document.body
-          )
-        : null}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Extension</label>
+                <input
+                  className="ui-input"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{1,6}"
+                  placeholder="123"
+                  value={form.principalPhoneExt}
+                  onChange={(e) => {
+                    const extension = normalizeExtensionInput(e.target.value)
+                    setForm((prev) => ({ ...prev, principalPhoneExt: extension }))
+                  }}
+                />
+              </div>
+            </div>
+          </section>
+
+          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              disabled={saving || searchingPrincipals || creatingPrincipal}
+              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || searchingPrincipals || creatingPrincipal}
+              className="px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add School'}
+            </button>
+          </div>
+        </form>
+      </DetailDrawer>
 
       {/* Success Modal */}
       {successData && mounted
         ? createPortal(
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
               <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">New principal created</h3>

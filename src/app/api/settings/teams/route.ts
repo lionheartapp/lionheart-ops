@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const CreateTeamSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -39,32 +40,12 @@ export async function GET(req: NextRequest) {
           name: true,
           slug: true,
           description: true,
+          _count: { select: { members: true } },
         },
         orderBy: { name: 'asc' },
       })
 
-      // For each team, count users manually since teamIds is a string array
-      const teamsWithCounts = await Promise.all(
-        teams.map(async (team) => {
-          const userCount = await prisma.user.count({
-            where: {
-              organizationId: orgId,
-              teamIds: {
-                has: team.slug,
-              },
-            },
-          })
-          
-          return {
-            ...team,
-            _count: {
-              members: userCount,
-            },
-          }
-        })
-      )
-
-      return NextResponse.json(ok(teamsWithCounts))
+      return NextResponse.json(ok(teams))
     })
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
@@ -107,21 +88,22 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      const userCount = await prisma.user.count({
-        where: {
-          organizationId: orgId,
-          teamIds: {
-            has: team.slug,
-          },
-        },
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'team.create',
+        resourceType:   'Team',
+        resourceId:     team.id,
+        resourceLabel:  team.name,
+        changes:        { name: team.name, slug },
+        ipAddress:      getIp(req),
       })
 
       return NextResponse.json(
         ok({
           ...team,
-          _count: {
-            members: userCount,
-          },
+          _count: { members: 0 }, // newly created team has no members yet
         }),
         { status: 201 }
       )

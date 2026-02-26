@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan, can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { audit, getIp, sanitize } from '@/lib/services/auditService'
 
 type RouteParams = {
   params: Promise<{
@@ -37,8 +38,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
           employmentType: true,
           phone: true,
           status: true,
-          teamIds: true,
           createdAt: true,
+          teams: {
+            select: { team: { select: { id: true, name: true, slug: true } } },
+          },
           userRole: {
             select: {
               id: true,
@@ -133,6 +136,19 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json(fail('NOT_FOUND', 'User not found'), { status: 404 })
       }
 
+      // If teams are being updated, replace memberships atomically
+      if (body.teamIds !== undefined) {
+        const newTeamIds: string[] = Array.isArray(body.teamIds) ? body.teamIds.map(String) : []
+        await prisma.$transaction([
+          prisma.userTeam.deleteMany({ where: { userId: id } }),
+          ...(newTeamIds.length > 0
+            ? [prisma.userTeam.createMany({
+                data: newTeamIds.map((teamId) => ({ userId: id, teamId })),
+              })]
+            : []),
+        ])
+      }
+
       const updated = await prisma.user.update({
         where: {
           organizationId_email: {
@@ -152,9 +168,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           ...(schoolScope !== undefined ? { schoolScope } : {}),
           ...(body.employmentType !== undefined ? { employmentType: body.employmentType || null } : {}),
           ...(body.roleId !== undefined ? { roleId: body.roleId || null } : {}),
-          ...(body.teamIds !== undefined
-            ? { teamIds: Array.isArray(body.teamIds) ? body.teamIds.map(String) : [] }
-            : {}),
           ...(body.status !== undefined ? { status: body.status } : {}),
         },
         select: {
@@ -168,8 +181,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           employmentType: true,
           phone: true,
           status: true,
-          teamIds: true,
           createdAt: true,
+          teams: {
+            select: { team: { select: { id: true, name: true, slug: true } } },
+          },
           userRole: {
             select: {
               id: true,
@@ -178,6 +193,18 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
             },
           },
         },
+      })
+
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'user.update',
+        resourceType:   'User',
+        resourceId:     id,
+        resourceLabel:  updated.email,
+        changes:        sanitize(body as Record<string, unknown>),
+        ipAddress:      getIp(req),
       })
 
       return NextResponse.json(ok(updated))
@@ -231,6 +258,17 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
             email: targetUser.email,
           },
         },
+      })
+
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'user.delete',
+        resourceType:   'User',
+        resourceId:     id,
+        resourceLabel:  targetUser.email,
+        ipAddress:      getIp(req),
       })
 
       return NextResponse.json(ok({ id }))

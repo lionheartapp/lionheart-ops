@@ -3,13 +3,13 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
+import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RolesTab from '@/components/settings/RolesTab'
 import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
 import CampusTab from '@/components/settings/CampusTab'
 import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
-import { User, Shield, Users, UserCog, Building2, School } from 'lucide-react'
 
 type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
 
@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('profile')
+  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set<Tab>(['profile']))
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
   const [permissionsLoaded, setPermissionsLoaded] = useState(false)
   const [schoolInfoDirty, setSchoolInfoDirty] = useState(false)
@@ -36,6 +37,23 @@ export default function SettingsPage() {
   const [avatarUpdating, setAvatarUpdating] = useState(false)
   const [avatarError, setAvatarError] = useState('')
   const [displayAvatar, setDisplayAvatar] = useState<string | null>(null)
+
+  // Profile name editing
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileError, setProfileError] = useState('')
+  const [profileSuccess, setProfileSuccess] = useState(false)
+
+  // Change password drawer
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
@@ -54,8 +72,29 @@ export default function SettingsPage() {
     : false
 
   useEffect(() => {
-    // Initialize display avatar on client
+    // Initialize display avatar and name fields on client
     setDisplayAvatar(userAvatar)
+    const nameParts = (userName || '').split(' ')
+    setFirstName(nameParts[0] || '')
+    setLastName(nameParts.slice(1).join(' ') || '')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep a stable ref to requestTabChange so the event listener never goes stale
+  const requestTabChangeRef = useRef<(tab: Tab) => void>(() => {})
+  useEffect(() => {
+    requestTabChangeRef.current = requestTabChange
+  })
+
+  // Listen for tab changes from the Sidebar — registered once so events are never missed
+  useEffect(() => {
+    const handleTabChange = (e: Event) => {
+      const event = e as CustomEvent<{ tab: Tab }>
+      if (event.detail?.tab) {
+        requestTabChangeRef.current(event.detail.tab)
+      }
+    }
+    window.addEventListener('settings-tab-change', handleTabChange)
+    return () => window.removeEventListener('settings-tab-change', handleTabChange)
   }, [])
 
   const handleAvatarUpload = async (file: File) => {
@@ -203,6 +242,91 @@ export default function SettingsPage() {
     }
   }
 
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!token) { setProfileError('Not authenticated. Please refresh.'); return }
+    if (!firstName.trim()) { setProfileError('First name is required'); return }
+
+    setProfileSaving(true)
+    setProfileError('')
+    setProfileSuccess(false)
+
+    try {
+      const response = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() || null }),
+      })
+      const data = await response.json()
+      if (!response.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to save profile')
+
+      // Update localStorage
+      const newName = data.data.user.name
+      localStorage.setItem('user-name', newName)
+      setProfileSuccess(true)
+
+      // Notify layout to update displayed name
+      window.dispatchEvent(new CustomEvent('profile-updated', { detail: { name: newName } }))
+
+      setTimeout(() => setProfileSuccess(false), 3000)
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : 'Failed to save profile')
+    } finally {
+      setProfileSaving(false)
+    }
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!token) { setPasswordError('Not authenticated. Please refresh.'); return }
+    if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match'); return }
+    if (newPassword.length < 8) { setPasswordError('New password must be at least 8 characters'); return }
+
+    setPasswordSaving(true)
+    setPasswordError('')
+    setPasswordSuccess(false)
+
+    try {
+      const response = await fetch('/api/auth/profile/password', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+      const data = await response.json()
+      if (!response.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to change password')
+
+      setPasswordSuccess(true)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+
+      // Auto-close after a moment
+      setTimeout(() => {
+        setChangePasswordOpen(false)
+        setPasswordSuccess(false)
+      }, 1500)
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
+
+  const openChangePassword = () => {
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordSuccess(false)
+    setChangePasswordOpen(true)
+  }
+
+  const closeChangePassword = () => {
+    if (passwordSaving) return
+    setChangePasswordOpen(false)
+    setPasswordError('')
+  }
+
   const handleChangeImageClick = () => {
     fileInputRef.current?.click()
   }
@@ -230,6 +354,22 @@ export default function SettingsPage() {
     // Set optimistic state immediately on client
     setCanManageWorkspace(true)
   }, [optimisticCanManageWorkspace])
+
+  // As soon as we know the user can manage the workspace, pre-mount all
+  // workspace tabs as hidden so their data fetches run in the background
+  // while the user is still on the Profile tab.
+  useEffect(() => {
+    if (!canManageWorkspace) return
+    setVisitedTabs((prev) => {
+      const next = new Set(prev)
+      next.add('school-info')
+      next.add('roles')
+      next.add('teams')
+      next.add('users')
+      next.add('campus')
+      return next
+    })
+  }, [canManageWorkspace])
 
   useEffect(() => {
     if (!token) return
@@ -295,6 +435,7 @@ export default function SettingsPage() {
     }
 
     setActiveTab(nextTab)
+    setVisitedTabs((prev) => new Set(prev).add(nextTab))
   }
 
   const handleStayOnCurrentTab = () => {
@@ -315,6 +456,7 @@ export default function SettingsPage() {
 
     if (pendingTab) {
       setActiveTab(pendingTab)
+      setVisitedTabs((prev) => new Set(prev).add(pendingTab))
     }
     setShowUnsavedDialog(false)
     setPendingTab(null)
@@ -346,6 +488,7 @@ export default function SettingsPage() {
     setSchoolInfoDirty(false)
     if (pendingTab) {
       setActiveTab(pendingTab)
+      setVisitedTabs((prev) => new Set(prev).add(pendingTab))
     }
     setShowUnsavedDialog(false)
     setPendingTab(null)
@@ -383,18 +526,6 @@ export default function SettingsPage() {
     )
   }
 
-  const generalTabs = [
-    { id: 'profile' as Tab, label: 'Account', icon: User },
-  ]
-
-  const workspaceTabs = [
-    { id: 'school-info' as Tab, label: 'School Information', icon: School },
-    { id: 'roles' as Tab, label: 'Roles', icon: Shield },
-    { id: 'teams' as Tab, label: 'Teams', icon: Users },
-    { id: 'users' as Tab, label: 'Members', icon: UserCog },
-    { id: 'campus' as Tab, label: 'Campus', icon: Building2 },
-  ]
-
   return (
     <DashboardLayout
       userName={userName || 'User'}
@@ -406,76 +537,22 @@ export default function SettingsPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <div className="pb-8">
-        <div className="px-2 sm:px-4 lg:px-6">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Account Settings</h1>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] lg:min-h-[calc(100vh-180px)]">
-            <aside className="bg-gray-50 border-b border-gray-200 lg:border-b-0 lg:border-r border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">General Settings</p>
-                <nav className="mt-2 space-y-1" aria-label="General settings sections">
-                  {generalTabs.map((tab) => {
-                    const Icon = tab.icon
-                    const isActive = activeTab === tab.id
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => requestTabChange(tab.id)}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                          isActive
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-gray-600 hover:bg-blue-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        {tab.label}
-                      </button>
-                    )
-                  })}
-                </nav>
-              </div>
-
-              {canManageWorkspace && (
-                <div className="p-4">
-                  <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">Workspace Settings</p>
-                  <nav className="mt-2 space-y-1" aria-label="Workspace settings sections">
-                    {workspaceTabs.map((tab) => {
-                      const Icon = tab.icon
-                      const isActive = activeTab === tab.id
-                      return (
-                        <button
-                          key={tab.id}
-                          onClick={() => requestTabChange(tab.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                            isActive
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'text-gray-600 hover:bg-blue-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <Icon className="w-4 h-4" />
-                          {tab.label}
-                        </button>
-                      )
-                    })}
-                  </nav>
-                </div>
-              )}
-            </aside>
-
-            <section className="p-5 sm:p-7 lg:p-8">
+      <div>
               {activeTab === 'profile' && (
                 <div className="space-y-8">
+
+                  {/* ── My Profile ─────────────────────────────────────────── */}
                   <section>
-                    <h2 className="text-3xl font-semibold text-gray-900">My Profile</h2>
+                    <h2 className="text-2xl font-semibold text-gray-900">My Profile</h2>
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 relative">
-                      <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden">
+
+                    {/* Avatar */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden flex-shrink-0">
                         {displayAvatar ? (
                           <img src={displayAvatar} alt={userName || 'User'} className="w-14 h-14 rounded-full object-cover" />
                         ) : (
-                          (userName || 'U').charAt(0).toUpperCase()
+                          (firstName || userName || 'U').charAt(0).toUpperCase()
                         )}
                       </div>
                       <div className="flex flex-wrap gap-3">
@@ -504,35 +581,72 @@ export default function SettingsPage() {
                           Remove Image
                         </button>
                       </div>
-                      {avatarError && (
-                        <div className="absolute -bottom-16 left-0 right-0 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-nowrap">
-                          {avatarError}
-                        </div>
-                      )}
                     </div>
+                    {avatarError && (
+                      <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{avatarError}</div>
+                    )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                        <input id="name" type="text" className="ui-input" defaultValue={(userName || '').split(' ')[0] || ''} />
+                    {/* Name form */}
+                    <form onSubmit={handleSaveProfile} className="space-y-4">
+                      {profileError && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{profileError}</div>
+                      )}
+                      {profileSuccess && (
+                        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">Profile saved successfully.</div>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                          <input
+                            id="firstName"
+                            type="text"
+                            className="ui-input"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            disabled={profileSaving}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                          <input
+                            id="lastName"
+                            type="text"
+                            className="ui-input"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            disabled={profileSaving}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label htmlFor="last-name" className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                        <input id="last-name" type="text" className="ui-input" defaultValue={(userName || '').split(' ').slice(1).join(' ')} />
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={profileSaving}
+                          className="px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {profileSaving ? 'Saving...' : 'Save Changes'}
+                        </button>
                       </div>
-                    </div>
+                    </form>
                   </section>
 
+                  {/* ── Account Security ────────────────────────────────────── */}
                   <section>
-                    <h3 className="text-3xl font-semibold text-gray-900">Account Security</h3>
+                    <h3 className="text-2xl font-semibold text-gray-900">Account Security</h3>
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
                     <div className="space-y-6">
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                         <div className="flex-1">
                           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                          <input id="email" type="email" className="ui-input" defaultValue={userEmail || ''} />
+                          <input id="email" type="email" className="ui-input" defaultValue={userEmail || ''} readOnly />
                         </div>
-                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                        <button
+                          type="button"
+                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap opacity-50 cursor-not-allowed"
+                          disabled
+                          title="Coming soon"
+                        >
                           Change email
                         </button>
                       </div>
@@ -540,17 +654,22 @@ export default function SettingsPage() {
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                         <div className="flex-1">
                           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                          <input id="password" type="password" className="ui-input" value="**********" readOnly />
+                          <input id="password" type="password" className="ui-input" value="••••••••••" readOnly />
                         </div>
-                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={openChangePassword}
+                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap"
+                        >
                           Change password
                         </button>
                       </div>
                     </div>
                   </section>
 
+                  {/* ── Support Access ──────────────────────────────────────── */}
                   <section>
-                    <h3 className="text-3xl font-semibold text-gray-900">Support Access</h3>
+                    <h3 className="text-2xl font-semibold text-gray-900">Support Access</h3>
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
                     <div className="space-y-4">
                       <div className="flex items-start justify-between gap-4">
@@ -558,7 +677,12 @@ export default function SettingsPage() {
                           <p className="text-base font-medium text-gray-900">Log out of all devices</p>
                           <p className="text-sm text-gray-600">Log out of all other active sessions on other devices besides this one.</p>
                         </div>
-                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                        <button
+                          type="button"
+                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap opacity-50 cursor-not-allowed"
+                          disabled
+                          title="Coming soon"
+                        >
                           Log out
                         </button>
                       </div>
@@ -568,18 +692,109 @@ export default function SettingsPage() {
                           <p className="text-base font-medium text-red-600">Delete my account</p>
                           <p className="text-sm text-gray-600">Permanently delete the account and remove access from all workspaces.</p>
                         </div>
-                        <button className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-900 text-sm font-medium hover:bg-gray-200 transition whitespace-nowrap">
+                        <button
+                          type="button"
+                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap opacity-50 cursor-not-allowed"
+                          disabled
+                          title="Coming soon"
+                        >
                           Delete Account
                         </button>
                       </div>
                     </div>
                   </section>
+
+                  {/* ── Change Password Drawer ──────────────────────────────── */}
+                  <DetailDrawer
+                    isOpen={changePasswordOpen}
+                    onClose={closeChangePassword}
+                    title="Change Password"
+                    width="md"
+                  >
+                    <form onSubmit={handleChangePassword} className="p-8 space-y-6">
+                      {passwordError && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{passwordError}</div>
+                      )}
+                      {passwordSuccess && (
+                        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">Password changed successfully!</div>
+                      )}
+
+                      <section className="space-y-4">
+                        <div className="border-b border-gray-200 pb-3">
+                          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Update Password</h3>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Current password</label>
+                          <input
+                            type="password"
+                            className="ui-input"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            disabled={passwordSaving || passwordSuccess}
+                            required
+                            autoComplete="current-password"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">New password</label>
+                          <input
+                            type="password"
+                            className="ui-input"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            disabled={passwordSaving || passwordSuccess}
+                            required
+                            minLength={8}
+                            autoComplete="new-password"
+                          />
+                          <p className="mt-1.5 text-xs text-gray-400">Must be at least 8 characters</p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm new password</label>
+                          <input
+                            type="password"
+                            className="ui-input"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            disabled={passwordSaving || passwordSuccess}
+                            required
+                            autoComplete="new-password"
+                          />
+                        </div>
+                      </section>
+
+                      <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
+                        <button
+                          type="button"
+                          onClick={closeChangePassword}
+                          disabled={passwordSaving}
+                          className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={passwordSaving || passwordSuccess}
+                          className="px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                        >
+                          {passwordSaving ? 'Saving...' : 'Update Password'}
+                        </button>
+                      </div>
+                    </form>
+                  </DetailDrawer>
                 </div>
               )}
 
-              {canManageWorkspace && activeTab === 'roles' && <RolesTab onDirtyChange={setRolesDirty} />}
+              {canManageWorkspace && visitedTabs.has('roles') && (
+                <div className={activeTab === 'roles' ? '' : 'hidden'} aria-hidden={activeTab !== 'roles'}>
+                  <RolesTab onDirtyChange={setRolesDirty} />
+                </div>
+              )}
 
-              {canManageWorkspace && (
+              {canManageWorkspace && visitedTabs.has('school-info') && (
                 <div className={activeTab === 'school-info' ? '' : 'hidden'} aria-hidden={activeTab !== 'school-info'}>
                   <SchoolInfoTab
                     onDirtyChange={setSchoolInfoDirty}
@@ -589,13 +804,23 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {canManageWorkspace && activeTab === 'teams' && <TeamsTab onDirtyChange={setTeamsDirty} />}
+              {canManageWorkspace && visitedTabs.has('teams') && (
+                <div className={activeTab === 'teams' ? '' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
+                  <TeamsTab onDirtyChange={setTeamsDirty} />
+                </div>
+              )}
 
-              {canManageWorkspace && activeTab === 'users' && <MembersTab onDirtyChange={setUsersDirty} />}
+              {canManageWorkspace && visitedTabs.has('users') && (
+                <div className={activeTab === 'users' ? '' : 'hidden'} aria-hidden={activeTab !== 'users'}>
+                  <MembersTab onDirtyChange={setUsersDirty} />
+                </div>
+              )}
 
-              {canManageWorkspace && activeTab === 'campus' && <CampusTab onDirtyChange={setCampusDirty} />}
-            </section>
-        </div>
+              {canManageWorkspace && visitedTabs.has('campus') && (
+                <div className={activeTab === 'campus' ? '' : 'hidden'} aria-hidden={activeTab !== 'campus'}>
+                  <CampusTab onDirtyChange={setCampusDirty} />
+                </div>
+              )}
       </div>
 
       <ConfirmDialog

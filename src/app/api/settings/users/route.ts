@@ -9,6 +9,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { generateSetupToken, getSetupLink, hashSetupToken } from '@/lib/auth/password-setup'
 import { sendWelcomeEmail } from '@/lib/services/emailService'
 import { PERMISSIONS } from '@/lib/permissions'
+import { audit, getIp } from '@/lib/services/auditService'
 
 export async function GET(req: NextRequest) {
   try {
@@ -44,10 +45,10 @@ export async function GET(req: NextRequest) {
         where.roleId = roleId
       }
 
-      // Filter by team
+      // Filter by team (junction table)
       if (teamSlug) {
-        where.teamIds = {
-          has: teamSlug,
+        where.teams = {
+          some: { team: { slug: teamSlug } },
         }
       }
 
@@ -74,8 +75,12 @@ export async function GET(req: NextRequest) {
           employmentType: true,
           phone: true,
           status: true,
-          teamIds: true,
           createdAt: true,
+          teams: {
+            select: {
+              team: { select: { id: true, name: true, slug: true } },
+            },
+          },
           userRole: {
             select: {
               id: true,
@@ -189,10 +194,15 @@ export async function POST(req: NextRequest) {
           employmentType,
           passwordHash,
           roleId,
-          teamIds,
           status: provisioningMode === 'ADMIN_CREATE' ? 'ACTIVE' : 'PENDING',
+          ...(teamIds.length > 0
+            ? { teams: { create: teamIds.map((teamId) => ({ teamId })) } }
+            : {}),
         },
         include: {
+          teams: {
+            select: { team: { select: { id: true, name: true, slug: true } } },
+          },
           userRole: {
             select: {
               id: true,
@@ -233,6 +243,18 @@ export async function POST(req: NextRequest) {
         expiresAt: expiresAt.toISOString(),
         emailSent: emailResult.sent,
         emailReason: emailResult.reason,
+      })
+
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'user.invite',
+        resourceType:   'User',
+        resourceId:     user.id,
+        resourceLabel:  user.email,
+        changes:        { email, roleId, teamCount: teamIds.length, provisioningMode },
+        ipAddress:      getIp(req),
       })
 
       return NextResponse.json(

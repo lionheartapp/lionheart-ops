@@ -78,13 +78,13 @@ select:focus {
   outline: none;
 }
 
-/* Color contrast improvements */
+/* Color contrast improvements — links inherit color by default so Tailwind text classes take full control */
 a {
-  color: #2563eb;
+  color: inherit;
 }
 
 a:visited {
-  color: #1e40af;
+  color: inherit;
 }
 
 @layer components {

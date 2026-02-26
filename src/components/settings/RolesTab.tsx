@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Shield, Plus, Edit2, Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
+import RowActionMenu from '@/components/RowActionMenu'
 
 interface Role {
   id: string
@@ -488,12 +489,15 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Roles & Permissions</h2>
+          <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
+            <Shield className="w-6 h-6 text-blue-600" />
+            Roles & Permissions
+          </h2>
           <p className="text-sm text-gray-600 mt-1">Manage user roles and their permissions</p>
         </div>
         <button
           onClick={openCreateDrawer}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 px-4 py-2 min-h-[40px] text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
           <Plus className="w-4 h-4" />
           Create Role
@@ -501,100 +505,96 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       </div>
 
       {actionError && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {actionError}
         </div>
       )}
 
-      {loading ? (
-        <div className="space-y-6 animate-pulse">
-          <div className="divide-y divide-gray-200 border-y border-gray-200">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="py-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 bg-gray-200 rounded-lg" />
-                    <div>
-                      <div className="h-5 w-40 bg-gray-200 rounded" />
-                      <div className="h-4 w-28 bg-gray-200 rounded mt-2" />
-                      <div className="h-4 w-36 bg-gray-200 rounded mt-2" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-gray-200 rounded" />
-                    <div className="h-8 w-8 bg-gray-200 rounded" />
-                  </div>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+        {loading ? (
+          <div className="animate-pulse">
+            <div className="flex items-center gap-4 p-4 border-b border-gray-100 bg-gray-50">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded flex-1" />
+              ))}
+            </div>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-gray-100 last:border-b-0">
+                <div className="flex-1">
+                  <div className="h-4 w-32 bg-gray-200 rounded" />
+                  <div className="h-3 w-20 bg-gray-100 rounded mt-1.5" />
+                </div>
+                <div className="h-4 w-10 bg-gray-200 rounded flex-1" />
+                <div className="h-4 w-10 bg-gray-200 rounded flex-1" />
+                <div className="flex gap-2 flex-1 justify-end">
+                  <div className="h-8 w-8 bg-gray-200 rounded" />
+                  <div className="h-8 w-8 bg-gray-200 rounded" />
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      ) : roles.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-md">
-          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 mb-4">No roles found</p>
-          <button
-            onClick={openCreateDrawer}
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Create your first role
-          </button>
-        </div>
-      ) : (
-        <div className="divide-y divide-gray-200 border-y border-gray-200">
-          {roles.map((role) => (
-            <div
-              key={role.id}
-              className="py-5"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <Shield className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
+        ) : roles.length === 0 ? (
+          <div className="text-center py-16">
+            <Shield className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 text-sm mb-3">No roles found</p>
+            <button onClick={openCreateDrawer} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              Create your first role
+            </button>
+          </div>
+        ) : (
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-gray-500 border-b bg-gray-50">
+                <th className="py-3 px-4 text-left font-medium">Role</th>
+                <th className="py-3 px-4 text-left font-medium">Permissions</th>
+                <th className="py-3 px-4 text-left font-medium">Members</th>
+                <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roles.map((role) => (
+                <tr key={role.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                  <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{role.name}</h3>
+                      <span className="font-medium text-gray-900">{role.name}</span>
                       {role.isSystem && (
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
                           System
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">@{role.slug}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span>{role._count?.permissions || 0} permissions</span>
-                      <span>•</span>
-                      <span>{role._count?.users || 0} users</span>
+                    <div className="text-xs text-gray-400 mt-0.5">@{role.slug}</div>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">{role._count?.permissions || 0}</td>
+                  <td className="py-3 px-4 text-gray-600">{role._count?.users || 0}</td>
+                  <td className="py-3 pl-4 pr-10">
+                    <div className="flex justify-end">
+                      {!role.isSystem && (
+                        <RowActionMenu
+                          items={[
+                            {
+                              label: 'Edit',
+                              icon: <Edit2 className="w-4 h-4" />,
+                              onClick: () => openEditDrawer(role),
+                            },
+                            {
+                              label: 'Delete',
+                              icon: <Trash2 className="w-4 h-4" />,
+                              onClick: () => handleDeleteRole(role),
+                              variant: 'danger',
+                              disabled: deletingRoleId === role.id,
+                            },
+                          ]}
+                        />
+                      )}
                     </div>
-                  </div>
-                </div>
-                
-                {!role.isSystem && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openEditDrawer(role)}
-                      className="p-2 text-gray-600 hover:bg-blue-50 rounded-lg transition"
-                      title="Edit role"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRole(role)}
-                      disabled={deletingRoleId === role.id}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                      title="Delete role"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       <DetailDrawer
         isOpen={showCreateModal}
@@ -602,9 +602,9 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         title="Create Role"
         width="lg"
       >
-        <form onSubmit={handleCreateRole} className="space-y-6">
+        <form onSubmit={handleCreateRole} className="p-8 space-y-6">
           {actionError && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {actionError}
             </div>
           )}
@@ -620,7 +620,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             </div>
 
             <div>
-              <label htmlFor="role-name" className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="role-name" className="block text-sm font-medium text-gray-700 mb-1.5">
                 Role name
               </label>
               <input
@@ -628,7 +628,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder="e.g. Attendance Coordinator"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 disabled={createLoading}
                 autoFocus
               />
@@ -652,7 +652,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                 ))}
               </div>
             ) : permissionsError ? (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {permissionsError}
               </div>
             ) : (
@@ -730,14 +730,14 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             <button
               type="button"
               onClick={closeCreateDrawer}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
               disabled={createLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60"
+              className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={createLoading}
             >
               {createLoading ? 'Creating...' : 'Create Role'}
@@ -759,9 +759,9 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             ))}
           </div>
         ) : (
-          <form onSubmit={handleEditRole} className="space-y-6">
+          <form onSubmit={handleEditRole} className="p-8 space-y-6">
             {editError && (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {editError}
               </div>
             )}
@@ -777,7 +777,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               </div>
 
               <div>
-                <label htmlFor="edit-role-name" className="mb-1 block text-sm font-medium text-gray-700">
+                <label htmlFor="edit-role-name" className="block text-sm font-medium text-gray-700 mb-1.5">
                   Role name
                 </label>
                 <input
@@ -785,7 +785,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                   value={editRoleName}
                   onChange={(e) => setEditRoleName(e.target.value)}
                   placeholder="e.g. Attendance Coordinator"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   disabled={editSaving}
                   autoFocus
                 />
@@ -809,7 +809,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                   ))}
                 </div>
               ) : permissionsError ? (
-                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {permissionsError}
                 </div>
               ) : (
@@ -888,14 +888,14 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               <button
                 type="button"
                 onClick={closeEditDrawer}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
                 disabled={editSaving}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60"
+                className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={editSaving}
               >
                 {editSaving ? 'Saving...' : 'Save Changes'}

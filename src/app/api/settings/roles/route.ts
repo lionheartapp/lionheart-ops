@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const CreateRoleSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -120,6 +121,18 @@ export async function POST(req: NextRequest) {
           skipDuplicates: true,
         })
       }
+
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'role.create',
+        resourceType:   'Role',
+        resourceId:     role.id,
+        resourceLabel:  role.name,
+        changes:        { name: input.name, slug, permissionCount: input.permissionIds?.length ?? 0 },
+        ipAddress:      getIp(req),
+      })
 
       return NextResponse.json(ok(role), { status: 201 })
     })

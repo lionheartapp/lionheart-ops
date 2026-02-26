@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
 import { verifyAuthToken } from '@/lib/auth'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
@@ -54,8 +54,9 @@ export async function PATCH(request: NextRequest) {
 
     // Update user avatar with organization context
     return await runWithOrgContext(organizationId, async () => {
-      // First get the user to retrieve their email for the compound key
-      const existingUser = await prisma.user.findUnique({
+      // Use rawPrisma for the email lookup — org-scoped findUnique by id alone
+      // hits an AND-clause that Prisma rejects (needs a unique key, not AND).
+      const existingUser = await rawPrisma.user.findUnique({
         where: { id: userId },
         select: { email: true },
       })
@@ -67,7 +68,11 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      const user = await prisma.user.update({
+      // Use rawPrisma here for the same reason as the findUnique above —
+      // the org-scoped client wraps the where in AND[], which Prisma rejects
+      // for compound unique keys on update(). We already have orgId from the
+      // verified JWT so org-scoping is not needed here.
+      const user = await rawPrisma.user.update({
         where: {
           organizationId_email: {
             organizationId,

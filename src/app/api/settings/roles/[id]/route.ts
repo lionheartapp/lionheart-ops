@@ -6,6 +6,7 @@ import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { audit, getIp } from '@/lib/services/auditService'
 
 type RouteParams = {
   params: Promise<{ id: string }>
@@ -157,6 +158,21 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
             })
           }
         }
+      })
+
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'role.update',
+        resourceType:   'Role',
+        resourceId:     id,
+        resourceLabel:  input.name ?? role.name,
+        changes:        {
+          ...(input.name ? { name: input.name } : {}),
+          ...(input.permissionIds ? { permissionCount: input.permissionIds.length } : {}),
+        },
+        ipAddress:      getIp(req),
       })
 
       return NextResponse.json(ok({ id }))
@@ -339,6 +355,18 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       }
 
       await prisma.role.delete({ where: { id } })
+
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'role.delete',
+        resourceType:   'Role',
+        resourceId:     id,
+        resourceLabel:  role.id,
+        ipAddress:      getIp(req),
+      })
+
       return NextResponse.json(ok({ id }))
     })
   } catch (error) {

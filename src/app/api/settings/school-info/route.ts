@@ -125,8 +125,8 @@ export async function GET(req: NextRequest) {
       prisma.user.findFirst({
         where: {
           organizationId: orgId,
-          role: {
-            in: ['SUPER_ADMIN', 'ADMIN'],
+          userRole: {
+            slug: { in: ['super-admin', 'admin'] },
           },
         },
         orderBy: { createdAt: 'asc' },

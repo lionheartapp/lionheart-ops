@@ -18,9 +18,10 @@ export async function GET(req: NextRequest) {
       const category = searchParams.get('category') || undefined
       const priority = searchParams.get('priority') || undefined
       const assignedToId = searchParams.get('assignedToId') || undefined
+      const schoolId = searchParams.get('schoolId') || undefined
 
       const tickets = await ticketService.listTickets(
-        { limit, offset, status: status as any, category: category as any, priority: priority as any, assignedToId },
+        { limit, offset, status: status as any, category: category as any, priority: priority as any, assignedToId, schoolId },
         userContext.userId
       )
 

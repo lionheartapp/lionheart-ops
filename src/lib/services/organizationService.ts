@@ -7,10 +7,8 @@
  * Note: Uses raw PrismaClient to bypass org-scoping for public lookups.
  */
 
-import { PrismaClient, ImagePosition, SchoolType, InstitutionType } from '@prisma/client';
-
-// Use raw Prisma client to bypass org-scoping for public branding lookups
-const rawPrisma = new PrismaClient();
+import { ImagePosition, SchoolType, InstitutionType } from '@prisma/client';
+import { rawPrisma } from '@/lib/db';
 
 export interface OrganizationBranding {
   id: string;
@@ -27,7 +25,7 @@ export interface OrganizationBranding {
  * Get public branding information for an organization by subdomain slug
  * This is used on the login page before authentication to customize the UI
  * 
- * @param slug - The subdomain slug (e.g., "linfield" from linfield.lionheartapp.com)
+ * @param slug - The subdomain slug (e.g., "demo" from demo.lionheartapp.com)
  * @returns Organization branding data or null if not found
  */
 export async function getOrganizationBranding(

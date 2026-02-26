@@ -6,6 +6,7 @@ import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { audit, getIp } from '@/lib/services/auditService'
 
 type RouteParams = {
   params: Promise<{ id: string }>
@@ -115,34 +116,23 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         select: { id: true, name: true, slug: true, description: true },
       })
 
-      if (nextSlug !== team.slug) {
-        const usersToUpdate = await prisma.user.findMany({
-          where: {
-            organizationId: orgId,
-            teamIds: {
-              has: team.slug,
-            },
-          },
-          select: { id: true, email: true, teamIds: true },
-        })
+      // No need to update user records when slug changes — the junction table
+      // references teamId (UUID), not slug. The slug change is purely on Team.
 
-        await prisma.$transaction(
-          usersToUpdate.map((user) => {
-            const nextTeams = user.teamIds.map((slug) =>
-              slug === team.slug ? nextSlug : slug
-            )
-            return prisma.user.update({
-              where: {
-                organizationId_email: {
-                  organizationId: orgId,
-                  email: user.email,
-                },
-              },
-              data: { teamIds: nextTeams },
-            })
-          })
-        )
-      }
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'team.update',
+        resourceType:   'Team',
+        resourceId:     id,
+        resourceLabel:  updated.name,
+        changes:        {
+          ...(input.name !== undefined ? { name: input.name } : {}),
+          ...(input.description !== undefined ? { description: input.description } : {}),
+        },
+        ipAddress:      getIp(req),
+      })
 
       return NextResponse.json(ok(updated))
     })
@@ -203,23 +193,16 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     return await runWithOrgContext(orgId, async () => {
       const team = await prisma.team.findFirst({
         where: { id, organizationId: orgId },
-        select: {
-          id: true,
-          slug: true,
-        },
+        select: { id: true, slug: true },
       })
 
       if (!team) {
         return NextResponse.json(fail('NOT_FOUND', 'Team not found'), { status: 404 })
       }
 
-      const assignedUserCount = await prisma.user.count({
-        where: {
-          organizationId: orgId,
-          teamIds: {
-            has: team.slug,
-          },
-        },
+      // Count current members via junction table
+      const assignedUserCount = await prisma.userTeam.count({
+        where: { teamId: team.id },
       })
 
       if (assignedUserCount > 0) {
@@ -237,36 +220,29 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
           )
         }
 
-        const usersToUpdate = await prisma.user.findMany({
-          where: {
-            organizationId: orgId,
-            teamIds: {
-              has: team.slug,
-            },
-          },
-          select: {
-            id: true,
-            email: true,
-            teamIds: true,
-          },
+        // Fetch all current members of this team
+        const memberships = await prisma.userTeam.findMany({
+          where: { teamId: team.id },
+          select: { userId: true },
         })
 
+        // Build per-user target team ID map
         const assignmentMap = new Map<string, string>()
-        userReassignments.forEach((item) => {
+        for (const item of userReassignments) {
           assignmentMap.set(item.userId, item.teamId)
-        })
+        }
 
-        const targets = new Set<string>()
+        const allTargetIds = new Set<string>()
         const missingAssignments: string[] = []
 
-        usersToUpdate.forEach((user) => {
-          const target = assignmentMap.get(user.id) || reassignTeamId
-          if (!target) {
-            missingAssignments.push(user.id)
+        for (const { userId } of memberships) {
+          const targetId = assignmentMap.get(userId) ?? reassignTeamId ?? null
+          if (!targetId) {
+            missingAssignments.push(userId)
           } else {
-            targets.add(target)
+            allTargetIds.add(targetId)
           }
-        })
+        }
 
         if (missingAssignments.length > 0) {
           return NextResponse.json(
@@ -275,63 +251,54 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
           )
         }
 
-        if (targets.has(team.id)) {
+        if (allTargetIds.has(team.id)) {
           return NextResponse.json(
             fail('VALIDATION_ERROR', 'Reassignment team must be different'),
             { status: 400 }
           )
         }
 
-        const targetTeams = await prisma.team.findMany({
-          where: { id: { in: Array.from(targets) }, organizationId: orgId },
-          select: { id: true, slug: true },
+        // Validate all target teams exist and belong to this org
+        const validTargets = await prisma.team.findMany({
+          where: { id: { in: Array.from(allTargetIds) }, organizationId: orgId },
+          select: { id: true },
         })
-
-        if (targetTeams.length !== targets.size) {
+        if (validTargets.length !== allTargetIds.size) {
           return NextResponse.json(
             fail('NOT_FOUND', 'Reassignment team not found'),
             { status: 404 }
           )
         }
 
-        const targetSlugMap = new Map(
-          targetTeams.map((target) => [target.id, target.slug])
-        )
-
+        // Upsert reassignment memberships (ignore if they already belong to target team)
         await prisma.$transaction(
-          usersToUpdate.map((user) => {
-            const targetId = assignmentMap.get(user.id) || reassignTeamId
-            const targetSlug = targetId ? targetSlugMap.get(targetId) : null
-            if (!targetSlug) {
-              return prisma.user.update({
-                where: {
-                  organizationId_email: {
-                    organizationId: orgId,
-                    email: user.email,
-                  },
-                },
-                data: { teamIds: user.teamIds.filter((slug) => slug !== team.slug) },
-              })
-            }
-
-            const nextTeams = user.teamIds.filter((slug) => slug !== team.slug)
-            if (!nextTeams.includes(targetSlug)) {
-              nextTeams.push(targetSlug)
-            }
-            return prisma.user.update({
-              where: {
-                organizationId_email: {
-                  organizationId: orgId,
-                  email: user.email,
-                },
-              },
-              data: { teamIds: nextTeams },
+          memberships.map(({ userId }) => {
+            const targetId = assignmentMap.get(userId) ?? reassignTeamId!
+            return prisma.userTeam.upsert({
+              where: { userId_teamId: { userId, teamId: targetId } },
+              create: { userId, teamId: targetId },
+              update: {},
             })
           })
         )
+
+        // Junction rows for the deleted team are removed automatically via CASCADE
       }
 
       await prisma.team.delete({ where: { id } })
+
+      await audit({
+        organizationId: orgId,
+        userId:         userContext.userId,
+        userEmail:      userContext.email,
+        action:         'team.delete',
+        resourceType:   'Team',
+        resourceId:     id,
+        resourceLabel:  team.slug,
+        changes:        assignedUserCount > 0 ? { reassignedMembers: assignedUserCount } : undefined,
+        ipAddress:      getIp(req),
+      })
+
       return NextResponse.json(ok({ id }))
     })
   } catch (error) {

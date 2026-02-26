@@ -123,27 +123,30 @@ export async function assertCan(
 }
 
 /**
- * Get user's team IDs
+ * Get team IDs for a user (via junction table)
  */
 export async function getUserTeams(userId: string): Promise<string[]> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { teamIds: true },
+  const memberships = await prisma.userTeam.findMany({
+    where: { userId },
+    select: { teamId: true },
   })
 
-  return user?.teamIds || []
+  return memberships.map((m) => m.teamId)
 }
 
 /**
- * Check if user is on a specific team
+ * Check if user is a member of the team identified by slug
  */
 export async function isOnTeam(userId: string, teamSlug: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { teamIds: true },
+  const membership = await prisma.userTeam.findFirst({
+    where: {
+      userId,
+      team: { slug: teamSlug },
+    },
+    select: { teamId: true },
   })
 
-  return user?.teamIds.includes(teamSlug) || false
+  return membership !== null
 }
 
 /**

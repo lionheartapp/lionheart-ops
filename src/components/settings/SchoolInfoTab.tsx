@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Save } from 'lucide-react'
+import { Save, School } from 'lucide-react'
 import SchoolsManagement from './SchoolsManagement'
 
 type SchoolInfo = {
@@ -238,7 +238,14 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       const data = await response.json()
       if (!response.ok || !data.ok) {
-        throw new Error(data?.error?.message || 'Failed to save school information')
+        // For validation errors, show the first field-level message so the
+        // user knows exactly which field to fix (e.g. "Logo URL must be valid")
+        const details = data?.error?.details
+        const firstFieldError =
+          Array.isArray(details) && details.length > 0
+            ? (details[0]?.message as string | undefined)
+            : undefined
+        throw new Error(firstFieldError || data?.error?.message || 'Failed to save school information')
       }
 
       setSchoolInfo((prev) =>
@@ -393,7 +400,10 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
   return (
     <form onSubmit={handleSave} className="space-y-8 pb-24">
       <section>
-        <h2 className="text-2xl font-semibold text-gray-900">School Information</h2>
+        <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
+          <School className="w-6 h-6 text-blue-600" />
+          School Information
+        </h2>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
 
         {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -464,7 +474,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       {/* Conditional: Multi-School Campus Section */}
       {form.gradeLevel === 'MULTI_SCHOOL_CAMPUS' && (
         <section>
-          <h3 className="text-2xl font-semibold text-gray-900">Head of Schools Contact</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Head of Schools Contact</h3>
           <div className="h-px bg-gray-200 mt-4 mb-6" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -486,7 +496,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       {/* Conditional: Single School Principal Contact */}
       {form.gradeLevel !== 'MULTI_SCHOOL_CAMPUS' && form.gradeLevel !== '' && (
         <section>
-          <h3 className="text-2xl font-semibold text-gray-900">Principal Contact</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Principal Contact</h3>
           <div className="h-px bg-gray-200 mt-4 mb-6" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -508,14 +518,14 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       {/* Schools Management - Multi-School Campus */}
       {form.gradeLevel === 'MULTI_SCHOOL_CAMPUS' && (
         <section>
-          <h3 className="text-2xl font-semibold text-gray-900">Manage Schools</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Manage Schools</h3>
           <div className="h-px bg-gray-200 mt-4 mb-6" />
           <SchoolsManagement />
         </section>
       )}
 
       <section>
-        <h3 className="text-2xl font-semibold text-gray-900">Enrollment & Staffing</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Enrollment & Staffing</h3>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

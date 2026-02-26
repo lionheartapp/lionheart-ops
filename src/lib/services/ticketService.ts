@@ -12,6 +12,7 @@ export const CreateTicketSchema = z.object({
   category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).default('MAINTENANCE'),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).default('NORMAL'),
   source: z.enum(['MANUAL', 'SHADOW_EVENT_AUTOMATION']).default('MANUAL'),
+  schoolId: z.string().optional().nullable(),
   locationRefType: z.enum(['ROOM', 'AREA', 'BUILDING', 'FREE_TEXT']).optional().nullable(),
   locationRefId: z.string().optional().nullable(),
   locationText: z.string().trim().min(1).max(300).optional().nullable(),
@@ -44,6 +45,7 @@ export const UpdateTicketSchema = z.object({
   category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).optional(),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
   status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED']).optional(),
+  schoolId: z.string().optional().nullable(),
   locationRefType: z.enum(['ROOM', 'AREA', 'BUILDING', 'FREE_TEXT']).optional().nullable(),
   locationRefId: z.string().optional().nullable(),
   locationText: z.string().trim().min(1).max(300).optional().nullable(),
@@ -68,6 +70,7 @@ export const ListTicketsSchema = z.object({
   category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).optional(),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
   assignedToId: z.string().optional(),
+  schoolId: z.string().optional(),
 })
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>
@@ -100,6 +103,9 @@ export async function listTickets(
   }
   if (validated.assignedToId) {
     where.assignedToId = validated.assignedToId
+  }
+  if (validated.schoolId) {
+    where.schoolId = validated.schoolId
   }
 
   // Check if user can see all tickets, otherwise only show assigned tickets
@@ -176,6 +182,7 @@ export async function createTicket(
       category: validated.category,
       priority: validated.priority,
       source: validated.source,
+      schoolId: validated.schoolId ?? null,
       locationRefType: validated.locationRefType,
       locationRefId: validated.locationRefId,
       locationText: validated.locationText,
@@ -242,6 +249,7 @@ export async function updateTicket(
   if (validated.locationRefId !== undefined) updateData.locationRefId = validated.locationRefId
   if (validated.locationText !== undefined) updateData.locationText = validated.locationText
   if (validated.assignedToId !== undefined) updateData.assignedToId = validated.assignedToId
+  if (validated.schoolId !== undefined) updateData.schoolId = validated.schoolId
 
   const ticket = await prisma.ticket.update({
     where: { id },

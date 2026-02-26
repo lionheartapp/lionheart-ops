@@ -10,6 +10,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 const CreateBuildingSchema = z.object({
   name: z.string().trim().min(1).max(120),
   code: z.string().trim().min(1).max(30).optional().nullable(),
+  schoolId: z.string().optional().nullable(),
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
@@ -23,14 +24,18 @@ export async function GET(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      const includeInactive = new URL(req.url).searchParams.get('includeInactive') === 'true'
+      const { searchParams } = new URL(req.url)
+      const includeInactive = searchParams.get('includeInactive') === 'true'
+      const schoolId = searchParams.get('schoolId') || undefined
       const db = prisma as any
 
       const buildings = await db.building.findMany({
         where: {
           organizationId: orgId,
           ...(includeInactive ? {} : { isActive: true }),
+          ...(schoolId ? { schoolId } : {}),
         },
+        include: { school: { select: { id: true, name: true, gradeLevel: true } } },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       })
 
@@ -61,10 +66,12 @@ export async function POST(req: NextRequest) {
           organizationId: orgId,
           name: input.name,
           code: input.code || null,
+          schoolId: input.schoolId || null,
           schoolDivision: input.schoolDivision || 'GLOBAL',
           sortOrder: input.sortOrder ?? 0,
           isActive: input.isActive ?? true,
         },
+        include: { school: { select: { id: true, name: true, gradeLevel: true } } },
       })
 
       return NextResponse.json(ok(building), { status: 201 })

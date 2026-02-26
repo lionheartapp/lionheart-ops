@@ -26,7 +26,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar || null)
-  
+
   useEffect(() => {
     setUserAvatar(initialUserAvatar || null)
   }, [initialUserAvatar])
@@ -39,11 +39,10 @@ export default function DashboardLayout({
         setUserAvatar(event.detail.avatar)
       }
     }
-
     window.addEventListener('avatar-updated', handleAvatarUpdate)
     return () => window.removeEventListener('avatar-updated', handleAvatarUpdate)
   }, [])
-  
+
   const formattedSchoolLabel = (schoolLabel || organizationName || 'School')
     .toString()
     .replace(/_/g, ' ')
@@ -55,21 +54,21 @@ export default function DashboardLayout({
   return (
     <div className="flex w-full min-h-screen bg-gray-50 flex-col">
       {/* Top Bar Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between z-30">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-30">
         {/* Logo and Organization Name */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
           {organizationLogoUrl ? (
             <img
               src={organizationLogoUrl}
               alt={`${organizationName || 'School'} logo`}
-              className="h-8 w-8 rounded-lg object-cover border border-gray-200 bg-white"
+              className="h-8 w-8 rounded-lg object-cover border border-white/20 bg-white"
             />
           ) : (
-            <div className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
+            <div className="h-8 w-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-semibold text-sm">
               {(organizationName || 'S').charAt(0).toUpperCase()}
             </div>
           )}
-          <p className="text-sm font-semibold text-gray-900 truncate">
+          <p className="text-sm font-semibold text-white truncate">
             {organizationName || 'School'}
           </p>
         </div>
@@ -79,7 +78,7 @@ export default function DashboardLayout({
           <input
             type="search"
             placeholder="Search here..."
-            className="w-full h-9 rounded-full border border-gray-200 bg-gray-50 px-4 text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
             aria-label="Search"
           />
         </div>
@@ -87,33 +86,38 @@ export default function DashboardLayout({
         {/* User Profile with Dropdown */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-gray-900">{userName || 'User'}</p>
-            <p className="text-xs text-gray-600 truncate">{subtitleParts.join(' • ')}</p>
+            <p className="text-sm font-semibold text-white">{userName || 'User'}</p>
+            <p className="text-xs text-slate-400 truncate">{subtitleParts.join(' • ')}</p>
           </div>
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 p-1 hover:bg-blue-50 rounded-lg transition"
+              className="flex items-center gap-2 p-1 hover:bg-white/10 rounded-lg transition"
               aria-label="User menu"
               aria-expanded={isDropdownOpen}
             >
-              <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold overflow-hidden text-sm">
+              <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm">
                 {userAvatar ? (
-                  <img src={userAvatar} alt={userName || 'User'} className="w-9 h-9 rounded-full object-cover" />
+                  <img
+                    src={userAvatar}
+                    alt={userName || 'User'}
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
                 ) : (
                   (userName || 'U').charAt(0).toUpperCase()
                 )}
               </div>
-              <ChevronDown className="w-4 h-4 text-gray-600" aria-hidden="true" />
+              <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
             </button>
-            
+
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
                 <Link
                   href="/settings"
-                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 transition rounded-t-lg"
                   onClick={() => setIsDropdownOpen(false)}
+                  className="block px-4 py-3 text-sm hover:bg-gray-50 transition"
+                  style={{ color: '#1f2937' }}
                 >
                   Settings
                 </Link>
@@ -123,7 +127,7 @@ export default function DashboardLayout({
                       onLogout()
                       setIsDropdownOpen(false)
                     }}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 transition rounded-b-lg border-t border-gray-100"
+                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
                     aria-label="Log out"
                   >
                     Log Out

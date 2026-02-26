@@ -14,6 +14,7 @@ type RouteParams = {
 const UpdateBuildingSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   code: z.string().trim().min(1).max(30).optional().nullable(),
+  schoolId: z.string().optional().nullable(),
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
@@ -68,10 +69,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         data: {
           ...(input.name !== undefined ? { name: input.name } : {}),
           ...(input.code !== undefined ? { code: input.code || null } : {}),
+          ...(input.schoolId !== undefined ? { schoolId: input.schoolId || null } : {}),
           ...(input.schoolDivision !== undefined ? { schoolDivision: input.schoolDivision } : {}),
           ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
           ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
         },
+        include: { school: { select: { id: true, name: true, gradeLevel: true } } },
       })
 
       return NextResponse.json(ok(building))
