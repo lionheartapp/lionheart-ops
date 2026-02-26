@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/db';
 
-export async function getFacilitiesForTenant(tenantSlug: string) {
   // Find tenant organization
   const org = await prisma.organization.findUnique({
     where: { slug: tenantSlug.toLowerCase() },
@@ -8,15 +7,16 @@ export async function getFacilitiesForTenant(tenantSlug: string) {
   });
   if (!org) return [];
 
-  // Fetch facilities scoped by tenant
-  const facilities = await prisma.facility.findMany({
+  // Fetch rooms scoped by tenant (as facilities)
+  const rooms = await prisma.room.findMany({
     where: { organizationId: org.id },
-    orderBy: { name: 'asc' },
+    orderBy: { displayName: 'asc' },
     select: {
       id: true,
-      name: true,
-      location: true,
+      displayName: true,
+      roomNumber: true,
+      floor: true,
     },
   });
-  return facilities;
+  return rooms;
 }
