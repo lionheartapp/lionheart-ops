@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db';
 
+export async function getFacilitiesForTenant(tenantSlug: string) {
   // Find tenant organization
   const org = await prisma.organization.findUnique({
     where: { slug: tenantSlug.toLowerCase() },
