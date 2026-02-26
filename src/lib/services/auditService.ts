@@ -86,7 +86,7 @@ export async function audit(input: AuditInput): Promise<void> {
         resourceType:   input.resourceType  ?? null,
         resourceId:     input.resourceId    ?? null,
         resourceLabel:  input.resourceLabel ?? null,
-        changes:        input.changes       ?? undefined,
+        changes:        (input.changes as any) ?? undefined,
         ipAddress:      input.ipAddress     ?? null,
       },
     })
