@@ -15,7 +15,8 @@ export async function getEventsForTenant(tenantSlug: string) {
     select: {
       id: true,
       title: true,
-      date: true,
+      startsAt: true,
+      endsAt: true,
     },
   });
   return events;
