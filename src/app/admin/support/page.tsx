@@ -87,7 +87,7 @@ export default function SupportPage() {
               </td></tr>
             ) : (
               tickets.map((t) => (
-                <tr key={t.id} onClick={() => router.push(`/support/${t.id}`)} className="hover:bg-zinc-800/50 cursor-pointer transition-colors">
+                <tr key={t.id} onClick={() => router.push(`/admin/support/${t.id}`)} className="hover:bg-zinc-800/50 cursor-pointer transition-colors">
                   <td className="px-5 py-3 font-medium">{t.subject}</td>
                   <td className="px-5 py-3 hidden sm:table-cell text-zinc-400">{t.organization?.name || '—'}</td>
                   <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(t.status)}`}>{t.status}</span></td>

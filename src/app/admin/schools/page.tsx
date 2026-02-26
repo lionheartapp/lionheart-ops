@@ -84,7 +84,7 @@ export default function SchoolsPage() {
               orgs.map((org) => (
                 <tr
                   key={org.id}
-                  onClick={() => router.push(`/schools/${org.id}`)}
+                  onClick={() => router.push(`/admin/schools/${org.id}`)}
                   className="hover:bg-zinc-800/50 cursor-pointer transition-colors"
                 >
                   <td className="px-5 py-3">

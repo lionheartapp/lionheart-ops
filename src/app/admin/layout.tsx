@@ -8,17 +8,17 @@ import {
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/schools', label: 'Schools', icon: School },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/schools', label: 'Schools', icon: School },
   {
     label: 'Billing', icon: CreditCard, children: [
-      { href: '/billing', label: 'Overview' },
-      { href: '/billing/plans', label: 'Plans' },
-      { href: '/billing/discount-codes', label: 'Discount Codes' },
+      { href: '/admin/billing', label: 'Overview' },
+      { href: '/admin/billing/plans', label: 'Plans' },
+      { href: '/admin/billing/discount-codes', label: 'Discount Codes' },
     ]
   },
-  { href: '/support', label: 'Support', icon: LifeBuoy },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/support', label: 'Support', icon: LifeBuoy },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function PlatformAdminLayout({ children }: { children: React.ReactNode }) {
@@ -30,20 +30,20 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('platform-token') : null
-    if (!token && pathname !== '/login') {
-      router.push('/login')
+    if (!token && pathname !== '/admin/login') {
+      router.push('/admin/login')
       return
     }
     const stored = typeof window !== 'undefined' ? localStorage.getItem('platform-admin') : null
     if (stored) setAdmin(JSON.parse(stored))
   }, [pathname, router])
 
-  if (pathname === '/login') return <>{children}</>
+  if (pathname === '/admin/login') return <>{children}</>
 
   const handleLogout = () => {
     localStorage.removeItem('platform-token')
     localStorage.removeItem('platform-admin')
-    router.push('/login')
+    router.push('/admin/login')
   }
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')

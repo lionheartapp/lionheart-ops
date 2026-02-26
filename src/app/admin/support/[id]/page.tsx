@@ -54,7 +54,7 @@ export default function TicketDetailPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <button onClick={() => router.push('/support')} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100">
+      <button onClick={() => router.push('/admin/support')} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100">
         <ArrowLeft size={16} /> Back to tickets
       </button>
 

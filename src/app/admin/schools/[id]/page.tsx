@@ -41,7 +41,7 @@ export default function SchoolDetailPage() {
 
   return (
     <div className="space-y-6">
-      <button onClick={() => router.push('/schools')} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+      <button onClick={() => router.push('/admin/schools')} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
         <ArrowLeft size={16} /> Back to schools
       </button>
 

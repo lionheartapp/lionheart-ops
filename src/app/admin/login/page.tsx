@@ -38,7 +38,7 @@ export default function PlatformLoginPage() {
 
       localStorage.setItem('platform-token', data.data.token)
       localStorage.setItem('platform-admin', JSON.stringify(data.data.admin))
-      router.push('/dashboard')
+      router.push('/admin/dashboard')
     } catch {
       setError('Connection failed. Please try again.')
       setLoading(false)

@@ -38,7 +38,7 @@ function isPlatformAdminHost(host: string): boolean {
 }
 
 function isPlatformPath(pathname: string): boolean {
-  return pathname.startsWith('/api/platform/') || pathname.startsWith('/platform')
+  return pathname.startsWith('/api/platform/') || pathname.startsWith('/platform') || pathname.startsWith('/admin')
 }
 
 function isPlatformPublicPath(pathname: string): boolean {
@@ -75,7 +75,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Platform admin login page (frontend)
-    if (pathname === '/login' || pathname === '/') {
+    if (pathname === '/login' || pathname === '/' || pathname === '/admin/login' || pathname === '/admin') {
       return NextResponse.next({ request: { headers: requestHeaders } })
     }
 
