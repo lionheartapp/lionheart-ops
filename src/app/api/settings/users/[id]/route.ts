@@ -143,7 +143,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           prisma.userTeam.deleteMany({ where: { userId: id } }),
           ...(newTeamIds.length > 0
             ? [prisma.userTeam.createMany({
-                data: newTeamIds.map((teamId) => ({ userId: id, teamId })),
+                data: newTeamIds.map((teamId: string) => ({ userId: id, teamId })),
               })]
             : []),
         ])

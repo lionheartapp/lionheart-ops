@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
           roleId,
           status: provisioningMode === 'ADMIN_CREATE' ? 'ACTIVE' : 'PENDING',
           ...(teamIds.length > 0
-            ? { teams: { create: teamIds.map((teamId) => ({ teamId })) } }
+            ? { teams: { create: teamIds.map((teamId: string) => ({ teamId })) } }
             : {}),
         },
         include: {
