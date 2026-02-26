@@ -401,7 +401,6 @@ async function main() {
     },
     update: {
       roleId: roles.member.id,
-      teamIds: ['teachers'],
       status: 'ACTIVE',
       schoolScope: 'HIGH_SCHOOL',
       firstName: 'Test',
