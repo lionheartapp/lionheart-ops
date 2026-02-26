@@ -19,7 +19,7 @@ export default async function Page({ params }: PageProps) {
           {events.map(event => (
             <li key={event.id} className="bg-white p-4 rounded shadow">
               <div className="font-semibold text-primary-900">{event.title}</div>
-              <div className="text-xs text-gray-600">{event.date}</div>
+              <div className="text-xs text-gray-600">{new Date(event.startsAt).toLocaleString()}</div>
             </li>
           ))}
         </ul>
