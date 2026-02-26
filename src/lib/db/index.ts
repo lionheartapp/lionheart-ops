@@ -55,10 +55,11 @@ const orgScopedPrisma = rawPrisma.$extends({
 	query: {
 		$allModels: {
 			async $allOperations({ model, operation, args, query }) {
-				if (!model) return query(args)
+				const modelName = model as string
+				if (!modelName) return query(args)
 
-				const isOrgScoped = orgScopedModels.has(model)
-				const isSoftDelete = softDeleteModels.has(model)
+				const isOrgScoped = orgScopedModels.has(modelName)
+				const isSoftDelete = softDeleteModels.has(modelName)
 
 				if (!isOrgScoped && !isSoftDelete) return query(args)
 
@@ -105,7 +106,7 @@ const orgScopedPrisma = rawPrisma.$extends({
 
 				// --- DELETE: convert to soft-delete (stamp deletedAt) ---
 				if (operation === 'delete' && isSoftDelete) {
-					const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
+					const modelKey = modelName.charAt(0).toLowerCase() + modelName.slice(1)
 					return (rawPrisma[modelKey as keyof typeof rawPrisma] as any).update({
 						where: mergeWhere(nextArgs.where, orgId, false),
 						data: { deletedAt: new Date() },
@@ -114,7 +115,7 @@ const orgScopedPrisma = rawPrisma.$extends({
 
 				// --- DELETE MANY: convert to soft-delete ---
 				if (operation === 'deleteMany' && isSoftDelete) {
-					const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
+					const modelKey = modelName.charAt(0).toLowerCase() + modelName.slice(1)
 					return (rawPrisma[modelKey as keyof typeof rawPrisma] as any).updateMany({
 						where: mergeWhere(nextArgs.where, orgId, false),
 						data: { deletedAt: new Date() },
