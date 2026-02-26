@@ -9,10 +9,7 @@ export default async function LoginPage() {
   const subdomain = headersList.get('x-org-subdomain')
   
   // Fetch organization branding (default to Linfield if no subdomain)
-    let slug = subdomain || 'linfield'
-    if (process.env.NODE_ENV === 'development') {
-      slug = subdomain || 'demo'
-    }
+  const slug = subdomain || 'linfield'
   const branding = await organizationService.getOrganizationBranding(slug)
 
   if (!branding) {

@@ -1,3 +1,12 @@
+import dotenv from 'dotenv';
+
+// When DATABASE_URL is already set (e.g. by `npm run db:seed:remote` with dotenv -e .env), don't load .env.local so we target that DB.
+// Otherwise prefer .env.local then .env for local development.
+if (!process.env.DATABASE_URL) {
+  dotenv.config({ path: '.env.local' });
+}
+dotenv.config();
+
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
