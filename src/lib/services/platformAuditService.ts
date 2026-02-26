@@ -22,7 +22,7 @@ export type PlatformAuditInput = {
  */
 export function platformAudit(input: PlatformAuditInput): void {
   rawPrisma.platformAuditLog
-    .create({ data: input })
+    .create({ data: input as any })
     .catch((err) => console.error('[platformAudit] Failed to write audit log:', err))
 }
 
