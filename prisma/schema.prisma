@@ -33,6 +33,9 @@ model Organization {
   heroImageUrl  String?
   theme         String?           // JSON or string for tenant theme config
   imagePosition ImagePosition     @default(LEFT)
+  // Platform admin fields
+  stripeCustomerId  String?       // Stripe Customer ID for billing
+  onboardingStatus  OnboardingStatus @default(SIGNED_UP)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   users         User[]
@@ -48,6 +51,14 @@ model Organization {
   rooms         Room[]
   roomAssignments UserRoomAssignment[]
   schools       School[]
+  auditLogs     AuditLog[]
+  // Platform admin relations
+  subscriptions       Subscription[]
+  payments            Payment[]
+  discountRedemptions DiscountRedemption[]
+  platformTickets     PlatformSupportTicket[]
+
+  @@index([onboardingStatus])
 }
 
 model User {
@@ -65,14 +76,14 @@ model User {
   employmentType EmploymentType?
   passwordHash   String
   status         UserStatus       @default(PENDING)
-  role           UserRole         @default(VIEWER) // Deprecated: Use roleId instead
   roleId         String?
-  teamIds        String[]         @default([])
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   school         School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   userRole       Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  teams          UserTeam[]
   submittedEvent Event[]          @relation("SubmittedEventUser")
   submittedDraft DraftEvent[]     @relation("DraftEventUser")
   assignedTicket Ticket[]         @relation("AssignedTicketUser")
@@ -85,6 +96,7 @@ model User {
   @@index([schoolId])
   @@index([roleId])
   @@index([status])
+  @@index([organizationId, deletedAt])
 }
 
 model PasswordSetupToken {
@@ -104,6 +116,7 @@ model PasswordSetupToken {
 model Ticket {
   id             String         @id @default(cuid())
   organizationId String
+  schoolId       String?        // FK to School — scopes ticket to a campus
   title          String
   description    String?
   category       TicketCategory @default(MAINTENANCE)
@@ -116,17 +129,22 @@ model Ticket {
   assignedToId   String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   assignedTo     User?          @relation("AssignedTicketUser", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, status])
   @@index([organizationId, category])
   @@index([organizationId, priority])
+  @@index([organizationId, deletedAt])
+  @@index([schoolId])
 }
 
 model Building {
   id             String         @id @default(cuid())
   organizationId String
+  schoolId       String?        // FK to School — set for multi-school campus orgs
   name           String
   code           String?
   schoolDivision SchoolDivision @default(GLOBAL)
@@ -134,13 +152,17 @@ model Building {
   sortOrder      Int            @default(0)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   areas          Area[]
   rooms          Room[]
 
   @@unique([organizationId, name])
   @@unique([organizationId, code])
   @@index([organizationId, isActive])
+  @@index([organizationId, deletedAt])
+  @@index([schoolId])
 }
 
 model Area {
@@ -153,6 +175,7 @@ model Area {
   sortOrder      Int          @default(0)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   rooms          Room[]
@@ -160,6 +183,7 @@ model Area {
   @@unique([organizationId, buildingId, name])
   @@index([organizationId, isActive])
   @@index([buildingId])
+  @@index([organizationId, deletedAt])
 }
 
 model Room {
@@ -174,6 +198,7 @@ model Room {
   sortOrder      Int          @default(0)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   building       Building     @relation(fields: [buildingId], references: [id], onDelete: Restrict)
   area           Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
@@ -183,6 +208,7 @@ model Room {
   @@index([organizationId, isActive])
   @@index([buildingId])
   @@index([areaId])
+  @@index([organizationId, deletedAt])
 }
 
 model UserRoomAssignment {
@@ -216,11 +242,15 @@ model School {
   principalPhoneExt String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   users          User[]
+  buildings      Building[]
+  tickets        Ticket[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
+  @@index([organizationId, deletedAt])
 }
 
 model Event {
@@ -235,10 +265,12 @@ model Event {
   submittedById  String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submittedBy    User?         @relation("SubmittedEventUser", fields: [submittedById], references: [id], onDelete: SetNull)
 
   @@index([organizationId, startsAt])
+  @@index([organizationId, deletedAt])
 }
 
 model DraftEvent {
@@ -253,10 +285,12 @@ model DraftEvent {
   createdById    String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy      User?           @relation("DraftEventUser", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([organizationId, updatedAt])
+  @@index([organizationId, deletedAt])
 }
 
 model InventoryItem {
@@ -267,10 +301,12 @@ model InventoryItem {
   reorderThreshold Int           @default(0)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
   organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, name])
   @@index([organizationId])
+  @@index([organizationId, deletedAt])
 }
 
 model TeacherSchedule {
@@ -340,17 +376,41 @@ model Team {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        UserTeam[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
 }
 
-enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  OPERATIONS
-  TEACHER
-  VIEWER
+model UserTeam {
+  userId    String
+  teamId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@id([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String?      // null for system-generated events
+  userEmail      String?      // denormalized — survives user deletion
+  action         String       // e.g. "user.invite", "role.delete", "user.login"
+  resourceType   String?      // e.g. "User", "Role", "Team"
+  resourceId     String?      // UUID of the affected record
+  resourceLabel  String?      // human-readable name at the time of action
+  changes        Json?        // structured metadata (fields changed, new values, etc.)
+  ipAddress      String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([organizationId, resourceType])
+  @@index([userId])
 }
 
 enum TicketStatus {
@@ -444,4 +504,224 @@ enum EmploymentType {
   CONTRACTOR
   INTERN
   VOLUNTEER
+}
+
+// ─── Platform Admin Enums ────────────────────────────────────────────
+
+enum OnboardingStatus {
+  SIGNED_UP
+  ONBOARDING
+  ACTIVE
+  SUSPENDED
+  CHURNED
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  PAUSED
+}
+
+enum PaymentStatus {
+  SUCCEEDED
+  FAILED
+  PENDING
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum PlatformTicketCategory {
+  BUG
+  FEATURE_REQUEST
+  BILLING
+  GENERAL
+}
+
+enum PlatformTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_ON_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum PlatformAdminRole {
+  SUPER_ADMIN
+  OPERATOR
+}
+
+enum PlatformSenderType {
+  PLATFORM_ADMIN
+  ORG_USER
+}
+
+// ─── Platform Admin Models ───────────────────────────────────────────
+
+model PlatformAdmin {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  passwordHash String
+  name         String?
+  role         PlatformAdminRole @default(OPERATOR)
+  lastLoginAt  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  assignedTickets PlatformSupportTicket[] @relation("AssignedPlatformAdmin")
+  auditLogs       PlatformAuditLog[]
+}
+
+model SubscriptionPlan {
+  id             String   @id @default(cuid())
+  name           String   // "Free Trial", "Basic", "Pro", "Enterprise"
+  slug           String   @unique // "free-trial", "basic", "pro", "enterprise"
+  stripePriceId  String?  // Stripe Price ID (monthly)
+  monthlyPrice   Int      @default(0) // cents (e.g., 4999 = $49.99)
+  annualPrice    Int?     // cents — optional annual billing
+  features       Json?    // { "maxUsers": 50, "aiEnabled": true, ... }
+  trialDays      Int      @default(0) // 0 = no trial, 30 = 30-day trial
+  isActive       Boolean  @default(true)
+  displayOrder   Int      @default(0) // sort order for plan selection UI
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([isActive, displayOrder])
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  organizationId        String
+  planId                String
+  stripeSubscriptionId  String?            @unique
+  stripeCustomerId      String?
+  status                SubscriptionStatus @default(TRIALING)
+  currentPeriodStart    DateTime?
+  currentPeriodEnd      DateTime?
+  cancelAtPeriodEnd     Boolean            @default(false)
+  trialEndsAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  payments     Payment[]
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+model Payment {
+  id                   String        @id @default(cuid())
+  organizationId       String
+  subscriptionId       String?
+  stripeInvoiceId      String?       @unique
+  stripePaymentIntentId String?
+  amount               Int           // cents
+  currency             String        @default("usd")
+  status               PaymentStatus @default(PENDING)
+  paidAt               DateTime?
+  createdAt            DateTime      @default(now())
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([status])
+}
+
+model DiscountCode {
+  id                 String       @id @default(cuid())
+  code               String       @unique
+  type               DiscountType @default(PERCENTAGE)
+  value              Int          // percentage (e.g., 20 = 20%) or cents (e.g., 1000 = $10)
+  maxRedemptions     Int?         // null = unlimited
+  currentRedemptions Int          @default(0)
+  validFrom          DateTime     @default(now())
+  validUntil         DateTime?    // null = no expiry
+  isActive           Boolean      @default(true)
+  stripeCouponId     String?      // Stripe Coupon ID
+  description        String?      // internal note
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  redemptions DiscountRedemption[]
+
+  @@index([isActive])
+  @@index([validUntil])
+}
+
+model DiscountRedemption {
+  id                String   @id @default(cuid())
+  discountCodeId    String
+  organizationId    String
+  redeemedAt        DateTime @default(now())
+  stripePromotionId String?  // Stripe Promotion Code ID
+
+  discountCode DiscountCode @relation(fields: [discountCodeId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([discountCodeId, organizationId]) // each org can redeem a code only once
+  @@index([organizationId])
+}
+
+model PlatformSupportTicket {
+  id                String                @id @default(cuid())
+  organizationId    String?               // null for platform-internal tickets
+  submittedByUserId String?               // org user who submitted (null for admin-created)
+  assignedToAdminId String?               // platform admin assigned to handle
+  subject           String
+  description       String
+  category          PlatformTicketCategory @default(GENERAL)
+  priority          TicketPriority         @default(NORMAL) // reuse existing enum
+  status            PlatformTicketStatus   @default(OPEN)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  organization Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  assignedTo   PlatformAdmin? @relation("AssignedPlatformAdmin", fields: [assignedToAdminId], references: [id], onDelete: SetNull)
+  messages     PlatformSupportMessage[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([assignedToAdminId])
+  @@index([priority])
+}
+
+model PlatformSupportMessage {
+  id         String             @id @default(cuid())
+  ticketId   String
+  senderType PlatformSenderType
+  senderId   String             // PlatformAdmin.id or User.id depending on senderType
+  message    String
+  createdAt  DateTime           @default(now())
+
+  ticket PlatformSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+model PlatformAuditLog {
+  id              String   @id @default(cuid())
+  platformAdminId String
+  action          String   // e.g., "org.suspend", "plan.create", "ticket.assign"
+  resourceType    String?  // e.g., "Organization", "SubscriptionPlan", "PlatformSupportTicket"
+  resourceId      String?
+  details         Json?    // structured change data
+  ipAddress       String?
+  createdAt       DateTime @default(now())
+
+  admin PlatformAdmin @relation(fields: [platformAdminId], references: [id], onDelete: Cascade)
+
+  @@index([platformAdminId])
+  @@index([createdAt(sort: Desc)])
+  @@index([resourceType])
 }
