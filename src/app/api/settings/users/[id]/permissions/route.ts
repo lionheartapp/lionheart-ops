@@ -53,9 +53,14 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
       // Build set of permission IDs that come from the role
       const rolePermissionIds = new Set<string>()
+      let roleHasWildcard = false
       if (user.userRole) {
         user.userRole.permissions.forEach((rp) => {
           rolePermissionIds.add(rp.permissionId)
+          // Check if role has the wildcard (*:*) permission
+          if (rp.permission.resource === '*' && rp.permission.action === '*') {
+            roleHasWildcard = true
+          }
         })
       }
 
@@ -74,7 +79,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
       // Build response with status for each permission
       const permissionsWithStatus = allPermissions.map((perm) => {
-        const fromRole = rolePermissionIds.has(perm.id)
+        const fromRole = rolePermissionIds.has(perm.id) || roleHasWildcard
         const hasOverride = userOverrideMap.has(perm.id)
 
         let status: 'inherited' | 'granted' | 'revoked' | 'none'

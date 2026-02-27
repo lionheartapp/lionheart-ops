@@ -823,76 +823,79 @@ const MembersTab = (_props: MembersTabProps) => {
         title="User Permissions"
         width="lg"
       >
-        <div className="p-6 space-y-6">
-          {/* User identity header */}
-          {permUser && (
-            <div className="flex items-center gap-4">
-              {permUser.avatar ? (
-                <img
-                  src={permUser.avatar}
-                  alt={`${permUser.firstName} ${permUser.lastName}`}
-                  className="h-12 w-12 rounded-full object-cover flex-shrink-0"
-                />
-              ) : (
-                <span className={`inline-flex items-center justify-center h-12 w-12 rounded-full text-white text-sm font-bold flex-shrink-0 ${getAvatarColor(permUser.id)}`}>
-                  {getInitials(permUser.firstName, permUser.lastName, permUser.email)}
-                </span>
-              )}
-              <div>
-                <p className="text-base font-semibold text-gray-900">
-                  {[permUser.firstName, permUser.lastName].filter(Boolean).join(' ') || permUser.email}
-                </p>
-                <p className="text-sm text-gray-500">{permUser.email}</p>
+        <div className="flex flex-col" style={{ margin: '-1rem -1.5rem', height: 'calc(100% + 2rem)' }}>
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* User identity header */}
+            {permUser && (
+              <div className="flex items-center gap-4">
+                {permUser.avatar ? (
+                  <img
+                    src={permUser.avatar}
+                    alt={`${permUser.firstName} ${permUser.lastName}`}
+                    className="h-12 w-12 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <span className={`inline-flex items-center justify-center h-12 w-12 rounded-full text-white text-sm font-bold flex-shrink-0 ${getAvatarColor(permUser.id)}`}>
+                    {getInitials(permUser.firstName, permUser.lastName, permUser.email)}
+                  </span>
+                )}
+                <div>
+                  <p className="text-base font-semibold text-gray-900">
+                    {[permUser.firstName, permUser.lastName].filter(Boolean).join(' ') || permUser.email}
+                  </p>
+                  <p className="text-sm text-gray-500">{permUser.email}</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Role info banner */}
-          <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
-            <p className="text-sm text-blue-800">
-              <span className="font-medium">Role:</span> {permRoleName || 'No role assigned'}
-            </p>
-            <p className="text-xs text-blue-600 mt-0.5">
-              Permission list will change when you select a different role for this user
-            </p>
+            {/* Role info banner */}
+            <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">Role:</span> {permRoleName || 'No role assigned'}
+              </p>
+              <p className="text-xs text-blue-600 mt-0.5">
+                Permission list will change when you select a different role for this user
+              </p>
+            </div>
+
+            {permError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {permError}
+              </div>
+            )}
+
+            {/* Permission toggle list */}
+            <PermissionToggleList
+              permissions={permItems}
+              selectedIds={permSelectedIds}
+              onToggle={(id) => {
+                setPermSelectedIds((prev) =>
+                  prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+                )
+                // Update the item status for visual feedback
+                setPermItems((prev) =>
+                  prev.map((p) => {
+                    if (p.id !== id) return p
+                    const willBeSelected = !permSelectedIds.includes(id)
+                    const roleHasIt = permRolePermIds.has(id)
+                    let newStatus: 'inherited' | 'granted' | 'revoked' | 'none'
+                    if (willBeSelected && roleHasIt) newStatus = 'inherited'
+                    else if (willBeSelected && !roleHasIt) newStatus = 'granted'
+                    else if (!willBeSelected && roleHasIt) newStatus = 'revoked'
+                    else newStatus = 'none'
+                    return { ...p, status: newStatus }
+                  })
+                )
+              }}
+              mode="user"
+              loading={permLoading}
+              disabled={permSaving}
+            />
           </div>
 
-          {permError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {permError}
-            </div>
-          )}
-
-          {/* Permission toggle list */}
-          <PermissionToggleList
-            permissions={permItems}
-            selectedIds={permSelectedIds}
-            onToggle={(id) => {
-              setPermSelectedIds((prev) =>
-                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-              )
-              // Update the item status for visual feedback
-              setPermItems((prev) =>
-                prev.map((p) => {
-                  if (p.id !== id) return p
-                  const willBeSelected = !permSelectedIds.includes(id)
-                  const roleHasIt = permRolePermIds.has(id)
-                  let newStatus: 'inherited' | 'granted' | 'revoked' | 'none'
-                  if (willBeSelected && roleHasIt) newStatus = 'inherited'
-                  else if (willBeSelected && !roleHasIt) newStatus = 'granted'
-                  else if (!willBeSelected && roleHasIt) newStatus = 'revoked'
-                  else newStatus = 'none'
-                  return { ...p, status: newStatus }
-                })
-              )
-            }}
-            mode="user"
-            loading={permLoading}
-            disabled={permSaving}
-          />
-
-          {/* Action buttons */}
-          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4 sticky bottom-0 bg-white pb-2">
+          {/* Pinned footer */}
+          <div className="flex-shrink-0 flex items-center justify-end gap-2 border-t border-gray-200 px-6 py-4 bg-white">
             <button
               type="button"
               onClick={closeManagePermissions}
