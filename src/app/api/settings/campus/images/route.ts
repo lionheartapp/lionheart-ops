@@ -91,8 +91,9 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Image upload error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to upload image'), { status: 500 })
+    console.error('Image upload error:', error instanceof Error ? error.message : error, error)
+    const msg = error instanceof Error ? error.message : 'Failed to upload image'
+    return NextResponse.json(fail('INTERNAL_ERROR', msg), { status: 500 })
   }
 }
 

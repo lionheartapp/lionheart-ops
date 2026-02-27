@@ -519,15 +519,26 @@ export default function InteractiveCampusMap({
       ${editable ? '<br/><span style="color: #9ca3af; font-size: 11px; margin-top: 2px; display: block;">Drag to reposition</span>' : ''}
     `
 
-    if (editable) {
+    {
       const menuContainer = document.createElement('div')
       menuContainer.style.cssText = 'margin-top:8px;border-top:1px solid #e5e7eb;padding-top:4px;display:flex;flex-direction:column;'
 
       const menuItemStyle = 'display:flex;align-items:center;gap:8px;padding:7px 4px;border:none;background:none;width:100%;text-align:left;font-size:13px;color:#374151;cursor:pointer;border-radius:4px;'
       const menuItemHover = 'background:#f3f4f6;'
 
-      // Edit Building
-      if (onEditBuilding) {
+      // View Details (always visible)
+      if (onBuildingSelected) {
+        const viewBtn = document.createElement('button')
+        viewBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> View Details`
+        viewBtn.style.cssText = menuItemStyle
+        viewBtn.onmouseover = () => { viewBtn.style.cssText = menuItemStyle + menuItemHover }
+        viewBtn.onmouseout = () => { viewBtn.style.cssText = menuItemStyle }
+        viewBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onBuildingSelected(building.id) }
+        menuContainer.appendChild(viewBtn)
+      }
+
+      // Edit Building (only in edit mode)
+      if (editable && onEditBuilding) {
         const editBtn = document.createElement('button')
         editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit Building`
         editBtn.style.cssText = menuItemStyle
@@ -537,8 +548,8 @@ export default function InteractiveCampusMap({
         menuContainer.appendChild(editBtn)
       }
 
-      // Add Rooms
-      if (onManageRooms) {
+      // Add Rooms (only in edit mode)
+      if (editable && onManageRooms) {
         const roomsBtn = document.createElement('button')
         roomsBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/></svg> Manage Rooms`
         roomsBtn.style.cssText = menuItemStyle
@@ -548,8 +559,8 @@ export default function InteractiveCampusMap({
         menuContainer.appendChild(roomsBtn)
       }
 
-      // Delete Building
-      if (onDeleteBuilding) {
+      // Delete Building (only in edit mode)
+      if (editable && onDeleteBuilding) {
         const deleteBtn = document.createElement('button')
         deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete`
         deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;'

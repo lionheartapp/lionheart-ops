@@ -1424,6 +1424,20 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 </div>
               </div>
 
+              {/* Photos */}
+              {building.images && building.images.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Photos</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {building.images.map((url: string) => (
+                      <div key={url} className="aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-3">
                   Rooms ({buildingRooms.length})
