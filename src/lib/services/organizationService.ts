@@ -49,7 +49,8 @@ export async function getOrganizationBranding(
     return org;
   } catch (error) {
     console.error('Error fetching organization branding:', error);
-    return null;
+    // Temporarily re-throw so the API can surface the actual error
+    throw error;
   }
 }
 
