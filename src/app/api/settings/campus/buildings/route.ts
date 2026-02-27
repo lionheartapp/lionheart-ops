@@ -14,6 +14,8 @@ const CreateBuildingSchema = z.object({
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
 })
 
 export async function GET(req: NextRequest) {
@@ -70,6 +72,8 @@ export async function POST(req: NextRequest) {
           schoolDivision: input.schoolDivision || 'GLOBAL',
           sortOrder: input.sortOrder ?? 0,
           isActive: input.isActive ?? true,
+          latitude: input.latitude ?? null,
+          longitude: input.longitude ?? null,
         },
         include: { school: { select: { id: true, name: true, gradeLevel: true } } },
       })

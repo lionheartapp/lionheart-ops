@@ -5,12 +5,14 @@ import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle } from 
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
-import CampusMap from '@/components/settings/CampusMap'
+import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 
 type Building = {
   id: string
   name: string
   code: string | null
+  latitude: number | null
+  longitude: number | null
   schoolDivision: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'
   sortOrder: number
   isActive: boolean
@@ -99,6 +101,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     label: string
   } | null>(null)
   const [isDeactivating, setIsDeactivating] = useState(false)
+
+  // ─── Map building placement ──────────────────────────────────────────────
+  const [pendingBuildingCoords, setPendingBuildingCoords] = useState<{ lat: number; lng: number } | null>(null)
 
   // ─── Feedback ────────────────────────────────────────────────────────────
   const [error, setError] = useState('')
@@ -208,13 +213,19 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       const res = await fetch(url, {
         method: editingBuilding ? 'PATCH' : 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ name, code: buildingForm.code || null, schoolDivision: buildingForm.schoolDivision }),
+        body: JSON.stringify({
+          name,
+          code: buildingForm.code || null,
+          schoolDivision: buildingForm.schoolDivision,
+          ...(pendingBuildingCoords && !editingBuilding ? { latitude: pendingBuildingCoords.lat, longitude: pendingBuildingCoords.lng } : {}),
+        }),
       })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save building')
       setBuildingDrawerOpen(false)
       setEditingBuilding(null)
+      setPendingBuildingCoords(null)
       setSuccessMessage(editingBuilding ? 'Building updated' : 'Building added')
       await loadData()
     } catch (e) {
@@ -433,7 +444,41 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       )}
 
       {/* ── Campus Map ────────────────────────────────────────────────────── */}
-      <CampusMap />
+      <InteractiveCampusMap
+        buildings={buildings.map((b) => ({
+          id: b.id,
+          name: b.name,
+          code: b.code,
+          latitude: b.latitude,
+          longitude: b.longitude,
+        }))}
+        editable
+        onBuildingPositionChange={async (buildingId, lat, lng) => {
+          try {
+            const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, {
+              method: 'PATCH',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ latitude: lat, longitude: lng }),
+            })
+            if (res.ok) {
+              setBuildings((prev) =>
+                prev.map((b) => (b.id === buildingId ? { ...b, latitude: lat, longitude: lng } : b))
+              )
+              setSuccessMessage('Building position updated')
+              setTimeout(() => setSuccessMessage(''), 3000)
+            }
+          } catch {
+            setError('Failed to save building position')
+          }
+        }}
+        onAddBuildingAtPosition={(lat, lng) => {
+          setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL' })
+          setEditingBuilding(null)
+          setBuildingDrawerOpen(true)
+          // Store pending coordinates so they get saved with the new building
+          setPendingBuildingCoords({ lat, lng })
+        }}
+      />
 
       {/* ── Buildings ─────────────────────────────────────────────────────── */}
       <div className="space-y-3">

@@ -18,6 +18,8 @@ const UpdateBuildingSchema = z.object({
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
 })
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
@@ -73,6 +75,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           ...(input.schoolDivision !== undefined ? { schoolDivision: input.schoolDivision } : {}),
           ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
           ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+          ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+          ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
         },
         include: { school: { select: { id: true, name: true, gradeLevel: true } } },
       })
