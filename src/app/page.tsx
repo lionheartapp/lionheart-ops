@@ -1,13 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { ChevronRight, CheckCircle2, Zap, Clock, Users } from 'lucide-react'
-import SignupModal from './SignupModal'
-import SigninModal from './SigninModal'
+import Link from 'next/link'
 
 export default function Landing() {
-  const [showSignup, setShowSignup] = useState(false)
-  const [showSignin, setShowSignin] = useState(false)
 
   const features = [
     {
@@ -36,20 +32,20 @@ export default function Landing() {
             Lionheart
           </a>
           <div className="flex gap-2 sm:gap-4">
-            <button
-              onClick={() => setShowSignin(true)}
+            <Link
+              href="/signin"
               className="px-4 sm:px-6 py-3 min-h-[44px] text-gray-700 font-medium hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition"
               aria-label="Sign in to your account"
             >
               Sign In
-            </button>
-            <button
-              onClick={() => setShowSignup(true)}
+            </Link>
+            <Link
+              href="/signup"
               className="px-4 sm:px-6 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
               aria-label="Get started - create a new school account"
             >
               Get Started
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -65,20 +61,20 @@ export default function Landing() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <button
-              onClick={() => setShowSignup(true)}
+            <Link
+              href="/signup"
               className="px-6 sm:px-8 py-4 min-h-[44px] bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center justify-center gap-2"
               aria-label="Get started - start free trial"
             >
               Get Started Today <ChevronRight className="w-5 h-5" aria-hidden="true" />
-            </button>
-            <button
-              onClick={() => setShowSignin(true)}
+            </Link>
+            <Link
+              href="/signin"
               className="px-6 sm:px-8 py-4 min-h-[44px] border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-gray-400 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
               aria-label="Sign in to existing account"
             >
               Sign In
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -167,13 +163,13 @@ export default function Landing() {
           <p className="text-blue-100 text-base sm:text-lg mb-8">
             Join schools already using Lionheart to manage their IT and maintenance requests.
           </p>
-          <button
-            onClick={() => setShowSignup(true)}
+          <Link
+            href="/signup"
             className="px-6 sm:px-8 py-4 min-h-[44px] bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 transition inline-flex items-center justify-center gap-2"
             aria-label="Get started free - create account"
           >
             Get Started Free <ChevronRight className="w-5 h-5" aria-hidden="true" />
-          </button>
+          </Link>
         </div>
       </section>
 
@@ -213,9 +209,6 @@ export default function Landing() {
         </div>
       </footer>
 
-      {/* Modals */}
-      {showSignup && <SignupModal onClose={() => setShowSignup(false)} />}
-      {showSignin && <SigninModal onClose={() => setShowSignin(false)} />}
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
 import { verifyPlatformAuthToken } from '@/lib/auth/platform-auth'
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/app', '/dashboard', '/settings'])
+const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/signup', '/signin', '/app', '/dashboard', '/settings'])
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
 const APEX_HOSTS = new Set(['lionheartapp.com', 'www.lionheartapp.com', 'localhost', '127.0.0.1'])
 
