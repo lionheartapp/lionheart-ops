@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
+import { ok, fail, isAuthError } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma as prisma } from '@/lib/db'
@@ -33,6 +33,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(ok(permissions))
     })
   } catch (error) {
+    if (isAuthError(error)) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
+    }
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }

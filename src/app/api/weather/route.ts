@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
+import { ok, fail, isAuthError } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma } from '@/lib/db'
@@ -57,10 +57,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(ok(weather))
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Missing or invalid authorization')) {
+    if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
-    console.error('Weather API error:', error)
+    console.error('Failed to fetch weather:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch weather'), { status: 500 })
   }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
+import { handleAuthResponse } from '@/lib/client-auth'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -93,7 +94,8 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       const response = await fetch('/api/settings/teams', {
         headers: getAuthHeaders(),
       })
-      
+      if (handleAuthResponse(response)) return
+
       if (response.ok) {
         const data = await response.json()
         setTeams(data.data || [])
@@ -128,6 +130,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
           description: teamDescription.trim() || null,
         }),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 
@@ -159,6 +162,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       const response = await fetch(`/api/settings/teams/${team.id}`, {
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 
@@ -209,6 +213,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
           description: editTeamDescription.trim() || null,
         }),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 
@@ -240,6 +245,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       const response = await fetch(`/api/settings/users?teamSlug=${slug}`, {
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(response)) return
 
       if (!response.ok) {
         setTeamUsers([])
@@ -307,6 +313,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
           userReassignments,
         }),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 

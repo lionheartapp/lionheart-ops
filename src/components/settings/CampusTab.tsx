@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle } from 'lucide-react'
+import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
 import CampusMap from '@/components/settings/CampusMap'
@@ -154,6 +155,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     setError('')
     try {
       const res = await fetch('/api/settings/campus', { headers: getAuthHeaders() })
+      if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to load campus data')
       setBuildings(json.data.buildings || [])
@@ -208,6 +210,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         headers: getAuthHeaders(),
         body: JSON.stringify({ name, code: buildingForm.code || null, schoolDivision: buildingForm.schoolDivision }),
       })
+      if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save building')
       setBuildingDrawerOpen(false)
@@ -258,6 +261,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         headers: getAuthHeaders(),
         body: JSON.stringify({ name, areaType: outdoorForm.areaType, buildingId: null }),
       })
+      if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save outdoor space')
       setOutdoorDrawerOpen(false)
@@ -306,6 +310,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           areaId: null,
         }),
       })
+      if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add room')
       setAddRoomForm({ roomNumber: '', displayName: '', floor: '' })
@@ -345,6 +350,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           floor: editRoomData.floor.trim() || null,
         }),
       })
+      if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save room')
       setEditingRoomId(null)
@@ -369,6 +375,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         method: 'DELETE',
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to deactivate')
       setSuccessMessage('Deactivated successfully')

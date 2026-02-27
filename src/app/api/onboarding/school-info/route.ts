@@ -12,7 +12,7 @@ import { z } from 'zod'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { rawPrisma } from '@/lib/db'
-import { ok, fail } from '@/lib/api-response'
+import { ok, fail, isAuthError } from '@/lib/api-response'
 import { geocodeAddress } from '@/lib/services/geocodingService'
 
 const UpdateSchoolInfoSchema = z.object({
@@ -49,11 +49,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(ok(org))
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Missing or invalid authorization')) {
+    if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Missing x-org-id')) {
-      return NextResponse.json(fail('FORBIDDEN', 'Missing tenant context'), { status: 403 })
     }
     console.error('Get school info error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch school info'), { status: 500 })
@@ -118,11 +115,8 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json(ok(updatedOrg))
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Missing or invalid authorization')) {
+    if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Missing x-org-id')) {
-      return NextResponse.json(fail('FORBIDDEN', 'Missing tenant context'), { status: 403 })
     }
     console.error('Update school info error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update school info'), { status: 500 })

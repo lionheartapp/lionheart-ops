@@ -5,6 +5,7 @@ import {
   Sun, Cloud, CloudRain, CloudSnow, CloudLightning, CloudDrizzle,
   Snowflake, CloudFog, Droplets, Wind, Loader2, CloudSun
 } from 'lucide-react'
+import { handleAuthResponse } from '@/lib/client-auth'
 
 interface WeatherData {
   temp: number
@@ -42,6 +43,8 @@ export default function WeatherWidget() {
         const res = await fetch('/api/weather', {
           headers: { Authorization: `Bearer ${token}` },
         })
+
+        if (handleAuthResponse(res)) return
 
         if (res.status === 404) {
           setNoLocation(true)

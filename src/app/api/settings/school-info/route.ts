@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
+import { ok, fail, isAuthError } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma as prisma } from '@/lib/db'
@@ -90,7 +90,6 @@ export async function GET(req: NextRequest) {
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
-
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     const [organization, primaryAdmin, campus] = await Promise.all([
@@ -167,6 +166,9 @@ export async function GET(req: NextRequest) {
       })
     )
   } catch (error) {
+    if (isAuthError(error)) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
+    }
     if (error instanceof Error && (error.message.includes('permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
@@ -241,6 +243,10 @@ export async function PATCH(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid school information', error.issues), { status: 400 })
+    }
+
+    if (isAuthError(error)) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
 
     if (error instanceof Error && (error.message.includes('permissions') || error.message.includes('Permission denied'))) {

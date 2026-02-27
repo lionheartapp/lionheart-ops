@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Shield, Plus, Edit2, Trash2 } from 'lucide-react'
+import { handleAuthResponse } from '@/lib/client-auth'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -110,7 +111,8 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       const response = await fetch('/api/settings/roles', {
         headers: getAuthHeaders(),
       })
-      
+      if (handleAuthResponse(response)) return
+
       if (response.ok) {
         const data = await response.json()
         setRoles(data.data || [])
@@ -130,6 +132,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       const response = await fetch('/api/settings/permissions', {
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(response)) return
 
       if (!response.ok) {
         setPermissionsError('Failed to load permissions')
@@ -173,6 +176,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       const response = await fetch(`/api/settings/roles/${role.id}`, {
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 
@@ -321,6 +325,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
           permissionIds: selectedPermissionIds,
         }),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 
@@ -365,6 +370,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
           permissionIds: editPermissionIds,
         }),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 
@@ -397,6 +403,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       const response = await fetch(`/api/settings/users?roleId=${roleId}`, {
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(response)) return
 
       if (!response.ok) {
         setRoleUsers([])
@@ -464,6 +471,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
           userReassignments,
         }),
       })
+      if (handleAuthResponse(response)) return
 
       const payload = await response.json().catch(() => null)
 

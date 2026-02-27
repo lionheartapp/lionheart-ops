@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Save, School } from 'lucide-react'
+import { handleAuthResponse } from '@/lib/client-auth'
 import SchoolsManagement from './SchoolsManagement'
 
 type SchoolInfo = {
@@ -160,6 +161,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       const response = await fetch('/api/settings/school-info', {
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(response)) return
       const data = await response.json()
 
       if (!response.ok || !data.ok) {
@@ -235,6 +237,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         },
         body: JSON.stringify(payload),
       })
+      if (handleAuthResponse(response)) return false
 
       const data = await response.json()
       if (!response.ok || !data.ok) {

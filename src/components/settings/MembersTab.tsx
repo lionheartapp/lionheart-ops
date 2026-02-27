@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, type FormEvent } from 'react'
 import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck } from 'lucide-react'
+import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -112,6 +113,7 @@ const MembersTab = (_props: MembersTabProps) => {
       const res = await fetch('/api/settings/users', {
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!res.ok || !data.ok) {
         throw new Error(data?.error?.message || 'Failed to load members')
@@ -139,6 +141,7 @@ const MembersTab = (_props: MembersTabProps) => {
     setRolesLoading(true)
     try {
       const res = await fetch('/api/settings/roles', { headers: getAuthHeaders() })
+      if (handleAuthResponse(res)) return
       const data = await res.json()
       if (res.ok && data.ok) setAvailableRoles(data.data || [])
     } catch (e) {
@@ -185,6 +188,7 @@ const MembersTab = (_props: MembersTabProps) => {
           ...(editForm.roleId ? { roleId: editForm.roleId } : {}),
         }),
       })
+      if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to update member')
       setEditUser(null)
@@ -205,6 +209,7 @@ const MembersTab = (_props: MembersTabProps) => {
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ status: newStatus }),
       })
+      if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to update status')
       await fetchUsers()
@@ -222,6 +227,7 @@ const MembersTab = (_props: MembersTabProps) => {
         method: 'DELETE',
         headers: getAuthHeaders(),
       })
+      if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to remove member')
       setUserToRemove(null)
