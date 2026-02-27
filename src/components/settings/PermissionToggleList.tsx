@@ -191,20 +191,33 @@ function Toggle({
       aria-checked={checked}
       onClick={onChange}
       disabled={disabled}
-      className={`
-        relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full
-        border-2 border-transparent transition-colors duration-200
-        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${checked ? 'bg-blue-600' : 'bg-gray-300'}
-      `}
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        height: '24px',
+        width: '44px',
+        flexShrink: 0,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        borderRadius: '9999px',
+        border: '2px solid transparent',
+        backgroundColor: checked ? '#2563eb' : '#d1d5db',
+        transition: 'background-color 200ms',
+        opacity: disabled ? 0.5 : 1,
+      }}
     >
       <span
-        className={`
-          pointer-events-none inline-block h-5 w-5 transform rounded-full
-          bg-white shadow ring-0 transition duration-200
-          ${checked ? 'translate-x-5' : 'translate-x-0'}
-        `}
+        style={{
+          pointerEvents: 'none',
+          display: 'inline-block',
+          height: '20px',
+          width: '20px',
+          borderRadius: '9999px',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+          transition: 'transform 200ms',
+          transform: checked ? 'translateX(20px)' : 'translateX(0px)',
+        }}
       />
     </button>
   )
