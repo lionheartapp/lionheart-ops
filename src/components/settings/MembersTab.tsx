@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, type FormEvent } from 'react'
-import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react'
+import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield, ChevronDown, X, Search } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -74,6 +74,166 @@ function StatusBadge({ status }: { status: string }) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+// ─── Searchable Team Multi-Select Dropdown ───────────────────────────────────
+
+function TeamMultiSelect({
+  teams,
+  selectedIds,
+  onChange,
+  disabled,
+}: {
+  teams: TeamOption[]
+  selectedIds: string[]
+  onChange: (ids: string[]) => void
+  disabled?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  // Focus search when opened
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => searchRef.current?.focus(), 0)
+    } else {
+      setQuery('')
+    }
+  }, [open])
+
+  const filtered = teams.filter((t) =>
+    t.name.toLowerCase().includes(query.toLowerCase())
+  )
+
+  const selectedTeams = teams.filter((t) => selectedIds.includes(t.id))
+
+  const toggleTeam = (id: string) => {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((x) => x !== id)
+        : [...selectedIds, id]
+    )
+  }
+
+  const removeTeam = (id: string) => {
+    onChange(selectedIds.filter((x) => x !== id))
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => !disabled && setOpen(!open)}
+        disabled={disabled}
+        className={`w-full rounded-lg border border-gray-200 px-3 py-2 text-left text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 ${
+          selectedIds.length === 0 ? 'text-gray-400' : 'text-gray-900'
+        }`}
+        style={{ minHeight: '40px' }}
+      >
+        <span className="truncate">
+          {selectedIds.length === 0
+            ? 'Select teams…'
+            : `${selectedIds.length} team${selectedIds.length !== 1 ? 's' : ''} selected`}
+        </span>
+        <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+      </button>
+
+      {/* Selected team chips */}
+      {selectedTeams.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {selectedTeams.map((t) => (
+            <span
+              key={t.id}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium"
+            >
+              {t.name}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => removeTeam(t.id)}
+                  className="hover:text-blue-900 transition"
+                  style={{ minHeight: 'auto' }}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+          {/* Search input */}
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search teams…"
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                style={{ minHeight: 'auto' }}
+              />
+            </div>
+          </div>
+
+          {/* Options */}
+          <div className="max-h-48 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-gray-400">No teams found</p>
+            ) : (
+              filtered.map((team) => {
+                const isSelected = selectedIds.includes(team.id)
+                return (
+                  <button
+                    key={team.id}
+                    type="button"
+                    onClick={() => toggleTeam(team.id)}
+                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-gray-50 transition ${
+                      isSelected ? 'text-blue-700 bg-blue-50/50' : 'text-gray-700'
+                    }`}
+                    style={{ minHeight: 'auto' }}
+                  >
+                    <span
+                      className={`flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center ${
+                        isSelected
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'border-gray-300'
+                      }`}
+                    >
+                      {isSelected && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </span>
+                    <span>{team.name}</span>
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 const MembersTab = (_props: MembersTabProps) => {
@@ -626,40 +786,12 @@ const MembersTab = (_props: MembersTabProps) => {
               ) : availableTeams.length === 0 ? (
                 <p className="text-sm text-gray-400">No teams available</p>
               ) : (
-                <div className="space-y-2">
-                  <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 max-h-48 overflow-y-auto">
-                    {availableTeams.map((team) => {
-                      const isChecked = editForm.teamIds.includes(team.id)
-                      return (
-                        <label
-                          key={team.id}
-                          className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-gray-50 transition ${editSaving ? 'opacity-50 pointer-events-none' : ''}`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => {
-                              setEditForm((p) => ({
-                                ...p,
-                                teamIds: isChecked
-                                  ? p.teamIds.filter((id) => id !== team.id)
-                                  : [...p.teamIds, team.id],
-                              }))
-                            }}
-                            disabled={editSaving}
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{team.name}</span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                  {editForm.teamIds.length > 0 && (
-                    <p className="text-xs text-gray-500">
-                      {editForm.teamIds.length} team{editForm.teamIds.length !== 1 ? 's' : ''} selected
-                    </p>
-                  )}
-                </div>
+                <TeamMultiSelect
+                  teams={availableTeams}
+                  selectedIds={editForm.teamIds}
+                  onChange={(ids) => setEditForm((p) => ({ ...p, teamIds: ids }))}
+                  disabled={editSaving}
+                />
               )}
             </div>
           </section>
