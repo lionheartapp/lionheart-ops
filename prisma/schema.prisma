@@ -29,6 +29,8 @@ model Organization {
   gradeRange    String?
   studentCount  Int?
   staffCount    Int?
+  latitude      Float?
+  longitude     Float?
   logoUrl       String?
   heroImageUrl  String?
   theme         String?           // JSON or string for tenant theme config
@@ -151,6 +153,9 @@ model Building {
   schoolId       String?        // FK to School — set for multi-school campus orgs
   name           String
   code           String?
+  address        String?
+  latitude       Float?
+  longitude      Float?
   schoolDivision SchoolDivision @default(GLOBAL)
   isActive       Boolean        @default(true)
   sortOrder      Int            @default(0)

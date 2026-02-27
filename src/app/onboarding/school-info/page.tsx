@@ -28,6 +28,12 @@ export default function SchoolInfoPage() {
   })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [addressValidation, setAddressValidation] = useState<{
+    valid: boolean
+    formattedAddress: string
+    suggestion?: string
+  } | null>(null)
+  const [validatingAddress, setValidatingAddress] = useState(false)
 
   // Fetch organization info on mount
   useEffect(() => {
@@ -128,6 +134,41 @@ export default function SchoolInfoPage() {
         }))
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  // Validate address on blur
+  const handleAddressBlur = async () => {
+    const address = data.address?.trim()
+    if (!address || address.length < 5) {
+      setAddressValidation(null)
+      return
+    }
+
+    const token = localStorage.getItem('auth-token')
+    if (!token) return
+
+    setValidatingAddress(true)
+    try {
+      const res = await fetch('/api/onboarding/validate-address', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ address }),
+      })
+
+      if (res.ok) {
+        const result = await res.json()
+        if (result.ok && result.data) {
+          setAddressValidation(result.data)
+        }
+      }
+    } catch {
+      // Silently fail — validation is non-critical
+    } finally {
+      setValidatingAddress(false)
     }
   }
 
@@ -320,10 +361,41 @@ export default function SchoolInfoPage() {
               id="address"
               type="text"
               value={data.address}
-              onChange={(e) => setData((prev) => ({ ...prev, address: e.target.value }))}
+              onChange={(e) => {
+                setData((prev) => ({ ...prev, address: e.target.value }))
+                setAddressValidation(null) // Reset validation on change
+              }}
+              onBlur={handleAddressBlur}
               placeholder="123 Main St, City, State"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
             />
+            {validatingAddress && (
+              <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Verifying address...
+              </p>
+            )}
+            {addressValidation?.suggestion && (
+              <div className="mt-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+                <p className="text-xs text-green-800 font-medium mb-1">Verified address:</p>
+                <p className="text-sm text-green-900">{addressValidation.formattedAddress}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setData((prev) => ({ ...prev, address: addressValidation.formattedAddress }))
+                    setAddressValidation({ ...addressValidation, suggestion: undefined })
+                  }}
+                  className="mt-1.5 text-xs font-medium text-green-700 hover:text-green-800 underline"
+                >
+                  Use this address
+                </button>
+              </div>
+            )}
+            {addressValidation && !addressValidation.suggestion && addressValidation.valid && (
+              <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+                ✓ Address verified
+              </p>
+            )}
           </div>
 
           <div>

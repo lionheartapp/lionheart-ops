@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
+import CampusMap from '@/components/settings/CampusMap'
 
 type Building = {
   id: string
@@ -423,6 +424,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       {successMessage && (
         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{successMessage}</div>
       )}
+
+      {/* ── Campus Map ────────────────────────────────────────────────────── */}
+      <CampusMap />
 
       {/* ── Buildings ─────────────────────────────────────────────────────── */}
       <div className="space-y-3">

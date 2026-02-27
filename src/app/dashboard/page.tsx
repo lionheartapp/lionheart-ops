@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import CreateModal from '@/components/CreateModal'
 import DetailDrawer from '@/components/DetailDrawer'
+import WeatherWidget from '@/components/dashboard/WeatherWidget'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones } from 'lucide-react'
 
 type RequestType = 'event' | 'smart-event' | 'facilities' | 'it' | null
@@ -302,6 +303,9 @@ export default function DashboardPage() {
 
         {/* Side Panel - Projects/Stats */}
         <div className="space-y-6">
+          {/* Weather Widget */}
+          <WeatherWidget />
+
           {/* Stats Card */}
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
             <p className="text-sm text-gray-600 mb-2">Active Requests</p>

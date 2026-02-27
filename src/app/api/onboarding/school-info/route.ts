@@ -10,9 +10,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getUserContext } from '@/lib/request-context'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
+import { getOrgIdFromRequest } from '@/lib/org-context'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
+import { geocodeAddress } from '@/lib/services/geocodingService'
 
 const UpdateSchoolInfoSchema = z.object({
   phone: z.string().max(40).nullable().optional(),
@@ -28,30 +29,20 @@ const UpdateSchoolInfoSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const ctx = await getUserContext(req)
+    await getUserContext(req)
     const orgId = getOrgIdFromRequest(req)
 
-    // Organization is not org-scoped in the extension, so rawPrisma is correct
-    const org = await rawPrisma.organization.findUnique({
-      where: { id: orgId },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        website: true,
-        phone: true,
-        physicalAddress: true,
-        district: true,
-        gradeRange: true,
-        principalName: true,
-        principalEmail: true,
-        institutionType: true,
-        studentCount: true,
-        staffCount: true,
-        logoUrl: true,
-      },
-    })
+    // Use raw query to include new lat/lng fields
+    const rows = await rawPrisma.$queryRaw<Array<Record<string, unknown>>>`
+      SELECT id, name, slug, website, phone, "physicalAddress", district,
+             "gradeRange", "principalName", "principalEmail", "institutionType",
+             "studentCount", "staffCount", "logoUrl", latitude, longitude
+      FROM "Organization"
+      WHERE id = ${orgId}
+      LIMIT 1
+    `
 
+    const org = rows[0]
     if (!org) {
       return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
     }
@@ -71,7 +62,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const ctx = await getUserContext(req)
+    await getUserContext(req)
     const orgId = getOrgIdFromRequest(req)
 
     const body = await req.json()
@@ -86,7 +77,16 @@ export async function PATCH(req: NextRequest) {
 
     const data = validation.data
 
-    // Organization is not org-scoped in the extension, so rawPrisma is correct
+    // Auto-geocode the address if it changed
+    let geoData: { latitude: number; longitude: number } | null = null
+    if (data.physicalAddress) {
+      const geo = await geocodeAddress(data.physicalAddress)
+      if (geo) {
+        geoData = { latitude: geo.lat, longitude: geo.lng }
+      }
+    }
+
+    // Update standard fields via Prisma
     const updatedOrg = await rawPrisma.organization.update({
       where: { id: orgId },
       data: {
@@ -106,6 +106,15 @@ export async function PATCH(req: NextRequest) {
         slug: true,
       },
     })
+
+    // Update lat/lng via raw SQL (new fields not yet in Prisma types)
+    if (geoData) {
+      await rawPrisma.$executeRaw`
+        UPDATE "Organization"
+        SET latitude = ${geoData.latitude}, longitude = ${geoData.longitude}
+        WHERE id = ${orgId}
+      `
+    }
 
     return NextResponse.json(ok(updatedOrg))
   } catch (error) {
