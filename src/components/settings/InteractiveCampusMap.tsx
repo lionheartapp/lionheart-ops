@@ -322,9 +322,21 @@ export default function InteractiveCampusMap({
         mapInstanceRef.current.remove()
       }
 
+      // Create a bounding box around the campus center (~0.5 mile radius)
+      // This prevents users from panning away from campus
+      const CAMPUS_RADIUS = 0.006 // ~0.4 miles in degrees (generous for most campuses)
+      const campusBounds = L.latLngBounds(
+        [mapConfig.center.lat - CAMPUS_RADIUS, mapConfig.center.lng - CAMPUS_RADIUS],
+        [mapConfig.center.lat + CAMPUS_RADIUS, mapConfig.center.lng + CAMPUS_RADIUS]
+      )
+
       const map = L.map(mapContainerRef.current, {
         center: [mapConfig.center.lat, mapConfig.center.lng],
         zoom: 17,
+        minZoom: 15,       // Can't zoom out further than neighborhood level
+        maxZoom: 20,       // Max satellite detail
+        maxBounds: campusBounds,
+        maxBoundsViscosity: 0.8, // Gentle elastic bounce when hitting edge
         zoomControl: false,
       })
 
