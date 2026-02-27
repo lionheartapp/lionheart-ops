@@ -105,6 +105,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // ─── Map building placement ──────────────────────────────────────────────
   const [pendingBuildingCoords, setPendingBuildingCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [pendingOutdoorCoords, setPendingOutdoorCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [pendingMarkerData, setPendingMarkerData] = useState<{
+    lat: number; lng: number; label: string; type: 'building' | 'outdoor'
+  } | null>(null)
+  const [lastCreatedBuilding, setLastCreatedBuilding] = useState<Building | null>(null)
   const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
   const [outdoorMapSpaces, setOutdoorMapSpaces] = useState<any[]>([])
 
@@ -132,9 +136,13 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
   useEffect(() => {
     if (!successMessage) return
-    const t = setTimeout(() => setSuccessMessage(''), 2500)
+    const delay = lastCreatedBuilding ? 6000 : 2500
+    const t = setTimeout(() => {
+      setSuccessMessage('')
+      setLastCreatedBuilding(null)
+    }, delay)
     return () => clearTimeout(t)
-  }, [successMessage])
+  }, [successMessage, lastCreatedBuilding])
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -211,6 +219,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     if (buildingFormSaving) return
     setBuildingDrawerOpen(false)
     setEditingBuilding(null)
+    setPendingMarkerData(null)
   }
 
   const saveBuildingForm = async (e: React.FormEvent) => {
@@ -240,6 +249,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       setBuildingDrawerOpen(false)
       setEditingBuilding(null)
       setPendingBuildingCoords(null)
+      setPendingMarkerData(null)
+      if (!editingBuilding) {
+        setLastCreatedBuilding(json.data)
+      }
       setSuccessMessage(editingBuilding ? 'Building updated' : 'Building added')
       await loadData()
     } catch (e) {
@@ -268,6 +281,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     if (outdoorFormSaving) return
     setOutdoorDrawerOpen(false)
     setEditingOutdoor(null)
+    setPendingMarkerData(null)
   }
 
   const saveOutdoorForm = async (e: React.FormEvent) => {
@@ -297,6 +311,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       setOutdoorDrawerOpen(false)
       setEditingOutdoor(null)
       setPendingOutdoorCoords(null)
+      setPendingMarkerData(null)
       setSuccessMessage(editingOutdoor ? 'Outdoor space updated' : 'Outdoor space added')
       await loadData()
     } catch (e) {
@@ -460,7 +475,22 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
       {successMessage && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{successMessage}</div>
+        <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <span>{successMessage}</span>
+          {lastCreatedBuilding && (
+            <button
+              onClick={() => {
+                openRoomsDrawer(lastCreatedBuilding)
+                setSuccessMessage('')
+                setLastCreatedBuilding(null)
+              }}
+              className="ml-4 inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 transition-colors"
+            >
+              <DoorOpen className="h-3.5 w-3.5" />
+              Add rooms
+            </button>
+          )}
+        </div>
       )}
 
       {/* ── Campus Map ────────────────────────────────────────────────────── */}
@@ -514,12 +544,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           setEditingBuilding(null)
           setBuildingDrawerOpen(true)
           setPendingBuildingCoords({ lat, lng })
+          setPendingMarkerData({ lat, lng, label: '', type: 'building' })
         }}
         onAddOutdoorSpaceAtPosition={(lat, lng) => {
           setOutdoorForm({ name: '', areaType: 'FIELD' })
           setEditingOutdoor(null)
           setOutdoorDrawerOpen(true)
           setPendingOutdoorCoords({ lat, lng })
+          setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' })
         }}
         onBuildingSelected={(buildingId) => {
           setSelectedMapBuildingId(buildingId)
@@ -557,6 +589,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             setError('Failed to save outdoor space position')
           }
         }}
+        pendingMarker={pendingMarkerData}
       />
 
       {/* ── Buildings ─────────────────────────────────────────────────────── */}
@@ -731,7 +764,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <label className={labelClass}>Building name</label>
               <input
                 value={buildingForm.name}
-                onChange={(e) => setBuildingForm((p) => ({ ...p, name: e.target.value }))}
+                onChange={(e) => {
+                  setBuildingForm((p) => ({ ...p, name: e.target.value }))
+                  if (pendingBuildingCoords) {
+                    setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
+                  }
+                }}
                 placeholder="e.g. Main Building, Science Hall, Gymnasium"
                 className={inputClass}
                 disabled={buildingFormSaving}
@@ -793,7 +831,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <label className={labelClass}>Name</label>
               <input
                 value={outdoorForm.name}
-                onChange={(e) => setOutdoorForm((p) => ({ ...p, name: e.target.value }))}
+                onChange={(e) => {
+                  setOutdoorForm((p) => ({ ...p, name: e.target.value }))
+                  if (pendingOutdoorCoords) {
+                    setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
+                  }
+                }}
                 placeholder="e.g. Football Field, The Hub, Softball Diamond"
                 className={inputClass}
                 disabled={outdoorFormSaving}

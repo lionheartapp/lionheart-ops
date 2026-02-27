@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check, TreePine, Pencil, RotateCcw } from 'lucide-react'
+import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check, TreePine, Pencil, RotateCcw, Building2 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -49,6 +49,7 @@ interface InteractiveCampusMapProps {
   onOrgCenterChange?: (lat: number, lng: number) => void
   onOutdoorPositionChange?: (areaId: string, lat: number, lng: number) => void
   editable?: boolean
+  pendingMarker?: { lat: number; lng: number; label: string; type: 'building' | 'outdoor' } | null
 }
 
 /* ------------------------------------------------------------------ */
@@ -260,6 +261,7 @@ export default function InteractiveCampusMap({
   onOrgCenterChange,
   onOutdoorPositionChange,
   editable = true,
+  pendingMarker = null,
 }: InteractiveCampusMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
@@ -269,10 +271,15 @@ export default function InteractiveCampusMap({
   const orgMarkerRef = useRef<any>(null)
   const [loading, setLoading] = useState(true)
   const [mapConfig, setMapConfig] = useState<MapConfig | null>(null)
-  const [placingMode, setPlacingMode] = useState<'building' | 'outdoor' | null>(null)
+  const [placingMode, setPlacingMode] = useState<'unified' | null>(null)
   const [activeLayer, setActiveLayer] = useState<'satellite' | 'street'>('satellite')
   const [pendingMoves, setPendingMoves] = useState<Map<string, { lat: number; lng: number }>>(new Map())
+  const [clickPopover, setClickPopover] = useState<{
+    position: { x: number; y: number }
+    coordinates: { lat: number; lng: number }
+  } | null>(null)
   const tileLayersRef = useRef<{ satellite: any; street: any }>({ satellite: null, street: null })
+  const pendingMarkerRef = useRef<any>(null)
 
   // AI detection state
   const [detectingId, setDetectingId] = useState<string | null>(null)
@@ -848,22 +855,50 @@ export default function InteractiveCampusMap({
     if (!map || !placingMode) return
 
     const handleClick = (e: any) => {
-      if (placingMode === 'building' && onAddBuildingAtPosition) {
-        onAddBuildingAtPosition(e.latlng.lat, e.latlng.lng)
-      } else if (placingMode === 'outdoor' && onAddOutdoorSpaceAtPosition) {
-        onAddOutdoorSpaceAtPosition(e.latlng.lat, e.latlng.lng)
+      const containerPoint = map.latLngToContainerPoint(e.latlng)
+      setClickPopover({
+        position: { x: containerPoint.x, y: containerPoint.y },
+        coordinates: { lat: e.latlng.lat, lng: e.latlng.lng }
+      })
+    }
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closePopover()
       }
-      setPlacingMode(null)
     }
 
     map.on('click', handleClick)
+    document.addEventListener('keydown', handleEscape)
     map.getContainer().style.cursor = 'crosshair'
 
     return () => {
       map.off('click', handleClick)
+      document.removeEventListener('keydown', handleEscape)
       map.getContainer().style.cursor = ''
     }
-  }, [placingMode, onAddBuildingAtPosition, onAddOutdoorSpaceAtPosition])
+  }, [placingMode])
+
+  const handlePopoverSelectBuilding = () => {
+    if (clickPopover && onAddBuildingAtPosition) {
+      onAddBuildingAtPosition(clickPopover.coordinates.lat, clickPopover.coordinates.lng)
+    }
+    setClickPopover(null)
+    setPlacingMode(null)
+  }
+
+  const handlePopoverSelectOutdoor = () => {
+    if (clickPopover && onAddOutdoorSpaceAtPosition) {
+      onAddOutdoorSpaceAtPosition(clickPopover.coordinates.lat, clickPopover.coordinates.lng)
+    }
+    setClickPopover(null)
+    setPlacingMode(null)
+  }
+
+  const closePopover = () => {
+    setClickPopover(null)
+    setPlacingMode(null)
+  }
 
   // Re-render all buildings when they change (handles updates like color changes)
   useEffect(() => {
@@ -958,6 +993,63 @@ export default function InteractiveCampusMap({
       }
     })
   }, [outdoorSpaces, addOutdoorMarker, addOutdoorPolygon])
+
+  // Handle pending marker (marker shown while user fills in form)
+  useEffect(() => {
+    const L = (window as any).L
+    const map = mapInstanceRef.current
+    if (!L || !map) return
+
+    // Remove existing pending marker
+    if (pendingMarkerRef.current) {
+      map.removeLayer(pendingMarkerRef.current)
+      pendingMarkerRef.current = null
+    }
+
+    if (!pendingMarker) return
+
+    const icon = L.divIcon({
+      className: 'pending-placement-marker',
+      html: `
+        <div style="
+          display: flex; align-items: center; gap: 6px;
+          transform: translate(-50%, -50%);
+          opacity: 0.7;
+        ">
+          <div style="
+            display: flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%;
+            background: ${pendingMarker.type === 'building' ? '#3b82f6' : '#16a34a'};
+            border: 3px dashed white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          ">
+            ${pendingMarker.type === 'building'
+              ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22V12h6v10"/></svg>'
+              : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M17 14v6m-3-3h6M6 3v12"/></svg>'
+            }
+          </div>
+          ${pendingMarker.label ? `<div style="
+            background: ${pendingMarker.type === 'building' ? '#3b82f6' : '#16a34a'};
+            color: white; padding: 2px 8px; border-radius: 10px;
+            font-size: 11px; font-weight: 700; white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            border: 1px dashed rgba(255,255,255,0.7);
+            opacity: 0.9;
+          ">${pendingMarker.label}</div>` : ''}
+        </div>
+      `,
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
+    })
+
+    const marker = L.marker([pendingMarker.lat, pendingMarker.lng], {
+      icon,
+      zIndexOffset: 200,
+      interactive: false,
+    }).addTo(map)
+
+    pendingMarkerRef.current = marker
+  }, [pendingMarker])
 
   const toggleLayer = () => {
     const map = mapInstanceRef.current
@@ -1115,31 +1207,27 @@ export default function InteractiveCampusMap({
                 </button>
               )}
 
-              {editable && onAddBuildingAtPosition && (
+              {editable && (onAddBuildingAtPosition || onAddOutdoorSpaceAtPosition) && (
                 <button
-                  onClick={() => setPlacingMode(placingMode === 'building' ? null : 'building')}
+                  disabled={!!drawingMode || !!editingPolygon}
+                  onClick={() => {
+                    if (placingMode) {
+                      setPlacingMode(null)
+                      setClickPopover(null)
+                    } else {
+                      setPlacingMode('unified')
+                    }
+                  }}
                   className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    placingMode === 'building'
-                      ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    drawingMode || editingPolygon
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : placingMode
+                        ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  {placingMode === 'building' ? 'Click map...' : 'Place Building'}
-                </button>
-              )}
-
-              {editable && onAddOutdoorSpaceAtPosition && (
-                <button
-                  onClick={() => setPlacingMode(placingMode === 'outdoor' ? null : 'outdoor')}
-                  className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    placingMode === 'outdoor'
-                      ? 'bg-green-100 text-green-800 border border-green-300'
-                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <TreePine className="w-3.5 h-3.5" />
-                  {placingMode === 'outdoor' ? 'Click map...' : 'Place Outdoor'}
+                  {placingMode ? 'Cancel Placement' : 'Add to Map'}
                 </button>
               )}
 
@@ -1174,6 +1262,37 @@ export default function InteractiveCampusMap({
           ref={mapContainerRef}
           style={{ height: 500, width: '100%', position: 'relative', zIndex: 0 }}
         />
+
+        {/* Placement type popover */}
+        {clickPopover && (
+          <div
+            style={{
+              position: 'absolute',
+              left: Math.min(Math.max(clickPopover.position.x, 10), (mapContainerRef.current?.clientWidth || 300) - 180),
+              top: Math.max(clickPopover.position.y - 80, 10),
+              zIndex: 1000,
+            }}
+            className="bg-white rounded-xl shadow-xl border border-gray-200 p-3 min-w-[160px]"
+          >
+            <p className="text-xs font-semibold text-gray-500 mb-2 text-center">What is this?</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handlePopoverSelectBuilding}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+              >
+                <Building2 className="w-4 h-4" />
+                Building
+              </button>
+              <button
+                onClick={handlePopoverSelectOutdoor}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-green-50 hover:text-green-700 transition-colors"
+              >
+                <TreePine className="w-4 h-4" />
+                Outdoor Space
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Legend */}
@@ -1222,12 +1341,12 @@ export default function InteractiveCampusMap({
       </div>
 
       {/* Status bar */}
-      {(editingPolygon || placingMode || drawingMode) && (
+      {(editingPolygon || placingMode || drawingMode || clickPopover) && (
         <div className="px-4 py-2 border-t border-gray-200 bg-amber-50 text-xs text-amber-700 font-medium">
           {drawingMode && 'Click on the map to place outline points. Place at least 3 points, then click Done.'}
           {editingPolygon && !drawingMode && 'Drag vertices to adjust the outline, then save'}
-          {placingMode === 'building' && 'Click anywhere on the map to place a new building'}
-          {placingMode === 'outdoor' && 'Click anywhere on the map to place a new outdoor space'}
+          {placingMode && !clickPopover && 'Click anywhere on the map to place a building or outdoor space'}
+          {clickPopover && 'Select what you placed — Building or Outdoor Space'}
         </div>
       )}
     </div>
