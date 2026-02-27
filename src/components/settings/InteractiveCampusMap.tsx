@@ -435,7 +435,7 @@ export default function InteractiveCampusMap({
         )}
         <div
           ref={mapContainerRef}
-          style={{ height: 450, width: '100%' }}
+          style={{ height: 450, width: '100%', position: 'relative', zIndex: 0 }}
         />
       </div>
 
