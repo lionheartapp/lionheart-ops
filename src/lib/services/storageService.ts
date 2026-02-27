@@ -110,6 +110,78 @@ export async function uploadFromUrl(orgId: string, imageUrl: string): Promise<st
 }
 
 /**
+ * Upload a campus image (building, area, or room) to Supabase Storage
+ *
+ * @param orgId - Organization ID
+ * @param entityType - 'building' | 'area' | 'room'
+ * @param entityId - ID of the entity
+ * @param fileBuffer - File buffer to upload
+ * @param contentType - MIME type (e.g., 'image/jpeg')
+ * @returns Public URL of the uploaded file
+ */
+export async function uploadCampusImage(
+  orgId: string,
+  entityType: 'building' | 'area' | 'room',
+  entityId: string,
+  fileBuffer: Buffer,
+  contentType: string
+): Promise<string> {
+  try {
+    const config = getStorageConfig()
+    if (!config) {
+      throw new Error('Supabase storage not configured')
+    }
+
+    const client = getSupabaseClient()
+    const ext = contentType.split('/')[1] || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const path = `${orgId}/${entityType}/${entityId}/${fileName}`
+
+    const { error } = await client.storage.from('campus-images').upload(path, fileBuffer, {
+      contentType,
+      upsert: false,
+    })
+
+    if (error) {
+      throw new Error(`Upload failed: ${error.message}`)
+    }
+
+    return `${config.url}/storage/v1/object/public/campus-images/${path}`
+  } catch (error) {
+    console.error('Campus image upload error:', error instanceof Error ? error.message : error)
+    throw error
+  }
+}
+
+/**
+ * Delete a campus image from Supabase Storage
+ *
+ * @param imageUrl - Full public URL of the image
+ */
+export async function deleteCampusImage(imageUrl: string): Promise<void> {
+  try {
+    const client = getSupabaseClient()
+
+    // Extract path from URL: .../storage/v1/object/public/campus-images/{path}
+    const marker = '/storage/v1/object/public/campus-images/'
+    const idx = imageUrl.indexOf(marker)
+    if (idx === -1) {
+      throw new Error('Invalid campus image URL')
+    }
+    const path = imageUrl.slice(idx + marker.length)
+
+    const { error } = await client.storage.from('campus-images').remove([path])
+
+    if (error) {
+      throw new Error(`Delete failed: ${error.message}`)
+    }
+  } catch (error) {
+    console.error('Campus image delete error:', error instanceof Error ? error.message : error)
+    throw error
+  }
+}
+
+/**
  * Delete a file from Supabase Storage
  *
  * @param orgId - Organization ID

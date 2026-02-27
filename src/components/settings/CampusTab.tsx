@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle } from 'lucide-react'
+import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
+import ImageUpload from '@/components/settings/ImageUpload'
 
 type Building = {
   id: string
@@ -15,7 +16,8 @@ type Building = {
   latitude: number | null
   longitude: number | null
   schoolDivision: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'
-  buildingType: 'GENERAL' | 'ARTS_CULTURE' | 'ADMINISTRATION' | 'SUPPORT_SERVICES'
+  buildingType: 'GENERAL' | 'ARTS_CULTURE' | 'ATHLETICS' | 'ADMINISTRATION' | 'SUPPORT_SERVICES'
+  images: string[] | null
   sortOrder: number
   isActive: boolean
 }
@@ -25,6 +27,7 @@ type Area = {
   name: string
   areaType: 'FIELD' | 'COURT' | 'GYM' | 'COMMON' | 'PARKING' | 'OTHER'
   buildingId: string | null
+  images: string[] | null
   sortOrder: number
   isActive: boolean
   building?: { id: string; name: string; code: string | null } | null
@@ -37,6 +40,7 @@ type Room = {
   roomNumber: string
   displayName: string | null
   floor: string | null
+  images: string[] | null
   sortOrder: number
   isActive: boolean
   building?: { id: string; name: string; code: string | null } | null
@@ -133,6 +137,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [editRoomData, setEditRoomData] = useState({ roomNumber: '', displayName: '', floor: '' })
   const [editRoomError, setEditRoomError] = useState('')
   const [editRoomSaving, setEditRoomSaving] = useState(false)
+  const [roomImagesId, setRoomImagesId] = useState<string | null>(null) // show image upload for this room
 
   // ─── Delete/Deactivate confirm ────────────────────────────────────────────
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -632,12 +637,20 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     <div className="space-y-8">
 
       {/* Page header */}
-      <div>
-        <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
-          <Building2 className="w-6 h-6 text-blue-600" />
-          Campus
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">Manage buildings, outdoor spaces, and rooms</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
+            <Building2 className="w-6 h-6 text-blue-600" />
+            Campus
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">Manage buildings, outdoor spaces, and rooms</p>
+        </div>
+        <button
+          onClick={openAddCampusModal}
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-medium transition"
+        >
+          <Plus className="w-4 h-4" /> Add Campus
+        </button>
       </div>
 
       {error && (
@@ -692,13 +705,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             {campus.name}
           </button>
         ))}
-        <button
-          onClick={openAddCampusModal}
-          className="ml-auto bg-blue-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-medium transition whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4" />
-          Add Campus
-        </button>
       </div>
 
       {/* ── Campus Map ────────────────────────────────────────────────────── */}
@@ -1089,6 +1095,24 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               </select>
             </div>
           </section>
+
+          {/* Photos section — only for existing buildings */}
+          {editingBuilding && (
+            <section className="border-t border-gray-200 pt-4">
+              <ImageUpload
+                entityType="building"
+                entityId={editingBuilding.id}
+                images={editingBuilding.images || []}
+                onImagesChange={(imgs) => {
+                  setEditingBuilding({ ...editingBuilding, images: imgs })
+                  // Also update the buildings list so the drawer shows updated images
+                  setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b))
+                }}
+                disabled={buildingFormSaving}
+              />
+            </section>
+          )}
+
           <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
             <button type="button" onClick={closeBuildingDrawer} className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition" disabled={buildingFormSaving}>Cancel</button>
             <button type="submit" className="px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled={buildingFormSaving}>
@@ -1148,6 +1172,23 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               </select>
             </div>
           </section>
+
+          {/* Photos section — only for existing outdoor spaces */}
+          {editingOutdoor && (
+            <section className="border-t border-gray-200 pt-4">
+              <ImageUpload
+                entityType="area"
+                entityId={editingOutdoor.id}
+                images={editingOutdoor.images || []}
+                onImagesChange={(imgs) => {
+                  setEditingOutdoor({ ...editingOutdoor, images: imgs })
+                  setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a))
+                }}
+                disabled={outdoorFormSaving}
+              />
+            </section>
+          )}
+
           <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
             <button type="button" onClick={closeOutdoorDrawer} className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition" disabled={outdoorFormSaving}>Cancel</button>
             <button type="submit" className="px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled={outdoorFormSaving}>
@@ -1297,7 +1338,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                       </tr>
                     ) : (
                       /* ── Normal row ── */
-                      <tr key={r.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                      <React.Fragment key={r.id}>
+                      <tr className="border-b last:border-b-0 hover:bg-gray-50">
                         <td className="py-3 px-4 font-medium text-gray-900">{r.roomNumber}</td>
                         <td className="py-3 px-4 text-gray-600">{r.displayName || <span className="text-gray-300">—</span>}</td>
                         <td className="py-3 px-4 text-gray-600">{r.floor || <span className="text-gray-300">—</span>}</td>
@@ -1312,6 +1354,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                                   onClick: () => startEditRoom(r),
                                 },
                                 {
+                                  label: 'Photos',
+                                  icon: <Camera className="w-4 h-4" />,
+                                  onClick: () => setRoomImagesId(roomImagesId === r.id ? null : r.id),
+                                },
+                                {
                                   label: 'Deactivate',
                                   icon: <Trash2 className="w-4 h-4" />,
                                   onClick: () => openDeactivateConfirm('room', r.id, r.displayName || r.roomNumber),
@@ -1322,6 +1369,21 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                           </div>
                         </td>
                       </tr>
+                      {roomImagesId === r.id && (
+                        <tr className="border-b last:border-b-0 bg-gray-50">
+                          <td colSpan={5} className="px-4 py-4">
+                            <ImageUpload
+                              entityType="room"
+                              entityId={r.id}
+                              images={r.images || []}
+                              onImagesChange={(imgs) => {
+                                setRooms((prev) => prev.map((room) => room.id === r.id ? { ...room, images: imgs } : room))
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                     )
                   ))}
                 </tbody>

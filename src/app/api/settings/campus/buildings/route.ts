@@ -13,7 +13,7 @@ const CreateBuildingSchema = z.object({
   campusId: z.string().min(1, 'Campus is required'),
   schoolId: z.string().optional().nullable(),
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
-  buildingType: z.enum(['GENERAL', 'ARTS_CULTURE', 'ADMINISTRATION', 'SUPPORT_SERVICES']).optional(),
+  buildingType: z.enum(['GENERAL', 'ARTS_CULTURE', 'ATHLETICS', 'ADMINISTRATION', 'SUPPORT_SERVICES']).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
   latitude: z.number().min(-90).max(90).optional().nullable(),

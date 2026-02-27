@@ -562,21 +562,12 @@ export default function InteractiveCampusMap({
       popupContent.appendChild(menuContainer)
     }
 
-    marker.bindPopup(popupContent, { closeButton: false, autoPan: false })
+    marker.bindPopup(popupContent, { closeButton: false, autoPan: true, autoPanPadding: [20, 20] })
 
-    // Show popup on hover instead of click, with smart positioning
+    // Show popup on hover
     let hoverTimeout: ReturnType<typeof setTimeout> | null = null
     marker.on('mouseover', () => {
       if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null }
-      // Smart offset: if marker is near top of map, open popup below; otherwise above
-      const containerPoint = map.latLngToContainerPoint(marker.getLatLng())
-      const mapHeight = map.getContainer().clientHeight
-      const mapWidth = map.getContainer().clientWidth
-      const nearTop = containerPoint.y < mapHeight * 0.35
-      const nearLeft = containerPoint.x < 100
-      const nearRight = containerPoint.x > mapWidth - 100
-      const xOffset = nearLeft ? 40 : nearRight ? -40 : 0
-      marker.getPopup().options.offset = [xOffset, nearTop ? 20 : -30]
       marker.openPopup()
     })
     marker.on('mouseout', () => {
@@ -691,20 +682,12 @@ export default function InteractiveCampusMap({
       outdoorPopup.appendChild(menuContainer)
     }
 
-    marker.bindPopup(outdoorPopup, { closeButton: false, autoPan: false })
+    marker.bindPopup(outdoorPopup, { closeButton: false, autoPan: true, autoPanPadding: [20, 20] })
 
-    // Show popup on hover instead of click, with smart positioning
+    // Show popup on hover
     let outdoorHoverTimeout: ReturnType<typeof setTimeout> | null = null
     marker.on('mouseover', () => {
       if (outdoorHoverTimeout) { clearTimeout(outdoorHoverTimeout); outdoorHoverTimeout = null }
-      const containerPoint = map.latLngToContainerPoint(marker.getLatLng())
-      const mapHeight = map.getContainer().clientHeight
-      const mapWidth = map.getContainer().clientWidth
-      const nearTop = containerPoint.y < mapHeight * 0.35
-      const nearLeft = containerPoint.x < 100
-      const nearRight = containerPoint.x > mapWidth - 100
-      const xOffset = nearLeft ? 40 : nearRight ? -40 : 0
-      marker.getPopup().options.offset = [xOffset, nearTop ? 20 : -30]
       marker.openPopup()
     })
     marker.on('mouseout', () => {
@@ -1405,14 +1388,6 @@ export default function InteractiveCampusMap({
                   {placingMode ? 'Cancel Placement' : 'Add to Map'}
                 </button>
               )}
-
-              <button
-                onClick={toggleLayer}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Layers className="w-3.5 h-3.5" />
-                {activeLayer === 'satellite' ? 'Street' : 'Satellite'}
-              </button>
 
               <button
                 onClick={fitAllMarkers}
