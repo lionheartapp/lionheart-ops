@@ -10,7 +10,6 @@ interface SchoolData {
   primaryColor?: string
   phone?: string
   address?: string
-  district?: string
   gradeRange?: string
   institutionType?: string
 }
@@ -24,7 +23,6 @@ export default function SchoolInfoPage() {
     primaryColor: '#2563eb',
     phone: '',
     address: '',
-    district: '',
     gradeRange: '',
     institutionType: 'Public',
   })
@@ -65,7 +63,6 @@ export default function SchoolInfoPage() {
             primaryColor: org.primaryColor || '#2563eb',
             phone: org.phone || '',
             address: org.physicalAddress || '',
-            district: org.district || '',
             gradeRange: org.gradeRange || '',
             institutionType: org.institutionType || 'PUBLIC',
           }))
@@ -108,7 +105,6 @@ export default function SchoolInfoPage() {
             primaryColor: schoolData.colors?.primary || prev.primaryColor,
             phone: schoolData.phone || prev.phone,
             address: schoolData.address || prev.address,
-            district: schoolData.district || prev.district,
             gradeRange: schoolData.gradeRange || prev.gradeRange,
             institutionType: schoolData.institutionType?.toUpperCase() || prev.institutionType,
           }))
@@ -165,7 +161,6 @@ export default function SchoolInfoPage() {
         body: JSON.stringify({
           phone: data.phone || null,
           physicalAddress: data.address || null,
-          district: data.district || null,
           gradeRange: data.gradeRange || null,
           institutionType: data.institutionType || null,
         }),
@@ -327,20 +322,6 @@ export default function SchoolInfoPage() {
               value={data.address}
               onChange={(e) => setData((prev) => ({ ...prev, address: e.target.value }))}
               placeholder="123 Main St, City, State"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="district" className="block text-sm font-medium text-gray-900 mb-2">
-              District
-            </label>
-            <input
-              id="district"
-              type="text"
-              value={data.district}
-              onChange={(e) => setData((prev) => ({ ...prev, district: e.target.value }))}
-              placeholder="School District Name"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
             />
           </div>
