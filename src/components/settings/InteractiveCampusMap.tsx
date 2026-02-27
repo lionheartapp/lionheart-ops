@@ -44,6 +44,11 @@ interface InteractiveCampusMapProps {
   onAddBuildingAtPosition?: (lat: number, lng: number) => void
   onAddOutdoorSpaceAtPosition?: (lat: number, lng: number) => void
   onBuildingSelected?: (buildingId: string) => void
+  onEditBuilding?: (buildingId: string) => void
+  onDeleteBuilding?: (buildingId: string) => void
+  onManageRooms?: (buildingId: string) => void
+  onEditOutdoor?: (outdoorId: string) => void
+  onDeleteOutdoor?: (outdoorId: string) => void
   onPolygonSaved?: (buildingId: string, coordinates: LatLng[]) => void
   onOutdoorPolygonSaved?: (areaId: string, coordinates: LatLng[]) => void
   onOrgCenterChange?: (lat: number, lng: number) => void
@@ -290,6 +295,11 @@ export default function InteractiveCampusMap({
   onAddBuildingAtPosition,
   onAddOutdoorSpaceAtPosition,
   onBuildingSelected,
+  onEditBuilding,
+  onDeleteBuilding,
+  onManageRooms,
+  onEditOutdoor,
+  onDeleteOutdoor,
   onPolygonSaved,
   onOutdoorPolygonSaved,
   onOrgCenterChange,
@@ -497,47 +507,56 @@ export default function InteractiveCampusMap({
 
     marker.bindTooltip(building.name, { direction: 'top', offset: [0, -20], className: 'campus-tooltip' })
 
-    // Build popup with detect outline button
+    // Build popup with action menu
     const popupContent = document.createElement('div')
     popupContent.style.minWidth = '160px'
     popupContent.innerHTML = `
       <strong style="font-size: 14px;">${building.name}</strong>
-      ${building.code ? `<br/><span style="color: #6b7280; font-size: 12px;">Code: ${building.code}</span>` : ''}
-      ${editable ? '<br/><span style="color: #2563eb; font-size: 11px; margin-top: 4px; display: block;">Drag to reposition</span>' : ''}
+      ${building.code ? `<br/><span style="color: #6b7280; font-size: 12px;">${building.code}</span>` : ''}
+      ${editable ? '<br/><span style="color: #9ca3af; font-size: 11px; margin-top: 2px; display: block;">Drag to reposition</span>' : ''}
     `
 
     if (editable) {
-      // Button container
-      const buttonContainer = document.createElement('div')
-      buttonContainer.style.cssText = 'display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;justify-content:center;'
+      const menuContainer = document.createElement('div')
+      menuContainer.style.cssText = 'margin-top:8px;border-top:1px solid #e5e7eb;padding-top:4px;display:flex;flex-direction:column;'
 
-      // Detect Outline button
-      const detectBtn = document.createElement('button')
-      detectBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.636 5.636l1.414 1.414m9.9 9.9l1.414 1.414M5.636 18.364l1.414-1.414m9.9-9.9l1.414-1.414"/></svg> Detect`
-      detectBtn.style.cssText = 'display:flex;align-items:center;gap:4px;background:#7c3aed;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;flex:1;min-width:80px;justify-content:center;'
-      detectBtn.onmouseover = () => { detectBtn.style.background = '#6d28d9' }
-      detectBtn.onmouseout = () => { detectBtn.style.background = '#7c3aed' }
-      detectBtn.onclick = (e) => {
-        e.stopPropagation()
-        marker.closePopup()
-        handleDetectOutline(building.id)
+      const menuItemStyle = 'display:flex;align-items:center;gap:8px;padding:7px 4px;border:none;background:none;width:100%;text-align:left;font-size:13px;color:#374151;cursor:pointer;border-radius:4px;'
+      const menuItemHover = 'background:#f3f4f6;'
+
+      // Edit Building
+      if (onEditBuilding) {
+        const editBtn = document.createElement('button')
+        editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit Building`
+        editBtn.style.cssText = menuItemStyle
+        editBtn.onmouseover = () => { editBtn.style.cssText = menuItemStyle + menuItemHover }
+        editBtn.onmouseout = () => { editBtn.style.cssText = menuItemStyle }
+        editBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onEditBuilding(building.id) }
+        menuContainer.appendChild(editBtn)
       }
-      buttonContainer.appendChild(detectBtn)
 
-      // Draw Outline button
-      const drawBtn = document.createElement('button')
-      drawBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 3 20 7 12 11 4 7 12 3"></polyline></svg> Draw`
-      drawBtn.style.cssText = 'display:flex;align-items:center;gap:4px;background:#0891b2;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;flex:1;min-width:80px;justify-content:center;'
-      drawBtn.onmouseover = () => { drawBtn.style.background = '#0e7490' }
-      drawBtn.onmouseout = () => { drawBtn.style.background = '#0891b2' }
-      drawBtn.onclick = (e) => {
-        e.stopPropagation()
-        marker.closePopup()
-        startDrawing(building.id)
+      // Add Rooms
+      if (onManageRooms) {
+        const roomsBtn = document.createElement('button')
+        roomsBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/></svg> Manage Rooms`
+        roomsBtn.style.cssText = menuItemStyle
+        roomsBtn.onmouseover = () => { roomsBtn.style.cssText = menuItemStyle + menuItemHover }
+        roomsBtn.onmouseout = () => { roomsBtn.style.cssText = menuItemStyle }
+        roomsBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onManageRooms(building.id) }
+        menuContainer.appendChild(roomsBtn)
       }
-      buttonContainer.appendChild(drawBtn)
 
-      popupContent.appendChild(buttonContainer)
+      // Delete Building
+      if (onDeleteBuilding) {
+        const deleteBtn = document.createElement('button')
+        deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete`
+        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;'
+        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;background:#fef2f2;' }
+        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;' }
+        deleteBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onDeleteBuilding(building.id) }
+        menuContainer.appendChild(deleteBtn)
+      }
+
+      popupContent.appendChild(menuContainer)
     }
 
     marker.bindPopup(popupContent)
@@ -554,7 +573,7 @@ export default function InteractiveCampusMap({
     }
 
     markersRef.current.set(building.id, marker)
-  }, [editable])
+  }, [editable, onEditBuilding, onDeleteBuilding, onManageRooms])
 
   /* ── Add outdoor space as polygon ────────────────────────────────── */
 
@@ -601,11 +620,46 @@ export default function InteractiveCampusMap({
 
     marker.bindTooltip(space.name, { direction: 'top', offset: [0, -18], className: 'campus-tooltip' })
 
-    marker.bindPopup(
-      `<strong style="font-size:14px;">${space.name}</strong>` +
-      `<br/><span style="color:#6b7280;font-size:12px;">${space.areaType.replace('_', ' ')}</span>` +
-      (editable ? '<br/><span style="color:#16a34a;font-size:11px;">Drag to reposition</span>' : '')
-    )
+    // Build outdoor popup with action menu
+    const outdoorPopup = document.createElement('div')
+    outdoorPopup.style.minWidth = '160px'
+    outdoorPopup.innerHTML = `
+      <strong style="font-size: 14px;">${space.name}</strong>
+      <br/><span style="color: #6b7280; font-size: 12px;">${space.areaType.replace('_', ' ')}</span>
+      ${editable ? '<br/><span style="color: #9ca3af; font-size: 11px; margin-top: 2px; display: block;">Drag to reposition</span>' : ''}
+    `
+
+    if (editable) {
+      const menuContainer = document.createElement('div')
+      menuContainer.style.cssText = 'margin-top:8px;border-top:1px solid #e5e7eb;padding-top:4px;display:flex;flex-direction:column;'
+
+      const menuItemStyle = 'display:flex;align-items:center;gap:8px;padding:7px 4px;border:none;background:none;width:100%;text-align:left;font-size:13px;color:#374151;cursor:pointer;border-radius:4px;'
+      const menuItemHover = 'background:#f3f4f6;'
+
+      if (onEditOutdoor) {
+        const editBtn = document.createElement('button')
+        editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit Space`
+        editBtn.style.cssText = menuItemStyle
+        editBtn.onmouseover = () => { editBtn.style.cssText = menuItemStyle + menuItemHover }
+        editBtn.onmouseout = () => { editBtn.style.cssText = menuItemStyle }
+        editBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onEditOutdoor(space.id) }
+        menuContainer.appendChild(editBtn)
+      }
+
+      if (onDeleteOutdoor) {
+        const deleteBtn = document.createElement('button')
+        deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete`
+        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;'
+        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;background:#fef2f2;' }
+        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;' }
+        deleteBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onDeleteOutdoor(space.id) }
+        menuContainer.appendChild(deleteBtn)
+      }
+
+      outdoorPopup.appendChild(menuContainer)
+    }
+
+    marker.bindPopup(outdoorPopup)
 
     if (editable) {
       marker.on('dragend', (e: any) => {
@@ -617,7 +671,7 @@ export default function InteractiveCampusMap({
     }
 
     markersRef.current.set(`outdoor-${space.id}`, marker)
-  }, [editable, onOutdoorPositionChange])
+  }, [editable, onOutdoorPositionChange, onEditOutdoor, onDeleteOutdoor])
 
   /* ── Manual polygon drawing ──────────────────────────────────────── */
 

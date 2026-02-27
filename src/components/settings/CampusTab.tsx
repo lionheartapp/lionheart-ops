@@ -648,6 +648,26 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             setError('Failed to save outdoor space position')
           }
         }}
+        onEditBuilding={(buildingId) => {
+          const b = buildings.find((x) => x.id === buildingId)
+          if (b) openEditBuilding(b)
+        }}
+        onDeleteBuilding={(buildingId) => {
+          const b = buildings.find((x) => x.id === buildingId)
+          if (b) openDeleteConfirm('building', b.id, b.name)
+        }}
+        onManageRooms={(buildingId) => {
+          const b = buildings.find((x) => x.id === buildingId)
+          if (b) openRoomsDrawer(b)
+        }}
+        onEditOutdoor={(outdoorId) => {
+          const a = outdoorSpaces.find((x) => x.id === outdoorId)
+          if (a) openEditOutdoor(a)
+        }}
+        onDeleteOutdoor={(outdoorId) => {
+          const a = outdoorSpaces.find((x) => x.id === outdoorId)
+          if (a) openDeleteConfirm('outdoor', a.id, a.name)
+        }}
         pendingMarker={pendingMarkerData}
       />
 
