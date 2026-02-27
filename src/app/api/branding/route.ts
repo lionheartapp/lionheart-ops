@@ -32,9 +32,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(ok(branding))
   } catch (error) {
     console.error('Branding fetch error:', error)
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      fail('INTERNAL_ERROR', `DB error: ${message}`),
+      fail('INTERNAL_ERROR', 'Failed to fetch organization branding'),
       { status: 500 }
     )
   }
