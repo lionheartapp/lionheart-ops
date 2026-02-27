@@ -97,7 +97,11 @@ const isValidPhoneValue = (value: string) => {
   return digits.length >= 10 && digits.length <= 15
 }
 
-export default function SchoolsManagement() {
+interface SchoolsManagementProps {
+  campusId?: string
+}
+
+export default function SchoolsManagement({ campusId }: SchoolsManagementProps) {
   const [schools, setSchools] = useState<SchoolData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -283,7 +287,8 @@ export default function SchoolsManagement() {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('/api/settings/schools', {
+      const url = campusId ? `/api/settings/schools?campusId=${campusId}` : '/api/settings/schools'
+      const response = await fetch(url, {
         headers: getAuthHeaders(),
       })
       const data = await response.json()
@@ -302,7 +307,7 @@ export default function SchoolsManagement() {
 
   useEffect(() => {
     loadSchools()
-  }, [])
+  }, [campusId])
 
   const handleSaveSchool = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -321,13 +326,15 @@ export default function SchoolsManagement() {
       const url = editingId ? `/api/settings/schools/${editingId}` : '/api/settings/schools'
       const method = editingId ? 'PATCH' : 'POST'
 
+      const body = campusId && !editingId ? { ...form, campusId } : form
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(body),
       })
 
       let data

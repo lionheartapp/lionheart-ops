@@ -13,6 +13,8 @@ const orgScopedModels = new Set([
 	'Area',
 	'Room',
 	'UserRoomAssignment',
+	'Campus',
+	'UserCampusAssignment',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -26,6 +28,7 @@ const softDeleteModels = new Set([
 	'Area',
 	'Room',
 	'School',
+	'Campus',
 ])
 
 /**

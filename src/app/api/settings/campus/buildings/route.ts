@@ -10,6 +10,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 const CreateBuildingSchema = z.object({
   name: z.string().trim().min(1).max(120),
   code: z.string().trim().min(1).max(30).optional().nullable(),
+  campusId: z.string().min(1, 'Campus is required'),
   schoolId: z.string().optional().nullable(),
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
   buildingType: z.enum(['GENERAL', 'ARTS_CULTURE', 'ADMINISTRATION', 'SUPPORT_SERVICES']).optional(),
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
       const { searchParams } = new URL(req.url)
       const includeInactive = searchParams.get('includeInactive') === 'true'
       const schoolId = searchParams.get('schoolId') || undefined
+      const campusId = searchParams.get('campusId') || undefined
       const db = prisma as any
 
       const buildings = await db.building.findMany({
@@ -37,8 +39,12 @@ export async function GET(req: NextRequest) {
           organizationId: orgId,
           ...(includeInactive ? {} : { isActive: true }),
           ...(schoolId ? { schoolId } : {}),
+          ...(campusId ? { campusId } : {}),
         },
-        include: { school: { select: { id: true, name: true, gradeLevel: true } } },
+        include: {
+          school: { select: { id: true, name: true, gradeLevel: true } },
+          campus: { select: { id: true, name: true, campusType: true } },
+        },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       })
 
@@ -64,9 +70,33 @@ export async function POST(req: NextRequest) {
       const input = CreateBuildingSchema.parse(body)
       const db = prisma as any
 
+      // Validate campus exists in this org
+      const campus = await db.campus.findFirst({
+        where: { id: input.campusId, organizationId: orgId, deletedAt: null },
+        select: { id: true },
+      })
+      if (!campus) {
+        return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
+      }
+
+      // If schoolId provided, validate it belongs to the same campus
+      if (input.schoolId) {
+        const school = await db.school.findFirst({
+          where: { id: input.schoolId, organizationId: orgId, deletedAt: null },
+          select: { campusId: true },
+        })
+        if (school && school.campusId && school.campusId !== input.campusId) {
+          return NextResponse.json(
+            fail('VALIDATION_ERROR', 'School does not belong to the specified campus'),
+            { status: 400 }
+          )
+        }
+      }
+
       const building = await db.building.create({
         data: {
           organizationId: orgId,
+          campusId: input.campusId,
           name: input.name,
           code: input.code || null,
           schoolId: input.schoolId || null,
@@ -77,7 +107,10 @@ export async function POST(req: NextRequest) {
           latitude: input.latitude ?? null,
           longitude: input.longitude ?? null,
         },
-        include: { school: { select: { id: true, name: true, gradeLevel: true } } },
+        include: {
+          school: { select: { id: true, name: true, gradeLevel: true } },
+          campus: { select: { id: true, name: true, campusType: true } },
+        },
       })
 
       return NextResponse.json(ok(building), { status: 201 })

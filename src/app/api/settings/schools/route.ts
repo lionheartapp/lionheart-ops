@@ -16,6 +16,7 @@ const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
 
 const CreateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120),
+  campusId: z.string().min(1, 'Campus is required'),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']),
   principalName: z.string().trim().max(100).optional().nullable(),
   principalEmail: z.string().email().optional().nullable(),
@@ -33,17 +34,25 @@ export async function GET(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
+      const { searchParams } = new URL(req.url)
+      const campusId = searchParams.get('campusId') || undefined
+
       const schools = await prisma.school.findMany({
-        where: { organizationId: orgId },
+        where: {
+          organizationId: orgId,
+          ...(campusId ? { campusId } : {}),
+        },
         orderBy: { createdAt: 'asc' },
         select: {
           id: true,
+          campusId: true,
           name: true,
           gradeLevel: true,
           principalName: true,
           principalEmail: true,
           principalPhone: true,
           principalPhoneExt: true,
+          campus: { select: { id: true, name: true, campusType: true } },
           createdAt: true,
           updatedAt: true,
         },
@@ -101,9 +110,22 @@ export async function POST(req: NextRequest) {
         )
       }
 
+      // Validate campus exists in this org
+      const campus = await prisma.campus.findFirst({
+        where: { id: input.campusId },
+        select: { id: true },
+      })
+      if (!campus) {
+        return NextResponse.json(
+          fail('NOT_FOUND', 'Campus not found'),
+          { status: 404 }
+        )
+      }
+
       const school = await prisma.school.create({
         data: {
           organizationId: orgId,
+          campusId: input.campusId,
           name: input.name,
           gradeLevel: input.gradeLevel,
           principalName: input.principalName || null,
@@ -113,12 +135,14 @@ export async function POST(req: NextRequest) {
         },
         select: {
           id: true,
+          campusId: true,
           name: true,
           gradeLevel: true,
           principalName: true,
           principalEmail: true,
           principalPhone: true,
           principalPhoneExt: true,
+          campus: { select: { id: true, name: true, campusType: true } },
           createdAt: true,
           updatedAt: true,
         },

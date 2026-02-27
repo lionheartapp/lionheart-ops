@@ -47,6 +47,13 @@ type CampusTabProps = {
   onDirtyChange?: (isDirty: boolean) => void
 }
 
+type Campus = {
+  id: string
+  name: string
+  campusType: 'HEADQUARTERS' | 'CAMPUS' | 'SATELLITE'
+  address: string | null
+}
+
 const DIVISION_LABELS: Record<string, string> = {
   GLOBAL: 'Global',
   ELEMENTARY: 'Elementary',
@@ -85,6 +92,15 @@ const OUTDOOR_TYPE_LABELS: Record<string, string> = {
 }
 
 export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
+  // ─── Campus Selection ────────────────────────────────────────────────────
+  const [campuses, setCampuses] = useState<Campus[]>([])
+  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
+  const [campusesLoading, setCampusesLoading] = useState(true)
+  const [showAddCampusModal, setShowAddCampusModal] = useState(false)
+  const [addCampusForm, setAddCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
+  const [addCampusError, setAddCampusError] = useState('')
+  const [addCampusSaving, setAddCampusSaving] = useState(false)
+
   // ─── Data ────────────────────────────────────────────────────────────────
   const [buildings, setBuildings] = useState<Building[]>([])
   const [areas, setAreas] = useState<Area[]>([])
@@ -196,14 +212,36 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     }
   }
 
+  // ─── Load campuses on mount ───────────────────────────────────────────────
+  const loadCampuses = async () => {
+    setCampusesLoading(true)
+    try {
+      const res = await fetch('/api/settings/campus/campuses', { headers: getAuthHeaders() })
+      if (handleAuthResponse(res)) return
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to load campuses')
+      const campusList = json.data || []
+      setCampuses(campusList)
+      // Set selectedCampusId to first campus (HQ) if available
+      if (campusList.length > 0 && !selectedCampusId) {
+        setSelectedCampusId(campusList[0].id)
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load campuses')
+    } finally {
+      setCampusesLoading(false)
+    }
+  }
+
   // ─── Data loading ─────────────────────────────────────────────────────────
   const loadData = async () => {
     setLoading(true)
     setError('')
     try {
+      const campusQuery = selectedCampusId ? `?campusId=${selectedCampusId}` : ''
       const [campusRes, mapRes] = await Promise.all([
-        fetch('/api/settings/campus', { headers: getAuthHeaders() }),
-        fetch('/api/settings/campus/map-data', { headers: getAuthHeaders() }),
+        fetch(`/api/settings/campus${campusQuery}`, { headers: getAuthHeaders() }),
+        fetch(`/api/settings/campus/map-data${campusQuery}`, { headers: getAuthHeaders() }),
       ])
       if (handleAuthResponse(campusRes)) return
       const campusJson = await campusRes.json()
@@ -226,10 +264,19 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     }
   }
 
+  // Load campuses on mount
   useEffect(() => {
-    loadData()
+    loadCampuses()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Load data when selectedCampusId changes
+  useEffect(() => {
+    if (selectedCampusId) {
+      loadData()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCampusId])
 
   // ─── Building CRUD ────────────────────────────────────────────────────────
   const openAddBuilding = () => {
@@ -272,6 +319,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           code: buildingForm.code || null,
           schoolDivision: buildingForm.schoolDivision,
           buildingType: buildingForm.buildingType,
+          ...(selectedCampusId && !editingBuilding ? { campusId: selectedCampusId } : {}),
           ...(pendingBuildingCoords && !editingBuilding ? { latitude: pendingBuildingCoords.lat, longitude: pendingBuildingCoords.lng } : {}),
         }),
       })
@@ -334,6 +382,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           name,
           areaType: outdoorForm.areaType,
           buildingId: null,
+          ...(selectedCampusId && !editingOutdoor ? { campusId: selectedCampusId } : {}),
           ...(pendingOutdoorCoords && !editingOutdoor ? { latitude: pendingOutdoorCoords.lat, longitude: pendingOutdoorCoords.lng } : {}),
         }),
       })
@@ -503,6 +552,55 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     }
   }
 
+  // ─── Campus Management ────────────────────────────────────────────────────
+  const openAddCampusModal = () => {
+    setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' })
+    setAddCampusError('')
+    setShowAddCampusModal(true)
+  }
+
+  const closeAddCampusModal = () => {
+    if (addCampusSaving) return
+    setShowAddCampusModal(false)
+    setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' })
+    setAddCampusError('')
+  }
+
+  const saveAddCampusForm = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAddCampusError('')
+    const name = addCampusForm.name.trim()
+    if (!name) { setAddCampusError('Campus name is required'); return }
+
+    setAddCampusSaving(true)
+    try {
+      const res = await fetch('/api/settings/campus/campuses', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          name,
+          address: addCampusForm.address.trim() || null,
+          campusType: addCampusForm.campusType,
+        }),
+      })
+      if (handleAuthResponse(res)) return
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add campus')
+      setShowAddCampusModal(false)
+      setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' })
+      setSuccessMessage('Campus added')
+      await loadCampuses()
+      // Select the newly created campus
+      if (json.data?.id) {
+        setSelectedCampusId(json.data.id)
+      }
+    } catch (e) {
+      setAddCampusError(e instanceof Error ? e.message : 'Failed to add campus')
+    } finally {
+      setAddCampusSaving(false)
+    }
+  }
+
   // ─── Render helpers ───────────────────────────────────────────────────────
   const renderStatusBadge = (isActive: boolean) => (
     <span className={`text-xs font-medium px-2 py-1 rounded-full ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -558,6 +656,32 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               Add rooms
             </button>
           )}
+        </div>
+      )}
+
+      {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
+      {campuses.length > 1 && (
+        <div className="flex items-center gap-2 border-b border-gray-200 overflow-x-auto">
+          {campuses.map((campus) => (
+            <button
+              key={campus.id}
+              onClick={() => setSelectedCampusId(campus.id)}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                selectedCampusId === campus.id
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {campus.name}
+            </button>
+          ))}
+          <button
+            onClick={openAddCampusModal}
+            className="ml-auto px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-transparent hover:text-blue-700 transition flex items-center gap-2 whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            Add Campus
+          </button>
         </div>
       )}
 
@@ -1244,6 +1368,74 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           )
         })()}
       </DetailDrawer>
+
+      {/* ── Add Campus Modal ──────────────────────────────────────────────── */}
+      {showAddCampusModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Add Campus</h3>
+            </div>
+            <form onSubmit={saveAddCampusForm} className="p-6 space-y-4">
+              {addCampusError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{addCampusError}</div>
+              )}
+              <div>
+                <label className={labelClass}>Campus name</label>
+                <input
+                  value={addCampusForm.name}
+                  onChange={(e) => setAddCampusForm((p) => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g. Main Campus, North Campus"
+                  className={inputClass}
+                  disabled={addCampusSaving}
+                  autoFocus
+                  required
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Address <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input
+                  value={addCampusForm.address}
+                  onChange={(e) => setAddCampusForm((p) => ({ ...p, address: e.target.value }))}
+                  placeholder="e.g. 123 Main St, City, State"
+                  className={inputClass}
+                  disabled={addCampusSaving}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Campus type</label>
+                <select
+                  value={addCampusForm.campusType}
+                  onChange={(e) => setAddCampusForm((p) => ({ ...p, campusType: e.target.value }))}
+                  className={inputClass}
+                  disabled={addCampusSaving}
+                >
+                  <option value="HEADQUARTERS">Headquarters</option>
+                  <option value="CAMPUS">Campus</option>
+                  <option value="SATELLITE">Satellite</option>
+                </select>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={closeAddCampusModal}
+                  className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                  disabled={addCampusSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={addCampusSaving}
+                >
+                  {addCampusSaving ? 'Adding...' : 'Add Campus'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ── Delete/Deactivate Confirm ────────────────────────────────────── */}
       {deleteConfirm && (

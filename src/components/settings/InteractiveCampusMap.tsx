@@ -40,6 +40,7 @@ interface MapConfig {
 interface InteractiveCampusMapProps {
   buildings: Building[]
   outdoorSpaces?: OutdoorSpace[]
+  campusId?: string
   onBuildingPositionChange?: (buildingId: string, lat: number, lng: number) => void
   onAddBuildingAtPosition?: (lat: number, lng: number) => void
   onAddOutdoorSpaceAtPosition?: (lat: number, lng: number) => void

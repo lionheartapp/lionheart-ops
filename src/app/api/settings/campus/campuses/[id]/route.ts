@@ -1,0 +1,103 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { ok, fail } from '@/lib/api-response'
+import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+import { getUserContext } from '@/lib/request-context'
+import { assertCan } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
+import { z } from 'zod'
+import {
+  getCampusById,
+  updateCampus,
+  deleteCampus,
+  UpdateCampusSchema,
+} from '@/lib/services/campusService'
+
+type RouteParams = { params: Promise<{ id: string }> }
+
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params
+    const orgId = getOrgIdFromRequest(req)
+    const userContext = await getUserContext(req)
+
+    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
+
+    return await runWithOrgContext(orgId, async () => {
+      const campus = await getCampusById(id)
+      if (!campus) {
+        return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
+      }
+      return NextResponse.json(ok(campus))
+    })
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    console.error('Failed to fetch campus:', error)
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch campus'), { status: 500 })
+  }
+}
+
+export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params
+    const orgId = getOrgIdFromRequest(req)
+    const userContext = await getUserContext(req)
+    const body = await req.json()
+    const input = UpdateCampusSchema.parse(body)
+
+    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+
+    return await runWithOrgContext(orgId, async () => {
+      const existing = await getCampusById(id)
+      if (!existing) {
+        return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
+      }
+
+      const campus = await updateCampus(id, input)
+      return NextResponse.json(ok(campus))
+    })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Invalid campus data', error.issues),
+        { status: 400 }
+      )
+    }
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json(
+        fail('CONFLICT', 'A campus with this name already exists'),
+        { status: 409 }
+      )
+    }
+    console.error('Failed to update campus:', error)
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update campus'), { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params
+    const orgId = getOrgIdFromRequest(req)
+    const userContext = await getUserContext(req)
+
+    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+
+    return await runWithOrgContext(orgId, async () => {
+      const result = await deleteCampus(id)
+      if (!result.success) {
+        return NextResponse.json(fail('CONFLICT', result.reason!), { status: 409 })
+      }
+      return NextResponse.json(ok({ deleted: true }))
+    })
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    console.error('Failed to delete campus:', error)
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete campus'), { status: 500 })
+  }
+}

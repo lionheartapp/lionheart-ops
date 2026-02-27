@@ -150,7 +150,7 @@ function parsePermissionString(perm: string): { resource: string; action: string
  *
  * @returns The ID of the newly created super-admin role (to assign to the first admin user)
  */
-export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId: string }> {
+export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId: string; defaultCampusId: string }> {
   // ── Step 1: Collect every unique permission string used across all default roles ──
   const allPermStrings = new Set<string>()
   for (const roleDef of Object.values(DEFAULT_ROLES)) {
@@ -220,7 +220,27 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
     )
   )
 
-  return { superAdminRoleId }
+  // ── Step 5: Create default headquarters campus ──
+  const org = await rawPrisma.organization.findUnique({
+    where: { id: orgId },
+    select: { name: true, physicalAddress: true, latitude: true, longitude: true },
+  })
+
+  const defaultCampus = await rawPrisma.campus.create({
+    data: {
+      organizationId: orgId,
+      name: 'Main Campus',
+      address: org?.physicalAddress ?? null,
+      latitude: org?.latitude ?? null,
+      longitude: org?.longitude ?? null,
+      campusType: 'HEADQUARTERS',
+      isActive: true,
+      sortOrder: 0,
+    },
+    select: { id: true },
+  })
+
+  return { superAdminRoleId, defaultCampusId: defaultCampus.id }
 }
 
 /**

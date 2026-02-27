@@ -9,6 +9,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 
 const CreateAreaSchema = z.object({
   name: z.string().trim().min(1).max(120),
+  campusId: z.string().min(1, 'Campus is required'),
   areaType: z.enum(['FIELD', 'COURT', 'GYM', 'COMMON', 'PARKING', 'OTHER']).optional(),
   buildingId: z.string().optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest) {
       const searchParams = new URL(req.url).searchParams
       const includeInactive = searchParams.get('includeInactive') === 'true'
       const buildingId = searchParams.get('buildingId') || undefined
+      const campusId = searchParams.get('campusId') || undefined
       const db = prisma as any
 
       const areas = await db.area.findMany({
@@ -39,11 +41,13 @@ export async function GET(req: NextRequest) {
           organizationId: orgId,
           ...(includeInactive ? {} : { isActive: true }),
           ...(buildingId ? { buildingId } : {}),
+          ...(campusId ? { campusId } : {}),
         },
         include: {
           building: {
             select: { id: true, name: true, code: true },
           },
+          campus: { select: { id: true, name: true, campusType: true } },
         },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       })
@@ -80,9 +84,19 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Validate campus exists
+      const campus = await db.campus.findFirst({
+        where: { id: input.campusId, organizationId: orgId, deletedAt: null },
+        select: { id: true },
+      })
+      if (!campus) {
+        return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
+      }
+
       const area = await db.area.create({
         data: {
           organizationId: orgId,
+          campusId: input.campusId,
           name: input.name,
           areaType: input.areaType || 'OTHER',
           buildingId: input.buildingId || null,

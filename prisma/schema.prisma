@@ -52,6 +52,8 @@ model Organization {
   areas         Area[]
   rooms         Room[]
   roomAssignments UserRoomAssignment[]
+  campuses      Campus[]
+  campusAssignments UserCampusAssignment[]
   schools       School[]
   auditLogs     AuditLog[]
   // Platform admin relations
@@ -96,6 +98,7 @@ model User {
   schedules      TeacherSchedule[]
   passwordSetupTokens PasswordSetupToken[]
   roomAssignments UserRoomAssignment[]
+  campusAssignments UserCampusAssignment[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -122,7 +125,8 @@ model PasswordSetupToken {
 model Ticket {
   id             String         @id @default(cuid())
   organizationId String
-  schoolId       String?        // FK to School — scopes ticket to a campus
+  campusId       String?        // FK to Campus — scopes ticket to a physical location
+  schoolId       String?        // FK to School — scopes ticket to an academic unit
   title          String
   description    String?
   category       TicketCategory @default(MAINTENANCE)
@@ -137,6 +141,7 @@ model Ticket {
   updatedAt      DateTime       @updatedAt
   deletedAt      DateTime?
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus         Campus?        @relation(fields: [campusId], references: [id], onDelete: SetNull)
   school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   assignedTo     User?          @relation("AssignedTicketUser", fields: [assignedToId], references: [id], onDelete: SetNull)
 
@@ -144,13 +149,15 @@ model Ticket {
   @@index([organizationId, category])
   @@index([organizationId, priority])
   @@index([organizationId, deletedAt])
+  @@index([organizationId, campusId])
   @@index([schoolId])
 }
 
 model Building {
   id             String         @id @default(cuid())
   organizationId String
-  schoolId       String?        // FK to School — set for multi-school campus orgs
+  campusId       String?        // FK to Campus — optional during migration, will become required
+  schoolId       String?        // FK to School — set for school-specific buildings
   name           String
   code           String?
   address        String?
@@ -165,6 +172,7 @@ model Building {
   updatedAt      DateTime       @updatedAt
   deletedAt      DateTime?
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus         Campus?        @relation(fields: [campusId], references: [id], onDelete: Restrict)
   school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   areas          Area[]
   rooms          Room[]
@@ -173,12 +181,14 @@ model Building {
   @@unique([organizationId, code])
   @@index([organizationId, isActive])
   @@index([organizationId, deletedAt])
+  @@index([campusId])
   @@index([schoolId])
 }
 
 model Area {
   id             String       @id @default(cuid())
   organizationId String
+  campusId       String?      // FK to Campus — optional during migration, will become required
   buildingId     String?
   name           String
   areaType       AreaType     @default(OTHER)
@@ -191,11 +201,13 @@ model Area {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus         Campus?      @relation(fields: [campusId], references: [id], onDelete: Restrict)
   building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   rooms          Room[]
 
   @@unique([organizationId, buildingId, name])
   @@index([organizationId, isActive])
+  @@index([campusId])
   @@index([buildingId])
   @@index([organizationId, deletedAt])
 }
@@ -245,9 +257,55 @@ model UserRoomAssignment {
   @@index([isActive])
 }
 
+model Campus {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  address        String?
+  latitude       Float?
+  longitude      Float?
+  campusType     CampusType   @default(CAMPUS)
+  isActive       Boolean      @default(true)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  schools        School[]
+  buildings      Building[]
+  areas          Area[]
+  tickets        Ticket[]
+  userAssignments UserCampusAssignment[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isActive])
+  @@index([organizationId, deletedAt])
+}
+
+model UserCampusAssignment {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  campusId       String
+  isPrimary      Boolean      @default(false)
+  startsAt       DateTime?
+  endsAt         DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campus         Campus       @relation(fields: [campusId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([organizationId, campusId])
+  @@index([isActive])
+}
+
 model School {
   id               String        @id @default(cuid())
   organizationId   String
+  campusId         String?       // FK to Campus — optional during migration, will become required
   name             String        // e.g., "Elementary Campus", "High School", "Middle School"
   gradeLevel       SchoolType    @default(ELEMENTARY) // ELEMENTARY | MIDDLE_SCHOOL | HIGH_SCHOOL
   principalName    String?
@@ -258,12 +316,14 @@ model School {
   updatedAt        DateTime      @updatedAt
   deletedAt        DateTime?
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus         Campus?       @relation(fields: [campusId], references: [id], onDelete: Restrict)
   users          User[]
   buildings      Building[]
   tickets        Ticket[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
+  @@index([campusId])
   @@index([organizationId, deletedAt])
 }
 
@@ -586,6 +646,12 @@ enum AuthMethod {
   EMAIL
   GOOGLE
   MICROSOFT
+}
+
+enum CampusType {
+  HEADQUARTERS
+  CAMPUS
+  SATELLITE
 }
 
 // ─── OAuth Account Model (Auth.js adapter) ──────────────────────────

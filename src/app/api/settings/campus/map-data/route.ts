@@ -2,7 +2,9 @@
  * Campus Map Data API
  *
  * GET /api/settings/campus/map-data
- * Returns org + building coordinates for the campus map embed.
+ * Returns campus center + building coordinates for the campus map embed.
+ * Accepts optional ?campusId= to scope to a specific campus.
+ * If not provided, defaults to the HQ/first campus.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -20,42 +22,85 @@ export async function GET(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      // Use raw queries for new lat/lng fields until Prisma client is regenerated
-      const orgRows = await rawPrisma.$queryRaw<Array<{
-        latitude: number | null
-        longitude: number | null
-        name: string
-        physicalAddress: string | null
-      }>>`
-        SELECT latitude, longitude, name, "physicalAddress"
-        FROM "Organization"
-        WHERE id = ${orgId}
-        LIMIT 1
-      `
+      const { searchParams } = new URL(req.url)
+      const campusId = searchParams.get('campusId')
+
+      // If campusId specified, use campus coords for map center
+      // Otherwise fall back to HQ campus, then org coords
+      let mapCenter: { lat: number | null; lng: number | null; name: string; address: string | null } | null = null
+      let selectedCampusId = campusId
+
+      if (selectedCampusId) {
+        // Use specified campus as map center
+        const campusRows = await rawPrisma.$queryRaw<Array<{
+          id: string; latitude: number | null; longitude: number | null; name: string; address: string | null
+        }>>`
+          SELECT id, latitude, longitude, name, address
+          FROM "Campus"
+          WHERE id = ${selectedCampusId} AND "organizationId" = ${orgId} AND "deletedAt" IS NULL
+          LIMIT 1
+        `
+        const campus = campusRows[0]
+        if (campus) {
+          mapCenter = { lat: campus.latitude, lng: campus.longitude, name: campus.name, address: campus.address }
+        }
+      }
+
+      if (!selectedCampusId) {
+        // Find HQ campus
+        const hqRows = await rawPrisma.$queryRaw<Array<{
+          id: string; latitude: number | null; longitude: number | null; name: string; address: string | null
+        }>>`
+          SELECT id, latitude, longitude, name, address
+          FROM "Campus"
+          WHERE "organizationId" = ${orgId} AND "deletedAt" IS NULL AND "isActive" = true
+          ORDER BY "campusType" ASC, "sortOrder" ASC
+          LIMIT 1
+        `
+        const hq = hqRows[0]
+        if (hq) {
+          selectedCampusId = hq.id
+          mapCenter = { lat: hq.latitude, lng: hq.longitude, name: hq.name, address: hq.address }
+        }
+      }
+
+      // Fallback to org coords if no campus found
+      if (!mapCenter) {
+        const orgRows = await rawPrisma.$queryRaw<Array<{
+          latitude: number | null; longitude: number | null; name: string; physicalAddress: string | null
+        }>>`
+          SELECT latitude, longitude, name, "physicalAddress"
+          FROM "Organization"
+          WHERE id = ${orgId}
+          LIMIT 1
+        `
+        const org = orgRows[0]
+        if (org) {
+          mapCenter = { lat: org.latitude, lng: org.longitude, name: org.name, address: org.physicalAddress }
+        }
+      }
+
+      // Scope buildings and areas by campus if available
+      const campusFilter = selectedCampusId
+        ? rawPrisma.$queryRaw`AND "campusId" = ${selectedCampusId}`
+        : rawPrisma.$queryRaw``
 
       const buildingRows = await rawPrisma.$queryRaw<Array<{
-        id: string
-        name: string
-        code: string | null
-        latitude: number | null
-        longitude: number | null
-        polygonCoordinates: unknown | null
+        id: string; name: string; code: string | null
+        latitude: number | null; longitude: number | null; polygonCoordinates: unknown | null
       }>>`
         SELECT id, name, code, latitude, longitude, "polygonCoordinates"
         FROM "Building"
         WHERE "organizationId" = ${orgId}
           AND "isActive" = true
           AND "deletedAt" IS NULL
+          ${selectedCampusId ? rawPrisma.$queryRaw`AND "campusId" = ${selectedCampusId}` : rawPrisma.$queryRaw``}
         ORDER BY "sortOrder" ASC, name ASC
       `
 
       const outdoorRows = await rawPrisma.$queryRaw<Array<{
-        id: string
-        name: string
-        areaType: string
-        latitude: number | null
-        longitude: number | null
-        polygonCoordinates: unknown | null
+        id: string; name: string; areaType: string
+        latitude: number | null; longitude: number | null; polygonCoordinates: unknown | null
       }>>`
         SELECT id, name, "areaType", latitude, longitude, "polygonCoordinates"
         FROM "Area"
@@ -63,18 +108,13 @@ export async function GET(req: NextRequest) {
           AND "buildingId" IS NULL
           AND "isActive" = true
           AND "deletedAt" IS NULL
+          ${selectedCampusId ? rawPrisma.$queryRaw`AND "campusId" = ${selectedCampusId}` : rawPrisma.$queryRaw``}
         ORDER BY "sortOrder" ASC, name ASC
       `
 
-      const org = orgRows[0] || null
-
       return NextResponse.json(ok({
-        org: org ? {
-          lat: org.latitude,
-          lng: org.longitude,
-          name: org.name,
-          address: org.physicalAddress,
-        } : null,
+        org: mapCenter,
+        campusId: selectedCampusId,
         buildings: buildingRows
           .filter(b => b.latitude && b.longitude)
           .map(b => ({
@@ -113,19 +153,29 @@ export async function PATCH(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
 
     const body = await req.json()
-    const { latitude, longitude } = body
+    const { latitude, longitude, campusId } = body
 
     if (typeof latitude !== 'number' || typeof longitude !== 'number') {
       return NextResponse.json(fail('VALIDATION_ERROR', 'latitude and longitude are required numbers'), { status: 400 })
     }
 
-    await rawPrisma.$executeRaw`
-      UPDATE "Organization"
-      SET latitude = ${latitude}, longitude = ${longitude}, "updatedAt" = NOW()
-      WHERE id = ${orgId}
-    `
+    if (campusId) {
+      // Update campus coords
+      await rawPrisma.$executeRaw`
+        UPDATE "Campus"
+        SET latitude = ${latitude}, longitude = ${longitude}, "updatedAt" = NOW()
+        WHERE id = ${campusId} AND "organizationId" = ${orgId}
+      `
+    } else {
+      // Fallback: update org coords (backward compat)
+      await rawPrisma.$executeRaw`
+        UPDATE "Organization"
+        SET latitude = ${latitude}, longitude = ${longitude}, "updatedAt" = NOW()
+        WHERE id = ${orgId}
+      `
+    }
 
-    return NextResponse.json(ok({ latitude, longitude }))
+    return NextResponse.json(ok({ latitude, longitude, campusId }))
   } catch (error) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
