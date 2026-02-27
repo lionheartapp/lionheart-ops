@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Home,
   Menu,
@@ -32,7 +32,6 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
@@ -88,15 +87,7 @@ export default function Sidebar({
 
   const handleSettingsTabClick = (tab: SettingsTab) => {
     setActiveSettingsTab(tab)
-    // Update URL to persist tab selection
-    const params = new URLSearchParams(searchParams.toString())
-    if (tab === 'profile') {
-      params.delete('tab')
-    } else {
-      params.set('tab', tab)
-    }
-    const qs = params.toString()
-    router.replace(`/settings${qs ? `?${qs}` : ''}`, { scroll: false })
+    localStorage.setItem('settings-active-tab', tab)
     window.dispatchEvent(
       new CustomEvent('settings-tab-change', { detail: { tab } })
     )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -19,7 +19,6 @@ const VALID_TABS: Tab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 
 
 export default function SettingsPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)
 
