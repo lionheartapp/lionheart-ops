@@ -39,8 +39,9 @@ export async function GET(req: NextRequest) {
         code: string | null
         latitude: number | null
         longitude: number | null
+        polygonCoordinates: unknown | null
       }>>`
-        SELECT id, name, code, latitude, longitude
+        SELECT id, name, code, latitude, longitude, "polygonCoordinates"
         FROM "Building"
         WHERE "organizationId" = ${orgId}
           AND "isActive" = true
@@ -65,6 +66,7 @@ export async function GET(req: NextRequest) {
             code: b.code,
             lat: b.latitude,
             lng: b.longitude,
+            polygonCoordinates: b.polygonCoordinates || null,
           })),
       }))
     })

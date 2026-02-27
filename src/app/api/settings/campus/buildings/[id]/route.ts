@@ -20,6 +20,10 @@ const UpdateBuildingSchema = z.object({
   isActive: z.boolean().optional(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
+  polygonCoordinates: z.array(z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  })).min(3).optional().nullable(),
 })
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
@@ -77,6 +81,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
           ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
           ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
+          ...(input.polygonCoordinates !== undefined ? { polygonCoordinates: input.polygonCoordinates } : {}),
         },
         include: { school: { select: { id: true, name: true, gradeLevel: true } } },
       })

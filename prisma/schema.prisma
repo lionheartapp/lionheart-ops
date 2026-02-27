@@ -154,8 +154,9 @@ model Building {
   name           String
   code           String?
   address        String?
-  latitude       Float?
-  longitude      Float?
+  latitude             Float?
+  longitude            Float?
+  polygonCoordinates   Json?              // Array of {lat, lng} points defining building outline
   schoolDivision SchoolDivision @default(GLOBAL)
   isActive       Boolean        @default(true)
   sortOrder      Int            @default(0)

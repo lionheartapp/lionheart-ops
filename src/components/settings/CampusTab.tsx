@@ -104,6 +104,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
   // ─── Map building placement ──────────────────────────────────────────────
   const [pendingBuildingCoords, setPendingBuildingCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
 
   // ─── Feedback ────────────────────────────────────────────────────────────
   const [error, setError] = useState('')
@@ -451,6 +452,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           code: b.code,
           latitude: b.latitude,
           longitude: b.longitude,
+          polygonCoordinates: (b as any).polygonCoordinates || null,
         }))}
         editable
         onBuildingPositionChange={async (buildingId, lat, lng) => {
@@ -475,8 +477,28 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL' })
           setEditingBuilding(null)
           setBuildingDrawerOpen(true)
-          // Store pending coordinates so they get saved with the new building
           setPendingBuildingCoords({ lat, lng })
+        }}
+        onBuildingSelected={(buildingId) => {
+          setSelectedMapBuildingId(buildingId)
+        }}
+        onPolygonSaved={async (buildingId, coordinates) => {
+          try {
+            const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, {
+              method: 'PATCH',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ polygonCoordinates: coordinates }),
+            })
+            if (res.ok) {
+              setBuildings((prev) =>
+                prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } as any : b))
+              )
+              setSuccessMessage('Building outline saved')
+              setTimeout(() => setSuccessMessage(''), 3000)
+            }
+          } catch {
+            setError('Failed to save building outline')
+          }
         }}
       />
 
@@ -920,6 +942,84 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             </div>
           )}
         </div>
+      </DetailDrawer>
+
+      {/* ── Building Info Side Panel (from map click) ───────────────────── */}
+      <DetailDrawer
+        isOpen={!!selectedMapBuildingId}
+        onClose={() => setSelectedMapBuildingId(null)}
+        title={buildings.find((b) => b.id === selectedMapBuildingId)?.name || 'Building'}
+      >
+        {selectedMapBuildingId && (() => {
+          const building = buildings.find((b) => b.id === selectedMapBuildingId)
+          const buildingRooms = rooms.filter((r) => r.buildingId === selectedMapBuildingId)
+          if (!building) return null
+          return (
+            <div className="space-y-6">
+              <div className="space-y-2">
+                {building.code && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-500">Code:</span>
+                    <span className="font-medium text-gray-900">{building.code}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-500">Division:</span>
+                  <span className="font-medium text-gray-900">{DIVISION_LABELS[building.schoolDivision] || building.schoolDivision}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-500">Status:</span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${building.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                    {building.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                  Rooms ({buildingRooms.length})
+                </h4>
+                {buildingRooms.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">No rooms added to this building yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {buildingRooms.map((room) => (
+                      <div key={room.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                        <div>
+                          <span className="text-sm font-medium text-gray-900">
+                            {room.displayName || `Room ${room.roomNumber}`}
+                          </span>
+                          {room.displayName && (
+                            <span className="text-xs text-gray-500 ml-2">#{room.roomNumber}</span>
+                          )}
+                        </div>
+                        {room.floor && (
+                          <span className="text-xs text-gray-500">Floor {room.floor}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={() => {
+                  setSelectedMapBuildingId(null)
+                  setEditingBuilding(building)
+                  setBuildingForm({
+                    name: building.name,
+                    code: building.code || '',
+                    schoolDivision: building.schoolDivision,
+                  })
+                  setBuildingDrawerOpen(true)
+                }}
+                className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+              >
+                Edit Building
+              </button>
+            </div>
+          )
+        })()}
       </DetailDrawer>
 
       {/* ── Deactivate Confirm ────────────────────────────────────────────── */}
