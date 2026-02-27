@@ -85,6 +85,12 @@ async function fetchFromGooglePlaces(schoolName: string, website: string): Promi
 
   try {
     // Use Places API (New) Text Search
+    // Don't append "school" if the name already contains it
+    const query = /school|academy|college|university/i.test(schoolName)
+      ? schoolName
+      : `${schoolName} school`
+    console.log(`[Places] Searching for: "${query}"`)
+
     const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
       headers: {
@@ -93,22 +99,24 @@ async function fetchFromGooglePlaces(schoolName: string, website: string): Promi
         'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.internationalPhoneNumber,places.websiteUri',
       },
       body: JSON.stringify({
-        textQuery: `${schoolName} school`,
-        maxResultCount: 3,
+        textQuery: query,
+        maxResultCount: 5,
       }),
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(8000),
     })
 
     if (!response.ok) {
-      console.log(`Google Places API returned ${response.status}`)
+      const errorBody = await response.text().catch(() => 'no body')
+      console.log(`[Places] API returned ${response.status}: ${errorBody}`)
       return null
     }
 
     const data = await response.json()
+    console.log(`[Places] Response:`, JSON.stringify(data).slice(0, 500))
     const places = data.places
 
     if (!places || places.length === 0) {
-      console.log('No places found for:', schoolName)
+      console.log('[Places] No results for:', query)
       return null
     }
 
@@ -501,7 +509,10 @@ export async function lookupSchool(website: string, schoolName?: string): Promis
     // Layer 1: Brandfetch
     const brandfetchData = await fetchFromBrandfetch(domain)
     if (brandfetchData) {
-      Object.assign(result, brandfetchData)
+      // Only merge non-null values so we don't overwrite Places data
+      for (const [key, value] of Object.entries(brandfetchData)) {
+        if (value != null) (result as unknown as Record<string, unknown>)[key] = value
+      }
       layersSucceeded++
     }
 
@@ -514,7 +525,10 @@ export async function lookupSchool(website: string, schoolName?: string): Promis
         // Merge Gemini data but handle colors specially
         const geminiColors = geminiData.colors
         delete geminiData.colors
-        Object.assign(result, geminiData)
+        // Only merge non-null values so we don't overwrite Places/Brandfetch data
+        for (const [key, value] of Object.entries(geminiData)) {
+          if (value != null) (result as unknown as Record<string, unknown>)[key] = value
+        }
 
         // Prefer Gemini's AI-detected color over Brandfetch when available
         // (Brandfetch can return the wrong brand for schools)
