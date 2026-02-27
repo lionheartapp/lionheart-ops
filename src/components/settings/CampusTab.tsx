@@ -15,6 +15,7 @@ type Building = {
   latitude: number | null
   longitude: number | null
   schoolDivision: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'
+  buildingType: 'GENERAL' | 'ARTS_CULTURE' | 'ADMINISTRATION' | 'SUPPORT_SERVICES'
   sortOrder: number
   isActive: boolean
 }
@@ -67,6 +68,13 @@ const DIVISION_BG_CLASSES: Record<string, string> = {
   GLOBAL: 'bg-blue-50',
 }
 
+const BUILDING_TYPE_LABELS: Record<string, string> = {
+  GENERAL: 'General',
+  ARTS_CULTURE: 'Arts & Culture',
+  ADMINISTRATION: 'Administration',
+  SUPPORT_SERVICES: 'Support Services',
+}
+
 const OUTDOOR_TYPE_LABELS: Record<string, string> = {
   FIELD: 'Athletic Field',
   COURT: 'Court',
@@ -86,7 +94,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // ─── Building drawer (add / edit) ────────────────────────────────────────
   const [buildingDrawerOpen, setBuildingDrawerOpen] = useState(false)
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null)
-  const [buildingForm, setBuildingForm] = useState({ name: '', code: '', schoolDivision: 'GLOBAL' })
+  const [buildingForm, setBuildingForm] = useState({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
   const [buildingFormError, setBuildingFormError] = useState('')
   const [buildingFormSaving, setBuildingFormSaving] = useState(false)
 
@@ -226,14 +234,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // ─── Building CRUD ────────────────────────────────────────────────────────
   const openAddBuilding = () => {
     setEditingBuilding(null)
-    setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL' })
+    setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
     setBuildingFormError('')
     setBuildingDrawerOpen(true)
   }
 
   const openEditBuilding = (b: Building) => {
     setEditingBuilding(b)
-    setBuildingForm({ name: b.name, code: b.code || '', schoolDivision: b.schoolDivision })
+    setBuildingForm({ name: b.name, code: b.code || '', schoolDivision: b.schoolDivision, buildingType: b.buildingType || 'GENERAL' })
     setBuildingFormError('')
     setBuildingDrawerOpen(true)
   }
@@ -263,6 +271,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           name,
           code: buildingForm.code || null,
           schoolDivision: buildingForm.schoolDivision,
+          buildingType: buildingForm.buildingType,
           ...(pendingBuildingCoords && !editingBuilding ? { latitude: pendingBuildingCoords.lat, longitude: pendingBuildingCoords.lng } : {}),
         }),
       })
@@ -599,7 +608,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           }
         }}
         onAddBuildingAtPosition={(lat, lng) => {
-          setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL' })
+          setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
           setEditingBuilding(null)
           setBuildingDrawerOpen(true)
           setPendingBuildingCoords({ lat, lng })
@@ -702,6 +711,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 <thead>
                   <tr className="text-gray-500 border-b bg-gray-50">
                     <th className="py-3 px-4 text-left font-medium">Building</th>
+                    <th className="py-3 px-4 text-left font-medium">Type</th>
                     <th className="py-3 px-4 text-left font-medium">Rooms</th>
                     <th className="py-3 px-4 text-left font-medium">Status</th>
                     <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
@@ -712,7 +722,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                     <React.Fragment key={group.division}>
                       {/* Division header row */}
                       <tr className={DIVISION_BG_CLASSES[group.division] || 'bg-gray-50'}>
-                        <td colSpan={4} className="py-2 px-4">
+                        <td colSpan={5} className="py-2 px-4">
                           <div className="flex items-center gap-2">
                             <span
                               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -734,6 +744,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                               <div className="font-medium text-gray-900">{b.name}</div>
                               {b.code && <div className="text-xs text-gray-400 mt-0.5">{b.code}</div>}
                             </td>
+                            <td className="py-3 px-4 text-gray-500 text-xs">{BUILDING_TYPE_LABELS[b.buildingType] || 'General'}</td>
                             <td className="py-3 px-4 text-gray-500">{roomCount}</td>
                             <td className="py-3 px-4">{renderStatusBadge(b.isActive)}</td>
                             <td className="py-3 pl-4 pr-10">
@@ -896,6 +907,20 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 <option value="ELEMENTARY">Elementary</option>
                 <option value="MIDDLE_SCHOOL">Middle School</option>
                 <option value="HIGH_SCHOOL">High School</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Building type</label>
+              <select
+                value={buildingForm.buildingType}
+                onChange={(e) => setBuildingForm((p) => ({ ...p, buildingType: e.target.value }))}
+                className={inputClass}
+                disabled={buildingFormSaving}
+              >
+                <option value="GENERAL">General</option>
+                <option value="ARTS_CULTURE">Arts &amp; Culture</option>
+                <option value="ADMINISTRATION">Administration</option>
+                <option value="SUPPORT_SERVICES">Support Services</option>
               </select>
             </div>
           </section>
@@ -1207,6 +1232,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                     name: building.name,
                     code: building.code || '',
                     schoolDivision: building.schoolDivision,
+                    buildingType: building.buildingType || 'GENERAL',
                   })
                   setBuildingDrawerOpen(true)
                 }}

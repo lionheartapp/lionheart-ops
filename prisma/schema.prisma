@@ -158,6 +158,7 @@ model Building {
   longitude            Float?
   polygonCoordinates   Json?              // Array of {lat, lng} points defining building outline
   schoolDivision SchoolDivision @default(GLOBAL)
+  buildingType   BuildingType   @default(GENERAL)
   isActive       Boolean        @default(true)
   sortOrder      Int            @default(0)
   createdAt      DateTime       @default(now())
@@ -457,6 +458,13 @@ enum SchoolDivision {
   MIDDLE_SCHOOL
   HIGH_SCHOOL
   GLOBAL
+}
+
+enum BuildingType {
+  GENERAL
+  ARTS_CULTURE
+  ADMINISTRATION
+  SUPPORT_SERVICES
 }
 
 enum AreaType {
