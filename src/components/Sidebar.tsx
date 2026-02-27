@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -35,10 +35,18 @@ export default function Sidebar({
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
+  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>(() => {
+    if (typeof window === 'undefined') return 'profile'
+    const saved = localStorage.getItem('settings-active-tab')
+    const validTabs: SettingsTab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 'campus']
+    if (saved && validTabs.includes(saved as SettingsTab)) return saved as SettingsTab
+    return 'profile'
+  })
 
   // Open settings panel when navigating to /settings, and restore saved tab
-  useEffect(() => {
+  // Use useLayoutEffect so the correct tab is set before paint (avoids flash)
+  const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+  useIsomorphicLayoutEffect(() => {
     if (pathname.startsWith('/settings')) {
       setSettingsOpen(true)
 
@@ -51,16 +59,20 @@ export default function Sidebar({
     }
   }, [pathname])
 
-  // Listen for settings tab change events from the settings page
+  // Listen for settings tab change events from the settings page (both event types)
   useEffect(() => {
-    const handleTabRequest = (e: Event) => {
+    const handleTabEvent = (e: Event) => {
       const event = e as CustomEvent<{ tab: SettingsTab }>
       if (event.detail?.tab) {
         setActiveSettingsTab(event.detail.tab)
       }
     }
-    window.addEventListener('settings-tab-request', handleTabRequest)
-    return () => window.removeEventListener('settings-tab-request', handleTabRequest)
+    window.addEventListener('settings-tab-request', handleTabEvent)
+    window.addEventListener('settings-tab-change', handleTabEvent)
+    return () => {
+      window.removeEventListener('settings-tab-request', handleTabEvent)
+      window.removeEventListener('settings-tab-change', handleTabEvent)
+    }
   }, [])
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
