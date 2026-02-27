@@ -79,10 +79,10 @@ export async function POST(req: NextRequest) {
           updateData.theme = JSON.stringify(theme)
         }
 
-        // Update organization (cast data to any since Prisma types may not include onboardingStatus yet)
+        // Update organization
         const updatedOrg = await rawPrisma.organization.update({
           where: { id: orgId },
-          data: updateData as any,
+          data: updateData,
           select: {
             id: true,
             name: true,

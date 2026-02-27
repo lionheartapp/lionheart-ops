@@ -1,4 +1,3 @@
-// @ts-nocheck — papaparse types available after npm install
 'use client'
 
 import { useState, useRef } from 'react'

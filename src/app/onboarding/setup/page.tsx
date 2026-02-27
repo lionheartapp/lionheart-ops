@@ -1,4 +1,3 @@
-// @ts-nocheck — canvas-confetti types available after npm install
 'use client'
 
 import { useEffect, useState } from 'react'

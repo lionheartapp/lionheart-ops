@@ -124,9 +124,10 @@ export async function POST(req: NextRequest) {
               firstName,
               lastName,
               name: member.name,
-              status: 'PENDING' as any,
+              status: 'PENDING',
+              organizationId: orgId,
               roleId,
-            } as any,
+            },
           })
 
           // Generate password setup token

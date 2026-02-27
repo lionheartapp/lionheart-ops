@@ -7,7 +7,6 @@
  * NOTE: Requires `npm install @supabase/supabase-js` to resolve types.
  */
 
-// @ts-nocheck — @supabase/supabase-js types available after npm install
 import { createClient } from '@supabase/supabase-js'
 
 interface StorageConfig {

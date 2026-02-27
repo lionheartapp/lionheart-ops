@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     // Set onboarding status to ONBOARDING
     await rawPrisma.organization.update({
       where: { id: result.id },
-      data: { onboardingStatus: 'ONBOARDING' } as any,
+      data: { onboardingStatus: 'ONBOARDING' },
     })
 
     // Generate JWT token for auto-login after signup

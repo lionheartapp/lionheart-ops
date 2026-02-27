@@ -9,11 +9,10 @@
  * NOTE: Requires `npm install next-auth@beta` to resolve types.
  */
 
-// @ts-nocheck — next-auth types available after npm install
 import { NextAuthConfig } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
-import Azure from 'next-auth/providers/azure-ad'
+import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 import { verifyAuthToken, signAuthToken, type AuthClaims } from '@/lib/auth'
 import { rawPrisma } from '@/lib/db'
 import bcryptjs from 'bcryptjs'
@@ -102,11 +101,11 @@ export const authConfig: NextAuthConfig = {
       allowDangerousEmailAccountLinking: true,
     }),
 
-    // Microsoft Azure AD provider
-    Azure({
+    // Microsoft Entra ID (formerly Azure AD) provider
+    MicrosoftEntraID({
       clientId: process.env.AZURE_AD_CLIENT_ID || '',
       clientSecret: process.env.AZURE_AD_CLIENT_SECRET || '',
-      tenantId: process.env.AZURE_AD_TENANT_ID || 'common',
+      issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID || 'common'}/v2.0`,
       allowDangerousEmailAccountLinking: true,
     }),
   ],
@@ -128,7 +127,7 @@ export const authConfig: NextAuthConfig = {
         }
 
         // For OAuth providers, check if user exists
-        if (account?.provider === 'google' || account?.provider === 'azure-ad') {
+        if (account?.provider === 'google' || account?.provider === 'microsoft-entra-id') {
           const email = user.email
           if (!email) {
             return false
@@ -140,7 +139,7 @@ export const authConfig: NextAuthConfig = {
               OR: [
                 { email },
                 account.provider === 'google' ? { googleId: account.providerAccountId } : {},
-                account.provider === 'azure-ad' ? { microsoftId: account.providerAccountId } : {},
+                account.provider === 'microsoft-entra-id' ? { microsoftId: account.providerAccountId } : {},
               ],
             },
             select: { id: true },
@@ -173,7 +172,7 @@ export const authConfig: NextAuthConfig = {
         }
 
         // For OAuth, if user was just created or linked, update token
-        if (account?.provider === 'google' || account?.provider === 'azure-ad') {
+        if (account?.provider === 'google' || account?.provider === 'microsoft-entra-id') {
           // Fetch the full user to get latest info
           const fullUser = await rawPrisma.user.findFirst({
             where: { email: token.email as string, deletedAt: null },
