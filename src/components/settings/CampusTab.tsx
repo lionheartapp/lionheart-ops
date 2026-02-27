@@ -151,6 +151,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     lat: number; lng: number; label: string; type: 'building' | 'outdoor'
   } | null>(null)
   const [lastCreatedBuilding, setLastCreatedBuilding] = useState<Building | null>(null)
+  const [placeOnMapBuilding, setPlaceOnMapBuilding] = useState<Building | null>(null)
+  const [placingExistingBuilding, setPlacingExistingBuilding] = useState<Building | null>(null)
   const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
   const [outdoorMapSpaces, setOutdoorMapSpaces] = useState<any[]>([])
 
@@ -644,46 +646,59 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           <span>{successMessage}</span>
           {lastCreatedBuilding && (
-            <button
-              onClick={() => {
-                openRoomsDrawer(lastCreatedBuilding)
-                setSuccessMessage('')
-                setLastCreatedBuilding(null)
-              }}
-              className="ml-4 inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 transition-colors"
-            >
-              <DoorOpen className="h-3.5 w-3.5" />
-              Add rooms
-            </button>
+            <div className="flex items-center gap-2 ml-4">
+              {!lastCreatedBuilding.latitude && (
+                <button
+                  onClick={() => {
+                    setSuccessMessage('')
+                    setLastCreatedBuilding(null)
+                    setPlaceOnMapBuilding(lastCreatedBuilding)
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  Place on Map
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  openRoomsDrawer(lastCreatedBuilding)
+                  setSuccessMessage('')
+                  setLastCreatedBuilding(null)
+                }}
+                className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 transition-colors"
+              >
+                <DoorOpen className="h-3.5 w-3.5" />
+                Add Rooms
+              </button>
+            </div>
           )}
         </div>
       )}
 
       {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
-      {campuses.length > 1 && (
-        <div className="flex items-center gap-2 border-b border-gray-200 overflow-x-auto">
-          {campuses.map((campus) => (
-            <button
-              key={campus.id}
-              onClick={() => setSelectedCampusId(campus.id)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                selectedCampusId === campus.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {campus.name}
-            </button>
-          ))}
+      <div className="flex items-center gap-2 border-b border-gray-200 overflow-x-auto">
+        {campuses.length > 1 && campuses.map((campus) => (
           <button
-            onClick={openAddCampusModal}
-            className="ml-auto px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-transparent hover:text-blue-700 transition flex items-center gap-2 whitespace-nowrap"
+            key={campus.id}
+            onClick={() => setSelectedCampusId(campus.id)}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+              selectedCampusId === campus.id
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            Add Campus
+            {campus.name}
           </button>
-        </div>
-      )}
+        ))}
+        <button
+          onClick={openAddCampusModal}
+          className="ml-auto px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-transparent hover:text-blue-700 transition flex items-center gap-2 whitespace-nowrap"
+        >
+          <Plus className="w-4 h-4" />
+          Add Campus
+        </button>
+      </div>
 
       {/* ── Campus Map ────────────────────────────────────────────────────── */}
       <InteractiveCampusMap
@@ -698,6 +713,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         }))}
         outdoorSpaces={outdoorMapSpaces}
         editable
+        quickPlaceMode={placingExistingBuilding ? 'building' : null}
+        onQuickPlaceDone={() => setPlacingExistingBuilding(null)}
         onOrgCenterChange={async (lat, lng) => {
           try {
             const res = await fetch('/api/settings/campus/map-data', {
@@ -731,7 +748,29 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             setError('Failed to save building position')
           }
         }}
-        onAddBuildingAtPosition={(lat, lng) => {
+        onAddBuildingAtPosition={async (lat, lng) => {
+          // If placing an existing building, just PATCH its coordinates
+          if (placingExistingBuilding) {
+            const building = placingExistingBuilding
+            setPlacingExistingBuilding(null)
+            try {
+              const res = await fetch(`/api/settings/campus/buildings/${building.id}`, {
+                method: 'PATCH',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ latitude: lat, longitude: lng }),
+              })
+              if (res.ok) {
+                setBuildings((prev) =>
+                  prev.map((b) => (b.id === building.id ? { ...b, latitude: lat, longitude: lng } : b))
+                )
+                setSuccessMessage(`"${building.name}" placed on map`)
+              }
+            } catch {
+              setError('Failed to place building on map')
+            }
+            await loadData()
+            return
+          }
           setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
           setEditingBuilding(null)
           setBuildingDrawerOpen(true)
@@ -1438,6 +1477,42 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       )}
 
       {/* ── Delete/Deactivate Confirm ────────────────────────────────────── */}
+      {/* ── Place on Map Prompt ──────────────────────────────────────────── */}
+      {placeOnMapBuilding && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Place on Map?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Would you like to place <span className="font-medium text-gray-700">{placeOnMapBuilding.name}</span> on the campus map? You can click a spot on the map to set its location.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => setPlaceOnMapBuilding(null)}
+                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+              >
+                Skip for Now
+              </button>
+              <button
+                onClick={() => {
+                  const building = placeOnMapBuilding
+                  setPlaceOnMapBuilding(null)
+                  setPlacingExistingBuilding(building)
+                  // Scroll map into view
+                  const mapEl = document.querySelector('.leaflet-container')
+                  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+              >
+                Place on Map
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {deleteConfirm && (
         <ConfirmDialog
           isOpen={!!deleteConfirm}

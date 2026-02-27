@@ -56,6 +56,8 @@ interface InteractiveCampusMapProps {
   onOutdoorPositionChange?: (areaId: string, lat: number, lng: number) => void
   editable?: boolean
   pendingMarker?: { lat: number; lng: number; label: string; type: 'building' | 'outdoor' } | null
+  quickPlaceMode?: 'building' | 'outdoor' | null
+  onQuickPlaceDone?: () => void
 }
 
 /* ------------------------------------------------------------------ */
@@ -307,6 +309,8 @@ export default function InteractiveCampusMap({
   onOutdoorPositionChange,
   editable = true,
   pendingMarker = null,
+  quickPlaceMode = null,
+  onQuickPlaceDone,
 }: InteractiveCampusMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
@@ -506,8 +510,6 @@ export default function InteractiveCampusMap({
       zIndexOffset: 100,
     }).addTo(map)
 
-    marker.bindTooltip(building.name, { direction: 'top', offset: [0, -20], className: 'campus-tooltip' })
-
     // Build popup with action menu
     const popupContent = document.createElement('div')
     popupContent.style.minWidth = '160px'
@@ -560,7 +562,29 @@ export default function InteractiveCampusMap({
       popupContent.appendChild(menuContainer)
     }
 
-    marker.bindPopup(popupContent)
+    marker.bindPopup(popupContent, { closeButton: false, autoPan: false })
+
+    // Show popup on hover instead of click
+    let hoverTimeout: ReturnType<typeof setTimeout> | null = null
+    marker.on('mouseover', () => {
+      if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null }
+      marker.openPopup()
+    })
+    marker.on('mouseout', () => {
+      hoverTimeout = setTimeout(() => marker.closePopup(), 300)
+    })
+    // Keep popup open while mouse is over the popup itself
+    marker.on('popupopen', () => {
+      const popupEl = marker.getPopup()?.getElement()
+      if (popupEl) {
+        popupEl.addEventListener('mouseenter', () => {
+          if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null }
+        })
+        popupEl.addEventListener('mouseleave', () => {
+          hoverTimeout = setTimeout(() => marker.closePopup(), 300)
+        })
+      }
+    })
 
     if (editable) {
       marker.on('dragend', (e: any) => {
@@ -619,8 +643,6 @@ export default function InteractiveCampusMap({
       zIndexOffset: 50,
     }).addTo(map)
 
-    marker.bindTooltip(space.name, { direction: 'top', offset: [0, -18], className: 'campus-tooltip' })
-
     // Build outdoor popup with action menu
     const outdoorPopup = document.createElement('div')
     outdoorPopup.style.minWidth = '160px'
@@ -660,7 +682,28 @@ export default function InteractiveCampusMap({
       outdoorPopup.appendChild(menuContainer)
     }
 
-    marker.bindPopup(outdoorPopup)
+    marker.bindPopup(outdoorPopup, { closeButton: false, autoPan: false })
+
+    // Show popup on hover instead of click
+    let outdoorHoverTimeout: ReturnType<typeof setTimeout> | null = null
+    marker.on('mouseover', () => {
+      if (outdoorHoverTimeout) { clearTimeout(outdoorHoverTimeout); outdoorHoverTimeout = null }
+      marker.openPopup()
+    })
+    marker.on('mouseout', () => {
+      outdoorHoverTimeout = setTimeout(() => marker.closePopup(), 300)
+    })
+    marker.on('popupopen', () => {
+      const popupEl = marker.getPopup()?.getElement()
+      if (popupEl) {
+        popupEl.addEventListener('mouseenter', () => {
+          if (outdoorHoverTimeout) { clearTimeout(outdoorHoverTimeout); outdoorHoverTimeout = null }
+        })
+        popupEl.addEventListener('mouseleave', () => {
+          outdoorHoverTimeout = setTimeout(() => marker.closePopup(), 300)
+        })
+      }
+    })
 
     if (editable) {
       marker.on('dragend', (e: any) => {
@@ -971,6 +1014,36 @@ export default function InteractiveCampusMap({
       map.getContainer().style.cursor = ''
     }
   }, [placingMode])
+
+  /* ── Quick-place mode (external trigger, no popover) ───────────── */
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !quickPlaceMode) return
+
+    const handleClick = (e: any) => {
+      if (quickPlaceMode === 'building' && onAddBuildingAtPosition) {
+        onAddBuildingAtPosition(e.latlng.lat, e.latlng.lng)
+      } else if (quickPlaceMode === 'outdoor' && onAddOutdoorSpaceAtPosition) {
+        onAddOutdoorSpaceAtPosition(e.latlng.lat, e.latlng.lng)
+      }
+      if (onQuickPlaceDone) onQuickPlaceDone()
+    }
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && onQuickPlaceDone) onQuickPlaceDone()
+    }
+
+    map.on('click', handleClick)
+    document.addEventListener('keydown', handleEscape)
+    map.getContainer().style.cursor = 'crosshair'
+
+    return () => {
+      map.off('click', handleClick)
+      document.removeEventListener('keydown', handleEscape)
+      map.getContainer().style.cursor = ''
+    }
+  }, [quickPlaceMode, onAddBuildingAtPosition, onAddOutdoorSpaceAtPosition, onQuickPlaceDone])
 
   const handlePopoverSelectBuilding = () => {
     if (clickPopover && onAddBuildingAtPosition) {
@@ -1409,12 +1482,13 @@ export default function InteractiveCampusMap({
       </div>
 
       {/* Status bar */}
-      {(editingPolygon || placingMode || drawingMode || clickPopover) && (
+      {(editingPolygon || placingMode || drawingMode || clickPopover || quickPlaceMode) && (
         <div className="px-4 py-2 border-t border-gray-200 bg-amber-50 text-xs text-amber-700 font-medium">
           {drawingMode && 'Click on the map to place outline points. Place at least 3 points, then click Done.'}
           {editingPolygon && !drawingMode && 'Drag vertices to adjust the outline, then save'}
           {placingMode && !clickPopover && 'Click anywhere on the map to place a building or outdoor space'}
           {clickPopover && 'Select what you placed — Building or Outdoor Space'}
+          {quickPlaceMode && 'Click on the map to place the building. Press Escape to cancel.'}
         </div>
       )}
     </div>
