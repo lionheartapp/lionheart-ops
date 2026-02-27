@@ -7,6 +7,7 @@
 
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
+import { getOrgContextId } from '@/lib/org-context'
 
 // ============= Validation Schemas =============
 
@@ -101,8 +102,10 @@ export async function getDefaultCampus() {
  * Create a new campus.
  */
 export async function createCampus(input: CreateCampusInput) {
+  const organizationId = getOrgContextId()
   return prisma.campus.create({
     data: {
+      organizationId,
       name: input.name,
       address: input.address ?? null,
       latitude: input.latitude ?? null,
@@ -220,8 +223,10 @@ export async function assignUserToCampus(input: {
   startsAt?: string | null
   endsAt?: string | null
 }) {
+  const organizationId = getOrgContextId()
   return prisma.userCampusAssignment.create({
     data: {
+      organizationId,
       userId: input.userId,
       campusId: input.campusId,
       isPrimary: input.isPrimary ?? false,
