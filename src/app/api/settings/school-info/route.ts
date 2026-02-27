@@ -208,6 +208,16 @@ export async function PATCH(req: NextRequest) {
 
     const input = SchoolInfoSchema.parse(body)
 
+    // Geocode address before saving so coordinates are available immediately
+    const newAddress = toNullable(input.physicalAddress)
+    let geoData: { latitude?: number; longitude?: number } = {}
+    if (newAddress) {
+      const coords = await geocodeAddress(newAddress)
+      if (coords) {
+        geoData = { latitude: coords.lat, longitude: coords.lng }
+      }
+    }
+
     const updated = await prisma.organization.update({
       where: { id: orgId },
       data: {
@@ -231,6 +241,7 @@ export async function PATCH(req: NextRequest) {
         logoUrl: toNullable(input.logoUrl),
         heroImageUrl: toNullable(input.heroImageUrl),
         imagePosition: input.imagePosition || 'LEFT',
+        ...geoData,
       },
       select: {
         id: true,
@@ -258,19 +269,6 @@ export async function PATCH(req: NextRequest) {
         updatedAt: true,
       },
     })
-
-    // Geocode address in the background if it changed
-    const newAddress = toNullable(input.physicalAddress)
-    if (newAddress) {
-      geocodeAddress(newAddress).then(async (coords) => {
-        if (coords) {
-          await prisma.organization.update({
-            where: { id: orgId },
-            data: { latitude: coords.lat, longitude: coords.lng },
-          })
-        }
-      }).catch((err) => console.error('[GEOCODE] Background geocoding failed:', err))
-    }
 
     return NextResponse.json(ok(updated))
   } catch (error) {
