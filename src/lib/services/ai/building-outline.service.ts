@@ -32,33 +32,44 @@ export class BuildingOutlineService {
   ): Promise<PixelCoord[] | null> {
     if (!this.client) return null
 
-    const prompt = `You are analyzing a satellite/aerial image of a campus. The image is ${imageWidth}x${imageHeight} pixels.
+    const prompt = `You are a computer vision expert specializing in building footprint extraction from satellite imagery.
 
-There is a building called "${buildingName}" near the center of this image.
+IMAGE: A ${imageWidth}x${imageHeight} pixel satellite/aerial image. The building "${buildingName}" should be near the center.
 
-Your task: Identify the outline (perimeter/footprint) of this building and return the polygon coordinates as pixel positions within the image.
+TASK: Identify and precisely trace the roofline outline (footprint polygon) of the most prominent building structure nearest to the center of the image.
 
-Return ONLY valid JSON with this exact structure (no markdown fences, no commentary):
+IDENTIFICATION TIPS:
+- Buildings typically appear as rectangular or L-shaped structures with uniform coloring (gray, brown, white, or dark rooftops)
+- Look for sharp edges and straight lines that contrast with surrounding terrain
+- The building roof will have consistent color/texture distinct from surrounding grass, pavement, or shadows
+- Shadows often appear on one side of the building and can help identify edges
+- Ignore roads, parking lots, sports fields, and vegetation
+
+TRACING RULES:
+- Trace the OUTER EDGE of the roofline precisely
+- Follow the actual shape: if the building is L-shaped, T-shaped, or has wings, include all sections
+- Use 6-20 vertex points to accurately capture the shape
+- More vertices for complex shapes, fewer for simple rectangles
+- Go CLOCKWISE around the perimeter starting from the top-left corner
+- All x coordinates must be between 0 and ${imageWidth}
+- All y coordinates must be between 0 and ${imageHeight}
+- Place vertices at CORNERS where the roofline changes direction
+- For curved sections, approximate with multiple closely-spaced points
+
+Return ONLY valid JSON (no markdown fences, no extra text):
 {
   "found": true,
   "confidence": 0.85,
   "pixelCoordinates": [
-    {"x": 120, "y": 80},
-    {"x": 350, "y": 80},
-    {"x": 350, "y": 320},
-    {"x": 120, "y": 320}
+    {"x": 100, "y": 50},
+    {"x": 200, "y": 50},
+    {"x": 200, "y": 150},
+    {"x": 100, "y": 150}
   ],
-  "description": "Rectangular building with dark roof"
+  "description": "Large rectangular building with dark gray roof"
 }
 
-Rules:
-- Look for the most prominent building structure near the center of the image
-- Trace the roofline/footprint outline of just that building
-- Provide 4-12 vertex points following the actual shape (not just a rectangle unless it IS rectangular)
-- Coordinates must be within 0-${imageWidth} for x and 0-${imageHeight} for y
-- Points should go clockwise around the building perimeter
-- If you cannot identify a clear building, set "found" to false and return empty pixelCoordinates
-- Only detect one building — the main one nearest the center`
+If no clear building is visible near center, return: {"found": false, "confidence": 0, "pixelCoordinates": [], "description": "reason"}`
 
     try {
       const result = await this.client.models.generateContent({

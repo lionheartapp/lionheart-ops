@@ -122,8 +122,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         )
       }
 
-      // Fetch satellite tile at zoom 19 (high detail for building detection)
-      const zoom = 19
+      // Fetch satellite tile at zoom 20 (maximum detail for building detection)
+      const zoom = 20
       const imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
 
       if (!imageBase64) {

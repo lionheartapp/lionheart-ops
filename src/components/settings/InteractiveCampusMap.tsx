@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check } from 'lucide-react'
+import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check, TreePine } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -18,6 +18,16 @@ interface Building {
   code: string | null
   latitude: number | null
   longitude: number | null
+  schoolDivision?: string
+  polygonCoordinates?: LatLng[] | null
+}
+
+interface OutdoorSpace {
+  id: string
+  name: string
+  areaType: string
+  lat: number | null
+  lng: number | null
   polygonCoordinates?: LatLng[] | null
 }
 
@@ -29,10 +39,15 @@ interface MapConfig {
 
 interface InteractiveCampusMapProps {
   buildings: Building[]
+  outdoorSpaces?: OutdoorSpace[]
   onBuildingPositionChange?: (buildingId: string, lat: number, lng: number) => void
   onAddBuildingAtPosition?: (lat: number, lng: number) => void
+  onAddOutdoorSpaceAtPosition?: (lat: number, lng: number) => void
   onBuildingSelected?: (buildingId: string) => void
   onPolygonSaved?: (buildingId: string, coordinates: LatLng[]) => void
+  onOutdoorPolygonSaved?: (areaId: string, coordinates: LatLng[]) => void
+  onOrgCenterChange?: (lat: number, lng: number) => void
+  onOutdoorPositionChange?: (areaId: string, lat: number, lng: number) => void
   editable?: boolean
 }
 
@@ -77,41 +92,102 @@ function loadLeaflet(): Promise<void> {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Building colors                                                    */
+/*  Division-based color mapping                                       */
 /* ------------------------------------------------------------------ */
 
-const BUILDING_COLORS = [
-  '#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706',
-  '#dc2626', '#db2777', '#4f46e5', '#0d9488', '#ca8a04',
-]
+const DIVISION_COLORS: Record<string, string> = {
+  ELEMENTARY: '#7c3aed',   // Purple
+  MIDDLE_SCHOOL: '#0891b2', // Cyan
+  HIGH_SCHOOL: '#dc2626',   // Red
+  GLOBAL: '#2563eb',        // Blue (default)
+}
 
-function getBuildingColor(index: number): string {
-  return BUILDING_COLORS[index % BUILDING_COLORS.length]
+const OUTDOOR_TYPE_COLORS: Record<string, string> = {
+  FIELD: '#16a34a',    // Green
+  COURT: '#ea580c',    // Orange
+  GYM: '#dc2626',      // Red
+  COMMON: '#0891b2',   // Cyan
+  PARKING: '#6b7280',  // Gray
+  OTHER: '#059669',    // Emerald
+}
+
+function getBuildingColor(building: Building): string {
+  return DIVISION_COLORS[building.schoolDivision || 'GLOBAL'] || DIVISION_COLORS.GLOBAL
+}
+
+function getOutdoorColor(space: OutdoorSpace): string {
+  return OUTDOOR_TYPE_COLORS[space.areaType] || OUTDOOR_TYPE_COLORS.OTHER
 }
 
 /* ------------------------------------------------------------------ */
-/*  Custom marker icon builder                                         */
+/*  Custom marker icon builders                                        */
 /* ------------------------------------------------------------------ */
 
-function createBuildingIcon(L: any, label: string, color = '#2563eb') {
+/** Circular icon for buildings — matches school center style but in building color */
+function createBuildingCircleIcon(L: any, label: string, color = '#2563eb') {
   return L.divIcon({
     className: 'campus-building-marker',
     html: `
       <div style="
         display: flex; align-items: center; gap: 6px;
-        background: ${color}; color: white;
-        padding: 4px 10px; border-radius: 20px;
-        font-size: 12px; font-weight: 600;
-        white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        border: 2px solid white; cursor: grab;
         transform: translate(-50%, -50%);
       ">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-          <path d="M9 22V12h6v10"/>
-          <path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01"/>
-        </svg>
-        ${label}
+        <div style="
+          display: flex; align-items: center; justify-content: center;
+          width: 32px; height: 32px; border-radius: 50%;
+          background: ${color}; border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          flex-shrink: 0;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+            <path d="M9 22V12h6v10"/>
+            <path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01"/>
+          </svg>
+        </div>
+        <div style="
+          background: ${color}; color: white;
+          padding: 2px 8px; border-radius: 10px;
+          font-size: 11px; font-weight: 700;
+          white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+          border: 1px solid rgba(255,255,255,0.5);
+        ">${label}</div>
+      </div>
+    `,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  })
+}
+
+/** Circular icon for outdoor spaces */
+function createOutdoorIcon(L: any, label: string, color = '#16a34a') {
+  return L.divIcon({
+    className: 'campus-outdoor-marker',
+    html: `
+      <div style="
+        display: flex; align-items: center; gap: 6px;
+        transform: translate(-50%, -50%);
+      ">
+        <div style="
+          display: flex; align-items: center; justify-content: center;
+          width: 28px; height: 28px; border-radius: 50%;
+          background: ${color}; border: 2px solid white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          flex-shrink: 0;
+        ">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 14v6m-3-3h6M6 3v12"/>
+            <path d="M6 3c0 0 3 2 6 2s6-2 6-2"/>
+            <path d="M6 8c0 0 3 2 6 2s6-2 6-2"/>
+          </svg>
+        </div>
+        <div style="
+          background: ${color}; color: white;
+          padding: 2px 7px; border-radius: 10px;
+          font-size: 10px; font-weight: 700;
+          white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+          border: 1px solid rgba(255,255,255,0.5);
+        ">${label}</div>
       </div>
     `,
     iconSize: [0, 0],
@@ -125,14 +201,15 @@ function createOrgIcon(L: any) {
     html: `
       <div style="
         display: flex; align-items: center; justify-content: center;
-        width: 36px; height: 36px; border-radius: 50%;
+        width: 40px; height: 40px; border-radius: 50%;
         background: #dc2626; border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.35);
         transform: translate(-50%, -50%);
+        cursor: grab;
       ">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
       </div>
     `,
@@ -173,10 +250,15 @@ function createPolygonLabel(L: any, name: string, color: string) {
 
 export default function InteractiveCampusMap({
   buildings,
+  outdoorSpaces = [],
   onBuildingPositionChange,
   onAddBuildingAtPosition,
+  onAddOutdoorSpaceAtPosition,
   onBuildingSelected,
   onPolygonSaved,
+  onOutdoorPolygonSaved,
+  onOrgCenterChange,
+  onOutdoorPositionChange,
   editable = true,
 }: InteractiveCampusMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -184,9 +266,10 @@ export default function InteractiveCampusMap({
   const markersRef = useRef<Map<string, any>>(new Map())
   const polygonsRef = useRef<Map<string, any>>(new Map())
   const labelsRef = useRef<Map<string, any>>(new Map())
+  const orgMarkerRef = useRef<any>(null)
   const [loading, setLoading] = useState(true)
   const [mapConfig, setMapConfig] = useState<MapConfig | null>(null)
-  const [isPlacingMode, setIsPlacingMode] = useState(false)
+  const [placingMode, setPlacingMode] = useState<'building' | 'outdoor' | null>(null)
   const [activeLayer, setActiveLayer] = useState<'satellite' | 'street'>('satellite')
   const [pendingMoves, setPendingMoves] = useState<Map<string, { lat: number; lng: number }>>(new Map())
   const tileLayersRef = useRef<{ satellite: any; street: any }>({ satellite: null, street: null })
@@ -206,7 +289,7 @@ export default function InteractiveCampusMap({
     'Content-Type': 'application/json',
   })
 
-  // Fetch org location
+  // Fetch org location + outdoor spaces from map-data
   useEffect(() => {
     if (!token) return
     fetch('/api/settings/campus/map-data', {
@@ -267,22 +350,48 @@ export default function InteractiveCampusMap({
       tileLayersRef.current = { satellite, street }
       mapInstanceRef.current = map
 
-      // Org center marker
-      L.marker([mapConfig.center.lat, mapConfig.center.lng], {
+      // Org center marker — DRAGGABLE
+      const orgMarker = L.marker([mapConfig.center.lat, mapConfig.center.lng], {
         icon: createOrgIcon(L),
-        zIndexOffset: -100,
-      })
-        .addTo(map)
-        .bindPopup(`<strong>${mapConfig.orgName}</strong><br/>${mapConfig.address || ''}`)
+        draggable: editable,
+        zIndexOffset: 500,
+      }).addTo(map)
+
+      orgMarker.bindPopup(
+        `<strong>${mapConfig.orgName}</strong><br/>${mapConfig.address || ''}` +
+        (editable ? '<br/><span style="color:#dc2626;font-size:11px;">Drag to reposition center</span>' : '')
+      )
+
+      if (editable) {
+        orgMarker.on('dragend', (e: any) => {
+          const latlng = e.target.getLatLng()
+          if (onOrgCenterChange) {
+            onOrgCenterChange(latlng.lat, latlng.lng)
+          }
+        })
+      }
+      orgMarkerRef.current = orgMarker
 
       // Render buildings
-      buildings.forEach((b, i) => {
+      buildings.forEach((b) => {
         if (b.latitude && b.longitude) {
-          const color = getBuildingColor(i)
+          const color = getBuildingColor(b)
           if (b.polygonCoordinates && b.polygonCoordinates.length >= 3) {
             addBuildingPolygon(L, map, b, color)
           } else {
             addBuildingMarker(L, map, b, color)
+          }
+        }
+      })
+
+      // Render outdoor spaces
+      outdoorSpaces.forEach((space) => {
+        if (space.lat && space.lng) {
+          const color = getOutdoorColor(space)
+          if (space.polygonCoordinates && space.polygonCoordinates.length >= 3) {
+            addOutdoorPolygon(L, map, space, color)
+          } else {
+            addOutdoorMarker(L, map, space, color)
           }
         }
       })
@@ -299,6 +408,7 @@ export default function InteractiveCampusMap({
       markersRef.current.clear()
       polygonsRef.current.clear()
       labelsRef.current.clear()
+      orgMarkerRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapConfig])
@@ -319,7 +429,6 @@ export default function InteractiveCampusMap({
       className: 'campus-building-polygon',
     }).addTo(map)
 
-    // Tooltip on hover
     polygon.bindTooltip(building.name, {
       sticky: true,
       className: 'campus-tooltip',
@@ -327,14 +436,12 @@ export default function InteractiveCampusMap({
       offset: [0, -10],
     })
 
-    // Click handler
     polygon.on('click', () => {
       if (onBuildingSelected) onBuildingSelected(building.id)
     })
 
     polygonsRef.current.set(building.id, polygon)
 
-    // Add a centered label
     const center = polygon.getBounds().getCenter()
     const label = L.marker(center, {
       icon: createPolygonLabel(L, building.code || building.name, color),
@@ -345,16 +452,16 @@ export default function InteractiveCampusMap({
 
   /* ── Add building as marker (no polygon yet) ─────────────────────── */
 
-  const addBuildingMarker = useCallback((L: any, map: any, building: Building, color: string = '#2563eb') => {
+  const addBuildingMarker = useCallback((L: any, map: any, building: Building, color: string) => {
     if (!building.latitude || !building.longitude) return
 
     const marker = L.marker([building.latitude, building.longitude], {
-      icon: createBuildingIcon(L, building.code || building.name, color),
+      icon: createBuildingCircleIcon(L, building.code || building.name, color),
       draggable: editable,
       zIndexOffset: 100,
     }).addTo(map)
 
-    // Build popup HTML with detect outline button
+    // Build popup with detect outline button
     const popupContent = document.createElement('div')
     popupContent.style.minWidth = '160px'
     popupContent.innerHTML = `
@@ -393,6 +500,67 @@ export default function InteractiveCampusMap({
     markersRef.current.set(building.id, marker)
   }, [editable])
 
+  /* ── Add outdoor space as polygon ────────────────────────────────── */
+
+  const addOutdoorPolygon = useCallback((L: any, map: any, space: OutdoorSpace, color: string) => {
+    if (!space.polygonCoordinates || space.polygonCoordinates.length < 3) return
+
+    const coords = space.polygonCoordinates.map((p: LatLng) => [p.lat, p.lng])
+
+    const polygon = L.polygon(coords, {
+      color: color,
+      weight: 2,
+      opacity: 0.8,
+      fillColor: color,
+      fillOpacity: 0.15,
+      dashArray: '4 3',
+    }).addTo(map)
+
+    polygon.bindTooltip(space.name, {
+      sticky: true,
+      direction: 'top',
+      offset: [0, -10],
+    })
+
+    polygonsRef.current.set(`outdoor-${space.id}`, polygon)
+
+    const center = polygon.getBounds().getCenter()
+    const label = L.marker(center, {
+      icon: createPolygonLabel(L, space.name, color),
+      interactive: false,
+    }).addTo(map)
+    labelsRef.current.set(`outdoor-${space.id}`, label)
+  }, [])
+
+  /* ── Add outdoor space as marker ─────────────────────────────────── */
+
+  const addOutdoorMarker = useCallback((L: any, map: any, space: OutdoorSpace, color: string) => {
+    if (!space.lat || !space.lng) return
+
+    const marker = L.marker([space.lat, space.lng], {
+      icon: createOutdoorIcon(L, space.name, color),
+      draggable: editable,
+      zIndexOffset: 50,
+    }).addTo(map)
+
+    marker.bindPopup(
+      `<strong style="font-size:14px;">${space.name}</strong>` +
+      `<br/><span style="color:#6b7280;font-size:12px;">${space.areaType.replace('_', ' ')}</span>` +
+      (editable ? '<br/><span style="color:#16a34a;font-size:11px;">Drag to reposition</span>' : '')
+    )
+
+    if (editable) {
+      marker.on('dragend', (e: any) => {
+        const latlng = e.target.getLatLng()
+        if (onOutdoorPositionChange) {
+          onOutdoorPositionChange(space.id, latlng.lat, latlng.lng)
+        }
+      })
+    }
+
+    markersRef.current.set(`outdoor-${space.id}`, marker)
+  }, [editable, onOutdoorPositionChange])
+
   /* ── AI outline detection ────────────────────────────────────────── */
 
   const handleDetectOutline = async (buildingId: string) => {
@@ -424,12 +592,10 @@ export default function InteractiveCampusMap({
     const map = mapInstanceRef.current
     if (!L || !map) return
 
-    // Clear any existing editing polygon
     clearEditingPolygon()
 
     const coords = coordinates.map((p) => [p.lat, p.lng])
 
-    // Create the polygon
     const polygon = L.polygon(coords, {
       color: '#f59e0b',
       weight: 3,
@@ -441,9 +607,8 @@ export default function InteractiveCampusMap({
 
     editingPolygonLayerRef.current = polygon
 
-    // Create draggable vertex markers
     const vertexMarkers: any[] = []
-    coordinates.forEach((coord, idx) => {
+    coordinates.forEach((coord) => {
       const vertexIcon = L.divIcon({
         className: 'polygon-vertex',
         html: `<div style="
@@ -462,11 +627,9 @@ export default function InteractiveCampusMap({
       }).addTo(map)
 
       vertexMarker.on('drag', () => {
-        // Update polygon shape as vertex is dragged
         const newCoords = vertexMarkers.map((vm) => vm.getLatLng())
         polygon.setLatLngs(newCoords)
 
-        // Update editing state
         setEditingPolygon((prev) => {
           if (!prev) return prev
           const updated = vertexMarkers.map((vm) => {
@@ -481,8 +644,6 @@ export default function InteractiveCampusMap({
     })
 
     editingVertexMarkersRef.current = vertexMarkers
-
-    // Zoom to the polygon
     map.fitBounds(polygon.getBounds(), { padding: [60, 60], maxZoom: 19 })
   }
 
@@ -503,7 +664,6 @@ export default function InteractiveCampusMap({
     onPolygonSaved(editingPolygon.buildingId, editingPolygon.coordinates)
     clearEditingPolygon()
 
-    // Replace the marker with a polygon on the map
     const L = (window as any).L
     const map = mapInstanceRef.current
     if (L && map) {
@@ -515,8 +675,7 @@ export default function InteractiveCampusMap({
 
       const building = buildings.find((b) => b.id === editingPolygon.buildingId)
       if (building) {
-        const idx = buildings.indexOf(building)
-        addBuildingPolygon(L, map, { ...building, polygonCoordinates: editingPolygon.coordinates }, getBuildingColor(idx))
+        addBuildingPolygon(L, map, { ...building, polygonCoordinates: editingPolygon.coordinates }, getBuildingColor(building))
       }
     }
 
@@ -532,13 +691,15 @@ export default function InteractiveCampusMap({
 
   useEffect(() => {
     const map = mapInstanceRef.current
-    if (!map || !isPlacingMode) return
+    if (!map || !placingMode) return
 
     const handleClick = (e: any) => {
-      if (onAddBuildingAtPosition) {
+      if (placingMode === 'building' && onAddBuildingAtPosition) {
         onAddBuildingAtPosition(e.latlng.lat, e.latlng.lng)
+      } else if (placingMode === 'outdoor' && onAddOutdoorSpaceAtPosition) {
+        onAddOutdoorSpaceAtPosition(e.latlng.lat, e.latlng.lng)
       }
-      setIsPlacingMode(false)
+      setPlacingMode(null)
     }
 
     map.on('click', handleClick)
@@ -548,7 +709,7 @@ export default function InteractiveCampusMap({
       map.off('click', handleClick)
       map.getContainer().style.cursor = ''
     }
-  }, [isPlacingMode, onAddBuildingAtPosition])
+  }, [placingMode, onAddBuildingAtPosition, onAddOutdoorSpaceAtPosition])
 
   // Update markers when buildings change
   useEffect(() => {
@@ -556,9 +717,9 @@ export default function InteractiveCampusMap({
     const map = mapInstanceRef.current
     if (!L || !map) return
 
-    buildings.forEach((b, i) => {
+    buildings.forEach((b) => {
       if (b.latitude && b.longitude && !markersRef.current.has(b.id) && !polygonsRef.current.has(b.id)) {
-        const color = getBuildingColor(i)
+        const color = getBuildingColor(b)
         if (b.polygonCoordinates && b.polygonCoordinates.length >= 3) {
           addBuildingPolygon(L, map, b, color)
         } else {
@@ -567,6 +728,25 @@ export default function InteractiveCampusMap({
       }
     })
   }, [buildings, addBuildingMarker, addBuildingPolygon])
+
+  // Update outdoor space markers when they change
+  useEffect(() => {
+    const L = (window as any).L
+    const map = mapInstanceRef.current
+    if (!L || !map) return
+
+    outdoorSpaces.forEach((space) => {
+      const key = `outdoor-${space.id}`
+      if (space.lat && space.lng && !markersRef.current.has(key) && !polygonsRef.current.has(key)) {
+        const color = getOutdoorColor(space)
+        if (space.polygonCoordinates && space.polygonCoordinates.length >= 3) {
+          addOutdoorPolygon(L, map, space, color)
+        } else {
+          addOutdoorMarker(L, map, space, color)
+        }
+      }
+    })
+  }, [outdoorSpaces, addOutdoorMarker, addOutdoorPolygon])
 
   const toggleLayer = () => {
     const map = mapInstanceRef.current
@@ -606,6 +786,11 @@ export default function InteractiveCampusMap({
     buildings.forEach((b) => {
       if (b.latitude && b.longitude) {
         points.push([b.latitude, b.longitude])
+      }
+    })
+    outdoorSpaces.forEach((s) => {
+      if (s.lat && s.lng) {
+        points.push([s.lat, s.lng])
       }
     })
 
@@ -681,15 +866,29 @@ export default function InteractiveCampusMap({
 
               {editable && onAddBuildingAtPosition && (
                 <button
-                  onClick={() => setIsPlacingMode(!isPlacingMode)}
+                  onClick={() => setPlacingMode(placingMode === 'building' ? null : 'building')}
                   className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    isPlacingMode
-                      ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    placingMode === 'building'
+                      ? 'bg-blue-100 text-blue-800 border border-blue-300'
                       : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
                   }`}
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  {isPlacingMode ? 'Click map to place...' : 'Place Building'}
+                  {placingMode === 'building' ? 'Click map...' : 'Place Building'}
+                </button>
+              )}
+
+              {editable && onAddOutdoorSpaceAtPosition && (
+                <button
+                  onClick={() => setPlacingMode(placingMode === 'outdoor' ? null : 'outdoor')}
+                  className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    placingMode === 'outdoor'
+                      ? 'bg-green-100 text-green-800 border border-green-300'
+                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <TreePine className="w-3.5 h-3.5" />
+                  {placingMode === 'outdoor' ? 'Click map...' : 'Place Outdoor'}
                 </button>
               )}
 
@@ -722,31 +921,63 @@ export default function InteractiveCampusMap({
         )}
         <div
           ref={mapContainerRef}
-          style={{ height: 450, width: '100%', position: 'relative', zIndex: 0 }}
+          style={{ height: 500, width: '100%', position: 'relative', zIndex: 0 }}
         />
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 px-4 py-2.5 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-4 px-4 py-2.5 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-red-600 border-2 border-white shadow-sm" />
           School Center
         </div>
         <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-sm" />
+          Building
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-green-600 border-2 border-white shadow-sm" />
+          Outdoor
+        </div>
+        <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded bg-blue-600/30 border border-blue-600" />
-          Building Outline
+          Outline
         </div>
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-3 h-3 text-purple-500" />
-          AI Detection
+          AI Detect
         </div>
-        {editable && !editingPolygon && (
-          <span className="ml-auto text-gray-400">Click a marker to detect its outline</span>
-        )}
-        {editingPolygon && (
-          <span className="ml-auto text-amber-600 font-medium">Drag vertices to adjust, then save</span>
-        )}
+
+        {/* Division color legend */}
+        <div className="flex items-center gap-3 ml-auto">
+          <span className="text-gray-400">|</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.GLOBAL }} />
+            <span>Global</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.ELEMENTARY }} />
+            <span>Elem</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.MIDDLE_SCHOOL }} />
+            <span>Middle</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.HIGH_SCHOOL }} />
+            <span>High</span>
+          </div>
+        </div>
       </div>
+
+      {/* Status bar */}
+      {(editingPolygon || placingMode) && (
+        <div className="px-4 py-2 border-t border-gray-200 bg-amber-50 text-xs text-amber-700 font-medium">
+          {editingPolygon && 'Drag vertices to adjust the outline, then save'}
+          {placingMode === 'building' && 'Click anywhere on the map to place a new building'}
+          {placingMode === 'outdoor' && 'Click anywhere on the map to place a new outdoor space'}
+        </div>
+      )}
     </div>
   )
 }

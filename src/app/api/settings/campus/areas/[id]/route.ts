@@ -15,6 +15,12 @@ const UpdateAreaSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   areaType: z.enum(['FIELD', 'COURT', 'GYM', 'COMMON', 'PARKING', 'OTHER']).optional(),
   buildingId: z.string().optional().nullable(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
+  polygonCoordinates: z.array(z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  })).min(3).optional().nullable(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
 })
@@ -82,6 +88,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           ...(input.name !== undefined ? { name: input.name } : {}),
           ...(input.areaType !== undefined ? { areaType: input.areaType } : {}),
           ...(input.buildingId !== undefined ? { buildingId: input.buildingId || null } : {}),
+          ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+          ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
+          ...(input.polygonCoordinates !== undefined ? { polygonCoordinates: input.polygonCoordinates } : {}),
           ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
           ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
         },

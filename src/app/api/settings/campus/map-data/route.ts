@@ -49,6 +49,23 @@ export async function GET(req: NextRequest) {
         ORDER BY "sortOrder" ASC, name ASC
       `
 
+      const outdoorRows = await rawPrisma.$queryRaw<Array<{
+        id: string
+        name: string
+        areaType: string
+        latitude: number | null
+        longitude: number | null
+        polygonCoordinates: unknown | null
+      }>>`
+        SELECT id, name, "areaType", latitude, longitude, "polygonCoordinates"
+        FROM "Area"
+        WHERE "organizationId" = ${orgId}
+          AND "buildingId" IS NULL
+          AND "isActive" = true
+          AND "deletedAt" IS NULL
+        ORDER BY "sortOrder" ASC, name ASC
+      `
+
       const org = orgRows[0] || null
 
       return NextResponse.json(ok({
@@ -68,6 +85,14 @@ export async function GET(req: NextRequest) {
             lng: b.longitude,
             polygonCoordinates: b.polygonCoordinates || null,
           })),
+        outdoorSpaces: outdoorRows.map(a => ({
+          id: a.id,
+          name: a.name,
+          areaType: a.areaType,
+          lat: a.latitude,
+          lng: a.longitude,
+          polygonCoordinates: a.polygonCoordinates || null,
+        })),
       }))
     })
   } catch (error) {
@@ -78,5 +103,36 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch map data'), { status: 500 })
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const orgId = getOrgIdFromRequest(req)
+    const userContext = await getUserContext(req)
+    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+
+    const body = await req.json()
+    const { latitude, longitude } = body
+
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      return NextResponse.json(fail('VALIDATION_ERROR', 'latitude and longitude are required numbers'), { status: 400 })
+    }
+
+    await rawPrisma.$executeRaw`
+      UPDATE "Organization"
+      SET latitude = ${latitude}, longitude = ${longitude}, "updatedAt" = NOW()
+      WHERE id = ${orgId}
+    `
+
+    return NextResponse.json(ok({ latitude, longitude }))
+  } catch (error) {
+    if (isAuthError(error)) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
+    }
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update map center'), { status: 500 })
   }
 }

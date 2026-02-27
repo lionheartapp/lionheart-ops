@@ -104,7 +104,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
   // ─── Map building placement ──────────────────────────────────────────────
   const [pendingBuildingCoords, setPendingBuildingCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [pendingOutdoorCoords, setPendingOutdoorCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
+  const [outdoorMapSpaces, setOutdoorMapSpaces] = useState<any[]>([])
 
   // ─── Feedback ────────────────────────────────────────────────────────────
   const [error, setError] = useState('')
@@ -160,13 +162,24 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/settings/campus', { headers: getAuthHeaders() })
-      if (handleAuthResponse(res)) return
-      const json = await res.json()
-      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to load campus data')
-      setBuildings(json.data.buildings || [])
-      setAreas(json.data.areas || [])
-      setRooms(json.data.rooms || [])
+      const [campusRes, mapRes] = await Promise.all([
+        fetch('/api/settings/campus', { headers: getAuthHeaders() }),
+        fetch('/api/settings/campus/map-data', { headers: getAuthHeaders() }),
+      ])
+      if (handleAuthResponse(campusRes)) return
+      const campusJson = await campusRes.json()
+      if (!campusRes.ok || !campusJson.ok) throw new Error(campusJson?.error?.message || 'Failed to load campus data')
+      setBuildings(campusJson.data.buildings || [])
+      setAreas(campusJson.data.areas || [])
+      setRooms(campusJson.data.rooms || [])
+
+      // Load outdoor space map positions
+      if (mapRes.ok) {
+        const mapJson = await mapRes.json()
+        if (mapJson.ok && mapJson.data?.outdoorSpaces) {
+          setOutdoorMapSpaces(mapJson.data.outdoorSpaces)
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load campus data')
     } finally {
@@ -271,13 +284,19 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       const res = await fetch(url, {
         method: editingOutdoor ? 'PATCH' : 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ name, areaType: outdoorForm.areaType, buildingId: null }),
+        body: JSON.stringify({
+          name,
+          areaType: outdoorForm.areaType,
+          buildingId: null,
+          ...(pendingOutdoorCoords && !editingOutdoor ? { latitude: pendingOutdoorCoords.lat, longitude: pendingOutdoorCoords.lng } : {}),
+        }),
       })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save outdoor space')
       setOutdoorDrawerOpen(false)
       setEditingOutdoor(null)
+      setPendingOutdoorCoords(null)
       setSuccessMessage(editingOutdoor ? 'Outdoor space updated' : 'Outdoor space added')
       await loadData()
     } catch (e) {
@@ -452,9 +471,26 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           code: b.code,
           latitude: b.latitude,
           longitude: b.longitude,
+          schoolDivision: b.schoolDivision,
           polygonCoordinates: (b as any).polygonCoordinates || null,
         }))}
+        outdoorSpaces={outdoorMapSpaces}
         editable
+        onOrgCenterChange={async (lat, lng) => {
+          try {
+            const res = await fetch('/api/settings/campus/map-data', {
+              method: 'PATCH',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ latitude: lat, longitude: lng }),
+            })
+            if (res.ok) {
+              setSuccessMessage('School center position updated')
+              setTimeout(() => setSuccessMessage(''), 3000)
+            }
+          } catch {
+            setError('Failed to save school center position')
+          }
+        }}
         onBuildingPositionChange={async (buildingId, lat, lng) => {
           try {
             const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, {
@@ -479,6 +515,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           setBuildingDrawerOpen(true)
           setPendingBuildingCoords({ lat, lng })
         }}
+        onAddOutdoorSpaceAtPosition={(lat, lng) => {
+          setOutdoorForm({ name: '', areaType: 'FIELD' })
+          setEditingOutdoor(null)
+          setOutdoorDrawerOpen(true)
+          setPendingOutdoorCoords({ lat, lng })
+        }}
         onBuildingSelected={(buildingId) => {
           setSelectedMapBuildingId(buildingId)
         }}
@@ -498,6 +540,21 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             }
           } catch {
             setError('Failed to save building outline')
+          }
+        }}
+        onOutdoorPositionChange={async (areaId, lat, lng) => {
+          try {
+            const res = await fetch(`/api/settings/campus/areas/${areaId}`, {
+              method: 'PATCH',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ latitude: lat, longitude: lng }),
+            })
+            if (res.ok) {
+              setSuccessMessage('Outdoor space position updated')
+              setTimeout(() => setSuccessMessage(''), 3000)
+            }
+          } catch {
+            setError('Failed to save outdoor space position')
           }
         }}
       />

@@ -11,6 +11,12 @@ const CreateAreaSchema = z.object({
   name: z.string().trim().min(1).max(120),
   areaType: z.enum(['FIELD', 'COURT', 'GYM', 'COMMON', 'PARKING', 'OTHER']).optional(),
   buildingId: z.string().optional().nullable(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
+  polygonCoordinates: z.array(z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  })).min(3).optional().nullable(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
 })
@@ -80,6 +86,9 @@ export async function POST(req: NextRequest) {
           name: input.name,
           areaType: input.areaType || 'OTHER',
           buildingId: input.buildingId || null,
+          latitude: input.latitude ?? null,
+          longitude: input.longitude ?? null,
+          polygonCoordinates: input.polygonCoordinates ?? null,
           sortOrder: input.sortOrder ?? 0,
           isActive: input.isActive ?? true,
         },

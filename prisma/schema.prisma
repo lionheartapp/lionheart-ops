@@ -181,6 +181,9 @@ model Area {
   buildingId     String?
   name           String
   areaType       AreaType     @default(OTHER)
+  latitude       Float?
+  longitude      Float?
+  polygonCoordinates Json?     // Array of {lat, lng} for outdoor space outline
   isActive       Boolean      @default(true)
   sortOrder      Int          @default(0)
   createdAt      DateTime     @default(now())
