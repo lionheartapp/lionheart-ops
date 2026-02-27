@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      const valid = await compare(password, user.passwordHash)
+      const valid = user.passwordHash ? await compare(password, user.passwordHash) : false
       if (!valid) {
         return NextResponse.json(fail('UNAUTHORIZED', 'Invalid credentials'), { status: 401 })
       }
