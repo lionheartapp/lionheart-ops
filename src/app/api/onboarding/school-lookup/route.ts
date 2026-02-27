@@ -17,6 +17,7 @@ import { ok, fail } from '@/lib/api-response'
 
 const SchoolLookupSchema = z.object({
   website: z.string().url('Invalid website URL').or(z.string().min(1, 'Website is required')),
+  schoolName: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -35,10 +36,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { website } = validation.data
+    const { website, schoolName } = validation.data
 
     // Perform school lookup
-    const schoolData = await lookupSchool(website)
+    const schoolData = await lookupSchool(website, schoolName)
 
     return NextResponse.json(ok(schoolData))
   } catch (error) {

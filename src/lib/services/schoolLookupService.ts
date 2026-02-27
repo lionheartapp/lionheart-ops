@@ -75,6 +75,75 @@ function extractDomain(url: string): string {
   }
 }
 
+// Layer 0: Google Places API for address + phone
+async function fetchFromGooglePlaces(schoolName: string, website: string): Promise<Partial<SchoolLookupResult> | null> {
+  const apiKey = (process.env.GOOGLE_PLACES_API_KEY || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
+  if (!apiKey) {
+    console.log('No Google API key found, skipping Places lookup')
+    return null
+  }
+
+  try {
+    // Use Places API (New) Text Search
+    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.internationalPhoneNumber,places.websiteUri',
+      },
+      body: JSON.stringify({
+        textQuery: `${schoolName} school`,
+        maxResultCount: 3,
+      }),
+      signal: AbortSignal.timeout(5000),
+    })
+
+    if (!response.ok) {
+      console.log(`Google Places API returned ${response.status}`)
+      return null
+    }
+
+    const data = await response.json()
+    const places = data.places
+
+    if (!places || places.length === 0) {
+      console.log('No places found for:', schoolName)
+      return null
+    }
+
+    // Try to find the best match — prefer one whose website matches
+    const domain = extractDomain(website)
+    let bestPlace = places[0]
+    for (const place of places) {
+      if (place.websiteUri) {
+        const placeDomain = extractDomain(place.websiteUri)
+        if (placeDomain === domain) {
+          bestPlace = place
+          break
+        }
+      }
+    }
+
+    const result: Partial<SchoolLookupResult> = {}
+
+    if (bestPlace.formattedAddress) {
+      result.address = bestPlace.formattedAddress
+    }
+
+    const phone = bestPlace.nationalPhoneNumber || bestPlace.internationalPhoneNumber
+    if (phone) {
+      result.phone = phone
+    }
+
+    console.log(`Google Places found: address="${result.address}", phone="${result.phone}"`)
+    return result
+  } catch (error) {
+    console.error('Google Places error:', error instanceof Error ? error.message : error)
+    return null
+  }
+}
+
 // Layer 1: Fetch from Brandfetch API
 async function fetchFromBrandfetch(domain: string): Promise<Partial<SchoolLookupResult> | null> {
   const apiKey = process.env.BRANDFETCH_API_KEY?.trim()
@@ -395,7 +464,7 @@ function extractMetaTags(html: string): Partial<SchoolLookupResult> {
 }
 
 // Main lookup function
-export async function lookupSchool(website: string): Promise<SchoolLookupResult> {
+export async function lookupSchool(website: string, schoolName?: string): Promise<SchoolLookupResult> {
   const domain = extractDomain(website)
 
   // Initialize result with null values
@@ -421,6 +490,14 @@ export async function lookupSchool(website: string): Promise<SchoolLookupResult>
   let layersSucceeded = 0
 
   try {
+    // Layer 0: Google Places API for address + phone
+    const placesName = schoolName || domain.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+    const placesData = await fetchFromGooglePlaces(placesName, website)
+    if (placesData) {
+      Object.assign(result, placesData)
+      layersSucceeded++
+    }
+
     // Layer 1: Brandfetch
     const brandfetchData = await fetchFromBrandfetch(domain)
     if (brandfetchData) {

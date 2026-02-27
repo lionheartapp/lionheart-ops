@@ -69,7 +69,7 @@ export default function SchoolInfoPage() {
 
           // Trigger school lookup
           if (org.website) {
-            await performSchoolLookup(org.website)
+            await performSchoolLookup(org.website, org.name)
           }
         }
       } catch (err) {
@@ -82,7 +82,7 @@ export default function SchoolInfoPage() {
     fetchOrgInfo()
   }, [])
 
-  const performSchoolLookup = async (website: string) => {
+  const performSchoolLookup = async (website: string, schoolName?: string) => {
     try {
       setLoading(true)
       const token = localStorage.getItem('auth-token')
@@ -92,7 +92,7 @@ export default function SchoolInfoPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ website }),
+        body: JSON.stringify({ website, schoolName }),
       })
 
       if (response.ok) {
