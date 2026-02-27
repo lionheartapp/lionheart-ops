@@ -4,7 +4,7 @@ export class GeminiService {
   private client: GoogleGenAI | null
 
   constructor() {
-    const apiKey = process.env.GEMINI_API_KEY
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
     this.client = apiKey ? new GoogleGenAI({ apiKey }) : null
   }
 

@@ -27,7 +27,7 @@ const FinalizeSchema = z.object({
       accentColor: z.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid hex color').optional(),
     })
     .optional(),
-  logoUrl: z.string().url('Invalid logo URL').optional(),
+  logoUrl: z.string().min(1, 'Logo URL cannot be empty').optional(),
 })
 
 export async function POST(req: NextRequest) {

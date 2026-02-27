@@ -220,9 +220,9 @@ function stripHtmlToText(html: string): string {
 
 // Layer 2: Gemini AI extraction
 async function extractWithGemini(htmlText: string, rawHtml: string, domain: string): Promise<Partial<SchoolLookupResult> | null> {
-  const apiKey = process.env.GEMINI_API_KEY?.trim()
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
   if (!apiKey) {
-    console.log('Gemini API key not set, skipping layer 2')
+    console.log('Gemini API key not set (checked GEMINI_API_KEY and NEXT_PUBLIC_GEMINI_API_KEY), skipping layer 2')
     return null
   }
 
@@ -328,6 +328,20 @@ function extractCssColorHints(html: string): string {
   }
 
   return hints.slice(0, 20).join('\n')
+}
+
+// Helper: Resolve relative URLs to absolute
+function resolveUrl(url: string, baseUrl: string): string {
+  if (!url) return url
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url
+  }
+  try {
+    const base = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`
+    return new URL(url, base).href
+  } catch {
+    return url
+  }
 }
 
 // Layer 3: Meta tag extraction
@@ -446,6 +460,11 @@ export async function lookupSchool(website: string): Promise<SchoolLookupResult>
     }
   } catch (error) {
     console.error('School lookup error:', error instanceof Error ? error.message : error)
+  }
+
+  // Resolve any relative logo URLs to absolute
+  if (result.logo && !result.logo.startsWith('http') && !result.logo.startsWith('data:')) {
+    result.logo = resolveUrl(result.logo, website)
   }
 
   // Calculate confidence score
