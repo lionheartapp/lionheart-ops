@@ -12,11 +12,7 @@ interface SchoolData {
   address?: string
   district?: string
   gradeRange?: string
-  principalName?: string
-  principalEmail?: string
   institutionType?: string
-  studentCount?: number
-  staffCount?: number
 }
 
 export default function SchoolInfoPage() {
@@ -30,11 +26,7 @@ export default function SchoolInfoPage() {
     address: '',
     district: '',
     gradeRange: '',
-    principalName: '',
-    principalEmail: '',
     institutionType: 'Public',
-    studentCount: undefined,
-    staffCount: undefined,
   })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -75,11 +67,7 @@ export default function SchoolInfoPage() {
             address: org.physicalAddress || '',
             district: org.district || '',
             gradeRange: org.gradeRange || '',
-            principalName: org.principalName || '',
-            principalEmail: org.principalEmail || '',
             institutionType: org.institutionType || 'PUBLIC',
-            studentCount: org.studentCount || undefined,
-            staffCount: org.staffCount || undefined,
           }))
 
           // Trigger school lookup
@@ -122,11 +110,7 @@ export default function SchoolInfoPage() {
             address: schoolData.address || prev.address,
             district: schoolData.district || prev.district,
             gradeRange: schoolData.gradeRange || prev.gradeRange,
-            principalName: schoolData.principalName || prev.principalName,
-            principalEmail: schoolData.principalEmail || prev.principalEmail,
             institutionType: schoolData.institutionType?.toUpperCase() || prev.institutionType,
-            studentCount: schoolData.studentCount || prev.studentCount,
-            staffCount: schoolData.staffCount || prev.staffCount,
           }))
         }
       }
@@ -183,11 +167,7 @@ export default function SchoolInfoPage() {
           physicalAddress: data.address || null,
           district: data.district || null,
           gradeRange: data.gradeRange || null,
-          principalName: data.principalName || null,
-          principalEmail: data.principalEmail || null,
           institutionType: data.institutionType || null,
-          studentCount: data.studentCount || null,
-          staffCount: data.staffCount || null,
         }),
       })
 
@@ -380,34 +360,6 @@ export default function SchoolInfoPage() {
           </div>
 
           <div>
-            <label htmlFor="principal" className="block text-sm font-medium text-gray-900 mb-2">
-              Principal Name
-            </label>
-            <input
-              id="principal"
-              type="text"
-              value={data.principalName}
-              onChange={(e) => setData((prev) => ({ ...prev, principalName: e.target.value }))}
-              placeholder="Full Name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="principalEmail" className="block text-sm font-medium text-gray-900 mb-2">
-              Principal Email
-            </label>
-            <input
-              id="principalEmail"
-              type="email"
-              value={data.principalEmail}
-              onChange={(e) => setData((prev) => ({ ...prev, principalEmail: e.target.value }))}
-              placeholder="principal@school.edu"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
-            />
-          </div>
-
-          <div>
             <label htmlFor="type" className="block text-sm font-medium text-gray-900 mb-2">
               Institution Type
             </label>
@@ -422,44 +374,6 @@ export default function SchoolInfoPage() {
               <option value="CHARTER">Charter</option>
               <option value="HYBRID">Hybrid</option>
             </select>
-          </div>
-
-          <div>
-            <label htmlFor="studentCount" className="block text-sm font-medium text-gray-900 mb-2">
-              Student Count
-            </label>
-            <input
-              id="studentCount"
-              type="number"
-              value={data.studentCount || ''}
-              onChange={(e) =>
-                setData((prev) => ({
-                  ...prev,
-                  studentCount: e.target.value ? Number(e.target.value) : undefined,
-                }))
-              }
-              placeholder="e.g., 500"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="staffCount" className="block text-sm font-medium text-gray-900 mb-2">
-              Staff Count
-            </label>
-            <input
-              id="staffCount"
-              type="number"
-              value={data.staffCount || ''}
-              onChange={(e) =>
-                setData((prev) => ({
-                  ...prev,
-                  staffCount: e.target.value ? Number(e.target.value) : undefined,
-                }))
-              }
-              placeholder="e.g., 50"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
-            />
           </div>
         </div>
       </div>

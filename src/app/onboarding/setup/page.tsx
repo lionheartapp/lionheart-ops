@@ -83,7 +83,7 @@ export default function SetupPage() {
             // Ignore parse errors
           }
 
-          await fetch('/api/onboarding/finalize', {
+          const finalizeRes = await fetch('/api/onboarding/finalize', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -91,6 +91,19 @@ export default function SetupPage() {
             },
             body: JSON.stringify({ theme, logoUrl }),
           })
+
+          // Persist logo + theme to localStorage so the dashboard can display them immediately
+          if (finalizeRes.ok) {
+            const finalizeData = await finalizeRes.json()
+            if (finalizeData.ok && finalizeData.data?.logoUrl) {
+              localStorage.setItem('org-logo-url', finalizeData.data.logoUrl)
+            }
+          }
+          if (logoUrl) {
+            // Also set directly from sessionStorage as a fallback
+            // (in case the finalize response doesn't echo it back)
+            localStorage.setItem('org-logo-url', logoUrl)
+          }
         }
 
         // Trigger confetti

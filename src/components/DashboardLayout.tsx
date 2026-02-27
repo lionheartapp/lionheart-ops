@@ -58,13 +58,15 @@ export default function DashboardLayout({
         {/* Logo and Organization Name */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
           {organizationLogoUrl ? (
-            <img
-              src={organizationLogoUrl}
-              alt={`${organizationName || 'School'} logo`}
-              className="h-8 w-8 rounded-lg object-cover border border-white/20 bg-white"
-            />
+            <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center p-1.5 flex-shrink-0">
+              <img
+                src={organizationLogoUrl}
+                alt={`${organizationName || 'School'} logo`}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
           ) : (
-            <div className="h-8 w-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-semibold text-sm">
+            <div className="h-9 w-9 rounded-lg bg-blue-500 text-white flex items-center justify-center font-semibold text-sm flex-shrink-0">
               {(organizationName || 'S').charAt(0).toUpperCase()}
             </div>
           )}

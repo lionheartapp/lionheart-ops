@@ -28,11 +28,28 @@ interface SchoolLookupResult {
   confidence: number // 0-100 score
 }
 
+// Brandfetch v2 API response shape
+interface BrandfetchLogo {
+  theme: string
+  formats: Array<{ src: string; format: string }>
+  type: string
+}
+
+interface BrandfetchColor {
+  hex: string
+  type: string
+  brightness: number
+}
+
 interface BrandfetchResponse {
-  brand: {
-    logos: Array<{ src: string }> | null
-    colors: Array<{ hex: string }> | null
-  } | null
+  name?: string
+  logos?: BrandfetchLogo[]
+  colors?: BrandfetchColor[]
+  // Legacy nested shape (some endpoints)
+  brand?: {
+    logos?: Array<{ src: string }>
+    colors?: Array<{ hex: string }>
+  }
 }
 
 interface GeminiExtractionResult {
@@ -45,6 +62,7 @@ interface GeminiExtractionResult {
   institutionType?: string
   studentCount?: number
   staffCount?: number
+  primaryColor?: string
 }
 
 // Helper: Extract domain from URL
@@ -81,12 +99,62 @@ async function fetchFromBrandfetch(domain: string): Promise<Partial<SchoolLookup
 
     const data: BrandfetchResponse = await response.json()
 
+    // Extract logo — prefer SVG or PNG from the "icon" or "logo" type
+    let logoUrl: string | null = null
+    if (data.logos && data.logos.length > 0) {
+      // Prefer icon type, then logo type
+      const iconLogo = data.logos.find((l) => l.type === 'icon')
+      const primaryLogo = data.logos.find((l) => l.type === 'logo')
+      const bestLogo = iconLogo || primaryLogo || data.logos[0]
+
+      if (bestLogo?.formats && bestLogo.formats.length > 0) {
+        // Prefer PNG or SVG
+        const pngFormat = bestLogo.formats.find((f) => f.format === 'png')
+        const svgFormat = bestLogo.formats.find((f) => f.format === 'svg')
+        logoUrl = pngFormat?.src || svgFormat?.src || bestLogo.formats[0].src
+      }
+    }
+    // Fallback to legacy shape
+    if (!logoUrl && data.brand?.logos?.[0]?.src) {
+      logoUrl = data.brand.logos[0].src
+    }
+
+    // Extract colors — look for "dark" colors which are typically the primary brand color
+    let primaryColor: string | null = null
+    let secondaryColor: string | null = null
+    let accentColor: string | null = null
+
+    if (data.colors && data.colors.length > 0) {
+      // Dark colors are usually the primary brand color (not white/light backgrounds)
+      const darkColors = data.colors.filter((c) => c.brightness < 100)
+      const lightColors = data.colors.filter((c) => c.brightness >= 100)
+
+      if (darkColors.length > 0) {
+        primaryColor = darkColors[0].hex
+        secondaryColor = darkColors[1]?.hex || lightColors[0]?.hex || null
+        accentColor = darkColors[2]?.hex || lightColors[1]?.hex || null
+      } else {
+        primaryColor = data.colors[0].hex
+        secondaryColor = data.colors[1]?.hex || null
+        accentColor = data.colors[2]?.hex || null
+      }
+    }
+    // Fallback to legacy shape
+    if (!primaryColor && data.brand?.colors) {
+      primaryColor = data.brand.colors[0]?.hex || null
+      secondaryColor = data.brand.colors[1]?.hex || null
+      accentColor = data.brand.colors[2]?.hex || null
+    }
+
+    // Ensure hex colors have # prefix
+    const ensureHash = (c: string | null) => c && !c.startsWith('#') ? `#${c}` : c
+
     const result: Partial<SchoolLookupResult> = {
-      logo: data.brand?.logos?.[0]?.src || null,
+      logo: logoUrl,
       colors: {
-        primary: data.brand?.colors?.[0]?.hex || null,
-        secondary: data.brand?.colors?.[1]?.hex || null,
-        accent: data.brand?.colors?.[2]?.hex || null,
+        primary: ensureHash(primaryColor),
+        secondary: ensureHash(secondaryColor),
+        accent: ensureHash(accentColor),
       },
     }
 
@@ -151,7 +219,7 @@ function stripHtmlToText(html: string): string {
 }
 
 // Layer 2: Gemini AI extraction
-async function extractWithGemini(htmlText: string, domain: string): Promise<Partial<SchoolLookupResult> | null> {
+async function extractWithGemini(htmlText: string, rawHtml: string, domain: string): Promise<Partial<SchoolLookupResult> | null> {
   const apiKey = process.env.GEMINI_API_KEY?.trim()
   if (!apiKey) {
     console.log('Gemini API key not set, skipping layer 2')
@@ -161,22 +229,29 @@ async function extractWithGemini(htmlText: string, domain: string): Promise<Part
   try {
     const client = new GoogleGenAI({ apiKey })
 
-    const prompt = `Extract school information from the following website text for domain: ${domain}
+    // Extract CSS color hints from raw HTML for the AI to analyze
+    const cssSnippet = extractCssColorHints(rawHtml)
 
-Please extract and return ONLY a JSON object (no markdown, no extra text) with these fields:
+    const prompt = `You are analyzing a school website for domain: ${domain}
+
+Extract the following information and return ONLY a JSON object (no markdown, no code fences, no extra text):
 {
   "phone": "main phone number or null",
-  "address": "physical street address or null",
-  "principalName": "principal's name or null",
-  "principalEmail": "principal's email or null",
+  "address": "full physical street address including city, state, zip or null",
+  "principalName": "principal or head of school name or null",
+  "principalEmail": "principal email or null",
   "district": "school district name or null",
-  "gradeRange": "grade range like 'K-5' or 'elementary' or null",
-  "institutionType": "public/private/charter or null",
+  "gradeRange": "grade range like 'K-5', 'PK-8', '9-12' or null",
+  "institutionType": "public, private, charter, or hybrid - or null",
   "studentCount": number or null,
-  "staffCount": number or null
+  "staffCount": number or null,
+  "primaryColor": "the school's primary brand color as a hex code (e.g. #1a2b3c) — look at navigation bars, headers, buttons, and prominent UI elements to determine the school's brand color. This is NOT the text color. It is the dominant accent/brand color used in the site design. Return null if you cannot determine it."
 }
 
-Website text:
+IMPORTANT for primaryColor: Look at the CSS styles, inline styles, background colors of headers/navbars/buttons. The primary color is the school's brand color, often used in the navigation bar, header background, or primary buttons. Do NOT return black, white, or gray as the primary color.
+
+${cssSnippet ? `CSS color hints from the page:\n${cssSnippet}\n` : ''}
+Website text content:
 ${htmlText}`
 
     const response = await client.models.generateContent({
@@ -206,11 +281,53 @@ ${htmlText}`
       staffCount: extracted.staffCount || null,
     }
 
+    // If Gemini found a primary color, include it
+    if (extracted.primaryColor && extracted.primaryColor !== 'null') {
+      result.colors = {
+        primary: extracted.primaryColor.startsWith('#') ? extracted.primaryColor : `#${extracted.primaryColor}`,
+        secondary: null,
+        accent: null,
+      }
+    }
+
     return result
   } catch (error) {
     console.error('Gemini extraction error:', error instanceof Error ? error.message : error)
     return null
   }
+}
+
+// Helper: Extract CSS color hints from raw HTML for AI analysis
+function extractCssColorHints(html: string): string {
+  const hints: string[] = []
+
+  // Extract inline style background-color values
+  const bgColorMatches = html.match(/background-color\s*:\s*([^;"'}]+)/gi)
+  if (bgColorMatches) {
+    const unique = [...new Set(bgColorMatches.slice(0, 10))]
+    hints.push(...unique)
+  }
+
+  // Extract CSS custom properties (often used for brand colors)
+  const cssVarMatches = html.match(/--[a-z-]*color[a-z-]*\s*:\s*([^;"'}]+)/gi)
+  if (cssVarMatches) {
+    const unique = [...new Set(cssVarMatches.slice(0, 10))]
+    hints.push(...unique)
+  }
+
+  // Extract hex colors from style blocks
+  const hexMatches = html.match(/#[0-9a-fA-F]{3,8}(?=[;\s"'}])/g)
+  if (hexMatches) {
+    // Filter out common non-brand colors (pure black, white, grays)
+    const nonBrand = new Set(['#000', '#000000', '#fff', '#ffffff', '#333', '#333333', '#666', '#666666', '#999', '#999999', '#ccc', '#cccccc', '#eee', '#eeeeee', '#f5f5f5', '#fafafa'])
+    const brandColors = hexMatches.filter((c) => !nonBrand.has(c.toLowerCase()))
+    const unique = [...new Set(brandColors.slice(0, 15))]
+    if (unique.length > 0) {
+      hints.push(`Hex colors found: ${unique.join(', ')}`)
+    }
+  }
+
+  return hints.slice(0, 20).join('\n')
 }
 
 // Layer 3: Meta tag extraction
@@ -223,16 +340,27 @@ function extractMetaTags(html: string): Partial<SchoolLookupResult> {
     },
   }
 
-  // Extract og:image
-  const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i)
+  // Extract og:image (both attribute orders)
+  const ogImageMatch = html.match(/<meta\s+(?:property|name)=["']og:image["']\s+content=["']([^"']+)["']/i)
+    || html.match(/<meta\s+content=["']([^"']+)["']\s+(?:property|name)=["']og:image["']/i)
   if (ogImageMatch) {
     result.logo = ogImageMatch[1]
   }
 
-  // Extract theme-color
+  // Extract theme-color (both attribute orders)
   const themeColorMatch = html.match(/<meta\s+name=["']theme-color["']\s+content=["']([^"']+)["']/i)
+    || html.match(/<meta\s+content=["']([^"']+)["']\s+name=["']theme-color["']/i)
   if (themeColorMatch) {
     result.colors!.primary = themeColorMatch[1]
+  }
+
+  // Extract msapplication-TileColor as fallback brand color
+  if (!result.colors!.primary) {
+    const tileColorMatch = html.match(/<meta\s+name=["']msapplication-TileColor["']\s+content=["']([^"']+)["']/i)
+      || html.match(/<meta\s+content=["']([^"']+)["']\s+name=["']msapplication-TileColor["']/i)
+    if (tileColorMatch) {
+      result.colors!.primary = tileColorMatch[1]
+    }
   }
 
   // Extract apple-touch-icon
@@ -241,10 +369,12 @@ function extractMetaTags(html: string): Partial<SchoolLookupResult> {
     result.logo = appleTouchMatch[1]
   }
 
-  // Extract favicon
-  const faviconMatch = html.match(/<link\s+rel=["']icon["'][^>]*href=["']([^"']+)["']/i)
-  if (faviconMatch && !result.logo) {
-    result.logo = faviconMatch[1]
+  // Extract favicon (larger sizes preferred)
+  if (!result.logo) {
+    const faviconMatch = html.match(/<link\s+rel=["'](?:icon|shortcut icon)["'][^>]*href=["']([^"']+)["']/i)
+    if (faviconMatch) {
+      result.logo = faviconMatch[1]
+    }
   }
 
   return result
@@ -288,9 +418,19 @@ export async function lookupSchool(website: string): Promise<SchoolLookupResult>
     const html = await fetchWebsiteHtml(website)
     if (html) {
       const htmlText = stripHtmlToText(html)
-      const geminiData = await extractWithGemini(htmlText, domain)
+      const geminiData = await extractWithGemini(htmlText, html, domain)
       if (geminiData) {
+        // Merge Gemini data but handle colors specially
+        const geminiColors = geminiData.colors
+        delete geminiData.colors
         Object.assign(result, geminiData)
+
+        // Prefer Gemini's AI-detected color over Brandfetch when available
+        // (Brandfetch can return the wrong brand for schools)
+        if (geminiColors?.primary) {
+          result.colors.primary = geminiColors.primary
+        }
+
         layersSucceeded++
       }
 
