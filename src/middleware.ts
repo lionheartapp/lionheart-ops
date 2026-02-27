@@ -51,6 +51,7 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/favicon')) return true
   if (pathname.startsWith('/api/auth/login')) return true
   if (pathname.startsWith('/api/auth/set-password')) return true
+  if (pathname.startsWith('/api/auth/')) return true // Auth.js callback URLs (OAuth)
   if (pathname.startsWith('/api/branding')) return true
   if (pathname.startsWith('/api/organizations/slug-check')) return true
   if (pathname.startsWith('/api/organizations/signup')) return true
@@ -128,6 +129,11 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isPublicPath(pathname)) {
+    return NextResponse.next({ request: { headers: requestHeaders } })
+  }
+
+  // Allow onboarding pages to pass through (frontend-only, no org context needed at page level)
+  if (pathname.startsWith('/onboarding')) {
     return NextResponse.next({ request: { headers: requestHeaders } })
   }
 

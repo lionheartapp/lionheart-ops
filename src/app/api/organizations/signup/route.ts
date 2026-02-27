@@ -29,6 +29,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { organizationRegistrationService } from '@/lib/services'
 import { ok, fail } from '@/lib/api-response'
+import { signAuthToken } from '@/lib/auth'
+import { rawPrisma } from '@/lib/db'
 import { ZodError } from 'zod'
 
 export async function POST(req: NextRequest) {
@@ -37,13 +39,28 @@ export async function POST(req: NextRequest) {
 
     const result = await organizationRegistrationService.createOrganization(body)
 
-    // Return created organization with admin user details
+    const adminUser = result.users[0]
+
+    // Set onboarding status to ONBOARDING
+    await rawPrisma.organization.update({
+      where: { id: result.id },
+      data: { onboardingStatus: 'ONBOARDING' } as any,
+    })
+
+    // Generate JWT token for auto-login after signup
+    const token = await signAuthToken({
+      userId: adminUser.id,
+      organizationId: result.id,
+      email: adminUser.email,
+    })
+
+    // Return created organization with admin user details + auth token
     return NextResponse.json(
       ok({
         organizationId: result.id,
         organizationName: result.name,
         slug: result.slug,
-        admin: result.users[0],
+        admin: { ...adminUser, token },
         loginUrl: `https://${result.slug}.lionheartapp.com/login`,
       }),
       { status: 201 }

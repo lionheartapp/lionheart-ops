@@ -74,9 +74,12 @@ model User {
   avatar         String?          // Profile image URL
   jobTitle       String?          // Job title separate from role
   employmentType EmploymentType?
-  passwordHash   String
+  passwordHash   String?          // Nullable for OAuth-only users
   status         UserStatus       @default(PENDING)
   roleId         String?
+  authMethod     AuthMethod       @default(EMAIL)
+  googleId       String?          @unique
+  microsoftId    String?          @unique
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
@@ -84,6 +87,7 @@ model User {
   school         School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   userRole       Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
   teams          UserTeam[]
+  accounts       Account[]
   submittedEvent Event[]          @relation("SubmittedEventUser")
   submittedDraft DraftEvent[]     @relation("DraftEventUser")
   assignedTicket Ticket[]         @relation("AssignedTicketUser")
@@ -559,6 +563,33 @@ enum PlatformAdminRole {
 enum PlatformSenderType {
   PLATFORM_ADMIN
   ORG_USER
+}
+
+enum AuthMethod {
+  EMAIL
+  GOOGLE
+  MICROSOFT
+}
+
+// ─── OAuth Account Model (Auth.js adapter) ──────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 // ─── Platform Admin Models ───────────────────────────────────────────
