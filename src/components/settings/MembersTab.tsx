@@ -21,6 +21,12 @@ interface ApiUser {
   userRole: { id: string; name: string; slug: string } | null
 }
 
+interface TeamOption {
+  id: string
+  name: string
+  slug: string
+}
+
 interface RoleOption {
   id: string
   name: string
@@ -85,10 +91,12 @@ const MembersTab = (_props: MembersTabProps) => {
     jobTitle: '',
     status: 'ACTIVE',
     roleId: '',
+    teamIds: [] as string[],
   })
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState('')
   const [availableRoles, setAvailableRoles] = useState<RoleOption[]>([])
+  const [availableTeams, setAvailableTeams] = useState<TeamOption[]>([])
   const [rolesLoading, setRolesLoading] = useState(false)
 
   // ─── Remove member state ──────────────────────────────────────────────────
@@ -148,15 +156,21 @@ const MembersTab = (_props: MembersTabProps) => {
   }, [fetchUsers])
 
   // ─── Roles for edit dropdown ──────────────────────────────────────────────
-  const loadRoles = useCallback(async () => {
+  const loadRolesAndTeams = useCallback(async () => {
     setRolesLoading(true)
     try {
-      const res = await fetch('/api/settings/roles', { headers: getAuthHeaders() })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (res.ok && data.ok) setAvailableRoles(data.data || [])
+      const [rolesRes, teamsRes] = await Promise.all([
+        fetch('/api/settings/roles', { headers: getAuthHeaders() }),
+        fetch('/api/settings/teams', { headers: getAuthHeaders() }),
+      ])
+      if (handleAuthResponse(rolesRes)) return
+      if (handleAuthResponse(teamsRes)) return
+      const rolesData = await rolesRes.json()
+      const teamsData = await teamsRes.json()
+      if (rolesRes.ok && rolesData.ok) setAvailableRoles(rolesData.data || [])
+      if (teamsRes.ok && teamsData.ok) setAvailableTeams(teamsData.data || [])
     } catch (e) {
-      console.error('Failed to load roles:', e)
+      console.error('Failed to load roles/teams:', e)
     } finally {
       setRolesLoading(false)
     }
@@ -171,10 +185,11 @@ const MembersTab = (_props: MembersTabProps) => {
       jobTitle: u.jobTitle || '',
       status: u.status,
       roleId: u.userRole?.id || '',
+      teamIds: u.teams.map((t) => t.team.id),
     })
     setEditError('')
-    await loadRoles()
-  }, [loadRoles])
+    await loadRolesAndTeams()
+  }, [loadRolesAndTeams])
 
   const closeEditUser = () => {
     if (editSaving) return
@@ -197,6 +212,7 @@ const MembersTab = (_props: MembersTabProps) => {
           jobTitle: editForm.jobTitle.trim() || null,
           status: editForm.status,
           ...(editForm.roleId ? { roleId: editForm.roleId } : {}),
+          teamIds: editForm.teamIds,
         }),
       })
       if (handleAuthResponse(res)) return
@@ -601,6 +617,50 @@ const MembersTab = (_props: MembersTabProps) => {
                 <option value="INACTIVE">Inactive</option>
                 <option value="SUSPENDED">Suspended</option>
               </select>
+            </div>
+
+            <div>
+              <label className={labelClass}>Teams</label>
+              {rolesLoading ? (
+                <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
+              ) : availableTeams.length === 0 ? (
+                <p className="text-sm text-gray-400">No teams available</p>
+              ) : (
+                <div className="space-y-2">
+                  <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                    {availableTeams.map((team) => {
+                      const isChecked = editForm.teamIds.includes(team.id)
+                      return (
+                        <label
+                          key={team.id}
+                          className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-gray-50 transition ${editSaving ? 'opacity-50 pointer-events-none' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              setEditForm((p) => ({
+                                ...p,
+                                teamIds: isChecked
+                                  ? p.teamIds.filter((id) => id !== team.id)
+                                  : [...p.teamIds, team.id],
+                              }))
+                            }}
+                            disabled={editSaving}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{team.name}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  {editForm.teamIds.length > 0 && (
+                    <p className="text-xs text-gray-500">
+                      {editForm.teamIds.length} team{editForm.teamIds.length !== 1 ? 's' : ''} selected
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </section>
 
