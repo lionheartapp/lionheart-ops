@@ -20,47 +20,31 @@ function latlngToTile(lat: number, lng: number, zoom: number) {
 }
 
 /**
- * Fetch a composite satellite image (2×2 tiles = 512×512) centered
- * around the given coordinates.  We stitch 4 adjacent 256px tiles so
- * the building is likely to be visible even when it straddles a tile boundary.
+ * Fetch a satellite image centered around the given coordinates.
+ * Uses a single center tile (256×256) for AI analysis.
  */
 async function captureSatelliteTiles(lat: number, lng: number, zoom: number): Promise<string | null> {
   try {
     const { x: cx, y: cy } = latlngToTile(lat, lng, zoom)
 
-    // Determine which quadrant of the center tile the point falls in
-    // so we pick the 4 tiles that best surround it
-    const n = Math.pow(2, zoom)
-    const exactX = ((lng + 180) / 360) * n
-    const latRad = (lat * Math.PI) / 180
-    const exactY = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
-
-    const fracX = exactX - cx
-    const fracY = exactY - cy
-    const startX = fracX > 0.5 ? cx : cx - 1
-    const startY = fracY > 0.5 ? cy : cy - 1
-
-    const tileUrls = [
-      [startX, startY],
-      [startX + 1, startY],
-      [startX, startY + 1],
-      [startX + 1, startY + 1],
-    ].map(
-      ([tx, ty]) =>
-        `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${ty}/${tx}`
-    )
-
-    // Fetch all 4 tiles in parallel
-    const responses = await Promise.all(tileUrls.map((url) => fetch(url)))
-    const buffers = await Promise.all(responses.map((r) => r.arrayBuffer()))
-
-    // Use a simple approach: since we can't use Canvas in Node,
-    // just use the single center tile (256×256) for AI analysis
-    // This is simpler and works well at zoom 19 where buildings are large
     const centerTileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${cy}/${cx}`
-    const centerRes = await fetch(centerTileUrl)
-    const centerBuffer = await centerRes.arrayBuffer()
+    console.log('[DETECT_OUTLINE] Fetching satellite tile:', centerTileUrl)
 
+    const centerRes = await fetch(centerTileUrl)
+
+    // Check content type to ensure it's actually an image
+    const contentType = centerRes.headers.get('content-type')
+    if (!contentType || !contentType.includes('image')) {
+      console.error('[DETECT_OUTLINE] Invalid content type:', contentType)
+      return null
+    }
+
+    if (!centerRes.ok) {
+      console.error('[DETECT_OUTLINE] Failed to fetch tile, status:', centerRes.status)
+      return null
+    }
+
+    const centerBuffer = await centerRes.arrayBuffer()
     return Buffer.from(centerBuffer).toString('base64')
   } catch (error) {
     console.error('[DETECT_OUTLINE] Failed to fetch satellite tile:', error)
@@ -122,15 +106,19 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         )
       }
 
-      // Fetch satellite tile at zoom 20 (maximum detail for building detection)
-      const zoom = 20
-      const imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
+      // Fetch satellite tile — try zoom 19 first (good detail + reliable coverage),
+      // fall back to zoom 18 if 19 fails
+      let zoom = 19
+      let imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
+      if (!imageBase64) {
+        console.log('[DETECT_OUTLINE] Zoom 19 failed, retrying with zoom 18')
+        zoom = 18
+        imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
+      }
 
       if (!imageBase64) {
         return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch satellite imagery'), { status: 500 })
       }
-
-      // Ask Gemini to detect the building outline
       const pixelCoords = await buildingOutlineService.detectBuildingOutline(
         imageBase64,
         building.name,

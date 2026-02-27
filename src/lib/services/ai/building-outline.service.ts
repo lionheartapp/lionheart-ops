@@ -92,13 +92,31 @@ If no clear building is visible near center, return: {"found": false, "confidenc
 
       const text = (result.text || '').trim()
 
-      // Strip markdown fences if present
-      const jsonStr = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')
+      // Extract JSON from response: find first { and last } and extract that substring
+      const firstBraceIdx = text.indexOf('{')
+      const lastBraceIdx = text.lastIndexOf('}')
 
-      const parsed: DetectionResult = JSON.parse(jsonStr)
+      if (firstBraceIdx === -1 || lastBraceIdx === -1 || firstBraceIdx >= lastBraceIdx) {
+        console.error('[OUTLINE] No valid JSON found in response. Raw text:', text)
+        return null
+      }
 
-      if (!parsed.found || !parsed.pixelCoordinates?.length || parsed.pixelCoordinates.length < 3) {
-        console.log('[OUTLINE] Building not detected or insufficient points:', parsed.description)
+      const jsonStr = text.substring(firstBraceIdx, lastBraceIdx + 1)
+
+      let parsed: DetectionResult
+      try {
+        parsed = JSON.parse(jsonStr)
+      } catch (parseError) {
+        console.error('[OUTLINE] Failed to parse JSON response. Raw text:', text)
+        console.error('[OUTLINE] Extracted JSON:', jsonStr)
+        console.error('[OUTLINE] Parse error:', parseError)
+        return null
+      }
+
+      // Even if 'found' is false, return coordinates if we have 3+ points
+      // Sometimes Gemini sets found:false even when it detects something
+      if (!parsed.pixelCoordinates?.length || parsed.pixelCoordinates.length < 3) {
+        console.log('[OUTLINE] Building detection has insufficient points (<3). Found flag:', parsed.found, 'Description:', parsed.description)
         return null
       }
 

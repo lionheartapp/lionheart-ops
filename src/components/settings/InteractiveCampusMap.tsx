@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check, TreePine } from 'lucide-react'
+import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check, TreePine, Pencil, RotateCcw } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -280,6 +280,11 @@ export default function InteractiveCampusMap({
   const editingPolygonLayerRef = useRef<any>(null)
   const editingVertexMarkersRef = useRef<any[]>([])
 
+  // Manual drawing mode state
+  const [drawingMode, setDrawingMode] = useState<{ buildingId: string; points: LatLng[] } | null>(null)
+  const drawingMarkersRef = useRef<any[]>([])
+  const drawingPolylineRef = useRef<any>(null)
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
 
@@ -384,30 +389,6 @@ export default function InteractiveCampusMap({
       }
       orgMarkerRef.current = orgMarker
 
-      // Render buildings
-      buildings.forEach((b) => {
-        if (b.latitude && b.longitude) {
-          const color = getBuildingColor(b)
-          if (b.polygonCoordinates && b.polygonCoordinates.length >= 3) {
-            addBuildingPolygon(L, map, b, color)
-          } else {
-            addBuildingMarker(L, map, b, color)
-          }
-        }
-      })
-
-      // Render outdoor spaces
-      outdoorSpaces.forEach((space) => {
-        if (space.lat && space.lng) {
-          const color = getOutdoorColor(space)
-          if (space.polygonCoordinates && space.polygonCoordinates.length >= 3) {
-            addOutdoorPolygon(L, map, space, color)
-          } else {
-            addOutdoorMarker(L, map, space, color)
-          }
-        }
-      })
-
       setLoading(false)
     })
 
@@ -483,9 +464,14 @@ export default function InteractiveCampusMap({
     `
 
     if (editable) {
+      // Button container
+      const buttonContainer = document.createElement('div')
+      buttonContainer.style.cssText = 'display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;justify-content:center;'
+
+      // Detect Outline button
       const detectBtn = document.createElement('button')
-      detectBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.636 5.636l1.414 1.414m9.9 9.9l1.414 1.414M5.636 18.364l1.414-1.414m9.9-9.9l1.414-1.414"/></svg> Detect Outline`
-      detectBtn.style.cssText = 'display:flex;align-items:center;gap:4px;background:#7c3aed;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;margin-top:6px;width:100%;justify-content:center;'
+      detectBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.636 5.636l1.414 1.414m9.9 9.9l1.414 1.414M5.636 18.364l1.414-1.414m9.9-9.9l1.414-1.414"/></svg> Detect`
+      detectBtn.style.cssText = 'display:flex;align-items:center;gap:4px;background:#7c3aed;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;flex:1;min-width:80px;justify-content:center;'
       detectBtn.onmouseover = () => { detectBtn.style.background = '#6d28d9' }
       detectBtn.onmouseout = () => { detectBtn.style.background = '#7c3aed' }
       detectBtn.onclick = (e) => {
@@ -493,7 +479,22 @@ export default function InteractiveCampusMap({
         marker.closePopup()
         handleDetectOutline(building.id)
       }
-      popupContent.appendChild(detectBtn)
+      buttonContainer.appendChild(detectBtn)
+
+      // Draw Outline button
+      const drawBtn = document.createElement('button')
+      drawBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 3 20 7 12 11 4 7 12 3"></polyline></svg> Draw`
+      drawBtn.style.cssText = 'display:flex;align-items:center;gap:4px;background:#0891b2;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;flex:1;min-width:80px;justify-content:center;'
+      drawBtn.onmouseover = () => { drawBtn.style.background = '#0e7490' }
+      drawBtn.onmouseout = () => { drawBtn.style.background = '#0891b2' }
+      drawBtn.onclick = (e) => {
+        e.stopPropagation()
+        marker.closePopup()
+        startDrawing(building.id)
+      }
+      buttonContainer.appendChild(drawBtn)
+
+      popupContent.appendChild(buttonContainer)
     }
 
     marker.bindPopup(popupContent)
@@ -572,6 +573,72 @@ export default function InteractiveCampusMap({
 
     markersRef.current.set(`outdoor-${space.id}`, marker)
   }, [editable, onOutdoorPositionChange])
+
+  /* ── Manual polygon drawing ──────────────────────────────────────── */
+
+  const startDrawing = (buildingId: string) => {
+    setDrawingMode({ buildingId, points: [] })
+    const map = mapInstanceRef.current
+    if (map) {
+      map.getContainer().style.cursor = 'crosshair'
+    }
+  }
+
+  const clearDrawingMode = () => {
+    const map = mapInstanceRef.current
+    if (map) {
+      map.getContainer().style.cursor = ''
+    }
+    drawingMarkersRef.current.forEach((m) => {
+      if (map) map.removeLayer(m)
+    })
+    drawingMarkersRef.current = []
+    if (drawingPolylineRef.current && map) {
+      map.removeLayer(drawingPolylineRef.current)
+    }
+    drawingPolylineRef.current = null
+    setDrawingMode(null)
+  }
+
+  const finishDrawing = () => {
+    if (!drawingMode || drawingMode.points.length < 3) return
+    showEditablePolygon(drawingMode.points)
+    setEditingPolygon({ buildingId: drawingMode.buildingId, coordinates: drawingMode.points })
+    clearDrawingMode()
+  }
+
+  const undoDrawingPoint = () => {
+    if (!drawingMode || drawingMode.points.length === 0) return
+    const map = mapInstanceRef.current
+    const L = (window as any).L
+    if (!L || !map) return
+
+    // Remove last marker
+    if (drawingMarkersRef.current.length > 0) {
+      const lastMarker = drawingMarkersRef.current.pop()
+      map.removeLayer(lastMarker)
+    }
+
+    // Update points
+    const newPoints = drawingMode.points.slice(0, -1)
+    setDrawingMode({ ...drawingMode, points: newPoints })
+
+    // Redraw polyline
+    if (drawingPolylineRef.current) {
+      map.removeLayer(drawingPolylineRef.current)
+      drawingPolylineRef.current = null
+    }
+
+    if (newPoints.length >= 2) {
+      const polylineCoords = newPoints.map((p) => [p.lat, p.lng])
+      const polyline = L.polyline(polylineCoords, {
+        color: '#0891b2',
+        weight: 2,
+        opacity: 0.8,
+      }).addTo(map)
+      drawingPolylineRef.current = polyline
+    }
+  }
 
   /* ── AI outline detection ────────────────────────────────────────── */
 
@@ -669,6 +736,11 @@ export default function InteractiveCampusMap({
     }
     editingVertexMarkersRef.current.forEach((m) => map.removeLayer(m))
     editingVertexMarkersRef.current = []
+
+    // Also clear drawing mode if active
+    if (drawingMode) {
+      clearDrawingMode()
+    }
   }
 
   const handleSavePolygon = async () => {
@@ -699,6 +771,76 @@ export default function InteractiveCampusMap({
     setEditingPolygon(null)
   }
 
+  /* ── Drawing mode clicks ─────────────────────────────────────────── */
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    const L = (window as any).L
+    if (!L || !map || !drawingMode) return
+
+    const handleDrawingClick = (e: any) => {
+      const newPoint: LatLng = { lat: e.latlng.lat, lng: e.latlng.lng }
+      const updatedPoints = [...drawingMode.points, newPoint]
+      setDrawingMode({ ...drawingMode, points: updatedPoints })
+
+      // Add vertex marker
+      const vertexIcon = L.divIcon({
+        className: 'drawing-vertex-marker',
+        html: `<div style="
+          width: 10px; height: 10px; border-radius: 50%;
+          background: white; border: 2px solid #0891b2;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+          transform: translate(-5px, -5px);
+        "></div>`,
+        iconSize: [0, 0],
+      })
+
+      const vertexMarker = L.marker([newPoint.lat, newPoint.lng], {
+        icon: vertexIcon,
+        zIndexOffset: 500,
+      }).addTo(map)
+      drawingMarkersRef.current.push(vertexMarker)
+
+      // Update or create polyline
+      if (drawingPolylineRef.current) {
+        map.removeLayer(drawingPolylineRef.current)
+      }
+
+      const polylineCoords = updatedPoints.map((p) => [p.lat, p.lng])
+      const polyline = L.polyline(polylineCoords, {
+        color: '#0891b2',
+        weight: 2,
+        opacity: 0.8,
+      }).addTo(map)
+      drawingPolylineRef.current = polyline
+
+      // If 3+ points, add semi-transparent polygon
+      if (updatedPoints.length >= 3) {
+        // Check if polygon already exists and remove it
+        if (editingPolygonLayerRef.current) {
+          map.removeLayer(editingPolygonLayerRef.current)
+        }
+
+        const polygonCoords = [...polylineCoords, polylineCoords[0]] // Close the polygon
+        const polygon = L.polygon(polygonCoords, {
+          color: '#0891b2',
+          weight: 2,
+          opacity: 0.6,
+          fillColor: '#0891b2',
+          fillOpacity: 0.15,
+          dashArray: '4 3',
+        }).addTo(map)
+        editingPolygonLayerRef.current = polygon
+      }
+    }
+
+    map.on('click', handleDrawingClick)
+
+    return () => {
+      map.off('click', handleDrawingClick)
+    }
+  }, [drawingMode])
+
   /* ── Placing mode clicks ─────────────────────────────────────────── */
 
   useEffect(() => {
@@ -723,14 +865,43 @@ export default function InteractiveCampusMap({
     }
   }, [placingMode, onAddBuildingAtPosition, onAddOutdoorSpaceAtPosition])
 
-  // Update markers when buildings change
+  // Re-render all buildings when they change (handles updates like color changes)
   useEffect(() => {
     const L = (window as any).L
     const map = mapInstanceRef.current
     if (!L || !map) return
 
+    // Clear existing building markers and polygons (not outdoor)
+    markersRef.current.forEach((marker, key) => {
+      if (!key.startsWith('outdoor-')) {
+        map.removeLayer(marker)
+      }
+    })
+    for (const key of markersRef.current.keys()) {
+      if (!key.startsWith('outdoor-')) markersRef.current.delete(key)
+    }
+
+    polygonsRef.current.forEach((polygon, key) => {
+      if (!key.startsWith('outdoor-')) {
+        map.removeLayer(polygon)
+      }
+    })
+    for (const key of polygonsRef.current.keys()) {
+      if (!key.startsWith('outdoor-')) polygonsRef.current.delete(key)
+    }
+
+    labelsRef.current.forEach((label, key) => {
+      if (!key.startsWith('outdoor-')) {
+        map.removeLayer(label)
+      }
+    })
+    for (const key of labelsRef.current.keys()) {
+      if (!key.startsWith('outdoor-')) labelsRef.current.delete(key)
+    }
+
+    // Re-add all buildings
     buildings.forEach((b) => {
-      if (b.latitude && b.longitude && !markersRef.current.has(b.id) && !polygonsRef.current.has(b.id)) {
+      if (b.latitude && b.longitude) {
         const color = getBuildingColor(b)
         if (b.polygonCoordinates && b.polygonCoordinates.length >= 3) {
           addBuildingPolygon(L, map, b, color)
@@ -741,15 +912,43 @@ export default function InteractiveCampusMap({
     })
   }, [buildings, addBuildingMarker, addBuildingPolygon])
 
-  // Update outdoor space markers when they change
+  // Re-render all outdoor spaces when they change
   useEffect(() => {
     const L = (window as any).L
     const map = mapInstanceRef.current
     if (!L || !map) return
 
+    // Clear existing outdoor markers and polygons
+    markersRef.current.forEach((marker, key) => {
+      if (key.startsWith('outdoor-')) {
+        map.removeLayer(marker)
+      }
+    })
+    for (const key of markersRef.current.keys()) {
+      if (key.startsWith('outdoor-')) markersRef.current.delete(key)
+    }
+
+    polygonsRef.current.forEach((polygon, key) => {
+      if (key.startsWith('outdoor-')) {
+        map.removeLayer(polygon)
+      }
+    })
+    for (const key of polygonsRef.current.keys()) {
+      if (key.startsWith('outdoor-')) polygonsRef.current.delete(key)
+    }
+
+    labelsRef.current.forEach((label, key) => {
+      if (key.startsWith('outdoor-')) {
+        map.removeLayer(label)
+      }
+    })
+    for (const key of labelsRef.current.keys()) {
+      if (key.startsWith('outdoor-')) labelsRef.current.delete(key)
+    }
+
+    // Re-add all outdoor spaces
     outdoorSpaces.forEach((space) => {
-      const key = `outdoor-${space.id}`
-      if (space.lat && space.lng && !markersRef.current.has(key) && !polygonsRef.current.has(key)) {
+      if (space.lat && space.lng) {
         const color = getOutdoorColor(space)
         if (space.polygonCoordinates && space.polygonCoordinates.length >= 3) {
           addOutdoorPolygon(L, map, space, color)
@@ -836,8 +1035,48 @@ export default function InteractiveCampusMap({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Drawing mode controls */}
+          {drawingMode && (
+            <>
+              <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-lg border border-blue-200">
+                <span>{drawingMode.points.length} / 3+ points</span>
+              </div>
+              <button
+                onClick={finishDrawing}
+                disabled={drawingMode.points.length < 3}
+                className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  drawingMode.points.length < 3
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                <Check className="w-3.5 h-3.5" />
+                Done
+              </button>
+              <button
+                onClick={undoDrawingPoint}
+                disabled={drawingMode.points.length === 0}
+                className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  drawingMode.points.length === 0
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Undo
+              </button>
+              <button
+                onClick={clearDrawingMode}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                Cancel
+              </button>
+            </>
+          )}
+
           {/* Editing polygon controls */}
-          {editingPolygon && (
+          {editingPolygon && !drawingMode && (
             <>
               <button
                 onClick={handleSavePolygon}
@@ -983,9 +1222,10 @@ export default function InteractiveCampusMap({
       </div>
 
       {/* Status bar */}
-      {(editingPolygon || placingMode) && (
+      {(editingPolygon || placingMode || drawingMode) && (
         <div className="px-4 py-2 border-t border-gray-200 bg-amber-50 text-xs text-amber-700 font-medium">
-          {editingPolygon && 'Drag vertices to adjust the outline, then save'}
+          {drawingMode && 'Click on the map to place outline points. Place at least 3 points, then click Done.'}
+          {editingPolygon && !drawingMode && 'Drag vertices to adjust the outline, then save'}
           {placingMode === 'building' && 'Click anywhere on the map to place a new building'}
           {placingMode === 'outdoor' && 'Click anywhere on the map to place a new outdoor space'}
         </div>
