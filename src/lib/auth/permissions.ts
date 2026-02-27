@@ -13,7 +13,22 @@ const permissionCache = new Map<string, { permissions: string[]; expires: number
 const CACHE_TTL = 30 * 1000 // 30 seconds
 
 /**
+ * Convert a permission record to its string representation
+ */
+function permissionToString(p: { resource: string; action: string; scope: string }): string {
+  if (!p.scope || p.scope === 'global') {
+    return `${p.resource}:${p.action}`
+  }
+  return `${p.resource}:${p.action}:${p.scope}`
+}
+
+/**
  * Get all permissions for a user (cached)
+ *
+ * Merges role-based permissions with per-user overrides:
+ * 1. Start with permissions from the user's assigned role
+ * 2. Apply user-level grants (add permissions the role doesn't have)
+ * 3. Apply user-level revokes (remove permissions the role has)
  */
 export async function getUserPermissions(userId: string): Promise<string[]> {
   // Check cache
@@ -22,7 +37,7 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
     return cached.permissions
   }
 
-  // Fetch from database
+  // Fetch user with role permissions AND per-user overrides
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -35,21 +50,42 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
           },
         },
       },
+      userPermissions: {
+        include: {
+          permission: true,
+        },
+      },
     },
   })
 
-  if (!user || !user.userRole) {
+  if (!user) {
     return []
   }
 
-  // Build permission strings
-  const permissions = user.userRole.permissions.map((rp) => {
-    const { resource, action, scope } = rp.permission
-    if (!scope || scope === 'global') {
-      return `${resource}:${action}`
-    }
-    return `${resource}:${action}:${scope}`
-  })
+  // Build effective permissions from role
+  const effectivePermissions = new Set<string>()
+
+  if (user.userRole) {
+    user.userRole.permissions.forEach((rp) => {
+      effectivePermissions.add(permissionToString(rp.permission))
+    })
+  }
+
+  // Apply per-user overrides
+  if (user.userPermissions && user.userPermissions.length > 0) {
+    user.userPermissions.forEach((up) => {
+      const permStr = permissionToString(up.permission)
+      if (up.granted) {
+        // Grant: add permission even if role doesn't have it
+        effectivePermissions.add(permStr)
+      } else {
+        // Revoke: remove permission even if role has it
+        effectivePermissions.delete(permStr)
+      }
+    })
+  }
+
+  const permissions = Array.from(effectivePermissions)
 
   // Cache for next time
   permissionCache.set(userId, {

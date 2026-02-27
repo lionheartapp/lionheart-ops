@@ -50,6 +50,7 @@ export const PERMISSIONS = {
   USERS_UPDATE: 'users:update',
   USERS_DELETE: 'users:delete',
   USERS_MANAGE_ROLES: 'users:manage:roles',
+  USERS_MANAGE_PERMISSIONS: 'users:manage:permissions',
   
   // Roles & Teams
   ROLES_READ: 'roles:read',
@@ -105,6 +106,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.USERS_INVITE,
       PERMISSIONS.USERS_UPDATE,
       PERMISSIONS.USERS_MANAGE_ROLES,
+      PERMISSIONS.USERS_MANAGE_PERMISSIONS,
       PERMISSIONS.ROLES_READ,
       PERMISSIONS.ROLES_CREATE,
       PERMISSIONS.TEAMS_READ,

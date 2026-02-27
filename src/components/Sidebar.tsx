@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   Home,
   Menu,
@@ -32,14 +32,23 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
 
-  // Open settings panel when navigating to /settings
+  // Open settings panel when navigating to /settings, and restore saved tab
   useEffect(() => {
     if (pathname.startsWith('/settings')) {
       setSettingsOpen(true)
+
+      // Restore tab from localStorage on mount
+      const saved = localStorage.getItem('settings-active-tab')
+      const validTabs: SettingsTab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 'campus']
+      if (saved && validTabs.includes(saved as SettingsTab)) {
+        setActiveSettingsTab(saved as SettingsTab)
+      }
     }
   }, [pathname])
 
@@ -79,6 +88,15 @@ export default function Sidebar({
 
   const handleSettingsTabClick = (tab: SettingsTab) => {
     setActiveSettingsTab(tab)
+    // Update URL to persist tab selection
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === 'profile') {
+      params.delete('tab')
+    } else {
+      params.set('tab', tab)
+    }
+    const qs = params.toString()
+    router.replace(`/settings${qs ? `?${qs}` : ''}`, { scroll: false })
     window.dispatchEvent(
       new CustomEvent('settings-tab-change', { detail: { tab } })
     )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -15,10 +15,14 @@ type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
 
 type WorkspaceTab = Exclude<Tab, 'profile'>
 
+const VALID_TABS: Tab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 'campus']
+
 export default function SettingsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)
+
   const [activeTab, setActiveTab] = useState<Tab>('profile')
   const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set<Tab>(['profile']))
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
@@ -53,6 +57,40 @@ export default function SettingsPage() {
   const [passwordSaving, setPasswordSaving] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+
+  // On client mount, restore the saved tab from localStorage
+  const hasRestoredTab = useRef(false)
+  useEffect(() => {
+    if (hasRestoredTab.current) return
+    hasRestoredTab.current = true
+
+    // Check localStorage for saved tab
+    const saved = localStorage.getItem('settings-active-tab')
+    const WORKSPACE_TABS: Tab[] = ['school-info', 'roles', 'teams', 'users', 'campus']
+
+    if (saved && VALID_TABS.includes(saved as Tab) && saved !== 'profile') {
+      const restoredTab = saved as Tab
+
+      // Only restore workspace tabs if user has admin access
+      if (WORKSPACE_TABS.includes(restoredTab)) {
+        const role = localStorage.getItem('user-role') || ''
+        const isAdmin = role.toLowerCase().includes('admin') || role.toLowerCase().includes('super')
+        if (!isAdmin) return
+      }
+
+      setActiveTab(restoredTab)
+      setVisitedTabs(prev => new Set(prev).add(restoredTab))
+      // Notify Sidebar to highlight the correct tab
+      window.dispatchEvent(
+        new CustomEvent('settings-tab-request', { detail: { tab: restoredTab } })
+      )
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('settings-active-tab', activeTab)
+  }, [activeTab])
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null

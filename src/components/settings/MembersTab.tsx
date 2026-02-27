@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, type FormEvent } from 'react'
-import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck } from 'lucide-react'
+import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
+import PermissionToggleList, { type PermissionItem } from '@/components/settings/PermissionToggleList'
 
 interface ApiUser {
   id: string
@@ -93,6 +94,16 @@ const MembersTab = (_props: MembersTabProps) => {
   // ─── Remove member state ──────────────────────────────────────────────────
   const [userToRemove, setUserToRemove] = useState<ApiUser | null>(null)
   const [removingUserId, setRemovingUserId] = useState<string | null>(null)
+
+  // ─── Manage permissions state ───────────────────────────────────────────────
+  const [permUser, setPermUser] = useState<ApiUser | null>(null)
+  const [permLoading, setPermLoading] = useState(false)
+  const [permSaving, setPermSaving] = useState(false)
+  const [permError, setPermError] = useState('')
+  const [permItems, setPermItems] = useState<PermissionItem[]>([])
+  const [permSelectedIds, setPermSelectedIds] = useState<string[]>([])
+  const [permRoleName, setPermRoleName] = useState<string | null>(null)
+  const [permRolePermIds, setPermRolePermIds] = useState<Set<string>>(new Set())
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
 
@@ -240,6 +251,88 @@ const MembersTab = (_props: MembersTabProps) => {
     }
   }
 
+  // ─── Manage permissions ──────────────────────────────────────────────────
+  const openManagePermissions = useCallback(async (u: ApiUser) => {
+    setPermUser(u)
+    setPermLoading(true)
+    setPermError('')
+    try {
+      const res = await fetch(`/api/settings/users/${u.id}/permissions`, {
+        headers: getAuthHeaders(),
+      })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to load permissions')
+
+      const perms: PermissionItem[] = data.data.permissions
+      setPermItems(perms)
+      setPermSelectedIds(perms.filter((p: PermissionItem) => p.status === 'inherited' || p.status === 'granted').map((p: PermissionItem) => p.id))
+      setPermRoleName(data.data.roleName)
+      // Track which permissions come from the role (for computing overrides on save)
+      setPermRolePermIds(new Set(perms.filter((p: PermissionItem) => p.status === 'inherited' || p.status === 'revoked' && false).map((p: PermissionItem) => p.id)))
+      // Actually, compute role perms: inherited ones and revoked ones (revoked means role has it but user override removed it)
+      const roleIds = new Set<string>()
+      perms.forEach((p: PermissionItem) => {
+        if (p.status === 'inherited' || p.status === 'revoked') {
+          roleIds.add(p.id)
+        }
+      })
+      setPermRolePermIds(roleIds)
+    } catch (err) {
+      setPermError(err instanceof Error ? err.message : 'Failed to load permissions')
+    } finally {
+      setPermLoading(false)
+    }
+  }, [getAuthHeaders])
+
+  const closeManagePermissions = () => {
+    if (permSaving) return
+    setPermUser(null)
+    setPermItems([])
+    setPermSelectedIds([])
+    setPermError('')
+  }
+
+  const saveManagePermissions = async () => {
+    if (!permUser) return
+    setPermSaving(true)
+    setPermError('')
+    try {
+      // Compute overrides: only permissions that differ from role defaults
+      const overrides: { permissionId: string; granted: boolean }[] = []
+
+      permItems.forEach((perm) => {
+        const isSelected = permSelectedIds.includes(perm.id)
+        const roleHasIt = permRolePermIds.has(perm.id)
+
+        if (isSelected && !roleHasIt) {
+          // User has it but role doesn't → grant override
+          overrides.push({ permissionId: perm.id, granted: true })
+        } else if (!isSelected && roleHasIt) {
+          // Role has it but user doesn't → revoke override
+          overrides.push({ permissionId: perm.id, granted: false })
+        }
+        // If selected matches role → no override needed
+      })
+
+      const res = await fetch(`/api/settings/users/${permUser.id}/permissions`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ overrides }),
+      })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to save permissions')
+      setPermUser(null)
+      setPermItems([])
+      setPermSelectedIds([])
+    } catch (err) {
+      setPermError(err instanceof Error ? err.message : 'Failed to save permissions')
+    } finally {
+      setPermSaving(false)
+    }
+  }
+
   const filtered = users.filter((u) => {
     const matchesStatus = statusTab === 'all' || u.status === statusTab
     const q = search.toLowerCase()
@@ -383,6 +476,11 @@ const MembersTab = (_props: MembersTabProps) => {
                               onClick: () => openEditUser(u),
                             },
                             {
+                              label: 'Manage Permissions',
+                              icon: <Shield className="w-4 h-4" />,
+                              onClick: () => openManagePermissions(u),
+                            },
+                            {
                               label: u.status === 'ACTIVE' ? 'Deactivate' : 'Activate',
                               icon: u.status === 'ACTIVE'
                                 ? <UserMinus className="w-4 h-4" />
@@ -524,6 +622,103 @@ const MembersTab = (_props: MembersTabProps) => {
             </button>
           </div>
         </form>
+      </DetailDrawer>
+
+      {/* ─── Manage Permissions Drawer ─────────────────────────────────────── */}
+      <DetailDrawer
+        isOpen={permUser !== null}
+        onClose={closeManagePermissions}
+        title="User Permissions"
+        width="lg"
+      >
+        <div className="p-6 space-y-6">
+          {/* User identity header */}
+          {permUser && (
+            <div className="flex items-center gap-4">
+              {permUser.avatar ? (
+                <img
+                  src={permUser.avatar}
+                  alt={`${permUser.firstName} ${permUser.lastName}`}
+                  className="h-12 w-12 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <span className={`inline-flex items-center justify-center h-12 w-12 rounded-full text-white text-sm font-bold flex-shrink-0 ${getAvatarColor(permUser.id)}`}>
+                  {getInitials(permUser.firstName, permUser.lastName, permUser.email)}
+                </span>
+              )}
+              <div>
+                <p className="text-base font-semibold text-gray-900">
+                  {[permUser.firstName, permUser.lastName].filter(Boolean).join(' ') || permUser.email}
+                </p>
+                <p className="text-sm text-gray-500">{permUser.email}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Role info banner */}
+          <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">Role:</span> {permRoleName || 'No role assigned'}
+            </p>
+            <p className="text-xs text-blue-600 mt-0.5">
+              Permission list will change when you select a different role for this user
+            </p>
+          </div>
+
+          {permError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {permError}
+            </div>
+          )}
+
+          {/* Permission toggle list */}
+          <PermissionToggleList
+            permissions={permItems}
+            selectedIds={permSelectedIds}
+            onToggle={(id) => {
+              setPermSelectedIds((prev) =>
+                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+              )
+              // Update the item status for visual feedback
+              setPermItems((prev) =>
+                prev.map((p) => {
+                  if (p.id !== id) return p
+                  const willBeSelected = !permSelectedIds.includes(id)
+                  const roleHasIt = permRolePermIds.has(id)
+                  let newStatus: 'inherited' | 'granted' | 'revoked' | 'none'
+                  if (willBeSelected && roleHasIt) newStatus = 'inherited'
+                  else if (willBeSelected && !roleHasIt) newStatus = 'granted'
+                  else if (!willBeSelected && roleHasIt) newStatus = 'revoked'
+                  else newStatus = 'none'
+                  return { ...p, status: newStatus }
+                })
+              )
+            }}
+            mode="user"
+            loading={permLoading}
+            disabled={permSaving}
+          />
+
+          {/* Action buttons */}
+          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4 sticky bottom-0 bg-white pb-2">
+            <button
+              type="button"
+              onClick={closeManagePermissions}
+              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+              disabled={permSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={saveManagePermissions}
+              className="px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={permSaving || permLoading}
+            >
+              {permSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
       </DetailDrawer>
 
       {/* ─── Remove Member Confirm ──────────────────────────────────────────── */}

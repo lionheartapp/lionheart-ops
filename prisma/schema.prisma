@@ -99,6 +99,7 @@ model User {
   passwordSetupTokens PasswordSetupToken[]
   roomAssignments UserRoomAssignment[]
   campusAssignments UserCampusAssignment[]
+  userPermissions UserPermission[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -408,8 +409,9 @@ model Permission {
   action      String           // "create", "read", "update", "delete", "approve"
   scope       String           @default("global") // "own", "team", "all", "global"
   description String?
-  createdAt   DateTime         @default(now())
-  roles       RolePermission[]
+  createdAt      DateTime         @default(now())
+  roles          RolePermission[]
+  userOverrides  UserPermission[]
 
   @@unique([resource, action, scope])
   @@index([resource, action])
@@ -441,6 +443,20 @@ model RolePermission {
 
   @@id([roleId, permissionId])
   @@index([roleId])
+  @@index([permissionId])
+}
+
+model UserPermission {
+  userId       String
+  permissionId String
+  granted      Boolean    @default(true) // true = grant override, false = revoke override
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@index([userId])
   @@index([permissionId])
 }
 

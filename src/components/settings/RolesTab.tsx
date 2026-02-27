@@ -6,6 +6,7 @@ import { handleAuthResponse } from '@/lib/client-auth'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
+import PermissionToggleList from '@/components/settings/PermissionToggleList'
 
 interface Role {
   id: string
@@ -220,87 +221,6 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         : [...previous, permissionId]
     )
   }
-
-  const setGroupPermissions = (permissionIds: string[], shouldSelect: boolean) => {
-    setSelectedPermissionIds((previous) => {
-      const next = new Set(previous)
-      if (shouldSelect) {
-        permissionIds.forEach((id) => next.add(id))
-      } else {
-        permissionIds.forEach((id) => next.delete(id))
-      }
-      return Array.from(next)
-    })
-  }
-
-  const setEditGroupPermissions = (permissionIds: string[], shouldSelect: boolean) => {
-    setEditPermissionIds((previous) => {
-      const next = new Set(previous)
-      if (shouldSelect) {
-        permissionIds.forEach((id) => next.add(id))
-      } else {
-        permissionIds.forEach((id) => next.delete(id))
-      }
-      return Array.from(next)
-    })
-  }
-
-  const groupedPermissions = useMemo(() => {
-    const resourceLabels: Record<string, string> = {
-      tickets: 'Tickets',
-      events: 'Events',
-      inventory: 'Inventory',
-      settings: 'Settings',
-      users: 'Users',
-      roles: 'Roles',
-      teams: 'Teams',
-    }
-
-    const filtered = permissions.filter((permission) => permission.resource !== '*')
-    const byResource = new Map<string, PermissionOption[]>()
-
-    filtered.forEach((permission) => {
-      const list = byResource.get(permission.resource) || []
-      list.push(permission)
-      byResource.set(permission.resource, list)
-    })
-
-    const ordered: Array<{
-      resource: string
-      label: string
-      permissions: PermissionOption[]
-    }> = []
-
-    Object.keys(resourceLabels).forEach((resource) => {
-      const list = byResource.get(resource)
-      if (list && list.length > 0) {
-        ordered.push({
-          resource,
-          label: resourceLabels[resource],
-          permissions: list,
-        })
-        byResource.delete(resource)
-      }
-    })
-
-    for (const [resource, list] of byResource) {
-      ordered.push({
-        resource,
-        label: resource,
-        permissions: list,
-      })
-    }
-
-    ordered.forEach((group) => {
-      group.permissions.sort((a, b) => {
-        const actionDiff = a.action.localeCompare(b.action)
-        if (actionDiff !== 0) return actionDiff
-        return a.scope.localeCompare(b.scope)
-      })
-    })
-
-    return ordered
-  }, [permissions])
 
   const handleCreateRole = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -653,84 +573,19 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               </p>
             </div>
 
-            {permissionsLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="h-16 rounded-lg border border-gray-200 bg-gray-50" />
-                ))}
-              </div>
-            ) : permissionsError ? (
+            {permissionsError ? (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {permissionsError}
               </div>
             ) : (
-              <div className="space-y-4">
-                {groupedPermissions.map((group) => {
-                  const groupIds = group.permissions.map((permission) => permission.id)
-                  const selectedInGroup = groupIds.filter((id) => selectedPermissionIds.includes(id))
-                  return (
-                    <div key={group.resource} className="rounded-lg border border-gray-200 p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <h4 className="text-sm font-semibold text-gray-900">{group.label}</h4>
-                        <div className="flex items-center gap-2 text-xs font-medium">
-                          <button
-                            type="button"
-                            onClick={() => setGroupPermissions(groupIds, true)}
-                            className="text-blue-600 hover:text-blue-700"
-                          >
-                            Select all
-                          </button>
-                          <span className="text-gray-300">|</span>
-                          <button
-                            type="button"
-                            onClick={() => setGroupPermissions(groupIds, false)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        {group.permissions.map((permission) => {
-                          const label = permission.description
-                            ? permission.description
-                            : `${permission.resource}:${permission.action}${
-                                permission.scope && permission.scope !== 'global'
-                                  ? `:${permission.scope}`
-                                  : ''
-                              }`
-
-                          return (
-                            <label
-                              key={permission.id}
-                              className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-700 hover:bg-gray-50"
-                            >
-                              <input
-                                type="checkbox"
-                                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                checked={selectedPermissionIds.includes(permission.id)}
-                                onChange={() => togglePermission(permission.id)}
-                              />
-                              <span className="flex-1">
-                                <span className="block font-medium text-gray-900">{label}</span>
-                                <span className="block text-xs text-gray-500">
-                                  {permission.resource} • {permission.action}
-                                  {permission.scope && permission.scope !== 'global'
-                                    ? ` • ${permission.scope}`
-                                    : ''}
-                                </span>
-                              </span>
-                            </label>
-                          )
-                        })}
-                      </div>
-                      <p className="mt-3 text-xs text-gray-500">
-                        {selectedInGroup.length} of {group.permissions.length} selected
-                      </p>
-                    </div>
-                  )
-                })}
-              </div>
+              <PermissionToggleList
+                permissions={permissions}
+                selectedIds={selectedPermissionIds}
+                onToggle={togglePermission}
+                mode="role"
+                loading={permissionsLoading}
+                disabled={createLoading}
+              />
             )}
           </section>
 
@@ -810,85 +665,19 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                 </p>
               </div>
 
-              {permissionsLoading ? (
-                <div className="space-y-3">
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <div key={index} className="h-16 rounded-lg border border-gray-200 bg-gray-50" />
-                  ))}
-                </div>
-              ) : permissionsError ? (
+              {permissionsError ? (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {permissionsError}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {groupedPermissions.map((group) => {
-                    const groupIds = group.permissions.map((permission) => permission.id)
-                    const selectedInGroup = groupIds.filter((id) => editPermissionIds.includes(id))
-                    return (
-                      <div key={group.resource} className="rounded-lg border border-gray-200 p-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <h4 className="text-sm font-semibold text-gray-900">{group.label}</h4>
-                          <div className="flex items-center gap-2 text-xs font-medium">
-                            <button
-                              type="button"
-                              onClick={() => setEditGroupPermissions(groupIds, true)}
-                              className="text-blue-600 hover:text-blue-700"
-                            >
-                              Select all
-                            </button>
-                            <span className="text-gray-300">|</span>
-                            <button
-                              type="button"
-                              onClick={() => setEditGroupPermissions(groupIds, false)}
-                              className="text-gray-500 hover:text-gray-700"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                        </div>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          {group.permissions.map((permission) => {
-                            const label = permission.description
-                              ? permission.description
-                              : `${permission.resource}:${permission.action}${
-                                  permission.scope && permission.scope !== 'global'
-                                    ? `:${permission.scope}`
-                                    : ''
-                                }`
-
-                            return (
-                              <label
-                                key={permission.id}
-                                className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-700 hover:bg-gray-50"
-                              >
-                                <input
-                                  type="checkbox"
-                                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                  checked={editPermissionIds.includes(permission.id)}
-                                  onChange={() => toggleEditPermission(permission.id)}
-                                  disabled={editSaving}
-                                />
-                                <span className="flex-1">
-                                  <span className="block font-medium text-gray-900">{label}</span>
-                                  <span className="block text-xs text-gray-500">
-                                    {permission.resource} • {permission.action}
-                                    {permission.scope && permission.scope !== 'global'
-                                      ? ` • ${permission.scope}`
-                                      : ''}
-                                  </span>
-                                </span>
-                              </label>
-                            )
-                          })}
-                        </div>
-                        <p className="mt-3 text-xs text-gray-500">
-                          {selectedInGroup.length} of {group.permissions.length} selected
-                        </p>
-                      </div>
-                    )}
-                  )}
-                </div>
+                <PermissionToggleList
+                  permissions={permissions}
+                  selectedIds={editPermissionIds}
+                  onToggle={toggleEditPermission}
+                  mode="role"
+                  loading={permissionsLoading}
+                  disabled={editSaving}
+                />
               )}
             </section>
 
