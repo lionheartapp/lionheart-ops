@@ -25,6 +25,16 @@ export default function ImageUpload({
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const getAuthHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+    const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
+    return {
+      Authorization: token ? `Bearer ${token}` : '',
+      'X-Organization-ID': orgId || '',
+      'Content-Type': 'application/json',
+    }
+  }
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -62,7 +72,7 @@ export default function ImageUpload({
 
       const res = await fetch('/api/settings/campus/images', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           entityType,
           entityId,
@@ -92,7 +102,7 @@ export default function ImageUpload({
     try {
       const res = await fetch('/api/settings/campus/images', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           entityType,
           entityId,
