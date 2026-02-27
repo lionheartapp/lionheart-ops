@@ -196,6 +196,7 @@ function Toggle({
         display: 'inline-flex',
         alignItems: 'center',
         height: '24px',
+        minHeight: '24px',
         width: '44px',
         flexShrink: 0,
         cursor: disabled ? 'not-allowed' : 'pointer',
