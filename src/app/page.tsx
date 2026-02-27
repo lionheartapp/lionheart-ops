@@ -34,7 +34,7 @@ export default function Landing() {
           <div className="flex gap-2 sm:gap-4">
             <Link
               href="/signin"
-              className="px-4 sm:px-6 py-3 min-h-[44px] text-gray-700 font-medium hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition"
+              className="px-4 sm:px-6 py-3 min-h-[44px] text-gray-900 font-semibold hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition"
               aria-label="Sign in to your account"
             >
               Sign In
@@ -70,7 +70,7 @@ export default function Landing() {
             </Link>
             <Link
               href="/signin"
-              className="px-6 sm:px-8 py-4 min-h-[44px] border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-gray-400 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+              className="px-6 sm:px-8 py-4 min-h-[44px] border-2 border-gray-900 text-gray-900 font-semibold rounded-lg hover:bg-gray-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
               aria-label="Sign in to existing account"
             >
               Sign In
