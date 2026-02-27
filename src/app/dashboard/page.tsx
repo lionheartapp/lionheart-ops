@@ -27,7 +27,31 @@ export default function DashboardPage() {
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
   const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
   const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
-  const orgLogoUrl = typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
+    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
+  )
+
+  // Fetch org logo from API if not in localStorage
+  useEffect(() => {
+    if (orgLogoUrl || !token) return
+    const fetchLogo = async () => {
+      try {
+        const res = await fetch('/api/onboarding/school-info', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.ok && data.data?.logoUrl) {
+            setOrgLogoUrl(data.data.logoUrl)
+            localStorage.setItem('org-logo-url', data.data.logoUrl)
+          }
+        }
+      } catch {
+        // Silently fail — logo is non-critical
+      }
+    }
+    fetchLogo()
+  }, [orgLogoUrl, token])
 
   // Close dropdown when clicking outside
   useEffect(() => {

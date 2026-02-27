@@ -64,7 +64,9 @@ export default function SettingsPage() {
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
   const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
   const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
-  const orgLogoUrl = typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
+    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
+  )
 
   // Optimistic check: show workspace settings immediately for admins
   const optimisticCanManageWorkspace = userRole
@@ -78,6 +80,28 @@ export default function SettingsPage() {
     setFirstName(nameParts[0] || '')
     setLastName(nameParts.slice(1).join(' ') || '')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch org logo from API if not in localStorage
+  useEffect(() => {
+    if (orgLogoUrl || !token) return
+    const fetchLogo = async () => {
+      try {
+        const res = await fetch('/api/onboarding/school-info', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.ok && data.data?.logoUrl) {
+            setOrgLogoUrl(data.data.logoUrl)
+            localStorage.setItem('org-logo-url', data.data.logoUrl)
+          }
+        }
+      } catch {
+        // Silently fail — logo is non-critical
+      }
+    }
+    fetchLogo()
+  }, [orgLogoUrl, token])
 
   // Keep a stable ref to requestTabChange so the event listener never goes stale
   const requestTabChangeRef = useRef<(tab: Tab) => void>(() => {})
