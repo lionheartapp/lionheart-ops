@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Save, School } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
 import SchoolsManagement from './SchoolsManagement'
 
 type SchoolInfo = {
@@ -469,7 +470,10 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">Physical Address</label>
-            <input className="ui-input" value={form.physicalAddress} onChange={(event) => setForm((prev) => ({ ...prev, physicalAddress: event.target.value }))} />
+            <AddressAutocomplete
+              value={form.physicalAddress}
+              onChange={(value) => setForm((prev) => ({ ...prev, physicalAddress: value }))}
+            />
           </div>
         </div>
       </section>
