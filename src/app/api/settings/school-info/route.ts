@@ -7,6 +7,26 @@ import { rawPrisma as prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
+
+async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+  if (!GOOGLE_PLACES_API_KEY) return null
+  try {
+    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json')
+    url.searchParams.set('address', address)
+    url.searchParams.set('key', GOOGLE_PLACES_API_KEY)
+    const res = await fetch(url.toString())
+    const data = await res.json()
+    if (data.status === 'OK' && data.results?.[0]?.geometry?.location) {
+      return data.results[0].geometry.location
+    }
+    return null
+  } catch (err) {
+    console.error('[GEOCODE] Failed to geocode address:', err)
+    return null
+  }
+}
+
 const nullableText = (max: number) =>
   z.preprocess(
     (value) => {
@@ -238,6 +258,19 @@ export async function PATCH(req: NextRequest) {
         updatedAt: true,
       },
     })
+
+    // Geocode address in the background if it changed
+    const newAddress = toNullable(input.physicalAddress)
+    if (newAddress) {
+      geocodeAddress(newAddress).then(async (coords) => {
+        if (coords) {
+          await prisma.organization.update({
+            where: { id: orgId },
+            data: { latitude: coords.lat, longitude: coords.lng },
+          })
+        }
+      }).catch((err) => console.error('[GEOCODE] Background geocoding failed:', err))
+    }
 
     return NextResponse.json(ok(updated))
   } catch (error) {
