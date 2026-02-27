@@ -81,36 +81,54 @@ export async function GET(req: NextRequest) {
       }
 
       // Scope buildings and areas by campus if available
-      const campusFilter = selectedCampusId
-        ? rawPrisma.$queryRaw`AND "campusId" = ${selectedCampusId}`
-        : rawPrisma.$queryRaw``
-
-      const buildingRows = await rawPrisma.$queryRaw<Array<{
+      let buildingRows: Array<{
         id: string; name: string; code: string | null
         latitude: number | null; longitude: number | null; polygonCoordinates: unknown | null
-      }>>`
-        SELECT id, name, code, latitude, longitude, "polygonCoordinates"
-        FROM "Building"
-        WHERE "organizationId" = ${orgId}
-          AND "isActive" = true
-          AND "deletedAt" IS NULL
-          ${selectedCampusId ? rawPrisma.$queryRaw`AND "campusId" = ${selectedCampusId}` : rawPrisma.$queryRaw``}
-        ORDER BY "sortOrder" ASC, name ASC
-      `
-
-      const outdoorRows = await rawPrisma.$queryRaw<Array<{
+      }>
+      let outdoorRows: Array<{
         id: string; name: string; areaType: string
         latitude: number | null; longitude: number | null; polygonCoordinates: unknown | null
-      }>>`
-        SELECT id, name, "areaType", latitude, longitude, "polygonCoordinates"
-        FROM "Area"
-        WHERE "organizationId" = ${orgId}
-          AND "buildingId" IS NULL
-          AND "isActive" = true
-          AND "deletedAt" IS NULL
-          ${selectedCampusId ? rawPrisma.$queryRaw`AND "campusId" = ${selectedCampusId}` : rawPrisma.$queryRaw``}
-        ORDER BY "sortOrder" ASC, name ASC
-      `
+      }>
+
+      if (selectedCampusId) {
+        buildingRows = await rawPrisma.$queryRaw`
+          SELECT id, name, code, latitude, longitude, "polygonCoordinates"
+          FROM "Building"
+          WHERE "organizationId" = ${orgId}
+            AND "isActive" = true
+            AND "deletedAt" IS NULL
+            AND "campusId" = ${selectedCampusId}
+          ORDER BY "sortOrder" ASC, name ASC
+        `
+        outdoorRows = await rawPrisma.$queryRaw`
+          SELECT id, name, "areaType", latitude, longitude, "polygonCoordinates"
+          FROM "Area"
+          WHERE "organizationId" = ${orgId}
+            AND "buildingId" IS NULL
+            AND "isActive" = true
+            AND "deletedAt" IS NULL
+            AND "campusId" = ${selectedCampusId}
+          ORDER BY "sortOrder" ASC, name ASC
+        `
+      } else {
+        buildingRows = await rawPrisma.$queryRaw`
+          SELECT id, name, code, latitude, longitude, "polygonCoordinates"
+          FROM "Building"
+          WHERE "organizationId" = ${orgId}
+            AND "isActive" = true
+            AND "deletedAt" IS NULL
+          ORDER BY "sortOrder" ASC, name ASC
+        `
+        outdoorRows = await rawPrisma.$queryRaw`
+          SELECT id, name, "areaType", latitude, longitude, "polygonCoordinates"
+          FROM "Area"
+          WHERE "organizationId" = ${orgId}
+            AND "buildingId" IS NULL
+            AND "isActive" = true
+            AND "deletedAt" IS NULL
+          ORDER BY "sortOrder" ASC, name ASC
+        `
+      }
 
       return NextResponse.json(ok({
         org: mapCenter,

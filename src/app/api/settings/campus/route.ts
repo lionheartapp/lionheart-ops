@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
 
       const where: Record<string, unknown> = {
         organizationId: orgId,
+        deletedAt: null,
         ...(includeInactive ? {} : { isActive: true }),
       }
 
@@ -67,6 +68,7 @@ export async function GET(req: NextRequest) {
         db.room.findMany({
           where: {
             organizationId: orgId,
+            deletedAt: null,
             ...(includeInactive ? {} : { isActive: true }),
             // Rooms don't have campusId directly — filter via building
             ...(selectedCampusId ? { building: { campusId: selectedCampusId } } : {}),
