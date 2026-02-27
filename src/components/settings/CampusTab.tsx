@@ -78,6 +78,7 @@ const DIVISION_BG_CLASSES: Record<string, string> = {
 const BUILDING_TYPE_LABELS: Record<string, string> = {
   GENERAL: 'General',
   ARTS_CULTURE: 'Arts & Culture',
+  ATHLETICS: 'Athletics',
   ADMINISTRATION: 'Administration',
   SUPPORT_SERVICES: 'Support Services',
 }
@@ -693,7 +694,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         ))}
         <button
           onClick={openAddCampusModal}
-          className="ml-auto px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-transparent hover:text-blue-700 transition flex items-center gap-2 whitespace-nowrap"
+          className="ml-auto bg-blue-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-medium transition whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
           Add Campus
@@ -1082,6 +1083,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               >
                 <option value="GENERAL">General</option>
                 <option value="ARTS_CULTURE">Arts &amp; Culture</option>
+                <option value="ATHLETICS">Athletics</option>
                 <option value="ADMINISTRATION">Administration</option>
                 <option value="SUPPORT_SERVICES">Support Services</option>
               </select>

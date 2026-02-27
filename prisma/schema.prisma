@@ -523,6 +523,7 @@ enum SchoolDivision {
 enum BuildingType {
   GENERAL
   ARTS_CULTURE
+  ATHLETICS
   ADMINISTRATION
   SUPPORT_SERVICES
 }
