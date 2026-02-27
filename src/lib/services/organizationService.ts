@@ -31,22 +31,43 @@ export interface OrganizationBranding {
 export async function getOrganizationBranding(
   slug: string
 ): Promise<OrganizationBranding | null> {
+  const select = {
+    id: true,
+    name: true,
+    institutionType: true,
+    gradeLevel: true,
+    slug: true,
+    logoUrl: true,
+    heroImageUrl: true,
+    imagePosition: true,
+  } as const;
+
   try {
+    // Try exact slug match first (e.g., "linfield-christian-school")
     const org = await rawPrisma.organization.findUnique({
       where: { slug },
-      select: {
-        id: true,
-        name: true,
-        institutionType: true,
-        gradeLevel: true,
-        slug: true,
-        logoUrl: true,
-        heroImageUrl: true,
-        imagePosition: true,
-      },
+      select,
     });
 
-    return org;
+    if (org) return org;
+
+    // If no match, try fuzzy match: strip hyphens from both sides
+    // This lets "linfieldchristianschool" match "linfield-christian-school"
+    const normalizedInput = slug.replace(/-/g, '').toLowerCase();
+    const fuzzyResults = await rawPrisma.$queryRaw<Array<{ slug: string }>>`
+      SELECT slug FROM "Organization"
+      WHERE REPLACE(LOWER(slug), '-', '') = ${normalizedInput}
+      LIMIT 1
+    `;
+
+    if (fuzzyResults.length > 0) {
+      return await rawPrisma.organization.findUnique({
+        where: { slug: fuzzyResults[0].slug },
+        select,
+      });
+    }
+
+    return null;
   } catch (error) {
     console.error('Error fetching organization branding:', error);
     return null;
