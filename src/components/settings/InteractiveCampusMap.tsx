@@ -130,7 +130,7 @@ function createBuildingCircleIcon(L: any, label: string, color = '#2563eb') {
     className: 'campus-building-marker',
     html: `
       <div style="
-        display: flex; align-items: center; gap: 6px;
+        display: flex; align-items: center; justify-content: center;
         transform: translate(-50%, -50%);
       ">
         <div style="
@@ -146,13 +146,6 @@ function createBuildingCircleIcon(L: any, label: string, color = '#2563eb') {
             <path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01"/>
           </svg>
         </div>
-        <div style="
-          background: ${color}; color: white;
-          padding: 2px 8px; border-radius: 10px;
-          font-size: 11px; font-weight: 700;
-          white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-          border: 1px solid rgba(255,255,255,0.5);
-        ">${label}</div>
       </div>
     `,
     iconSize: [0, 0],
@@ -160,13 +153,65 @@ function createBuildingCircleIcon(L: any, label: string, color = '#2563eb') {
   })
 }
 
+/** Get SVG icon for outdoor spaces based on name and areaType */
+function getOutdoorSvgIcon(name: string, areaType: string): string {
+  const nameLower = name.toLowerCase()
+
+  // Check name for keywords first
+  if (nameLower.includes('tennis')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M5 19c2-2 4-3 7-3s5 1 7 3"/></svg>'
+  }
+  if (nameLower.includes('football')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9M5 12h14M8 9h.01M8 15h.01M16 9h.01M16 15h.01"/></svg>'
+  }
+  if (nameLower.includes('baseball') || nameLower.includes('softball')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M6 12c0 1.5 1 3 2 4M18 12c0 1.5-1 3-2 4M6 12c0-1.5 1-3 2-4M18 12c0-1.5-1-3-2-4"/></svg>'
+  }
+  if (nameLower.includes('basketball')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>'
+  }
+  if (nameLower.includes('soccer')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 9v6M15 12h-6M13 10l-2 2M13 14l-2-2"/></svg>'
+  }
+  if (nameLower.includes('track') || nameLower.includes('running')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><path d="M4 14c1 1 2 1 3 0m-1 2 2-2m3 7s.75-1.5 2-1.5 2 1.5 2 1.5"/></svg>'
+  }
+  if (nameLower.includes('pool') || nameLower.includes('swim')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10c0 0 1-2 4-2s4 2 4 2M12 10c0 0 1-2 4-2s4 2 4 2M4 14c0 0 1-2 4-2s4 2 4 2M12 14c0 0 1-2 4-2s4 2 4 2"/></svg>'
+  }
+  if (nameLower.includes('parking')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>'
+  }
+  if (nameLower.includes('gym') || nameLower.includes('weight')) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>'
+  }
+
+  // Fallback based on areaType
+  switch (areaType) {
+    case 'COURT':
+      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3"/></svg>'
+    case 'GYM':
+      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>'
+    case 'COMMON':
+      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 1-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+    case 'PARKING':
+      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>'
+    case 'FIELD':
+    case 'OTHER':
+    default:
+      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.1 0 2 .9 2 2 0 2.3 1.5 4.3 3.5 5-2 .7-3.5 2.7-3.5 5 0 1.1-.9 2-2 2s-2-.9-2-2c0-2.3-1.5-4.3-3.5-5 2-.7 3.5-2.7 3.5-5 0-1.1.9-2 2-2z"/></svg>'
+  }
+}
+
 /** Circular icon for outdoor spaces */
-function createOutdoorIcon(L: any, label: string, color = '#16a34a') {
+function createOutdoorIcon(L: any, name: string, areaType: string, color = '#16a34a') {
+  const svgIcon = getOutdoorSvgIcon(name, areaType)
+
   return L.divIcon({
     className: 'campus-outdoor-marker',
     html: `
       <div style="
-        display: flex; align-items: center; gap: 6px;
+        display: flex; align-items: center; justify-content: center;
         transform: translate(-50%, -50%);
       ">
         <div style="
@@ -176,19 +221,8 @@ function createOutdoorIcon(L: any, label: string, color = '#16a34a') {
           box-shadow: 0 2px 6px rgba(0,0,0,0.3);
           flex-shrink: 0;
         ">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 14v6m-3-3h6M6 3v12"/>
-            <path d="M6 3c0 0 3 2 6 2s6-2 6-2"/>
-            <path d="M6 8c0 0 3 2 6 2s6-2 6-2"/>
-          </svg>
+          ${svgIcon}
         </div>
-        <div style="
-          background: ${color}; color: white;
-          padding: 2px 7px; border-radius: 10px;
-          font-size: 10px; font-weight: 700;
-          white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-          border: 1px solid rgba(255,255,255,0.5);
-        ">${label}</div>
       </div>
     `,
     iconSize: [0, 0],
@@ -461,6 +495,8 @@ export default function InteractiveCampusMap({
       zIndexOffset: 100,
     }).addTo(map)
 
+    marker.bindTooltip(building.name, { direction: 'top', offset: [0, -20], className: 'campus-tooltip' })
+
     // Build popup with detect outline button
     const popupContent = document.createElement('div')
     popupContent.style.minWidth = '160px'
@@ -558,10 +594,12 @@ export default function InteractiveCampusMap({
     if (!space.lat || !space.lng) return
 
     const marker = L.marker([space.lat, space.lng], {
-      icon: createOutdoorIcon(L, space.name, color),
+      icon: createOutdoorIcon(L, space.name, space.areaType, color),
       draggable: editable,
       zIndexOffset: 50,
     }).addTo(map)
+
+    marker.bindTooltip(space.name, { direction: 'top', offset: [0, -18], className: 'campus-tooltip' })
 
     marker.bindPopup(
       `<strong style="font-size:14px;">${space.name}</strong>` +
@@ -1012,7 +1050,7 @@ export default function InteractiveCampusMap({
       className: 'pending-placement-marker',
       html: `
         <div style="
-          display: flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; justify-content: center;
           transform: translate(-50%, -50%);
           opacity: 0.7;
         ">
@@ -1028,14 +1066,6 @@ export default function InteractiveCampusMap({
               : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M17 14v6m-3-3h6M6 3v12"/></svg>'
             }
           </div>
-          ${pendingMarker.label ? `<div style="
-            background: ${pendingMarker.type === 'building' ? '#3b82f6' : '#16a34a'};
-            color: white; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; font-weight: 700; white-space: nowrap;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            border: 1px dashed rgba(255,255,255,0.7);
-            opacity: 0.9;
-          ">${pendingMarker.label}</div>` : ''}
         </div>
       `,
       iconSize: [0, 0],
@@ -1296,31 +1326,9 @@ export default function InteractiveCampusMap({
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 px-4 py-2.5 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-red-600 border-2 border-white shadow-sm" />
-          School Center
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-sm" />
-          Building
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-green-600 border-2 border-white shadow-sm" />
-          Outdoor
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-blue-600/30 border border-blue-600" />
-          Outline
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-purple-500" />
-          AI Detect
-        </div>
-
+      <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
         {/* Division color legend */}
-        <div className="flex items-center gap-3 ml-auto">
-          <span className="text-gray-400">|</span>
+        <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.GLOBAL }} />
             <span>Global</span>
@@ -1336,6 +1344,11 @@ export default function InteractiveCampusMap({
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.HIGH_SCHOOL }} />
             <span>High</span>
+          </div>
+          <span className="text-gray-400">|</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#16a34a' }} />
+            <span>Outdoor</span>
           </div>
         </div>
       </div>

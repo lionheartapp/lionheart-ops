@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 
 type Building = {
@@ -52,6 +53,20 @@ const DIVISION_LABELS: Record<string, string> = {
   HIGH_SCHOOL: 'High School',
 }
 
+const DIVISION_ORDER = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
+const DIVISION_COLORS: Record<string, string> = {
+  ELEMENTARY: '#7c3aed',
+  MIDDLE_SCHOOL: '#0891b2',
+  HIGH_SCHOOL: '#dc2626',
+  GLOBAL: '#2563eb',
+}
+const DIVISION_BG_CLASSES: Record<string, string> = {
+  ELEMENTARY: 'bg-purple-50',
+  MIDDLE_SCHOOL: 'bg-cyan-50',
+  HIGH_SCHOOL: 'bg-red-50',
+  GLOBAL: 'bg-blue-50',
+}
+
 const OUTDOOR_TYPE_LABELS: Record<string, string> = {
   FIELD: 'Athletic Field',
   COURT: 'Court',
@@ -94,13 +109,16 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [editRoomError, setEditRoomError] = useState('')
   const [editRoomSaving, setEditRoomSaving] = useState(false)
 
-  // ─── Deactivate confirm ───────────────────────────────────────────────────
-  const [confirmDeactivate, setConfirmDeactivate] = useState<{
-    endpoint: string
+  // ─── Delete/Deactivate confirm ────────────────────────────────────────────
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    type: 'building' | 'outdoor' | 'room'
     id: string
-    label: string
+    name: string
+    roomCount: number
+    ticketCount: number
+    action: 'delete' | 'deactivate'
   } | null>(null)
-  const [isDeactivating, setIsDeactivating] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   // ─── Map building placement ──────────────────────────────────────────────
   const [pendingBuildingCoords, setPendingBuildingCoords] = useState<{ lat: number; lng: number } | null>(null)
@@ -122,6 +140,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     () => (roomsBuilding ? rooms.filter((r) => r.buildingId === roomsBuilding.id) : []),
     [rooms, roomsBuilding],
   )
+  const groupedBuildings = useMemo(() => {
+    return DIVISION_ORDER
+      .map(div => ({ division: div, buildings: buildings.filter(b => b.schoolDivision === div) }))
+      .filter(g => g.buildings.length > 0)
+  }, [buildings])
 
   const hasUnsavedChanges = Boolean(
     (buildingDrawerOpen && (buildingForm.name.trim().length > 0 || buildingForm.code.trim().length > 0)) ||
@@ -408,30 +431,66 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     }
   }
 
-  // ─── Deactivate ───────────────────────────────────────────────────────────
-  const requestDeactivate = (endpoint: string, id: string, label: string) => {
-    setConfirmDeactivate({ endpoint, id, label })
+  // ─── Delete/Deactivate ───────────────────────────────────────────────────
+  const openDeleteConfirm = async (type: 'building' | 'outdoor', id: string, name: string) => {
+    let roomCount = 0
+    let ticketCount = 0
+    if (type === 'building') {
+      roomCount = rooms.filter(r => r.buildingId === id).length
+    }
+    setDeleteConfirm({ type, id, name, roomCount, ticketCount, action: 'delete' })
   }
 
-  const confirmDeactivateAction = async () => {
-    if (!confirmDeactivate) return
-    setIsDeactivating(true)
+  const openDeactivateConfirm = (type: 'building' | 'outdoor' | 'room', id: string, name: string) => {
+    const roomCount = type === 'building' ? rooms.filter(r => r.buildingId === id).length : 0
+    setDeleteConfirm({ type, id, name, roomCount, ticketCount: 0, action: 'deactivate' })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return
+    setDeleteLoading(true)
     try {
-      const res = await fetch(`/api/settings/campus/${confirmDeactivate.endpoint}/${confirmDeactivate.id}`, {
+      const endpointMap = { building: 'buildings', outdoor: 'areas', room: 'rooms' } as const
+      const endpoint = endpointMap[deleteConfirm.type]
+      const res = await fetch(`/api/settings/campus/${endpoint}/${deleteConfirm.id}?permanent=true`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+      if (handleAuthResponse(res)) return
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to delete')
+      setDeleteConfirm(null)
+      setSuccessMessage(`${deleteConfirm.name} deleted permanently`)
+      await loadData()
+    } catch (e) {
+      setDeleteConfirm(null)
+      setBuildingFormError(e instanceof Error ? e.message : 'Failed to delete')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const handleDeactivateFromDialog = async () => {
+    if (!deleteConfirm) return
+    setDeleteLoading(true)
+    try {
+      const endpointMap = { building: 'buildings', outdoor: 'areas', room: 'rooms' } as const
+      const endpoint = endpointMap[deleteConfirm.type]
+      const res = await fetch(`/api/settings/campus/${endpoint}/${deleteConfirm.id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
       })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to deactivate')
-      setSuccessMessage('Deactivated successfully')
-      setConfirmDeactivate(null)
+      setDeleteConfirm(null)
+      setSuccessMessage(`${deleteConfirm.name} deactivated`)
       await loadData()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to deactivate')
-      setConfirmDeactivate(null)
+      setDeleteConfirm(null)
+      setBuildingFormError(e instanceof Error ? e.message : 'Failed to deactivate')
     } finally {
-      setIsDeactivating(false)
+      setDeleteLoading(false)
     }
   }
 
@@ -601,7 +660,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           </div>
           <button
             onClick={openAddBuilding}
-            className="flex items-center gap-2 px-4 py-2 min-h-[36px] text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="flex items-center gap-2 px-4 py-2 min-h-[36px] text-sm font-medium bg-white text-blue-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             <Plus className="w-4 h-4" />
             Add Building
@@ -623,51 +682,69 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 <thead>
                   <tr className="text-gray-500 border-b bg-gray-50">
                     <th className="py-3 px-4 text-left font-medium">Building</th>
-                    <th className="py-3 px-4 text-left font-medium">Division</th>
                     <th className="py-3 px-4 text-left font-medium">Rooms</th>
                     <th className="py-3 px-4 text-left font-medium">Status</th>
                     <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {buildings.map((b) => {
-                    const roomCount = rooms.filter((r) => r.buildingId === b.id).length
-                    return (
-                      <tr key={b.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <div className="font-medium text-gray-900">{b.name}</div>
-                          {b.code && <div className="text-xs text-gray-400 mt-0.5">{b.code}</div>}
-                        </td>
-                        <td className="py-3 px-4 text-gray-600">{DIVISION_LABELS[b.schoolDivision] || b.schoolDivision}</td>
-                        <td className="py-3 px-4 text-gray-500">{roomCount}</td>
-                        <td className="py-3 px-4">{renderStatusBadge(b.isActive)}</td>
-                        <td className="py-3 pl-4 pr-10">
-                          <div className="flex justify-end">
-                            <RowActionMenu
-                              items={[
-                                {
-                                  label: 'Manage Rooms',
-                                  icon: <DoorOpen className="w-4 h-4" />,
-                                  onClick: () => openRoomsDrawer(b),
-                                },
-                                {
-                                  label: 'Edit',
-                                  icon: <Edit2 className="w-4 h-4" />,
-                                  onClick: () => openEditBuilding(b),
-                                },
-                                {
-                                  label: 'Deactivate',
-                                  icon: <Trash2 className="w-4 h-4" />,
-                                  onClick: () => requestDeactivate('buildings', b.id, b.name),
-                                  variant: 'danger',
-                                },
-                              ]}
+                  {groupedBuildings.map((group) => (
+                    <React.Fragment key={group.division}>
+                      {/* Division header row */}
+                      <tr className={DIVISION_BG_CLASSES[group.division] || 'bg-gray-50'}>
+                        <td colSpan={4} className="py-2 px-4">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              style={{ background: DIVISION_COLORS[group.division] }}
                             />
+                            <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                              {DIVISION_LABELS[group.division] || group.division}
+                            </span>
+                            <span className="text-xs text-gray-400">({group.buildings.length})</span>
                           </div>
                         </td>
                       </tr>
-                    )
-                  })}
+                      {/* Building rows */}
+                      {group.buildings.map((b) => {
+                        const roomCount = rooms.filter((r) => r.buildingId === b.id).length
+                        return (
+                          <tr key={b.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                            <td className="py-3 px-4">
+                              <div className="font-medium text-gray-900">{b.name}</div>
+                              {b.code && <div className="text-xs text-gray-400 mt-0.5">{b.code}</div>}
+                            </td>
+                            <td className="py-3 px-4 text-gray-500">{roomCount}</td>
+                            <td className="py-3 px-4">{renderStatusBadge(b.isActive)}</td>
+                            <td className="py-3 pl-4 pr-10">
+                              <div className="flex justify-end">
+                                <RowActionMenu
+                                  items={[
+                                    {
+                                      label: 'Manage Rooms',
+                                      icon: <DoorOpen className="w-4 h-4" />,
+                                      onClick: () => openRoomsDrawer(b),
+                                    },
+                                    {
+                                      label: 'Edit',
+                                      icon: <Edit2 className="w-4 h-4" />,
+                                      onClick: () => openEditBuilding(b),
+                                    },
+                                    {
+                                      label: 'Delete',
+                                      icon: <Trash2 className="w-4 h-4" />,
+                                      onClick: () => openDeleteConfirm('building', b.id, b.name),
+                                      variant: 'danger',
+                                    },
+                                  ]}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </React.Fragment>
+                  ))}
                 </tbody>
               </table>
             )}
@@ -684,7 +761,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           </div>
           <button
             onClick={openAddOutdoor}
-            className="flex items-center gap-2 px-4 py-2 min-h-[36px] text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="flex items-center gap-2 px-4 py-2 min-h-[36px] text-sm font-medium bg-white text-blue-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             <Plus className="w-4 h-4" />
             Add Outdoor Space
@@ -727,9 +804,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                                 onClick: () => openEditOutdoor(a),
                               },
                               {
-                                label: 'Deactivate',
+                                label: 'Delete',
                                 icon: <Trash2 className="w-4 h-4" />,
-                                onClick: () => requestDeactivate('areas', a.id, a.name),
+                                onClick: () => openDeleteConfirm('outdoor', a.id, a.name),
                                 variant: 'danger',
                               },
                             ]}
@@ -1027,7 +1104,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                                 {
                                   label: 'Deactivate',
                                   icon: <Trash2 className="w-4 h-4" />,
-                                  onClick: () => requestDeactivate('rooms', r.id, r.displayName || r.roomNumber),
+                                  onClick: () => openDeactivateConfirm('room', r.id, r.displayName || r.roomNumber),
                                   variant: 'danger',
                                 },
                               ]}
@@ -1122,22 +1199,36 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         })()}
       </DetailDrawer>
 
-      {/* ── Deactivate Confirm ────────────────────────────────────────────── */}
-      {confirmDeactivate && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-lg bg-white border border-gray-200 p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-900">Confirm deactivation</h3>
-            <p className="text-sm text-gray-600 mt-2">
-              Deactivate <span className="font-medium text-gray-900">{confirmDeactivate.label}</span>? This hides it from active selections but keeps existing references intact.
-            </p>
-            <div className="mt-5 flex items-center justify-end gap-2">
-              <button onClick={() => setConfirmDeactivate(null)} disabled={isDeactivating} className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50">Cancel</button>
-              <button onClick={confirmDeactivateAction} disabled={isDeactivating} className="px-4 py-2 min-h-[40px] rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition disabled:opacity-50">
-                {isDeactivating ? 'Deactivating...' : 'Deactivate'}
-              </button>
+      {/* ── Delete/Deactivate Confirm ────────────────────────────────────── */}
+      {deleteConfirm && (
+        <ConfirmDialog
+          isOpen={!!deleteConfirm}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={deleteConfirm.action === 'delete' ? handleDeleteConfirm : handleDeactivateFromDialog}
+          title={deleteConfirm.action === 'delete'
+            ? `Delete "${deleteConfirm.name}"?`
+            : `Deactivate "${deleteConfirm.name}"?`}
+          message={deleteConfirm.action === 'delete'
+            ? 'This action is permanent and cannot be undone.'
+            : 'This hides it from active selections but keeps existing references intact.'}
+          confirmText={deleteConfirm.action === 'delete' ? 'Delete permanently' : 'Deactivate'}
+          cancelText="Cancel"
+          variant="danger"
+          isLoading={deleteLoading}
+          loadingText={deleteConfirm.action === 'delete' ? 'Deleting...' : 'Deactivating...'}
+          requireText={deleteConfirm.action === 'delete' ? deleteConfirm.name : undefined}
+          extraAction={deleteConfirm.action === 'delete' ? {
+            label: 'Deactivate instead',
+            onClick: handleDeactivateFromDialog,
+          } : undefined}
+        >
+          {deleteConfirm.type === 'building' && deleteConfirm.roomCount > 0 && (
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              This building has <strong>{deleteConfirm.roomCount} room{deleteConfirm.roomCount !== 1 ? 's' : ''}</strong>.
+              {deleteConfirm.action === 'delete' && ' Deleting will permanently remove all associated rooms.'}
             </div>
-          </div>
-        </div>
+          )}
+        </ConfirmDialog>
       )}
     </div>
   )

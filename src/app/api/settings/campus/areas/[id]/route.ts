@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma as prisma } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -34,8 +34,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      const db = prisma as any
-      const area = await db.area.findFirst({
+      const area = await (rawPrisma as any).area.findFirst({
         where: { id, organizationId: orgId },
         include: { building: { select: { id: true, name: true, code: true } } },
       })
@@ -65,15 +64,14 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const input = UpdateAreaSchema.parse(body)
-      const db = prisma as any
 
-      const existing = await db.area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
+      const existing = await (rawPrisma as any).area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
       if (!existing) {
         return NextResponse.json(fail('NOT_FOUND', 'Area not found'), { status: 404 })
       }
 
       if (input.buildingId) {
-        const building = await db.building.findFirst({
+        const building = await (rawPrisma as any).building.findFirst({
           where: { id: input.buildingId, organizationId: orgId },
           select: { id: true },
         })
@@ -82,7 +80,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         }
       }
 
-      const area = await db.area.update({
+      const area = await (rawPrisma as any).area.update({
         where: { id },
         data: {
           ...(input.name !== undefined ? { name: input.name } : {}),
@@ -120,15 +118,24 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
 
+    const url = new URL(req.url)
+    const permanent = url.searchParams.get('permanent') === 'true'
+
     return await runWithOrgContext(orgId, async () => {
-      const db = prisma as any
-      const existing = await db.area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
+      const existing = await (rawPrisma as any).area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
       if (!existing) {
         return NextResponse.json(fail('NOT_FOUND', 'Area not found'), { status: 404 })
       }
 
-      const area = await db.area.update({ where: { id }, data: { isActive: false } })
-      return NextResponse.json(ok(area))
+      if (permanent) {
+        // Hard delete the area
+        await (rawPrisma as any).area.delete({ where: { id } })
+        return NextResponse.json(ok({ id, deleted: true }))
+      } else {
+        // Soft deactivate (existing behavior)
+        const area = await (rawPrisma as any).area.update({ where: { id }, data: { isActive: false } })
+        return NextResponse.json(ok(area))
+      }
     })
   } catch (error) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
