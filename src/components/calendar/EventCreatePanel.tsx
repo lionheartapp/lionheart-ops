@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { CalendarData } from '@/lib/hooks/useCalendar'
@@ -52,6 +52,23 @@ export default function EventCreatePanel({
     isAllDay: false,
     locationText: '',
   })
+
+  // Reset form when panel opens or calendars change
+  useEffect(() => {
+    if (isOpen) {
+      const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
+      const end = initialEnd || new Date(start.getTime() + 60 * 60 * 1000)
+      setForm({
+        calendarId: calendars[0]?.id || '',
+        title: '',
+        description: '',
+        startTime: toLocalDateTimeString(start),
+        endTime: toLocalDateTimeString(end),
+        isAllDay: false,
+        locationText: '',
+      })
+    }
+  }, [isOpen, calendars, initialStart, initialEnd])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
