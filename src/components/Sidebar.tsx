@@ -206,6 +206,8 @@ export default function Sidebar({
     { id: 'campus' as SettingsTab, label: 'Campus', icon: Building2 },
   ]
 
+  const secondaryOpen = settingsOpen || calendarOpen
+
   const mainNavContent = (
     <>
       {/* Navigation Menu */}
@@ -402,8 +404,6 @@ export default function Sidebar({
       </div>
     </div>
   )
-
-  const secondaryOpen = settingsOpen || calendarOpen
 
   return (
     <>
