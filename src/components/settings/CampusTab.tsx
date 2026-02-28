@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera } from 'lucide-react'
+import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera, MoreVertical } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -109,6 +109,16 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [addCampusForm, setAddCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
   const [addCampusError, setAddCampusError] = useState('')
   const [addCampusSaving, setAddCampusSaving] = useState(false)
+
+  // ─── Campus Edit / Delete ──────────────────────────────────────────────
+  const [editCampusDrawerOpen, setEditCampusDrawerOpen] = useState(false)
+  const [editingCampus, setEditingCampus] = useState<Campus | null>(null)
+  const [editCampusForm, setEditCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
+  const [editCampusError, setEditCampusError] = useState('')
+  const [editCampusSaving, setEditCampusSaving] = useState(false)
+  const [deleteCampusConfirm, setDeleteCampusConfirm] = useState<Campus | null>(null)
+  const [deleteCampusLoading, setDeleteCampusLoading] = useState(false)
+  const [campusMenuOpen, setCampusMenuOpen] = useState<string | null>(null)
 
   // ─── Data ────────────────────────────────────────────────────────────────
   const [buildings, setBuildings] = useState<Building[]>([])
@@ -624,6 +634,85 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     }
   }
 
+  // ─── Campus Edit / Delete handlers ─────────────────────────────────────
+  const openEditCampus = (campus: Campus) => {
+    setEditingCampus(campus)
+    setEditCampusForm({ name: campus.name, address: campus.address || '', campusType: campus.campusType })
+    setEditCampusError('')
+    setEditCampusDrawerOpen(true)
+    setCampusMenuOpen(null)
+  }
+
+  const closeEditCampusDrawer = () => {
+    if (editCampusSaving) return
+    setEditCampusDrawerOpen(false)
+    setEditingCampus(null)
+    setEditCampusError('')
+  }
+
+  const saveEditCampusForm = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingCampus) return
+    setEditCampusError('')
+    const name = editCampusForm.name.trim()
+    if (!name) { setEditCampusError('Campus name is required'); return }
+
+    setEditCampusSaving(true)
+    try {
+      const res = await fetch(`/api/settings/campus/campuses/${editingCampus.id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          name,
+          address: editCampusForm.address.trim() || null,
+          campusType: editCampusForm.campusType,
+        }),
+      })
+      if (handleAuthResponse(res)) return
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to update campus')
+      setEditCampusDrawerOpen(false)
+      setEditingCampus(null)
+      setSuccessMessage('Campus updated')
+      await loadCampuses()
+    } catch (e) {
+      setEditCampusError(e instanceof Error ? e.message : 'Failed to update campus')
+    } finally {
+      setEditCampusSaving(false)
+    }
+  }
+
+  const openDeleteCampus = (campus: Campus) => {
+    setDeleteCampusConfirm(campus)
+    setCampusMenuOpen(null)
+  }
+
+  const confirmDeleteCampus = async () => {
+    if (!deleteCampusConfirm) return
+    setDeleteCampusLoading(true)
+    try {
+      const res = await fetch(`/api/settings/campus/campuses/${deleteCampusConfirm.id}?permanent=true`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+      if (handleAuthResponse(res)) return
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to delete campus')
+      setDeleteCampusConfirm(null)
+      setSuccessMessage('Campus deleted')
+      // If we deleted the selected campus, reset selection
+      if (selectedCampusId === deleteCampusConfirm.id) {
+        setSelectedCampusId(null)
+      }
+      await loadCampuses()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete campus')
+      setDeleteCampusConfirm(null)
+    } finally {
+      setDeleteCampusLoading(false)
+    }
+  }
+
   // ─── Render helpers ───────────────────────────────────────────────────────
   const renderStatusBadge = (isActive: boolean) => (
     <span className={`text-xs font-medium px-2 py-1 rounded-full ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -706,19 +795,52 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       )}
 
       {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 border-b border-gray-200 overflow-x-auto">
+      <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
         {campuses.length > 1 && campuses.map((campus) => (
-          <button
-            key={campus.id}
-            onClick={() => setSelectedCampusId(campus.id)}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-              selectedCampusId === campus.id
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            {campus.name}
-          </button>
+          <div key={campus.id} className="relative flex items-center">
+            <button
+              onClick={() => setSelectedCampusId(campus.id)}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                selectedCampusId === campus.id
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {campus.name}
+            </button>
+            {selectedCampusId === campus.id && (
+              <div className="relative">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCampusMenuOpen(campusMenuOpen === campus.id ? null : campus.id) }}
+                  className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+                  style={{ minHeight: 'auto' }}
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                {campusMenuOpen === campus.id && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setCampusMenuOpen(null)} />
+                    <div className="absolute right-0 top-full mt-1 z-50 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+                      <button
+                        onClick={() => openEditCampus(campus)}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        style={{ minHeight: 'auto' }}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" /> Edit Campus
+                      </button>
+                      <button
+                        onClick={() => openDeleteCampus(campus)}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        style={{ minHeight: 'auto' }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete Campus
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
@@ -1524,7 +1646,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
       {/* ── Add Campus Modal ──────────────────────────────────────────────── */}
       {showAddCampusModal && createPortal(
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal p-4">
           <div className="bg-white rounded-xl shadow-lg max-w-md w-full">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Add Campus</h3>
@@ -1590,10 +1712,107 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         document.body
       )}
 
+      {/* ── Edit Campus Drawer ──────────────────────────────────────────── */}
+      <DetailDrawer
+        isOpen={editCampusDrawerOpen}
+        onClose={closeEditCampusDrawer}
+        title={editingCampus ? `Edit ${editingCampus.name}` : 'Edit Campus'}
+        width="md"
+      >
+        <form onSubmit={saveEditCampusForm} className="p-8 space-y-6">
+          {editCampusError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{editCampusError}</div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Campus name</label>
+            <input
+              value={editCampusForm.name}
+              onChange={(e) => setEditCampusForm((p) => ({ ...p, name: e.target.value }))}
+              placeholder="e.g. Main Campus, North Campus"
+              className="ui-input"
+              disabled={editCampusSaving}
+              autoFocus
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Address <span className="text-gray-400 font-normal">(optional)</span></label>
+            <AddressAutocomplete
+              value={editCampusForm.address}
+              onChange={(val) => setEditCampusForm((p) => ({ ...p, address: val }))}
+              placeholder="e.g. 123 Main St, City, State"
+              className="ui-input"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Campus type</label>
+            <select
+              value={editCampusForm.campusType}
+              onChange={(e) => setEditCampusForm((p) => ({ ...p, campusType: e.target.value }))}
+              className="ui-input"
+              disabled={editCampusSaving}
+            >
+              <option value="HEADQUARTERS">Headquarters</option>
+              <option value="CAMPUS">Campus</option>
+              <option value="SATELLITE">Satellite</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={closeEditCampusDrawer}
+              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+              disabled={editCampusSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={editCampusSaving}
+            >
+              {editCampusSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </DetailDrawer>
+
+      {/* ── Delete Campus Confirm ──────────────────────────────────────────── */}
+      {deleteCampusConfirm && createPortal(
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Campus?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Are you sure you want to delete <span className="font-medium text-gray-700">{deleteCampusConfirm.name}</span>? This cannot be undone. Campuses with schools or buildings cannot be deleted.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => setDeleteCampusConfirm(null)}
+                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                disabled={deleteCampusLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteCampus}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                disabled={deleteCampusLoading}
+              >
+                {deleteCampusLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* ── Delete/Deactivate Confirm ────────────────────────────────────── */}
       {/* ── Place on Map Prompt ──────────────────────────────────────────── */}
       {placeOnMapBuilding && createPortal(
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal p-4">
           <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
               <MapPin className="w-6 h-6 text-blue-600" />
