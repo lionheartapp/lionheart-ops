@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -1509,7 +1510,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       </DetailDrawer>
 
       {/* ── Add Campus Modal ──────────────────────────────────────────────── */}
-      {showAddCampusModal && (
+      {showAddCampusModal && createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-lg max-w-md w-full">
             <div className="px-6 py-4 border-b border-gray-200">
@@ -1572,12 +1573,13 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Delete/Deactivate Confirm ────────────────────────────────────── */}
       {/* ── Place on Map Prompt ──────────────────────────────────────────── */}
-      {placeOnMapBuilding && (
+      {placeOnMapBuilding && createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
@@ -1609,7 +1611,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {deleteConfirm && (
