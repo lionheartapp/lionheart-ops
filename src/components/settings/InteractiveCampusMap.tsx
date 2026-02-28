@@ -395,31 +395,37 @@ export default function InteractiveCampusMap({
         center: [mapConfig.center.lat, mapConfig.center.lng],
         zoom: 17,
         minZoom: 15,       // Can't zoom out further than neighborhood level
-        maxZoom: 20,       // Max satellite detail
+        maxZoom: 18,       // Esri satellite has no data beyond ~18 in most areas
         maxBounds: campusBounds,
         maxBoundsViscosity: 0.8, // Gentle elastic bounce when hitting edge
         zoomControl: false,
+        attributionControl: false,
       })
-
-      L.control.zoom({ position: 'topright' }).addTo(map)
 
       const satellite = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { attribution: 'Tiles &copy; Esri', maxZoom: 20 }
+        { maxZoom: 18 }
       )
 
       const street = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }
+        { maxZoom: 18 }
       )
 
       const labels = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 20, opacity: 0.7 }
+        { maxZoom: 18, opacity: 0.7 }
       )
 
       satellite.addTo(map)
       labels.addTo(map)
+
+      // Force tile load after container is visible (fixes grey tiles on first render)
+      setTimeout(() => {
+        if (map && mapContainerRef.current) {
+          map.invalidateSize()
+        }
+      }, 100)
       tileLayersRef.current = { satellite, street }
       mapInstanceRef.current = map
 
@@ -877,7 +883,7 @@ export default function InteractiveCampusMap({
     })
 
     editingVertexMarkersRef.current = vertexMarkers
-    map.fitBounds(polygon.getBounds(), { padding: [60, 60], maxZoom: 19 })
+    map.fitBounds(polygon.getBounds(), { padding: [60, 60], maxZoom: 18 })
   }
 
   const clearEditingPolygon = () => {
@@ -1423,6 +1429,34 @@ export default function InteractiveCampusMap({
           ref={mapContainerRef}
           style={{ height: 500, width: '100%', position: 'relative', zIndex: 0 }}
         />
+
+        {/* Custom zoom controls */}
+        {!loading && mapInstanceRef.current && (
+          <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-0 rounded-lg border border-gray-200 bg-white shadow-md overflow-hidden">
+            <button
+              type="button"
+              onClick={() => mapInstanceRef.current?.zoomIn()}
+              className="px-2.5 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition border-b border-gray-200"
+              style={{ minHeight: 'auto' }}
+              aria-label="Zoom in"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => mapInstanceRef.current?.zoomOut()}
+              className="px-2.5 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
+              style={{ minHeight: 'auto' }}
+              aria-label="Zoom out"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Placement type popover */}
         {clickPopover && (
