@@ -89,12 +89,12 @@ a:visited {
 
 /* Leaflet popup overrides — reduce default padding for tighter popups */
 .leaflet-popup-content-wrapper {
-  padding: 0 !important;
+  padding: 16px !important;
   border-radius: 8px !important;
 }
 
 .leaflet-popup-content {
-  margin: 16px !important;
+  margin: 0 !important;
   font-size: 13px !important;
   line-height: 1.4 !important;
 }
