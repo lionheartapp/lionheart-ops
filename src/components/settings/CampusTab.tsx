@@ -11,6 +11,7 @@ import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import ImageUpload from '@/components/settings/ImageUpload'
 import PhotoLightbox from '@/components/settings/PhotoLightbox'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import SchoolsManagement from '@/components/settings/SchoolsManagement'
 
 type Building = {
   id: string
@@ -1036,6 +1037,17 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             )}
           </div>
         )}
+      </div>
+
+      {/* ── Schools ────────────────────────────────────────────────────────── */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">Schools</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Schools operating from this campus</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200">
+          <SchoolsManagement campusId={selectedCampusId || undefined} />
+        </div>
       </div>
 
       {/* ── Building Drawer ───────────────────────────────────────────────── */}

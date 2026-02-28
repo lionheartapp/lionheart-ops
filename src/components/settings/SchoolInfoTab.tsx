@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Save, School } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
-import SchoolsManagement from './SchoolsManagement'
 
 type SchoolInfo = {
   id: string
@@ -16,12 +15,6 @@ type SchoolInfo = {
   district: string | null
   website: string | null
   phone: string | null
-  principalName: string | null
-  principalEmail: string | null
-  principalPhone: string | null
-  headOfSchoolsName: string | null
-  headOfSchoolsEmail: string | null
-  headOfSchoolsPhone: string | null
   gradeRange: string | null
   studentCount: number | null
   staffCount: number | null
@@ -52,12 +45,6 @@ type FormState = {
   district: string
   website: string
   phone: string
-  principalName: string
-  principalEmail: string
-  principalPhone: string
-  headOfSchoolsName: string
-  headOfSchoolsEmail: string
-  headOfSchoolsPhone: string
   gradeRange: string
   studentCount: string
   staffCount: string
@@ -75,12 +62,6 @@ const EMPTY_FORM: FormState = {
   district: '',
   website: '',
   phone: '',
-  principalName: '',
-  principalEmail: '',
-  principalPhone: '',
-  headOfSchoolsName: '',
-  headOfSchoolsEmail: '',
-  headOfSchoolsPhone: '',
   gradeRange: '',
   studentCount: '',
   staffCount: '',
@@ -99,12 +80,6 @@ function toFormState(data: SchoolInfo): FormState {
     district: data.district || '',
     website: data.website || '',
     phone: data.phone || '',
-    principalName: data.principalName || '',
-    principalEmail: data.principalEmail || '',
-    principalPhone: data.principalPhone || '',
-    headOfSchoolsName: data.headOfSchoolsName || '',
-    headOfSchoolsEmail: data.headOfSchoolsEmail || '',
-    headOfSchoolsPhone: data.headOfSchoolsPhone || '',
     gradeRange: data.gradeRange || '',
     studentCount: data.studentCount == null ? '' : String(data.studentCount),
     staffCount: data.staffCount == null ? '' : String(data.staffCount),
@@ -321,17 +296,6 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         </div>
       </div>
 
-      {/* Principal Contact section */}
-      <div className="space-y-4 pb-6 border-b border-gray-200">
-        <div className="h-6 w-40 bg-gray-200 rounded" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-        </div>
-      </div>
-
       {/* Enrollment & Staffing section */}
       <div className="space-y-4 pb-6 border-b border-gray-200">
         <div className="h-6 w-44 bg-gray-200 rounded" />
@@ -477,59 +441,6 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           </div>
         </div>
       </section>
-
-      {/* Conditional: Multi-School Campus Section */}
-      {form.gradeLevel === 'MULTI_SCHOOL_CAMPUS' && (
-        <section>
-          <h3 className="text-lg font-semibold text-gray-900">Head of Schools Contact</h3>
-          <div className="h-px bg-gray-200 mt-4 mb-6" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-              <input className="ui-input" value={form.headOfSchoolsName} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsName: event.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input className="ui-input" type="email" value={form.headOfSchoolsEmail} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsEmail: event.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-              <input className="ui-input" value={form.headOfSchoolsPhone} onChange={(event) => setForm((prev) => ({ ...prev, headOfSchoolsPhone: event.target.value }))} />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Conditional: Single School Principal Contact */}
-      {form.gradeLevel !== 'MULTI_SCHOOL_CAMPUS' && form.gradeLevel !== '' && (
-        <section>
-          <h3 className="text-lg font-semibold text-gray-900">Principal Contact</h3>
-          <div className="h-px bg-gray-200 mt-4 mb-6" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-              <input className="ui-input" value={form.principalName} onChange={(event) => setForm((prev) => ({ ...prev, principalName: event.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input className="ui-input" type="email" value={form.principalEmail} onChange={(event) => setForm((prev) => ({ ...prev, principalEmail: event.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-              <input className="ui-input" value={form.principalPhone} onChange={(event) => setForm((prev) => ({ ...prev, principalPhone: event.target.value }))} />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Schools Management - Multi-School Campus */}
-      {form.gradeLevel === 'MULTI_SCHOOL_CAMPUS' && (
-        <section>
-          <h3 className="text-lg font-semibold text-gray-900">Manage Schools</h3>
-          <div className="h-px bg-gray-200 mt-4 mb-6" />
-          <SchoolsManagement />
-        </section>
-      )}
 
       <section>
         <h3 className="text-lg font-semibold text-gray-900">Enrollment & Staffing</h3>
