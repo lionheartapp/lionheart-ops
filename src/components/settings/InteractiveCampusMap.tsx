@@ -294,6 +294,7 @@ function createPolygonLabel(L: any, name: string, color: string) {
 export default function InteractiveCampusMap({
   buildings,
   outdoorSpaces = [],
+  campusId,
   onBuildingPositionChange,
   onAddBuildingAtPosition,
   onAddOutdoorSpaceAtPosition,
@@ -353,7 +354,10 @@ export default function InteractiveCampusMap({
   // Fetch org location + outdoor spaces from map-data
   useEffect(() => {
     if (!token) return
-    fetch('/api/settings/campus/map-data', {
+    const url = campusId
+      ? `/api/settings/campus/map-data?campusId=${campusId}`
+      : '/api/settings/campus/map-data'
+    fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -367,7 +371,7 @@ export default function InteractiveCampusMap({
         }
       })
       .catch(() => {})
-  }, [token])
+  }, [token, campusId])
 
   // Initialize map
   useEffect(() => {

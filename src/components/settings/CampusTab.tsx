@@ -723,6 +723,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
       {/* ── Campus Map ────────────────────────────────────────────────────── */}
       <InteractiveCampusMap
+        campusId={selectedCampusId || undefined}
         buildings={buildings.map((b) => ({
           id: b.id,
           name: b.name,
