@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   useCalendars,
   useCalendarEvents,
@@ -11,7 +11,6 @@ import {
   type CalendarEventData,
 } from '@/lib/hooks/useCalendar'
 import CalendarToolbar from './CalendarToolbar'
-import CalendarSidebar from './CalendarSidebar'
 import MonthView from './MonthView'
 import WeekView from './WeekView'
 import DayView from './DayView'
@@ -52,6 +51,45 @@ export default function CalendarView() {
       return next
     })
   }, [])
+
+  // Sync calendar data to the Sidebar via CustomEvent
+  useEffect(() => {
+    if (calendars.length > 0) {
+      window.dispatchEvent(
+        new CustomEvent('calendar-sidebar-data', {
+          detail: {
+            calendars: calendars.map((c) => ({
+              id: c.id,
+              name: c.name,
+              color: c.color,
+              calendarType: c.calendarType,
+              isActive: c.isActive,
+            })),
+            visibleIds: Array.from(visibleCalendarIds),
+          },
+        })
+      )
+    }
+  }, [calendars, visibleCalendarIds])
+
+  // Listen for toggle events from the Sidebar
+  useEffect(() => {
+    const handleToggle = (e: Event) => {
+      const event = e as CustomEvent<{ calendarId: string }>
+      if (event.detail?.calendarId) {
+        toggleCalendar(event.detail.calendarId)
+      }
+    }
+    const handleCreateRequest = () => {
+      setShowCreateCalendar(true)
+    }
+    window.addEventListener('calendar-toggle', handleToggle)
+    window.addEventListener('calendar-create-request', handleCreateRequest)
+    return () => {
+      window.removeEventListener('calendar-toggle', handleToggle)
+      window.removeEventListener('calendar-create-request', handleCreateRequest)
+    }
+  }, [toggleCalendar])
 
   // Fetch events for the current date range
   const { start, end } = getDateRange()
@@ -124,9 +162,6 @@ export default function CalendarView() {
     await deleteEvent.mutateAsync(eventId)
     setSelectedEvent(null)
   }, [deleteEvent])
-
-  // Sidebar visibility
-  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   if (calendarsLoading) {
     return (
@@ -206,20 +241,7 @@ export default function CalendarView() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-0">
-      {/* Sidebar */}
-      <div className={`flex-shrink-0 border-r border-gray-200 bg-white transition-all duration-300 overflow-hidden ${
-        sidebarOpen ? 'w-56 p-3' : 'w-0'
-      }`}>
-        {sidebarOpen && (
-          <CalendarSidebar
-            calendars={calendars}
-            visibleCalendarIds={visibleCalendarIds}
-            onToggleCalendar={toggleCalendar}
-          />
-        )}
-      </div>
-
+    <div className="flex flex-col h-[calc(100vh-6rem)] sm:h-[calc(100vh-7rem)] lg:h-[calc(100vh-8.5rem)]">
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0 p-4">
         <CalendarToolbar

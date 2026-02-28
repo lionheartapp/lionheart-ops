@@ -93,27 +93,27 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
       </div>
 
       {/* Weeks grid */}
-      <div className="flex-1 grid grid-rows-auto">
+      <div className="flex-1 flex flex-col">
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 border-b border-gray-100 min-h-[100px]">
+          <div key={wi} className="grid grid-cols-7 border-b border-gray-100 flex-1 min-h-0">
             {week.map((date, di) => {
               const isCurrentMonth = date.getMonth() === currentDate.getMonth()
               const today = isToday(date)
               const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
               const dayEvents = eventsByDate.get(dateKey) || []
-              const maxVisible = 3
+              const maxVisible = weeks.length <= 4 ? 5 : weeks.length <= 5 ? 4 : 3
               const moreCount = dayEvents.length - maxVisible
 
               return (
                 <div
                   key={di}
                   onClick={() => onDateClick(date)}
-                  className={`border-r border-gray-100 last:border-r-0 p-1.5 cursor-pointer hover:bg-gray-50/50 transition-colors ${
+                  className={`border-r border-gray-100 last:border-r-0 p-1.5 cursor-pointer hover:bg-gray-50/50 transition-colors flex flex-col overflow-hidden ${
                     !isCurrentMonth ? 'bg-gray-50/30' : ''
                   }`}
                 >
                   {/* Date number */}
-                  <div className="flex justify-center mb-1">
+                  <div className="flex justify-center mb-1 flex-shrink-0">
                     <span
                       className={`w-7 h-7 flex items-center justify-center text-sm rounded-full ${
                         today
@@ -128,7 +128,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                   </div>
 
                   {/* Event pills */}
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1 overflow-hidden">
                     {dayEvents.slice(0, maxVisible).map((event) => (
                       <motion.button
                         key={event.id}

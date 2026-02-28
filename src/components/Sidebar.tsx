@@ -14,6 +14,11 @@ import {
   UserCog,
   Building2,
   Calendar,
+  ChevronDown,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Plus,
 } from 'lucide-react'
 
 export interface SidebarProps {
@@ -21,6 +26,14 @@ export interface SidebarProps {
   userEmail?: string
   userAvatar?: string
   onLogout?: () => void
+}
+
+export interface CalendarSidebarData {
+  id: string
+  name: string
+  color: string
+  calendarType: string
+  isActive: boolean
 }
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
@@ -76,6 +89,73 @@ export default function Sidebar({
     }
   }, [])
 
+  // Calendar sidebar state
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const [calendarData, setCalendarData] = useState<CalendarSidebarData[]>([])
+  const [visibleCalendarIds, setVisibleCalendarIds] = useState<Set<string>>(new Set())
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
+    new Set(['ACADEMIC', 'STAFF', 'TIMETABLE', 'PARENT_FACING', 'ATHLETICS', 'GENERAL'])
+  )
+
+  // Open calendar panel when navigating to /calendar
+  useIsomorphicLayoutEffect(() => {
+    if (pathname.startsWith('/calendar')) {
+      setCalendarOpen(true)
+      setSettingsOpen(false)
+    } else {
+      setCalendarOpen(false)
+    }
+  }, [pathname])
+
+  // Listen for calendar data from the calendar page
+  useEffect(() => {
+    const handleCalendarData = (e: Event) => {
+      const event = e as CustomEvent<{ calendars: CalendarSidebarData[]; visibleIds: string[] }>
+      if (event.detail?.calendars) {
+        setCalendarData(event.detail.calendars)
+        setVisibleCalendarIds(new Set(event.detail.visibleIds))
+      }
+    }
+    const handleVisibilityChange = (e: Event) => {
+      const event = e as CustomEvent<{ visibleIds: string[] }>
+      if (event.detail?.visibleIds) {
+        setVisibleCalendarIds(new Set(event.detail.visibleIds))
+      }
+    }
+    window.addEventListener('calendar-sidebar-data', handleCalendarData)
+    window.addEventListener('calendar-visibility-change', handleVisibilityChange)
+    return () => {
+      window.removeEventListener('calendar-sidebar-data', handleCalendarData)
+      window.removeEventListener('calendar-visibility-change', handleVisibilityChange)
+    }
+  }, [])
+
+  const toggleCalendarVisibility = (calendarId: string) => {
+    setVisibleCalendarIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(calendarId)) next.delete(calendarId)
+      else next.add(calendarId)
+      // Notify the calendar page
+      window.dispatchEvent(
+        new CustomEvent('calendar-toggle', { detail: { calendarId } })
+      )
+      return next
+    })
+  }
+
+  const toggleCalendarType = (type: string) => {
+    setExpandedTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
+  }
+
+  const handleCreateCalendar = () => {
+    window.dispatchEvent(new CustomEvent('calendar-create-request'))
+  }
+
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
   const navItems = [
@@ -86,6 +166,7 @@ export default function Sidebar({
   const handleSettingsClick = () => {
     if (!settingsOpen) {
       setSettingsOpen(true)
+      setCalendarOpen(false)
       setActiveSettingsTab('profile')
       router.push('/settings')
     } else {
@@ -140,13 +221,14 @@ export default function Sidebar({
                   onClick={() => {
                     setSettingsOpen(false)
                     setIsOpen(false)
+                    // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
                   className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                    active && !settingsOpen
+                    active && !secondaryOpen
                       ? 'bg-white/10 text-white font-medium border border-white/20'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }`}
-                  aria-current={active && !settingsOpen ? 'page' : undefined}
+                  aria-current={active && !secondaryOpen ? 'page' : undefined}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
@@ -224,6 +306,105 @@ export default function Sidebar({
     </div>
   )
 
+  const typeLabels: Record<string, string> = {
+    ACADEMIC: 'Academic',
+    STAFF: 'Staff',
+    TIMETABLE: 'Timetable',
+    PARENT_FACING: 'Parent-Facing',
+    ATHLETICS: 'Athletics',
+    GENERAL: 'General',
+  }
+
+  const calendarGrouped = calendarData.reduce<Record<string, CalendarSidebarData[]>>((acc, cal) => {
+    const type = cal.calendarType
+    if (!acc[type]) acc[type] = []
+    acc[type].push(cal)
+    return acc
+  }, {})
+
+  const calendarNavContent = (
+    <div className="flex flex-col h-full bg-[#f0f3f9]">
+      {/* Calendar Header */}
+      <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Calendars</h2>
+        <button
+          onClick={handleCreateCalendar}
+          className="p-1 rounded-md hover:bg-[#dde6f5] text-slate-400 hover:text-primary-600 transition-colors"
+          title="Create calendar"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Calendar List */}
+      <div className="px-3 pt-4 flex-1 overflow-y-auto">
+        {Object.entries(calendarGrouped).map(([type, cals]) => {
+          const isExpanded = expandedTypes.has(type)
+          return (
+            <div key={type} className="mb-1">
+              <button
+                onClick={() => toggleCalendarType(type)}
+                className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-slate-400 uppercase hover:text-slate-600 transition-colors"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="w-3 h-3" />
+                ) : (
+                  <ChevronRight className="w-3 h-3" />
+                )}
+                {typeLabels[type] || type}
+                <span className="ml-auto text-slate-300 normal-case tracking-normal font-normal text-xs">
+                  {cals.length}
+                </span>
+              </button>
+              {isExpanded && (
+                <div className="space-y-0.5">
+                  {cals.map((cal) => {
+                    const isVisible = visibleCalendarIds.has(cal.id)
+                    return (
+                      <button
+                        key={cal.id}
+                        onClick={() => toggleCalendarVisibility(cal.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition group ${
+                          isVisible
+                            ? 'text-slate-700 hover:bg-[#e5eaf5]'
+                            : 'text-slate-400 hover:bg-[#e5eaf5]'
+                        }`}
+                      >
+                        <div
+                          className="w-3 h-3 rounded-sm flex-shrink-0 border"
+                          style={{
+                            backgroundColor: isVisible ? cal.color : 'transparent',
+                            borderColor: cal.color,
+                          }}
+                        />
+                        <span className="truncate">{cal.name}</span>
+                        <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                          {isVisible ? (
+                            <Eye className="w-3.5 h-3.5 text-slate-400" />
+                          ) : (
+                            <EyeOff className="w-3.5 h-3.5 text-slate-300" />
+                          )}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {calendarData.length === 0 && (
+          <div className="text-center py-8 text-slate-400 text-xs">
+            <Calendar className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+            <p>No calendars yet</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  const secondaryOpen = settingsOpen || calendarOpen
+
   return (
     <>
       {/* Mobile Menu Toggle */}
@@ -259,16 +440,16 @@ export default function Sidebar({
           {mainNavContent}
         </aside>
 
-        {/* Settings Secondary Navigation - slides in from behind */}
+        {/* Secondary Navigation - slides in from behind (settings or calendar) */}
         <aside
           className={`flex flex-col w-60 bg-[#f0f3f9] border-r border-gray-200 h-full transition-all duration-300 ease-in-out overflow-hidden ${
-            settingsOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
+            secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
           }`}
-          aria-label="Settings navigation"
-          aria-hidden={!settingsOpen}
+          aria-label={calendarOpen ? 'Calendar navigation' : 'Settings navigation'}
+          aria-hidden={!secondaryOpen}
         >
           <div className="w-60 h-full">
-            {settingsNavContent}
+            {calendarOpen ? calendarNavContent : settingsNavContent}
           </div>
         </aside>
       </div>
@@ -281,13 +462,13 @@ export default function Sidebar({
         role="navigation"
         aria-label="Mobile navigation"
       >
-        {settingsOpen ? settingsNavContent : mainNavContent}
+        {calendarOpen ? calendarNavContent : settingsOpen ? settingsNavContent : mainNavContent}
       </aside>
 
-      {/* Spacer for desktop layout - adjusts width based on settings panel */}
+      {/* Spacer for desktop layout - adjusts width based on secondary panel */}
       <div
         className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
-          settingsOpen ? 'w-[524px]' : 'w-64'
+          secondaryOpen ? 'w-[524px]' : 'w-64'
         }`}
       />
     </>
