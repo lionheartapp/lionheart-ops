@@ -172,7 +172,7 @@ export default function ImageUpload({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="aspect-[4/3] rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="aspect-[4/3] rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-400 hover:bg-primary-50/50 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? (
               <>
@@ -200,7 +200,7 @@ export default function ImageUpload({
 
       {/* Error message */}
       {error && (
-        <p className="text-xs text-red-600">{error}</p>
+        <p className="text-xs text-red-700">{error}</p>
       )}
     </div>
   )

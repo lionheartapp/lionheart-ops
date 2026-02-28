@@ -67,7 +67,7 @@ const RESOURCE_META: Record<string, { label: string; icon: React.ReactNode; colo
   users: {
     label: 'Users',
     icon: <Users className="w-5 h-5" />,
-    color: 'bg-blue-100 text-blue-600',
+    color: 'bg-primary-100 text-primary-600',
   },
   roles: {
     label: 'Roles',
@@ -160,7 +160,7 @@ function groupPermissions(permissions: PermissionItem[]): PermissionGroup[] {
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
-    inherited: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'From Role' },
+    inherited: { bg: 'bg-primary-50', text: 'text-primary-700', label: 'From Role' },
     granted: { bg: 'bg-green-50', text: 'text-green-700', label: 'Override' },
     revoked: { bg: 'bg-red-50', text: 'text-red-700', label: 'Revoked' },
   }
@@ -195,31 +195,44 @@ function Toggle({
         position: 'relative',
         display: 'inline-flex',
         alignItems: 'center',
-        height: '24px',
-        minHeight: '24px',
+        justifyContent: 'center',
+        height: '44px',
+        minHeight: '44px',
         width: '44px',
         flexShrink: 0,
         cursor: disabled ? 'not-allowed' : 'pointer',
-        borderRadius: '9999px',
-        border: '2px solid transparent',
-        backgroundColor: checked ? '#2563eb' : '#d1d5db',
-        transition: 'background-color 200ms',
         opacity: disabled ? 0.5 : 1,
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
       }}
     >
       <span
         style={{
-          pointerEvents: 'none',
-          display: 'inline-block',
-          height: '20px',
-          width: '20px',
+          position: 'relative',
+          display: 'inline-flex',
+          alignItems: 'center',
+          height: '24px',
+          width: '44px',
           borderRadius: '9999px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-          transition: 'transform 200ms',
-          transform: checked ? 'translateX(20px)' : 'translateX(0px)',
+          backgroundColor: checked ? '#2563eb' : '#d1d5db',
+          transition: 'background-color 200ms',
         }}
-      />
+      >
+        <span
+          style={{
+            pointerEvents: 'none',
+            display: 'inline-block',
+            height: '20px',
+            width: '20px',
+            borderRadius: '9999px',
+            backgroundColor: '#ffffff',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+            transition: 'transform 200ms',
+            transform: checked ? 'translateX(22px)' : 'translateX(2px)',
+          }}
+        />
+      </span>
     </button>
   )
 }
@@ -297,7 +310,7 @@ export default function PermissionToggleList({
                     className={`
                       flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
                       border transition-colors
-                      ${isOn ? 'border-blue-100 bg-blue-50/30' : 'border-gray-100 bg-white'}
+                      ${isOn ? 'border-primary-100 bg-primary-50/30' : 'border-gray-100 bg-white'}
                       ${!disabled ? 'hover:bg-gray-50' : ''}
                     `}
                   >

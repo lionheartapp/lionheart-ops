@@ -92,7 +92,7 @@ function SetPasswordContent() {
         {loading ? (
           <p className="text-sm text-gray-600">Validating setup link...</p>
         ) : !valid ? (
-          <p className="text-sm text-red-600">{error || 'This setup link is invalid.'}</p>
+          <p className="text-sm text-red-700">{error || 'This setup link is invalid.'}</p>
         ) : success ? (
           <div className="space-y-2">
             <p className="text-sm text-green-700">Password set successfully.</p>
@@ -105,30 +105,32 @@ function SetPasswordContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <p className="text-sm text-gray-600">Setting password for {email}</p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <label htmlFor="sp-password" className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
               <input
+                id="sp-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="ui-input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <label htmlFor="sp-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
               <input
+                id="sp-confirm"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="ui-input"
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-700">{error}</p>}
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+              className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-60"
             >
               {submitting ? 'Saving...' : 'Set Password'}
             </button>

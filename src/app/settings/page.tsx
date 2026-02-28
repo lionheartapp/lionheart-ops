@@ -609,7 +609,7 @@ export default function SettingsPage() {
 
                     {/* Avatar */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-                      <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden flex-shrink-0">
+                      <div className="w-14 h-14 rounded-full bg-primary-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden flex-shrink-0">
                         {displayAvatar ? (
                           <img src={displayAvatar} alt={userName || 'User'} className="w-14 h-14 rounded-full object-cover" />
                         ) : (
@@ -657,7 +657,7 @@ export default function SettingsPage() {
                       )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1.5">First Name</label>
                           <input
                             id="firstName"
                             type="text"
@@ -669,7 +669,7 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div>
-                          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1.5">Last Name</label>
                           <input
                             id="lastName"
                             type="text"
@@ -684,7 +684,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={profileSaving}
-                          className="px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -699,7 +699,7 @@ export default function SettingsPage() {
                     <div className="space-y-6">
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                         <div className="flex-1">
-                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                           <input id="email" type="email" className="ui-input" defaultValue={userEmail || ''} readOnly />
                         </div>
                         <button
@@ -714,7 +714,7 @@ export default function SettingsPage() {
 
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                         <div className="flex-1">
-                          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                           <input id="password" type="password" className="ui-input" value="••••••••••" readOnly />
                         </div>
                         <button
@@ -839,7 +839,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={passwordSaving || passwordSuccess}
-                          className="px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                          className="px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50"
                         >
                           {passwordSaving ? 'Saving...' : 'Update Password'}
                         </button>

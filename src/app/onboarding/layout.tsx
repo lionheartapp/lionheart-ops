@@ -34,7 +34,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
           <div className="flex items-center justify-between gap-8">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-blue-600">Lionheart</h1>
+              <h1 className="text-2xl font-bold text-primary-600">Lionheart</h1>
             </div>
 
             {/* Progress Indicator */}
@@ -46,7 +46,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
                       step.number < activeStep
                         ? 'bg-green-100 text-green-700'
                         : step.number === activeStep
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-primary-600 text-white'
                           : 'bg-gray-200 text-gray-600'
                     }`}
                   >
@@ -85,7 +85,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
                   key={step.number}
                   className={`w-2 h-2 rounded-full transition ${
                     step.number <= activeStep
-                      ? 'bg-blue-600'
+                      ? 'bg-primary-600'
                       : 'bg-gray-300'
                   }`}
                 />

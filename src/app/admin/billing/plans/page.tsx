@@ -26,7 +26,7 @@ export default function PlansPage() {
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
                 <p className="text-zinc-500 text-sm">{plan.slug}</p>
               </div>
-              <span className={`px-2 py-0.5 rounded-full text-xs ${plan.isActive ? 'bg-green-500/10 text-green-400' : 'bg-zinc-700 text-zinc-300'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${plan.isActive ? 'bg-green-500/10 text-green-400' : 'bg-zinc-700 text-zinc-300'}`}>
                 {plan.isActive ? 'Active' : 'Inactive'}
               </span>
             </div>

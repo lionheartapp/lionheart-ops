@@ -50,7 +50,7 @@ function getInitials(firstName: string | null, lastName: string | null, email: s
 
 function getAvatarColor(id: string) {
   const colors = [
-    'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500',
+    'bg-primary-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500',
     'bg-teal-500', 'bg-green-500', 'bg-orange-500', 'bg-red-500',
   ]
   const index = id.charCodeAt(0) % colors.length
@@ -66,7 +66,7 @@ function StatusBadge({ status }: { status: string }) {
   }
   const label = status.charAt(0) + status.slice(1).toLowerCase()
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${map[status] ?? 'bg-gray-100 text-gray-600'}`}>
       {label}
     </span>
   )
@@ -138,7 +138,7 @@ function TeamMultiSelect({
         type="button"
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
-        className={`w-full rounded-lg border border-gray-200 px-3 py-2 text-left text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 ${
+        className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-left text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 ${
           selectedIds.length === 0 ? 'text-gray-400' : 'text-gray-900'
         }`}
         style={{ minHeight: '40px' }}
@@ -157,14 +157,14 @@ function TeamMultiSelect({
           {selectedTeams.map((t) => (
             <span
               key={t.id}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-medium"
             >
               {t.name}
               {!disabled && (
                 <button
                   type="button"
                   onClick={() => removeTeam(t.id)}
-                  className="hover:text-blue-900 transition"
+                  className="hover:text-primary-900 transition"
                   style={{ minHeight: 'auto' }}
                 >
                   <X className="w-3 h-3" />
@@ -188,7 +188,7 @@ function TeamMultiSelect({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search teams…"
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                 style={{ minHeight: 'auto' }}
               />
             </div>
@@ -207,14 +207,14 @@ function TeamMultiSelect({
                     type="button"
                     onClick={() => toggleTeam(team.id)}
                     className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-gray-50 transition ${
-                      isSelected ? 'text-blue-700 bg-blue-50/50' : 'text-gray-700'
+                      isSelected ? 'text-primary-700 bg-primary-50/50' : 'text-gray-700'
                     }`}
                     style={{ minHeight: 'auto' }}
                   >
                     <span
                       className={`flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center ${
                         isSelected
-                          ? 'bg-blue-600 border-blue-600'
+                          ? 'bg-primary-600 border-primary-600'
                           : 'border-gray-300'
                       }`}
                     >
@@ -520,7 +520,7 @@ const MembersTab = (_props: MembersTabProps) => {
     return matchesStatus && matchesSearch
   })
 
-  const inputClass = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400'
+  const inputClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400'
   const labelClass = 'block text-sm font-medium text-gray-700 mb-1.5'
 
   return (
@@ -529,12 +529,12 @@ const MembersTab = (_props: MembersTabProps) => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
-            <UserCog className="w-6 h-6 text-blue-600" />
+            <UserCog className="w-6 h-6 text-primary-600" />
             Members
           </h2>
           <p className="text-sm text-gray-500 mt-1">Manage your organization's users and their roles</p>
         </div>
-        <button className="bg-blue-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-medium transition">
+        <button className="bg-primary-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 text-sm font-medium transition">
           <Plus className="w-4 h-4" /> Invite user
         </button>
       </div>
@@ -560,7 +560,7 @@ const MembersTab = (_props: MembersTabProps) => {
             onClick={() => setStatusTab(t.value)}
             className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
               statusTab === t.value
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
+                ? 'bg-primary-50 border-primary-500 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -578,7 +578,7 @@ const MembersTab = (_props: MembersTabProps) => {
       <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
         <div className="flex items-center gap-2 p-4 border-b border-gray-100">
           <input
-            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             placeholder="Search by name, email or role…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -812,7 +812,7 @@ const MembersTab = (_props: MembersTabProps) => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={editSaving}
             >
               {editSaving ? 'Saving...' : 'Save Changes'}
@@ -855,11 +855,11 @@ const MembersTab = (_props: MembersTabProps) => {
             )}
 
             {/* Role info banner */}
-            <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
-              <p className="text-sm text-blue-800">
+            <div className="rounded-lg bg-primary-50 border border-primary-200 px-4 py-3">
+              <p className="text-sm text-primary-800">
                 <span className="font-medium">Role:</span> {permRoleName || 'No role assigned'}
               </p>
-              <p className="text-xs text-blue-600 mt-0.5">
+              <p className="text-xs text-primary-600 mt-0.5">
                 Permission list will change when you select a different role for this user
               </p>
             </div>
@@ -912,7 +912,7 @@ const MembersTab = (_props: MembersTabProps) => {
             <button
               type="button"
               onClick={saveManagePermissions}
-              className="px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={permSaving || permLoading}
             >
               {permSaving ? 'Saving...' : 'Save Changes'}

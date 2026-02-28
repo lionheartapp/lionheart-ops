@@ -39,9 +39,9 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-lg bg-zinc-900 p-6 shadow-2xl">
-        <h2 className="text-xl font-bold text-white">Smart Event Assistant</h2>
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm cursor-pointer" onClick={onClose} role="presentation">
+      <div className="w-full max-w-lg rounded-lg bg-zinc-900 p-6 shadow-2xl cursor-auto" role="dialog" aria-modal="true" aria-labelledby="smart-event-title" onClick={(e) => e.stopPropagation()}>
+        <h2 id="smart-event-title" className="text-xl font-bold text-white">Smart Event Assistant</h2>
         <p className="mt-2 text-sm text-zinc-400">Describe your event in plain text or voice</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -49,7 +49,7 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Schedule gym Friday 3pm for basketball practice"
-            className="h-32 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white placeholder-zinc-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="h-32 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white placeholder-zinc-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={stage !== 'input'}
           />
 

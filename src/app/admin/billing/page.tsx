@@ -64,7 +64,7 @@ export default function BillingPage() {
                   <td className="px-5 py-3 font-medium">${(p.amount / 100).toFixed(2)}</td>
                   <td className="px-5 py-3 text-zinc-400">{p.subscription?.plan?.name || '—'}</td>
                   <td className="px-5 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === 'SUCCEEDED' ? 'bg-green-500/10 text-green-400' : p.status === 'FAILED' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${p.status === 'SUCCEEDED' ? 'bg-green-500/10 text-green-400' : p.status === 'FAILED' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
                       {p.status}
                     </span>
                   </td>

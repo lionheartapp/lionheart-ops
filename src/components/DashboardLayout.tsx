@@ -66,7 +66,7 @@ export default function DashboardLayout({
               />
             </div>
           ) : (
-            <div className="h-9 w-9 rounded-lg bg-blue-500 text-white flex items-center justify-center font-semibold text-sm flex-shrink-0">
+            <div className="h-9 w-9 rounded-lg bg-primary-500 text-white flex items-center justify-center font-semibold text-sm flex-shrink-0">
               {(organizationName || 'S').charAt(0).toUpperCase()}
             </div>
           )}
@@ -80,7 +80,7 @@ export default function DashboardLayout({
           <input
             type="search"
             placeholder="Search here..."
-            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-400"
             aria-label="Search"
           />
         </div>
@@ -98,7 +98,7 @@ export default function DashboardLayout({
               aria-label="User menu"
               aria-expanded={isDropdownOpen}
             >
-              <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm">
+              <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm">
                 {userAvatar ? (
                   <img
                     src={userAvatar}

@@ -153,7 +153,7 @@ export default function SetupPage() {
                 {step.status === 'done' ? (
                   <CheckCircle2 className="w-6 h-6 text-green-500" />
                 ) : step.status === 'loading' ? (
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                  <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
                 ) : (
                   <div className="w-6 h-6 rounded-full border-2 border-gray-300" />
                 )}
@@ -206,7 +206,7 @@ export default function SetupPage() {
       <div className="flex flex-col gap-3 max-w-sm mx-auto pt-6">
         <button
           onClick={handleGoToDashboard}
-          className="px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+          className="px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
         >
           Go to Dashboard
         </button>
@@ -214,7 +214,7 @@ export default function SetupPage() {
           href="https://help.lionheartapp.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-8 py-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+          className="px-8 py-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
         >
           View Help & Docs
         </a>

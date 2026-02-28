@@ -369,7 +369,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
     <form onSubmit={handleSave} className="space-y-8 pb-24">
       <section>
         <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
-          <School className="w-6 h-6 text-blue-600" />
+          <School className="w-6 h-6 text-primary-600" />
           School Information
         </h2>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
@@ -379,12 +379,12 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="si-schoolName" className="block text-sm font-medium text-gray-700 mb-2">School Name</label>
+            <label htmlFor="si-schoolName" className="block text-sm font-medium text-gray-700 mb-1.5">School Name</label>
             <input id="si-schoolName" className="ui-input" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
           </div>
 
           <div>
-            <label htmlFor="si-institutionType" className="block text-sm font-medium text-gray-700 mb-2">Institution Type</label>
+            <label htmlFor="si-institutionType" className="block text-sm font-medium text-gray-700 mb-1.5">Institution Type</label>
             <select id="si-institutionType" className="ui-select w-full" value={form.institutionType} onChange={(event) => setForm((prev) => ({ ...prev, institutionType: event.target.value as any }))}>
               <option value="">-- Select Institution Type --</option>
               <option value="PUBLIC">Public</option>
@@ -395,7 +395,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           </div>
 
           <div>
-            <label htmlFor="si-gradeLevel" className="block text-sm font-medium text-gray-700 mb-2">Grade Level / Organization Type</label>
+            <label htmlFor="si-gradeLevel" className="block text-sm font-medium text-gray-700 mb-1.5">Grade Level / Organization Type</label>
             <select id="si-gradeLevel" className="ui-select w-full" value={form.gradeLevel} onChange={(event) => setForm((prev) => ({ ...prev, gradeLevel: event.target.value as any }))}>
               <option value="">-- Select Type --</option>
               <option value="ELEMENTARY">Elementary School</option>
@@ -407,33 +407,33 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           </div>
 
           <div>
-            <label htmlFor="si-slug" className="block text-sm font-medium text-gray-700 mb-2">Subdomain Slug</label>
+            <label htmlFor="si-slug" className="block text-sm font-medium text-gray-700 mb-1.5">Subdomain Slug</label>
             <input id="si-slug" className="ui-input" value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required />
             <p className="mt-1 text-xs text-gray-500">Used as: {form.slug || 'your-school'}.lionheartapp.com</p>
           </div>
 
           <div>
-            <label htmlFor="si-district" className="block text-sm font-medium text-gray-700 mb-2">District</label>
+            <label htmlFor="si-district" className="block text-sm font-medium text-gray-700 mb-1.5">District</label>
             <input id="si-district" className="ui-input" value={form.district} onChange={(event) => setForm((prev) => ({ ...prev, district: event.target.value }))} />
           </div>
 
           <div>
-            <label htmlFor="si-website" className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+            <label htmlFor="si-website" className="block text-sm font-medium text-gray-700 mb-1.5">Website</label>
             <input id="si-website" className="ui-input" placeholder="https://example.edu" value={form.website} onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))} />
           </div>
 
           <div>
-            <label htmlFor="si-phone" className="block text-sm font-medium text-gray-700 mb-2">School Phone</label>
+            <label htmlFor="si-phone" className="block text-sm font-medium text-gray-700 mb-1.5">School Phone</label>
             <input id="si-phone" className="ui-input" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
           </div>
 
           <div>
-            <label htmlFor="si-gradeRange" className="block text-sm font-medium text-gray-700 mb-2">Grade Range</label>
+            <label htmlFor="si-gradeRange" className="block text-sm font-medium text-gray-700 mb-1.5">Grade Range</label>
             <input id="si-gradeRange" className="ui-input" placeholder="e.g., K-12" value={form.gradeRange} onChange={(event) => setForm((prev) => ({ ...prev, gradeRange: event.target.value }))} />
           </div>
 
           <div className="md:col-span-2">
-            <label htmlFor="si-physicalAddress" className="block text-sm font-medium text-gray-700 mb-2">Physical Address</label>
+            <label htmlFor="si-physicalAddress" className="block text-sm font-medium text-gray-700 mb-1.5">Physical Address</label>
             <AddressAutocomplete
               value={form.physicalAddress}
               onChange={(value) => setForm((prev) => ({ ...prev, physicalAddress: value }))}
@@ -447,7 +447,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <div className="h-px bg-gray-200 mt-4 mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="si-studentCount" className="block text-sm font-medium text-gray-700 mb-2">Student Count</label>
+            <label htmlFor="si-studentCount" className="block text-sm font-medium text-gray-700 mb-1.5">Student Count</label>
             <input
               id="si-studentCount"
               className="ui-input"
@@ -458,7 +458,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             />
           </div>
           <div>
-            <label htmlFor="si-staffCount" className="block text-sm font-medium text-gray-700 mb-2">Staff Count</label>
+            <label htmlFor="si-staffCount" className="block text-sm font-medium text-gray-700 mb-1.5">Staff Count</label>
             <input
               id="si-staffCount"
               className="ui-input"
@@ -476,15 +476,15 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <div className="h-px bg-gray-200 mt-4 mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="si-logoUrl" className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
+            <label htmlFor="si-logoUrl" className="block text-sm font-medium text-gray-700 mb-1.5">Logo URL</label>
             <input id="si-logoUrl" className="ui-input" value={form.logoUrl} onChange={(event) => setForm((prev) => ({ ...prev, logoUrl: event.target.value }))} />
           </div>
           <div>
-            <label htmlFor="si-heroImageUrl" className="block text-sm font-medium text-gray-700 mb-2">Hero Image URL</label>
+            <label htmlFor="si-heroImageUrl" className="block text-sm font-medium text-gray-700 mb-1.5">Hero Image URL</label>
             <input id="si-heroImageUrl" className="ui-input" value={form.heroImageUrl} onChange={(event) => setForm((prev) => ({ ...prev, heroImageUrl: event.target.value }))} />
           </div>
           <div>
-            <label htmlFor="si-imagePosition" className="block text-sm font-medium text-gray-700 mb-2">Image Position</label>
+            <label htmlFor="si-imagePosition" className="block text-sm font-medium text-gray-700 mb-1.5">Image Position</label>
             <select id="si-imagePosition" className="ui-select w-full" value={form.imagePosition} onChange={(event) => setForm((prev) => ({ ...prev, imagePosition: event.target.value as FormState['imagePosition'] }))}>
               <option value="LEFT">Left</option>
               <option value="RIGHT">Right</option>
@@ -525,7 +525,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
           {saving ? 'Saving...' : 'Save Changes'}
@@ -557,7 +557,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                 type="button"
                 onClick={saveSchoolInfo}
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save Changes'}

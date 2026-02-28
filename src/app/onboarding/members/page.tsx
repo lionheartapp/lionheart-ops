@@ -138,7 +138,7 @@ export default function MembersPage() {
           </p>
         </div>
         <div className="animate-spin inline-block">
-          <Loader2 className="w-6 h-6 text-blue-600" />
+          <Loader2 className="w-6 h-6 text-primary-600" />
         </div>
       </div>
     )
@@ -170,10 +170,10 @@ export default function MembersPage() {
               setSelectedOption('csv')
               setCsvError('')
             }}
-            className="p-6 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="p-6 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Upload className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+              <Upload className="w-6 h-6 text-primary-600" />
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Upload CSV</h3>
@@ -186,7 +186,7 @@ export default function MembersPage() {
           {/* Manual Add */}
           <button
             onClick={() => setSelectedOption('manual')}
-            className="p-6 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="p-6 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <UserPlus className="w-6 h-6 text-green-600" />
@@ -202,7 +202,7 @@ export default function MembersPage() {
           {/* Skip */}
           <button
             onClick={handleSkip}
-            className="p-6 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="p-6 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <ArrowRight className="w-6 h-6 text-gray-600" />
@@ -228,7 +228,7 @@ export default function MembersPage() {
           </button>
 
           <div>
-            <label htmlFor="csv-upload" className="block text-sm font-medium text-gray-900 mb-2">
+            <label htmlFor="csv-upload" className="block text-sm font-medium text-gray-900 mb-1.5">
               Upload CSV File
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition">
@@ -304,7 +304,7 @@ export default function MembersPage() {
               <button
                 onClick={handleImportMembers}
                 disabled={importing}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               >
                 {importing && <Loader2 className="w-4 h-4 animate-spin" />}
                 Import {members.length} member{members.length !== 1 ? 's' : ''}
@@ -326,7 +326,7 @@ export default function MembersPage() {
 
           <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
             <div>
-              <label htmlFor="manual-name" className="block text-sm font-medium text-gray-900 mb-1">
+              <label htmlFor="manual-name" className="block text-sm font-medium text-gray-900 mb-1.5">
                 Name
               </label>
               <input
@@ -345,7 +345,7 @@ export default function MembersPage() {
               />
             </div>
             <div>
-              <label htmlFor="manual-email" className="block text-sm font-medium text-gray-900 mb-1">
+              <label htmlFor="manual-email" className="block text-sm font-medium text-gray-900 mb-1.5">
                 Email
               </label>
               <input
@@ -365,7 +365,7 @@ export default function MembersPage() {
             </div>
             <button
               onClick={addManualMember}
-              className="w-full px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition"
+              className="w-full px-4 py-2 bg-primary-100 text-primary-700 font-medium rounded-lg hover:bg-primary-200 transition"
             >
               Add member
             </button>
@@ -401,7 +401,7 @@ export default function MembersPage() {
             <button
               onClick={handleImportMembers}
               disabled={importing}
-              className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
               {importing && <Loader2 className="w-4 h-4 animate-spin" />}
               Invite {members.length} member{members.length !== 1 ? 's' : ''}

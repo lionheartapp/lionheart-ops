@@ -1265,7 +1265,7 @@ export default function InteractiveCampusMap({
       {/* Header bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-blue-600" />
+          <MapPin className="w-4 h-4 text-primary-600" />
           <span className="text-sm font-medium text-gray-700">Campus Map</span>
           {mapConfig?.address && (
             <span className="text-xs text-gray-500 ml-2 hidden sm:inline">{mapConfig.address}</span>
@@ -1276,7 +1276,7 @@ export default function InteractiveCampusMap({
           {/* Drawing mode controls */}
           {drawingMode && (
             <>
-              <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-primary-100 text-primary-800 rounded-lg border border-primary-200">
                 <span>{drawingMode.points.length} / 3+ points</span>
               </div>
               <button
@@ -1346,7 +1346,7 @@ export default function InteractiveCampusMap({
               {editable && pendingMoves.size > 0 && (
                 <button
                   onClick={handleSavePositions}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                 >
                   <Save className="w-3.5 h-3.5" />
                   Save {pendingMoves.size} change{pendingMoves.size > 1 ? 's' : ''}
@@ -1368,8 +1368,8 @@ export default function InteractiveCampusMap({
                     drawingMode || editingPolygon
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : placingMode
-                        ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-primary-100 text-primary-800 border border-primary-300'
+                        : 'bg-primary-600 text-white hover:bg-primary-700'
                   }`}
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1393,7 +1393,7 @@ export default function InteractiveCampusMap({
       <div className="relative">
         {loading && (
           <div className="absolute inset-0 z-dropdown flex items-center justify-center bg-gray-100">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
           </div>
         )}
         <div
@@ -1444,7 +1444,7 @@ export default function InteractiveCampusMap({
             <div className="flex flex-col gap-2">
               <button
                 onClick={handlePopoverSelectBuilding}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-primary-50 hover:text-primary-700 transition-colors"
               >
                 <Building2 className="w-4 h-4" />
                 Building

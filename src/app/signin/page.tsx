@@ -47,7 +47,7 @@ export default function SigninPage() {
       <div className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 bg-white">
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 inline-block mb-8">
+          <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700 inline-block mb-8">
             Lionheart
           </Link>
 
@@ -80,7 +80,7 @@ export default function SigninPage() {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="w-full px-4 py-2.5 pr-44 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full px-4 py-2.5 pr-44 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
                   required
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
@@ -92,8 +92,8 @@ export default function SigninPage() {
               </p>
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-sm text-blue-700 text-center">
+            <div className="bg-primary-50 rounded-lg p-3">
+              <p className="text-sm text-primary-700 text-center">
                 You&apos;ll be redirected to your school&apos;s branded login page
               </p>
             </div>
@@ -101,7 +101,7 @@ export default function SigninPage() {
             <button
               type="submit"
               disabled={loading || !subdomain.trim()}
-              className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -111,7 +111,7 @@ export default function SigninPage() {
 
           <p className="text-sm text-gray-600 text-center mt-8">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-blue-600 font-medium hover:text-blue-700">
+            <Link href="/signup" className="text-primary-600 font-medium hover:text-primary-700">
               Sign up
             </Link>
           </p>
@@ -119,7 +119,7 @@ export default function SigninPage() {
       </div>
 
       {/* Right Panel — Product Showcase */}
-      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 xl:p-16 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 p-12 xl:p-16 relative overflow-hidden">
         {/* Decorative background circles */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
@@ -128,7 +128,7 @@ export default function SigninPage() {
           <h2 className="text-3xl xl:text-4xl font-bold text-white mb-4">
             Your school operations hub
           </h2>
-          <p className="text-blue-100 text-lg mb-12">
+          <p className="text-primary-100 text-lg mb-12">
             Everything you need to manage IT, maintenance, and daily operations in one place.
           </p>
 
@@ -145,15 +145,15 @@ export default function SigninPage() {
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-white">12</p>
-                <p className="text-blue-200 text-xs">Open Tickets</p>
+                <p className="text-primary-200 text-xs">Open Tickets</p>
               </div>
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-emerald-300">94%</p>
-                <p className="text-blue-200 text-xs">Resolved</p>
+                <p className="text-primary-200 text-xs">Resolved</p>
               </div>
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-amber-300">2.1h</p>
-                <p className="text-blue-200 text-xs">Avg Response</p>
+                <p className="text-primary-200 text-xs">Avg Response</p>
               </div>
             </div>
 
@@ -162,14 +162,14 @@ export default function SigninPage() {
               <div className="bg-white/10 rounded-lg p-3 flex items-center justify-between">
                 <div>
                   <p className="text-white text-sm font-medium">Projector in Room 201</p>
-                  <p className="text-blue-200 text-xs">IT Support</p>
+                  <p className="text-primary-200 text-xs">IT Support</p>
                 </div>
                 <span className="text-xs bg-amber-500/30 text-amber-200 px-2 py-1 rounded-full">In Progress</span>
               </div>
               <div className="bg-white/10 rounded-lg p-3 flex items-center justify-between">
                 <div>
                   <p className="text-white text-sm font-medium">AC unit in Gym</p>
-                  <p className="text-blue-200 text-xs">Maintenance</p>
+                  <p className="text-primary-200 text-xs">Maintenance</p>
                 </div>
                 <span className="text-xs bg-emerald-500/30 text-emerald-200 px-2 py-1 rounded-full">Resolved</span>
               </div>
@@ -179,13 +179,13 @@ export default function SigninPage() {
           {/* Social proof */}
           <div className="mt-10 flex items-center justify-center gap-2">
             <div className="flex -space-x-2">
-              {['bg-blue-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400'].map((color, i) => (
+              {['bg-primary-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400'].map((color, i) => (
                 <div key={i} className={`w-8 h-8 ${color} rounded-full border-2 border-white/20 flex items-center justify-center text-white text-xs font-bold`}>
                   {['S', 'M', 'J', 'R'][i]}
                 </div>
               ))}
             </div>
-            <p className="text-blue-100 text-sm ml-2">
+            <p className="text-primary-100 text-sm ml-2">
               Trusted by school administrators
             </p>
           </div>

@@ -37,13 +37,13 @@ export default function SupportPage() {
     switch (p) {
       case 'CRITICAL': return 'bg-red-500/10 text-red-400'
       case 'HIGH': return 'bg-orange-500/10 text-orange-400'
-      case 'NORMAL': return 'bg-blue-500/10 text-blue-400'
+      case 'NORMAL': return 'bg-primary-500/10 text-primary-400'
       default: return 'bg-zinc-700 text-zinc-300'
     }
   }
   const statusColor = (s: string) => {
     switch (s) {
-      case 'OPEN': return 'bg-blue-500/10 text-blue-400'
+      case 'OPEN': return 'bg-primary-500/10 text-primary-400'
       case 'IN_PROGRESS': return 'bg-yellow-500/10 text-yellow-400'
       case 'RESOLVED': return 'bg-green-500/10 text-green-400'
       case 'CLOSED': return 'bg-zinc-700 text-zinc-300'
@@ -90,8 +90,8 @@ export default function SupportPage() {
                 <tr key={t.id} onClick={() => router.push(`/admin/support/${t.id}`)} className="hover:bg-zinc-800/50 cursor-pointer transition-colors">
                   <td className="px-5 py-3 font-medium">{t.subject}</td>
                   <td className="px-5 py-3 hidden sm:table-cell text-zinc-400">{t.organization?.name || '—'}</td>
-                  <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(t.status)}`}>{t.status}</span></td>
-                  <td className="px-5 py-3 hidden md:table-cell"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColor(t.priority)}`}>{t.priority}</span></td>
+                  <td className="px-5 py-3"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor(t.status)}`}>{t.status}</span></td>
+                  <td className="px-5 py-3 hidden md:table-cell"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColor(t.priority)}`}>{t.priority}</span></td>
                   <td className="px-5 py-3 hidden md:table-cell text-zinc-400">{t.category}</td>
                   <td className="px-5 py-3 hidden lg:table-cell text-zinc-400">{t._count?.messages || 0}</td>
                   <td className="px-5 py-3 hidden lg:table-cell text-zinc-400">{new Date(t.createdAt).toLocaleDateString()}</td>

@@ -580,7 +580,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
         <button
           type="button"
           onClick={handleOpenNew}
-          className="inline-flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+          className="inline-flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition"
         >
           <Plus className="w-4 h-4" />
           Add School
@@ -753,7 +753,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                           key={principal.id}
                           type="button"
                           onClick={() => selectPrincipal(principal)}
-                          className="w-full text-left px-4 py-2 hover:bg-blue-50 transition"
+                          className="w-full text-left px-4 py-2 hover:bg-primary-50 transition"
                         >
                           <div className="font-medium text-gray-900">{principal.name}</div>
                           <div className="text-xs text-gray-500">{principal.email}</div>
@@ -836,7 +836,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             <button
               type="submit"
               disabled={saving || searchingPrincipals || creatingPrincipal}
-              className="px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+              className="px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50"
             >
               {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add School'}
             </button>
@@ -864,7 +864,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                   <button
                     type="button"
                     onClick={() => handleSuccessClose(true)}
-                    className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+                    className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition"
                   >
                     Yes
                   </button>
@@ -897,7 +897,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             )}
 
             <div>
-              <label htmlFor="sm-editorName" className="block text-sm font-medium text-gray-700 mb-2">Principal Name</label>
+              <label htmlFor="sm-editorName" className="block text-sm font-medium text-gray-700 mb-1.5">Principal Name</label>
               <input
                 id="sm-editorName"
                 className="ui-input"
@@ -908,7 +908,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </div>
 
             <div>
-              <label htmlFor="sm-editorEmail" className="block text-sm font-medium text-gray-700 mb-2">Principal Email</label>
+              <label htmlFor="sm-editorEmail" className="block text-sm font-medium text-gray-700 mb-1.5">Principal Email</label>
               <input
                 id="sm-editorEmail"
                 className="ui-input"
@@ -921,7 +921,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="sm-editorPhone" className="block text-sm font-medium text-gray-700 mb-2">Principal Phone</label>
+                <label htmlFor="sm-editorPhone" className="block text-sm font-medium text-gray-700 mb-1.5">Principal Phone</label>
                 <input
                   id="sm-editorPhone"
                   className="ui-input"
@@ -937,7 +937,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                 />
               </div>
               <div>
-                <label htmlFor="sm-editorPhoneExt" className="block text-sm font-medium text-gray-700 mb-2">Extension</label>
+                <label htmlFor="sm-editorPhoneExt" className="block text-sm font-medium text-gray-700 mb-1.5">Extension</label>
                 <input
                   id="sm-editorPhoneExt"
                   className="ui-input"
@@ -955,7 +955,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </div>
 
             <div>
-              <label htmlFor="sm-editorJobTitle" className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+              <label htmlFor="sm-editorJobTitle" className="block text-sm font-medium text-gray-700 mb-1.5">Job Title</label>
               <input
                 id="sm-editorJobTitle"
                 className="ui-input"
@@ -968,7 +968,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               <button
                 type="submit"
                 disabled={savingPrincipalEditor}
-                className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50"
               >
                 {savingPrincipalEditor ? 'Saving...' : 'Save Changes'}
               </button>

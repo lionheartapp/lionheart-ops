@@ -71,7 +71,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard label="Total Schools" value={stats?.totalOrgs || 0} icon={School} color="bg-blue-500/10 text-blue-400" />
+        <StatCard label="Total Schools" value={stats?.totalOrgs || 0} icon={School} color="bg-primary-500/10 text-primary-400" />
         <StatCard label="Active" value={stats?.activeOrgs || 0} icon={TrendingUp} color="bg-green-500/10 text-green-400" />
         <StatCard label="On Trial" value={stats?.trialOrgs || 0} icon={Clock} color="bg-yellow-500/10 text-yellow-400" />
         <StatCard label="Open Tickets" value={stats?.openTickets || 0} icon={LifeBuoy} color="bg-orange-500/10 text-orange-400" />
@@ -95,7 +95,7 @@ export default function DashboardPage() {
                 </div>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                   org.onboardingStatus === 'ACTIVE' ? 'bg-green-500/10 text-green-400' :
-                  org.onboardingStatus === 'SIGNED_UP' ? 'bg-blue-500/10 text-blue-400' :
+                  org.onboardingStatus === 'SIGNED_UP' ? 'bg-primary-500/10 text-primary-400' :
                   org.onboardingStatus === 'SUSPENDED' ? 'bg-red-500/10 text-red-400' :
                   'bg-zinc-700 text-zinc-300'
                 }`}>

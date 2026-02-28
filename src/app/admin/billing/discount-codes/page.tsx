@@ -49,30 +49,30 @@ export default function DiscountCodesPage() {
         <form onSubmit={handleCreate} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Code</label>
+              <label className="block text-sm text-zinc-400 mb-1.5">Code</label>
               <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SUMMER25" className="ui-input" required />
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Type</label>
+              <label className="block text-sm text-zinc-400 mb-1.5">Type</label>
               <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="ui-select">
                 <option value="PERCENTAGE">Percentage (%)</option>
                 <option value="FIXED_AMOUNT">Fixed Amount ($)</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Value</label>
+              <label className="block text-sm text-zinc-400 mb-1.5">Value</label>
               <input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder={form.type === 'PERCENTAGE' ? '20' : '1000'} className="ui-input" required />
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Max Redemptions</label>
+              <label className="block text-sm text-zinc-400 mb-1.5">Max Redemptions</label>
               <input type="number" value={form.maxRedemptions} onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })} placeholder="Unlimited" className="ui-input" />
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Valid Until</label>
+              <label className="block text-sm text-zinc-400 mb-1.5">Valid Until</label>
               <input type="date" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} className="ui-input" />
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Description</label>
+              <label className="block text-sm text-zinc-400 mb-1.5">Description</label>
               <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Summer promo" className="ui-input" />
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function DiscountCodesPage() {
                   <td className="px-5 py-3 text-zinc-400">{c.currentRedemptions}{c.maxRedemptions ? ` / ${c.maxRedemptions}` : ''}</td>
                   <td className="px-5 py-3 hidden sm:table-cell text-zinc-400">{c.validUntil ? new Date(c.validUntil).toLocaleDateString() : 'Never'}</td>
                   <td className="px-5 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${c.isActive ? 'bg-green-500/10 text-green-400' : 'bg-zinc-700 text-zinc-300'}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${c.isActive ? 'bg-green-500/10 text-green-400' : 'bg-zinc-700 text-zinc-300'}`}>
                       {c.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>

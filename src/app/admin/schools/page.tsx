@@ -100,9 +100,9 @@ export default function SchoolsPage() {
                   </td>
                   <td className="px-5 py-3 hidden md:table-cell text-zinc-400">{org.institutionType}</td>
                   <td className="px-5 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       org.onboardingStatus === 'ACTIVE' ? 'bg-green-500/10 text-green-400' :
-                      org.onboardingStatus === 'SIGNED_UP' ? 'bg-blue-500/10 text-blue-400' :
+                      org.onboardingStatus === 'SIGNED_UP' ? 'bg-primary-500/10 text-primary-400' :
                       org.onboardingStatus === 'ONBOARDING' ? 'bg-yellow-500/10 text-yellow-400' :
                       org.onboardingStatus === 'SUSPENDED' ? 'bg-red-500/10 text-red-400' :
                       'bg-zinc-700 text-zinc-300'

@@ -134,7 +134,7 @@ export default function DetailDrawer({
           <div className="border-t border-gray-200 p-4 sm:p-6 flex-shrink-0">
             <button
               onClick={onEdit}
-              className="w-full px-4 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="w-full px-4 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
             >
               Edit
             </button>

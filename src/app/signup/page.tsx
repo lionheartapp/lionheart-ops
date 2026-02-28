@@ -129,7 +129,7 @@ export default function SignupPage() {
       <div className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 bg-white">
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 inline-block mb-8">
+          <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700 inline-block mb-8">
             Lionheart
           </Link>
 
@@ -192,7 +192,7 @@ export default function SignupPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sarah Mitchell"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -208,7 +208,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g., sarah@mitchell.edu"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -224,7 +224,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min 8 characters"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -240,7 +240,7 @@ export default function SignupPage() {
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
                 placeholder="e.g., Mitchell Academy"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -256,7 +256,7 @@ export default function SignupPage() {
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="e.g., mitchell.edu"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -267,7 +267,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-3 mt-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 mt-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -282,7 +282,7 @@ export default function SignupPage() {
 
           <p className="text-sm text-gray-600 text-center mt-4">
             Already have an account?{' '}
-            <Link href="/signin" className="text-blue-600 font-medium hover:text-blue-700">
+            <Link href="/signin" className="text-primary-600 font-medium hover:text-primary-700">
               Sign in
             </Link>
           </p>
@@ -290,7 +290,7 @@ export default function SignupPage() {
       </div>
 
       {/* Right Panel — Product Showcase */}
-      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 xl:p-16 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 p-12 xl:p-16 relative overflow-hidden">
         {/* Decorative background circles */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
@@ -299,7 +299,7 @@ export default function SignupPage() {
           <h2 className="text-3xl xl:text-4xl font-bold text-white mb-4">
             Simplify your school operations
           </h2>
-          <p className="text-blue-100 text-lg mb-12">
+          <p className="text-primary-100 text-lg mb-12">
             Join schools already using Lionheart to manage IT, maintenance, and operations.
           </p>
 
@@ -308,14 +308,14 @@ export default function SignupPage() {
             {/* Card 1 — Ticket overview */}
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
                 <span className="text-white font-semibold">Smart Ticket Management</span>
               </div>
-              <p className="text-blue-100 text-sm">Track and resolve IT and maintenance requests with real-time status updates.</p>
+              <p className="text-primary-100 text-sm">Track and resolve IT and maintenance requests with real-time status updates.</p>
             </div>
 
             {/* Card 2 — Team collab */}
@@ -328,7 +328,7 @@ export default function SignupPage() {
                 </div>
                 <span className="text-white font-semibold">Team Collaboration</span>
               </div>
-              <p className="text-blue-100 text-sm">Assign tickets to teams, communicate across departments, and stay organized.</p>
+              <p className="text-primary-100 text-sm">Assign tickets to teams, communicate across departments, and stay organized.</p>
             </div>
 
             {/* Card 3 — Quick stats */}
@@ -341,20 +341,20 @@ export default function SignupPage() {
                 </div>
                 <span className="text-white font-semibold">AI-Powered Setup</span>
               </div>
-              <p className="text-blue-100 text-sm">Automatically configure your campus, rooms, and teams with AI-assisted onboarding.</p>
+              <p className="text-primary-100 text-sm">Automatically configure your campus, rooms, and teams with AI-assisted onboarding.</p>
             </div>
           </div>
 
           {/* Social proof */}
           <div className="mt-10 flex items-center justify-center gap-2">
             <div className="flex -space-x-2">
-              {['bg-blue-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400'].map((color, i) => (
+              {['bg-primary-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400'].map((color, i) => (
                 <div key={i} className={`w-8 h-8 ${color} rounded-full border-2 border-white/20 flex items-center justify-center text-white text-xs font-bold`}>
                   {['S', 'M', 'J', 'R'][i]}
                 </div>
               ))}
             </div>
-            <p className="text-blue-100 text-sm ml-2">
+            <p className="text-primary-100 text-sm ml-2">
               Trusted by school administrators
             </p>
           </div>

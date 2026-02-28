@@ -139,7 +139,7 @@ export default function Sidebar({
                     setSettingsOpen(false)
                     setIsOpen(false)
                   }}
-                  className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                  className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                     active && !settingsOpen
                       ? 'bg-white/10 text-white font-medium border border-white/20'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
@@ -179,11 +179,11 @@ export default function Sidebar({
                 onClick={() => handleSettingsTabClick(tab.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
                   isTabActive
-                    ? 'bg-[#dde6f5] text-blue-600 font-medium'
+                    ? 'bg-[#dde6f5] text-primary-600 font-medium'
                     : 'text-slate-500 hover:bg-[#e5eaf5] hover:text-slate-700'
                 }`}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-slate-400'}`} />
                 {tab.label}
               </button>
             )
@@ -207,11 +207,11 @@ export default function Sidebar({
                   onClick={() => handleSettingsTabClick(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
                     isTabActive
-                      ? 'bg-[#dde6f5] text-blue-600 font-medium'
+                      ? 'bg-[#dde6f5] text-primary-600 font-medium'
                       : 'text-slate-500 hover:bg-[#e5eaf5] hover:text-slate-700'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-slate-400'}`} />
                   {tab.label}
                 </button>
               )
@@ -227,7 +227,7 @@ export default function Sidebar({
       {/* Mobile Menu Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-lg bg-[#111827] border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-lg bg-[#111827] border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-primary-400"
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
       >

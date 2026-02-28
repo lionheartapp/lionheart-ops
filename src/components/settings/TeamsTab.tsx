@@ -340,14 +340,14 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
-            <Users className="w-6 h-6 text-blue-600" />
+            <Users className="w-6 h-6 text-primary-600" />
             Teams
           </h2>
           <p className="text-sm text-gray-600 mt-1">Organize users into teams for better collaboration</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 min-h-[40px] text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 px-4 py-2 min-h-[40px] text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
         >
           <Plus className="w-4 h-4" />
           Create Team
@@ -378,7 +378,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             <p className="text-sm mb-2">No teams found.</p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               Create your first team
             </button>
@@ -463,7 +463,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder="e.g. Front Office"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                 disabled={createLoading}
                 autoFocus
               />
@@ -478,7 +478,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 value={teamDescription}
                 onChange={(e) => setTeamDescription(e.target.value)}
                 placeholder="What this team is responsible for"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                 rows={4}
                 disabled={createLoading}
               />
@@ -501,7 +501,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={createLoading}
             >
               {createLoading ? 'Creating...' : 'Create Team'}
@@ -549,7 +549,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                   value={editTeamName}
                   onChange={(e) => setEditTeamName(e.target.value)}
                   placeholder="e.g. Front Office"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                   disabled={editSaving}
                   autoFocus
                 />
@@ -575,7 +575,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                   value={editTeamDescription}
                   onChange={(e) => setEditTeamDescription(e.target.value)}
                   placeholder="What this team is responsible for"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                   rows={4}
                   disabled={editSaving}
                 />
@@ -593,7 +593,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={editSaving}
               >
                 {editSaving ? 'Saving...' : 'Save Changes'}
@@ -627,7 +627,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             </p>
             {availableReassignTeams.length > 0 ? (
               <div className="mt-3">
-                <label htmlFor="reassign-team" className="mb-1 block text-sm font-medium text-amber-900">
+                <label htmlFor="reassign-team" className="mb-1.5 block text-sm font-medium text-amber-900">
                   Move members to
                 </label>
                 <select

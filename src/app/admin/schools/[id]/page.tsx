@@ -112,7 +112,7 @@ export default function SchoolDetailPage() {
                 <td className="px-5 py-3 text-zinc-400">{u.email}</td>
                 <td className="px-5 py-3 hidden sm:table-cell text-zinc-400">{u.userRole?.name || '—'}</td>
                 <td className="px-5 py-3 hidden sm:table-cell">
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${u.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-zinc-700 text-zinc-300'}`}>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${u.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-zinc-700 text-zinc-300'}`}>
                     {u.status}
                   </span>
                 </td>
@@ -140,7 +140,7 @@ export default function SchoolDetailPage() {
                 <tr key={p.id}>
                   <td className="px-5 py-3 font-medium">${(p.amount / 100).toFixed(2)}</td>
                   <td className="px-5 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === 'SUCCEEDED' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${p.status === 'SUCCEEDED' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
                       {p.status}
                     </span>
                   </td>

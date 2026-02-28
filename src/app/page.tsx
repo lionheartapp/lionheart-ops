@@ -28,20 +28,20 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="border-b border-gray-200" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-4">
-          <a href="#" className="text-2xl font-bold text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1" aria-label="Lionheart - home">
+          <a href="#" className="text-2xl font-bold text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1" aria-label="Lionheart - home">
             Lionheart
           </a>
           <div className="flex gap-2 sm:gap-4">
             <Link
               href="/signin"
-              className="px-4 sm:px-6 py-3 min-h-[44px] text-gray-800 font-medium hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition"
+              className="px-4 sm:px-6 py-3 min-h-[44px] text-gray-800 font-medium hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded transition"
               aria-label="Sign in to your account"
             >
               Sign In
             </Link>
             <Link
               href="/signup"
-              className="px-4 sm:px-6 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+              className="px-4 sm:px-6 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
               aria-label="Get started - create a new school account"
             >
               Get Started
@@ -63,14 +63,14 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link
               href="/signup"
-              className="px-6 sm:px-8 py-4 min-h-[44px] bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center justify-center gap-2"
+              className="px-6 sm:px-8 py-4 min-h-[44px] bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition flex items-center justify-center gap-2"
               aria-label="Get started - start free trial"
             >
               Get Started Today <ChevronRight className="w-5 h-5" aria-hidden="true" />
             </Link>
             <Link
               href="/signin"
-              className="px-6 sm:px-8 py-4 min-h-[44px] border-2 border-gray-300 text-gray-800 font-semibold rounded-lg hover:border-blue-500 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+              className="px-6 sm:px-8 py-4 min-h-[44px] border-2 border-gray-300 text-gray-800 font-semibold rounded-lg hover:border-primary-500 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
               aria-label="Sign in to existing account"
             >
               Sign In
@@ -92,10 +92,10 @@ export default function Landing() {
               return (
                 <article
                   key={idx}
-                  className="bg-white rounded-lg p-6 sm:p-8 border border-gray-200 hover:border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 transition"
+                  className="bg-white rounded-lg p-6 sm:p-8 border border-gray-200 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition"
                 >
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <Icon className="w-6 h-6 text-blue-600" aria-hidden="true" />
+                  <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
+                    <Icon className="w-6 h-6 text-primary-600" aria-hidden="true" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {feature.title}
@@ -131,15 +131,15 @@ export default function Landing() {
             </ul>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 sm:p-8 border border-blue-200">
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 sm:p-8 border border-primary-200">
             <h3 className="sr-only">Example request workflow</h3>
             <div className="space-y-4">
-              <div className="bg-white rounded-lg p-4 border border-blue-100">
+              <div className="bg-white rounded-lg p-4 border border-primary-100">
                 <p className="text-xs sm:text-sm text-gray-500 mb-1 font-medium">Request Submitted</p>
                 <p className="text-base sm:text-lg font-semibold text-gray-900">Broken projector in Room 201</p>
                 <p className="text-xs text-gray-500 mt-1">Today at 2:30 PM</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-blue-100">
+              <div className="bg-white rounded-lg p-4 border border-primary-100">
                 <p className="text-xs sm:text-sm text-gray-500 mb-1 font-medium">Status Update</p>
                 <p className="text-base sm:text-lg font-semibold text-gray-900">Assigned to IT</p>
                 <p className="text-xs text-gray-500 mt-1">In Progress</p>
@@ -155,17 +155,17 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-blue-600 py-12 sm:py-16">
+      <section className="bg-primary-600 py-12 sm:py-16">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to simplify your school's operations?
           </h2>
-          <p className="text-blue-100 text-base sm:text-lg mb-8">
+          <p className="text-primary-100 text-base sm:text-lg mb-8">
             Join schools already using Lionheart to manage their IT and maintenance requests.
           </p>
           <Link
             href="/signup"
-            className="px-6 sm:px-8 py-4 min-h-[44px] bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 transition inline-flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-4 min-h-[44px] bg-white text-primary-600 font-semibold rounded-lg hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600 transition inline-flex items-center justify-center gap-2"
             aria-label="Get started free - create account"
           >
             Get Started Free <ChevronRight className="w-5 h-5" aria-hidden="true" />
@@ -184,22 +184,22 @@ export default function Landing() {
             <nav>
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 inline-block transition">Features</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 inline-block transition">Pricing</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Features</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Pricing</a></li>
               </ul>
             </nav>
             <nav>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 inline-block transition">About</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 inline-block transition">Contact</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">About</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Contact</a></li>
               </ul>
             </nav>
             <nav>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 inline-block transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 inline-block transition">Terms</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Privacy</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Terms</a></li>
               </ul>
             </nav>
           </div>

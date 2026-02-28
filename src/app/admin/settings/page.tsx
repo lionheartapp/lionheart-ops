@@ -26,7 +26,7 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between py-2 border-b border-zinc-800">
             <span className="text-zinc-400">Role</span>
-            <span className="px-2 py-0.5 rounded-full text-xs bg-primary-500/10 text-primary-400">{admin?.role}</span>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500/10 text-primary-400">{admin?.role}</span>
           </div>
         </div>
       </div>

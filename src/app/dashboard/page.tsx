@@ -135,7 +135,7 @@ export default function DashboardPage() {
       case 'urgent':
         return <AlertCircle className="w-5 h-5 text-red-500" aria-hidden="true" />
       case 'in-progress':
-        return <Clock className="w-5 h-5 text-blue-500" aria-hidden="true" />
+        return <Clock className="w-5 h-5 text-primary-500" aria-hidden="true" />
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
       default:
@@ -178,7 +178,7 @@ export default function DashboardPage() {
         <div className="relative self-start sm:self-center">
           <button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
-            className="px-4 sm:px-6 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center gap-2"
+            className="px-4 sm:px-6 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition flex items-center gap-2"
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
           >
@@ -198,9 +198,9 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
                 >
-                  <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Calendar className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">Event</p>
                     <p className="text-xs text-gray-600">Create a new event</p>
@@ -212,9 +212,9 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
                 >
-                  <Sparkles className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Sparkles className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">Smart Event</p>
                     <p className="text-xs text-gray-600">Create with AI</p>
@@ -236,9 +236,9 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
                 >
-                  <Building2 className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">Facilities Request</p>
                     <p className="text-xs text-gray-600">Submit a facilities request</p>
@@ -250,9 +250,9 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
                 >
-                  <Headphones className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">IT Request</p>
                     <p className="text-xs text-gray-600">Submit an IT support request</p>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
       {/* Dashboard Panels Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* My Tasks Panel */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 transition">
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
             <button className="ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg">
@@ -284,7 +284,7 @@ export default function DashboardPage() {
                   setSelectedRequestType(null)
                   setIsCreateOpen(true)
                 }}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
               >
                 Create your first task
               </button>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                 {sampleTickets.map((ticket) => (
                   <li
                     key={ticket.id}
-                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition"
+                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary-50 cursor-pointer transition"
                     onClick={() => setIsDetailOpen(true)}
                   >
                     <div className="flex-shrink-0">
@@ -312,7 +312,7 @@ export default function DashboardPage() {
                 ))}
               </ul>
 
-              <button className="mt-6 w-full py-2 text-blue-600 font-medium hover:bg-blue-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+              <button className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
                 + Add task
               </button>
             </>
@@ -325,28 +325,28 @@ export default function DashboardPage() {
           <WeatherWidget />
 
           {/* Stats Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
             <p className="text-sm text-gray-600 mb-2">Active Requests</p>
-            <p className="text-4xl font-bold text-blue-600">8</p>
+            <p className="text-4xl font-bold text-primary-600">8</p>
             <p className="text-xs text-gray-600 mt-2">+2 this month</p>
           </div>
 
           {/* Quick Links */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 transition">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition">
             <h3 className="font-bold text-gray-900 mb-4">Quick Links</h3>
             <ul className="space-y-2" role="list">
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
                   Pending Approvals
                 </button>
               </li>
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
                   Overdue Tasks
                 </button>
               </li>
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
                   My Reports
                 </button>
               </li>
@@ -377,12 +377,12 @@ export default function DashboardPage() {
                 Form fields for {selectedRequestType} request will appear here.
               </p>
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1.5">
                   Description
                 </label>
                 <textarea
                   id="description"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="Describe your request..."
                   rows={4}
                 />
@@ -392,11 +392,11 @@ export default function DashboardPage() {
           <div className="flex gap-3 pt-4">
             <button
               onClick={() => setIsCreateOpen(false)}
-              className="flex-1 px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="flex-1 px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
             >
               Cancel
             </button>
-            <button className="flex-1 px-4 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <button className="flex-1 px-4 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
               Create
             </button>
           </div>

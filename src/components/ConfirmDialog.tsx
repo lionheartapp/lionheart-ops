@@ -61,8 +61,8 @@ export default function ConfirmDialog({
       button: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
     },
     info: {
-      icon: 'bg-blue-100 text-blue-600',
-      button: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+      icon: 'bg-primary-100 text-primary-600',
+      button: 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500',
     },
   }
 
@@ -87,9 +87,10 @@ export default function ConfirmDialog({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition"
+            className="absolute right-4 top-4 ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg"
+            aria-label="Close dialog"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
 
           {/* Content */}

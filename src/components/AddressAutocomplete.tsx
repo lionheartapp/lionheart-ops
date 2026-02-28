@@ -127,7 +127,7 @@ export default function AddressAutocomplete({ value, onChange, className = 'ui-i
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -139,7 +139,7 @@ export default function AddressAutocomplete({ value, onChange, className = 'ui-i
               key={suggestion.placeId}
               className={`px-4 py-3 cursor-pointer text-sm transition-colors ${
                 index === highlightedIndex
-                  ? 'bg-blue-50 text-blue-900'
+                  ? 'bg-primary-50 text-primary-900'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
               onMouseEnter={() => setHighlightedIndex(index)}

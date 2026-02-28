@@ -83,7 +83,7 @@ export default function DiagnosticPage() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-gray-900">Settings Diagnostic</h1>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
           <h2 className="text-xl font-semibold mb-4 text-gray-900">LocalStorage Values</h2>
           {diagnostics ? (
             <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
@@ -94,7 +94,7 @@ export default function DiagnosticPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
           <h2 className="text-xl font-semibold mb-4 text-gray-900">API Test Results</h2>
           {testResults ? (
             <div className="space-y-4">
@@ -131,7 +131,7 @@ export default function DiagnosticPage() {
         <div className="mt-6">
           <a
             href="/settings"
-            className="text-blue-600 hover:text-blue-700 font-medium text-lg"
+            className="text-primary-600 hover:text-primary-700 font-medium text-lg"
           >
             ← Back to Settings
           </a>

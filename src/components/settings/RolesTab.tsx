@@ -418,14 +418,14 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
-            <Shield className="w-6 h-6 text-blue-600" />
+            <Shield className="w-6 h-6 text-primary-600" />
             Roles & Permissions
           </h2>
           <p className="text-sm text-gray-600 mt-1">Manage user roles and their permissions</p>
         </div>
         <button
           onClick={openCreateDrawer}
-          className="flex items-center gap-2 px-4 py-2 min-h-[40px] text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 px-4 py-2 min-h-[40px] text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
         >
           <Plus className="w-4 h-4" />
           Create Role
@@ -465,7 +465,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
           <div className="text-center py-16">
             <Shield className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 text-sm mb-3">No roles found</p>
-            <button onClick={openCreateDrawer} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <button onClick={openCreateDrawer} className="text-primary-600 hover:text-primary-700 text-sm font-medium">
               Create your first role
             </button>
           </div>
@@ -556,7 +556,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder="e.g. Attendance Coordinator"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                 disabled={createLoading}
                 autoFocus
               />
@@ -600,7 +600,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={createLoading}
             >
               {createLoading ? 'Creating...' : 'Create Role'}
@@ -648,7 +648,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                   value={editRoleName}
                   onChange={(e) => setEditRoleName(e.target.value)}
                   placeholder="e.g. Attendance Coordinator"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                   disabled={editSaving}
                   autoFocus
                 />
@@ -692,7 +692,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={editSaving}
               >
                 {editSaving ? 'Saving...' : 'Save Changes'}
@@ -726,7 +726,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             </p>
             {availableReassignRoles.length > 0 ? (
               <div className="mt-3">
-                <label htmlFor="reassign-role" className="mb-1 block text-sm font-medium text-amber-900">
+                <label htmlFor="reassign-role" className="mb-1.5 block text-sm font-medium text-amber-900">
                   Move users to
                 </label>
                 <select

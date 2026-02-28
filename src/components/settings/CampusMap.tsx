@@ -88,7 +88,7 @@ export default function CampusMap() {
     <div className="rounded-xl border border-gray-200 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-blue-600" />
+          <MapPin className="w-4 h-4 text-primary-600" />
           <span className="text-sm font-medium text-gray-700">Campus Location</span>
         </div>
         {mapData?.org?.address && (
