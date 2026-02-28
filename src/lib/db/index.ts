@@ -58,15 +58,17 @@ function mergeWhere(
 	orgId: string | null,
 	softDelete: boolean
 ) {
-	const filters: Record<string, unknown>[] = []
-	if (orgId) filters.push({ organizationId: orgId })
-	if (softDelete) filters.push({ deletedAt: null })
+	const filters: Record<string, unknown> = {}
+	if (orgId) filters.organizationId = orgId
+	if (softDelete) filters.deletedAt = null
 
-	if (filters.length === 0) return where
+	if (Object.keys(filters).length === 0) return where
 	if (!where || typeof where !== 'object') {
-		return filters.length === 1 ? filters[0] : { AND: filters }
+		return { ...filters }
 	}
-	return { AND: [where, ...filters] }
+	// Spread filters flat into the where object so that unique identifiers
+	// (like `id`) remain at the top level — required for findUnique.
+	return { ...(where as Record<string, unknown>), ...filters }
 }
 
 export const rawPrisma = new PrismaClient()
