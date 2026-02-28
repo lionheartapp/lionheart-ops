@@ -95,11 +95,14 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('[calendar-events POST] Validation error:', error.issues)
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+    console.error('[calendar-events POST] Internal error:', error)
+    const message = error instanceof Error ? error.message : 'Something went wrong'
+    return NextResponse.json(fail('INTERNAL_ERROR', message), { status: 500 })
   }
 }

@@ -152,9 +152,18 @@ export default function CalendarView() {
     setIsCreateOpen(true)
   }, [])
 
+  const [createError, setCreateError] = useState<string | null>(null)
+
   const handleSubmitEvent = useCallback(async (data: EventFormData) => {
-    await createEvent.mutateAsync(data as unknown as Record<string, unknown>)
-    setIsCreateOpen(false)
+    setCreateError(null)
+    try {
+      await createEvent.mutateAsync(data as unknown as Record<string, unknown>)
+      setIsCreateOpen(false)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create event'
+      setCreateError(message)
+      console.error('Event creation failed:', err)
+    }
   }, [createEvent])
 
   const handleDeleteEvent = useCallback(async (eventId: string) => {
@@ -262,7 +271,7 @@ export default function CalendarView() {
         )}
 
         {/* View */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 flex flex-col">
           {view === 'month' && (
             <MonthView
               currentDate={currentDate}
@@ -310,12 +319,13 @@ export default function CalendarView() {
 
       <EventCreatePanel
         isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        onClose={() => { setIsCreateOpen(false); setCreateError(null) }}
         onSubmit={handleSubmitEvent}
         isSubmitting={createEvent.isPending}
         calendars={calendars}
         initialStart={createInitialStart}
         initialEnd={createInitialEnd}
+        error={createError}
       />
     </div>
   )

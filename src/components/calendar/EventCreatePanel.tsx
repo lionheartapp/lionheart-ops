@@ -13,6 +13,7 @@ interface EventCreatePanelProps {
   calendars: CalendarData[]
   initialStart?: Date
   initialEnd?: Date
+  error?: string | null
 }
 
 export interface EventFormData {
@@ -38,6 +39,7 @@ export default function EventCreatePanel({
   calendars,
   initialStart,
   initialEnd,
+  error,
 }: EventCreatePanelProps) {
   const now = new Date()
   const defaultStart = initialStart || new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0)
@@ -207,6 +209,13 @@ export default function EventCreatePanel({
                 />
               </div>
             </form>
+
+            {/* Error */}
+            {error && (
+              <div className="mx-5 mb-0 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {error}
+              </div>
+            )}
 
             {/* Footer */}
             <div className="p-5 border-t border-gray-100 flex gap-3">
