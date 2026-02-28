@@ -5,6 +5,7 @@ import {
   useCalendars,
   useCalendarEvents,
   useCalendarNavigation,
+  useCreateCalendar,
   useCreateEvent,
   useDeleteEvent,
   type CalendarEventData,
@@ -68,8 +69,26 @@ export default function CalendarView() {
   const [createInitialStart, setCreateInitialStart] = useState<Date | undefined>()
   const [createInitialEnd, setCreateInitialEnd] = useState<Date | undefined>()
 
+  const createCalendar = useCreateCalendar()
   const createEvent = useCreateEvent()
   const deleteEvent = useDeleteEvent()
+
+  // Quick-create calendar state
+  const [showCreateCalendar, setShowCreateCalendar] = useState(false)
+  const [newCalendarName, setNewCalendarName] = useState('')
+  const [newCalendarType, setNewCalendarType] = useState('GENERAL')
+
+  const handleCreateCalendar = async () => {
+    if (!newCalendarName.trim()) return
+    const slug = newCalendarName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    await createCalendar.mutateAsync({
+      name: newCalendarName.trim(),
+      slug,
+      calendarType: newCalendarType,
+    })
+    setNewCalendarName('')
+    setShowCreateCalendar(false)
+  }
 
   const handleEventClick = useCallback((event: CalendarEventData) => {
     setSelectedEvent(event)
@@ -127,12 +146,60 @@ export default function CalendarView() {
           <p className="text-gray-500 mb-6 max-w-sm">
             Create your first calendar to start organizing events for your school.
           </p>
-          <button
-            onClick={handleCreateEvent}
-            className="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Create Calendar
-          </button>
+          {!showCreateCalendar ? (
+            <button
+              onClick={() => setShowCreateCalendar(true)}
+              className="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Create Calendar
+            </button>
+          ) : (
+            <div className="max-w-sm mx-auto space-y-3 text-left">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. School Events"
+                  value={newCalendarName}
+                  onChange={(e) => setNewCalendarName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                <select
+                  value={newCalendarType}
+                  onChange={(e) => setNewCalendarType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
+                >
+                  <option value="GENERAL">General</option>
+                  <option value="ACADEMIC">Academic</option>
+                  <option value="STAFF">Staff</option>
+                  <option value="ATHLETICS">Athletics</option>
+                  <option value="PARENT_FACING">Parent-Facing</option>
+                  <option value="TIMETABLE">Timetable</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCreateCalendar(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateCalendar}
+                  disabled={!newCalendarName.trim() || createCalendar.isPending}
+                  className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  {createCalendar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Create
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )

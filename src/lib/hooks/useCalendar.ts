@@ -125,6 +125,20 @@ export function useCalendarEvents(
   })
 }
 
+export function useCreateCalendar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      fetchApi('/api/calendars', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendars'] })
+    },
+  })
+}
+
 export function useCreateEvent() {
   const queryClient = useQueryClient()
   return useMutation({
