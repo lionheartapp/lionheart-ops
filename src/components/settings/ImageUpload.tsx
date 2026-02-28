@@ -144,7 +144,7 @@ export default function ImageUpload({
           <div key={url} className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
             <img
               src={url}
-              alt=""
+              alt="Uploaded image preview"
               className={`w-full h-full object-cover${onImageClick ? ' cursor-pointer' : ''}`}
               loading="lazy"
               onClick={onImageClick ? () => onImageClick(images, idx) : undefined}

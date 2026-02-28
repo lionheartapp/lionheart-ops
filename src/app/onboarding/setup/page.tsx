@@ -173,7 +173,7 @@ export default function SetupPage() {
       {/* Confetti should be playing */}
 
       {/* Success Icon */}
-      <div className="flex justify-center animate-in fade-in zoom-in duration-500">
+      <div className="flex justify-center animate-in fade-in zoom-in duration-300">
         <CheckCircle2 className="w-20 h-20 text-green-500" />
       </div>
 

@@ -1392,7 +1392,7 @@ export default function InteractiveCampusMap({
       {/* Map container */}
       <div className="relative">
         {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
+          <div className="absolute inset-0 z-dropdown flex items-center justify-center bg-gray-100">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
           </div>
         )}
@@ -1403,7 +1403,7 @@ export default function InteractiveCampusMap({
 
         {/* Custom zoom controls */}
         {!loading && mapInstanceRef.current && (
-          <div className="absolute top-3 right-3 z-10 flex flex-col gap-0 rounded-lg border border-gray-200 bg-white shadow-md overflow-hidden">
+          <div className="absolute top-3 right-3 z-dropdown flex flex-col gap-0 rounded-lg border border-gray-200 bg-white shadow-md overflow-hidden">
             <button
               type="button"
               onClick={() => mapInstanceRef.current?.zoomIn()}

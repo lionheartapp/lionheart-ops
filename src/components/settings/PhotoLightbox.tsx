@@ -100,7 +100,7 @@ export default function PhotoLightbox({
   return createPortal(
     <div
       ref={containerRef}
-      className={`fixed inset-0 z-[60] flex flex-col items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 z-lightbox flex flex-col items-center justify-center transition-opacity duration-200 ${
         shouldShow ? 'opacity-100' : 'opacity-0'
       }`}
       onTouchStart={handleTouchStart}
@@ -109,14 +109,14 @@ export default function PhotoLightbox({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/90 backdrop-blur-sm cursor-pointer"
         onClick={handleClose}
       />
 
       {/* Close button */}
       <button
         onClick={handleClose}
-        className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition"
+        className="absolute top-4 right-4 z-dropdown p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition"
         style={{ minHeight: 'auto' }}
         aria-label="Close lightbox"
       >
@@ -125,7 +125,7 @@ export default function PhotoLightbox({
 
       {/* Counter */}
       {images.length > 1 && (
-        <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-black/50 text-white text-sm">
+        <div className="absolute top-4 left-4 z-dropdown px-3 py-1 rounded-full bg-black/50 text-white text-sm">
           {currentIndex + 1} / {images.length}
         </div>
       )}
@@ -136,7 +136,7 @@ export default function PhotoLightbox({
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); goToPrev() }}
-            className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition"
+            className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-dropdown p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition"
             style={{ minHeight: 'auto' }}
             aria-label="Previous photo"
           >
@@ -157,7 +157,7 @@ export default function PhotoLightbox({
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); goToNext() }}
-            className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition"
+            className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-dropdown p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition"
             style={{ minHeight: 'auto' }}
             aria-label="Next photo"
           >
@@ -167,7 +167,7 @@ export default function PhotoLightbox({
       </div>
 
       {/* Bottom section: thumbnails on desktop, dots on mobile */}
-      <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center">
+      <div className="absolute bottom-4 left-0 right-0 z-dropdown flex justify-center">
         {images.length > 1 && (
           <>
             {/* Desktop: thumbnails */}
@@ -186,7 +186,7 @@ export default function PhotoLightbox({
                 >
                   <img
                     src={url}
-                    alt=""
+                    alt={`Photo thumbnail ${idx + 1}`}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />

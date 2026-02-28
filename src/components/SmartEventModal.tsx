@@ -39,7 +39,7 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-lg rounded-lg bg-zinc-900 p-6 shadow-2xl">
         <h2 className="text-xl font-bold text-white">Smart Event Assistant</h2>
         <p className="mt-2 text-sm text-zinc-400">Describe your event in plain text or voice</p>

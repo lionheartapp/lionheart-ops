@@ -1188,8 +1188,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Building Details</h3>
             </div>
             <div>
-              <label className={labelClass}>Building name</label>
+              <label htmlFor="ct-buildingName" className={labelClass}>Building name</label>
               <input
+                id="ct-buildingName"
                 value={buildingForm.name}
                 onChange={(e) => {
                   setBuildingForm((p) => ({ ...p, name: e.target.value }))
@@ -1205,8 +1206,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               />
             </div>
             <div>
-              <label className={labelClass}>Short code <span className="text-gray-400 font-normal">(optional)</span></label>
+              <label htmlFor="ct-buildingCode" className={labelClass}>Short code <span className="text-gray-400 font-normal">(optional)</span></label>
               <input
+                id="ct-buildingCode"
                 value={buildingForm.code}
                 onChange={(e) => setBuildingForm((p) => ({ ...p, code: e.target.value }))}
                 placeholder="e.g. SH, GYM, ADMIN"
@@ -1215,8 +1217,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               />
             </div>
             <div>
-              <label className={labelClass}>School division</label>
+              <label htmlFor="ct-buildingDivision" className={labelClass}>School division</label>
               <select
+                id="ct-buildingDivision"
                 value={buildingForm.schoolDivision}
                 onChange={(e) => setBuildingForm((p) => ({ ...p, schoolDivision: e.target.value }))}
                 className={inputClass}
@@ -1229,8 +1232,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               </select>
             </div>
             <div>
-              <label className={labelClass}>Building type</label>
+              <label htmlFor="ct-buildingType" className={labelClass}>Building type</label>
               <select
+                id="ct-buildingType"
                 value={buildingForm.buildingType}
                 onChange={(e) => setBuildingForm((p) => ({ ...p, buildingType: e.target.value }))}
                 className={inputClass}
@@ -1289,8 +1293,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <p className="mt-1 text-sm text-gray-500">Name it the way your staff and students already know it.</p>
             </div>
             <div>
-              <label className={labelClass}>Name</label>
+              <label htmlFor="ct-areaName" className={labelClass}>Name</label>
               <input
+                id="ct-areaName"
                 value={outdoorForm.name}
                 onChange={(e) => {
                   setOutdoorForm((p) => ({ ...p, name: e.target.value }))
@@ -1306,8 +1311,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               />
             </div>
             <div>
-              <label className={labelClass}>Type</label>
+              <label htmlFor="ct-areaType" className={labelClass}>Type</label>
               <select
+                id="ct-areaType"
                 value={outdoorForm.areaType}
                 onChange={(e) => setOutdoorForm((p) => ({ ...p, areaType: e.target.value }))}
                 className={inputClass}
@@ -1367,8 +1373,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <form onSubmit={addRoom} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-gray-600">Room # / ID</label>
+                  <label htmlFor="ct-roomNumber" className="text-xs font-medium text-gray-600">Room # / ID</label>
                   <input
+                    id="ct-roomNumber"
                     value={addRoomForm.roomNumber}
                     onChange={(e) => setAddRoomForm((p) => ({ ...p, roomNumber: e.target.value }))}
                     placeholder="e.g. 101, Lab A"
@@ -1378,8 +1385,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-gray-600">Name <span className="text-gray-400 font-normal">(optional)</span></label>
+                  <label htmlFor="ct-roomDisplayName" className="text-xs font-medium text-gray-600">Name <span className="text-gray-400 font-normal">(optional)</span></label>
                   <input
+                    id="ct-roomDisplayName"
                     value={addRoomForm.displayName}
                     onChange={(e) => setAddRoomForm((p) => ({ ...p, displayName: e.target.value }))}
                     placeholder="e.g. Chemistry Lab"
@@ -1388,8 +1396,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-gray-600">Floor <span className="text-gray-400 font-normal">(optional)</span></label>
+                  <label htmlFor="ct-roomFloor" className="text-xs font-medium text-gray-600">Floor <span className="text-gray-400 font-normal">(optional)</span></label>
                   <input
+                    id="ct-roomFloor"
                     value={addRoomForm.floor}
                     onChange={(e) => setAddRoomForm((p) => ({ ...p, floor: e.target.value }))}
                     placeholder="e.g. 1, Ground"
@@ -1589,7 +1598,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                         className="aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200 hover:ring-2 hover:ring-blue-400 transition cursor-pointer"
                         style={{ minHeight: 'auto' }}
                       >
-                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        <img src={url} alt={`Building photo ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
                       </button>
                     ))}
                   </div>
@@ -1656,8 +1665,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{addCampusError}</div>
               )}
               <div>
-                <label className={labelClass}>Campus name</label>
+                <label htmlFor="ct-campusName" className={labelClass}>Campus name</label>
                 <input
+                  id="ct-campusName"
                   value={addCampusForm.name}
                   onChange={(e) => setAddCampusForm((p) => ({ ...p, name: e.target.value }))}
                   placeholder="e.g. Main Campus, North Campus"
@@ -1668,7 +1678,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 />
               </div>
               <div>
-                <label className={labelClass}>Address <span className="text-gray-400 font-normal">(optional)</span></label>
+                <label htmlFor="ct-campusAddress" className={labelClass}>Address <span className="text-gray-400 font-normal">(optional)</span></label>
                 <AddressAutocomplete
                   value={addCampusForm.address}
                   onChange={(val) => setAddCampusForm((p) => ({ ...p, address: val }))}

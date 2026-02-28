@@ -680,8 +680,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">School Name</label>
+              <label htmlFor="sm-schoolName" className="block text-sm font-medium text-gray-700 mb-1.5">School Name</label>
               <input
+                id="sm-schoolName"
                 className="ui-input"
                 value={form.name}
                 onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
@@ -690,8 +691,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Grade Level</label>
+              <label htmlFor="sm-gradeLevel" className="block text-sm font-medium text-gray-700 mb-1.5">Grade Level</label>
               <select
+                id="sm-gradeLevel"
                 className="ui-select w-full"
                 value={form.gradeLevel}
                 onChange={(e) => setForm((prev) => ({ ...prev, gradeLevel: e.target.value as any }))}
@@ -710,9 +712,10 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
             {/* Principal Search/Create */}
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
+              <label htmlFor="sm-principalName" className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
               <div className="relative">
                 <input
+                  id="sm-principalName"
                   type="text"
                   className="ui-input w-full pr-10"
                   placeholder="Search or add a principal..."
@@ -740,7 +743,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               </div>
 
               {showPrincipalDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                <div className="absolute z-dropdown w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
                   {searchingPrincipals ? (
                     <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
                   ) : rankedPrincipalOptions.length > 0 ? (
@@ -775,8 +778,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label htmlFor="sm-principalEmail" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <input
+                id="sm-principalEmail"
                 className="ui-input"
                 type="email"
                 value={form.principalEmail}
@@ -786,8 +790,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+                <label htmlFor="sm-principalPhone" className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
                 <input
+                  id="sm-principalPhone"
                   className="ui-input"
                   type="tel"
                   inputMode="tel"
@@ -801,8 +806,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Extension</label>
+                <label htmlFor="sm-principalPhoneExt" className="block text-sm font-medium text-gray-700 mb-1.5">Extension</label>
                 <input
+                  id="sm-principalPhoneExt"
                   className="ui-input"
                   type="text"
                   inputMode="numeric"
@@ -841,7 +847,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
       {/* Success Modal */}
       {successData && mounted
         ? createPortal(
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm">
               <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">New principal created</h3>
@@ -891,8 +897,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Principal Name</label>
+              <label htmlFor="sm-editorName" className="block text-sm font-medium text-gray-700 mb-2">Principal Name</label>
               <input
+                id="sm-editorName"
                 className="ui-input"
                 value={principalEditor.principalName}
                 onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalName: e.target.value } : prev))}
@@ -901,8 +908,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Principal Email</label>
+              <label htmlFor="sm-editorEmail" className="block text-sm font-medium text-gray-700 mb-2">Principal Email</label>
               <input
+                id="sm-editorEmail"
                 className="ui-input"
                 type="email"
                 value={principalEditor.principalEmail}
@@ -913,8 +921,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Principal Phone</label>
+                <label htmlFor="sm-editorPhone" className="block text-sm font-medium text-gray-700 mb-2">Principal Phone</label>
                 <input
+                  id="sm-editorPhone"
                   className="ui-input"
                   type="tel"
                   inputMode="tel"
@@ -928,8 +937,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Extension</label>
+                <label htmlFor="sm-editorPhoneExt" className="block text-sm font-medium text-gray-700 mb-2">Extension</label>
                 <input
+                  id="sm-editorPhoneExt"
                   className="ui-input"
                   type="text"
                   inputMode="numeric"
@@ -945,8 +955,9 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+              <label htmlFor="sm-editorJobTitle" className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
               <input
+                id="sm-editorJobTitle"
                 className="ui-input"
                 value={principalEditor.principalJobTitle}
                 onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalJobTitle: e.target.value } : prev))}

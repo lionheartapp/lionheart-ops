@@ -54,7 +54,7 @@ export default function DashboardLayout({
   return (
     <div className="flex w-full min-h-screen bg-gray-50 flex-col">
       {/* Top Bar Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-30">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-navbar">
         {/* Logo and Organization Name */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
           {organizationLogoUrl ? (
@@ -114,7 +114,7 @@ export default function DashboardLayout({
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-dropdown overflow-hidden">
                 <Link
                   href="/settings"
                   onClick={() => setIsDropdownOpen(false)}

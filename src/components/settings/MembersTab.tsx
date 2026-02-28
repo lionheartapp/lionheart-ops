@@ -177,7 +177,7 @@ function TeamMultiSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-modal mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
           {/* Search input */}
           <div className="p-2 border-b border-gray-100">
             <div className="relative">
@@ -705,8 +705,9 @@ const MembersTab = (_props: MembersTabProps) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>First name</label>
+                <label htmlFor="edit-firstName" className={labelClass}>First name</label>
                 <input
+                  id="edit-firstName"
                   value={editForm.firstName}
                   onChange={(e) => setEditForm((p) => ({ ...p, firstName: e.target.value }))}
                   placeholder="First name"
@@ -716,8 +717,9 @@ const MembersTab = (_props: MembersTabProps) => {
                 />
               </div>
               <div>
-                <label className={labelClass}>Last name</label>
+                <label htmlFor="edit-lastName" className={labelClass}>Last name</label>
                 <input
+                  id="edit-lastName"
                   value={editForm.lastName}
                   onChange={(e) => setEditForm((p) => ({ ...p, lastName: e.target.value }))}
                   placeholder="Last name"
@@ -728,8 +730,9 @@ const MembersTab = (_props: MembersTabProps) => {
             </div>
 
             <div>
-              <label className={labelClass}>Job title <span className="text-gray-400 font-normal">(optional)</span></label>
+              <label htmlFor="edit-jobTitle" className={labelClass}>Job title <span className="text-gray-400 font-normal">(optional)</span></label>
               <input
+                id="edit-jobTitle"
                 value={editForm.jobTitle}
                 onChange={(e) => setEditForm((p) => ({ ...p, jobTitle: e.target.value }))}
                 placeholder="e.g. Head Teacher, IT Administrator"
@@ -746,11 +749,12 @@ const MembersTab = (_props: MembersTabProps) => {
             </div>
 
             <div>
-              <label className={labelClass}>Role</label>
+              <label htmlFor="edit-roleId" className={labelClass}>Role</label>
               {rolesLoading ? (
                 <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
               ) : (
                 <select
+                  id="edit-roleId"
                   value={editForm.roleId}
                   onChange={(e) => setEditForm((p) => ({ ...p, roleId: e.target.value }))}
                   className={inputClass}
@@ -765,8 +769,9 @@ const MembersTab = (_props: MembersTabProps) => {
             </div>
 
             <div>
-              <label className={labelClass}>Status</label>
+              <label htmlFor="edit-status" className={labelClass}>Status</label>
               <select
+                id="edit-status"
                 value={editForm.status}
                 onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
                 className={inputClass}
@@ -780,7 +785,7 @@ const MembersTab = (_props: MembersTabProps) => {
             </div>
 
             <div>
-              <label className={labelClass}>Teams</label>
+              <label htmlFor="edit-teamIds" className={labelClass}>Teams</label>
               {rolesLoading ? (
                 <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
               ) : availableTeams.length === 0 ? (

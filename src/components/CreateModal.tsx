@@ -63,13 +63,13 @@ export default function CreateModal({ isOpen, onClose, title, children, requestT
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden"
+      className="fixed inset-0 z-modal overflow-hidden"
       role="presentation"
       aria-hidden={!isOpen}
     >
       {/* Overlay with backdrop blur */}
       <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 cursor-pointer ${
           shouldShow ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
@@ -79,7 +79,7 @@ export default function CreateModal({ isOpen, onClose, title, children, requestT
       {/* Modal Container - Full width bottom slide up to 80px from top */}
       <div
         ref={modalRef}
-        className={`fixed inset-x-0 bottom-0 top-20 bg-white rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-500 ease-out z-50 ${
+        className={`fixed inset-x-0 bottom-0 top-20 bg-white rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 ease-out z-modal ${
           shouldShow ? 'translate-y-0' : 'translate-y-full'
         }`}
         onTransitionEnd={handleTransitionEnd}

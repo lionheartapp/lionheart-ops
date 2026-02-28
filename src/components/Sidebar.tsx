@@ -227,7 +227,7 @@ export default function Sidebar({
       {/* Mobile Menu Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-40 p-2 min-h-[44px] min-w-[44px] rounded-lg bg-[#111827] border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-lg bg-[#111827] border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400"
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
       >
@@ -241,14 +241,14 @@ export default function Sidebar({
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/50 z-navbar cursor-pointer"
           onClick={() => setIsOpen(false)}
           role="presentation"
         />
       )}
 
       {/* Desktop Layout: Main Nav + Settings Secondary Nav */}
-      <div className="hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)] z-20">
+      <div className="hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)] z-sticky">
         {/* Main Navigation Sidebar */}
         <aside
           className="flex flex-col w-64 bg-[#111827] border-r border-white/10 h-full relative z-10"
@@ -273,7 +273,7 @@ export default function Sidebar({
 
       {/* Mobile Layout: Sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-[#111827] border-r border-white/10 flex flex-col transition-transform duration-300 z-30 ${
+        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-[#111827] border-r border-white/10 flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="navigation"

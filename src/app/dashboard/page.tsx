@@ -189,7 +189,7 @@ export default function DashboardPage() {
 
           {/* Create Dropdown Menu */}
           {isCreateDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-40">
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-mobilenav">
               {/* Events Section */}
               <div className="p-3 space-y-2">
                 <button
@@ -275,30 +275,48 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <ul className="space-y-3" role="list">
-            {sampleTickets.map((ticket) => (
-              <li
-                key={ticket.id}
-                className="flex items-center gap-4 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition"
-                onClick={() => setIsDetailOpen(true)}
+          {sampleTickets.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <CheckCircle className="w-10 h-10 mx-auto mb-3 text-gray-300" aria-hidden="true" />
+              <p className="text-sm mb-2">No tasks yet.</p>
+              <button
+                onClick={() => {
+                  setSelectedRequestType(null)
+                  setIsCreateOpen(true)
+                }}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
-                <div className="flex-shrink-0">
-                  {getStatusIcon(ticket.status)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{ticket.title}</p>
-                  <p className="text-xs text-gray-500 mt-1">{ticket.dueDate}</p>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(ticket.priority)}`}>
-                  {ticket.priority}
-                </div>
-              </li>
-            ))}
-          </ul>
+                Create your first task
+              </button>
+            </div>
+          ) : (
+            <>
+              <ul className="space-y-3" role="list">
+                {sampleTickets.map((ticket) => (
+                  <li
+                    key={ticket.id}
+                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition"
+                    onClick={() => setIsDetailOpen(true)}
+                  >
+                    <div className="flex-shrink-0">
+                      {getStatusIcon(ticket.status)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{ticket.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">{ticket.dueDate}</p>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(ticket.priority)}`}>
+                      {ticket.priority}
+                    </div>
+                  </li>
+                ))}
+              </ul>
 
-          <button className="mt-6 w-full py-2 text-blue-600 font-medium hover:bg-blue-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            + Add task
-          </button>
+              <button className="mt-6 w-full py-2 text-blue-600 font-medium hover:bg-blue-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                + Add task
+              </button>
+            </>
+          )}
         </div>
 
         {/* Side Panel - Projects/Stats */}

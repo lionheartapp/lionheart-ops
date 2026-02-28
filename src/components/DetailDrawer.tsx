@@ -81,13 +81,13 @@ export default function DetailDrawer({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 overflow-hidden"
+      className="fixed inset-0 z-modal overflow-hidden"
       role="presentation"
       aria-hidden={!isOpen}
     >
       {/* Overlay - Darker with backdrop blur like CreateModal */}
       <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 cursor-pointer ${
           shouldShow ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={handleClose}
@@ -97,7 +97,7 @@ export default function DetailDrawer({
       {/* Drawer - Right side slide */}
       <div
         ref={drawerRef}
-        className={`fixed right-0 top-0 h-screen ${widths[width]} bg-white shadow-lg flex flex-col transition-transform duration-500 ease-out z-50 ${
+        className={`fixed right-0 top-0 h-screen ${widths[width]} bg-white shadow-lg flex flex-col transition-transform duration-300 ease-out z-modal ${
           shouldShow ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
