@@ -1399,7 +1399,7 @@ export default function InteractiveCampusMap({
 
         {/* Custom zoom controls */}
         {!loading && mapInstanceRef.current && (
-          <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-0 rounded-lg border border-gray-200 bg-white shadow-md overflow-hidden">
+          <div className="absolute top-3 right-3 z-10 flex flex-col gap-0 rounded-lg border border-gray-200 bg-white shadow-md overflow-hidden">
             <button
               type="button"
               onClick={() => mapInstanceRef.current?.zoomIn()}

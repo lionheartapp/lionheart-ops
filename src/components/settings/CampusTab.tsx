@@ -8,6 +8,7 @@ import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import ImageUpload from '@/components/settings/ImageUpload'
+import PhotoLightbox from '@/components/settings/PhotoLightbox'
 
 type Building = {
   id: string
@@ -161,6 +162,17 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [placingExistingBuilding, setPlacingExistingBuilding] = useState<Building | null>(null)
   const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
   const [outdoorMapSpaces, setOutdoorMapSpaces] = useState<any[]>([])
+
+  // ─── Photo lightbox ─────────────────────────────────────────────────────
+  const [lightboxImages, setLightboxImages] = useState<string[]>([])
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+
+  const openLightbox = (images: string[], index: number) => {
+    setLightboxImages(images)
+    setLightboxIndex(index)
+    setLightboxOpen(true)
+  }
 
   // ─── Feedback ────────────────────────────────────────────────────────────
   const [error, setError] = useState('')
@@ -1109,6 +1121,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b))
                 }}
                 disabled={buildingFormSaving}
+                onImageClick={openLightbox}
               />
             </section>
           )}
@@ -1185,6 +1198,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a))
                 }}
                 disabled={outdoorFormSaving}
+                onImageClick={openLightbox}
               />
             </section>
           )}
@@ -1379,6 +1393,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                               onImagesChange={(imgs) => {
                                 setRooms((prev) => prev.map((room) => room.id === r.id ? { ...room, images: imgs } : room))
                               }}
+                              onImageClick={openLightbox}
                             />
                           </td>
                         </tr>
@@ -1429,10 +1444,16 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900 mb-3">Photos</h4>
                   <div className="grid grid-cols-2 gap-2">
-                    {building.images.map((url: string) => (
-                      <div key={url} className="aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                    {building.images.map((url: string, idx: number) => (
+                      <button
+                        key={url}
+                        type="button"
+                        onClick={() => openLightbox(building.images!, idx)}
+                        className="aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200 hover:ring-2 hover:ring-blue-400 transition cursor-pointer"
+                        style={{ minHeight: 'auto' }}
+                      >
                         <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -1621,6 +1642,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           )}
         </ConfirmDialog>
       )}
+
+      {/* Photo lightbox */}
+      <PhotoLightbox
+        images={lightboxImages}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
     </div>
   )
 }

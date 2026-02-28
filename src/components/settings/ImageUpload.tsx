@@ -10,6 +10,7 @@ interface ImageUploadProps {
   onImagesChange: (images: string[]) => void
   maxImages?: number
   disabled?: boolean
+  onImageClick?: (images: string[], index: number) => void
 }
 
 export default function ImageUpload({
@@ -19,6 +20,7 @@ export default function ImageUpload({
   onImagesChange,
   maxImages = 4,
   disabled = false,
+  onImageClick,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
@@ -138,13 +140,14 @@ export default function ImageUpload({
 
       {/* Image grid */}
       <div className="grid grid-cols-2 gap-2">
-        {images.map((url) => (
+        {images.map((url, idx) => (
           <div key={url} className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
             <img
               src={url}
               alt=""
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover${onImageClick ? ' cursor-pointer' : ''}`}
               loading="lazy"
+              onClick={onImageClick ? () => onImageClick(images, idx) : undefined}
             />
             {!disabled && (
               <button
