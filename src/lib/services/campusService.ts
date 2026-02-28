@@ -8,6 +8,7 @@
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { getOrgContextId } from '@/lib/org-context'
+import { geocodeAddress } from '@/lib/services/geocodingService'
 
 // ============= Validation Schemas =============
 
@@ -103,13 +104,25 @@ export async function getDefaultCampus() {
  */
 export async function createCampus(input: CreateCampusInput) {
   const organizationId = getOrgContextId()
+
+  // Geocode address if provided but no coordinates given
+  let lat = input.latitude ?? null
+  let lng = input.longitude ?? null
+  if (input.address && lat == null && lng == null) {
+    const geo = await geocodeAddress(input.address)
+    if (geo) {
+      lat = geo.lat
+      lng = geo.lng
+    }
+  }
+
   return prisma.campus.create({
     data: {
       organizationId,
       name: input.name,
       address: input.address ?? null,
-      latitude: input.latitude ?? null,
-      longitude: input.longitude ?? null,
+      latitude: lat,
+      longitude: lng,
       campusType: input.campusType,
       sortOrder: input.sortOrder,
       isActive: input.isActive,
@@ -126,9 +139,20 @@ export async function createCampus(input: CreateCampusInput) {
  * Update a campus.
  */
 export async function updateCampus(campusId: string, input: UpdateCampusInput) {
+  const data: Record<string, unknown> = { ...input }
+
+  // Geocode if address changed but no new coordinates provided
+  if (input.address && input.latitude === undefined && input.longitude === undefined) {
+    const geo = await geocodeAddress(input.address)
+    if (geo) {
+      data.latitude = geo.lat
+      data.longitude = geo.lng
+    }
+  }
+
   return prisma.campus.update({
     where: { id: campusId },
-    data: input,
+    data,
     include: {
       _count: {
         select: { schools: true, buildings: true, areas: true },
