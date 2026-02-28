@@ -87,6 +87,26 @@ a:visited {
   color: inherit;
 }
 
+/* Leaflet popup overrides — reduce default padding for tighter popups */
+.leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 8px !important;
+}
+
+.leaflet-popup-content {
+  margin: 8px 10px !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-content button {
+  min-height: auto !important;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
 @layer components {
   .ui-input {
     @apply w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition;

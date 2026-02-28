@@ -518,18 +518,18 @@ export default function InteractiveCampusMap({
 
     // Build popup with action menu
     const popupContent = document.createElement('div')
-    popupContent.style.minWidth = '160px'
+    popupContent.style.minWidth = '140px'
     popupContent.innerHTML = `
-      <strong style="font-size: 14px;">${building.name}</strong>
-      ${building.code ? `<br/><span style="color: #6b7280; font-size: 12px;">${building.code}</span>` : ''}
-      ${editable ? '<br/><span style="color: #9ca3af; font-size: 11px; margin-top: 2px; display: block;">Drag to reposition</span>' : ''}
+      <strong style="font-size: 13px; line-height: 1.3;">${building.name}</strong>
+      ${building.code ? `<br/><span style="color: #6b7280; font-size: 11px;">${building.code}</span>` : ''}
+      ${editable ? '<span style="color: #9ca3af; font-size: 10px; margin-top: 1px; display: block;">Drag to reposition</span>' : ''}
     `
 
     {
       const menuContainer = document.createElement('div')
-      menuContainer.style.cssText = 'margin-top:8px;border-top:1px solid #e5e7eb;padding-top:4px;display:flex;flex-direction:column;'
+      menuContainer.style.cssText = 'margin-top:6px;border-top:1px solid #e5e7eb;padding-top:2px;display:flex;flex-direction:column;'
 
-      const menuItemStyle = 'display:flex;align-items:center;gap:8px;padding:7px 4px;border:none;background:none;width:100%;text-align:left;font-size:13px;color:#374151;cursor:pointer;border-radius:4px;'
+      const menuItemStyle = 'display:flex;align-items:center;gap:6px;padding:6px 2px;border:none;background:none;width:100%;text-align:left;font-size:12px;color:#374151;cursor:pointer;border-radius:4px;'
       const menuItemHover = 'background:#f3f4f6;'
 
       // View Details (always visible)
@@ -569,9 +569,9 @@ export default function InteractiveCampusMap({
       if (editable && onDeleteBuilding) {
         const deleteBtn = document.createElement('button')
         deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete`
-        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;'
-        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;background:#fef2f2;' }
-        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;' }
+        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #e5e7eb;padding-top:6px;border-radius:0 0 4px 4px;'
+        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #e5e7eb;padding-top:6px;border-radius:0 0 4px 4px;background:#fef2f2;' }
+        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #e5e7eb;padding-top:6px;border-radius:0 0 4px 4px;' }
         deleteBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onDeleteBuilding(building.id) }
         menuContainer.appendChild(deleteBtn)
       }
@@ -581,26 +581,9 @@ export default function InteractiveCampusMap({
 
     marker.bindPopup(popupContent, { closeButton: false, autoPan: true, autoPanPadding: [20, 20] })
 
-    // Show popup on hover
-    let hoverTimeout: ReturnType<typeof setTimeout> | null = null
-    marker.on('mouseover', () => {
-      if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null }
+    // Open popup on click (works on both desktop and mobile)
+    marker.on('click', () => {
       marker.openPopup()
-    })
-    marker.on('mouseout', () => {
-      hoverTimeout = setTimeout(() => marker.closePopup(), 300)
-    })
-    // Keep popup open while mouse is over the popup itself
-    marker.on('popupopen', () => {
-      const popupEl = marker.getPopup()?.getElement()
-      if (popupEl) {
-        popupEl.addEventListener('mouseenter', () => {
-          if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null }
-        })
-        popupEl.addEventListener('mouseleave', () => {
-          hoverTimeout = setTimeout(() => marker.closePopup(), 300)
-        })
-      }
     })
 
     if (editable) {
@@ -662,18 +645,18 @@ export default function InteractiveCampusMap({
 
     // Build outdoor popup with action menu
     const outdoorPopup = document.createElement('div')
-    outdoorPopup.style.minWidth = '160px'
+    outdoorPopup.style.minWidth = '140px'
     outdoorPopup.innerHTML = `
-      <strong style="font-size: 14px;">${space.name}</strong>
-      <br/><span style="color: #6b7280; font-size: 12px;">${space.areaType.replace('_', ' ')}</span>
-      ${editable ? '<br/><span style="color: #9ca3af; font-size: 11px; margin-top: 2px; display: block;">Drag to reposition</span>' : ''}
+      <strong style="font-size: 13px; line-height: 1.3;">${space.name}</strong>
+      <br/><span style="color: #6b7280; font-size: 11px;">${space.areaType.replace('_', ' ')}</span>
+      ${editable ? '<span style="color: #9ca3af; font-size: 10px; margin-top: 1px; display: block;">Drag to reposition</span>' : ''}
     `
 
     if (editable) {
       const menuContainer = document.createElement('div')
-      menuContainer.style.cssText = 'margin-top:8px;border-top:1px solid #e5e7eb;padding-top:4px;display:flex;flex-direction:column;'
+      menuContainer.style.cssText = 'margin-top:6px;border-top:1px solid #e5e7eb;padding-top:2px;display:flex;flex-direction:column;'
 
-      const menuItemStyle = 'display:flex;align-items:center;gap:8px;padding:7px 4px;border:none;background:none;width:100%;text-align:left;font-size:13px;color:#374151;cursor:pointer;border-radius:4px;'
+      const menuItemStyle = 'display:flex;align-items:center;gap:6px;padding:6px 2px;border:none;background:none;width:100%;text-align:left;font-size:12px;color:#374151;cursor:pointer;border-radius:4px;'
       const menuItemHover = 'background:#f3f4f6;'
 
       if (onEditOutdoor) {
@@ -689,9 +672,9 @@ export default function InteractiveCampusMap({
       if (onDeleteOutdoor) {
         const deleteBtn = document.createElement('button')
         deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete`
-        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;'
-        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;background:#fef2f2;' }
-        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:4px;border-top:1px solid #e5e7eb;padding-top:8px;border-radius:0 0 4px 4px;' }
+        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #e5e7eb;padding-top:6px;border-radius:0 0 4px 4px;'
+        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #e5e7eb;padding-top:6px;border-radius:0 0 4px 4px;background:#fef2f2;' }
+        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #e5e7eb;padding-top:6px;border-radius:0 0 4px 4px;' }
         deleteBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onDeleteOutdoor(space.id) }
         menuContainer.appendChild(deleteBtn)
       }
@@ -701,25 +684,9 @@ export default function InteractiveCampusMap({
 
     marker.bindPopup(outdoorPopup, { closeButton: false, autoPan: true, autoPanPadding: [20, 20] })
 
-    // Show popup on hover
-    let outdoorHoverTimeout: ReturnType<typeof setTimeout> | null = null
-    marker.on('mouseover', () => {
-      if (outdoorHoverTimeout) { clearTimeout(outdoorHoverTimeout); outdoorHoverTimeout = null }
+    // Open popup on click (works on both desktop and mobile)
+    marker.on('click', () => {
       marker.openPopup()
-    })
-    marker.on('mouseout', () => {
-      outdoorHoverTimeout = setTimeout(() => marker.closePopup(), 300)
-    })
-    marker.on('popupopen', () => {
-      const popupEl = marker.getPopup()?.getElement()
-      if (popupEl) {
-        popupEl.addEventListener('mouseenter', () => {
-          if (outdoorHoverTimeout) { clearTimeout(outdoorHoverTimeout); outdoorHoverTimeout = null }
-        })
-        popupEl.addEventListener('mouseleave', () => {
-          outdoorHoverTimeout = setTimeout(() => marker.closePopup(), 300)
-        })
-      }
     })
 
     if (editable) {
