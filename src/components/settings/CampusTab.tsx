@@ -9,6 +9,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import ImageUpload from '@/components/settings/ImageUpload'
 import PhotoLightbox from '@/components/settings/PhotoLightbox'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
 
 type Building = {
   id: string
@@ -1532,12 +1533,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               </div>
               <div>
                 <label className={labelClass}>Address <span className="text-gray-400 font-normal">(optional)</span></label>
-                <input
+                <AddressAutocomplete
                   value={addCampusForm.address}
-                  onChange={(e) => setAddCampusForm((p) => ({ ...p, address: e.target.value }))}
+                  onChange={(val) => setAddCampusForm((p) => ({ ...p, address: val }))}
                   placeholder="e.g. 123 Main St, City, State"
                   className={inputClass}
-                  disabled={addCampusSaving}
                 />
               </div>
               <div>
