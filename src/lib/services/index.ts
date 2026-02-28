@@ -12,6 +12,8 @@
  */
 
 export * as eventService from './eventService'
+export * as calendarService from './calendarService'
+export * as recurrenceService from './recurrenceService'
 export * as draftEventService from './draftEventService'
 export * as ticketService from './ticketService'
 export * as organizationService from './organizationService'

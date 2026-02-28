@@ -15,6 +15,20 @@ const orgScopedModels = new Set([
 	'UserRoomAssignment',
 	'Campus',
 	'UserCampusAssignment',
+	// Calendar module
+	'Calendar',
+	'CalendarEvent',
+	'CalendarCategory',
+	'AcademicYear',
+	'Term',
+	'MarkingPeriod',
+	'BellSchedule',
+	'DayScheduleAssignment',
+	'SpecialDay',
+	'PlanningSeason',
+	'PlanningSubmission',
+	'ApprovalChannelConfig',
+	'EventResourceRequest',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -29,6 +43,9 @@ const softDeleteModels = new Set([
 	'Room',
 	'School',
 	'Campus',
+	// Calendar module
+	'Calendar',
+	'CalendarEvent',
 ])
 
 /**

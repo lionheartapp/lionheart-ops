@@ -13,6 +13,7 @@ import {
   Users,
   UserCog,
   Building2,
+  Calendar,
 } from 'lucide-react'
 
 export interface SidebarProps {
@@ -79,6 +80,7 @@ export default function Sidebar({
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
+    { icon: Calendar, label: 'Calendar', href: '/calendar' },
   ]
 
   const handleSettingsClick = () => {

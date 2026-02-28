@@ -61,6 +61,22 @@ model Organization {
   payments            Payment[]
   discountRedemptions DiscountRedemption[]
   platformTickets     PlatformSupportTicket[]
+  // Calendar module relations
+  calendars           Calendar[]
+  calendarEvents      CalendarEvent[]
+  calendarCategories  CalendarCategory[]
+  feedConnections     CalendarFeedConnection[]
+  academicYears       AcademicYear[]
+  terms               Term[]
+  markingPeriods      MarkingPeriod[]
+  bellSchedules       BellSchedule[]
+  dayScheduleAssignments DayScheduleAssignment[]
+  specialDays         SpecialDay[]
+  planningSeasons     PlanningSeason[]
+  planningSubmissions PlanningSubmission[]
+  approvalChannelConfigs ApprovalChannelConfig[]
+  eventResourceRequests  EventResourceRequest[]
+  tenantModules       TenantModule[]
 
   @@index([onboardingStatus])
 }
@@ -100,6 +116,16 @@ model User {
   roomAssignments UserRoomAssignment[]
   campusAssignments UserCampusAssignment[]
   userPermissions UserPermission[]
+  // Calendar module relations
+  calendarSubscriptions CalendarSubscription[]
+  eventAttendances      EventAttendee[]
+  feedConnections       CalendarFeedConnection[]
+  createdCalendarEvents CalendarEvent[]   @relation("CalendarEventCreator")
+  approvedCalendarEvents CalendarEvent[]  @relation("CalendarEventApprover")
+  approvalResponses     EventApproval[]   @relation("ApprovalResponder")
+  resourceResponses     EventResourceRequest[] @relation("ResourceResponder")
+  planningSubmissions   PlanningSubmission[] @relation("PlanningSubmitter")
+  planningComments      PlanningComment[]    @relation("PlanningCommentAuthor")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -178,6 +204,7 @@ model Building {
   school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   areas          Area[]
   rooms          Room[]
+  calendarEvents CalendarEvent[]
 
   @@unique([organizationId, name])
   @@unique([organizationId, code])
@@ -207,6 +234,7 @@ model Area {
   campus         Campus?      @relation(fields: [campusId], references: [id], onDelete: Restrict)
   building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   rooms          Room[]
+  calendarEvents CalendarEvent[]
 
   @@unique([organizationId, buildingId, name])
   @@index([organizationId, isActive])
@@ -280,6 +308,12 @@ model Campus {
   areas          Area[]
   tickets        Ticket[]
   userAssignments UserCampusAssignment[]
+  // Calendar module relations
+  calendars      Calendar[]
+  dayScheduleAssignments DayScheduleAssignment[]
+  specialDays    SpecialDay[]
+  planningSeasons PlanningSeason[]
+  approvalChannelConfigs ApprovalChannelConfig[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isActive])
@@ -324,6 +358,13 @@ model School {
   users          User[]
   buildings      Building[]
   tickets        Ticket[]
+  // Calendar module relations
+  calendars      Calendar[]
+  calendarEvents CalendarEvent[]
+  academicYears  AcademicYear[]
+  bellSchedules  BellSchedule[]
+  specialDays    SpecialDay[]
+  planningSeasons PlanningSeason[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -858,4 +899,673 @@ model PlatformAuditLog {
   @@index([platformAdminId])
   @@index([createdAt(sort: Desc)])
   @@index([resourceType])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CALENDAR MODULE
+// ═══════════════════════════════════════════════════════════════════════
+
+model Calendar {
+  id                    String             @id @default(cuid())
+  organizationId        String
+  campusId              String?
+  schoolId              String?
+  name                  String
+  slug                  String
+  calendarType          CalendarType
+  color                 String             @default("#3b82f6") // Hex color for UI
+  visibility            CalendarVisibility @default(ORG_WIDE)
+  requiresApproval      Boolean            @default(false)
+  defaultApproverRoleId String?
+  isDefault             Boolean            @default(false) // Auto-subscribe new users
+  feedToken             String?            @unique         // Token for iCal feed URL
+  isActive              Boolean            @default(true)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  deletedAt             DateTime?
+
+  organization  Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus        Campus?                @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  school        School?                @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  events        CalendarEvent[]
+  subscriptions CalendarSubscription[]
+  categories    CalendarCategory[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, calendarType])
+  @@index([organizationId, isActive])
+  @@index([campusId])
+  @@index([schoolId])
+  @@index([organizationId, deletedAt])
+}
+
+model CalendarEvent {
+  id              String              @id @default(cuid())
+  calendarId      String
+  organizationId  String
+  schoolId        String?
+  title           String
+  description     String?
+  startTime       DateTime
+  endTime         DateTime
+  timezone        String              @default("America/Chicago") // IANA timezone
+  isAllDay        Boolean             @default(false)
+  calendarStatus  CalendarEventStatus @default(DRAFT)
+  rrule           String?             // RFC 5545 recurrence rule
+  parentEventId   String?             // For recurring event exceptions
+  originalStart   DateTime?           // Original start time for exceptions
+  categoryId      String?
+  locationText    String?
+  buildingId      String?
+  areaId          String?
+  sourceModule    String?             // 'athletics', 'timetable', etc.
+  sourceId        String?             // ID in source module
+  createdById     String?
+  approvedById    String?
+  metadata        Json?               // Extensible data bag
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  deletedAt       DateTime?
+
+  calendar    Calendar          @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school      School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  parentEvent CalendarEvent?    @relation("RecurringExceptions", fields: [parentEventId], references: [id], onDelete: SetNull)
+  exceptions  CalendarEvent[]   @relation("RecurringExceptions")
+  category    CalendarCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  building    Building?         @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  area        Area?             @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  createdBy   User?             @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedBy  User?             @relation("CalendarEventApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  attendees   EventAttendee[]
+  approvals   EventApproval[]
+  resourceRequests EventResourceRequest[]
+  syncMappings     EventSyncMapping[]
+
+  @@index([calendarId, startTime, endTime])
+  @@index([organizationId, startTime])
+  @@index([parentEventId])
+  @@index([sourceModule, sourceId])
+  @@index([organizationId, deletedAt])
+  @@index([createdById])
+  @@index([calendarStatus])
+  @@index([schoolId])
+  @@index([buildingId])
+  @@index([areaId])
+}
+
+model CalendarCategory {
+  id             String       @id @default(cuid())
+  organizationId String
+  calendarId     String?      // Optional: category can be global or per-calendar
+  name           String
+  color          String       @default("#6b7280")
+  icon           String?      // Lucide icon name
+  calendarType   CalendarType? // Restrict to a calendar type
+  isSystem       Boolean      @default(false)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  calendar     Calendar?       @relation(fields: [calendarId], references: [id], onDelete: SetNull)
+  events       CalendarEvent[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, calendarType])
+  @@index([calendarId])
+}
+
+model CalendarSubscription {
+  id                  String   @id @default(cuid())
+  userId              String
+  calendarId          String
+  isVisible           Boolean  @default(true)
+  notifyOnNew         Boolean  @default(false)
+  notifyBeforeMinutes Int?     // e.g., 15, 30, 60
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendar Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, calendarId])
+  @@index([userId])
+  @@index([calendarId])
+}
+
+model EventAttendee {
+  id             String         @id @default(cuid())
+  eventId        String
+  userId         String
+  responseStatus RSVPStatus     @default(PENDING)
+  respondedAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  event CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+model CalendarFeedConnection {
+  id               String       @id @default(cuid())
+  organizationId   String
+  userId           String
+  provider         SyncProvider
+  accessTokenEnc   String       // Encrypted OAuth access token
+  refreshTokenEnc  String?      // Encrypted OAuth refresh token
+  tokenExpiresAt   DateTime?
+  externalCalendarId String?    // Provider calendar ID
+  syncToken        String?      // Incremental sync token
+  webhookChannelId String?      // Google/Microsoft webhook channel ID
+  webhookExpiresAt DateTime?
+  lastSyncAt       DateTime?
+  syncStatus       SyncStatus   @default(ACTIVE)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncMappings EventSyncMapping[]
+
+  @@unique([organizationId, userId, provider])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([syncStatus])
+}
+
+model EventSyncMapping {
+  id              String       @id @default(cuid())
+  connectionId    String
+  internalEventId String
+  externalEventId String
+  provider        SyncProvider
+  checksum        String?      // SHA-256 for loop prevention
+  syncVersion     Int          @default(0)
+  lastSyncedAt    DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  connection CalendarFeedConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  event      CalendarEvent          @relation(fields: [internalEventId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, externalEventId])
+  @@index([internalEventId])
+  @@index([connectionId])
+}
+
+// ─── Academic Calendar Models ──────────────────────────────────────────
+
+model AcademicYear {
+  id             String   @id @default(cuid())
+  organizationId String
+  schoolId       String?
+  name           String   // "2025-2026"
+  startDate      DateTime
+  endDate        DateTime
+  isCurrent      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  terms        Term[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isCurrent])
+  @@index([schoolId])
+}
+
+model Term {
+  id             String   @id @default(cuid())
+  organizationId String
+  academicYearId String
+  name           String   // "Fall Semester", "Q1"
+  startDate      DateTime
+  endDate        DateTime
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear   @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  markingPeriods MarkingPeriod[]
+
+  @@index([organizationId])
+  @@index([academicYearId])
+}
+
+model MarkingPeriod {
+  id             String   @id @default(cuid())
+  organizationId String
+  termId         String
+  name           String   // "Quarter 1", "Midterm"
+  startDate      DateTime
+  endDate        DateTime
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  term         Term         @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([termId])
+}
+
+model BellSchedule {
+  id             String   @id @default(cuid())
+  organizationId String
+  schoolId       String?
+  name           String   // "Regular", "Early Release", "2-Hour Delay"
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school       School?              @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  periods      BellSchedulePeriod[]
+  dayAssignments DayScheduleAssignment[]
+
+  @@unique([organizationId, schoolId, name])
+  @@index([organizationId])
+  @@index([schoolId])
+}
+
+model BellSchedulePeriod {
+  id             String   @id @default(cuid())
+  bellScheduleId String
+  name           String   // "Period 1", "Lunch", "Advisory"
+  startTime      String   // "08:00" (HH:mm)
+  endTime        String   // "08:50"
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  bellSchedule BellSchedule @relation(fields: [bellScheduleId], references: [id], onDelete: Cascade)
+
+  @@index([bellScheduleId])
+}
+
+model DayScheduleAssignment {
+  id             String   @id @default(cuid())
+  organizationId String
+  campusId       String?
+  bellScheduleId String
+  date           DateTime @db.Date
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  bellSchedule BellSchedule @relation(fields: [bellScheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, campusId, date])
+  @@index([organizationId, date])
+  @@index([campusId])
+}
+
+model SpecialDay {
+  id             String         @id @default(cuid())
+  organizationId String
+  schoolId       String?
+  campusId       String?
+  date           DateTime       @db.Date
+  name           String
+  specialDayType SpecialDayType
+  isAllSchools   Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, date])
+  @@index([schoolId])
+  @@index([campusId])
+}
+
+// ─── Event Planning Season Models ──────────────────────────────────────
+
+model PlanningSeason {
+  id               String              @id @default(cuid())
+  organizationId   String
+  campusId         String?
+  schoolId         String?
+  name             String              // "2026-2027 Event Planning"
+  startDate        DateTime
+  endDate          DateTime
+  submissionOpen   DateTime
+  submissionClose  DateTime
+  finalizationDeadline DateTime?
+  budgetCap        Float?
+  phase            PlanningPhase       @default(SETUP)
+  historicalSeasonId String?           // Link to previous year's season
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus       Campus?                @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  school       School?                @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  submissions  PlanningSubmission[]
+  blackoutDates PlanningBlackoutDate[]
+  conflicts    PlanningConflict[]
+
+  @@index([organizationId, phase])
+  @@index([campusId])
+  @@index([schoolId])
+}
+
+model PlanningBlackoutDate {
+  id               String   @id @default(cuid())
+  planningSeasonId String
+  date             DateTime @db.Date
+  reason           String?  // "State Testing", "Holiday", "Board Meeting"
+  createdAt        DateTime @default(now())
+
+  planningSeason PlanningSeason @relation(fields: [planningSeasonId], references: [id], onDelete: Cascade)
+
+  @@index([planningSeasonId, date])
+}
+
+model PlanningSubmission {
+  id                 String                @id @default(cuid())
+  planningSeasonId   String
+  organizationId     String
+  submittedById      String
+  title              String
+  description        String?
+  preferredDate      DateTime
+  alternateDate1     DateTime?
+  alternateDate2     DateTime?
+  duration           Int                   // Minutes
+  isOutdoor          Boolean               @default(false)
+  expectedAttendance Int?
+  targetAudience     String?
+  priority           SubmissionPriority    @default(IMPORTANT)
+  estimatedBudget    Float?
+  submissionStatus   PlanningSubmissionStatus @default(DRAFT)
+  adminNotes         String?               // Notes from War Room
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  planningSeason PlanningSeason       @relation(fields: [planningSeasonId], references: [id], onDelete: Cascade)
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submittedBy    User                 @relation("PlanningSubmitter", fields: [submittedById], references: [id], onDelete: Cascade)
+  resourceNeeds  PlanningResourceNeed[]
+  comments       PlanningComment[]
+
+  @@index([planningSeasonId])
+  @@index([organizationId])
+  @@index([submittedById])
+  @@index([submissionStatus])
+}
+
+model PlanningResourceNeed {
+  id                   String   @id @default(cuid())
+  planningSubmissionId String
+  resourceType         ResourceRequestType
+  details              String?  // Description of the need
+  createdAt            DateTime @default(now())
+
+  planningSubmission PlanningSubmission @relation(fields: [planningSubmissionId], references: [id], onDelete: Cascade)
+
+  @@index([planningSubmissionId])
+}
+
+model PlanningComment {
+  id                   String   @id @default(cuid())
+  planningSubmissionId String
+  authorId             String
+  message              String
+  isAdminOnly          Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  planningSubmission PlanningSubmission @relation(fields: [planningSubmissionId], references: [id], onDelete: Cascade)
+  author             User               @relation("PlanningCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([planningSubmissionId, createdAt])
+  @@index([authorId])
+}
+
+model PlanningConflict {
+  id               String            @id @default(cuid())
+  planningSeasonId String
+  conflictType     ConflictType
+  severity         ConflictSeverity
+  description      String
+  affectedIds      Json              // Array of submission IDs
+  suggestedResolution String?
+  isResolved       Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  planningSeason PlanningSeason @relation(fields: [planningSeasonId], references: [id], onDelete: Cascade)
+
+  @@index([planningSeasonId, isResolved])
+}
+
+// ─── Approval & Resource Request Models ────────────────────────────────
+
+model ApprovalChannelConfig {
+  id               String             @id @default(cuid())
+  organizationId   String
+  campusId         String?
+  channelType      ApprovalChannel
+  mode             ApprovalMode       @default(REQUIRED)
+  assignedTeamId   String?            // Team responsible for this channel
+  escalationHours  Int                @default(72)
+  autoApproveIfNoResource Boolean     @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, campusId, channelType])
+  @@index([organizationId])
+  @@index([campusId])
+}
+
+model EventApproval {
+  id            String            @id @default(cuid())
+  eventId       String
+  channelType   ApprovalChannel
+  approvalStatus ApprovalStatus   @default(PENDING)
+  respondedById String?
+  respondedAt   DateTime?
+  reason        String?           // Rejection/revision reason
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  event       CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  respondedBy User?         @relation("ApprovalResponder", fields: [respondedById], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, channelType])
+  @@index([eventId])
+  @@index([approvalStatus])
+  @@index([respondedById])
+}
+
+model EventResourceRequest {
+  id            String              @id @default(cuid())
+  eventId       String
+  organizationId String
+  resourceType  ResourceRequestType
+  requestStatus ResourceRequestStatus @default(PENDING)
+  details       Json?               // Typed metadata per resource type
+  respondedById String?
+  respondedAt   DateTime?
+  responseNote  String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  event        CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  respondedBy  User?         @relation("ResourceResponder", fields: [respondedById], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([organizationId, requestStatus])
+  @@index([respondedById])
+}
+
+// ─── Feature Gating ────────────────────────────────────────────────────
+
+model TenantModule {
+  id             String   @id @default(cuid())
+  organizationId String
+  moduleId       String   // 'athletics', 'planning-season', etc.
+  enabledAt      DateTime @default(now())
+  planTier       String?  // Which subscription tier enabled this
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, moduleId])
+  @@index([organizationId])
+}
+
+// ─── Calendar Enums ────────────────────────────────────────────────────
+
+enum CalendarType {
+  ACADEMIC
+  STAFF
+  TIMETABLE
+  PARENT_FACING
+  ATHLETICS
+  GENERAL
+}
+
+enum CalendarVisibility {
+  PUBLIC
+  ORG_WIDE
+  CAMPUS
+  ROLE_RESTRICTED
+  PRIVATE
+}
+
+enum CalendarEventStatus {
+  DRAFT
+  PENDING_APPROVAL
+  CONFIRMED
+  TENTATIVE
+  REJECTED
+  CANCELLED
+}
+
+enum RSVPStatus {
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+  PENDING
+}
+
+enum SyncProvider {
+  GOOGLE
+  MICROSOFT
+  APPLE
+}
+
+enum SyncStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  DISCONNECTED
+}
+
+enum SpecialDayType {
+  HOLIDAY
+  CLOSURE
+  EARLY_DISMISSAL
+  LATE_START
+  PROFESSIONAL_DEVELOPMENT
+  TESTING
+  OTHER
+}
+
+enum PlanningPhase {
+  SETUP
+  COLLECTING
+  REVIEWING
+  WAR_ROOM
+  FINALIZING
+  APPROVING
+  CLOSED
+}
+
+enum PlanningSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED_IN_PRINCIPLE
+  NEEDS_REVISION
+  DECLINED
+  FINALIZING
+  AWAITING_APPROVAL
+  APPROVED
+  PUBLISHED
+}
+
+enum SubmissionPriority {
+  MUST_HAVE
+  IMPORTANT
+  NICE_TO_HAVE
+}
+
+enum ConflictType {
+  DATE_OVERLAP
+  FACILITY_CONFLICT
+  STAFF_CONFLICT
+  AUDIENCE_OVERLAP
+  BUDGET_EXCEEDED
+  DEPARTMENT_CLUSTERING
+  WEATHER_CONCERN
+  RESOURCE_BOTTLENECK
+}
+
+enum ConflictSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+enum ApprovalChannel {
+  ADMIN
+  FACILITIES
+  AV_PRODUCTION
+  CUSTODIAL
+  SECURITY
+  ATHLETIC_DIRECTOR
+}
+
+enum ApprovalMode {
+  REQUIRED
+  NOTIFICATION
+  DISABLED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  AUTO_APPROVED
+  SKIPPED
+}
+
+enum ResourceRequestType {
+  FACILITY
+  AV_EQUIPMENT
+  VIP_ATTENDANCE
+  CUSTODIAL
+}
+
+enum ResourceRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  FULFILLED
+  CANCELLED
 }

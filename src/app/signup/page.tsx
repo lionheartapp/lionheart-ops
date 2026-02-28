@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Loader2, AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 // Google SVG Icon
@@ -35,6 +36,15 @@ const MicrosoftIcon = () => (
     <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
   </svg>
 )
+
+const showcaseCardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: 0.3 + i * 0.15, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
+  }),
+}
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false)
@@ -126,7 +136,12 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white">
       {/* Left Panel — Form */}
-      <div className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 bg-white">
+      <motion.div
+        className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 bg-white"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700 inline-block mb-8">
@@ -287,7 +302,7 @@ export default function SignupPage() {
             </Link>
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Right Panel — Product Showcase */}
       <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 p-12 xl:p-16 relative overflow-hidden">
@@ -296,17 +311,33 @@ export default function SignupPage() {
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
 
         <div className="relative z-10 max-w-lg text-center">
-          <h2 className="text-3xl xl:text-4xl font-bold text-white mb-4">
+          <motion.h2
+            className="text-3xl xl:text-4xl font-bold text-white mb-4"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             Simplify your school operations
-          </h2>
-          <p className="text-primary-100 text-lg mb-12">
+          </motion.h2>
+          <motion.p
+            className="text-primary-100 text-lg mb-12"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
             Join schools already using Lionheart to manage IT, maintenance, and operations.
-          </p>
+          </motion.p>
 
           {/* Product mockup cards */}
           <div className="space-y-4">
             {/* Card 1 — Ticket overview */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left">
+            <motion.div
+              custom={0}
+              variants={showcaseCardVariants}
+              initial="hidden"
+              animate="visible"
+              className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left"
+            >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -316,10 +347,16 @@ export default function SignupPage() {
                 <span className="text-white font-semibold">Smart Ticket Management</span>
               </div>
               <p className="text-primary-100 text-sm">Track and resolve IT and maintenance requests with real-time status updates.</p>
-            </div>
+            </motion.div>
 
             {/* Card 2 — Team collab */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left">
+            <motion.div
+              custom={1}
+              variants={showcaseCardVariants}
+              initial="hidden"
+              animate="visible"
+              className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left"
+            >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -329,10 +366,16 @@ export default function SignupPage() {
                 <span className="text-white font-semibold">Team Collaboration</span>
               </div>
               <p className="text-primary-100 text-sm">Assign tickets to teams, communicate across departments, and stay organized.</p>
-            </div>
+            </motion.div>
 
             {/* Card 3 — Quick stats */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left">
+            <motion.div
+              custom={2}
+              variants={showcaseCardVariants}
+              initial="hidden"
+              animate="visible"
+              className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left"
+            >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -342,11 +385,16 @@ export default function SignupPage() {
                 <span className="text-white font-semibold">AI-Powered Setup</span>
               </div>
               <p className="text-primary-100 text-sm">Automatically configure your campus, rooms, and teams with AI-assisted onboarding.</p>
-            </div>
+            </motion.div>
           </div>
 
           {/* Social proof */}
-          <div className="mt-10 flex items-center justify-center gap-2">
+          <motion.div
+            className="mt-10 flex items-center justify-center gap-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+          >
             <div className="flex -space-x-2">
               {['bg-primary-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400'].map((color, i) => (
                 <div key={i} className={`w-8 h-8 ${color} rounded-full border-2 border-white/20 flex items-center justify-center text-white text-xs font-bold`}>
@@ -357,7 +405,7 @@ export default function SignupPage() {
             <p className="text-primary-100 text-sm ml-2">
               Trusted by school administrators
             </p>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
