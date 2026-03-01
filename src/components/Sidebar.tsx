@@ -481,13 +481,13 @@ export default function Sidebar({
                               />
                               <span className="truncate">{cal.name}</span>
                             </div>
-                            <div className="flex gap-1.5 flex-wrap">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               {COLOR_PRESETS.map((c) => (
                                 <button
                                   key={c.value}
                                   type="button"
                                   onClick={() => handleColorSelect(cal.id, c.value)}
-                                  className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-400"
+                                  className="w-6 h-6 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-400"
                                   style={{ backgroundColor: c.value }}
                                   title={c.name}
                                 >
