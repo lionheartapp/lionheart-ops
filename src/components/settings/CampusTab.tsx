@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera, MoreVertical } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
+import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
@@ -24,6 +25,7 @@ type Building = {
   images: string[] | null
   sortOrder: number
   isActive: boolean
+  school?: { id: string; name: string; gradeLevel: string; color: string } | null
 }
 
 type Area = {
@@ -125,6 +127,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [buildings, setBuildings] = useState<Building[]>([])
   const [areas, setAreas] = useState<Area[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
+  const [schools, setSchools] = useState<{ name: string; color: string; gradeLevel: string }[]>([])
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; name: string; address: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
 
   // ─── Building drawer (add / edit) ────────────────────────────────────────
@@ -204,6 +208,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       .filter(g => g.buildings.length > 0)
   }, [buildings])
 
+  const getGroupColor = (group: { division: string; buildings: Building[] }) =>
+    group.buildings.find(b => b.school?.color)?.school?.color
+    || schools.find(s => s.gradeLevel === group.division)?.color
+    || DIVISION_COLORS[group.division]
+
   const hasUnsavedChanges = Boolean(
     (buildingDrawerOpen && (buildingForm.name.trim().length > 0 || buildingForm.code.trim().length > 0)) ||
       (outdoorDrawerOpen && outdoorForm.name.trim().length > 0) ||
@@ -273,9 +282,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     setError('')
     try {
       const campusQuery = selectedCampusId ? `?campusId=${selectedCampusId}` : ''
-      const [campusRes, mapRes] = await Promise.all([
+      const [campusRes, mapRes, schoolsRes] = await Promise.all([
         fetch(`/api/settings/campus${campusQuery}`, { headers: getAuthHeaders() }),
         fetch(`/api/settings/campus/map-data${campusQuery}`, { headers: getAuthHeaders() }),
+        fetch('/api/settings/schools', { headers: getAuthHeaders() }),
       ])
       if (handleAuthResponse(campusRes)) return
       const campusJson = await campusRes.json()
@@ -284,11 +294,29 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       setAreas(campusJson.data.areas || [])
       setRooms(campusJson.data.rooms || [])
 
-      // Load outdoor space map positions
+      // Load schools for map legend colors
+      if (schoolsRes.ok) {
+        const schoolsJson = await schoolsRes.json()
+        if (schoolsJson.ok && schoolsJson.data) {
+          setSchools(schoolsJson.data.map((s: any) => ({ name: s.name, color: s.color, gradeLevel: s.gradeLevel })))
+        }
+      }
+
+      // Load map center + outdoor space positions
       if (mapRes.ok) {
         const mapJson = await mapRes.json()
-        if (mapJson.ok && mapJson.data?.outdoorSpaces) {
-          setOutdoorMapSpaces(mapJson.data.outdoorSpaces)
+        if (mapJson.ok) {
+          if (mapJson.data?.org) {
+            setMapCenter({
+              lat: mapJson.data.org.lat || 33.4936,
+              lng: mapJson.data.org.lng || -117.0892,
+              name: mapJson.data.org.name || '',
+              address: mapJson.data.org.address || null,
+            })
+          }
+          if (mapJson.data?.outdoorSpaces) {
+            setOutdoorMapSpaces(mapJson.data.outdoorSpaces)
+          }
         }
       }
     } catch (e) {
@@ -304,9 +332,21 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Load data when selectedCampusId changes
+  // Load data when selectedCampusId changes — reset stale state immediately
   useEffect(() => {
     if (selectedCampusId) {
+      setBuildings([])
+      setAreas([])
+      setRooms([])
+      setOutdoorMapSpaces([])
+      setBuildingDrawerOpen(false)
+      setOutdoorDrawerOpen(false)
+      setRoomsBuilding(null)
+      setEditingBuilding(null)
+      setEditingOutdoor(null)
+      setSelectedMapBuildingId(null)
+      setPlacingExistingBuilding(null)
+      setPlaceOnMapBuilding(null)
       loadData()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -736,9 +776,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     </div>
   )
 
-  const inputClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400'
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1.5'
-
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="space-y-8">
@@ -754,7 +791,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         </div>
         <button
           onClick={openAddCampusModal}
-          className="bg-primary-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 text-sm font-medium transition"
+          className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition"
         >
           <Plus className="w-4 h-4" /> Add Campus
         </button>
@@ -775,7 +812,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                     setLastCreatedBuilding(null)
                     setPlaceOnMapBuilding(lastCreatedBuilding)
                   }}
-                  className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1 text-xs font-medium text-white hover:bg-primary-700 transition-colors"
+                  className="inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white hover:bg-gray-800 transition-colors"
                 >
                   <MapPin className="h-3.5 w-3.5" />
                   Place on Map
@@ -811,25 +848,26 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             >
               {campus.name}
             </button>
-            {selectedCampusId === campus.id && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (campusMenuOpen === campus.id) {
-                    setCampusMenuOpen(null)
-                    setCampusMenuPos(null)
-                  } else {
-                    const rect = e.currentTarget.getBoundingClientRect()
-                    setCampusMenuPos({ top: rect.bottom + 4, left: rect.right - 160 })
-                    setCampusMenuOpen(campus.id)
-                  }
-                }}
-                className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
-                style={{ minHeight: 'auto' }}
-              >
-                <MoreVertical className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                if (campusMenuOpen === campus.id) {
+                  setCampusMenuOpen(null)
+                  setCampusMenuPos(null)
+                } else {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  setCampusMenuPos({ top: rect.bottom + 4, left: rect.right - 160 })
+                  setCampusMenuOpen(campus.id)
+                }
+              }}
+              className={`p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition ${
+                selectedCampusId === campus.id ? 'visible' : 'invisible'
+              }`}
+              style={{ minHeight: 'auto' }}
+              tabIndex={selectedCampusId === campus.id ? 0 : -1}
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
             {campusMenuOpen === campus.id && campusMenuPos && createPortal(
               <>
                 <div className="fixed inset-0 z-[100]" onClick={() => { setCampusMenuOpen(null); setCampusMenuPos(null) }} />
@@ -862,6 +900,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       {/* ── Campus Map ────────────────────────────────────────────────────── */}
       <InteractiveCampusMap
         campusId={selectedCampusId || undefined}
+        mapCenter={mapCenter}
         buildings={buildings.map((b) => ({
           id: b.id,
           name: b.name,
@@ -869,9 +908,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           latitude: b.latitude,
           longitude: b.longitude,
           schoolDivision: b.schoolDivision,
+          school: b.school,
           polygonCoordinates: (b as any).polygonCoordinates || null,
         }))}
         outdoorSpaces={outdoorMapSpaces}
+        schools={schools}
         editable
         quickPlaceMode={placingExistingBuilding ? 'building' : null}
         onQuickPlaceDone={() => setPlacingExistingBuilding(null)}
@@ -1003,6 +1044,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         pendingMarker={pendingMarkerData}
       />
 
+      {/* ── Schools ────────────────────────────────────────────────────────── */}
+      <SchoolsManagement campusId={selectedCampusId || undefined} />
+
       {/* ── Buildings ─────────────────────────────────────────────────────── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -1012,7 +1056,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           </div>
           <button
             onClick={openAddBuilding}
-            className="flex items-center gap-2 px-4 py-2 min-h-[36px] text-sm font-medium bg-white text-primary-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
           >
             <Plus className="w-4 h-4" />
             Add Building
@@ -1044,12 +1088,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   {groupedBuildings.map((group) => (
                     <React.Fragment key={group.division}>
                       {/* Division header row */}
-                      <tr className={DIVISION_BG_CLASSES[group.division] || 'bg-gray-50'}>
+                      <tr style={{ backgroundColor: getGroupColor(group) + '0a' }}>
                         <td colSpan={5} className="py-2 px-4">
                           <div className="flex items-center gap-2">
                             <span
                               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                              style={{ background: DIVISION_COLORS[group.division] }}
+                              style={{ background: getGroupColor(group) }}
                             />
                             <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                               {DIVISION_LABELS[group.division] || group.division}
@@ -1115,7 +1159,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           </div>
           <button
             onClick={openAddOutdoor}
-            className="flex items-center gap-2 px-4 py-2 min-h-[36px] text-sm font-medium bg-white text-primary-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
           >
             <Plus className="w-4 h-4" />
             Add Outdoor Space
@@ -1176,17 +1220,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         )}
       </div>
 
-      {/* ── Schools ────────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div>
-          <h3 className="text-base font-semibold text-gray-900">Schools</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Schools operating from this campus</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200">
-          <SchoolsManagement campusId={selectedCampusId || undefined} />
-        </div>
-      </div>
-
       {/* ── Building Drawer ───────────────────────────────────────────────── */}
       <DetailDrawer
         isOpen={buildingDrawerOpen}
@@ -1202,66 +1235,52 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <div className="border-b border-gray-200 pb-3">
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Building Details</h3>
             </div>
-            <div>
-              <label htmlFor="ct-buildingName" className={labelClass}>Building name</label>
-              <input
-                id="ct-buildingName"
-                value={buildingForm.name}
-                onChange={(e) => {
-                  setBuildingForm((p) => ({ ...p, name: e.target.value }))
-                  if (pendingBuildingCoords) {
-                    setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
-                  }
-                }}
-                placeholder="e.g. Main Building, Science Hall, Gymnasium"
-                className={inputClass}
-                disabled={buildingFormSaving}
-                autoFocus
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="ct-buildingCode" className={labelClass}>Short code <span className="text-gray-400 font-normal">(optional)</span></label>
-              <input
-                id="ct-buildingCode"
-                value={buildingForm.code}
-                onChange={(e) => setBuildingForm((p) => ({ ...p, code: e.target.value }))}
-                placeholder="e.g. SH, GYM, ADMIN"
-                className={inputClass}
-                disabled={buildingFormSaving}
-              />
-            </div>
-            <div>
-              <label htmlFor="ct-buildingDivision" className={labelClass}>School division</label>
-              <select
-                id="ct-buildingDivision"
-                value={buildingForm.schoolDivision}
-                onChange={(e) => setBuildingForm((p) => ({ ...p, schoolDivision: e.target.value }))}
-                className={inputClass}
-                disabled={buildingFormSaving}
-              >
-                <option value="GLOBAL">Global (all divisions)</option>
-                <option value="ELEMENTARY">Elementary</option>
-                <option value="MIDDLE_SCHOOL">Middle School</option>
-                <option value="HIGH_SCHOOL">High School</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="ct-buildingType" className={labelClass}>Building type</label>
-              <select
-                id="ct-buildingType"
-                value={buildingForm.buildingType}
-                onChange={(e) => setBuildingForm((p) => ({ ...p, buildingType: e.target.value }))}
-                className={inputClass}
-                disabled={buildingFormSaving}
-              >
-                <option value="GENERAL">General</option>
-                <option value="ARTS_CULTURE">Arts &amp; Culture</option>
-                <option value="ATHLETICS">Athletics</option>
-                <option value="ADMINISTRATION">Administration</option>
-                <option value="SUPPORT_SERVICES">Support Services</option>
-              </select>
-            </div>
+            <FloatingInput
+              id="ct-buildingName"
+              label="Building name"
+              value={buildingForm.name}
+              onChange={(e) => {
+                setBuildingForm((p) => ({ ...p, name: e.target.value }))
+                if (pendingBuildingCoords) {
+                  setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
+                }
+              }}
+              disabled={buildingFormSaving}
+              autoFocus
+              required
+            />
+            <FloatingInput
+              id="ct-buildingCode"
+              label="Short code (optional)"
+              value={buildingForm.code}
+              onChange={(e) => setBuildingForm((p) => ({ ...p, code: e.target.value }))}
+              disabled={buildingFormSaving}
+            />
+            <FloatingSelect
+              id="ct-buildingDivision"
+              label="School division"
+              value={buildingForm.schoolDivision}
+              onChange={(e) => setBuildingForm((p) => ({ ...p, schoolDivision: e.target.value }))}
+              disabled={buildingFormSaving}
+            >
+              <option value="GLOBAL">Global (all divisions)</option>
+              <option value="ELEMENTARY">Elementary</option>
+              <option value="MIDDLE_SCHOOL">Middle School</option>
+              <option value="HIGH_SCHOOL">High School</option>
+            </FloatingSelect>
+            <FloatingSelect
+              id="ct-buildingType"
+              label="Building type"
+              value={buildingForm.buildingType}
+              onChange={(e) => setBuildingForm((p) => ({ ...p, buildingType: e.target.value }))}
+              disabled={buildingFormSaving}
+            >
+              <option value="GENERAL">General</option>
+              <option value="ARTS_CULTURE">Arts &amp; Culture</option>
+              <option value="ATHLETICS">Athletics</option>
+              <option value="ADMINISTRATION">Administration</option>
+              <option value="SUPPORT_SERVICES">Support Services</option>
+            </FloatingSelect>
           </section>
 
           {/* Photos section — only for existing buildings */}
@@ -1282,11 +1301,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             </section>
           )}
 
-          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
-            <button type="button" onClick={closeBuildingDrawer} className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition" disabled={buildingFormSaving}>Cancel</button>
-            <button type="submit" className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled={buildingFormSaving}>
+          <div className="space-y-3 pt-4">
+            <button type="submit" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={buildingFormSaving}>
               {buildingFormSaving ? 'Saving...' : editingBuilding ? 'Save Changes' : 'Add Building'}
             </button>
+            <button type="button" onClick={closeBuildingDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={buildingFormSaving}>Cancel</button>
           </div>
         </form>
       </DetailDrawer>
@@ -1307,41 +1326,34 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Space Details</h3>
               <p className="mt-1 text-sm text-gray-500">Name it the way your staff and students already know it.</p>
             </div>
-            <div>
-              <label htmlFor="ct-areaName" className={labelClass}>Name</label>
-              <input
-                id="ct-areaName"
-                value={outdoorForm.name}
-                onChange={(e) => {
-                  setOutdoorForm((p) => ({ ...p, name: e.target.value }))
-                  if (pendingOutdoorCoords) {
-                    setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
-                  }
-                }}
-                placeholder="e.g. Football Field, The Hub, Softball Diamond"
-                className={inputClass}
-                disabled={outdoorFormSaving}
-                autoFocus
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="ct-areaType" className={labelClass}>Type</label>
-              <select
-                id="ct-areaType"
-                value={outdoorForm.areaType}
-                onChange={(e) => setOutdoorForm((p) => ({ ...p, areaType: e.target.value }))}
-                className={inputClass}
-                disabled={outdoorFormSaving}
-              >
-                <option value="FIELD">Athletic Field</option>
-                <option value="COURT">Court</option>
-                <option value="GYM">Gymnasium</option>
-                <option value="COMMON">Gathering Area</option>
-                <option value="PARKING">Parking</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
+            <FloatingInput
+              id="ct-areaName"
+              label="Name"
+              value={outdoorForm.name}
+              onChange={(e) => {
+                setOutdoorForm((p) => ({ ...p, name: e.target.value }))
+                if (pendingOutdoorCoords) {
+                  setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
+                }
+              }}
+              disabled={outdoorFormSaving}
+              autoFocus
+              required
+            />
+            <FloatingSelect
+              id="ct-areaType"
+              label="Type"
+              value={outdoorForm.areaType}
+              onChange={(e) => setOutdoorForm((p) => ({ ...p, areaType: e.target.value }))}
+              disabled={outdoorFormSaving}
+            >
+              <option value="FIELD">Athletic Field</option>
+              <option value="COURT">Court</option>
+              <option value="GYM">Gymnasium</option>
+              <option value="COMMON">Gathering Area</option>
+              <option value="PARKING">Parking</option>
+              <option value="OTHER">Other</option>
+            </FloatingSelect>
           </section>
 
           {/* Photos section — only for existing outdoor spaces */}
@@ -1361,11 +1373,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             </section>
           )}
 
-          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
-            <button type="button" onClick={closeOutdoorDrawer} className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition" disabled={outdoorFormSaving}>Cancel</button>
-            <button type="submit" className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled={outdoorFormSaving}>
+          <div className="space-y-3 pt-4">
+            <button type="submit" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={outdoorFormSaving}>
               {outdoorFormSaving ? 'Saving...' : editingOutdoor ? 'Save Changes' : 'Add Space'}
             </button>
+            <button type="button" onClick={closeOutdoorDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={outdoorFormSaving}>Cancel</button>
           </div>
         </form>
       </DetailDrawer>
@@ -1387,45 +1399,33 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             )}
             <form onSubmit={addRoom} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="ct-roomNumber" className="text-xs font-medium text-gray-600">Room # / ID</label>
-                  <input
-                    id="ct-roomNumber"
-                    value={addRoomForm.roomNumber}
-                    onChange={(e) => setAddRoomForm((p) => ({ ...p, roomNumber: e.target.value }))}
-                    placeholder="e.g. 101, Lab A"
-                    className={inputClass}
-                    disabled={addRoomSaving}
-                    required
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="ct-roomDisplayName" className="text-xs font-medium text-gray-600">Name <span className="text-gray-400 font-normal">(optional)</span></label>
-                  <input
-                    id="ct-roomDisplayName"
-                    value={addRoomForm.displayName}
-                    onChange={(e) => setAddRoomForm((p) => ({ ...p, displayName: e.target.value }))}
-                    placeholder="e.g. Chemistry Lab"
-                    className={inputClass}
-                    disabled={addRoomSaving}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="ct-roomFloor" className="text-xs font-medium text-gray-600">Floor <span className="text-gray-400 font-normal">(optional)</span></label>
-                  <input
-                    id="ct-roomFloor"
-                    value={addRoomForm.floor}
-                    onChange={(e) => setAddRoomForm((p) => ({ ...p, floor: e.target.value }))}
-                    placeholder="e.g. 1, Ground"
-                    className={inputClass}
-                    disabled={addRoomSaving}
-                  />
-                </div>
+                <FloatingInput
+                  id="ct-roomNumber"
+                  label="Room # / ID"
+                  value={addRoomForm.roomNumber}
+                  onChange={(e) => setAddRoomForm((p) => ({ ...p, roomNumber: e.target.value }))}
+                  disabled={addRoomSaving}
+                  required
+                />
+                <FloatingInput
+                  id="ct-roomDisplayName"
+                  label="Name (optional)"
+                  value={addRoomForm.displayName}
+                  onChange={(e) => setAddRoomForm((p) => ({ ...p, displayName: e.target.value }))}
+                  disabled={addRoomSaving}
+                />
+                <FloatingInput
+                  id="ct-roomFloor"
+                  label="Floor (optional)"
+                  value={addRoomForm.floor}
+                  onChange={(e) => setAddRoomForm((p) => ({ ...p, floor: e.target.value }))}
+                  disabled={addRoomSaving}
+                />
               </div>
               <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-5 py-2 min-h-[38px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-5 py-2 min-h-[38px] bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={addRoomSaving}
                 >
                   <Plus className="w-4 h-4" />
@@ -1659,7 +1659,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   })
                   setBuildingDrawerOpen(true)
                 }}
-                className="w-full px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
+                className="w-full px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
               >
                 Edit Building
               </button>
@@ -1668,74 +1668,62 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         })()}
       </DetailDrawer>
 
-      {/* ── Add Campus Modal ──────────────────────────────────────────────── */}
-      {showAddCampusModal && createPortal(
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Add Campus</h3>
-            </div>
-            <form onSubmit={saveAddCampusForm} className="p-6 space-y-4">
-              {addCampusError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{addCampusError}</div>
-              )}
-              <div>
-                <label htmlFor="ct-campusName" className={labelClass}>Campus name</label>
-                <input
-                  id="ct-campusName"
-                  value={addCampusForm.name}
-                  onChange={(e) => setAddCampusForm((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="e.g. Main Campus, North Campus"
-                  className={inputClass}
-                  disabled={addCampusSaving}
-                  autoFocus
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="ct-campusAddress" className={labelClass}>Address <span className="text-gray-400 font-normal">(optional)</span></label>
-                <AddressAutocomplete
-                  value={addCampusForm.address}
-                  onChange={(val) => setAddCampusForm((p) => ({ ...p, address: val }))}
-                  placeholder="e.g. 123 Main St, City, State"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Campus type</label>
-                <select
-                  value={addCampusForm.campusType}
-                  onChange={(e) => setAddCampusForm((p) => ({ ...p, campusType: e.target.value }))}
-                  className={inputClass}
-                  disabled={addCampusSaving}
-                >
-                  <option value="HEADQUARTERS">Headquarters</option>
-                  <option value="CAMPUS">Campus</option>
-                  <option value="SATELLITE">Satellite</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={closeAddCampusModal}
-                  className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-                  disabled={addCampusSaving}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={addCampusSaving}
-                >
-                  {addCampusSaving ? 'Adding...' : 'Add Campus'}
-                </button>
-              </div>
-            </form>
+      {/* ── Add Campus Drawer ──────────────────────────────────────────────── */}
+      <DetailDrawer
+        isOpen={showAddCampusModal}
+        onClose={closeAddCampusModal}
+        title="Add Campus"
+        width="md"
+      >
+        <form onSubmit={saveAddCampusForm} className="p-8 space-y-6">
+          {addCampusError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{addCampusError}</div>
+          )}
+          <FloatingInput
+            id="ct-campusName"
+            label="Campus name"
+            value={addCampusForm.name}
+            onChange={(e) => setAddCampusForm((p) => ({ ...p, name: e.target.value }))}
+            disabled={addCampusSaving}
+            autoFocus
+            required
+          />
+          <div className="relative">
+            <AddressAutocomplete
+              value={addCampusForm.address}
+              onChange={(val) => setAddCampusForm((p) => ({ ...p, address: val }))}
+              placeholder=" "
+              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10"
+            />
+            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none">
+              Address (optional)
+            </label>
           </div>
-        </div>,
-        document.body
-      )}
+          <FloatingSelect
+            id="ct-campusType"
+            label="Campus type"
+            value={addCampusForm.campusType}
+            onChange={(e) => setAddCampusForm((p) => ({ ...p, campusType: e.target.value }))}
+            disabled={addCampusSaving}
+          >
+            <option value="HEADQUARTERS">Headquarters</option>
+            <option value="CAMPUS">Campus</option>
+            <option value="SATELLITE">Satellite</option>
+          </FloatingSelect>
+          <div className="space-y-3 pt-4">
+            <button
+              type="submit"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              disabled={addCampusSaving}
+            >
+              {addCampusSaving ? 'Adding...' : 'Add Campus'}
+            </button>
+            <button type="button" onClick={closeAddCampusModal} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </DetailDrawer>
 
       {/* ── Edit Campus Drawer ──────────────────────────────────────────── */}
       <DetailDrawer
@@ -1748,55 +1736,47 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           {editCampusError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{editCampusError}</div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Campus name</label>
-            <input
-              value={editCampusForm.name}
-              onChange={(e) => setEditCampusForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder="e.g. Main Campus, North Campus"
-              className="ui-input"
-              disabled={editCampusSaving}
-              autoFocus
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Address <span className="text-gray-400 font-normal">(optional)</span></label>
+          <FloatingInput
+            id="ct-editCampusName"
+            label="Campus name"
+            value={editCampusForm.name}
+            onChange={(e) => setEditCampusForm((p) => ({ ...p, name: e.target.value }))}
+            disabled={editCampusSaving}
+            autoFocus
+            required
+          />
+          <div className="relative">
             <AddressAutocomplete
               value={editCampusForm.address}
               onChange={(val) => setEditCampusForm((p) => ({ ...p, address: val }))}
-              placeholder="e.g. 123 Main St, City, State"
-              className="ui-input"
+              placeholder=" "
+              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10"
             />
+            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none">
+              Address (optional)
+            </label>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Campus type</label>
-            <select
-              value={editCampusForm.campusType}
-              onChange={(e) => setEditCampusForm((p) => ({ ...p, campusType: e.target.value }))}
-              className="ui-input"
-              disabled={editCampusSaving}
-            >
-              <option value="HEADQUARTERS">Headquarters</option>
-              <option value="CAMPUS">Campus</option>
-              <option value="SATELLITE">Satellite</option>
-            </select>
-          </div>
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={closeEditCampusDrawer}
-              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-              disabled={editCampusSaving}
-            >
-              Cancel
-            </button>
+          <FloatingSelect
+            id="ct-editCampusType"
+            label="Campus type"
+            value={editCampusForm.campusType}
+            onChange={(e) => setEditCampusForm((p) => ({ ...p, campusType: e.target.value }))}
+            disabled={editCampusSaving}
+          >
+            <option value="HEADQUARTERS">Headquarters</option>
+            <option value="CAMPUS">Campus</option>
+            <option value="SATELLITE">Satellite</option>
+          </FloatingSelect>
+          <div className="space-y-3 pt-4">
             <button
               type="submit"
-              className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               disabled={editCampusSaving}
             >
               {editCampusSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button type="button" onClick={closeEditCampusDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
+              Cancel
             </button>
           </div>
         </form>
@@ -1816,14 +1796,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => setDeleteCampusConfirm(null)}
-                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 transition"
                 disabled={deleteCampusLoading}
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteCampus}
-                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                className="px-4 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-full hover:bg-red-700 transition disabled:opacity-50"
                 disabled={deleteCampusLoading}
               >
                 {deleteCampusLoading ? 'Deleting...' : 'Delete'}
@@ -1849,7 +1829,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => setPlaceOnMapBuilding(null)}
-                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 transition"
               >
                 Skip for Now
               </button>
@@ -1862,7 +1842,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   const mapEl = document.querySelector('.leaflet-container')
                   if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
                 }}
-                className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
+                className="px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
               >
                 Place on Map
               </button>

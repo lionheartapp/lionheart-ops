@@ -2,15 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Edit2, Trash2, X, ChevronDown } from 'lucide-react'
+import { Plus, Edit2, Trash2, ChevronDown, GraduationCap, Check } from 'lucide-react'
 import type { School } from '@prisma/client'
 import DetailDrawer from '@/components/DetailDrawer'
+import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 
-type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
+type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
 type SchoolFormData = {
   name: string
   gradeLevel: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL'
+  color: string
   principalName: string
   principalEmail: string
   principalPhone: string
@@ -46,9 +48,29 @@ type PrincipalEditorData = {
   principalJobTitle: string
 }
 
+const GRADE_LEVEL_DEFAULTS: Record<string, string> = {
+  ELEMENTARY: '#a855f7',
+  MIDDLE_SCHOOL: '#14b8a6',
+  HIGH_SCHOOL: '#ef4444',
+}
+
+const COLOR_PRESETS = [
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Amber', value: '#f59e0b' },
+  { name: 'Green', value: '#22c55e' },
+  { name: 'Teal', value: '#14b8a6' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Indigo', value: '#6366f1' },
+  { name: 'Purple', value: '#a855f7' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Slate', value: '#64748b' },
+]
+
 const EMPTY_FORM: SchoolFormData = {
   name: '',
   gradeLevel: 'ELEMENTARY',
+  color: '#a855f7',
   principalName: '',
   principalEmail: '',
   principalPhone: '',
@@ -363,6 +385,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                   ...s,
                   name: form.name,
                   gradeLevel: form.gradeLevel,
+                  color: form.color,
                   principalName: form.principalName || null,
                   principalEmail: form.principalEmail || null,
                   principalPhone: form.principalPhone || null,
@@ -439,6 +462,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
     setForm({
       name: school.name,
       gradeLevel: school.gradeLevel as any,
+      color: school.color || '#3b82f6',
       principalName: school.principalName || '',
       principalEmail: school.principalEmail || '',
       principalPhone: school.principalPhone || '',
@@ -572,42 +596,53 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <div className="flex items-center justify-between">
-        <h4 className="text-lg font-medium text-gray-900">Schools in Campus</h4>
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">Schools</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Schools operating from this campus</p>
+        </div>
         <button
           type="button"
           onClick={handleOpenNew}
-          className="inline-flex items-center gap-2 px-3 py-2 min-h-[36px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition"
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
         >
           <Plus className="w-4 h-4" />
           Add School
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="px-4 py-3 text-left font-medium text-gray-700">Name</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-700">Grade Level</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-700">Principal</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-700">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {schools.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
-                  No schools yet
-                </td>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {schools.length === 0 ? (
+          <div className="text-center py-14 text-gray-400">
+            <GraduationCap className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm mb-1">No schools yet.</p>
+            <p className="text-xs text-gray-400 mb-3 max-w-xs mx-auto">Add your schools first so buildings can be associated with the right division.</p>
+            <button onClick={handleOpenNew} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+              Add your first school
+            </button>
+          </div>
+        ) : (
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-gray-500 border-b bg-gray-50">
+                <th className="py-3 px-4 text-left font-medium">Name</th>
+                <th className="py-3 px-4 text-left font-medium">Grade Level</th>
+                <th className="py-3 px-4 text-left font-medium">Principal</th>
+                <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
               </tr>
-            ) : (
-              schools.map((school) => (
+            </thead>
+            <tbody>
+              {schools.map((school) => (
                 <tr key={school.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-900">{school.name}</td>
+                  <td className="px-4 py-3 text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: school.color }} />
+                      {school.name}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-gray-600">
                     {school.gradeLevel.replace(/_/g, ' ')}
                   </td>
@@ -654,10 +689,10 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* School Drawer */}
@@ -679,29 +714,48 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">School Details</h3>
             </div>
 
-            <div>
-              <label htmlFor="sm-schoolName" className="block text-sm font-medium text-gray-700 mb-1.5">School Name</label>
-              <input
-                id="sm-schoolName"
-                className="ui-input"
-                value={form.name}
-                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                required
-              />
-            </div>
+            <FloatingInput
+              id="sm-schoolName"
+              label="School Name"
+              value={form.name}
+              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+              required
+            />
+
+            <FloatingSelect
+              id="sm-gradeLevel"
+              label="Grade Level"
+              value={form.gradeLevel}
+              onChange={(e) => {
+                const gl = e.target.value as SchoolFormData['gradeLevel']
+                setForm((prev) => ({
+                  ...prev,
+                  gradeLevel: gl,
+                  ...(!editingId && GRADE_LEVEL_DEFAULTS[gl] ? { color: GRADE_LEVEL_DEFAULTS[gl] } : {}),
+                }))
+              }}
+            >
+              <option value="ELEMENTARY">Elementary</option>
+              <option value="MIDDLE_SCHOOL">Middle School</option>
+              <option value="HIGH_SCHOOL">High School</option>
+            </FloatingSelect>
 
             <div>
-              <label htmlFor="sm-gradeLevel" className="block text-sm font-medium text-gray-700 mb-1.5">Grade Level</label>
-              <select
-                id="sm-gradeLevel"
-                className="ui-select w-full"
-                value={form.gradeLevel}
-                onChange={(e) => setForm((prev) => ({ ...prev, gradeLevel: e.target.value as any }))}
-              >
-                <option value="ELEMENTARY">Elementary</option>
-                <option value="MIDDLE_SCHOOL">Middle School</option>
-                <option value="HIGH_SCHOOL">High School</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+              <div className="flex items-center gap-2 flex-wrap">
+                {COLOR_PRESETS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, color: c.value }))}
+                    className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400"
+                    style={{ backgroundColor: c.value }}
+                    title={c.name}
+                  >
+                    {form.color === c.value && <Check className="w-3.5 h-3.5 text-white" />}
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
 
@@ -712,13 +766,12 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
             {/* Principal Search/Create */}
             <div className="relative">
-              <label htmlFor="sm-principalName" className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
               <div className="relative">
-                <input
+                <FloatingInput
                   id="sm-principalName"
+                  label="Name"
                   type="text"
-                  className="ui-input w-full pr-10"
-                  placeholder="Search or add a principal..."
+                  className="pr-10"
                   value={principalSearch}
                   onChange={(e) => {
                     const value = e.target.value
@@ -777,68 +830,56 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               )}
             </div>
 
-            <div>
-              <label htmlFor="sm-principalEmail" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-              <input
-                id="sm-principalEmail"
-                className="ui-input"
-                type="email"
-                value={form.principalEmail}
-                onChange={(e) => setForm((prev) => ({ ...prev, principalEmail: e.target.value }))}
-              />
-            </div>
+            <FloatingInput
+              id="sm-principalEmail"
+              label="Email"
+              type="email"
+              value={form.principalEmail}
+              onChange={(e) => setForm((prev) => ({ ...prev, principalEmail: e.target.value }))}
+            />
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="sm-principalPhone" className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
-                <input
-                  id="sm-principalPhone"
-                  className="ui-input"
-                  type="tel"
-                  inputMode="tel"
-                  pattern="\(\d{3}\) \d{3}-\d{4}"
-                  placeholder="(555) 123-4567"
-                  value={form.principalPhone}
-                  onChange={(e) => {
-                    const formatted = formatPhoneInput(e.target.value)
-                    setForm((prev) => ({ ...prev, principalPhone: formatted }))
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="sm-principalPhoneExt" className="block text-sm font-medium text-gray-700 mb-1.5">Extension</label>
-                <input
-                  id="sm-principalPhoneExt"
-                  className="ui-input"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="\d{1,6}"
-                  placeholder="123"
-                  value={form.principalPhoneExt}
-                  onChange={(e) => {
-                    const extension = normalizeExtensionInput(e.target.value)
-                    setForm((prev) => ({ ...prev, principalPhoneExt: extension }))
-                  }}
-                />
-              </div>
+              <FloatingInput
+                id="sm-principalPhone"
+                label="Phone"
+                type="tel"
+                inputMode="tel"
+                pattern="\(\d{3}\) \d{3}-\d{4}"
+                value={form.principalPhone}
+                onChange={(e) => {
+                  const formatted = formatPhoneInput(e.target.value)
+                  setForm((prev) => ({ ...prev, principalPhone: formatted }))
+                }}
+              />
+              <FloatingInput
+                id="sm-principalPhoneExt"
+                label="Extension"
+                type="text"
+                inputMode="numeric"
+                pattern="\d{1,6}"
+                value={form.principalPhoneExt}
+                onChange={(e) => {
+                  const extension = normalizeExtensionInput(e.target.value)
+                  setForm((prev) => ({ ...prev, principalPhoneExt: extension }))
+                }}
+              />
             </div>
           </section>
 
-          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              disabled={saving || searchingPrincipals || creatingPrincipal}
-              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
-            >
-              Cancel
-            </button>
+          <div className="space-y-3 pt-4">
             <button
               type="submit"
               disabled={saving || searchingPrincipals || creatingPrincipal}
-              className="px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
               {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add School'}
+            </button>
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+            >
+              Cancel
             </button>
           </div>
         </form>
@@ -864,14 +905,14 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                   <button
                     type="button"
                     onClick={() => handleSuccessClose(true)}
-                    className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition"
+                    className="flex-1 px-4 py-2 min-h-[40px] rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition"
                   >
                     Yes
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSuccessClose(false)}
-                    className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
+                    className="flex-1 px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
                   >
                     Cancel
                   </button>
@@ -896,87 +937,69 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               </div>
             )}
 
-            <div>
-              <label htmlFor="sm-editorName" className="block text-sm font-medium text-gray-700 mb-1.5">Principal Name</label>
-              <input
-                id="sm-editorName"
-                className="ui-input"
-                value={principalEditor.principalName}
-                onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalName: e.target.value } : prev))}
-                required
-              />
-            </div>
+            <FloatingInput
+              id="sm-editorName"
+              label="Principal Name"
+              value={principalEditor.principalName}
+              onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalName: e.target.value } : prev))}
+              required
+            />
 
-            <div>
-              <label htmlFor="sm-editorEmail" className="block text-sm font-medium text-gray-700 mb-1.5">Principal Email</label>
-              <input
-                id="sm-editorEmail"
-                className="ui-input"
-                type="email"
-                value={principalEditor.principalEmail}
-                onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalEmail: e.target.value } : prev))}
-                required
-              />
-            </div>
+            <FloatingInput
+              id="sm-editorEmail"
+              label="Principal Email"
+              type="email"
+              value={principalEditor.principalEmail}
+              onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalEmail: e.target.value } : prev))}
+              required
+            />
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="sm-editorPhone" className="block text-sm font-medium text-gray-700 mb-1.5">Principal Phone</label>
-                <input
-                  id="sm-editorPhone"
-                  className="ui-input"
-                  type="tel"
-                  inputMode="tel"
-                  pattern="\(\d{3}\) \d{3}-\d{4}"
-                  placeholder="(555) 123-4567"
-                  value={principalEditor.principalPhone}
-                  onChange={(e) => {
-                    const formatted = formatPhoneInput(e.target.value)
-                    setPrincipalEditor((prev) => (prev ? { ...prev, principalPhone: formatted } : prev))
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="sm-editorPhoneExt" className="block text-sm font-medium text-gray-700 mb-1.5">Extension</label>
-                <input
-                  id="sm-editorPhoneExt"
-                  className="ui-input"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="\d{1,6}"
-                  placeholder="123"
-                  value={principalEditor.principalPhoneExt}
-                  onChange={(e) => {
-                    const extension = normalizeExtensionInput(e.target.value)
-                    setPrincipalEditor((prev) => (prev ? { ...prev, principalPhoneExt: extension } : prev))
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="sm-editorJobTitle" className="block text-sm font-medium text-gray-700 mb-1.5">Job Title</label>
-              <input
-                id="sm-editorJobTitle"
-                className="ui-input"
-                value={principalEditor.principalJobTitle}
-                onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalJobTitle: e.target.value } : prev))}
+              <FloatingInput
+                id="sm-editorPhone"
+                label="Principal Phone"
+                type="tel"
+                inputMode="tel"
+                pattern="\(\d{3}\) \d{3}-\d{4}"
+                value={principalEditor.principalPhone}
+                onChange={(e) => {
+                  const formatted = formatPhoneInput(e.target.value)
+                  setPrincipalEditor((prev) => (prev ? { ...prev, principalPhone: formatted } : prev))
+                }}
+              />
+              <FloatingInput
+                id="sm-editorPhoneExt"
+                label="Extension"
+                type="text"
+                inputMode="numeric"
+                pattern="\d{1,6}"
+                value={principalEditor.principalPhoneExt}
+                onChange={(e) => {
+                  const extension = normalizeExtensionInput(e.target.value)
+                  setPrincipalEditor((prev) => (prev ? { ...prev, principalPhoneExt: extension } : prev))
+                }}
               />
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <FloatingInput
+              id="sm-editorJobTitle"
+              label="Job Title"
+              value={principalEditor.principalJobTitle}
+              onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalJobTitle: e.target.value } : prev))}
+            />
+
+            <div className="space-y-3 pt-4">
               <button
                 type="submit"
                 disabled={savingPrincipalEditor}
-                className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               >
                 {savingPrincipalEditor ? 'Saving...' : 'Save Changes'}
               </button>
               <button
                 type="button"
                 onClick={handlePrincipalEditorClose}
-                disabled={savingPrincipalEditor}
-                className="flex-1 px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
+                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
               >
                 Cancel
               </button>
