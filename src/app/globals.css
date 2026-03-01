@@ -60,14 +60,12 @@ body.light-mode {
   padding: 0.5rem 1rem;
 }
 
-/* Ensure touch targets are at minimum 44x44px */
-button,
-a[role="button"],
+/* Ensure primary touch targets are at minimum 44x44px.
+   Only applies to standalone interactive elements, not small inline
+   controls (color swatches, icon buttons, etc.) which set their own size. */
 input[type="button"],
 input[type="submit"],
-input[type="reset"],
-input[type="checkbox"],
-input[type="radio"] {
+input[type="reset"] {
   min-height: calc(2.75rem); /* 44px */
 }
 
