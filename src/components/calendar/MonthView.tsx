@@ -82,7 +82,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
   const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
   return (
-    <div className="flex-1 flex flex-col border border-gray-200 rounded-xl overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* Day headers */}
       <div className="grid grid-cols-7">
         {dayNames.map((day) => (
