@@ -79,14 +79,14 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
     return map
   }, [events])
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col border border-gray-200 rounded-xl overflow-hidden">
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-gray-200">
+      <div className="grid grid-cols-7">
         {dayNames.map((day) => (
-          <div key={day} className="py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <div key={day} className="py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-200">
             {day}
           </div>
         ))}
@@ -95,7 +95,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
       {/* Weeks grid */}
       <div className="flex-1 flex flex-col">
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 border-b border-gray-100 flex-1 min-h-0">
+          <div key={wi} className="grid grid-cols-7 flex-1 min-h-0">
             {week.map((date, di) => {
               const isCurrentMonth = date.getMonth() === currentDate.getMonth()
               const today = isToday(date)
@@ -108,19 +108,19 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                 <div
                   key={di}
                   onClick={() => onDateClick(date)}
-                  className={`border-r border-gray-100 last:border-r-0 p-1.5 cursor-pointer hover:bg-gray-50/50 transition-colors flex flex-col overflow-hidden ${
-                    !isCurrentMonth ? 'bg-gray-50/30' : ''
+                  className={`border-r border-b border-gray-100 last:border-r-0 p-2 cursor-pointer hover:bg-gray-50/50 transition-colors flex flex-col overflow-hidden ${
+                    !isCurrentMonth ? 'bg-gray-50/40' : ''
                   }`}
                 >
                   {/* Date number */}
-                  <div className="flex justify-center mb-1 flex-shrink-0">
+                  <div className="flex justify-end mb-1 flex-shrink-0">
                     <span
-                      className={`w-7 h-7 flex items-center justify-center text-sm rounded-full ${
+                      className={`w-7 h-7 flex items-center justify-center text-sm font-medium rounded-full ${
                         today
-                          ? 'bg-primary-600 text-white font-semibold'
+                          ? 'bg-primary-600 text-white'
                           : isCurrentMonth
                             ? 'text-gray-900'
-                            : 'text-gray-400'
+                            : 'text-gray-300'
                       }`}
                     >
                       {date.getDate()}
@@ -137,11 +137,11 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           onEventClick(event)
                         }}
                         whileHover={{ scale: 1.02 }}
-                        className="w-full text-left px-1.5 py-0.5 rounded text-xs truncate"
+                        className="w-full text-left px-2 py-0.5 rounded-md text-xs truncate"
                         style={{
-                          backgroundColor: `${event.calendar.color}15`,
+                          backgroundColor: `${event.calendar.color}12`,
                           color: event.calendar.color,
-                          borderLeft: `2px solid ${event.calendar.color}`,
+                          borderLeft: `2.5px solid ${event.calendar.color}`,
                         }}
                       >
                         {!event.isAllDay && (
@@ -156,7 +156,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           e.stopPropagation()
                           onDateClick(date)
                         }}
-                        className="w-full text-left px-1.5 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                        className="w-full text-left px-2 py-0.5 text-xs font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                       >
                         +{moreCount} more
                       </button>

@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   useCalendars,
   useCalendarEvents,
   useCalendarNavigation,
   useCreateCalendar,
   useCreateEvent,
+  useUpdateEvent,
   useDeleteEvent,
   type CalendarEventData,
 } from '@/lib/hooks/useCalendar'
@@ -109,7 +111,20 @@ export default function CalendarView() {
 
   const createCalendar = useCreateCalendar()
   const createEvent = useCreateEvent()
+  const updateEvent = useUpdateEvent()
   const deleteEvent = useDeleteEvent()
+
+  // Edit event state
+  const [editingEvent, setEditingEvent] = useState<CalendarEventData | null>(null)
+
+  // Auto-open create panel when navigated with ?create=true
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setIsCreateOpen(true)
+      window.history.replaceState({}, '', '/calendar')
+    }
+  }, [searchParams])
 
   // Quick-create calendar state
   const [showCreateCalendar, setShowCreateCalendar] = useState(false)
@@ -152,19 +167,33 @@ export default function CalendarView() {
     setIsCreateOpen(true)
   }, [])
 
-  const [createError, setCreateError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const handleSubmitEvent = useCallback(async (data: EventFormData) => {
-    setCreateError(null)
+    setFormError(null)
     try {
       await createEvent.mutateAsync(data as unknown as Record<string, unknown>)
       setIsCreateOpen(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create event'
-      setCreateError(message)
+      setFormError(message)
       console.error('Event creation failed:', err)
     }
   }, [createEvent])
+
+  const handleUpdateEvent = useCallback(async (data: EventFormData) => {
+    if (!editingEvent) return
+    setFormError(null)
+    try {
+      await updateEvent.mutateAsync({ id: editingEvent.id, ...data } as { id: string } & Record<string, unknown>)
+      setIsCreateOpen(false)
+      setEditingEvent(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update event'
+      setFormError(message)
+      console.error('Event update failed:', err)
+    }
+  }, [updateEvent, editingEvent])
 
   const handleDeleteEvent = useCallback(async (eventId: string) => {
     if (!confirm('Delete this event?')) return
@@ -252,7 +281,7 @@ export default function CalendarView() {
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] sm:h-[calc(100vh-7rem)] lg:h-[calc(100vh-8.5rem)]">
       {/* Main area */}
-      <div className="flex-1 flex flex-col min-w-0 p-4">
+      <div className="flex-1 flex flex-col min-w-0 px-6 py-4">
         <CalendarToolbar
           currentDate={currentDate}
           view={view}
@@ -312,20 +341,23 @@ export default function CalendarView() {
         onClose={() => setSelectedEvent(null)}
         onEdit={(event) => {
           setSelectedEvent(null)
-          // TODO: Open edit panel
+          setEditingEvent(event)
+          setFormError(null)
+          setIsCreateOpen(true)
         }}
         onDelete={handleDeleteEvent}
       />
 
       <EventCreatePanel
         isOpen={isCreateOpen}
-        onClose={() => { setIsCreateOpen(false); setCreateError(null) }}
-        onSubmit={handleSubmitEvent}
-        isSubmitting={createEvent.isPending}
+        onClose={() => { setIsCreateOpen(false); setEditingEvent(null); setFormError(null) }}
+        onSubmit={editingEvent ? handleUpdateEvent : handleSubmitEvent}
+        isSubmitting={editingEvent ? updateEvent.isPending : createEvent.isPending}
         calendars={calendars}
         initialStart={createInitialStart}
         initialEnd={createInitialEnd}
-        error={createError}
+        error={formError}
+        event={editingEvent}
       />
     </div>
   )

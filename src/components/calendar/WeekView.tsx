@@ -10,19 +10,16 @@ interface WeekViewProps {
   onSlotClick: (start: Date, end: Date) => void
 }
 
-const HOUR_HEIGHT = 60 // px per hour
-const START_HOUR = 6
-const END_HOUR = 22
+const HOUR_HEIGHT = 64
+const START_HOUR = 5
+const END_HOUR = 23
 
-function isToday(date: Date): boolean {
-  const today = new Date()
-  return date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
+function toDateOnly(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 }
 
 function formatHour(hour: number): string {
-  const ampm = hour >= 12 ? 'PM' : 'AM'
+  const ampm = hour >= 12 ? 'pm' : 'am'
   const h = hour % 12 || 12
   return `${h} ${ampm}`
 }
@@ -30,7 +27,6 @@ function formatHour(hour: number): string {
 export default function WeekView({ currentDate, events, onEventClick, onSlotClick }: WeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Get the week's dates
   const weekDates = useMemo(() => {
     const start = new Date(currentDate)
     start.setDate(start.getDate() - start.getDay())
@@ -41,7 +37,6 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     })
   }, [currentDate])
 
-  // Separate all-day events from timed events
   const { allDayEvents, timedEvents } = useMemo(() => {
     const allDay: CalendarEventData[] = []
     const timed: CalendarEventData[] = []
@@ -52,7 +47,6 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     return { allDayEvents: allDay, timedEvents: timed }
   }, [events])
 
-  // Map timed events to their day columns
   const eventsByDay = useMemo(() => {
     const map = new Map<number, CalendarEventData[]>()
     for (const event of timedEvents) {
@@ -70,7 +64,6 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     return map
   }, [timedEvents, weekDates])
 
-  // Auto-scroll to current hour on mount
   useEffect(() => {
     if (scrollRef.current) {
       const now = new Date()
@@ -80,53 +73,32 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
   }, [])
 
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-  // Now line position
   const now = new Date()
   const nowMinutes = (now.getHours() - START_HOUR) * 60 + now.getMinutes()
   const nowTop = (nowMinutes / 60) * HOUR_HEIGHT
   const showNowLine = now.getHours() >= START_HOUR && now.getHours() < END_HOUR
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden border border-gray-200 rounded-lg">
-      {/* Header: day names + dates */}
-      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="w-16 flex-shrink-0" />
-        {weekDates.map((date, i) => {
-          const today = isToday(date)
-          return (
-            <div key={i} className="flex-1 text-center py-2 border-l border-gray-100">
-              <div className="text-xs font-medium text-gray-500 uppercase">{dayNames[date.getDay()]}</div>
-              <div className={`text-lg font-semibold mt-0.5 ${
-                today ? 'w-8 h-8 mx-auto rounded-full bg-primary-600 text-white flex items-center justify-center' : 'text-gray-900'
-              }`}>
-                {date.getDate()}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* All-day events row */}
       {allDayEvents.length > 0 && (
-        <div className="flex border-b border-gray-200 bg-gray-50/50">
-          <div className="w-16 flex-shrink-0 text-xs text-gray-400 text-right pr-2 py-1">All day</div>
-          <div className="flex-1 grid grid-cols-7 gap-0.5 p-1">
+        <div className="flex pb-2 border-b border-gray-100 mb-0">
+          <div className="w-14 flex-shrink-0 text-[11px] text-gray-400 text-right pr-3 pt-1">All day</div>
+          <div className="flex-1 grid grid-cols-7 gap-1">
             {weekDates.map((date, i) => {
               const dayAllDay = allDayEvents.filter((e) => {
                 const start = new Date(e.startTime)
                 const end = new Date(e.endTime)
-                return date >= start && date <= end
+                return toDateOnly(date) >= toDateOnly(start) && toDateOnly(date) <= toDateOnly(end)
               })
               return (
-                <div key={i} className="space-y-0.5">
+                <div key={i} className="space-y-1">
                   {dayAllDay.map((event) => (
                     <button
                       key={event.id}
                       onClick={() => onEventClick(event)}
-                      className="w-full text-left px-1.5 py-0.5 rounded text-xs font-medium truncate"
+                      className="w-full text-left px-2 py-1 rounded-lg text-xs font-semibold truncate"
                       style={{
                         backgroundColor: `${event.calendar.color}20`,
                         color: event.calendar.color,
@@ -146,12 +118,12 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="flex relative" style={{ height: hours.length * HOUR_HEIGHT }}>
           {/* Hour labels */}
-          <div className="w-16 flex-shrink-0 relative">
+          <div className="w-14 flex-shrink-0 relative">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="absolute right-2 text-xs text-gray-400"
-                style={{ top: (hour - START_HOUR) * HOUR_HEIGHT - 6 }}
+                className="absolute right-3 text-xs text-gray-400"
+                style={{ top: (hour - START_HOUR) * HOUR_HEIGHT - 7 }}
               >
                 {formatHour(hour)}
               </div>
@@ -159,7 +131,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
           </div>
 
           {/* Day columns */}
-          <div className="flex-1 grid grid-cols-7 relative">
+          <div className="flex-1 grid grid-cols-7 gap-0 relative">
             {/* Hour lines */}
             {hours.map((hour) => (
               <div
@@ -176,8 +148,8 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                 style={{ top: nowTop }}
               >
                 <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-red-500 -ml-1" />
-                  <div className="flex-1 h-px bg-red-500" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 -ml-1" />
+                  <div className="flex-1 h-0.5 bg-red-500" />
                 </div>
               </div>
             )}
@@ -186,12 +158,12 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
             {weekDates.map((date, dayIndex) => {
               const dayEvents = eventsByDay.get(dayIndex) || []
               return (
-                <div key={dayIndex} className="relative border-l border-gray-100">
-                  {/* Click targets for each hour */}
+                <div key={dayIndex} className="relative">
+                  {/* Click targets */}
                   {hours.map((hour) => (
                     <div
                       key={hour}
-                      className="absolute left-0 right-0 cursor-pointer hover:bg-primary-50/30 transition-colors"
+                      className="absolute left-0 right-0 cursor-pointer hover:bg-primary-50/20 transition-colors"
                       style={{
                         top: (hour - START_HOUR) * HOUR_HEIGHT,
                         height: HOUR_HEIGHT,
@@ -213,7 +185,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                     const startMinutes = (start.getHours() - START_HOUR) * 60 + start.getMinutes()
                     const endMinutes = (end.getHours() - START_HOUR) * 60 + end.getMinutes()
                     const top = (startMinutes / 60) * HOUR_HEIGHT
-                    const height = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 20)
+                    const height = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
 
                     return (
                       <button
@@ -222,21 +194,21 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                           e.stopPropagation()
                           onEventClick(event)
                         }}
-                        className="absolute left-0.5 right-1 rounded-md px-2 py-1 text-xs overflow-hidden z-[1] hover:z-[2] hover:shadow-md transition-shadow cursor-pointer"
+                        className="absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer"
                         style={{
                           top,
                           height,
-                          backgroundColor: `${event.calendar.color}15`,
-                          borderLeft: `3px solid ${event.calendar.color}`,
-                          color: event.calendar.color,
+                          backgroundColor: `${event.calendar.color}20`,
                         }}
                       >
-                        <div className="font-semibold truncate">{event.title}</div>
-                        {height > 30 && (
-                          <div className="text-[10px] opacity-75 truncate">
-                            {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                            {' – '}
-                            {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        <div className="font-semibold text-sm truncate" style={{ color: event.calendar.color }}>
+                          {event.title}
+                        </div>
+                        {height > 36 && (
+                          <div className="text-xs mt-0.5 opacity-60" style={{ color: event.calendar.color }}>
+                            {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {' - '}
+                            {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         )}
                       </button>
