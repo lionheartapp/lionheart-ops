@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma as prisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 

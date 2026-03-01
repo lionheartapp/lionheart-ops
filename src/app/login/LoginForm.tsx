@@ -85,7 +85,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-zinc-700">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
             Email address
           </label>
           <input
@@ -94,7 +94,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-zinc-900 placeholder-zinc-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-colors"
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition-colors"
             required
             autoComplete="email"
             autoFocus
@@ -102,7 +102,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-zinc-700">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
             Password
           </label>
           <input
@@ -111,7 +111,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-zinc-900 placeholder-zinc-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-colors"
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition-colors"
             required
             autoComplete="current-password"
           />
@@ -133,7 +133,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
         {loading ? 'Signing in...' : `Sign in to ${organizationName}`}
       </button>
 
-      <p className="text-center text-xs text-zinc-500">
+      <p className="text-center text-xs text-gray-500">
         By signing in, you&apos;ll stay logged in for 30 days
       </p>
     </form>

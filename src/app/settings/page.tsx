@@ -702,14 +702,16 @@ export default function SettingsPage() {
                           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                           <input id="email" type="email" className="ui-input" defaultValue={userEmail || ''} readOnly />
                         </div>
-                        <button
-                          type="button"
-                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap opacity-50 cursor-not-allowed"
-                          disabled
-                          title="Coming soon"
-                        >
-                          Change email
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            disabled
+                          >
+                            Change email
+                          </button>
+                          <span className="text-xs text-gray-400 whitespace-nowrap">Coming soon</span>
+                        </div>
                       </div>
 
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
@@ -738,14 +740,16 @@ export default function SettingsPage() {
                           <p className="text-base font-medium text-gray-900">Log out of all devices</p>
                           <p className="text-sm text-gray-600">Log out of all other active sessions on other devices besides this one.</p>
                         </div>
-                        <button
-                          type="button"
-                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap opacity-50 cursor-not-allowed"
-                          disabled
-                          title="Coming soon"
-                        >
-                          Log out
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            disabled
+                          >
+                            Log out
+                          </button>
+                          <span className="text-xs text-gray-400 whitespace-nowrap">Coming soon</span>
+                        </div>
                       </div>
 
                       <div className="flex items-start justify-between gap-4">
@@ -753,14 +757,16 @@ export default function SettingsPage() {
                           <p className="text-base font-medium text-red-600">Delete my account</p>
                           <p className="text-sm text-gray-600">Permanently delete the account and remove access from all workspaces.</p>
                         </div>
-                        <button
-                          type="button"
-                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap opacity-50 cursor-not-allowed"
-                          disabled
-                          title="Coming soon"
-                        >
-                          Delete Account
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            disabled
+                          >
+                            Delete Account
+                          </button>
+                          <span className="text-xs text-gray-400 whitespace-nowrap">Coming soon</span>
+                        </div>
                       </div>
                     </div>
                   </section>

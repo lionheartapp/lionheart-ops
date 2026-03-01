@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   useCalendars,
@@ -21,6 +21,7 @@ import DayView from './DayView'
 import AgendaView from './AgendaView'
 import EventDetailPanel from './EventDetailPanel'
 import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -55,11 +56,11 @@ export default function CalendarView() {
   const [visibleCalendarIds, setVisibleCalendarIds] = useState<Set<string>>(new Set())
 
   // Initialize visible calendars when they load
-  useMemo(() => {
+  useEffect(() => {
     if (calendars.length > 0 && visibleCalendarIds.size === 0) {
       setVisibleCalendarIds(new Set(calendars.filter((c) => c.isActive).map((c) => c.id)))
     }
-  }, [calendars])
+  }, [calendars]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleCalendar = useCallback((calendarId: string) => {
     setVisibleCalendarIds((prev) => {
@@ -187,11 +188,14 @@ export default function CalendarView() {
 
   const handleDateClick = useCallback((date: Date) => {
     if (view === 'month') {
-      // Switch to day view for that date
-      setCurrentDate(date)
-      changeView('day')
+      // Open event creation pre-populated with clicked date
+      const start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), new Date().getHours() + 1, 0)
+      const end = new Date(start.getTime() + 60 * 60 * 1000)
+      setCreateInitialStart(start)
+      setCreateInitialEnd(end)
+      setIsCreateOpen(true)
     }
-  }, [view, setCurrentDate, changeView])
+  }, [view])
 
   const handleSlotClick = useCallback((slotStart: Date, slotEnd: Date) => {
     setCreateInitialStart(slotStart)
@@ -233,11 +237,18 @@ export default function CalendarView() {
     }
   }, [updateEvent, editingEvent])
 
-  const handleDeleteEvent = useCallback(async (eventId: string) => {
-    if (!confirm('Delete this event?')) return
-    await deleteEvent.mutateAsync(eventId)
+  const [deleteConfirmEventId, setDeleteConfirmEventId] = useState<string | null>(null)
+
+  const handleDeleteEvent = useCallback((eventId: string) => {
+    setDeleteConfirmEventId(eventId)
+  }, [])
+
+  const confirmDeleteEvent = useCallback(async () => {
+    if (!deleteConfirmEventId) return
+    await deleteEvent.mutateAsync(deleteConfirmEventId)
     setSelectedEvent(null)
-  }, [deleteEvent])
+    setDeleteConfirmEventId(null)
+  }, [deleteEvent, deleteConfirmEventId])
 
   if (calendarsLoading) {
     return (
@@ -425,7 +436,7 @@ export default function CalendarView() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 z-40"
+              className="fixed inset-0 bg-black/30 z-40"
               onClick={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
             />
 
@@ -504,7 +515,7 @@ export default function CalendarView() {
                 <button
                   onClick={handleCreateCalendar}
                   disabled={!newCalendarName.trim() || createCalendar.isPending}
-                  className="w-full py-3.5 text-sm font-semibold text-white bg-[#0B1320] rounded-full hover:bg-[#161f2e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
                   {createCalendar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create Calendar
@@ -521,6 +532,19 @@ export default function CalendarView() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Delete event confirmation */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirmEventId}
+        onClose={() => setDeleteConfirmEventId(null)}
+        onConfirm={confirmDeleteEvent}
+        title="Delete event"
+        message="Are you sure you want to delete this event? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+        isLoading={deleteEvent.isPending}
+        loadingText="Deleting..."
+      />
     </div>
   )
 }

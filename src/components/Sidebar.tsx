@@ -250,7 +250,7 @@ export default function Sidebar({
     if (!settingsOpen) {
       setSettingsOpen(true)
       setCalendarOpen(false)
-      setActiveSettingsTab('profile')
+      // Keep the last-used settings tab (stored in localStorage) instead of resetting
       router.push('/settings')
     } else {
       setSettingsOpen(false)
@@ -311,7 +311,7 @@ export default function Sidebar({
                   className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                     active && !settingsOpen
                       ? 'bg-white/10 text-white font-medium border border-white/20'
-                      : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
+                      : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }`}
                   aria-current={active && !settingsOpen ? 'page' : undefined}
                 >
@@ -329,13 +329,13 @@ export default function Sidebar({
   const settingsNavContent = (
     <div className="flex flex-col h-full bg-[#f0f3f9]">
       {/* Settings Header */}
-      <div className="px-5 py-4 border-b border-slate-200">
-        <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Settings</h2>
+      <div className="px-5 py-4 border-b border-gray-200">
+        <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase">Settings</h2>
       </div>
 
       {/* General Settings */}
       <div className="px-3 pt-4">
-        <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase px-2 mb-2">
+        <p className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase px-2 mb-2">
           General
         </p>
         <nav className="space-y-0.5" aria-label="General settings sections">
@@ -349,10 +349,10 @@ export default function Sidebar({
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
                   isTabActive
                     ? 'bg-[#dde6f5] text-primary-600 font-medium'
-                    : 'text-slate-500 hover:bg-[#e5eaf5] hover:text-slate-700'
+                    : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
                 }`}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-gray-400'}`} />
                 {tab.label}
               </button>
             )
@@ -363,7 +363,7 @@ export default function Sidebar({
       {/* Workspace Settings */}
       {canManageWorkspace && (
         <div className="px-3 pt-5 pb-4">
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase px-2 mb-2">
+          <p className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase px-2 mb-2">
             Workspace
           </p>
           <nav className="space-y-0.5" aria-label="Workspace settings sections">
@@ -377,10 +377,10 @@ export default function Sidebar({
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
                     isTabActive
                       ? 'bg-[#dde6f5] text-primary-600 font-medium'
-                      : 'text-slate-500 hover:bg-[#e5eaf5] hover:text-slate-700'
+                      : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-gray-400'}`} />
                   {tab.label}
                 </button>
               )
@@ -410,12 +410,13 @@ export default function Sidebar({
   const calendarNavContent = (
     <div className="flex flex-col h-full bg-[#f0f3f9]">
       {/* Calendar Header */}
-      <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-        <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Calendars</h2>
+      <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase">Calendars</h2>
         <button
           onClick={handleCreateCalendar}
-          className="p-1 rounded-md hover:bg-[#dde6f5] text-slate-400 hover:text-primary-600 transition-colors"
+          className="p-1 rounded-md hover:bg-[#dde6f5] text-gray-400 hover:text-primary-600 transition-colors"
           title="Create calendar"
+          aria-label="Create calendar"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -429,7 +430,7 @@ export default function Sidebar({
             <div key={type} className="mb-1">
               <button
                 onClick={() => toggleCalendarType(type)}
-                className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-slate-400 uppercase hover:text-slate-600 transition-colors"
+                className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors"
               >
                 {isExpanded ? (
                   <ChevronDown className="w-3 h-3" />
@@ -437,7 +438,7 @@ export default function Sidebar({
                   <ChevronRight className="w-3 h-3" />
                 )}
                 {typeLabels[type] || type}
-                <span className="ml-auto text-slate-300 normal-case tracking-normal font-normal text-xs">
+                <span className="ml-auto text-gray-300 normal-case tracking-normal font-normal text-xs">
                   {cals.length}
                 </span>
               </button>
@@ -466,13 +467,13 @@ export default function Sidebar({
                                 if (e.key === 'Escape') { setRenamingId(null); setRenameValue('') }
                               }}
                               onBlur={() => handleRenameSubmit(cal.id)}
-                              className="flex-1 min-w-0 px-2 py-0.5 text-sm border border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-200 bg-white text-slate-700"
+                              className="flex-1 min-w-0 px-2 py-0.5 text-sm border border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-200 bg-white text-gray-700"
                               autoFocus
                             />
                           </div>
                         ) : isColorEditing ? (
                           <div className="px-3 py-2 space-y-2" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
                               <div
                                 className="w-3 h-3 rounded-sm flex-shrink-0"
                                 style={{ backgroundColor: cal.color }}
@@ -501,8 +502,8 @@ export default function Sidebar({
                             onClick={() => toggleCalendarVisibility(cal.id)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
                               isVisible
-                                ? 'text-slate-700 hover:bg-[#e5eaf5]'
-                                : 'text-slate-400 hover:bg-[#e5eaf5]'
+                                ? 'text-gray-700 hover:bg-[#e5eaf5]'
+                                : 'text-gray-400 hover:bg-[#e5eaf5]'
                             }`}
                           >
                             <div
@@ -516,14 +517,16 @@ export default function Sidebar({
                             </div>
                             <span className="truncate">{cal.name}</span>
                             <span
-                              className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity p-1 -mr-1 rounded hover:bg-gray-200/50"
+                              role="button"
+                              aria-label={`Calendar options for ${cal.name}`}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 setMenuOpenId(isMenuOpen ? null : cal.id)
                                 setColorEditId(null)
                               }}
                             >
-                              <MoreHorizontal className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600" />
+                              <MoreHorizontal className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
                             </span>
                           </button>
                         )}
@@ -536,16 +539,16 @@ export default function Sidebar({
                           >
                             <button
                               onClick={() => handleRenameStart(cal)}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-gray-50 transition-colors"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                              <Pencil className="w-3.5 h-3.5 text-slate-400" />
+                              <Pencil className="w-3.5 h-3.5 text-gray-400" />
                               Rename
                             </button>
                             <button
                               onClick={() => handleColorChangeStart(cal.id)}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-gray-50 transition-colors"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                              <Palette className="w-3.5 h-3.5 text-slate-400" />
+                              <Palette className="w-3.5 h-3.5 text-gray-400" />
                               Change Color
                             </button>
                             <button
@@ -566,8 +569,8 @@ export default function Sidebar({
           )
         })}
         {calendarData.length === 0 && (
-          <div className="text-center py-8 text-slate-400 text-xs">
-            <Calendar className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+          <div className="text-center py-8 text-gray-400 text-xs">
+            <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
             <p>No calendars yet</p>
           </div>
         )}

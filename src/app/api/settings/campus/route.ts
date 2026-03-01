@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail, isAuthError } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma as prisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 

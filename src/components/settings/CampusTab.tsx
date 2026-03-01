@@ -119,6 +119,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [deleteCampusConfirm, setDeleteCampusConfirm] = useState<Campus | null>(null)
   const [deleteCampusLoading, setDeleteCampusLoading] = useState(false)
   const [campusMenuOpen, setCampusMenuOpen] = useState<string | null>(null)
+  const [campusMenuPos, setCampusMenuPos] = useState<{ top: number; left: number } | null>(null)
 
   // ─── Data ────────────────────────────────────────────────────────────────
   const [buildings, setBuildings] = useState<Building[]>([])
@@ -641,6 +642,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     setEditCampusError('')
     setEditCampusDrawerOpen(true)
     setCampusMenuOpen(null)
+    setCampusMenuPos(null)
   }
 
   const closeEditCampusDrawer = () => {
@@ -685,6 +687,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const openDeleteCampus = (campus: Campus) => {
     setDeleteCampusConfirm(campus)
     setCampusMenuOpen(null)
+    setCampusMenuPos(null)
   }
 
   const confirmDeleteCampus = async () => {
@@ -796,7 +799,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
       {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
       <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
-        {campuses.length > 1 && campuses.map((campus) => (
+        {campuses.length >= 1 && campuses.map((campus) => (
           <div key={campus.id} className="relative flex items-center">
             <button
               onClick={() => setSelectedCampusId(campus.id)}
@@ -809,36 +812,48 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               {campus.name}
             </button>
             {selectedCampusId === campus.id && (
-              <div className="relative">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setCampusMenuOpen(campusMenuOpen === campus.id ? null : campus.id) }}
-                  className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
-                  style={{ minHeight: 'auto' }}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (campusMenuOpen === campus.id) {
+                    setCampusMenuOpen(null)
+                    setCampusMenuPos(null)
+                  } else {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setCampusMenuPos({ top: rect.bottom + 4, left: rect.right - 160 })
+                    setCampusMenuOpen(campus.id)
+                  }
+                }}
+                className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+                style={{ minHeight: 'auto' }}
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            )}
+            {campusMenuOpen === campus.id && campusMenuPos && createPortal(
+              <>
+                <div className="fixed inset-0 z-[100]" onClick={() => { setCampusMenuOpen(null); setCampusMenuPos(null) }} />
+                <div
+                  className="fixed z-[101] w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                  style={{ top: campusMenuPos.top, left: campusMenuPos.left }}
                 >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-                {campusMenuOpen === campus.id && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setCampusMenuOpen(null)} />
-                    <div className="absolute right-0 top-full mt-1 z-50 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
-                      <button
-                        onClick={() => openEditCampus(campus)}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                        style={{ minHeight: 'auto' }}
-                      >
-                        <Edit2 className="w-3.5 h-3.5" /> Edit Campus
-                      </button>
-                      <button
-                        onClick={() => openDeleteCampus(campus)}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                        style={{ minHeight: 'auto' }}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete Campus
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+                  <button
+                    onClick={() => openEditCampus(campus)}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    style={{ minHeight: 'auto' }}
+                  >
+                    <Edit2 className="w-3.5 h-3.5" /> Edit Campus
+                  </button>
+                  <button
+                    onClick={() => openDeleteCampus(campus)}
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    style={{ minHeight: 'auto' }}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Delete Campus
+                  </button>
+                </div>
+              </>,
+              document.body
             )}
           </div>
         ))}

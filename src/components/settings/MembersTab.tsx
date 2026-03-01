@@ -259,6 +259,12 @@ const MembersTab = (_props: MembersTabProps) => {
   const [availableTeams, setAvailableTeams] = useState<TeamOption[]>([])
   const [rolesLoading, setRolesLoading] = useState(false)
 
+  // ─── Invite member state ──────────────────────────────────────────────────
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviteForm, setInviteForm] = useState({ email: '', firstName: '', lastName: '', roleId: '' })
+  const [inviteSaving, setInviteSaving] = useState(false)
+  const [inviteError, setInviteError] = useState('')
+
   // ─── Remove member state ──────────────────────────────────────────────────
   const [userToRemove, setUserToRemove] = useState<ApiUser | null>(null)
   const [removingUserId, setRemovingUserId] = useState<string | null>(null)
@@ -335,6 +341,44 @@ const MembersTab = (_props: MembersTabProps) => {
       setRolesLoading(false)
     }
   }, [getAuthHeaders])
+
+  // ─── Invite member ─────────────────────────────────────────────────────────
+  const openInvite = useCallback(async () => {
+    setShowInvite(true)
+    setInviteForm({ email: '', firstName: '', lastName: '', roleId: '' })
+    setInviteError('')
+    if (availableRoles.length === 0) await loadRolesAndTeams()
+  }, [availableRoles.length, loadRolesAndTeams])
+
+  const handleInvite = useCallback(async (e: FormEvent) => {
+    e.preventDefault()
+    if (!inviteForm.email.trim()) return
+    setInviteSaving(true)
+    setInviteError('')
+    try {
+      const res = await fetch('/api/settings/users', {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: inviteForm.email.trim(),
+          firstName: inviteForm.firstName.trim() || undefined,
+          lastName: inviteForm.lastName.trim() || undefined,
+          roleId: inviteForm.roleId || undefined,
+        }),
+      })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (!res.ok || !data.ok) {
+        throw new Error(data?.error?.message || 'Failed to invite user')
+      }
+      setShowInvite(false)
+      fetchUsers()
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : 'Failed to invite user')
+    } finally {
+      setInviteSaving(false)
+    }
+  }, [inviteForm, getAuthHeaders, fetchUsers])
 
   // ─── Edit member ──────────────────────────────────────────────────────────
   const openEditUser = useCallback(async (u: ApiUser) => {
@@ -534,7 +578,10 @@ const MembersTab = (_props: MembersTabProps) => {
           </h2>
           <p className="text-sm text-gray-500 mt-1">Manage your organization's users and their roles</p>
         </div>
-        <button className="bg-primary-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 text-sm font-medium transition">
+        <button
+          onClick={openInvite}
+          className="bg-primary-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 text-sm font-medium transition"
+        >
           <Plus className="w-4 h-4" /> Invite user
         </button>
       </div>
@@ -933,6 +980,88 @@ const MembersTab = (_props: MembersTabProps) => {
         variant="danger"
         isLoading={removingUserId !== null}
       />
+
+      {/* ─── Invite Member Drawer ──────────────────────────────────────────── */}
+      <DetailDrawer
+        isOpen={showInvite}
+        onClose={() => setShowInvite(false)}
+        title="Invite Member"
+        width="md"
+      >
+        <form onSubmit={handleInvite} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email address *</label>
+            <input
+              type="email"
+              required
+              placeholder="colleague@school.edu"
+              value={inviteForm.email}
+              onChange={(e) => setInviteForm((p) => ({ ...p, email: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+              autoFocus
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
+              <input
+                type="text"
+                placeholder="Jane"
+                value={inviteForm.firstName}
+                onChange={(e) => setInviteForm((p) => ({ ...p, firstName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
+              <input
+                type="text"
+                placeholder="Doe"
+                value={inviteForm.lastName}
+                onChange={(e) => setInviteForm((p) => ({ ...p, lastName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <select
+              value={inviteForm.roleId}
+              onChange={(e) => setInviteForm((p) => ({ ...p, roleId: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+            >
+              <option value="">Default role</option>
+              {availableRoles.map((r) => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {inviteError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
+              {inviteError}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowInvite(false)}
+              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={inviteSaving || !inviteForm.email.trim()}
+              className="flex-1 px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
+            >
+              {inviteSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
+              Send Invite
+            </button>
+          </div>
+        </form>
+      </DetailDrawer>
     </div>
   )
 }

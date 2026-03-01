@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -36,7 +36,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      const building = await (rawPrisma as any).building.findFirst({ where: { id, organizationId: orgId } })
+      const db = prisma as any
+      const building = await db.building.findFirst({ where: { id, organizationId: orgId } })
 
       if (!building) {
         return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
@@ -63,13 +64,14 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const input = UpdateBuildingSchema.parse(body)
+      const db = prisma as any
 
-      const existing = await (rawPrisma as any).building.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
+      const existing = await db.building.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
       if (!existing) {
         return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
       }
 
-      const building = await (rawPrisma as any).building.update({
+      const building = await db.building.update({
         where: { id },
         data: {
           ...(input.name !== undefined ? { name: input.name } : {}),
@@ -111,20 +113,21 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     const permanent = url.searchParams.get('permanent') === 'true'
 
     return await runWithOrgContext(orgId, async () => {
-      const existing = await (rawPrisma as any).building.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
+      const db = prisma as any
+      const existing = await db.building.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
       if (!existing) {
         return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
       }
 
       if (permanent) {
-        // Hard delete: remove rooms first, nullify area refs, then delete building
+        // Hard delete: use rawPrisma to bypass soft-delete extension
         await (rawPrisma as any).room.deleteMany({ where: { buildingId: id, organizationId: orgId } })
         await (rawPrisma as any).area.updateMany({ where: { buildingId: id, organizationId: orgId }, data: { buildingId: null } })
         await (rawPrisma as any).building.delete({ where: { id } })
         return NextResponse.json(ok({ id, deleted: true }))
       } else {
-        // Soft deactivate (existing behavior)
-        const building = await (rawPrisma as any).building.update({ where: { id }, data: { isActive: false } })
+        // Soft deactivate
+        const building = await db.building.update({ where: { id }, data: { isActive: false } })
         return NextResponse.json(ok(building))
       }
     })

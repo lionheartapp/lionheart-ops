@@ -200,7 +200,7 @@ function LocationCombobox({
   const showDropdown = open && query.length > 0
 
   return (
-    <div ref={containerRef} className="relative flex-1">
+    <div ref={containerRef} className="relative flex-1" role="combobox" aria-expanded={open} aria-haspopup="listbox">
       <input
         ref={inputRef}
         type="text"
@@ -209,10 +209,12 @@ function LocationCombobox({
         onChange={handleInputChange}
         onFocus={() => { if (query.length > 0 || locations.length > 0) setOpen(true) }}
         className="w-full text-sm text-gray-900 placeholder-gray-400 border-0 border-b border-gray-100 focus:ring-0 focus:border-gray-300 bg-transparent px-0 py-1.5 rounded-none"
+        aria-label="Event location"
+        aria-autocomplete="list"
       />
 
       {open && (locations.length > 0 || query.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1">
+        <div className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1" role="listbox">
           {/* Campus locations section */}
           {filtered.length > 0 && (
             <>
@@ -320,9 +322,19 @@ export default function EventCreatePanel({
     }
   }, [isOpen, calendars, initialStart, initialEnd, event])
 
+  const [timeError, setTimeError] = useState<string | null>(null)
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title.trim() || !form.calendarId) return
+
+    const start = new Date(form.startTime)
+    const end = new Date(form.endTime)
+    if (!form.isAllDay && end <= start) {
+      setTimeError('End time must be after start time')
+      return
+    }
+    setTimeError(null)
 
     onSubmit({
       ...form,
@@ -358,7 +370,7 @@ export default function EventCreatePanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 z-40"
+            className="fixed inset-0 bg-black/30 z-40"
             onClick={onClose}
           />
 
@@ -433,7 +445,7 @@ export default function EventCreatePanel({
                         onChange={(e) => setForm((p) => ({ ...p, isAllDay: e.target.checked }))}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-[#0B1320] transition-colors" />
+                      <div className="w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-gray-900 transition-colors" />
                       <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
                     </div>
                   </label>
@@ -548,6 +560,14 @@ export default function EventCreatePanel({
                   </div>
                 </div>
 
+                {/* Time validation error */}
+                {timeError && (
+                  <div className="flex items-center gap-4 py-1">
+                    <div className="w-5 flex-shrink-0" />
+                    <p className="text-xs text-red-600">{timeError}</p>
+                  </div>
+                )}
+
                 {/* Location — icon row */}
                 <div className="flex items-center gap-4 py-3">
                   <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -587,7 +607,7 @@ export default function EventCreatePanel({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !form.title.trim()}
-                className="w-full py-3.5 text-sm font-semibold text-white bg-[#0B1320] rounded-full hover:bg-[#161f2e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {isEditing ? 'Save Changes' : 'Create Event'}

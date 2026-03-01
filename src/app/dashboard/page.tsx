@@ -1,14 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import CreateModal from '@/components/CreateModal'
 import DetailDrawer from '@/components/DetailDrawer'
 import WeatherWidget from '@/components/dashboard/WeatherWidget'
-import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones } from 'lucide-react'
+import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2 } from 'lucide-react'
 
 type RequestType = 'event' | 'smart-event' | 'facilities' | 'it' | null
+
+interface TicketData {
+  id: string
+  title: string
+  description: string | null
+  status: string
+  priority: string
+  category: string
+  locationText: string | null
+  createdAt: string
+  assignedTo?: { firstName: string | null; lastName: string | null; email: string } | null
+}
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -17,7 +29,13 @@ export default function DashboardPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
   const [selectedRequestType, setSelectedRequestType] = useState<RequestType>(null)
-  
+  const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
+
+  // Ticket data from API
+  const [tickets, setTickets] = useState<TicketData[]>([])
+  const [ticketsLoading, setTicketsLoading] = useState(true)
+  const [ticketCount, setTicketCount] = useState(0)
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
@@ -53,6 +71,33 @@ export default function DashboardPage() {
     }
     fetchLogo()
   }, [orgLogoUrl, token])
+
+  // Fetch tickets from API
+  const fetchTickets = useCallback(async () => {
+    if (!token) return
+    setTicketsLoading(true)
+    try {
+      const res = await fetch('/api/tickets?limit=10', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.ok) {
+          const allTickets = Array.isArray(data.data) ? data.data : data.data?.tickets || []
+          setTickets(allTickets)
+          setTicketCount(allTickets.filter((t: TicketData) => t.status !== 'RESOLVED').length)
+        }
+      }
+    } catch {
+      // Silently fail — show empty state
+    } finally {
+      setTicketsLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (token) fetchTickets()
+  }, [token, fetchTickets])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -106,54 +151,52 @@ export default function DashboardPage() {
     return 'Good evening'
   }
 
-  const sampleTickets = [
-    {
-      id: 1,
-      title: 'Broken projector in Room 101',
-      status: 'urgent',
-      dueDate: 'Today',
-      priority: 'High',
-    },
-    {
-      id: 2,
-      title: 'Replace HVAC filter',
-      status: 'in-progress',
-      dueDate: '3 days',
-      priority: 'Medium',
-    },
-    {
-      id: 3,
-      title: 'Fix door lock in main office',
-      status: 'pending',
-      dueDate: 'Tomorrow',
-      priority: 'High',
-    },
-  ]
-
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'urgent':
+      case 'OPEN':
         return <AlertCircle className="w-5 h-5 text-red-500" aria-hidden="true" />
-      case 'in-progress':
+      case 'IN_PROGRESS':
         return <Clock className="w-5 h-5 text-primary-500" aria-hidden="true" />
-      case 'completed':
+      case 'RESOLVED':
         return <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
       default:
         return <Clock className="w-5 h-5 text-gray-400" aria-hidden="true" />
     }
   }
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'OPEN': return 'Open'
+      case 'IN_PROGRESS': return 'In Progress'
+      case 'RESOLVED': return 'Resolved'
+      default: return status
+    }
+  }
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High':
+      case 'CRITICAL':
         return 'bg-red-100 text-red-700'
-      case 'Medium':
+      case 'HIGH':
+        return 'bg-red-100 text-red-700'
+      case 'NORMAL':
         return 'bg-yellow-100 text-yellow-700'
-      case 'Low':
+      case 'LOW':
         return 'bg-green-100 text-green-700'
       default:
         return 'bg-gray-100 text-gray-700'
     }
+  }
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    if (days === 0) return 'Today'
+    if (days === 1) return 'Yesterday'
+    if (days < 7) return `${days} days ago`
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
 
   return (
@@ -269,12 +312,13 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
-            <button className="ui-icon-muted p-2 min-h-[44px] min-w-[44px] rounded-lg">
-              ⋯
-            </button>
           </div>
 
-          {sampleTickets.length === 0 ? (
+          {ticketsLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
+            </div>
+          ) : tickets.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <CheckCircle className="w-10 h-10 mx-auto mb-3 text-gray-300" aria-hidden="true" />
               <p className="text-sm mb-2">No tasks yet.</p>
@@ -291,28 +335,34 @@ export default function DashboardPage() {
           ) : (
             <>
               <ul className="space-y-3" role="list">
-                {sampleTickets.map((ticket) => (
+                {tickets.filter(t => t.status !== 'RESOLVED').slice(0, 8).map((ticket) => (
                   <li
                     key={ticket.id}
                     className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary-50 cursor-pointer transition"
-                    onClick={() => setIsDetailOpen(true)}
+                    onClick={() => { setSelectedTicket(ticket); setIsDetailOpen(true) }}
                   >
                     <div className="flex-shrink-0">
                       {getStatusIcon(ticket.status)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 truncate">{ticket.title}</p>
-                      <p className="text-xs text-gray-500 mt-1">{ticket.dueDate}</p>
+                      <p className="text-xs text-gray-500 mt-1">{formatDate(ticket.createdAt)}</p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(ticket.priority)}`}>
-                      {ticket.priority}
+                      {ticket.priority === 'NORMAL' ? 'Normal' : ticket.priority === 'CRITICAL' ? 'Critical' : ticket.priority}
                     </div>
                   </li>
                 ))}
               </ul>
 
-              <button className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
-                + Add task
+              <button
+                onClick={() => {
+                  setSelectedRequestType('facilities')
+                  setIsCreateOpen(true)
+                }}
+                className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition flex items-center justify-center gap-1"
+              >
+                <Plus className="w-4 h-4" /> Add task
               </button>
             </>
           )}
@@ -326,8 +376,8 @@ export default function DashboardPage() {
           {/* Stats Card */}
           <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
             <p className="text-sm text-gray-600 mb-2">Active Requests</p>
-            <p className="text-4xl font-bold text-primary-600">8</p>
-            <p className="text-xs text-gray-600 mt-2">+2 this month</p>
+            <p className="text-4xl font-bold text-primary-600">{ticketCount}</p>
+            <p className="text-xs text-gray-600 mt-2">Open &amp; in-progress</p>
           </div>
 
           {/* Quick Links */}
@@ -335,18 +385,19 @@ export default function DashboardPage() {
             <h3 className="font-bold text-gray-900 mb-4">Quick Links</h3>
             <ul className="space-y-2" role="list">
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
-                  Pending Approvals
+                <button
+                  onClick={() => router.push('/calendar')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                >
+                  Calendar
                 </button>
               </li>
               <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
-                  Overdue Tasks
-                </button>
-              </li>
-              <li>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
-                  My Reports
+                <button
+                  onClick={() => router.push('/settings')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                >
+                  Settings
                 </button>
               </li>
             </ul>
@@ -405,35 +456,54 @@ export default function DashboardPage() {
       {/* Detail Drawer */}
       <DetailDrawer
         isOpen={isDetailOpen}
-        onClose={() => setIsDetailOpen(false)}
-        title="Task Details"
+        onClose={() => { setIsDetailOpen(false); setSelectedTicket(null) }}
+        title={selectedTicket?.title || 'Task Details'}
         width="md"
         onEdit={() => {
-          // Handle edit action
           console.log('Edit clicked')
         }}
       >
-        <div className="space-y-6">
-          <p className="text-gray-600">
-            This is a reusable drawer container. Add task details, comments, and actions here.
-          </p>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Status</p>
-              <div className="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
-                Urgent
+        {selectedTicket ? (
+          <div className="space-y-6">
+            {selectedTicket.description && (
+              <p className="text-gray-600 text-sm">{selectedTicket.description}</p>
+            )}
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">Status</p>
+                <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                  selectedTicket.status === 'OPEN' ? 'bg-red-100 text-red-700' :
+                  selectedTicket.status === 'IN_PROGRESS' ? 'bg-primary-100 text-primary-700' :
+                  'bg-green-100 text-green-700'
+                }`}>
+                  {getStatusLabel(selectedTicket.status)}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">Priority</p>
+                <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(selectedTicket.priority)}`}>
+                  {selectedTicket.priority}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">Category</p>
+                <p className="text-gray-600">{selectedTicket.category}</p>
+              </div>
+              {selectedTicket.locationText && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Location</p>
+                  <p className="text-gray-600">{selectedTicket.locationText}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">Created</p>
+                <p className="text-gray-600">{new Date(selectedTicket.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
               </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Priority</p>
-              <p className="text-gray-600">High</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Due Date</p>
-              <p className="text-gray-600">Today</p>
-            </div>
           </div>
-        </div>
+        ) : (
+          <p className="text-gray-400 text-sm">Select a task to view details.</p>
+        )}
       </DetailDrawer>
     </DashboardLayout>
   )
