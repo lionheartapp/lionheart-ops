@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+
+const GRADE_DEFAULTS: Record<string, string> = {
+  ELEMENTARY: '#a855f7',
+  MIDDLE_SCHOOL: '#14b8a6',
+  HIGH_SCHOOL: '#ef4444',
+}
 
 const isValidPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -18,6 +24,7 @@ const CreateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120),
   campusId: z.string().min(1, 'Campus is required'),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   principalName: z.string().trim().max(100).optional().nullable(),
   principalEmail: z.string().email().optional().nullable(),
   principalPhone: z.string().trim().max(20).optional().nullable(),
@@ -48,6 +55,7 @@ export async function GET(req: NextRequest) {
           campusId: true,
           name: true,
           gradeLevel: true,
+          color: true,
           principalName: true,
           principalEmail: true,
           principalPhone: true,
@@ -110,6 +118,15 @@ export async function POST(req: NextRequest) {
         )
       }
 
+      // Remove any soft-deleted school with the same name so the unique constraint doesn't block
+      await rawPrisma.school.deleteMany({
+        where: {
+          organizationId: orgId,
+          name: input.name,
+          deletedAt: { not: null },
+        },
+      })
+
       // Validate campus exists in this org
       const campus = await prisma.campus.findFirst({
         where: { id: input.campusId },
@@ -128,6 +145,7 @@ export async function POST(req: NextRequest) {
           campusId: input.campusId,
           name: input.name,
           gradeLevel: input.gradeLevel,
+          color: input.color || GRADE_DEFAULTS[input.gradeLevel] || '#3b82f6',
           principalName: input.principalName || null,
           principalEmail: input.principalEmail || null,
           principalPhone: principalPhone || null,
@@ -138,6 +156,7 @@ export async function POST(req: NextRequest) {
           campusId: true,
           name: true,
           gradeLevel: true,
+          color: true,
           principalName: true,
           principalEmail: true,
           principalPhone: true,

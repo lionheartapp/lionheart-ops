@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check, TreePine, Pencil, RotateCcw, Building2 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -19,6 +19,7 @@ interface Building {
   latitude: number | null
   longitude: number | null
   schoolDivision?: string
+  school?: { color?: string } | null
   polygonCoordinates?: LatLng[] | null
 }
 
@@ -40,6 +41,8 @@ interface MapConfig {
 interface InteractiveCampusMapProps {
   buildings: Building[]
   outdoorSpaces?: OutdoorSpace[]
+  schools?: { name: string; color: string; gradeLevel?: string }[]
+  mapCenter?: { lat: number; lng: number; name: string; address: string | null } | null
   campusId?: string
   onBuildingPositionChange?: (buildingId: string, lat: number, lng: number) => void
   onAddBuildingAtPosition?: (lat: number, lng: number) => void
@@ -120,8 +123,11 @@ const OUTDOOR_TYPE_COLORS: Record<string, string> = {
   OTHER: '#059669',    // Emerald
 }
 
-function getBuildingColor(building: Building): string {
-  return DIVISION_COLORS[building.schoolDivision || 'GLOBAL'] || DIVISION_COLORS.GLOBAL
+function getBuildingColor(building: Building, schoolColorByDivision?: Record<string, string>): string {
+  return building.school?.color
+    || schoolColorByDivision?.[building.schoolDivision || '']
+    || DIVISION_COLORS[building.schoolDivision || 'GLOBAL']
+    || DIVISION_COLORS.GLOBAL
 }
 
 function getOutdoorColor(space: OutdoorSpace): string {
@@ -294,6 +300,8 @@ function createPolygonLabel(L: any, name: string, color: string) {
 export default function InteractiveCampusMap({
   buildings,
   outdoorSpaces = [],
+  schools = [],
+  mapCenter: mapCenterProp = null,
   campusId,
   onBuildingPositionChange,
   onAddBuildingAtPosition,
@@ -331,6 +339,15 @@ export default function InteractiveCampusMap({
   const tileLayersRef = useRef<{ satellite: any; street: any }>({ satellite: null, street: null })
   const pendingMarkerRef = useRef<any>(null)
 
+  // Build a division→color lookup from schools (so buildings without a direct school link still get the right color)
+  const schoolColorByDivision = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const s of schools) {
+      if (s.gradeLevel) map[s.gradeLevel] = s.color
+    }
+    return map
+  }, [schools])
+
   // AI detection state
   const [detectingId, setDetectingId] = useState<string | null>(null)
   const [editingPolygon, setEditingPolygon] = useState<{ buildingId: string; coordinates: LatLng[] } | null>(null)
@@ -351,8 +368,16 @@ export default function InteractiveCampusMap({
     'Content-Type': 'application/json',
   })
 
-  // Fetch org location + outdoor spaces from map-data
+  // Use parent-provided map center if available, otherwise fetch independently
   useEffect(() => {
+    if (mapCenterProp) {
+      setMapConfig({
+        center: { lat: mapCenterProp.lat, lng: mapCenterProp.lng },
+        address: mapCenterProp.address,
+        orgName: mapCenterProp.name,
+      })
+      return
+    }
     if (!token) return
     const url = campusId
       ? `/api/settings/campus/map-data?campusId=${campusId}`
@@ -371,7 +396,7 @@ export default function InteractiveCampusMap({
         }
       })
       .catch(() => {})
-  }, [token, campusId])
+  }, [mapCenterProp, token, campusId])
 
   // Initialize map
   useEffect(() => {
@@ -890,7 +915,7 @@ export default function InteractiveCampusMap({
 
       const building = buildings.find((b) => b.id === editingPolygon.buildingId)
       if (building) {
-        addBuildingPolygon(L, map, { ...building, polygonCoordinates: editingPolygon.coordinates }, getBuildingColor(building))
+        addBuildingPolygon(L, map, { ...building, polygonCoordinates: editingPolygon.coordinates }, getBuildingColor(building, schoolColorByDivision))
       }
     }
 
@@ -1091,7 +1116,7 @@ export default function InteractiveCampusMap({
     // Re-add all buildings
     buildings.forEach((b) => {
       if (b.latitude && b.longitude) {
-        const color = getBuildingColor(b)
+        const color = getBuildingColor(b, schoolColorByDivision)
         if (b.polygonCoordinates && b.polygonCoordinates.length >= 3) {
           addBuildingPolygon(L, map, b, color)
         } else {
@@ -1099,7 +1124,7 @@ export default function InteractiveCampusMap({
         }
       }
     })
-  }, [buildings, addBuildingMarker, addBuildingPolygon])
+  }, [buildings, addBuildingMarker, addBuildingPolygon, schoolColorByDivision, loading])
 
   // Re-render all outdoor spaces when they change
   useEffect(() => {
@@ -1146,7 +1171,7 @@ export default function InteractiveCampusMap({
         }
       }
     })
-  }, [outdoorSpaces, addOutdoorMarker, addOutdoorPolygon])
+  }, [outdoorSpaces, addOutdoorMarker, addOutdoorPolygon, loading])
 
   // Handle pending marker (marker shown while user fills in form)
   useEffect(() => {
@@ -1463,24 +1488,17 @@ export default function InteractiveCampusMap({
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
-        {/* Division color legend */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.GLOBAL }} />
             <span>Global</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.ELEMENTARY }} />
-            <span>Elem</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.MIDDLE_SCHOOL }} />
-            <span>Middle</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.HIGH_SCHOOL }} />
-            <span>High</span>
-          </div>
+          {schools.map((s) => (
+            <div key={s.name} className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
+              <span>{s.name}</span>
+            </div>
+          ))}
           <span className="text-gray-400">|</span>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#16a34a' }} />

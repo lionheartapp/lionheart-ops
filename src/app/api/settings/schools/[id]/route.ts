@@ -17,6 +17,7 @@ const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
 const UpdateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   principalName: z.string().trim().max(100).nullable().optional(),
   principalEmail: z.string().email().nullable().optional(),
   principalPhone: z.string().trim().max(20).nullable().optional(),
@@ -91,6 +92,7 @@ export async function PATCH(
         data: {
           ...(input.name !== undefined && { name: input.name }),
           ...(input.gradeLevel !== undefined && { gradeLevel: input.gradeLevel }),
+          ...(input.color !== undefined && { color: input.color }),
           ...(input.principalName !== undefined && { principalName: input.principalName }),
           ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
           ...(input.principalPhone !== undefined && { principalPhone }),
@@ -100,6 +102,7 @@ export async function PATCH(
           id: true,
           name: true,
           gradeLevel: true,
+          color: true,
           principalName: true,
           principalEmail: true,
           principalPhone: true,

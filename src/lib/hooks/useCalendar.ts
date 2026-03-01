@@ -99,7 +99,7 @@ export function useCalendars() {
   return useQuery<CalendarData[]>({
     queryKey: ['calendars'],
     queryFn: () => fetchApi('/api/calendars'),
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
   })
 }
 
@@ -119,9 +119,9 @@ export function useCalendarEvents(
       })
       return fetchApi(`/api/calendar-events?${params}`)
     },
-    enabled: enabled && calendarIds.length > 0,
-    staleTime: 60_000,
-    gcTime: 600_000,
+    enabled,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   })
 }
 

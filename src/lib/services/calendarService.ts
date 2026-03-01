@@ -99,12 +99,24 @@ export async function createCalendar(data: {
   schoolId?: string
   isDefault?: boolean
 }) {
+  // Default calendar color to the school's color when schoolId is provided and no explicit color
+  let resolvedColor = data.color
+  if (!resolvedColor && data.schoolId) {
+    const school = await prisma.school.findUnique({
+      where: { id: data.schoolId },
+      select: { color: true },
+    })
+    if (school?.color) {
+      resolvedColor = school.color
+    }
+  }
+
   return prisma.calendar.create({
     data: {
       name: data.name,
       slug: data.slug,
       calendarType: data.calendarType as any,
-      color: data.color || '#3b82f6',
+      color: resolvedColor || '#3b82f6',
       visibility: (data.visibility as any) || 'ORG_WIDE',
       requiresApproval: data.requiresApproval || false,
       campusId: data.campusId,

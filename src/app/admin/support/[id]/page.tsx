@@ -102,7 +102,7 @@ export default function TicketDetailPage() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type your reply..."
-          className="ui-input flex-1 min-h-[80px] resize-y"
+          className="ui-input-bordered flex-1 min-h-[80px] resize-y"
           onKeyDown={(e) => { if (e.key === 'Enter' && e.metaKey) sendMessage() }}
         />
         <button

@@ -15,6 +15,7 @@ const orgScopedModels = new Set([
 	'UserRoomAssignment',
 	'Campus',
 	'UserCampusAssignment',
+	'School',
 	// Calendar module
 	'Calendar',
 	'CalendarEvent',

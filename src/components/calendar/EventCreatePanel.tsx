@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Loader2, Clock, Calendar, MapPin, AlignLeft, ChevronDown } from 'lucide-react'
+import { X, Loader2, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { CalendarData, CalendarEventData } from '@/lib/hooks/useCalendar'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
+import { FloatingInput, FloatingSelect, FloatingTextarea } from '@/components/ui/FloatingInput'
 
 interface EventCreatePanelProps {
   isOpen: boolean
@@ -200,18 +201,21 @@ function LocationCombobox({
   const showDropdown = open && query.length > 0
 
   return (
-    <div ref={containerRef} className="relative flex-1" role="combobox" aria-expanded={open} aria-haspopup="listbox">
+    <div ref={containerRef} className="relative" role="combobox" aria-expanded={open} aria-haspopup="listbox">
       <input
         ref={inputRef}
         type="text"
-        placeholder="Add location"
+        placeholder="Location"
         value={query}
         onChange={handleInputChange}
         onFocus={() => { if (query.length > 0 || locations.length > 0) setOpen(true) }}
-        className="w-full text-sm text-gray-900 placeholder-gray-400 border-0 border-b border-gray-100 focus:ring-0 focus:border-gray-300 bg-transparent px-0 py-1.5 rounded-none"
+        className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10"
         aria-label="Event location"
         aria-autocomplete="list"
       />
+      <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-gray-400 peer-focus:-top-2.5 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-medium peer-focus:text-gray-600">
+        Location
+      </label>
 
       {open && (locations.length > 0 || query.length > 0) && (
         <div className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1" role="listbox">
@@ -379,7 +383,7 @@ export default function EventCreatePanel({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-4 top-4 bottom-4 w-full max-w-[420px] bg-white shadow-2xl z-50 flex flex-col rounded-2xl"
+            className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] bg-white shadow-2xl z-50 flex flex-col sm:rounded-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -395,204 +399,180 @@ export default function EventCreatePanel({
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 pb-6">
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-5">
               {/* Title */}
-              <div className="mb-5">
-                <input
-                  type="text"
-                  placeholder="Event title"
-                  value={form.title}
-                  onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                  className="w-full text-xl font-semibold text-gray-900 placeholder-gray-300 border-0 focus:ring-0 bg-transparent p-0"
-                  autoFocus
-                />
+              <FloatingInput
+                id="event-title"
+                label="Event title"
+                value={form.title}
+                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                autoFocus
+              />
+
+              {/* Calendar selector */}
+              <div className="relative">
+                {selectedCalendar && (
+                  <div
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full pointer-events-none z-10"
+                    style={{ backgroundColor: selectedCalendar.color }}
+                  />
+                )}
+                <FloatingSelect
+                  id="event-calendar"
+                  label="Calendar"
+                  value={form.calendarId}
+                  onChange={(e) => setForm((p) => ({ ...p, calendarId: e.target.value }))}
+                  className={selectedCalendar ? '!pl-8' : ''}
+                >
+                  {calendars.map((cal) => (
+                    <option key={cal.id} value={cal.id}>{cal.name}</option>
+                  ))}
+                </FloatingSelect>
               </div>
 
-              <div className="space-y-1">
-                {/* Calendar selector — icon row */}
-                <div className="flex items-center gap-4 py-3">
-                  <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  <div className="relative flex-1">
-                    {selectedCalendar && (
-                      <div
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full pointer-events-none z-10"
-                        style={{ backgroundColor: selectedCalendar.color }}
-                      />
-                    )}
-                    <select
-                      value={form.calendarId}
-                      onChange={(e) => setForm((p) => ({ ...p, calendarId: e.target.value }))}
-                      className="w-full pl-5 pr-7 py-1.5 border-0 border-b border-gray-100 text-sm text-gray-900 bg-transparent appearance-none focus:ring-0 focus:border-gray-300 rounded-none"
-                    >
-                      {calendars.map((cal) => (
-                        <option key={cal.id} value={cal.id}>{cal.name}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                  </div>
+              {/* All-day toggle */}
+              <label htmlFor="allDay" className="flex items-center justify-between cursor-pointer">
+                <span className="text-sm text-gray-700">All-day</span>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="allDay"
+                    checked={form.isAllDay}
+                    onChange={(e) => setForm((p) => ({ ...p, isAllDay: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-gray-900 transition-colors" />
+                  <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
                 </div>
+              </label>
 
-                {/* All-day toggle — icon row */}
-                <div className="flex items-center gap-4 py-3">
-                  <div className="w-5 h-5 flex-shrink-0" />
-                  <label htmlFor="allDay" className="flex items-center justify-between flex-1 cursor-pointer">
-                    <span className="text-sm text-gray-700">All-day</span>
-                    <div className="relative">
+              {/* Date & Time */}
+              <div className="space-y-3">
+                {/* Single-day mode */}
+                {!showEndDate && (
+                  <>
+                    <div className="inline-block">
+                      <button
+                        type="button"
+                        onClick={() => startDateRef.current?.showPicker()}
+                        className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
+                      >
+                        {formatDateDisplay(startDate)}
+                      </button>
                       <input
-                        type="checkbox"
-                        id="allDay"
-                        checked={form.isAllDay}
-                        onChange={(e) => setForm((p) => ({ ...p, isAllDay: e.target.checked }))}
-                        className="sr-only peer"
+                        ref={startDateRef}
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setForm((p) => ({ ...p, startTime: `${e.target.value}T${getTimePart(p.startTime)}` }))}
+                        className="sr-only"
                       />
-                      <div className="w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-gray-900 transition-colors" />
-                      <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
                     </div>
-                  </label>
-                </div>
-
-                {/* Date & Time — icon row */}
-                <div className="flex items-start gap-4 py-3">
-                  <Clock className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 space-y-3">
-                    {/* Single-day mode: date + start/end time row + "add end date" */}
-                    {!showEndDate && (
-                      <>
-                        <div className="inline-block">
-                          <button
-                            type="button"
-                            onClick={() => startDateRef.current?.showPicker()}
-                            className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
-                          >
-                            {formatDateDisplay(startDate)}
-                          </button>
-                          <input
-                            ref={startDateRef}
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setForm((p) => ({ ...p, startTime: `${e.target.value}T${getTimePart(p.startTime)}` }))}
-                            className="sr-only"
-                          />
-                        </div>
-                        {!form.isAllDay && (
-                          <div className="flex items-center gap-2">
-                            <TimePicker
-                              value={getTimePart(form.startTime)}
-                              onChange={setStartTime}
-                            />
-                            <span className="text-gray-300 text-sm">&ndash;</span>
-                            <TimePicker
-                              value={getTimePart(form.endTime)}
-                              onChange={setEndTime}
-                            />
-                          </div>
-                        )}
-                        <div className="inline-block">
-                          <button
-                            type="button"
-                            onClick={() => endDateAddRef.current?.showPicker()}
-                            className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0"
-                          >
-                            + end date
-                          </button>
-                          <input
-                            ref={endDateAddRef}
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
-                            className="sr-only"
-                          />
-                        </div>
-                      </>
+                    {!form.isAllDay && (
+                      <div className="flex items-center gap-2">
+                        <TimePicker
+                          value={getTimePart(form.startTime)}
+                          onChange={setStartTime}
+                        />
+                        <span className="text-gray-300 text-sm">&ndash;</span>
+                        <TimePicker
+                          value={getTimePart(form.endTime)}
+                          onChange={setEndTime}
+                        />
+                      </div>
                     )}
-
-                    {/* Multi-day mode: start date + time, then end date + time */}
-                    {showEndDate && (
-                      <>
-                        {/* Start */}
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => startDateRef.current?.showPicker()}
-                            className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
-                          >
-                            {formatDateDisplay(startDate)}
-                          </button>
-                          <input
-                            ref={startDateRef}
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setForm((p) => ({ ...p, startTime: `${e.target.value}T${getTimePart(p.startTime)}` }))}
-                            className="sr-only"
-                          />
-                          {!form.isAllDay && (
-                            <TimePicker
-                              value={getTimePart(form.startTime)}
-                              onChange={setStartTime}
-                            />
-                          )}
-                        </div>
-                        {/* End */}
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => endDateRef.current?.showPicker()}
-                            className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 bg-transparent border-0 p-0"
-                          >
-                            to {formatDateDisplay(endDate)}
-                          </button>
-                          <input
-                            ref={endDateRef}
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
-                            className="sr-only"
-                          />
-                          {!form.isAllDay && (
-                            <TimePicker
-                              value={getTimePart(form.endTime)}
-                              onChange={setEndTime}
-                            />
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Time validation error */}
-                {timeError && (
-                  <div className="flex items-center gap-4 py-1">
-                    <div className="w-5 flex-shrink-0" />
-                    <p className="text-xs text-red-600">{timeError}</p>
-                  </div>
+                    <div className="inline-block">
+                      <button
+                        type="button"
+                        onClick={() => endDateAddRef.current?.showPicker()}
+                        className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0"
+                      >
+                        + end date
+                      </button>
+                      <input
+                        ref={endDateAddRef}
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
+                        className="sr-only"
+                      />
+                    </div>
+                  </>
                 )}
 
-                {/* Location — icon row */}
-                <div className="flex items-center gap-4 py-3">
-                  <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  <LocationCombobox
-                    value={form.locationText}
-                    buildingId={form.buildingId}
-                    areaId={form.areaId}
-                    onChange={(locationText, buildingId, areaId) =>
-                      setForm((p) => ({ ...p, locationText, buildingId, areaId }))
-                    }
-                  />
-                </div>
-
-                {/* Description — icon row */}
-                <div className="flex items-start gap-4 py-3">
-                  <AlignLeft className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
-                  <textarea
-                    placeholder="Add description"
-                    value={form.description}
-                    onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                    rows={3}
-                    className="flex-1 text-sm text-gray-900 placeholder-gray-400 border-0 border-b border-gray-100 focus:ring-0 focus:border-gray-300 bg-transparent px-0 py-1.5 resize-none rounded-none"
-                  />
-                </div>
+                {/* Multi-day mode */}
+                {showEndDate && (
+                  <>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => startDateRef.current?.showPicker()}
+                        className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
+                      >
+                        {formatDateDisplay(startDate)}
+                      </button>
+                      <input
+                        ref={startDateRef}
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setForm((p) => ({ ...p, startTime: `${e.target.value}T${getTimePart(p.startTime)}` }))}
+                        className="sr-only"
+                      />
+                      {!form.isAllDay && (
+                        <TimePicker
+                          value={getTimePart(form.startTime)}
+                          onChange={setStartTime}
+                        />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => endDateRef.current?.showPicker()}
+                        className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 bg-transparent border-0 p-0"
+                      >
+                        to {formatDateDisplay(endDate)}
+                      </button>
+                      <input
+                        ref={endDateRef}
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
+                        className="sr-only"
+                      />
+                      {!form.isAllDay && (
+                        <TimePicker
+                          value={getTimePart(form.endTime)}
+                          onChange={setEndTime}
+                        />
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
+
+              {/* Time validation error */}
+              {timeError && (
+                <p className="text-xs text-red-600">{timeError}</p>
+              )}
+
+              {/* Location */}
+              <LocationCombobox
+                value={form.locationText}
+                buildingId={form.buildingId}
+                areaId={form.areaId}
+                onChange={(locationText, buildingId, areaId) =>
+                  setForm((p) => ({ ...p, locationText, buildingId, areaId }))
+                }
+              />
+
+              {/* Description */}
+              <FloatingTextarea
+                id="event-description"
+                label="Description"
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                rows={3}
+              />
             </form>
 
             {/* Error */}

@@ -111,7 +111,7 @@ function SetPasswordContent() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="ui-input"
+                className="ui-input-bordered"
               />
             </div>
             <div>
@@ -121,7 +121,7 @@ function SetPasswordContent() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="ui-input"
+                className="ui-input-bordered"
               />
             </div>
 

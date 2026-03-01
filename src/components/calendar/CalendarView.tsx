@@ -19,9 +19,11 @@ import MonthView from './MonthView'
 import WeekView from './WeekView'
 import DayView from './DayView'
 import AgendaView from './AgendaView'
+import MobileMonthView from './MobileMonthView'
 import EventDetailPanel from './EventDetailPanel'
 import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -49,6 +51,16 @@ export default function CalendarView() {
     goPrev,
     getDateRange,
   } = useCalendarNavigation()
+
+  // Detect mobile for auto-switching month → agenda
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   const { data: calendars = [], isLoading: calendarsLoading } = useCalendars()
 
@@ -134,15 +146,19 @@ export default function CalendarView() {
     }
   }, [toggleCalendar, updateCalendar, deleteCalendarMutation])
 
-  // Fetch events for the current date range
+  // Fetch ALL events for the date range (API returns all active calendars when no IDs given)
+  // then filter client-side by visible calendars — avoids waterfall waiting for calendars to load
   const { start, end } = getDateRange()
-  const activeCalendarIds = Array.from(visibleCalendarIds)
-  const { data: events = [], isLoading: eventsLoading } = useCalendarEvents(
-    activeCalendarIds,
+  const { data: allEvents = [], isLoading: eventsLoading } = useCalendarEvents(
+    [],
     start,
     end,
-    activeCalendarIds.length > 0
+    true
   )
+  const activeCalendarIds = Array.from(visibleCalendarIds)
+  const events = activeCalendarIds.length > 0
+    ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
+    : allEvents
 
   // Event interaction state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
@@ -276,34 +292,28 @@ export default function CalendarView() {
               Create Calendar
             </button>
           ) : (
-            <div className="max-w-sm mx-auto space-y-3 text-left">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. School Events"
-                  value={newCalendarName}
-                  onChange={(e) => setNewCalendarName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                <select
-                  value={newCalendarType}
-                  onChange={(e) => setNewCalendarType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
-                >
-                  <option value="GENERAL">General</option>
-                  <option value="ACADEMIC">Academic</option>
-                  <option value="STAFF">Staff</option>
-                  <option value="ATHLETICS">Athletics</option>
-                  <option value="PARENT_FACING">Parent-Facing</option>
-                  <option value="TIMETABLE">Timetable</option>
-                </select>
-              </div>
+            <div className="max-w-sm mx-auto space-y-5 text-left">
+              <FloatingInput
+                id="empty-cal-name"
+                label="Calendar name"
+                value={newCalendarName}
+                onChange={(e) => setNewCalendarName(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
+              />
+              <FloatingSelect
+                id="empty-cal-type"
+                label="Type"
+                value={newCalendarType}
+                onChange={(e) => setNewCalendarType(e.target.value)}
+              >
+                <option value="GENERAL">General</option>
+                <option value="ACADEMIC">Academic</option>
+                <option value="STAFF">Staff</option>
+                <option value="ATHLETICS">Athletics</option>
+                <option value="PARENT_FACING">Parent-Facing</option>
+                <option value="TIMETABLE">Timetable</option>
+              </FloatingSelect>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">Color</label>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -349,7 +359,7 @@ export default function CalendarView() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] -mx-4 sm:-mx-10 -mt-4 sm:-mt-6 lg:-mt-8 -mb-4 sm:-mb-6 lg:-mb-8">
       {/* Header area — stays fixed, white bg, shadow at bottom edge */}
-      <div className="flex-shrink-0 bg-white px-10 pt-4 pb-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
+      <div className="flex-shrink-0 bg-white px-4 sm:px-10 pt-4 pb-4 sm:pb-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
         <CalendarToolbar
           currentDate={currentDate}
           view={view}
@@ -371,12 +381,20 @@ export default function CalendarView() {
       {/* Scrollable view area — white background fills to bottom */}
       <div className="flex-1 min-h-0 flex flex-col bg-white overflow-hidden">
           {view === 'month' && (
-            <MonthView
-              currentDate={currentDate}
-              events={events}
-              onEventClick={handleEventClick}
-              onDateClick={handleDateClick}
-            />
+            isMobile ? (
+              <MobileMonthView
+                currentDate={currentDate}
+                events={events}
+                onEventClick={handleEventClick}
+              />
+            ) : (
+              <MonthView
+                currentDate={currentDate}
+                events={events}
+                onEventClick={handleEventClick}
+                onDateClick={handleDateClick}
+              />
+            )
           )}
           {view === 'week' && (
             <WeekView
@@ -445,7 +463,7 @@ export default function CalendarView() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed right-4 top-4 bottom-4 w-full max-w-[420px] bg-white shadow-2xl z-50 flex flex-col rounded-2xl"
+              className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] bg-white shadow-2xl z-50 flex flex-col sm:rounded-2xl"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -461,34 +479,28 @@ export default function CalendarView() {
               </div>
 
               {/* Body */}
-              <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-5">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. School Events"
-                    value={newCalendarName}
-                    onChange={(e) => setNewCalendarName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
-                    autoFocus
-                    onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                  <select
-                    value={newCalendarType}
-                    onChange={(e) => setNewCalendarType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
-                  >
-                    <option value="GENERAL">General</option>
-                    <option value="ACADEMIC">Academic</option>
-                    <option value="STAFF">Staff</option>
-                    <option value="ATHLETICS">Athletics</option>
-                    <option value="PARENT_FACING">Parent-Facing</option>
-                    <option value="TIMETABLE">Timetable</option>
-                  </select>
-                </div>
+              <div className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-5">
+                <FloatingInput
+                  id="drawer-cal-name"
+                  label="Calendar name"
+                  value={newCalendarName}
+                  onChange={(e) => setNewCalendarName(e.target.value)}
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
+                />
+                <FloatingSelect
+                  id="drawer-cal-type"
+                  label="Type"
+                  value={newCalendarType}
+                  onChange={(e) => setNewCalendarType(e.target.value)}
+                >
+                  <option value="GENERAL">General</option>
+                  <option value="ACADEMIC">Academic</option>
+                  <option value="STAFF">Staff</option>
+                  <option value="ATHLETICS">Athletics</option>
+                  <option value="PARENT_FACING">Parent-Facing</option>
+                  <option value="TIMETABLE">Timetable</option>
+                </FloatingSelect>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-2">Color</label>
                   <div className="flex items-center gap-2 flex-wrap">

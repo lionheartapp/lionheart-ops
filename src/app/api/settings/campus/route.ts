@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
         db.building.findMany({
           where,
           include: {
-            school: { select: { id: true, name: true, gradeLevel: true } },
+            school: { select: { id: true, name: true, gradeLevel: true, color: true } },
             campus: { select: { id: true, name: true, campusType: true } },
           },
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],

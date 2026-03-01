@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -337,7 +338,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
             <Users className="w-6 h-6 text-primary-600" />
@@ -347,7 +348,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 min-h-[40px] text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-full hover:bg-gray-800 transition self-start sm:self-auto flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
           Create Team
@@ -388,9 +389,9 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             <thead>
               <tr className="text-gray-500 border-b bg-gray-50">
                 <th className="py-3 px-4 text-left font-medium">Team</th>
-                <th className="py-3 px-4 text-left font-medium">Description</th>
+                <th className="py-3 px-4 text-left font-medium hidden sm:table-cell">Description</th>
                 <th className="py-3 px-4 text-left font-medium">Members</th>
-                <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
+                <th className="py-3 pl-4 pr-4 sm:pr-10 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -400,11 +401,11 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                     <div className="font-medium text-gray-900">{team.name}</div>
                     <div className="text-xs text-gray-400 mt-0.5">@{team.slug}</div>
                   </td>
-                  <td className="py-3 px-4 text-gray-500">
+                  <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">
                     {team.description || <span className="text-gray-300">—</span>}
                   </td>
                   <td className="py-3 px-4 text-gray-600">{team._count?.members || 0}</td>
-                  <td className="py-3 pl-4 pr-10">
+                  <td className="py-3 pl-4 pr-4 sm:pr-10">
                     <div className="flex justify-end">
                       <RowActionMenu
                         items={[
@@ -442,50 +443,41 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         title="Create Team"
         width="lg"
       >
-        <form onSubmit={handleCreateTeam} className="p-8 space-y-6">
+        <form onSubmit={handleCreateTeam} className="space-y-6">
           {actionError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {actionError}
             </div>
           )}
 
-          <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Team Details</h3>
-            </div>
+          <section className="space-y-5">
+            <FloatingInput
+              id="team-name"
+              label="Team name"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              disabled={createLoading}
+              autoFocus
+            />
 
-            <div>
-              <label htmlFor="team-name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Team name
-              </label>
-              <input
-                id="team-name"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                placeholder="e.g. Front Office"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
-                disabled={createLoading}
-                autoFocus
-              />
-            </div>
-
-            <div>
-              <label htmlFor="team-description" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Description <span className="text-gray-400 font-normal">(optional)</span>
-              </label>
-              <textarea
-                id="team-description"
-                value={teamDescription}
-                onChange={(e) => setTeamDescription(e.target.value)}
-                placeholder="What this team is responsible for"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
-                rows={4}
-                disabled={createLoading}
-              />
-            </div>
+            <FloatingTextarea
+              id="team-description"
+              label="Description (optional)"
+              value={teamDescription}
+              onChange={(e) => setTeamDescription(e.target.value)}
+              rows={4}
+              disabled={createLoading}
+            />
           </section>
 
-          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
+          <div className="space-y-3 pt-4">
+            <button
+              type="submit"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={createLoading}
+            >
+              {createLoading ? 'Creating...' : 'Create Team'}
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -494,17 +486,10 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 setTeamDescription('')
                 setActionError(null)
               }}
-              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
               disabled={createLoading}
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={createLoading}
-            >
-              {createLoading ? 'Creating...' : 'Create Team'}
             </button>
           </div>
         </form>
@@ -523,80 +508,52 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             ))}
           </div>
         ) : (
-          <form onSubmit={handleEditTeam} className="p-8 space-y-6">
+          <form onSubmit={handleEditTeam} className="space-y-6">
             {editError && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {editError}
               </div>
             )}
 
-            <section className="space-y-4">
-              <div className="border-b border-gray-200 pb-3">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                  Naming the Team
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Update how this team appears in assignments and filters.
-                </p>
-              </div>
+            <section className="space-y-5">
+              <p className="text-sm text-gray-500">
+                Update how this team appears in assignments and filters.
+              </p>
 
-              <div>
-                <label htmlFor="edit-team-name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Team name
-                </label>
-                <input
-                  id="edit-team-name"
-                  value={editTeamName}
-                  onChange={(e) => setEditTeamName(e.target.value)}
-                  placeholder="e.g. Front Office"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  disabled={editSaving}
-                  autoFocus
-                />
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="border-b border-gray-200 pb-3">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                  Description
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Add context for what this team handles.
-                </p>
-              </div>
-
-              <div>
-                <label htmlFor="edit-team-description" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Description (optional)
-                </label>
-                <textarea
-                  id="edit-team-description"
-                  value={editTeamDescription}
-                  onChange={(e) => setEditTeamDescription(e.target.value)}
-                  placeholder="What this team is responsible for"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  rows={4}
-                  disabled={editSaving}
-                />
-              </div>
-            </section>
-
-            <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
-              <button
-                type="button"
-                onClick={closeEditDrawer}
-                className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+              <FloatingInput
+                id="edit-team-name"
+                label="Team name"
+                value={editTeamName}
+                onChange={(e) => setEditTeamName(e.target.value)}
                 disabled={editSaving}
-              >
-                Cancel
-              </button>
+                autoFocus
+              />
+
+              <FloatingTextarea
+                id="edit-team-description"
+                label="Description (optional)"
+                value={editTeamDescription}
+                onChange={(e) => setEditTeamDescription(e.target.value)}
+                rows={4}
+                disabled={editSaving}
+              />
+            </section>
+
+            <div className="space-y-3 pt-4">
               <button
                 type="submit"
-                className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 disabled={editSaving}
               >
                 {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={closeEditDrawer}
+                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+                disabled={editSaving}
+              >
+                Cancel
               </button>
             </div>
           </form>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest } from '@/lib/org-context'
+import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
@@ -74,36 +74,38 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(ok([]))
     }
 
-    const queryTokens = query.split(/\s+/).map((token) => token.trim()).filter(Boolean)
+    return await runWithOrgContext(orgId, async () => {
+      const queryTokens = query.split(/\s+/).map((token) => token.trim()).filter(Boolean)
 
-    const users = await prisma.user.findMany({
-      where: {
-        organizationId: orgId,
-        AND: queryTokens.map((token) => ({
-          OR: [
-            { firstName: { contains: token, mode: 'insensitive' } },
-            { lastName: { contains: token, mode: 'insensitive' } },
-            { name: { contains: token, mode: 'insensitive' } },
-            { email: { contains: token, mode: 'insensitive' } },
-          ],
-        })),
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        jobTitle: true,
-      },
-      orderBy: [
-        { firstName: 'asc' },
-        { lastName: 'asc' },
-      ],
-      take: 15,
+      const users = await prisma.user.findMany({
+        where: {
+          organizationId: orgId,
+          AND: queryTokens.map((token) => ({
+            OR: [
+              { firstName: { contains: token, mode: 'insensitive' } },
+              { lastName: { contains: token, mode: 'insensitive' } },
+              { name: { contains: token, mode: 'insensitive' } },
+              { email: { contains: token, mode: 'insensitive' } },
+            ],
+          })),
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          jobTitle: true,
+        },
+        orderBy: [
+          { firstName: 'asc' },
+          { lastName: 'asc' },
+        ],
+        take: 15,
+      })
+
+      return NextResponse.json(ok(users.map(toPrincipalResponse)))
     })
-
-    return NextResponse.json(ok(users.map(toPrincipalResponse)))
   } catch (err) {
     console.error('Failed to search principals:', err)
     return NextResponse.json(
@@ -148,96 +150,97 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { firstName, lastName } = splitPrincipalName(principalName)
+    return await runWithOrgContext(orgId, async () => {
+      const { firstName, lastName } = splitPrincipalName(principalName)
 
-    const [organization, existingUserForDomain] = await Promise.all([
-      prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { slug: true, website: true },
-      }),
-      prisma.user.findFirst({
-        where: {
-          organizationId: orgId,
-          email: {
-            not: {
-              endsWith: '@temp.local',
+      const [organization, existingUserForDomain] = await Promise.all([
+        prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { slug: true, website: true },
+        }),
+        prisma.user.findFirst({
+          where: {
+            organizationId: orgId,
+            email: {
+              not: {
+                endsWith: '@temp.local',
+              },
             },
           },
-        },
-        select: { email: true },
-        orderBy: { createdAt: 'asc' },
-      }),
-    ])
+          select: { email: true },
+          orderBy: { createdAt: 'asc' },
+        }),
+      ])
 
-    const websiteDomain = extractDomainFromUrl(organization?.website)
-    const existingEmailDomain = existingUserForDomain?.email.split('@')[1]?.toLowerCase() || null
-    const fallbackDomain = `${(organization?.slug || 'school').toLowerCase()}.com`
-    const emailDomain = websiteDomain || existingEmailDomain || fallbackDomain
+      const websiteDomain = extractDomainFromUrl(organization?.website)
+      const existingEmailDomain = existingUserForDomain?.email.split('@')[1]?.toLowerCase() || null
+      const fallbackDomain = `${(organization?.slug || 'school').toLowerCase()}.com`
+      const emailDomain = websiteDomain || existingEmailDomain || fallbackDomain
 
-    const baseLocalPart = buildPrincipalEmailLocalPart(firstName, lastName)
-    let email = `${baseLocalPart}@${emailDomain}`
-    let suffix = 2
+      const baseLocalPart = buildPrincipalEmailLocalPart(firstName, lastName)
+      let email = `${baseLocalPart}@${emailDomain}`
+      let suffix = 2
 
-    while (true) {
-      const emailExists = await prisma.user.findUnique({
-        where: {
-          organizationId_email: {
-            organizationId: orgId,
-            email,
+      while (true) {
+        const emailExists = await prisma.user.findUnique({
+          where: {
+            organizationId_email: {
+              organizationId: orgId,
+              email,
+            },
           },
-        },
+          select: { id: true },
+        })
+
+        if (!emailExists) break
+        email = `${baseLocalPart}${suffix}@${emailDomain}`
+        suffix += 1
+      }
+
+      // Get a basic role for the principal
+      let roleId = null
+      const roles = await prisma.role.findMany({
+        where: { organizationId: orgId },
         select: { id: true },
+        take: 1,
+      })
+      if (roles.length > 0) {
+        roleId = roles[0].id
+      }
+
+      if (!roleId) {
+        return NextResponse.json(
+          fail('BAD_REQUEST', 'No roles available in organization'),
+          { status: 400 }
+        )
+      }
+
+      // Create the user
+      const user = await prisma.user.create({
+        data: {
+          organizationId: orgId,
+          email,
+          firstName,
+          lastName,
+          name: `${firstName} ${lastName}`.trim(),
+          phone: phone || null,
+          jobTitle: 'Principal',
+          passwordHash: '', // Will need to be set later
+          roleId,
+          status: 'ACTIVE',
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          jobTitle: true,
+        },
       })
 
-      if (!emailExists) break
-      email = `${baseLocalPart}${suffix}@${emailDomain}`
-      suffix += 1
-    }
-
-    // Get a basic role for the principal (e.g., "Staff" or similar)
-    // For now, we'll try to find a role, but if it doesn't exist, we'll use the first available role
-    let roleId = null
-    const roles = await prisma.role.findMany({
-      where: { organizationId: orgId },
-      select: { id: true },
-      take: 1,
+      return NextResponse.json(ok(toPrincipalResponse(user)), { status: 201 })
     })
-    if (roles.length > 0) {
-      roleId = roles[0].id
-    }
-
-    if (!roleId) {
-      return NextResponse.json(
-        fail('BAD_REQUEST', 'No roles available in organization'),
-        { status: 400 }
-      )
-    }
-
-    // Create the user
-    const user = await prisma.user.create({
-      data: {
-        organizationId: orgId,
-        email,
-        firstName,
-        lastName,
-        name: `${firstName} ${lastName}`.trim(),
-        phone: phone || null,
-        jobTitle: 'Principal',
-        passwordHash: '', // Will need to be set later
-        roleId,
-        status: 'ACTIVE',
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        jobTitle: true,
-      },
-    })
-
-    return NextResponse.json(ok(toPrincipalResponse(user)), { status: 201 })
   } catch (err) {
     console.error('Failed to create principal:', err)
     return NextResponse.json(

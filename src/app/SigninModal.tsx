@@ -88,7 +88,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="ui-input pr-48"
+                  className="ui-input-bordered pr-48"
                   aria-describedby="subdomain-hint"
                   required
                 />

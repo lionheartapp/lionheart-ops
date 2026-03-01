@@ -69,7 +69,7 @@ export default function PlatformLoginPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className="ui-input"
+                className="ui-input-bordered"
               />
             </div>
           )}
@@ -83,7 +83,7 @@ export default function PlatformLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@lionheartapp.com"
-                className="ui-input pl-10"
+                className="ui-input-bordered pl-10"
                 required
               />
             </div>
@@ -98,7 +98,7 @@ export default function PlatformLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={isSetup ? 'Min 8 characters' : 'Enter your password'}
-                className="ui-input pl-10"
+                className="ui-input-bordered pl-10"
                 required
                 minLength={isSetup ? 8 : undefined}
               />

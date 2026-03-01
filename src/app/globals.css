@@ -151,14 +151,18 @@ a:visited {
 
 @layer components {
   .ui-input {
+    @apply w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 outline-none transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-200;
+  }
+
+  .ui-input-bordered {
     @apply w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition;
   }
 
   .ui-select {
-    @apply w-full px-4 py-3 pr-12 min-h-[44px] border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-no-repeat transition;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%234B5563' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    @apply w-full px-3.5 py-3.5 pr-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 outline-none appearance-none bg-no-repeat transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-200;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236B7280' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
     background-size: 16px 16px;
-    background-position: right 16px center;
+    background-position: right 12px center;
   }
 
   .ui-icon-muted {
@@ -166,7 +170,7 @@ a:visited {
   }
 
   .settings-search-input {
-    @apply w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full pl-10 pr-4 py-3 border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 bg-white rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 outline-none transition-colors;
   }
 
   .ui-label {
@@ -174,27 +178,27 @@ a:visited {
   }
 
   .ui-btn {
-    @apply inline-flex items-center justify-center font-medium rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center font-semibold rounded-full transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .ui-btn-sm {
-    @apply ui-btn px-3 py-1.5 min-h-[32px] text-xs;
+    @apply ui-btn px-4 py-1.5 min-h-[32px] text-xs;
   }
 
   .ui-btn-md {
-    @apply ui-btn px-4 py-2 min-h-[40px] text-sm;
+    @apply ui-btn px-5 py-2.5 min-h-[40px] text-sm;
   }
 
   .ui-btn-lg {
-    @apply ui-btn px-6 py-3 min-h-[48px] text-base;
+    @apply ui-btn px-6 py-3.5 min-h-[48px] text-sm;
   }
 
   .ui-btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-gray-900 text-white hover:bg-gray-800;
   }
 
   .ui-btn-secondary {
-    @apply border border-gray-200 text-gray-700 hover:bg-gray-50;
+    @apply text-gray-500 hover:text-gray-700 bg-transparent;
   }
 
   .ui-badge {

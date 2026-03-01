@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
           ...(campusId ? { campusId } : {}),
         },
         include: {
-          school: { select: { id: true, name: true, gradeLevel: true } },
+          school: { select: { id: true, name: true, gradeLevel: true, color: true } },
           campus: { select: { id: true, name: true, campusType: true } },
         },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
           longitude: input.longitude ?? null,
         },
         include: {
-          school: { select: { id: true, name: true, gradeLevel: true } },
+          school: { select: { id: true, name: true, gradeLevel: true, color: true } },
           campus: { select: { id: true, name: true, campusType: true } },
         },
       })

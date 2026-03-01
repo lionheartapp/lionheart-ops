@@ -67,15 +67,15 @@ export default function CalendarToolbar({
 
   return (
     <div className="pb-5 space-y-4">
-      {/* Row 1: Title | View switcher pill | Nav pill + Create */}
-      <div className="flex items-center justify-between">
-        {/* Left: Title — fixed width so center tabs don't shift */}
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight w-72">
+      {/* Row 1: Title + Nav pill + Create button */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Left: Title */}
+        <h2 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight min-w-0 truncate">
           {formatTitle(currentDate, view)}
         </h2>
 
-        {/* Center: View switcher — single bordered pill */}
-        <div className="flex border border-gray-200 rounded-full overflow-hidden">
+        {/* Center: View switcher — desktop only */}
+        <div className="hidden sm:flex border border-gray-200 rounded-full overflow-hidden flex-shrink-0">
           {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
             <button
               key={v}
@@ -92,25 +92,26 @@ export default function CalendarToolbar({
         </div>
 
         {/* Right: Nav pill + Create button */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {/* Nav group in a single bordered pill */}
           <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
             <button
               onClick={onNavigateBack}
-              className="px-3 py-2 hover:bg-gray-50 transition-colors"
+              className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors"
               aria-label="Previous"
             >
               <ChevronLeft className="w-4 h-4 text-gray-600" />
             </button>
             <button
               onClick={onToday}
-              className="px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors border-l border-r border-gray-200"
+              className="px-3 sm:px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors border-l border-r border-gray-200"
             >
-              Today
+              <span className="hidden sm:inline">Today</span>
+              <span className="sm:hidden text-xs">Now</span>
             </button>
             <button
               onClick={onNavigateForward}
-              className="px-3 py-2 hover:bg-gray-50 transition-colors"
+              className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors"
               aria-label="Next"
             >
               <ChevronRight className="w-4 h-4 text-gray-600" />
@@ -119,12 +120,29 @@ export default function CalendarToolbar({
 
           <button
             onClick={onCreateEvent}
-            className="flex items-center gap-2 px-5 py-2 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors"
+            className="flex items-center gap-2 px-3 sm:px-5 py-2 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Event</span>
           </button>
         </div>
+      </div>
+
+      {/* Row 2: View switcher — mobile only */}
+      <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden">
+        {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
+          <button
+            key={v}
+            onClick={() => onViewChange(v)}
+            className={`flex-1 text-center py-2 text-xs font-semibold transition-all ${
+              view === v
+                ? 'bg-gray-100 text-gray-900'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            {viewLabels[v]}
+          </button>
+        ))}
       </div>
 
       {/* Row 2: Day header cards (week/day views only) */}
@@ -147,10 +165,11 @@ export default function CalendarToolbar({
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
-                <div className={`text-[11px] font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
-                  {dayNamesFull[date.getDay()]}
+                <div className={`text-[9px] sm:text-[11px] font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
+                  <span className="sm:hidden">{dayNamesFull[date.getDay()].slice(0, 3)}</span>
+                  <span className="hidden sm:inline">{dayNamesFull[date.getDay()]}</span>
                 </div>
-                <div className="text-2xl font-bold mt-0.5">
+                <div className="text-lg sm:text-2xl font-bold mt-0.5">
                   {date.getDate()}
                 </div>
               </div>

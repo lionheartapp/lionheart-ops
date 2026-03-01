@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Shield, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { FloatingInput } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -415,7 +416,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
             <Shield className="w-6 h-6 text-primary-600" />
@@ -425,7 +426,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         </div>
         <button
           onClick={openCreateDrawer}
-          className="flex items-center gap-2 px-4 py-2 min-h-[40px] text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-full hover:bg-gray-800 transition self-start sm:self-auto flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
           Create Role
@@ -474,9 +475,9 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             <thead>
               <tr className="text-gray-500 border-b bg-gray-50">
                 <th className="py-3 px-4 text-left font-medium">Role</th>
-                <th className="py-3 px-4 text-left font-medium">Permissions</th>
+                <th className="py-3 px-4 text-left font-medium hidden sm:table-cell">Permissions</th>
                 <th className="py-3 px-4 text-left font-medium">Members</th>
-                <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
+                <th className="py-3 pl-4 pr-4 sm:pr-10 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -493,9 +494,9 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5">@{role.slug}</div>
                   </td>
-                  <td className="py-3 px-4 text-gray-600">{role._count?.permissions || 0}</td>
+                  <td className="py-3 px-4 text-gray-600 hidden sm:table-cell">{role._count?.permissions || 0}</td>
                   <td className="py-3 px-4 text-gray-600">{role._count?.users || 0}</td>
-                  <td className="py-3 pl-4 pr-10">
+                  <td className="py-3 pl-4 pr-4 sm:pr-10">
                     <div className="flex justify-end">
                       {!role.isSystem && (
                         <RowActionMenu
@@ -530,7 +531,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         title="Create Role"
         width="lg"
       >
-        <form onSubmit={handleCreateRole} className="p-8 space-y-6">
+        <form onSubmit={handleCreateRole} className="space-y-6">
           {actionError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {actionError}
@@ -538,34 +539,23 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
           )}
 
           <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                Naming the Role
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                This name appears in user profiles, filters, and activity logs.
-              </p>
-            </div>
+            <p className="text-sm text-gray-500">
+              This name appears in user profiles, filters, and activity logs.
+            </p>
 
-            <div>
-              <label htmlFor="role-name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Role name
-              </label>
-              <input
-                id="role-name"
-                value={roleName}
-                onChange={(e) => setRoleName(e.target.value)}
-                placeholder="e.g. Attendance Coordinator"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
-                disabled={createLoading}
-                autoFocus
-              />
-            </div>
+            <FloatingInput
+              id="role-name"
+              label="Role name"
+              value={roleName}
+              onChange={(e) => setRoleName(e.target.value)}
+              disabled={createLoading}
+              autoFocus
+            />
           </section>
 
           <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+            <div>
+              <h3 className="text-xs text-gray-400 uppercase tracking-wide font-medium">
                 Permissions
               </h3>
               <p className="mt-1 text-sm text-gray-500">
@@ -589,21 +579,21 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             )}
           </section>
 
-          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
-            <button
-              type="button"
-              onClick={closeCreateDrawer}
-              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-              disabled={createLoading}
-            >
-              Cancel
-            </button>
+          <div className="space-y-3 pt-4">
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               disabled={createLoading}
             >
               {createLoading ? 'Creating...' : 'Create Role'}
+            </button>
+            <button
+              type="button"
+              onClick={closeCreateDrawer}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              disabled={createLoading}
+            >
+              Cancel
             </button>
           </div>
         </form>
@@ -622,7 +612,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             ))}
           </div>
         ) : (
-          <form onSubmit={handleEditRole} className="p-8 space-y-6">
+          <form onSubmit={handleEditRole} className="space-y-6">
             {editError && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {editError}
@@ -630,34 +620,23 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             )}
 
             <section className="space-y-4">
-              <div className="border-b border-gray-200 pb-3">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                  Naming the Role
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Update how this role appears across the platform.
-                </p>
-              </div>
+              <p className="text-sm text-gray-500">
+                Update how this role appears across the platform.
+              </p>
 
-              <div>
-                <label htmlFor="edit-role-name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Role name
-                </label>
-                <input
-                  id="edit-role-name"
-                  value={editRoleName}
-                  onChange={(e) => setEditRoleName(e.target.value)}
-                  placeholder="e.g. Attendance Coordinator"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  disabled={editSaving}
-                  autoFocus
-                />
-              </div>
+              <FloatingInput
+                id="edit-role-name"
+                label="Role name"
+                value={editRoleName}
+                onChange={(e) => setEditRoleName(e.target.value)}
+                disabled={editSaving}
+                autoFocus
+              />
             </section>
 
             <section className="space-y-4">
-              <div className="border-b border-gray-200 pb-3">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+              <div>
+                <h3 className="text-xs text-gray-400 uppercase tracking-wide font-medium">
                   Permissions
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
@@ -681,21 +660,21 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               )}
             </section>
 
-            <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
-              <button
-                type="button"
-                onClick={closeEditDrawer}
-                className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-                disabled={editSaving}
-              >
-                Cancel
-              </button>
+            <div className="space-y-3 pt-4">
               <button
                 type="submit"
-                className="flex items-center gap-2 px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 disabled={editSaving}
               >
                 {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={closeEditDrawer}
+                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+                disabled={editSaving}
+              >
+                Cancel
               </button>
             </div>
           </form>

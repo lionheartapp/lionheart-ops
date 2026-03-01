@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react'
 import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield, ChevronDown, X, Search } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -564,23 +565,20 @@ const MembersTab = (_props: MembersTabProps) => {
     return matchesStatus && matchesSearch
   })
 
-  const inputClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400'
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1.5'
-
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
             <UserCog className="w-6 h-6 text-primary-600" />
             Members
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Manage your organization's users and their roles</p>
+          <p className="text-sm text-gray-500 mt-1">Manage your organization&apos;s users and their roles</p>
         </div>
         <button
           onClick={openInvite}
-          className="bg-primary-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 text-sm font-medium transition"
+          className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition self-start sm:self-auto flex-shrink-0"
         >
           <Plus className="w-4 h-4" /> Invite user
         </button>
@@ -605,10 +603,10 @@ const MembersTab = (_props: MembersTabProps) => {
           <button
             key={t.value}
             onClick={() => setStatusTab(t.value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               statusTab === t.value
-                ? 'bg-primary-50 border-primary-500 text-primary-700'
-                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             {t.label}
@@ -625,7 +623,7 @@ const MembersTab = (_props: MembersTabProps) => {
       <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
         <div className="flex items-center gap-2 p-4 border-b border-gray-100">
           <input
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            className="flex-1 ui-input"
             placeholder="Search by name, email or role…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -641,9 +639,9 @@ const MembersTab = (_props: MembersTabProps) => {
                 <th className="py-3 px-4 text-left font-medium">Name</th>
                 <th className="py-3 px-4 text-left font-medium">Role</th>
                 <th className="py-3 px-4 text-left font-medium">Status</th>
-                <th className="py-3 px-4 text-left font-medium">Teams</th>
-                <th className="py-3 px-4 text-left font-medium">Date added</th>
-                <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
+                <th className="py-3 px-4 text-left font-medium hidden md:table-cell">Teams</th>
+                <th className="py-3 px-4 text-left font-medium hidden lg:table-cell">Date added</th>
+                <th className="py-3 pl-4 pr-4 sm:pr-10 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -683,13 +681,13 @@ const MembersTab = (_props: MembersTabProps) => {
                     <td className="py-3 px-4">
                       <StatusBadge status={u.status} />
                     </td>
-                    <td className="py-3 px-4 text-gray-600">
+                    <td className="py-3 px-4 text-gray-600 hidden md:table-cell">
                       {u.teams.length > 0
                         ? u.teams.map((t) => t.team.name).join(', ')
                         : <span className="text-gray-400">—</span>}
                     </td>
-                    <td className="py-3 px-4 text-gray-600">{formatDate(u.createdAt)}</td>
-                    <td className="py-3 pl-4 pr-10">
+                    <td className="py-3 px-4 text-gray-600 hidden lg:table-cell">{formatDate(u.createdAt)}</td>
+                    <td className="py-3 pl-4 pr-4 sm:pr-10">
                       <div className="flex justify-end">
                         <RowActionMenu
                           items={[
@@ -737,104 +735,80 @@ const MembersTab = (_props: MembersTabProps) => {
           : 'Edit Member'}
         width="lg"
       >
-        <form onSubmit={handleEditUser} className="p-8 space-y-6">
+        <form onSubmit={handleEditUser} className="space-y-6">
           {editError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {editError}
             </div>
           )}
 
-          <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Personal Info</h3>
-              <p className="mt-1 text-sm text-gray-500">Update how this member appears across the platform.</p>
-            </div>
+          <section className="space-y-5">
+            <p className="text-sm text-gray-500">Update how this member appears across the platform.</p>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="edit-firstName" className={labelClass}>First name</label>
-                <input
-                  id="edit-firstName"
-                  value={editForm.firstName}
-                  onChange={(e) => setEditForm((p) => ({ ...p, firstName: e.target.value }))}
-                  placeholder="First name"
-                  className={inputClass}
-                  disabled={editSaving}
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label htmlFor="edit-lastName" className={labelClass}>Last name</label>
-                <input
-                  id="edit-lastName"
-                  value={editForm.lastName}
-                  onChange={(e) => setEditForm((p) => ({ ...p, lastName: e.target.value }))}
-                  placeholder="Last name"
-                  className={inputClass}
-                  disabled={editSaving}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="edit-jobTitle" className={labelClass}>Job title <span className="text-gray-400 font-normal">(optional)</span></label>
-              <input
-                id="edit-jobTitle"
-                value={editForm.jobTitle}
-                onChange={(e) => setEditForm((p) => ({ ...p, jobTitle: e.target.value }))}
-                placeholder="e.g. Head Teacher, IT Administrator"
-                className={inputClass}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FloatingInput
+                id="edit-firstName"
+                label="First name"
+                value={editForm.firstName}
+                onChange={(e) => setEditForm((p) => ({ ...p, firstName: e.target.value }))}
+                disabled={editSaving}
+                autoFocus
+              />
+              <FloatingInput
+                id="edit-lastName"
+                label="Last name"
+                value={editForm.lastName}
+                onChange={(e) => setEditForm((p) => ({ ...p, lastName: e.target.value }))}
                 disabled={editSaving}
               />
             </div>
+
+            <FloatingInput
+              id="edit-jobTitle"
+              label="Job title (optional)"
+              value={editForm.jobTitle}
+              onChange={(e) => setEditForm((p) => ({ ...p, jobTitle: e.target.value }))}
+              disabled={editSaving}
+            />
           </section>
 
-          <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Access & Status</h3>
-              <p className="mt-1 text-sm text-gray-500">Control this member's role and account status.</p>
-            </div>
+          <section className="space-y-5">
+            <p className="text-sm text-gray-500">Control this member&apos;s role and account status.</p>
 
-            <div>
-              <label htmlFor="edit-roleId" className={labelClass}>Role</label>
-              {rolesLoading ? (
-                <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
-              ) : (
-                <select
-                  id="edit-roleId"
-                  value={editForm.roleId}
-                  onChange={(e) => setEditForm((p) => ({ ...p, roleId: e.target.value }))}
-                  className={inputClass}
-                  disabled={editSaving}
-                >
-                  <option value="">No role assigned</option>
-                  {availableRoles.map((role) => (
-                    <option key={role.id} value={role.id}>{role.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="edit-status" className={labelClass}>Status</label>
-              <select
-                id="edit-status"
-                value={editForm.status}
-                onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
-                className={inputClass}
+            {rolesLoading ? (
+              <div className="h-12 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
+            ) : (
+              <FloatingSelect
+                id="edit-roleId"
+                label="Role"
+                value={editForm.roleId}
+                onChange={(e) => setEditForm((p) => ({ ...p, roleId: e.target.value }))}
                 disabled={editSaving}
               >
-                <option value="ACTIVE">Active</option>
-                <option value="PENDING">Pending</option>
-                <option value="INACTIVE">Inactive</option>
-                <option value="SUSPENDED">Suspended</option>
-              </select>
-            </div>
+                <option value="">No role assigned</option>
+                {availableRoles.map((role) => (
+                  <option key={role.id} value={role.id}>{role.name}</option>
+                ))}
+              </FloatingSelect>
+            )}
+
+            <FloatingSelect
+              id="edit-status"
+              label="Status"
+              value={editForm.status}
+              onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
+              disabled={editSaving}
+            >
+              <option value="ACTIVE">Active</option>
+              <option value="PENDING">Pending</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="SUSPENDED">Suspended</option>
+            </FloatingSelect>
 
             <div>
-              <label htmlFor="edit-teamIds" className={labelClass}>Teams</label>
+              <label htmlFor="edit-teamIds" className="block text-xs text-gray-500 font-medium mb-1.5">Teams</label>
               {rolesLoading ? (
-                <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
+                <div className="h-12 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
               ) : availableTeams.length === 0 ? (
                 <p className="text-sm text-gray-400">No teams available</p>
               ) : (
@@ -848,21 +822,21 @@ const MembersTab = (_props: MembersTabProps) => {
             </div>
           </section>
 
-          <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
-            <button
-              type="button"
-              onClick={closeEditUser}
-              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-              disabled={editSaving}
-            >
-              Cancel
-            </button>
+          <div className="space-y-3 pt-4">
             <button
               type="submit"
-              className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={editSaving}
             >
               {editSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={closeEditUser}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              disabled={editSaving}
+            >
+              Cancel
             </button>
           </div>
         </form>
@@ -947,22 +921,22 @@ const MembersTab = (_props: MembersTabProps) => {
           </div>
 
           {/* Pinned footer */}
-          <div className="flex-shrink-0 flex items-center justify-end gap-2 border-t border-gray-200 px-6 py-4 bg-white">
-            <button
-              type="button"
-              onClick={closeManagePermissions}
-              className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-              disabled={permSaving}
-            >
-              Cancel
-            </button>
+          <div className="flex-shrink-0 px-6 py-4 bg-white space-y-3">
             <button
               type="button"
               onClick={saveManagePermissions}
-              className="px-4 py-2 min-h-[40px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={permSaving || permLoading}
             >
               {permSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={closeManagePermissions}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              disabled={permSaving}
+            >
+              Cancel
             </button>
           </div>
         </div>
@@ -989,53 +963,40 @@ const MembersTab = (_props: MembersTabProps) => {
         width="md"
       >
         <form onSubmit={handleInvite} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email address *</label>
-            <input
-              type="email"
-              required
-              placeholder="colleague@school.edu"
-              value={inviteForm.email}
-              onChange={(e) => setInviteForm((p) => ({ ...p, email: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              autoFocus
+          <FloatingInput
+            id="invite-email"
+            label="Email address"
+            type="email"
+            required
+            value={inviteForm.email}
+            onChange={(e) => setInviteForm((p) => ({ ...p, email: e.target.value }))}
+            autoFocus
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <FloatingInput
+              id="invite-firstName"
+              label="First name"
+              value={inviteForm.firstName}
+              onChange={(e) => setInviteForm((p) => ({ ...p, firstName: e.target.value }))}
+            />
+            <FloatingInput
+              id="invite-lastName"
+              label="Last name"
+              value={inviteForm.lastName}
+              onChange={(e) => setInviteForm((p) => ({ ...p, lastName: e.target.value }))}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
-              <input
-                type="text"
-                placeholder="Jane"
-                value={inviteForm.firstName}
-                onChange={(e) => setInviteForm((p) => ({ ...p, firstName: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
-              <input
-                type="text"
-                placeholder="Doe"
-                value={inviteForm.lastName}
-                onChange={(e) => setInviteForm((p) => ({ ...p, lastName: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              value={inviteForm.roleId}
-              onChange={(e) => setInviteForm((p) => ({ ...p, roleId: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-            >
-              <option value="">Default role</option>
-              {availableRoles.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
-          </div>
+          <FloatingSelect
+            id="invite-roleId"
+            label="Role"
+            value={inviteForm.roleId}
+            onChange={(e) => setInviteForm((p) => ({ ...p, roleId: e.target.value }))}
+          >
+            <option value="">Default role</option>
+            {availableRoles.map((r) => (
+              <option key={r.id} value={r.id}>{r.name}</option>
+            ))}
+          </FloatingSelect>
 
           {inviteError && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
@@ -1043,21 +1004,21 @@ const MembersTab = (_props: MembersTabProps) => {
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowInvite(false)}
-              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
+          <div className="space-y-3 pt-2">
             <button
               type="submit"
               disabled={inviteSaving || !inviteForm.email.trim()}
-              className="flex-1 px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
               {inviteSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
               Send Invite
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowInvite(false)}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+            >
+              Cancel
             </button>
           </div>
         </form>

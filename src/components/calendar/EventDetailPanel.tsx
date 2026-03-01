@@ -58,7 +58,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-4 top-4 bottom-4 w-full max-w-[420px] bg-white shadow-2xl z-50 flex flex-col rounded-2xl"
+            className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] bg-white shadow-2xl z-50 flex flex-col sm:rounded-2xl"
           >
             {/* Header */}
             <div className="px-6 pt-5 pb-4">

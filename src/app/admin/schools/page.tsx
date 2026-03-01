@@ -46,7 +46,7 @@ export default function SchoolsPage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search schools..."
-            className="ui-input pl-10"
+            className="ui-input-bordered pl-10"
           />
         </div>
         <select

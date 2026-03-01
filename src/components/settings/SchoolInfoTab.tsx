@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Save, School } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 
 type SchoolInfo = {
   id: string
@@ -357,7 +358,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <button
           type="button"
           onClick={loadSchoolInfo}
-          className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
+          className="px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
         >
           Retry
         </button>
@@ -377,63 +378,41 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
         {success && <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="si-schoolName" className="block text-sm font-medium text-gray-700 mb-1.5">School Name</label>
-            <input id="si-schoolName" className="ui-input" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+          <FloatingInput id="si-schoolName" label="School Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
+
+          <FloatingSelect id="si-institutionType" label="Institution Type" value={form.institutionType} onChange={(event) => setForm((prev) => ({ ...prev, institutionType: event.target.value as any }))}>
+            <option value="">-- Select Institution Type --</option>
+            <option value="PUBLIC">Public</option>
+            <option value="PRIVATE">Private</option>
+            <option value="CHARTER">Charter</option>
+            <option value="HYBRID">Hybrid</option>
+          </FloatingSelect>
+
+          <FloatingSelect id="si-gradeLevel" label="Grade Level / Organization Type" value={form.gradeLevel} onChange={(event) => setForm((prev) => ({ ...prev, gradeLevel: event.target.value as any }))}>
+            <option value="">-- Select Type --</option>
+            <option value="ELEMENTARY">Elementary School</option>
+            <option value="MIDDLE_SCHOOL">Middle School</option>
+            <option value="HIGH_SCHOOL">High School</option>
+            <option value="GLOBAL">Global</option>
+            <option value="MULTI_SCHOOL_CAMPUS">Multi-School Campus</option>
+          </FloatingSelect>
 
           <div>
-            <label htmlFor="si-institutionType" className="block text-sm font-medium text-gray-700 mb-1.5">Institution Type</label>
-            <select id="si-institutionType" className="ui-select w-full" value={form.institutionType} onChange={(event) => setForm((prev) => ({ ...prev, institutionType: event.target.value as any }))}>
-              <option value="">-- Select Institution Type --</option>
-              <option value="PUBLIC">Public</option>
-              <option value="PRIVATE">Private</option>
-              <option value="CHARTER">Charter</option>
-              <option value="HYBRID">Hybrid</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="si-gradeLevel" className="block text-sm font-medium text-gray-700 mb-1.5">Grade Level / Organization Type</label>
-            <select id="si-gradeLevel" className="ui-select w-full" value={form.gradeLevel} onChange={(event) => setForm((prev) => ({ ...prev, gradeLevel: event.target.value as any }))}>
-              <option value="">-- Select Type --</option>
-              <option value="ELEMENTARY">Elementary School</option>
-              <option value="MIDDLE_SCHOOL">Middle School</option>
-              <option value="HIGH_SCHOOL">High School</option>
-              <option value="GLOBAL">Global</option>
-              <option value="MULTI_SCHOOL_CAMPUS">Multi-School Campus</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="si-slug" className="block text-sm font-medium text-gray-700 mb-1.5">Subdomain Slug</label>
-            <input id="si-slug" className="ui-input" value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required />
+            <FloatingInput id="si-slug" label="Subdomain Slug" value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required />
             <p className="mt-1 text-xs text-gray-500">Used as: {form.slug || 'your-school'}.lionheartapp.com</p>
           </div>
 
-          <div>
-            <label htmlFor="si-district" className="block text-sm font-medium text-gray-700 mb-1.5">District</label>
-            <input id="si-district" className="ui-input" value={form.district} onChange={(event) => setForm((prev) => ({ ...prev, district: event.target.value }))} />
-          </div>
+          <FloatingInput id="si-district" label="District" value={form.district} onChange={(event) => setForm((prev) => ({ ...prev, district: event.target.value }))} />
 
-          <div>
-            <label htmlFor="si-website" className="block text-sm font-medium text-gray-700 mb-1.5">Website</label>
-            <input id="si-website" className="ui-input" placeholder="https://example.edu" value={form.website} onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))} />
-          </div>
+          <FloatingInput id="si-website" label="Website" value={form.website} onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))} />
 
-          <div>
-            <label htmlFor="si-phone" className="block text-sm font-medium text-gray-700 mb-1.5">School Phone</label>
-            <input id="si-phone" className="ui-input" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
-          </div>
+          <FloatingInput id="si-phone" label="School Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
 
-          <div>
-            <label htmlFor="si-gradeRange" className="block text-sm font-medium text-gray-700 mb-1.5">Grade Range</label>
-            <input id="si-gradeRange" className="ui-input" placeholder="e.g., K-12" value={form.gradeRange} onChange={(event) => setForm((prev) => ({ ...prev, gradeRange: event.target.value }))} />
-          </div>
+          <FloatingInput id="si-gradeRange" label="Grade Range" value={form.gradeRange} onChange={(event) => setForm((prev) => ({ ...prev, gradeRange: event.target.value }))} />
 
           <div className="md:col-span-2">
-            <label htmlFor="si-physicalAddress" className="block text-sm font-medium text-gray-700 mb-1.5">Physical Address</label>
+            <label htmlFor="si-physicalAddress" className="block text-xs text-gray-500 font-medium mb-1.5">Physical Address</label>
             <AddressAutocomplete
               value={form.physicalAddress}
               onChange={(value) => setForm((prev) => ({ ...prev, physicalAddress: value }))}
@@ -445,51 +424,22 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       <section>
         <h3 className="text-lg font-semibold text-gray-900">Enrollment & Staffing</h3>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="si-studentCount" className="block text-sm font-medium text-gray-700 mb-1.5">Student Count</label>
-            <input
-              id="si-studentCount"
-              className="ui-input"
-              type="number"
-              min={0}
-              value={form.studentCount}
-              onChange={(event) => setForm((prev) => ({ ...prev, studentCount: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label htmlFor="si-staffCount" className="block text-sm font-medium text-gray-700 mb-1.5">Staff Count</label>
-            <input
-              id="si-staffCount"
-              className="ui-input"
-              type="number"
-              min={0}
-              value={form.staffCount}
-              onChange={(event) => setForm((prev) => ({ ...prev, staffCount: event.target.value }))}
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+          <FloatingInput id="si-studentCount" label="Student Count" type="number" min={0} value={form.studentCount} onChange={(event) => setForm((prev) => ({ ...prev, studentCount: event.target.value }))} />
+          <FloatingInput id="si-staffCount" label="Staff Count" type="number" min={0} value={form.staffCount} onChange={(event) => setForm((prev) => ({ ...prev, staffCount: event.target.value }))} />
         </div>
       </section>
 
       <section>
         <h3 className="text-lg font-semibold text-gray-900">Branding</h3>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="si-logoUrl" className="block text-sm font-medium text-gray-700 mb-1.5">Logo URL</label>
-            <input id="si-logoUrl" className="ui-input" value={form.logoUrl} onChange={(event) => setForm((prev) => ({ ...prev, logoUrl: event.target.value }))} />
-          </div>
-          <div>
-            <label htmlFor="si-heroImageUrl" className="block text-sm font-medium text-gray-700 mb-1.5">Hero Image URL</label>
-            <input id="si-heroImageUrl" className="ui-input" value={form.heroImageUrl} onChange={(event) => setForm((prev) => ({ ...prev, heroImageUrl: event.target.value }))} />
-          </div>
-          <div>
-            <label htmlFor="si-imagePosition" className="block text-sm font-medium text-gray-700 mb-1.5">Image Position</label>
-            <select id="si-imagePosition" className="ui-select w-full" value={form.imagePosition} onChange={(event) => setForm((prev) => ({ ...prev, imagePosition: event.target.value as FormState['imagePosition'] }))}>
-              <option value="LEFT">Left</option>
-              <option value="RIGHT">Right</option>
-            </select>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+          <FloatingInput id="si-logoUrl" label="Logo URL" value={form.logoUrl} onChange={(event) => setForm((prev) => ({ ...prev, logoUrl: event.target.value }))} />
+          <FloatingInput id="si-heroImageUrl" label="Hero Image URL" value={form.heroImageUrl} onChange={(event) => setForm((prev) => ({ ...prev, heroImageUrl: event.target.value }))} />
+          <FloatingSelect id="si-imagePosition" label="Image Position" value={form.imagePosition} onChange={(event) => setForm((prev) => ({ ...prev, imagePosition: event.target.value as FormState['imagePosition'] }))}>
+            <option value="LEFT">Left</option>
+            <option value="RIGHT">Right</option>
+          </FloatingSelect>
         </div>
       </section>
 
@@ -525,7 +475,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
           {saving ? 'Saving...' : 'Save Changes'}
@@ -534,7 +484,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           type="button"
           onClick={resetForm}
           disabled={saving}
-          className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Reset
         </button>
@@ -549,7 +499,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                 type="button"
                 onClick={resetForm}
                 disabled={saving}
-                className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Discard
               </button>
@@ -557,7 +507,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                 type="button"
                 onClick={saveSchoolInfo}
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save Changes'}

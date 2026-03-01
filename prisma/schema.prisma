@@ -346,6 +346,7 @@ model School {
   campusId         String?       // FK to Campus — optional during migration, will become required
   name             String        // e.g., "Elementary Campus", "High School", "Middle School"
   gradeLevel       SchoolType    @default(ELEMENTARY) // ELEMENTARY | MIDDLE_SCHOOL | HIGH_SCHOOL
+  color            String        @default("#3b82f6")
   principalName    String?
   principalEmail   String?
   principalPhone   String?

@@ -10,6 +10,7 @@ import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
 import CampusTab from '@/components/settings/CampusTab'
 import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
+import { FloatingInput } from '@/components/ui/FloatingInput'
 
 type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
 
@@ -22,8 +23,21 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)
 
-  const [activeTab, setActiveTab] = useState<Tab>('profile')
-  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set<Tab>(['profile']))
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    if (typeof window === 'undefined') return 'profile'
+    const saved = localStorage.getItem('settings-active-tab')
+    const VALID: Tab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 'campus']
+    if (saved && VALID.includes(saved as Tab)) return saved as Tab
+    return 'profile'
+  })
+  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(() => {
+    const tabs = new Set<Tab>(['profile'])
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('settings-active-tab')
+      if (saved) tabs.add(saved as Tab)
+    }
+    return tabs
+  })
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
   const [permissionsLoaded, setPermissionsLoaded] = useState(false)
   const [schoolInfoDirty, setSchoolInfoDirty] = useState(false)
@@ -629,7 +643,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleChangeImageClick}
                           disabled={avatarUpdating}
-                          className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {avatarUpdating ? 'Uploading...' : '+ Change Image'}
                         </button>
@@ -637,7 +651,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleRemoveAvatar}
                           disabled={avatarUpdating || !displayAvatar}
-                          className="px-4 py-2 min-h-[40px] rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-5 py-2.5 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Remove Image
                         </button>
@@ -656,35 +670,27 @@ export default function SettingsPage() {
                         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">Profile saved successfully.</div>
                       )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1.5">First Name</label>
-                          <input
-                            id="firstName"
-                            type="text"
-                            className="ui-input"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            disabled={profileSaving}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1.5">Last Name</label>
-                          <input
-                            id="lastName"
-                            type="text"
-                            className="ui-input"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            disabled={profileSaving}
-                          />
-                        </div>
+                        <FloatingInput
+                          id="firstName"
+                          label="First Name"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          disabled={profileSaving}
+                          required
+                        />
+                        <FloatingInput
+                          id="lastName"
+                          label="Last Name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          disabled={profileSaving}
+                        />
                       </div>
                       <div className="flex justify-end">
                         <button
                           type="submit"
                           disabled={profileSaving}
-                          className="px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -699,13 +705,12 @@ export default function SettingsPage() {
                     <div className="space-y-6">
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                         <div className="flex-1">
-                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                          <input id="email" type="email" className="ui-input" defaultValue={userEmail || ''} readOnly />
+                          <FloatingInput id="email" label="Email" type="email" defaultValue={userEmail || ''} readOnly />
                         </div>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
                             disabled
                           >
                             Change email
@@ -716,13 +721,12 @@ export default function SettingsPage() {
 
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                         <div className="flex-1">
-                          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-                          <input id="password" type="password" className="ui-input" value="••••••••••" readOnly />
+                          <FloatingInput id="password" label="Password" type="password" value="••••••••••" readOnly />
                         </div>
                         <button
                           type="button"
                           onClick={openChangePassword}
-                          className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap"
+                          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap"
                         >
                           Change password
                         </button>
@@ -735,15 +739,15 @@ export default function SettingsPage() {
                     <h3 className="text-2xl font-semibold text-gray-900">Support Access</h3>
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
                     <div className="space-y-4">
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                         <div>
                           <p className="text-base font-medium text-gray-900">Log out of all devices</p>
                           <p className="text-sm text-gray-600">Log out of all other active sessions on other devices besides this one.</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             type="button"
-                            className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
                             disabled
                           >
                             Log out
@@ -752,15 +756,15 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                         <div>
                           <p className="text-base font-medium text-red-600">Delete my account</p>
                           <p className="text-sm text-gray-600">Permanently delete the account and remove access from all workspaces.</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             type="button"
-                            className="px-4 py-2 min-h-[40px] rounded-lg border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
                             disabled
                           >
                             Delete Account
@@ -778,7 +782,7 @@ export default function SettingsPage() {
                     title="Change Password"
                     width="md"
                   >
-                    <form onSubmit={handleChangePassword} className="p-8 space-y-6">
+                    <form onSubmit={handleChangePassword} className="space-y-6">
                       {passwordError && (
                         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{passwordError}</div>
                       )}
@@ -786,29 +790,23 @@ export default function SettingsPage() {
                         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">Password changed successfully!</div>
                       )}
 
-                      <section className="space-y-4">
-                        <div className="border-b border-gray-200 pb-3">
-                          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Update Password</h3>
-                        </div>
+                      <section className="space-y-5">
+                        <FloatingInput
+                          id="pw-current"
+                          label="Current password"
+                          type="password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          disabled={passwordSaving || passwordSuccess}
+                          required
+                          autoComplete="current-password"
+                        />
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Current password</label>
-                          <input
+                          <FloatingInput
+                            id="pw-new"
+                            label="New password"
                             type="password"
-                            className="ui-input"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            disabled={passwordSaving || passwordSuccess}
-                            required
-                            autoComplete="current-password"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">New password</label>
-                          <input
-                            type="password"
-                            className="ui-input"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             disabled={passwordSaving || passwordSuccess}
@@ -819,35 +817,33 @@ export default function SettingsPage() {
                           <p className="mt-1.5 text-xs text-gray-400">Must be at least 8 characters</p>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm new password</label>
-                          <input
-                            type="password"
-                            className="ui-input"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            disabled={passwordSaving || passwordSuccess}
-                            required
-                            autoComplete="new-password"
-                          />
-                        </div>
+                        <FloatingInput
+                          id="pw-confirm"
+                          label="Confirm new password"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          disabled={passwordSaving || passwordSuccess}
+                          required
+                          autoComplete="new-password"
+                        />
                       </section>
 
-                      <div className="flex items-center justify-end gap-2 border-t border-gray-200 pt-4">
+                      <div className="space-y-3 pt-4">
+                        <button
+                          type="submit"
+                          disabled={passwordSaving || passwordSuccess}
+                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {passwordSaving ? 'Saving...' : 'Update Password'}
+                        </button>
                         <button
                           type="button"
                           onClick={closeChangePassword}
                           disabled={passwordSaving}
-                          className="px-4 py-2 min-h-[40px] border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
                         >
                           Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={passwordSaving || passwordSuccess}
-                          className="px-4 py-2 min-h-[40px] rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50"
-                        >
-                          {passwordSaving ? 'Saving...' : 'Update Password'}
                         </button>
                       </div>
                     </form>

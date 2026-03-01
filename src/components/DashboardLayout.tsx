@@ -56,7 +56,7 @@ export default function DashboardLayout({
       {/* Top Bar Header */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-navbar">
         {/* Logo and Organization Name */}
-        <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+        <div className="flex items-center gap-3 min-w-0 flex-shrink-0 pl-14 lg:pl-0">
           {organizationLogoUrl ? (
             <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center p-1.5 flex-shrink-0">
               <img
@@ -76,7 +76,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Search Bar */}
-        <div className="flex-1 pl-10 pr-6 max-w-md">
+        <div className="hidden sm:block flex-1 pl-10 pr-6 max-w-md">
           <input
             type="search"
             placeholder="Search here..."
@@ -151,7 +151,7 @@ export default function DashboardLayout({
         />
 
         {/* Main Content */}
-        <main className="flex-1">
+        <main className="flex-1 min-w-0 overflow-hidden">
           <div className="py-4 sm:py-6 lg:py-8 px-4 sm:px-10">
             {children}
           </div>

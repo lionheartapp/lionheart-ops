@@ -294,7 +294,7 @@ export default function Sidebar({
   const mainNavContent = (
     <>
       {/* Navigation Menu */}
-      <nav className="p-4 pt-8 flex-1" role="navigation" aria-label="Main navigation">
+      <nav className="p-4 pt-8 lg:flex-1" role="navigation" aria-label="Main navigation">
         <ul className="space-y-2" role="list">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -635,7 +635,12 @@ export default function Sidebar({
         role="navigation"
         aria-label="Mobile navigation"
       >
-        {calendarOpen ? calendarNavContent : settingsOpen ? settingsNavContent : mainNavContent}
+        {mainNavContent}
+        {(calendarOpen || settingsOpen) && (
+          <div className="flex-1 overflow-y-auto border-t border-white/10">
+            {calendarOpen ? calendarNavContent : settingsNavContent}
+          </div>
+        )}
       </aside>
 
       {/* Spacer for desktop layout - adjusts width based on secondary panel */}

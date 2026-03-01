@@ -85,7 +85,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
           ...(input.polygonCoordinates !== undefined ? { polygonCoordinates: input.polygonCoordinates } : {}),
         },
-        include: { school: { select: { id: true, name: true, gradeLevel: true } } },
+        include: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
       })
 
       return NextResponse.json(ok(building))
