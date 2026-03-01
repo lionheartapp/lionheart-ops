@@ -311,11 +311,11 @@ export default function Sidebar({
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
                   className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                    active && !secondaryOpen
+                    active && !settingsOpen
                       ? 'bg-white/10 text-white font-medium border border-white/20'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }`}
-                  aria-current={active && !secondaryOpen ? 'page' : undefined}
+                  aria-current={active && !settingsOpen ? 'page' : undefined}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
