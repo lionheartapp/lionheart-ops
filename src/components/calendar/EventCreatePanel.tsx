@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { X, Loader2, Clock, Calendar, MapPin, AlignLeft, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { CalendarData, CalendarEventData } from '@/lib/hooks/useCalendar'
+import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 
 interface EventCreatePanelProps {
   isOpen: boolean
@@ -25,6 +26,8 @@ export interface EventFormData {
   endTime: string
   isAllDay: boolean
   locationText: string
+  buildingId: string | null
+  areaId: string | null
 }
 
 function toLocalDateTimeString(date: Date): string {
@@ -134,6 +137,127 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
   )
 }
 
+// ── Location Combobox ───────────────────────────────────────────────
+function LocationCombobox({
+  value,
+  buildingId,
+  areaId,
+  onChange,
+}: {
+  value: string
+  buildingId: string | null
+  areaId: string | null
+  onChange: (locationText: string, buildingId: string | null, areaId: string | null) => void
+}) {
+  const { data: locations = [] } = useCampusLocations()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Sync input display with external value
+  useEffect(() => {
+    setQuery(value)
+  }, [value])
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  const filtered = locations.filter((loc) =>
+    loc.label.toLowerCase().includes(query.toLowerCase())
+  )
+
+  const handleSelect = (loc: CampusLocationOption) => {
+    onChange(loc.label, loc.buildingId, loc.areaId)
+    setQuery(loc.label)
+    setOpen(false)
+  }
+
+  const handleFreeText = () => {
+    onChange(query, null, null)
+    setOpen(false)
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setQuery(val)
+    if (!open) setOpen(true)
+    // If user clears or changes text away from a campus location, reset IDs
+    if (buildingId || areaId) {
+      onChange(val, null, null)
+    }
+  }
+
+  const showDropdown = open && query.length > 0
+
+  return (
+    <div ref={containerRef} className="relative flex-1">
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder="Add location"
+        value={query}
+        onChange={handleInputChange}
+        onFocus={() => { if (query.length > 0 || locations.length > 0) setOpen(true) }}
+        className="w-full text-sm text-gray-900 placeholder-gray-400 border-0 border-b border-gray-100 focus:ring-0 focus:border-gray-300 bg-transparent px-0 py-1.5 rounded-none"
+      />
+
+      {open && (locations.length > 0 || query.length > 0) && (
+        <div className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1">
+          {/* Campus locations section */}
+          {filtered.length > 0 && (
+            <>
+              <div className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                Campus Locations
+              </div>
+              {filtered.map((loc) => {
+                const isSelected = loc.buildingId === buildingId && loc.areaId === areaId && (loc.buildingId !== null || loc.areaId !== null)
+                return (
+                  <button
+                    key={`${loc.buildingId}-${loc.areaId}`}
+                    type="button"
+                    onClick={() => handleSelect(loc)}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      isSelected
+                        ? 'bg-primary-50 text-primary-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {loc.label}
+                  </button>
+                )
+              })}
+            </>
+          )}
+
+          {/* Free-text option */}
+          {query.trim().length > 0 && (
+            <>
+              {filtered.length > 0 && <div className="border-t border-gray-100 my-1" />}
+              <button
+                type="button"
+                onClick={handleFreeText}
+                className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+              >
+                Use &ldquo;{query}&rdquo; as custom location
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main Component ──────────────────────────────────────────────────
 export default function EventCreatePanel({
   isOpen,
@@ -159,6 +283,8 @@ export default function EventCreatePanel({
     endTime: toLocalDateTimeString(defaultEnd),
     isAllDay: false,
     locationText: '',
+    buildingId: null,
+    areaId: null,
   })
 
   // Reset form when panel opens or calendars change
@@ -173,6 +299,8 @@ export default function EventCreatePanel({
           endTime: toLocalDateTimeString(new Date(event.endTime)),
           isAllDay: event.isAllDay,
           locationText: event.locationText || '',
+          buildingId: (event as unknown as Record<string, unknown>).buildingId as string | null ?? null,
+          areaId: (event as unknown as Record<string, unknown>).areaId as string | null ?? null,
         })
       } else {
         const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
@@ -185,6 +313,8 @@ export default function EventCreatePanel({
           endTime: toLocalDateTimeString(end),
           isAllDay: false,
           locationText: '',
+          buildingId: null,
+          areaId: null,
         })
       }
     }
@@ -198,6 +328,8 @@ export default function EventCreatePanel({
       ...form,
       startTime: new Date(form.startTime).toISOString(),
       endTime: new Date(form.endTime).toISOString(),
+      buildingId: form.buildingId || null,
+      areaId: form.areaId || null,
     })
   }
 
@@ -240,7 +372,7 @@ export default function EventCreatePanel({
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-5 pb-3">
               <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">
-                {isEditing ? 'Edit Event' : 'New Event'}
+                {isEditing ? 'Edit Event' : 'Create New Event'}
               </span>
               <button
                 onClick={onClose}
@@ -419,12 +551,13 @@ export default function EventCreatePanel({
                 {/* Location — icon row */}
                 <div className="flex items-center gap-4 py-3">
                   <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Add location"
+                  <LocationCombobox
                     value={form.locationText}
-                    onChange={(e) => setForm((p) => ({ ...p, locationText: e.target.value }))}
-                    className="flex-1 text-sm text-gray-900 placeholder-gray-400 border-0 border-b border-gray-100 focus:ring-0 focus:border-gray-300 bg-transparent px-0 py-1.5 rounded-none"
+                    buildingId={form.buildingId}
+                    areaId={form.areaId}
+                    onChange={(locationText, buildingId, areaId) =>
+                      setForm((p) => ({ ...p, locationText, buildingId, areaId }))
+                    }
                   />
                 </div>
 
