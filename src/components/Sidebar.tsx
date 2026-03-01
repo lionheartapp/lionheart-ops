@@ -16,8 +16,6 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
-  Eye,
-  EyeOff,
   Plus,
   MoreHorizontal,
   Check,
@@ -517,24 +515,15 @@ export default function Sidebar({
                               {isVisible && <Check className="w-3 h-3 text-white" />}
                             </div>
                             <span className="truncate">{cal.name}</span>
-                            <span className="ml-auto flex items-center gap-1">
-                              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                {isVisible ? (
-                                  <Eye className="w-3.5 h-3.5 text-slate-400" />
-                                ) : (
-                                  <EyeOff className="w-3.5 h-3.5 text-slate-300" />
-                                )}
-                              </span>
-                              <span
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setMenuOpenId(isMenuOpen ? null : cal.id)
-                                  setColorEditId(null)
-                                }}
-                              >
-                                <MoreHorizontal className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600" />
-                              </span>
+                            <span
+                              className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setMenuOpenId(isMenuOpen ? null : cal.id)
+                                setColorEditId(null)
+                              }}
+                            >
+                              <MoreHorizontal className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600" />
                             </span>
                           </button>
                         )}
