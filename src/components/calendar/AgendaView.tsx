@@ -61,7 +61,7 @@ export default function AgendaView({ currentDate, events, onEventClick }: Agenda
   }
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-1">
+    <div className="flex-1 overflow-y-auto space-y-1 px-10 calendar-scroll">
       {grouped.map(({ date, events: dayEvents }) => (
         <div key={date.toISOString()}>
           {/* Sticky date header */}

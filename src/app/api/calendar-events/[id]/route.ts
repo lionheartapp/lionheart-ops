@@ -59,21 +59,21 @@ export async function PUT(
     const body = await req.json()
     const data = updateEventSchema.parse(body)
 
-    // Check if user can edit all or just own
-    const event = await calendarService.getEventById(id)
-    if (!event) {
-      return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
-    }
-
-    if (event.createdById === ctx.userId) {
-      await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_UPDATE_OWN)
-    } else {
-      await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_UPDATE_ALL)
-    }
-
     const { editMode, startTime, endTime, ...rest } = data
 
     return await runWithOrgContext(orgId, async () => {
+      // Check if user can edit all or just own
+      const event = await calendarService.getEventById(id)
+      if (!event) {
+        return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
+      }
+
+      if (event.createdById === ctx.userId) {
+        await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_UPDATE_OWN)
+      } else {
+        await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_UPDATE_ALL)
+      }
+
       const updated = await calendarService.updateEvent(
         id,
         {
@@ -106,18 +106,18 @@ export async function DELETE(
     const ctx = await getUserContext(req)
     const { id } = await params
 
-    const event = await calendarService.getEventById(id)
-    if (!event) {
-      return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
-    }
-
-    if (event.createdById === ctx.userId) {
-      await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_OWN)
-    } else {
-      await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_ALL)
-    }
-
     return await runWithOrgContext(orgId, async () => {
+      const event = await calendarService.getEventById(id)
+      if (!event) {
+        return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
+      }
+
+      if (event.createdById === ctx.userId) {
+        await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_OWN)
+      } else {
+        await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_ALL)
+      }
+
       await calendarService.deleteEvent(id)
       return NextResponse.json(ok({ deleted: true }))
     })

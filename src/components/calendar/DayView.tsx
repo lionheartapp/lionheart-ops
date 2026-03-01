@@ -11,8 +11,8 @@ interface DayViewProps {
 }
 
 const HOUR_HEIGHT = 64
-const START_HOUR = 5
-const END_HOUR = 23
+const START_HOUR = 0
+const END_HOUR = 24
 
 function formatHour(hour: number): string {
   const ampm = hour >= 12 ? 'pm' : 'am'
@@ -56,7 +56,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* All-day events */}
       {allDayEvents.length > 0 && (
-        <div className="flex items-center gap-3 pb-2 border-b border-gray-100 mb-0">
+        <div className="flex items-center gap-3 py-4 border-b border-gray-100 mb-0 px-10">
           <span className="w-14 flex-shrink-0 text-[11px] text-gray-400 text-right pr-3">All day</span>
           <div className="flex gap-1">
             {allDayEvents.map((event) => (
@@ -77,8 +77,8 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
       )}
 
       {/* Time grid */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="flex relative" style={{ height: hours.length * HOUR_HEIGHT }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white calendar-scroll">
+        <div className="flex relative pl-10 pr-4" style={{ height: hours.length * HOUR_HEIGHT }}>
           {/* Hour labels */}
           <div className="w-14 flex-shrink-0 relative">
             {hours.map((hour) => (

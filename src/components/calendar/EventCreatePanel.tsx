@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { X, Loader2, Clock, Calendar, MapPin, AlignLeft, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { CalendarData, CalendarEventData } from '@/lib/hooks/useCalendar'
@@ -64,6 +64,77 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
+// ── Custom Time Picker ──────────────────────────────────────────────
+function TimePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const currentLabel = TIME_OPTIONS.find((o) => o.value === value)?.label || value
+
+  // Auto-scroll to selected item when dropdown opens
+  useEffect(() => {
+    if (open && listRef.current) {
+      const idx = TIME_OPTIONS.findIndex((o) => o.value === value)
+      if (idx >= 0) {
+        const itemHeight = 36
+        listRef.current.scrollTop = Math.max(0, idx * itemHeight - 72) // center-ish
+      }
+    }
+  }, [open, value])
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center gap-1.5 min-h-0 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer"
+      >
+        {currentLabel}
+        <ChevronDown className="w-3 h-3 text-gray-400" />
+      </button>
+
+      {open && (
+        <div
+          ref={listRef}
+          className="absolute top-full left-0 mt-1 w-36 max-h-52 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1"
+        >
+          {TIME_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value)
+                setOpen(false)
+              }}
+              className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                opt.value === value
+                  ? 'bg-primary-50 text-primary-700 font-semibold'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Main Component ──────────────────────────────────────────────────
 export default function EventCreatePanel({
   isOpen,
   onClose,
@@ -138,6 +209,14 @@ export default function EventCreatePanel({
   const startDateRef = useRef<HTMLInputElement>(null)
   const endDateRef = useRef<HTMLInputElement>(null)
   const endDateAddRef = useRef<HTMLInputElement>(null)
+
+  const setStartTime = useCallback((time: string) => {
+    setForm((p) => ({ ...p, startTime: `${getDatePart(p.startTime)}T${time}` }))
+  }, [])
+
+  const setEndTime = useCallback((time: string) => {
+    setForm((p) => ({ ...p, endTime: `${getDatePart(p.endTime)}T${time}` }))
+  }, [])
 
   return (
     <AnimatePresence>
@@ -222,7 +301,7 @@ export default function EventCreatePanel({
                         onChange={(e) => setForm((p) => ({ ...p, isAllDay: e.target.checked }))}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-gray-900 transition-colors" />
+                      <div className="w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-[#0B1320] transition-colors" />
                       <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
                     </div>
                   </label>
@@ -231,91 +310,108 @@ export default function EventCreatePanel({
                 {/* Date & Time — icon row */}
                 <div className="flex items-start gap-4 py-3">
                   <Clock className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 space-y-2">
-                    {/* Date line */}
-                    <div className="inline-block">
-                      <button
-                        type="button"
-                        onClick={() => startDateRef.current?.showPicker()}
-                        className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
-                      >
-                        {formatDateDisplay(startDate)}
-                      </button>
-                      <input
-                        ref={startDateRef}
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setForm((p) => ({ ...p, startTime: `${e.target.value}T${getTimePart(p.startTime)}` }))}
-                        className="sr-only"
-                      />
-                    </div>
-                    {/* Time pills row */}
-                    {!form.isAllDay && (
-                      <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <select
-                            value={getTimePart(form.startTime)}
-                            onChange={(e) => setForm((p) => ({ ...p, startTime: `${getDatePart(p.startTime)}T${e.target.value}` }))}
-                            className="appearance-none min-h-0 px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-900 border-0 focus:ring-2 focus:ring-gray-200 pr-7 cursor-pointer"
-                          >
-                            {TIME_OPTIONS.map((opt) => (
-                              <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-                        </div>
-                        <span className="text-gray-300 text-sm">&ndash;</span>
-                        <div className="relative">
-                          <select
-                            value={getTimePart(form.endTime)}
-                            onChange={(e) => setForm((p) => ({ ...p, endTime: `${getDatePart(p.endTime)}T${e.target.value}` }))}
-                            className="appearance-none min-h-0 px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-900 border-0 focus:ring-2 focus:ring-gray-200 pr-7 cursor-pointer"
-                            >
-                              {TIME_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
-                            </select>
-                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-                          </div>
-                        </div>
-                      )}
-                    {/* End date (shown if different from start) */}
-                    {showEndDate && (
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() => endDateRef.current?.showPicker()}
-                          className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 bg-transparent border-0 p-0"
-                        >
-                          to {formatDateDisplay(endDate)}
-                        </button>
-                        <input
-                          ref={endDateRef}
-                          type="date"
-                          value={endDate}
-                          onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
-                          className="sr-only"
-                        />
-                      </div>
-                    )}
-                    {/* Always-accessible end date picker (when same day) */}
+                  <div className="flex-1 space-y-3">
+                    {/* Single-day mode: date + start/end time row + "add end date" */}
                     {!showEndDate && (
-                      <div className="inline-block">
-                        <button
-                          type="button"
-                          onClick={() => endDateAddRef.current?.showPicker()}
-                          className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0"
-                        >
-                          + end date
-                        </button>
-                        <input
-                          ref={endDateAddRef}
-                          type="date"
-                          value={endDate}
-                          onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
-                          className="sr-only"
-                        />
-                      </div>
+                      <>
+                        <div className="inline-block">
+                          <button
+                            type="button"
+                            onClick={() => startDateRef.current?.showPicker()}
+                            className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
+                          >
+                            {formatDateDisplay(startDate)}
+                          </button>
+                          <input
+                            ref={startDateRef}
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setForm((p) => ({ ...p, startTime: `${e.target.value}T${getTimePart(p.startTime)}` }))}
+                            className="sr-only"
+                          />
+                        </div>
+                        {!form.isAllDay && (
+                          <div className="flex items-center gap-2">
+                            <TimePicker
+                              value={getTimePart(form.startTime)}
+                              onChange={setStartTime}
+                            />
+                            <span className="text-gray-300 text-sm">&ndash;</span>
+                            <TimePicker
+                              value={getTimePart(form.endTime)}
+                              onChange={setEndTime}
+                            />
+                          </div>
+                        )}
+                        <div className="inline-block">
+                          <button
+                            type="button"
+                            onClick={() => endDateAddRef.current?.showPicker()}
+                            className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0"
+                          >
+                            + end date
+                          </button>
+                          <input
+                            ref={endDateAddRef}
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
+                            className="sr-only"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Multi-day mode: start date + time, then end date + time */}
+                    {showEndDate && (
+                      <>
+                        {/* Start */}
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => startDateRef.current?.showPicker()}
+                            className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
+                          >
+                            {formatDateDisplay(startDate)}
+                          </button>
+                          <input
+                            ref={startDateRef}
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setForm((p) => ({ ...p, startTime: `${e.target.value}T${getTimePart(p.startTime)}` }))}
+                            className="sr-only"
+                          />
+                          {!form.isAllDay && (
+                            <TimePicker
+                              value={getTimePart(form.startTime)}
+                              onChange={setStartTime}
+                            />
+                          )}
+                        </div>
+                        {/* End */}
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => endDateRef.current?.showPicker()}
+                            className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 bg-transparent border-0 p-0"
+                          >
+                            to {formatDateDisplay(endDate)}
+                          </button>
+                          <input
+                            ref={endDateRef}
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setForm((p) => ({ ...p, endTime: `${e.target.value}T${getTimePart(p.endTime)}` }))}
+                            className="sr-only"
+                          />
+                          {!form.isAllDay && (
+                            <TimePicker
+                              value={getTimePart(form.endTime)}
+                              onChange={setEndTime}
+                            />
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -358,7 +454,7 @@ export default function EventCreatePanel({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !form.title.trim()}
-                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-[#0B1320] rounded-full hover:bg-[#161f2e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {isEditing ? 'Save Changes' : 'Create Event'}

@@ -69,8 +69,8 @@ export default function CalendarToolbar({
     <div className="pb-5 space-y-4">
       {/* Row 1: Title | View switcher pill | Nav pill + Create */}
       <div className="flex items-center justify-between">
-        {/* Left: Title */}
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+        {/* Left: Title — fixed width so center tabs don't shift */}
+        <h2 className="text-3xl font-bold text-gray-900 tracking-tight w-72">
           {formatTitle(currentDate, view)}
         </h2>
 
@@ -80,7 +80,7 @@ export default function CalendarToolbar({
             <button
               key={v}
               onClick={() => onViewChange(v)}
-              className={`px-5 py-2 text-sm font-semibold transition-all ${
+              className={`w-20 text-center py-2 text-sm font-semibold transition-all ${
                 view === v
                   ? 'bg-gray-100 text-gray-900'
                   : 'text-gray-400 hover:text-gray-600'

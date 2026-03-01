@@ -194,9 +194,8 @@ export default function DashboardPage() {
               <div className="p-3 space-y-2">
                 <button
                   onClick={() => {
-                    setSelectedRequestType('event')
-                    setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
+                    router.push('/calendar?create=true')
                   }}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
                 >

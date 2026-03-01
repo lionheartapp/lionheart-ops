@@ -11,8 +11,8 @@ interface WeekViewProps {
 }
 
 const HOUR_HEIGHT = 64
-const START_HOUR = 5
-const END_HOUR = 23
+const START_HOUR = 0
+const END_HOUR = 24
 
 function toDateOnly(d: Date): number {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
@@ -83,7 +83,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* All-day events row */}
       {allDayEvents.length > 0 && (
-        <div className="flex pb-2 border-b border-gray-100 mb-0">
+        <div className="flex pb-2 border-b border-gray-100 mb-0 px-10">
           <div className="w-14 flex-shrink-0 text-[11px] text-gray-400 text-right pr-3 pt-1">All day</div>
           <div className="flex-1 grid grid-cols-7 gap-1">
             {weekDates.map((date, i) => {
@@ -115,8 +115,8 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
       )}
 
       {/* Time grid */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="flex relative" style={{ height: hours.length * HOUR_HEIGHT }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white calendar-scroll">
+        <div className="flex relative pl-10 pr-4" style={{ height: hours.length * HOUR_HEIGHT }}>
           {/* Hour labels */}
           <div className="w-14 flex-shrink-0 relative">
             {hours.map((hour) => (
