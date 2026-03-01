@@ -19,7 +19,25 @@ import {
   Eye,
   EyeOff,
   Plus,
+  MoreHorizontal,
+  Check,
+  Pencil,
+  Palette,
+  Trash2,
 } from 'lucide-react'
+
+const COLOR_PRESETS = [
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Amber', value: '#f59e0b' },
+  { name: 'Green', value: '#22c55e' },
+  { name: 'Teal', value: '#14b8a6' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Indigo', value: '#6366f1' },
+  { name: 'Purple', value: '#a855f7' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Slate', value: '#64748b' },
+]
 
 export interface SidebarProps {
   userName?: string
@@ -97,6 +115,12 @@ export default function Sidebar({
     new Set(['ACADEMIC', 'STAFF', 'TIMETABLE', 'PARENT_FACING', 'ATHLETICS', 'GENERAL'])
   )
 
+  // Three-dot menu state
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [colorEditId, setColorEditId] = useState<string | null>(null)
+
   // Open calendar panel when navigating to /calendar
   useIsomorphicLayoutEffect(() => {
     if (pathname.startsWith('/calendar')) {
@@ -155,6 +179,67 @@ export default function Sidebar({
   const handleCreateCalendar = () => {
     window.dispatchEvent(new CustomEvent('calendar-create-request'))
   }
+
+  const handleRenameStart = (cal: CalendarSidebarData) => {
+    setMenuOpenId(null)
+    setRenamingId(cal.id)
+    setRenameValue(cal.name)
+  }
+
+  const handleRenameSubmit = (calendarId: string) => {
+    const trimmed = renameValue.trim()
+    if (trimmed) {
+      window.dispatchEvent(
+        new CustomEvent('calendar-update', {
+          detail: { calendarId, data: { name: trimmed } },
+        })
+      )
+    }
+    setRenamingId(null)
+    setRenameValue('')
+  }
+
+  const handleColorChangeStart = (calendarId: string) => {
+    setMenuOpenId(null)
+    setColorEditId(calendarId)
+  }
+
+  const handleColorSelect = (calendarId: string, color: string) => {
+    window.dispatchEvent(
+      new CustomEvent('calendar-update', {
+        detail: { calendarId, data: { color } },
+      })
+    )
+    setColorEditId(null)
+  }
+
+  const handleDeleteCalendar = (cal: CalendarSidebarData) => {
+    setMenuOpenId(null)
+    if (window.confirm(`Delete "${cal.name}"? All events in this calendar will be removed.`)) {
+      window.dispatchEvent(
+        new CustomEvent('calendar-delete', {
+          detail: { calendarId: cal.id },
+        })
+      )
+    }
+  }
+
+  // Close menu/color picker when clicking outside
+  useEffect(() => {
+    if (!menuOpenId && !colorEditId) return
+    const handleClickOutside = () => {
+      setMenuOpenId(null)
+      setColorEditId(null)
+    }
+    // Delay to avoid closing immediately on the same click
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleClickOutside)
+    }, 0)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('click', handleClickOutside)
+    }
+  }, [menuOpenId, colorEditId])
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
@@ -362,32 +447,126 @@ export default function Sidebar({
                 <div className="space-y-0.5">
                   {cals.map((cal) => {
                     const isVisible = visibleCalendarIds.has(cal.id)
+                    const isRenaming = renamingId === cal.id
+                    const isColorEditing = colorEditId === cal.id
+                    const isMenuOpen = menuOpenId === cal.id
+
                     return (
-                      <button
-                        key={cal.id}
-                        onClick={() => toggleCalendarVisibility(cal.id)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition group ${
-                          isVisible
-                            ? 'text-slate-700 hover:bg-[#e5eaf5]'
-                            : 'text-slate-400 hover:bg-[#e5eaf5]'
-                        }`}
-                      >
-                        <div
-                          className="w-3 h-3 rounded-sm flex-shrink-0 border"
-                          style={{
-                            backgroundColor: isVisible ? cal.color : 'transparent',
-                            borderColor: cal.color,
-                          }}
-                        />
-                        <span className="truncate">{cal.name}</span>
-                        <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                          {isVisible ? (
-                            <Eye className="w-3.5 h-3.5 text-slate-400" />
-                          ) : (
-                            <EyeOff className="w-3.5 h-3.5 text-slate-300" />
-                          )}
-                        </span>
-                      </button>
+                      <div key={cal.id} className="relative group">
+                        {isRenaming ? (
+                          <div className="flex items-center gap-2 px-3 py-2">
+                            <div
+                              className="w-3 h-3 rounded-sm flex-shrink-0"
+                              style={{ backgroundColor: cal.color }}
+                            />
+                            <input
+                              type="text"
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleRenameSubmit(cal.id)
+                                if (e.key === 'Escape') { setRenamingId(null); setRenameValue('') }
+                              }}
+                              onBlur={() => handleRenameSubmit(cal.id)}
+                              className="flex-1 min-w-0 px-2 py-0.5 text-sm border border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-200 bg-white text-slate-700"
+                              autoFocus
+                            />
+                          </div>
+                        ) : isColorEditing ? (
+                          <div className="px-3 py-2 space-y-2" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                              <div
+                                className="w-3 h-3 rounded-sm flex-shrink-0"
+                                style={{ backgroundColor: cal.color }}
+                              />
+                              <span className="truncate">{cal.name}</span>
+                            </div>
+                            <div className="flex gap-1.5 flex-wrap">
+                              {COLOR_PRESETS.map((c) => (
+                                <button
+                                  key={c.value}
+                                  type="button"
+                                  onClick={() => handleColorSelect(cal.id, c.value)}
+                                  className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-400"
+                                  style={{ backgroundColor: c.value }}
+                                  title={c.name}
+                                >
+                                  {cal.color === c.value && (
+                                    <Check className="w-3 h-3 text-white" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => toggleCalendarVisibility(cal.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
+                              isVisible
+                                ? 'text-slate-700 hover:bg-[#e5eaf5]'
+                                : 'text-slate-400 hover:bg-[#e5eaf5]'
+                            }`}
+                          >
+                            <div
+                              className="w-3 h-3 rounded-sm flex-shrink-0 border"
+                              style={{
+                                backgroundColor: isVisible ? cal.color : 'transparent',
+                                borderColor: cal.color,
+                              }}
+                            />
+                            <span className="truncate">{cal.name}</span>
+                            <span className="ml-auto flex items-center gap-1">
+                              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                {isVisible ? (
+                                  <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                ) : (
+                                  <EyeOff className="w-3.5 h-3.5 text-slate-300" />
+                                )}
+                              </span>
+                              <span
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setMenuOpenId(isMenuOpen ? null : cal.id)
+                                  setColorEditId(null)
+                                }}
+                              >
+                                <MoreHorizontal className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600" />
+                              </span>
+                            </span>
+                          </button>
+                        )}
+
+                        {/* Dropdown menu */}
+                        {isMenuOpen && (
+                          <div
+                            className="absolute right-2 top-full z-50 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleRenameStart(cal)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-slate-400" />
+                              Rename
+                            </button>
+                            <button
+                              onClick={() => handleColorChangeStart(cal.id)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Palette className="w-3.5 h-3.5 text-slate-400" />
+                              Change Color
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCalendar(cal)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )
                   })}
                 </div>
@@ -468,7 +647,7 @@ export default function Sidebar({
       {/* Spacer for desktop layout - adjusts width based on secondary panel */}
       <div
         className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
-          secondaryOpen ? 'w-[524px]' : 'w-64'
+          secondaryOpen ? 'w-[496px]' : 'w-64'
         }`}
       />
     </>

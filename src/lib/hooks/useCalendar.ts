@@ -139,6 +139,32 @@ export function useCreateCalendar() {
   })
 }
 
+export function useUpdateCalendar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string } & Record<string, unknown>) =>
+      fetchApi(`/api/calendars/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendars'] })
+    },
+  })
+}
+
+export function useDeleteCalendar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      fetchApi(`/api/calendars/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendars'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+    },
+  })
+}
+
 export function useCreateEvent() {
   const queryClient = useQueryClient()
   return useMutation({
