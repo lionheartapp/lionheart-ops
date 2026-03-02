@@ -403,6 +403,9 @@ export default function InteractiveCampusMap({
   useEffect(() => {
     if (!mapConfig || !mapContainerRef.current) return
 
+    // Reset loading on every map init (including campus switches)
+    setLoading(true)
+
     let cancelled = false
 
     loadLeaflet().then(() => {
@@ -450,12 +453,6 @@ export default function InteractiveCampusMap({
       satellite.addTo(map)
       labels.addTo(map)
 
-      // Force tile load after container is visible (fixes grey tiles on first render)
-      setTimeout(() => {
-        if (map && mapContainerRef.current) {
-          map.invalidateSize()
-        }
-      }, 100)
       tileLayersRef.current = { satellite, street }
       mapInstanceRef.current = map
 
@@ -481,8 +478,20 @@ export default function InteractiveCampusMap({
       }
       orgMarkerRef.current = orgMarker
 
-      setLoading(false)
-      setMapReady(n => n + 1)
+      // Wait for satellite tiles to load before revealing the map
+      let revealed = false
+      const reveal = () => {
+        if (cancelled || revealed) return
+        revealed = true
+        map.invalidateSize()
+        setLoading(false)
+        setMapReady(n => n + 1)
+      }
+
+      satellite.once('load', reveal)
+
+      // Fallback: reveal after 3s even if tiles are slow
+      setTimeout(reveal, 3000)
     })
 
     return () => {
