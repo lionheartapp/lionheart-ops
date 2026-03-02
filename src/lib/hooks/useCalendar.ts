@@ -75,23 +75,7 @@ export interface CalendarData {
 
 // ─── API helpers ───────────────────────────────────────────────────────
 
-function getAuthHeaders(): HeadersInit {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  }
-}
-
-async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: { ...getAuthHeaders(), ...options?.headers },
-  })
-  const json = await res.json()
-  if (!json.ok) throw new Error(json.error?.message || 'API Error')
-  return json.data
-}
+import { fetchApi } from '@/lib/api-client'
 
 // ─── Hooks ─────────────────────────────────────────────────────────────
 

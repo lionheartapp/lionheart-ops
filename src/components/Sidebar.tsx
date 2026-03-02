@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect } from 'react'
 import Link from 'next/link'
+import PrefetchLink from '@/components/PrefetchLink'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Home,
@@ -301,7 +302,7 @@ export default function Sidebar({
             const active = isActive(item.href)
             return (
               <li key={item.href}>
-                <Link
+                <PrefetchLink
                   href={item.href}
                   onClick={() => {
                     setSettingsOpen(false)
@@ -317,7 +318,7 @@ export default function Sidebar({
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
-                </Link>
+                </PrefetchLink>
               </li>
             )
           })}
