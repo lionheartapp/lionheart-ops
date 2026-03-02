@@ -515,6 +515,7 @@ export default function EventCreatePanel({
                 label="Event title"
                 value={form.title}
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                required
                 autoFocus
               />
 
@@ -531,6 +532,7 @@ export default function EventCreatePanel({
                   label="Calendar"
                   value={form.calendarId}
                   onChange={(e) => setForm((p) => ({ ...p, calendarId: e.target.value }))}
+                  required
                   className={selectedCalendar ? '!pl-8' : ''}
                 >
                   {calendars.map((cal) => (

@@ -96,6 +96,7 @@ export default function Sidebar({
   // Calendar sidebar state
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [calendarData, setCalendarData] = useState<CalendarSidebarData[]>([])
+  const [calendarDataReceived, setCalendarDataReceived] = useState(false)
   const [visibleCalendarIds, setVisibleCalendarIds] = useState<Set<string>>(new Set())
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
     new Set(['MASTER', 'MY SCHEDULE'])
@@ -126,6 +127,7 @@ export default function Sidebar({
       if (event.detail?.calendars) {
         setCalendarData(event.detail.calendars)
         setVisibleCalendarIds(new Set(event.detail.visibleIds))
+        setCalendarDataReceived(true)
       }
     }
     const handleVisibilityChange = (e: Event) => {
@@ -422,8 +424,22 @@ export default function Sidebar({
 
       {/* Calendar List — grouped by MASTER / MY SCHEDULE */}
       <div className="px-3 pt-4 flex-1 overflow-y-auto">
+        {!calendarDataReceived && calendarData.length === 0 && (
+          <div className="space-y-3 px-2 animate-pulse">
+            <div className="h-3 w-16 bg-gray-200 rounded" />
+            <div className="space-y-2 pl-2">
+              <div className="h-4 w-32 bg-gray-200 rounded" />
+              <div className="h-4 w-28 bg-gray-200 rounded" />
+            </div>
+            <div className="h-3 w-20 bg-gray-200 rounded mt-4" />
+            <div className="space-y-2 pl-2">
+              <div className="h-4 w-24 bg-gray-200 rounded" />
+            </div>
+          </div>
+        )}
         {calendarSections.map(({ key, label, cals }) => {
-          if (cals.length === 0) return null
+          // Always show MY SCHEDULE section (with empty state); hide MASTER only if empty
+          if (cals.length === 0 && key !== 'MY SCHEDULE') return null
           const isExpanded = expandedTypes.has(key)
           return (
             <div key={key} className="mb-1">
@@ -443,6 +459,11 @@ export default function Sidebar({
               </button>
               {isExpanded && (
                 <div className="space-y-0.5">
+                  {cals.length === 0 && key === 'MY SCHEDULE' && (
+                    <div className="px-3 py-4 text-center">
+                      <p className="text-xs text-gray-400">Your personal calendar will appear here</p>
+                    </div>
+                  )}
                   {cals.map((cal) => {
                     const isVisible = visibleCalendarIds.has(cal.id)
                     const isRenaming = renamingId === cal.id
@@ -531,15 +552,18 @@ export default function Sidebar({
                                   className="focus:outline-none focus:ring-2 focus:ring-primary-400 rounded p-0.5"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    setMenuOpenId(isMenuOpen ? null : cal.id)
+                                    // Close any other open menu/editor before toggling this one
                                     setColorEditId(null)
+                                    if (renamingId) handleRenameCancel()
+                                    setMenuOpenId(isMenuOpen ? null : cal.id)
                                   }}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                       e.preventDefault()
                                       e.stopPropagation()
-                                      setMenuOpenId(isMenuOpen ? null : cal.id)
                                       setColorEditId(null)
+                                      if (renamingId) handleRenameCancel()
+                                      setMenuOpenId(isMenuOpen ? null : cal.id)
                                     }
                                   }}
                                 >

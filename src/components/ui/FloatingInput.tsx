@@ -17,12 +17,14 @@ interface FloatingInputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
-  ({ label, id, className, ...props }, ref) => (
+  ({ label, id, className, required, ...props }, ref) => (
     <div className="relative">
       <input
         ref={ref}
         id={id}
         placeholder={label}
+        required={required}
+        aria-required={required || undefined}
         className={`peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
         {...props}
       />
@@ -30,7 +32,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
         htmlFor={id}
         className={`${labelBase} ${labelInside} ${labelFocused} peer-disabled:bg-gray-50`}
       >
-        {label}
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
     </div>
   )
@@ -47,11 +49,13 @@ interface FloatingSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 const chevronSvg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236B7280' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`
 
 export const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>(
-  ({ label, id, className, children, ...props }, ref) => (
+  ({ label, id, className, children, required, ...props }, ref) => (
     <div className="relative">
       <select
         ref={ref}
         id={id}
+        required={required}
+        aria-required={required || undefined}
         className={`peer w-full px-3.5 py-3.5 pr-10 text-sm text-gray-900 outline-none appearance-none bg-no-repeat ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
         style={{
           backgroundImage: chevronSvg,
@@ -66,7 +70,7 @@ export const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>
         htmlFor={id}
         className={`${labelBase} peer-disabled:bg-gray-50`}
       >
-        {label}
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
     </div>
   )
