@@ -1508,26 +1508,34 @@ export default function InteractiveCampusMap({
         )}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.GLOBAL }} />
-            <span>Global</span>
-          </div>
-          {schools.map((s) => (
-            <div key={s.name} className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
-              <span>{s.name}</span>
-            </div>
-          ))}
-          <span className="text-gray-400">|</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#16a34a' }} />
-            <span>Outdoor</span>
+      {/* Legend — only show when there are buildings or outdoor spaces on the map */}
+      {(buildings.some(b => b.latitude && b.longitude) || outdoorSpaces.some(s => s.lat && s.lng)) && (
+        <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
+          <div className="flex items-center gap-3">
+            {buildings.some(b => b.latitude && b.longitude && !b.schoolDivision) && (
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.GLOBAL }} />
+                <span>Global</span>
+              </div>
+            )}
+            {schools.filter(s => buildings.some(b => b.latitude && b.longitude && b.schoolDivision === s.gradeLevel)).map((s) => (
+              <div key={s.name} className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
+                <span>{s.name}</span>
+              </div>
+            ))}
+            {outdoorSpaces.some(s => s.lat && s.lng) && (
+              <>
+                {buildings.some(b => b.latitude && b.longitude) && <span className="text-gray-400">|</span>}
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#16a34a' }} />
+                  <span>Outdoor</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Status bar */}
       {(editingPolygon || placingMode || drawingMode || clickPopover || quickPlaceMode) && (
