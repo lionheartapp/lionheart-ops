@@ -73,6 +73,23 @@ export interface CalendarData {
   _count: { events: number; subscriptions: number }
 }
 
+export interface CalendarCategoryData {
+  id: string
+  name: string
+  color: string
+  icon?: string | null
+  isSystem: boolean
+  calendarType?: string | null
+  sortOrder: number
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+
+/** Returns category color if set, otherwise falls back to calendar color */
+export function getEventColor(event: CalendarEventData): string {
+  return event.category?.color || event.calendar.color
+}
+
 // ─── API helpers ───────────────────────────────────────────────────────
 
 import { fetchApi } from '@/lib/api-client'
@@ -184,6 +201,30 @@ export function useDeleteEvent() {
       fetchApi(`/api/calendar-events/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+    },
+  })
+}
+
+// ─── Category hooks ─────────────────────────────────────────────────────
+
+export function useCategories() {
+  return useQuery<CalendarCategoryData[]>({
+    queryKey: ['categories'],
+    queryFn: () => fetchApi('/api/calendar-categories'),
+    staleTime: 5 * 60_000,
+  })
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient()
+  return useMutation<CalendarCategoryData, Error, { name: string; color: string }>({
+    mutationFn: (data) =>
+      fetchApi('/api/calendar-categories', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
   })
 }

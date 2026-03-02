@@ -1,8 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { motion } from 'framer-motion'
-import type { CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 
 interface MonthViewProps {
   currentDate: Date
@@ -101,8 +100,11 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
               const today = isToday(date)
               const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
               const dayEvents = eventsByDate.get(dateKey) || []
+              const allDayEvents = dayEvents.filter((e) => e.isAllDay)
+              const timedEvents = dayEvents.filter((e) => !e.isAllDay)
+              const sortedEvents = [...allDayEvents, ...timedEvents]
               const maxVisible = weeks.length <= 4 ? 5 : weeks.length <= 5 ? 4 : 3
-              const moreCount = dayEvents.length - maxVisible
+              const moreCount = sortedEvents.length - maxVisible
 
               return (
                 <div
@@ -129,27 +131,40 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
 
                   {/* Event pills */}
                   <div className="space-y-0.5 flex-1 overflow-hidden">
-                    {dayEvents.slice(0, maxVisible).map((event) => (
-                      <motion.button
-                        key={event.id}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onEventClick(event)
-                        }}
-                        whileHover={{ scale: 1.02 }}
-                        className="w-full text-left px-2 py-0.5 rounded-md text-xs truncate"
-                        style={{
-                          backgroundColor: `${event.calendar.color}12`,
-                          color: event.calendar.color,
-                          borderLeft: `2.5px solid ${event.calendar.color}`,
-                        }}
-                      >
-                        {!event.isAllDay && (
-                          <span className="font-medium">{formatTime(event.startTime)} </span>
-                        )}
-                        {event.title}
-                      </motion.button>
-                    ))}
+                    {sortedEvents.slice(0, maxVisible).map((event) =>
+                      event.isAllDay ? (
+                        <button
+                          key={event.id}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onEventClick(event)
+                          }}
+                          className="w-full text-left px-1.5 py-0.5 rounded-md text-xs font-medium text-white truncate hover:brightness-90 transition-[filter]"
+                          style={{ backgroundColor: getEventColor(event) }}
+                        >
+                          {event.title}
+                        </button>
+                      ) : (
+                        <button
+                          key={event.id}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onEventClick(event)
+                          }}
+                          className="w-full text-left flex items-center gap-1.5 px-1.5 py-0.5 rounded-md text-xs truncate hover:brightness-95 transition-[filter]"
+                          style={{ backgroundColor: `${getEventColor(event)}12`, color: getEventColor(event) }}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: getEventColor(event) }}
+                          />
+                          <span className="truncate">
+                            <span className="font-medium">{formatTime(event.startTime)} </span>
+                            {event.title}
+                          </span>
+                        </button>
+                      )
+                    )}
                     {moreCount > 0 && (
                       <button
                         onClick={(e) => {

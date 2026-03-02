@@ -5,6 +5,7 @@ import { Save, School } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
+import ImageDropZone from '@/components/settings/ImageDropZone'
 
 type SchoolInfo = {
   id: string
@@ -434,8 +435,22 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <h3 className="text-lg font-semibold text-gray-900">Branding</h3>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
-          <FloatingInput id="si-logoUrl" label="Logo URL" value={form.logoUrl} onChange={(event) => setForm((prev) => ({ ...prev, logoUrl: event.target.value }))} />
-          <FloatingInput id="si-heroImageUrl" label="Hero Image URL" value={form.heroImageUrl} onChange={(event) => setForm((prev) => ({ ...prev, heroImageUrl: event.target.value }))} />
+          <ImageDropZone
+            label="Logo"
+            imageUrl={form.logoUrl}
+            imageType="logo"
+            onImageChange={(url) => setForm((prev) => ({ ...prev, logoUrl: url || '' }))}
+            aspectRatio="aspect-[3/2]"
+            disabled={saving}
+          />
+          <ImageDropZone
+            label="Hero Image"
+            imageUrl={form.heroImageUrl}
+            imageType="hero"
+            onImageChange={(url) => setForm((prev) => ({ ...prev, heroImageUrl: url || '' }))}
+            aspectRatio="aspect-video"
+            disabled={saving}
+          />
           <FloatingSelect id="si-imagePosition" label="Image Position" value={form.imagePosition} onChange={(event) => setForm((prev) => ({ ...prev, imagePosition: event.target.value as FormState['imagePosition'] }))}>
             <option value="LEFT">Left</option>
             <option value="RIGHT">Right</option>

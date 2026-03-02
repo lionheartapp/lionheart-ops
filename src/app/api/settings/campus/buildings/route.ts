@@ -122,6 +122,12 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'P2002') {
+      const target = (error as any).meta?.target as string[] | undefined
+      const field = target?.includes('name') ? 'name' : target?.includes('code') ? 'code' : 'value'
+      return NextResponse.json(fail('VALIDATION_ERROR', `A building with that ${field} already exists`), { status: 409 })
+    }
+    console.error('Building create error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create building'), { status: 500 })
   }
 }

@@ -12,6 +12,8 @@ import {
   useCreateEvent,
   useUpdateEvent,
   useDeleteEvent,
+  useCategories,
+  useCreateCategory,
   type CalendarEventData,
 } from '@/lib/hooks/useCalendar'
 import CalendarToolbar from './CalendarToolbar'
@@ -82,6 +84,10 @@ export default function CalendarView() {
       return next
     })
   }, [])
+
+  // Category hooks
+  const { data: categories = [] } = useCategories()
+  const createCategory = useCreateCategory()
 
   // Mutation hooks (declared before useEffect that references them)
   const createCalendar = useCreateCalendar()
@@ -230,7 +236,9 @@ export default function CalendarView() {
   const handleSubmitEvent = useCallback(async (data: EventFormData) => {
     setFormError(null)
     try {
-      await createEvent.mutateAsync(data as unknown as Record<string, unknown>)
+      const { categoryId, ...rest } = data
+      const payload = { ...rest, ...(categoryId ? { categoryId } : {}) }
+      await createEvent.mutateAsync(payload as unknown as Record<string, unknown>)
       setIsCreateOpen(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create event'
@@ -243,7 +251,9 @@ export default function CalendarView() {
     if (!editingEvent) return
     setFormError(null)
     try {
-      await updateEvent.mutateAsync({ id: editingEvent.id, ...data } as { id: string } & Record<string, unknown>)
+      const { categoryId, calendarId, ...rest } = data
+      const payload = { id: editingEvent.id, ...rest, ...(categoryId ? { categoryId } : {}) }
+      await updateEvent.mutateAsync(payload as { id: string } & Record<string, unknown>)
       setIsCreateOpen(false)
       setEditingEvent(null)
     } catch (err) {
@@ -440,6 +450,8 @@ export default function CalendarView() {
         onSubmit={editingEvent ? handleUpdateEvent : handleSubmitEvent}
         isSubmitting={editingEvent ? updateEvent.isPending : createEvent.isPending}
         calendars={calendars}
+        categories={categories}
+        onCreateCategory={(data) => createCategory.mutateAsync(data)}
         initialStart={createInitialStart}
         initialEnd={createInitialEnd}
         error={formError}

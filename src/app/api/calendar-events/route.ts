@@ -18,8 +18,8 @@ const createEventSchema = z.object({
   rrule: z.string().optional(),
   categoryId: z.string().optional(),
   locationText: z.string().optional(),
-  buildingId: z.string().optional(),
-  areaId: z.string().optional(),
+  buildingId: z.string().optional().nullable(),
+  areaId: z.string().optional().nullable(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
-      const calendarIds = searchParams.get('calendarIds')?.split(',') || []
+      const calendarIds = searchParams.get('calendarIds')?.split(',').filter(Boolean) || []
       const start = searchParams.get('start')
       const end = searchParams.get('end')
 

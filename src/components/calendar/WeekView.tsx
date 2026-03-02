@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useEffect, useRef } from 'react'
-import type { CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 
 interface WeekViewProps {
   currentDate: Date
@@ -100,8 +100,8 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                       onClick={() => onEventClick(event)}
                       className="w-full text-left px-2 py-1 rounded-lg text-xs font-semibold truncate"
                       style={{
-                        backgroundColor: `${event.calendar.color}20`,
-                        color: event.calendar.color,
+                        backgroundColor: `${getEventColor(event)}20`,
+                        color: getEventColor(event),
                       }}
                     >
                       {event.title}
@@ -198,14 +198,14 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                         style={{
                           top,
                           height,
-                          backgroundColor: `${event.calendar.color}20`,
+                          backgroundColor: `${getEventColor(event)}20`,
                         }}
                       >
-                        <div className="font-semibold text-sm truncate" style={{ color: event.calendar.color }}>
+                        <div className="font-semibold text-sm truncate" style={{ color: getEventColor(event) }}>
                           {event.title}
                         </div>
                         {height > 36 && (
-                          <div className="text-xs mt-0.5 opacity-60" style={{ color: event.calendar.color }}>
+                          <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
                             {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             {' - '}
                             {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

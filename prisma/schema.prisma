@@ -206,7 +206,7 @@ model Building {
   rooms          Room[]
   calendarEvents CalendarEvent[]
 
-  @@unique([organizationId, name])
+  @@unique([organizationId, campusId, schoolDivision, name])
   @@unique([organizationId, code])
   @@index([organizationId, isActive])
   @@index([organizationId, deletedAt])

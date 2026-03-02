@@ -1418,15 +1418,15 @@ export default function InteractiveCampusMap({
                       setPlacingMode('unified')
                     }
                   }}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full border transition-all duration-200 ${
                     drawingMode || editingPolygon
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      ? 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed'
                       : placingMode
-                        ? 'bg-primary-100 text-primary-800 border border-primary-300'
-                        : 'bg-primary-600 text-white hover:bg-primary-700'
+                        ? 'bg-primary-100 text-primary-800 border-primary-300'
+                        : 'bg-primary-600 text-white border-primary-600 hover:bg-primary-700 hover:border-primary-700'
                   }`}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4" style={{ transition: 'transform 200ms', transform: placingMode ? 'rotate(45deg)' : 'rotate(0deg)' }} />
                   {placingMode ? 'Cancel Placement' : 'Add to Map'}
                 </button>
               )}

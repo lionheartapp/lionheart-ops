@@ -2,7 +2,7 @@
 
 import { X, Clock, MapPin, Calendar, User, Tag, Trash2, Edit } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 
 interface EventDetailPanelProps {
   event: CalendarEventData | null
@@ -66,7 +66,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                 <div className="flex items-center gap-2 mb-3">
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: event.calendar.color }}
+                    style={{ backgroundColor: getEventColor(event) }}
                   />
                   <span className="text-xs font-medium text-gray-400">{event.calendar.name}</span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status.bg} ${status.text}`}>

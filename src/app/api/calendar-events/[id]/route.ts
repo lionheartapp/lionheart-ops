@@ -15,10 +15,10 @@ const updateEventSchema = z.object({
   timezone: z.string().optional(),
   isAllDay: z.boolean().optional(),
   rrule: z.string().optional(),
-  categoryId: z.string().optional(),
+  categoryId: z.string().nullable().optional(),
   locationText: z.string().optional(),
-  buildingId: z.string().optional(),
-  areaId: z.string().optional(),
+  buildingId: z.string().nullable().optional(),
+  areaId: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   editMode: z.enum(['this', 'thisAndFollowing', 'all']).optional(),
 })

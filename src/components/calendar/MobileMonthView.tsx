@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Clock, MapPin } from 'lucide-react'
-import type { CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 
 interface MobileMonthViewProps {
   currentDate: Date
@@ -132,7 +132,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick }: M
               const dayEvents = eventsByDate.get(dateKey) || []
 
               // Get unique colors for indicator dots (max 3)
-              const dotColors = [...new Set(dayEvents.map(e => e.calendar.color))].slice(0, 3)
+              const dotColors = [...new Set(dayEvents.map(e => getEventColor(e)))].slice(0, 3)
 
               return (
                 <button
@@ -198,7 +198,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick }: M
                   {/* Color bar */}
                   <div
                     className="w-1 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: event.calendar.color }}
+                    style={{ backgroundColor: getEventColor(event) }}
                   />
 
                   <div className="flex-1 min-w-0">
@@ -208,8 +208,8 @@ export default function MobileMonthView({ currentDate, events, onEventClick }: M
                       <span
                         className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
                         style={{
-                          backgroundColor: `${event.calendar.color}15`,
-                          color: event.calendar.color,
+                          backgroundColor: `${getEventColor(event)}15`,
+                          color: getEventColor(event),
                         }}
                       >
                         {event.calendar.name}

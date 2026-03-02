@@ -111,6 +111,10 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'P2002') {
+      return NextResponse.json(fail('VALIDATION_ERROR', 'A room with that number already exists in this building'), { status: 409 })
+    }
+    console.error('Room create error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create room'), { status: 500 })
   }
 }

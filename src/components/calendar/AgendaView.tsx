@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { Clock, MapPin, Users as UsersIcon } from 'lucide-react'
-import type { CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 
 interface AgendaViewProps {
   currentDate: Date
@@ -89,7 +89,7 @@ export default function AgendaView({ currentDate, events, onEventClick }: Agenda
                   {/* Color bar */}
                   <div
                     className="w-1 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: event.calendar.color }}
+                    style={{ backgroundColor: getEventColor(event) }}
                   />
 
                   <div className="flex-1 min-w-0">
@@ -99,8 +99,8 @@ export default function AgendaView({ currentDate, events, onEventClick }: Agenda
                       <span
                         className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
                         style={{
-                          backgroundColor: `${event.calendar.color}15`,
-                          color: event.calendar.color,
+                          backgroundColor: `${getEventColor(event)}15`,
+                          color: getEventColor(event),
                         }}
                       >
                         {event.calendar.name}
