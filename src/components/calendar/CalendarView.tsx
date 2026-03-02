@@ -112,6 +112,7 @@ export default function CalendarView() {
               color: c.color,
               calendarType: c.calendarType,
               isActive: c.isActive,
+              createdById: c.createdById ?? null,
             })),
             visibleIds: Array.from(visibleCalendarIds),
           },

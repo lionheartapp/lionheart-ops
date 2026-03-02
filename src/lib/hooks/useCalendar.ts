@@ -68,8 +68,10 @@ export interface CalendarData {
   requiresApproval: boolean
   isDefault: boolean
   isActive: boolean
+  createdById?: string | null
   campus?: { id: string; name: string } | null
   school?: { id: string; name: string } | null
+  createdBy?: { id: string; name?: string | null; firstName?: string | null; lastName?: string | null } | null
   _count: { events: number; subscriptions: number }
 }
 

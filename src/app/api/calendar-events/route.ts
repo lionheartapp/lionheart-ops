@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { assertCan, can } from '@/lib/auth/permissions'
+import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
 import { z } from 'zod'
@@ -73,7 +73,14 @@ export async function POST(req: NextRequest) {
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_CREATE)
+    // Members with CREATE_OWN can create events on personal/campus calendars
+    const hasCreatePerm = await canAny(ctx.userId, [
+      PERMISSIONS.CALENDAR_EVENTS_CREATE,
+      PERMISSIONS.CALENDAR_EVENTS_CREATE_OWN,
+    ])
+    if (!hasCreatePerm) {
+      return NextResponse.json(fail('FORBIDDEN', 'Insufficient permissions'), { status: 403 })
+    }
 
     const body = await req.json()
     const data = createEventSchema.parse(body)

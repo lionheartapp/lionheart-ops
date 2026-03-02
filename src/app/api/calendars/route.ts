@@ -10,7 +10,7 @@ import { z } from 'zod'
 const createCalendarSchema = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
-  calendarType: z.enum(['ACADEMIC', 'STAFF', 'TIMETABLE', 'PARENT_FACING', 'ATHLETICS', 'GENERAL']),
+  calendarType: z.enum(['ACADEMIC', 'STAFF', 'TIMETABLE', 'PARENT_FACING', 'ATHLETICS', 'GENERAL', 'PERSONAL']),
   color: z.string().optional(),
   visibility: z.enum(['PUBLIC', 'ORG_WIDE', 'CAMPUS', 'ROLE_RESTRICTED', 'PRIVATE']).optional(),
   requiresApproval: z.boolean().optional(),
@@ -32,6 +32,8 @@ export async function GET(req: NextRequest) {
         campusId: searchParams.get('campusId') || undefined,
         schoolId: searchParams.get('schoolId') || undefined,
         isActive: searchParams.get('isActive') === 'false' ? false : true,
+        userId: ctx.userId,
+        roleName: ctx.roleName ?? undefined,
       })
       return NextResponse.json(ok(calendars))
     })

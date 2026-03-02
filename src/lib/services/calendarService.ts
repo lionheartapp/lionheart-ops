@@ -49,6 +49,8 @@ export async function getCalendars(filters?: {
   campusId?: string
   schoolId?: string
   isActive?: boolean
+  userId?: string
+  roleName?: string
 }) {
   const where: Prisma.CalendarWhereInput = {}
 
@@ -65,12 +67,35 @@ export async function getCalendars(filters?: {
     where.isActive = filters.isActive
   }
 
+  // Non-admin users: filter by campus assignments + own personal calendar
+  const isAdmin = filters?.roleName && ['super admin', 'super-admin', 'administrator', 'admin'].includes(filters.roleName.toLowerCase())
+  if (filters?.userId && !isAdmin) {
+    // Get user's campus assignments
+    const campusAssignments = await prisma.userCampusAssignment.findMany({
+      where: { userId: filters.userId, isActive: true },
+      select: { campusId: true },
+    })
+    const userCampusIds = campusAssignments.map((a) => a.campusId)
+
+    where.OR = [
+      // Campus master calendars the user belongs to
+      ...(userCampusIds.length > 0
+        ? [{ campusId: { in: userCampusIds }, calendarType: { not: 'PERSONAL' as any } }]
+        : []),
+      // Org-wide calendars (no campus, non-personal)
+      { campusId: null, calendarType: { not: 'PERSONAL' as any } },
+      // User's own personal calendar
+      { createdById: filters.userId, calendarType: 'PERSONAL' as any },
+    ]
+  }
+
   return prisma.calendar.findMany({
     where,
     orderBy: { name: 'asc' },
     include: {
       campus: { select: { id: true, name: true } },
       school: { select: { id: true, name: true } },
+      createdBy: { select: { id: true, name: true, firstName: true, lastName: true } },
       _count: { select: { events: true, subscriptions: true } },
     },
   })
@@ -98,6 +123,7 @@ export async function createCalendar(data: {
   campusId?: string
   schoolId?: string
   isDefault?: boolean
+  createdById?: string
 }) {
   // Default calendar color to the school's color when schoolId is provided and no explicit color
   let resolvedColor = data.color
@@ -122,6 +148,7 @@ export async function createCalendar(data: {
       campusId: data.campusId,
       schoolId: data.schoolId,
       isDefault: data.isDefault || false,
+      createdById: data.createdById,
     } as any, // Org-scoped extension injects organizationId at runtime
   })
 }

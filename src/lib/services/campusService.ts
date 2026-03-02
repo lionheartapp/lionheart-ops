@@ -116,7 +116,7 @@ export async function createCampus(input: CreateCampusInput) {
     }
   }
 
-  return prisma.campus.create({
+  const campus = await prisma.campus.create({
     data: {
       organizationId,
       name: input.name,
@@ -133,6 +133,21 @@ export async function createCampus(input: CreateCampusInput) {
       },
     },
   })
+
+  // Auto-create a master calendar for the new campus
+  await prisma.calendar.create({
+    data: {
+      name: `${input.name} Master`,
+      slug: `master-${campus.id.slice(-8)}`,
+      calendarType: 'GENERAL' as any,
+      visibility: 'CAMPUS' as any,
+      campusId: campus.id,
+      isDefault: true,
+      color: '#3b82f6',
+    } as any,
+  })
+
+  return campus
 }
 
 /**

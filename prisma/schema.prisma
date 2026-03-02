@@ -126,6 +126,7 @@ model User {
   resourceResponses     EventResourceRequest[] @relation("ResourceResponder")
   planningSubmissions   PlanningSubmission[] @relation("PlanningSubmitter")
   planningComments      PlanningComment[]    @relation("PlanningCommentAuthor")
+  ownedCalendars        Calendar[]           @relation("CalendarOwner")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -911,6 +912,7 @@ model Calendar {
   organizationId        String
   campusId              String?
   schoolId              String?
+  createdById           String?
   name                  String
   slug                  String
   calendarType          CalendarType
@@ -928,6 +930,7 @@ model Calendar {
   organization  Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   campus        Campus?                @relation(fields: [campusId], references: [id], onDelete: SetNull)
   school        School?                @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  createdBy     User?                  @relation("CalendarOwner", fields: [createdById], references: [id], onDelete: SetNull)
   events        CalendarEvent[]
   subscriptions CalendarSubscription[]
   categories    CalendarCategory[]
@@ -937,6 +940,7 @@ model Calendar {
   @@index([organizationId, isActive])
   @@index([campusId])
   @@index([schoolId])
+  @@index([createdById])
   @@index([organizationId, deletedAt])
 }
 
@@ -1438,6 +1442,7 @@ enum CalendarType {
   PARENT_FACING
   ATHLETICS
   GENERAL
+  PERSONAL
 }
 
 enum CalendarVisibility {

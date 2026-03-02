@@ -216,6 +216,18 @@ export async function POST(req: NextRequest) {
         },
       })
 
+      // Auto-create personal "My Schedule" calendar for the new user
+      await prisma.calendar.create({
+        data: {
+          name: 'My Schedule',
+          slug: `my-schedule-${user.id.slice(-8)}`,
+          calendarType: 'PERSONAL' as any,
+          visibility: 'CAMPUS' as any,
+          createdById: user.id,
+          color: '#6366f1',
+        } as any,
+      })
+
       await passwordSetupTokenModel.create({
         data: {
           userId: user.id,

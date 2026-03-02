@@ -240,6 +240,22 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
     select: { id: true },
   })
 
+  // ── Step 6: Create campus master calendar ──
+  const campusCalendarName = `${org?.name ?? 'Main Campus'} Master`
+  const campusCalendarSlug = `master-${defaultCampus.id.slice(-8)}`
+  await rawPrisma.calendar.create({
+    data: {
+      organizationId: orgId,
+      campusId: defaultCampus.id,
+      name: campusCalendarName,
+      slug: campusCalendarSlug,
+      calendarType: 'GENERAL',
+      visibility: 'CAMPUS',
+      isDefault: true,
+      color: '#3b82f6',
+    },
+  })
+
   return { superAdminRoleId, defaultCampusId: defaultCampus.id }
 }
 
@@ -302,7 +318,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
   }
 
   // ── Step 2: Seed default roles, permissions, and teams ──
-  const { superAdminRoleId } = await seedOrgDefaults(org.id)
+  const { superAdminRoleId, defaultCampusId } = await seedOrgDefaults(org.id)
 
   // ── Step 3: Assign the super-admin role to the first admin user ──
   const updatedUser = await rawPrisma.user.update({
@@ -313,6 +329,29 @@ export async function createOrganization(input: CreateOrganizationInput) {
       email:  true,
       name:   true,
       roleId: true,
+    },
+  })
+
+  // ── Step 4: Create admin's personal calendar + campus assignment ──
+  await rawPrisma.calendar.create({
+    data: {
+      organizationId: org.id,
+      createdById: adminUser.id,
+      name: 'My Schedule',
+      slug: `my-schedule-${adminUser.id.slice(-8)}`,
+      calendarType: 'PERSONAL',
+      visibility: 'CAMPUS',
+      color: '#6366f1',
+    },
+  })
+
+  await rawPrisma.userCampusAssignment.create({
+    data: {
+      organizationId: org.id,
+      userId: adminUser.id,
+      campusId: defaultCampusId,
+      isPrimary: true,
+      isActive: true,
     },
   })
 

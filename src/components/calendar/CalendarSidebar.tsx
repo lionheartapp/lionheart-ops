@@ -10,40 +10,32 @@ interface CalendarSidebarProps {
   onToggleCalendar: (calendarId: string) => void
 }
 
-const typeLabels: Record<string, string> = {
-  ACADEMIC: 'Academic',
-  STAFF: 'Staff',
-  TIMETABLE: 'Timetable',
-  PARENT_FACING: 'Parent-Facing',
-  ATHLETICS: 'Athletics',
-  GENERAL: 'General',
-}
-
 export default function CalendarSidebar({
   calendars,
   visibleCalendarIds,
   onToggleCalendar,
 }: CalendarSidebarProps) {
-  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
-    new Set(Object.keys(typeLabels))
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['MASTER', 'MY SCHEDULE'])
   )
 
-  const toggleType = (type: string) => {
-    setExpandedTypes((prev) => {
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => {
       const next = new Set(prev)
-      if (next.has(type)) next.delete(type)
-      else next.add(type)
+      if (next.has(section)) next.delete(section)
+      else next.add(section)
       return next
     })
   }
 
-  // Group calendars by type
-  const grouped = calendars.reduce<Record<string, CalendarData[]>>((acc, cal) => {
-    const type = cal.calendarType
-    if (!acc[type]) acc[type] = []
-    acc[type].push(cal)
-    return acc
-  }, {})
+  // Group: MASTER = non-PERSONAL, MY SCHEDULE = PERSONAL
+  const masterCalendars = calendars.filter((c) => c.calendarType !== 'PERSONAL')
+  const personalCalendars = calendars.filter((c) => c.calendarType === 'PERSONAL')
+
+  const sections = [
+    { key: 'MASTER', label: 'Master', calendars: masterCalendars },
+    { key: 'MY SCHEDULE', label: 'My Schedule', calendars: personalCalendars },
+  ]
 
   return (
     <div className="w-full">
@@ -51,12 +43,13 @@ export default function CalendarSidebar({
         Calendars
       </h3>
       <div className="space-y-1">
-        {Object.entries(grouped).map(([type, cals]) => {
-          const isExpanded = expandedTypes.has(type)
+        {sections.map(({ key, label, calendars: sectionCals }) => {
+          if (sectionCals.length === 0) return null
+          const isExpanded = expandedSections.has(key)
           return (
-            <div key={type}>
+            <div key={key}>
               <button
-                onClick={() => toggleType(type)}
+                onClick={() => toggleSection(key)}
                 className="flex items-center gap-1.5 w-full px-1 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
               >
                 {isExpanded ? (
@@ -64,12 +57,12 @@ export default function CalendarSidebar({
                 ) : (
                   <ChevronRight className="w-3.5 h-3.5" />
                 )}
-                {typeLabels[type] || type}
-                <span className="text-gray-300 ml-auto">{cals.length}</span>
+                {label}
+                <span className="text-gray-300 ml-auto">{sectionCals.length}</span>
               </button>
               {isExpanded && (
                 <div className="ml-2 space-y-0.5">
-                  {cals.map((cal) => {
+                  {sectionCals.map((cal) => {
                     const isVisible = visibleCalendarIds.has(cal.id)
                     return (
                       <button
