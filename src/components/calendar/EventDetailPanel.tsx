@@ -285,11 +285,6 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
             <div className="px-6 pt-5 pb-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2 mb-3">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: getEventColor(event) }}
-                  />
-                  <span className="text-xs font-medium text-gray-400">{event.calendar.name}</span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status.bg} ${status.text}`}>
                     {status.label}
                   </span>
