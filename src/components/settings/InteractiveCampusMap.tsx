@@ -456,6 +456,13 @@ export default function InteractiveCampusMap({
       tileLayersRef.current = { satellite, street }
       mapInstanceRef.current = map
 
+      // Fix container size so tiles load at the correct dimensions.
+      // Without this, Leaflet may see a 0×0 or partially-laid-out
+      // container and request the wrong tiles (grey map).
+      requestAnimationFrame(() => {
+        if (!cancelled && map) map.invalidateSize()
+      })
+
       // Org center marker — DRAGGABLE
       const orgMarker = L.marker([mapConfig.center.lat, mapConfig.center.lng], {
         icon: createOrgIcon(L),
