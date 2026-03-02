@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState, useEffect } from 'react'
+import { ReactNode, useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import Sidebar, { type SidebarProps } from './Sidebar'
@@ -25,7 +25,29 @@ export default function DashboardLayout({
   onLogout,
 }: DashboardLayoutProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar || null)
+
+  // Close dropdown on click outside or Escape
+  const closeDropdown = useCallback(() => setIsDropdownOpen(false), [])
+
+  useEffect(() => {
+    if (!isDropdownOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        closeDropdown()
+      }
+    }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeDropdown()
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isDropdownOpen, closeDropdown])
 
   useEffect(() => {
     setUserAvatar(initialUserAvatar || null)
@@ -75,14 +97,15 @@ export default function DashboardLayout({
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar (placeholder - not yet implemented) */}
         <div className="hidden sm:block flex-1 pl-10 pr-6 max-w-md">
-          <input
-            type="search"
-            placeholder="Search here..."
-            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-400"
-            aria-label="Search"
-          />
+          <div
+            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 flex items-center text-sm text-slate-400 cursor-not-allowed select-none"
+            title="Search coming soon"
+            aria-hidden="true"
+          >
+            Search...
+          </div>
         </div>
 
         {/* User Profile with Dropdown */}
@@ -91,12 +114,13 @@ export default function DashboardLayout({
             <p className="text-sm font-semibold text-white">{userName || 'User'}</p>
             <p className="text-xs text-slate-400 truncate">{subtitleParts.join(' • ')}</p>
           </div>
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 p-1 hover:bg-white/10 rounded-lg transition"
               aria-label="User menu"
               aria-expanded={isDropdownOpen}
+              aria-haspopup="true"
             >
               <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm">
                 {userAvatar ? (
@@ -118,8 +142,7 @@ export default function DashboardLayout({
                 <Link
                   href="/settings"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="block px-4 py-3 text-sm hover:bg-gray-50 transition"
-                  style={{ color: '#1f2937' }}
+                  className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 transition"
                 >
                   Settings
                 </Link>

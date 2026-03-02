@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useLayoutEffect } from 'react'
-import Link from 'next/link'
 import PrefetchLink from '@/components/PrefetchLink'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Home,
@@ -105,6 +105,7 @@ export default function Sidebar({
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [colorEditId, setColorEditId] = useState<string | null>(null)
+  const [deleteCalendar, setDeleteCalendar] = useState<CalendarSidebarData | null>(null)
 
   // Open calendar panel when navigating to /calendar
   useIsomorphicLayoutEffect(() => {
@@ -200,13 +201,17 @@ export default function Sidebar({
 
   const handleDeleteCalendar = (cal: CalendarSidebarData) => {
     setMenuOpenId(null)
-    if (window.confirm(`Delete "${cal.name}"? All events in this calendar will be removed.`)) {
-      window.dispatchEvent(
-        new CustomEvent('calendar-delete', {
-          detail: { calendarId: cal.id },
-        })
-      )
-    }
+    setDeleteCalendar(cal)
+  }
+
+  const confirmDeleteCalendar = () => {
+    if (!deleteCalendar) return
+    window.dispatchEvent(
+      new CustomEvent('calendar-delete', {
+        detail: { calendarId: deleteCalendar.id },
+      })
+    )
+    setDeleteCalendar(null)
   }
 
   // Close menu/color picker when clicking outside
@@ -257,10 +262,11 @@ export default function Sidebar({
     )
   }
 
-  // Check workspace permissions from localStorage
+  // Check workspace permissions from localStorage (optimistic — server enforces real perms)
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
+  const ADMIN_ROLES = ['super admin', 'administrator']
   const canManageWorkspace = userRole
-    ? userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('super')
+    ? ADMIN_ROLES.includes(userRole.toLowerCase())
     : false
 
   const generalTabs = [
@@ -634,6 +640,17 @@ export default function Sidebar({
         className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
           secondaryOpen ? 'w-[496px]' : 'w-64'
         }`}
+      />
+
+      {/* Calendar delete confirmation */}
+      <ConfirmDialog
+        isOpen={!!deleteCalendar}
+        onClose={() => setDeleteCalendar(null)}
+        onConfirm={confirmDeleteCalendar}
+        title="Delete Calendar"
+        message={`Delete "${deleteCalendar?.name}"? All events in this calendar will be permanently removed.`}
+        confirmText="Delete"
+        variant="danger"
       />
     </>
   )

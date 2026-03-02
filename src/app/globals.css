@@ -33,6 +33,16 @@ a:focus-visible {
   border-radius: 0.375rem;
 }
 
+/* Floating label fix: keep label floated when browser autofills the input */
+input:-webkit-autofill ~ label,
+input:-webkit-autofill:focus ~ label {
+  top: -0.625rem; /* -top-2.5 */
+  transform: translateY(0);
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 500;
+  color: #6b7280; /* gray-500 */
+}
+
 /* Body styles: Dark mode default but will be overridden by landing page's light mode */
 body {
   @apply bg-zinc-950 text-zinc-100;
@@ -103,6 +113,11 @@ a:visited {
 
 .leaflet-popup-tip-container {
   margin-top: -1px;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(1rem); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes shimmer {

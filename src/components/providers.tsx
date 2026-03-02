@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { usePrefetchOnAuth } from '@/lib/hooks/usePrefetchOnAuth'
+import { ToastProvider } from '@/components/Toast'
 
 function PrefetchGate({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
@@ -51,7 +52,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <PrefetchGate>{children}</PrefetchGate>
+      <ToastProvider>
+        <PrefetchGate>{children}</PrefetchGate>
+      </ToastProvider>
     </QueryClientProvider>
   )
 }
