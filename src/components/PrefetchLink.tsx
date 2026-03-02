@@ -14,7 +14,7 @@ type LinkProps = ComponentProps<typeof Link>
  * for the data that route will need. This eliminates the loading spinner
  * when navigating between pages.
  */
-const ROUTE_PREFETCH_MAP: Record<string, () => Parameters<typeof import('@tanstack/react-query').QueryClient['prefetchQuery']>[0][]> = {
+const ROUTE_PREFETCH_MAP: Record<string, () => { queryKey: readonly unknown[]; queryFn: () => Promise<unknown>; staleTime?: number }[]> = {
   '/dashboard': () => [
     queryOptions.tickets(),
   ],
