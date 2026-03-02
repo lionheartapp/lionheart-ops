@@ -11,6 +11,7 @@ interface WeekViewProps {
   onEventClick: (event: CalendarEventData) => void
   onSlotClick: (start: Date, end: Date) => void
   onDragReschedule?: (event: CalendarEventData, deltaMinutes: number, deltaDays: number) => void
+  onResize?: (event: CalendarEventData, deltaMinutes: number) => void
 }
 
 const HOUR_HEIGHT = 64
@@ -27,7 +28,7 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function WeekView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule }: WeekViewProps) {
+export default function WeekView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize }: WeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const columnsRef = useRef<HTMLDivElement>(null)
   const [columnWidth, setColumnWidth] = useState(0)
@@ -217,6 +218,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                           date={date}
                           siblingEvents={timedEvents}
                           onDragReschedule={onDragReschedule}
+                          onResize={onResize}
                           onClick={onEventClick}
                           dragAxis="both"
                           columnWidth={columnWidth}

@@ -11,6 +11,7 @@ interface DayViewProps {
   onEventClick: (event: CalendarEventData) => void
   onSlotClick: (start: Date, end: Date) => void
   onDragReschedule?: (event: CalendarEventData, deltaMinutes: number, deltaDays: number) => void
+  onResize?: (event: CalendarEventData, deltaMinutes: number) => void
 }
 
 const HOUR_HEIGHT = 64
@@ -23,7 +24,7 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule }: DayViewProps) {
+export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const { allDayEvents, timedEvents } = useMemo(() => {
@@ -158,6 +159,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                     date={currentDate}
                     siblingEvents={timedEvents}
                     onDragReschedule={onDragReschedule}
+                    onResize={onResize}
                     onClick={onEventClick}
                     dragAxis="y"
                     className="right-4"

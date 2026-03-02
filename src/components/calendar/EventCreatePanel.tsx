@@ -7,6 +7,7 @@ import type { CalendarData, CalendarEventData, CalendarCategoryData } from '@/li
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 import { FloatingInput, FloatingSelect, FloatingTextarea } from '@/components/ui/FloatingInput'
+import RecurrenceBuilder from './RecurrenceBuilder'
 
 interface EventCreatePanelProps {
   isOpen: boolean
@@ -33,6 +34,7 @@ export interface EventFormData {
   locationText: string
   buildingId: string | null
   areaId: string | null
+  rrule: string | null
 }
 
 function toLocalDateTimeString(date: Date): string {
@@ -314,6 +316,7 @@ export default function EventCreatePanel({
     locationText: '',
     buildingId: null,
     areaId: null,
+    rrule: null,
   })
 
   // Inline category creation state
@@ -344,6 +347,7 @@ export default function EventCreatePanel({
           locationText: event.locationText || '',
           buildingId: (event as unknown as Record<string, unknown>).buildingId as string | null ?? null,
           areaId: (event as unknown as Record<string, unknown>).areaId as string | null ?? null,
+          rrule: (event as unknown as Record<string, unknown>).rrule as string | null ?? null,
         })
       } else {
         const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
@@ -359,6 +363,7 @@ export default function EventCreatePanel({
           locationText: '',
           buildingId: null,
           areaId: null,
+          rrule: null,
         })
       }
     }
@@ -402,6 +407,7 @@ export default function EventCreatePanel({
       endTime: new Date(form.endTime).toISOString(),
       buildingId: form.buildingId || null,
       areaId: form.areaId || null,
+      rrule: form.rrule || null,
     })
   }
 
@@ -713,6 +719,13 @@ export default function EventCreatePanel({
               {timeError && (
                 <p className="text-xs text-red-600">{timeError}</p>
               )}
+
+              {/* Recurrence */}
+              <RecurrenceBuilder
+                value={form.rrule}
+                onChange={(rrule) => setForm((p) => ({ ...p, rrule }))}
+                eventStartDate={getDatePart(form.startTime)}
+              />
 
               {/* Location */}
               <LocationCombobox
