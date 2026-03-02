@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 import { X } from 'lucide-react'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -42,12 +43,22 @@ export default function ConfirmDialog({
   extraAction,
 }: ConfirmDialogProps) {
   const [confirmInput, setConfirmInput] = useState('')
+  const focusTrapRef = useFocusTrap(isOpen)
 
   useEffect(() => {
     if (isOpen) {
       setConfirmInput('')
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
@@ -83,7 +94,13 @@ export default function ConfirmDialog({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-xl transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl transition-all">
+        <div
+          ref={focusTrapRef}
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="confirm-dialog-title"
+          className="relative w-full max-w-xl transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl transition-all"
+        >
           {/* Close button */}
           <button
             onClick={onClose}
@@ -97,7 +114,7 @@ export default function ConfirmDialog({
           <div className="p-8">
             {/* Title */}
             <div>
-              <h3 className="text-2xl font-semibold text-gray-900">
+              <h3 id="confirm-dialog-title" className="text-2xl font-semibold text-gray-900">
                 {title}
               </h3>
               <div className="mt-4 h-px w-full bg-gray-200" />

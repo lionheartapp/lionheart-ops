@@ -2,12 +2,15 @@
 
 import { useMemo, useEffect, useRef } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventAriaLabel } from './a11y-helpers'
+import DraggableEvent from './DraggableEvent'
 
 interface DayViewProps {
   currentDate: Date
   events: CalendarEventData[]
   onEventClick: (event: CalendarEventData) => void
   onSlotClick: (start: Date, end: Date) => void
+  onDragReschedule?: (event: CalendarEventData, deltaMinutes: number, deltaDays: number) => void
 }
 
 const HOUR_HEIGHT = 64
@@ -20,7 +23,7 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function DayView({ currentDate, events, onEventClick, onSlotClick }: DayViewProps) {
+export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const { allDayEvents, timedEvents } = useMemo(() => {
@@ -63,6 +66,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
               <button
                 key={event.id}
                 onClick={() => onEventClick(event)}
+                aria-label={getEventAriaLabel(event)}
                 className="text-left px-3 py-1.5 rounded-lg text-sm font-semibold truncate"
                 style={{
                   backgroundColor: `${getEventColor(event)}20`,
@@ -144,6 +148,39 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
               const top = (startMinutes / 60) * HOUR_HEIGHT
               const height = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
 
+              if (onDragReschedule) {
+                return (
+                  <DraggableEvent
+                    key={event.id}
+                    event={event}
+                    top={top}
+                    height={height}
+                    date={currentDate}
+                    siblingEvents={timedEvents}
+                    onDragReschedule={onDragReschedule}
+                    onClick={onEventClick}
+                    dragAxis="y"
+                    className="right-4"
+                  >
+                    <div className="font-semibold text-sm truncate" style={{ color: getEventColor(event) }}>
+                      {event.title}
+                    </div>
+                    {height > 36 && (
+                      <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
+                        {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {' - '}
+                        {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    )}
+                    {height > 56 && event.locationText && (
+                      <div className="text-xs mt-0.5 opacity-40" style={{ color: getEventColor(event) }}>
+                        {event.locationText}
+                      </div>
+                    )}
+                  </DraggableEvent>
+                )
+              }
+
               return (
                 <button
                   key={event.id}
@@ -151,6 +188,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                     e.stopPropagation()
                     onEventClick(event)
                   }}
+                  aria-label={getEventAriaLabel(event)}
                   className="absolute left-1 right-4 rounded-xl px-4 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer"
                   style={{
                     top,

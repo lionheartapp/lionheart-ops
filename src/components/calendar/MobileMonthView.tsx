@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Clock, MapPin } from 'lucide-react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventAriaLabel } from './a11y-helpers'
 
 interface MobileMonthViewProps {
   currentDate: Date
@@ -192,6 +193,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick }: M
               <button
                 key={event.id}
                 onClick={() => onEventClick(event)}
+                aria-label={getEventAriaLabel(event)}
                 className="w-full text-left p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-white"
               >
                 <div className="flex gap-3">

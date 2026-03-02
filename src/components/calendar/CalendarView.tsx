@@ -28,6 +28,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
 
 const COLOR_PRESETS = [
   { name: 'Red', value: '#ef4444' },
@@ -269,6 +270,39 @@ export default function CalendarView() {
     setDeleteConfirmEventId(eventId)
   }, [])
 
+  // Drag-and-drop reschedule
+  const { reschedule } = useDragReschedule()
+  const [pendingDragReschedule, setPendingDragReschedule] = useState<{
+    event: CalendarEventData
+    newStart: string
+    newEnd: string
+  } | null>(null)
+
+  const handleDragReschedule = useCallback((event: CalendarEventData, deltaMinutes: number, deltaDays: number) => {
+    const start = new Date(event.startTime)
+    const end = new Date(event.endTime)
+    const newStart = new Date(start.getTime() + deltaMinutes * 60_000 + deltaDays * 86_400_000)
+    const newEnd = new Date(end.getTime() + deltaMinutes * 60_000 + deltaDays * 86_400_000)
+
+    // If recurring event, show edit mode prompt
+    if (event.rrule || event.parentEventId) {
+      setPendingDragReschedule({
+        event,
+        newStart: newStart.toISOString(),
+        newEnd: newEnd.toISOString(),
+      })
+      return
+    }
+
+    // Non-recurring: reschedule directly
+    reschedule({
+      event,
+      newStartTime: newStart.toISOString(),
+      newEndTime: newEnd.toISOString(),
+      editMode: 'all',
+    })
+  }, [reschedule])
+
   const confirmDeleteEvent = useCallback(async () => {
     if (!deleteConfirmEventId) return
     await deleteEvent.mutateAsync(deleteConfirmEventId)
@@ -388,6 +422,9 @@ export default function CalendarView() {
         )}
       </div>
 
+      {/* Screen reader loading announcement */}
+      <div className="sr-only" aria-live="polite">{eventsLoading ? 'Loading calendar events' : ''}</div>
+
       {/* Scrollable view area — white background fills to bottom */}
       <div className="flex-1 min-h-0 flex flex-col bg-white overflow-hidden">
           {view === 'month' && (
@@ -412,6 +449,7 @@ export default function CalendarView() {
               events={events}
               onEventClick={handleEventClick}
               onSlotClick={handleSlotClick}
+              onDragReschedule={handleDragReschedule}
             />
           )}
           {view === 'day' && (
@@ -420,6 +458,7 @@ export default function CalendarView() {
               events={events}
               onEventClick={handleEventClick}
               onSlotClick={handleSlotClick}
+              onDragReschedule={handleDragReschedule}
             />
           )}
           {view === 'agenda' && (
@@ -568,6 +607,40 @@ export default function CalendarView() {
         variant="danger"
         isLoading={deleteEvent.isPending}
         loadingText="Deleting..."
+      />
+
+      {/* Recurring event edit mode prompt */}
+      <ConfirmDialog
+        isOpen={!!pendingDragReschedule}
+        onClose={() => setPendingDragReschedule(null)}
+        onConfirm={() => {
+          if (!pendingDragReschedule) return
+          reschedule({
+            event: pendingDragReschedule.event,
+            newStartTime: pendingDragReschedule.newStart,
+            newEndTime: pendingDragReschedule.newEnd,
+            editMode: 'this',
+          })
+          setPendingDragReschedule(null)
+        }}
+        title="Edit recurring event"
+        message="This is a recurring event. How would you like to apply this change?"
+        confirmText="This event only"
+        cancelText="Cancel"
+        variant="info"
+        extraAction={{
+          label: 'All events',
+          onClick: () => {
+            if (!pendingDragReschedule) return
+            reschedule({
+              event: pendingDragReschedule.event,
+              newStartTime: pendingDragReschedule.newStart,
+              newEndTime: pendingDragReschedule.newEnd,
+              editMode: 'all',
+            })
+            setPendingDragReschedule(null)
+          },
+        }}
       />
     </div>
   )

@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo, useEffect, useRef } from 'react'
+import { useMemo, useEffect, useRef, useState } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventAriaLabel } from './a11y-helpers'
+import DraggableEvent from './DraggableEvent'
 
 interface WeekViewProps {
   currentDate: Date
   events: CalendarEventData[]
   onEventClick: (event: CalendarEventData) => void
   onSlotClick: (start: Date, end: Date) => void
+  onDragReschedule?: (event: CalendarEventData, deltaMinutes: number, deltaDays: number) => void
 }
 
 const HOUR_HEIGHT = 64
@@ -24,8 +27,10 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function WeekView({ currentDate, events, onEventClick, onSlotClick }: WeekViewProps) {
+export default function WeekView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule }: WeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const columnsRef = useRef<HTMLDivElement>(null)
+  const [columnWidth, setColumnWidth] = useState(0)
 
   const weekDates = useMemo(() => {
     const start = new Date(currentDate)
@@ -72,6 +77,20 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     }
   }, [])
 
+  // Measure column width for horizontal drag snapping
+  useEffect(() => {
+    if (!columnsRef.current) return
+    const measure = () => {
+      if (columnsRef.current) {
+        setColumnWidth(columnsRef.current.offsetWidth / 7)
+      }
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(columnsRef.current)
+    return () => observer.disconnect()
+  }, [])
+
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
 
   const now = new Date()
@@ -98,6 +117,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                     <button
                       key={event.id}
                       onClick={() => onEventClick(event)}
+                      aria-label={getEventAriaLabel(event)}
                       className="w-full text-left px-2 py-1 rounded-lg text-xs font-semibold truncate"
                       style={{
                         backgroundColor: `${getEventColor(event)}20`,
@@ -131,7 +151,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
           </div>
 
           {/* Day columns */}
-          <div className="flex-1 grid grid-cols-7 gap-0 relative">
+          <div ref={columnsRef} className="flex-1 grid grid-cols-7 gap-0 relative">
             {/* Hour lines */}
             {hours.map((hour) => (
               <div
@@ -187,6 +207,35 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                     const top = (startMinutes / 60) * HOUR_HEIGHT
                     const height = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
 
+                    if (onDragReschedule) {
+                      return (
+                        <DraggableEvent
+                          key={event.id}
+                          event={event}
+                          top={top}
+                          height={height}
+                          date={date}
+                          siblingEvents={timedEvents}
+                          onDragReschedule={onDragReschedule}
+                          onClick={onEventClick}
+                          dragAxis="both"
+                          columnWidth={columnWidth}
+                          weekDates={weekDates}
+                        >
+                          <div className="font-semibold text-sm truncate" style={{ color: getEventColor(event) }}>
+                            {event.title}
+                          </div>
+                          {height > 36 && (
+                            <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
+                              {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {' - '}
+                              {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          )}
+                        </DraggableEvent>
+                      )
+                    }
+
                     return (
                       <button
                         key={event.id}
@@ -194,6 +243,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                           e.stopPropagation()
                           onEventClick(event)
                         }}
+                        aria-label={getEventAriaLabel(event)}
                         className="absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer"
                         style={{
                           top,

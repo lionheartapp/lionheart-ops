@@ -5,14 +5,26 @@ import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info'
 
+interface ToastAction {
+  label: string
+  onClick: () => void
+}
+
+interface ToastOptions {
+  duration?: number
+  action?: ToastAction
+}
+
 interface Toast {
   id: string
   message: string
   variant: ToastVariant
+  duration?: number
+  action?: ToastAction
 }
 
 interface ToastContextValue {
-  toast: (message: string, variant?: ToastVariant) => void
+  toast: (message: string, variant?: ToastVariant, options?: ToastOptions) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -44,15 +56,15 @@ const ICON_STYLES: Record<ToastVariant, string> = {
   info: 'text-gray-500',
 }
 
-const DURATION = 4000
+const DEFAULT_DURATION = 4000
 
 function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   const Icon = ICONS[t.variant]
 
   useEffect(() => {
-    const timer = setTimeout(() => onDismiss(t.id), DURATION)
+    const timer = setTimeout(() => onDismiss(t.id), t.duration || DEFAULT_DURATION)
     return () => clearTimeout(timer)
-  }, [t.id, onDismiss])
+  }, [t.id, t.duration, onDismiss])
 
   return (
     <div
@@ -62,6 +74,17 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
     >
       <Icon className={`w-5 h-5 flex-shrink-0 ${ICON_STYLES[t.variant]}`} />
       <p className="text-sm font-medium flex-1">{t.message}</p>
+      {t.action && (
+        <button
+          onClick={() => {
+            t.action!.onClick()
+            onDismiss(t.id)
+          }}
+          className="text-sm font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity flex-shrink-0"
+        >
+          {t.action.label}
+        </button>
+      )}
       <button
         onClick={() => onDismiss(t.id)}
         className="p-0.5 rounded-md hover:bg-black/5 transition-colors flex-shrink-0"
@@ -76,9 +99,9 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
-  const toast = useCallback((message: string, variant: ToastVariant = 'success') => {
+  const toast = useCallback((message: string, variant: ToastVariant = 'success', options?: ToastOptions) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    setToasts((prev) => [...prev, { id, message, variant }])
+    setToasts((prev) => [...prev, { id, message, variant, duration: options?.duration, action: options?.action }])
   }, [])
 
   const dismiss = useCallback((id: string) => {

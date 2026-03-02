@@ -75,10 +75,13 @@ export default function CalendarToolbar({
         </h2>
 
         {/* Center: View switcher — desktop only */}
-        <div className="hidden sm:flex border border-gray-200 rounded-full overflow-hidden flex-shrink-0">
+        <div className="hidden sm:flex border border-gray-200 rounded-full overflow-hidden flex-shrink-0" role="tablist" aria-label="Calendar view">
           {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
             <button
               key={v}
+              role="tab"
+              aria-selected={view === v}
+              aria-current={view === v ? 'true' : undefined}
               onClick={() => onViewChange(v)}
               className={`w-20 text-center py-2 text-sm font-semibold transition-all ${
                 view === v
@@ -129,10 +132,13 @@ export default function CalendarToolbar({
       </div>
 
       {/* Row 2: View switcher — mobile only */}
-      <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden">
+      <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden" role="tablist" aria-label="Calendar view">
         {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
           <button
             key={v}
+            role="tab"
+            aria-selected={view === v}
+            aria-current={view === v ? 'true' : undefined}
             onClick={() => onViewChange(v)}
             className={`flex-1 text-center py-2 text-xs font-semibold transition-all ${
               view === v

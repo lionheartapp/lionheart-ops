@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Clock, MapPin, Users as UsersIcon } from 'lucide-react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventAriaLabel } from './a11y-helpers'
 
 interface AgendaViewProps {
   currentDate: Date
@@ -83,6 +84,7 @@ export default function AgendaView({ currentDate, events, onEventClick }: Agenda
               <button
                 key={event.id}
                 onClick={() => onEventClick(event)}
+                aria-label={getEventAriaLabel(event)}
                 className="w-full text-left p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-white group"
               >
                 <div className="flex gap-3">

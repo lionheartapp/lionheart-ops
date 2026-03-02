@@ -73,6 +73,26 @@ export interface CalendarData {
   _count: { events: number; subscriptions: number }
 }
 
+export type ApprovalChannelType = 'ADMIN' | 'FACILITIES' | 'AV_PRODUCTION' | 'CUSTODIAL' | 'SECURITY' | 'ATHLETIC_DIRECTOR'
+
+export interface EventApprovalData {
+  id: string
+  channelType: ApprovalChannelType
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'AUTO_APPROVED'
+  respondedBy?: {
+    id: string
+    firstName?: string | null
+    lastName?: string | null
+    email: string
+  } | null
+  reason?: string | null
+  respondedAt?: string | null
+}
+
+export interface CalendarEventDetailData extends CalendarEventData {
+  approvals?: EventApprovalData[]
+}
+
 export interface CalendarCategoryData {
   id: string
   name: string
@@ -225,6 +245,59 @@ export function useCreateCategory() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
+    },
+  })
+}
+
+// ─── Event detail + approval hooks ──────────────────────────────────────
+
+export function useEventDetail(eventId: string | null) {
+  return useQuery<CalendarEventDetailData>({
+    queryKey: ['calendar-event-detail', eventId],
+    queryFn: () => fetchApi(`/api/calendar-events/${eventId}`),
+    enabled: !!eventId,
+    staleTime: 30_000,
+  })
+}
+
+export function useSubmitForApproval() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (eventId: string) =>
+      fetchApi(`/api/calendar-events/${eventId}/submit`, { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-event-detail'] })
+    },
+  })
+}
+
+export function useApproveEvent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ eventId, channelType }: { eventId: string; channelType: ApprovalChannelType }) =>
+      fetchApi(`/api/calendar-events/${eventId}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ channelType }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-event-detail'] })
+    },
+  })
+}
+
+export function useRejectEvent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ eventId, channelType, reason }: { eventId: string; channelType: ApprovalChannelType; reason: string }) =>
+      fetchApi(`/api/calendar-events/${eventId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ channelType, reason }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-event-detail'] })
     },
   })
 }

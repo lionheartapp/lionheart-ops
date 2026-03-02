@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { X, Loader2, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { CalendarData, CalendarEventData, CalendarCategoryData } from '@/lib/hooks/useCalendar'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 import { FloatingInput, FloatingSelect, FloatingTextarea } from '@/components/ui/FloatingInput'
 
@@ -287,6 +288,17 @@ export default function EventCreatePanel({
   event,
 }: EventCreatePanelProps) {
   const isEditing = !!event
+  const focusTrapRef = useFocusTrap(isOpen)
+
+  useEffect(() => {
+    if (!isOpen) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   const now = new Date()
   const defaultStart = initialStart || new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0)
   const defaultEnd = initialEnd || new Date(defaultStart.getTime() + 60 * 60 * 1000)
@@ -423,6 +435,10 @@ export default function EventCreatePanel({
           />
 
           <motion.div
+            ref={focusTrapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-panel-title"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -431,7 +447,7 @@ export default function EventCreatePanel({
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-5 pb-3">
-              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+              <span id="create-panel-title" className="text-xs text-gray-400 uppercase tracking-wide font-medium">
                 {isEditing ? 'Edit Event' : 'Create New Event'}
               </span>
               <button

@@ -1,8 +1,20 @@
 'use client'
 
-import { X, Clock, MapPin, Calendar, User, Tag, Trash2, Edit } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Clock, MapPin, Calendar, User, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import {
+  getEventColor,
+  useEventDetail,
+  useSubmitForApproval,
+  useApproveEvent,
+  useRejectEvent,
+  type CalendarEventData,
+  type EventApprovalData,
+  type ApprovalChannelType,
+} from '@/lib/hooks/useCalendar'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { useToast } from '@/components/Toast'
 
 interface EventDetailPanelProps {
   event: CalendarEventData | null
@@ -34,10 +46,179 @@ const statusStyles: Record<string, { bg: string; text: string; label: string }> 
   CANCELLED: { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Cancelled' },
 }
 
+const CHANNEL_LABELS: Record<string, string> = {
+  ADMIN: 'Administration',
+  FACILITIES: 'Facilities',
+  AV_PRODUCTION: 'A/V Production',
+  CUSTODIAL: 'Custodial',
+  SECURITY: 'Security',
+  ATHLETIC_DIRECTOR: 'Athletic Director',
+}
+
+const APPROVAL_STATUS_CONFIG: Record<string, { icon: typeof CheckCircle; color: string; label: string }> = {
+  PENDING: { icon: Clock, color: 'text-amber-500', label: 'Pending' },
+  APPROVED: { icon: CheckCircle, color: 'text-green-500', label: 'Approved' },
+  REJECTED: { icon: XCircle, color: 'text-red-500', label: 'Rejected' },
+  AUTO_APPROVED: { icon: CheckCircle, color: 'text-green-400', label: 'Auto-approved' },
+}
+
+function ApprovalChannelRow({
+  approval,
+  isAdmin,
+  onApprove,
+  onReject,
+  isApproving,
+  isRejecting,
+}: {
+  approval: EventApprovalData
+  isAdmin: boolean
+  onApprove: (channelType: ApprovalChannelType) => void
+  onReject: (channelType: ApprovalChannelType) => void
+  isApproving: boolean
+  isRejecting: boolean
+}) {
+  const config = APPROVAL_STATUS_CONFIG[approval.approvalStatus] || APPROVAL_STATUS_CONFIG.PENDING
+  const StatusIcon = config.icon
+
+  return (
+    <div className="py-2.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <StatusIcon className={`w-4 h-4 ${config.color}`} />
+          <span className="text-sm text-gray-900">{CHANNEL_LABELS[approval.channelType] || approval.channelType}</span>
+        </div>
+        <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
+      </div>
+
+      {/* Responded by */}
+      {approval.respondedBy && approval.respondedAt && (
+        <p className="text-xs text-gray-400 mt-0.5 ml-6">
+          by {approval.respondedBy.firstName
+            ? `${approval.respondedBy.firstName} ${approval.respondedBy.lastName || ''}`
+            : approval.respondedBy.email}
+          {' '}on {new Date(approval.respondedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+        </p>
+      )}
+
+      {/* Rejection reason */}
+      {approval.approvalStatus === 'REJECTED' && approval.reason && (
+        <p className="text-xs text-red-600 mt-1 ml-6 italic">&ldquo;{approval.reason}&rdquo;</p>
+      )}
+
+      {/* Admin action buttons */}
+      {isAdmin && approval.approvalStatus === 'PENDING' && (
+        <div className="flex gap-2 mt-2 ml-6">
+          <button
+            onClick={() => onApprove(approval.channelType)}
+            disabled={isApproving}
+            className="px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-50 rounded-lg hover:bg-green-100 disabled:opacity-50 transition-colors flex items-center gap-1"
+          >
+            {isApproving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+            Approve
+          </button>
+          <button
+            onClick={() => onReject(approval.channelType)}
+            disabled={isRejecting}
+            className="px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 rounded-lg hover:bg-red-100 disabled:opacity-50 transition-colors flex items-center gap-1"
+          >
+            <XCircle className="w-3 h-3" />
+            Reject
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: EventDetailPanelProps) {
+  const focusTrapRef = useFocusTrap(!!event)
+  const { toast } = useToast()
+
+  // Approval state
+  const [rejectingChannel, setRejectingChannel] = useState<ApprovalChannelType | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+
+  // Fetch full event detail (includes approvals)
+  const { data: eventDetail } = useEventDetail(event?.id ?? null)
+
+  // Approval mutations
+  const submitForApproval = useSubmitForApproval()
+  const approveEvent = useApproveEvent()
+  const rejectEvent = useRejectEvent()
+
+  // Client-side permission check (server enforces real permissions)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isCreator, setIsCreator] = useState(false)
+
+  useEffect(() => {
+    if (!event) return
+    const role = localStorage.getItem('user-role')?.toLowerCase()
+    setIsAdmin(role === 'super admin' || role === 'administrator' || role === 'super-admin' || role === 'admin')
+    const email = localStorage.getItem('user-email')
+    setIsCreator(!!email && event.createdBy?.email === email)
+  }, [event])
+
+  useEffect(() => {
+    if (!event) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        if (rejectingChannel) {
+          setRejectingChannel(null)
+          setRejectReason('')
+        } else {
+          onClose()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [event, onClose, rejectingChannel])
+
+  // Reset rejection state when event changes
+  useEffect(() => {
+    setRejectingChannel(null)
+    setRejectReason('')
+  }, [event?.id])
+
   if (!event) return null
 
   const status = statusStyles[event.calendarStatus] || statusStyles.DRAFT
+  const approvals = eventDetail?.approvals || []
+
+  const handleApprove = async (channelType: ApprovalChannelType) => {
+    try {
+      await approveEvent.mutateAsync({ eventId: event.id, channelType })
+      toast('Channel approved', 'success')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to approve', 'error')
+    }
+  }
+
+  const handleRejectClick = (channelType: ApprovalChannelType) => {
+    setRejectingChannel(channelType)
+    setRejectReason('')
+  }
+
+  const handleRejectConfirm = async () => {
+    if (!rejectingChannel || !rejectReason.trim()) return
+    try {
+      await rejectEvent.mutateAsync({ eventId: event.id, channelType: rejectingChannel, reason: rejectReason.trim() })
+      toast('Channel rejected', 'success')
+      setRejectingChannel(null)
+      setRejectReason('')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to reject', 'error')
+    }
+  }
+
+  const handleSubmitForApproval = async () => {
+    try {
+      await submitForApproval.mutateAsync(event.id)
+      toast('Submitted for approval', 'success')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to submit', 'error')
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -52,8 +233,48 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
             onClick={onClose}
           />
 
+          {/* Rejection modal overlay */}
+          {rejectingChannel && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/20" onClick={() => { setRejectingChannel(null); setRejectReason('') }} />
+              <div className="relative bg-white rounded-xl shadow-xl p-5 w-full max-w-sm">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                  Reject {CHANNEL_LABELS[rejectingChannel] || rejectingChannel}
+                </h4>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Reason for rejection (required)"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900 resize-none"
+                  rows={3}
+                  autoFocus
+                />
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => { setRejectingChannel(null); setRejectReason('') }}
+                    className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleRejectConfirm}
+                    disabled={!rejectReason.trim() || rejectEvent.isPending}
+                    className="flex-1 px-3 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1"
+                  >
+                    {rejectEvent.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Panel */}
           <motion.div
+            ref={focusTrapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detail-panel-title"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -97,7 +318,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   </button>
                 </div>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900">{event.title}</h2>
+              <h2 id="detail-panel-title" className="text-xl font-semibold text-gray-900">{event.title}</h2>
             </div>
 
             {/* Content */}
@@ -230,6 +451,47 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Approval Status Section */}
+              {(approvals.length > 0 || event.calendarStatus === 'DRAFT') && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Shield className="w-4 h-4 text-gray-400" />
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      Approval Status
+                    </h3>
+                  </div>
+
+                  {/* Submit for approval button (DRAFT + creator only) */}
+                  {event.calendarStatus === 'DRAFT' && isCreator && approvals.length === 0 && (
+                    <button
+                      onClick={handleSubmitForApproval}
+                      disabled={submitForApproval.isPending}
+                      className="w-full py-2.5 text-sm font-semibold text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {submitForApproval.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Submit for Approval
+                    </button>
+                  )}
+
+                  {/* Approval channel rows */}
+                  {approvals.length > 0 && (
+                    <div className="space-y-1 divide-y divide-gray-50">
+                      {approvals.map((approval) => (
+                        <ApprovalChannelRow
+                          key={approval.id}
+                          approval={approval}
+                          isAdmin={isAdmin}
+                          onApprove={handleApprove}
+                          onReject={handleRejectClick}
+                          isApproving={approveEvent.isPending}
+                          isRejecting={rejectEvent.isPending}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
