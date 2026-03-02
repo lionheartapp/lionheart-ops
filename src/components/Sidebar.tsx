@@ -66,27 +66,13 @@ export default function Sidebar({
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>(() => {
-    if (typeof window === 'undefined') return 'profile'
-    const saved = localStorage.getItem('settings-active-tab')
-    const validTabs: SettingsTab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 'campus']
-    if (saved && validTabs.includes(saved as SettingsTab)) return saved as SettingsTab
-    return 'profile'
-  })
+  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
 
-  // Open settings panel when navigating to /settings, and restore saved tab
-  // Use useLayoutEffect so the correct tab is set before paint (avoids flash)
+  // Open settings panel when navigating to /settings
   const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
   useIsomorphicLayoutEffect(() => {
     if (pathname.startsWith('/settings')) {
       setSettingsOpen(true)
-
-      // Restore tab from localStorage on mount
-      const saved = localStorage.getItem('settings-active-tab')
-      const validTabs: SettingsTab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 'campus']
-      if (saved && validTabs.includes(saved as SettingsTab)) {
-        setActiveSettingsTab(saved as SettingsTab)
-      }
     }
   }, [pathname])
 
@@ -266,7 +252,6 @@ export default function Sidebar({
 
   const handleSettingsTabClick = (tab: SettingsTab) => {
     setActiveSettingsTab(tab)
-    localStorage.setItem('settings-active-tab', tab)
     window.dispatchEvent(
       new CustomEvent('settings-tab-change', { detail: { tab } })
     )
