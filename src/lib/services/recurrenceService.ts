@@ -80,12 +80,14 @@ export function expandRecurrence(
     originalStart: dt,
   }))
 
-  // Merge stored exceptions
+  // Merge stored exceptions — inherit parent's relations (calendar, category, etc.)
+  // since exceptions are loaded with `include: { exceptions: true }` (no nested relations)
   if (event.exceptions) {
     for (const exc of event.exceptions) {
       if (exc.startTime >= rangeStart && exc.startTime <= rangeEnd) {
         instances.push({
-          ...exc,
+          ...event, // Inherit parent's calendar, category, building, area, createdBy, attendees
+          ...exc,   // Override with exception's own scalar fields
           id: exc.id,
           parentEventId: event.id,
           title: (exc.title as string) || event.title,
