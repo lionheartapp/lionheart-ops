@@ -563,7 +563,7 @@ export default function Sidebar({
                                 aria-label={`Calendar options for ${cal.name}`}
                                 aria-haspopup="menu"
                                 aria-expanded={isMenuOpen}
-                                className="ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 -mr-1 rounded hover:bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                className="ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 rounded hover:bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-primary-400"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setColorEditId(null)
@@ -589,6 +589,8 @@ export default function Sidebar({
                         {/* Dropdown menu */}
                         {isMenuOpen && (
                           <div
+                            role="menu"
+                            aria-label={`Options for ${cal.name}`}
                             className="absolute right-2 bottom-0 translate-y-full z-50 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
                             style={{ maxHeight: '200px' }}
                             ref={(el) => {
@@ -605,6 +607,7 @@ export default function Sidebar({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
+                              role="menuitem"
                               onClick={() => handleRenameStart(cal)}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             >
@@ -612,6 +615,7 @@ export default function Sidebar({
                               Rename
                             </button>
                             <button
+                              role="menuitem"
                               onClick={() => handleColorChangeStart(cal.id)}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             >
@@ -620,6 +624,7 @@ export default function Sidebar({
                             </button>
                             {canManageWorkspace && (
                               <button
+                                role="menuitem"
                                 onClick={() => handleDeleteCalendar(cal)}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                               >

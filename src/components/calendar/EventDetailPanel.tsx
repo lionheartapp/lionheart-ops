@@ -245,6 +245,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder="Reason for rejection (required)"
+                  aria-label="Reason for rejection"
                   className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900 resize-none"
                   rows={3}
                   autoFocus
@@ -293,7 +294,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   {(isAdmin || isCreator) && (
                     <button
                       onClick={() => onEdit(event)}
-                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
                       aria-label="Edit event"
                     >
                       <Edit className="w-4 h-4 text-gray-400" />
@@ -302,7 +303,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   {isAdmin && (
                     <button
                       onClick={() => onDelete(event.id)}
-                      className="p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
                       aria-label="Delete event"
                     >
                       <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
@@ -310,7 +311,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   )}
                   <button
                     onClick={onClose}
-                    className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
                     aria-label="Close"
                   >
                     <X className="w-4 h-4 text-gray-400" />

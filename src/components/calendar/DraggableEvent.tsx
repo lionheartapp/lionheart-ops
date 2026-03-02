@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, type ReactNode } from 'react'
+import { useState, useRef, useCallback, useEffect, type ReactNode } from 'react'
 import { motion, type PanInfo } from 'framer-motion'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
@@ -149,59 +149,98 @@ export default function DraggableEvent({
     onDragReschedule(event, deltaMinutes, deltaDays)
   }
 
-  // Resize handlers (pointer events on the bottom handle)
+  // Resize: use refs to avoid stale closures in document-level listeners
+  const resizeEventRef = useRef(event)
+  const resizeSiblingsRef = useRef(siblingEvents)
+  const resizeHeightRef = useRef(height)
+  const onResizeRef = useRef(onResize)
+  resizeEventRef.current = event
+  resizeSiblingsRef.current = siblingEvents
+  resizeHeightRef.current = height
+  onResizeRef.current = onResize
+
+  // Finish resize — shared cleanup used by pointerup, pointercancel, and Escape
+  const finishResize = useCallback((clientY?: number) => {
+    setIsResizing(false)
+    setResizeConflict(false)
+
+    if (clientY !== undefined && onResizeRef.current) {
+      const snapped = snapToGrid(clientY - resizeStartYRef.current)
+      const deltaMinutes = (snapped / HOUR_HEIGHT) * 60
+
+      const currentDuration =
+        new Date(resizeEventRef.current.endTime).getTime() -
+        new Date(resizeEventRef.current.startTime).getTime()
+      const newDuration = currentDuration + deltaMinutes * 60_000
+      const clampedDelta =
+        newDuration < 15 * 60_000
+          ? Math.ceil((15 * 60_000 - currentDuration) / 60_000)
+          : deltaMinutes
+
+      setResizeDeltaPx(0)
+
+      if (clampedDelta !== 0 && !checkResizeConflict(resizeEventRef.current, clampedDelta, resizeSiblingsRef.current)) {
+        onResizeRef.current(resizeEventRef.current, clampedDelta)
+      }
+    } else {
+      // Cancelled — just reset visuals
+      setResizeDeltaPx(0)
+    }
+  }, [])
+
+  // Document-level pointermove / pointerup while resizing
+  useEffect(() => {
+    if (!isResizing) return
+
+    const onMove = (e: PointerEvent) => {
+      const rawDelta = e.clientY - resizeStartYRef.current
+      const snapped = snapToGrid(rawDelta)
+      const deltaMinutes = (snapped / HOUR_HEIGHT) * 60
+
+      const newHeight = resizeHeightRef.current + snapped
+      if (newHeight < MIN_HEIGHT) {
+        setResizeDeltaPx(MIN_HEIGHT - resizeHeightRef.current)
+        return
+      }
+
+      setResizeDeltaPx(snapped)
+      setResizeConflict(checkResizeConflict(resizeEventRef.current, deltaMinutes, resizeSiblingsRef.current))
+    }
+
+    const onUp = (e: PointerEvent) => {
+      finishResize(e.clientY)
+    }
+
+    const onCancel = () => {
+      finishResize() // no clientY → cancelled, just reset
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') finishResize() // Escape cancels resize
+    }
+
+    document.addEventListener('pointermove', onMove)
+    document.addEventListener('pointerup', onUp)
+    document.addEventListener('pointercancel', onCancel)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup', onUp)
+      document.removeEventListener('pointercancel', onCancel)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [isResizing, finishResize])
+
+  // Resize handle: only pointerdown needs to be on the element
   const handleResizePointerDown = useCallback((e: React.PointerEvent) => {
     if (!onResize) return
     e.stopPropagation()
     e.preventDefault()
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
     resizeStartYRef.current = e.clientY
     setIsResizing(true)
     setResizeDeltaPx(0)
     setResizeConflict(false)
   }, [onResize])
-
-  const handleResizePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isResizing) return
-    e.stopPropagation()
-    const rawDelta = e.clientY - resizeStartYRef.current
-    const snapped = snapToGrid(rawDelta)
-    const deltaMinutes = (snapped / HOUR_HEIGHT) * 60
-
-    // Clamp: new height must be >= MIN_HEIGHT
-    const newHeight = height + snapped
-    if (newHeight < MIN_HEIGHT) {
-      setResizeDeltaPx(MIN_HEIGHT - height)
-      return
-    }
-
-    setResizeDeltaPx(snapped)
-    setResizeConflict(checkResizeConflict(event, deltaMinutes, siblingEvents))
-  }, [isResizing, height, event, siblingEvents])
-
-  const handleResizePointerUp = useCallback((e: React.PointerEvent) => {
-    if (!isResizing || !onResize) return
-    e.stopPropagation()
-    setIsResizing(false)
-
-    const snapped = snapToGrid(e.clientY - resizeStartYRef.current)
-    const deltaMinutes = (snapped / HOUR_HEIGHT) * 60
-
-    // Clamp minimum duration to 15 min
-    const currentDuration = new Date(event.endTime).getTime() - new Date(event.startTime).getTime()
-    const newDuration = currentDuration + deltaMinutes * 60_000
-    const clampedDelta = newDuration < 15 * 60_000
-      ? Math.ceil((15 * 60_000 - currentDuration) / 60_000)
-      : deltaMinutes
-
-    setResizeDeltaPx(0)
-    setResizeConflict(false)
-
-    if (clampedDelta === 0) return
-    if (checkResizeConflict(event, clampedDelta, siblingEvents)) return
-
-    onResize(event, clampedDelta)
-  }, [isResizing, onResize, event, siblingEvents])
 
   const eventColor = getEventColor(event)
   const displayHeight = isResizing ? Math.max(height + resizeDeltaPx, MIN_HEIGHT) : height
@@ -256,13 +295,11 @@ export default function DraggableEvent({
       >
         {children}
 
-        {/* Bottom resize handle */}
+        {/* Bottom resize handle — larger hit area for touch (24px visible, extends to edges) */}
         {onResize && (
           <div
             onPointerDown={handleResizePointerDown}
-            onPointerMove={handleResizePointerMove}
-            onPointerUp={handleResizePointerUp}
-            className="absolute left-0 right-0 bottom-0 h-3 cursor-ns-resize group z-10 touch-none"
+            className="absolute left-0 right-0 bottom-0 h-6 cursor-ns-resize group z-10 touch-none"
           >
             {/* Visual indicator line */}
             <div className="absolute left-1/3 right-1/3 bottom-1 h-0.5 rounded-full bg-current opacity-0 group-hover:opacity-30 transition-opacity"

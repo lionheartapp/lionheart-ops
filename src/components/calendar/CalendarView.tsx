@@ -30,7 +30,7 @@ import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDial
 // import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
 
 const COLOR_PRESETS = [
@@ -453,6 +453,7 @@ export default function CalendarView() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="flex flex-col h-[calc(100vh-4rem)] -mx-4 sm:-mx-10 -mt-4 sm:-mt-6 lg:-mt-8 -mb-4 sm:-mb-6 lg:-mb-8">
       {/* Header area — stays fixed, white bg, shadow at bottom edge */}
       <div className="flex-shrink-0 bg-white px-4 sm:px-10 pt-4 pb-4 sm:pb-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
@@ -670,5 +671,6 @@ export default function CalendarView() {
         onConfirm={handleRecurringConfirm}
       />
     </div>
+    </MotionConfig>
   )
 }
