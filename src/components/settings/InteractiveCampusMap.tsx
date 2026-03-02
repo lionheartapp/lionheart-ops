@@ -478,20 +478,28 @@ export default function InteractiveCampusMap({
       }
       orgMarkerRef.current = orgMarker
 
-      // Wait for satellite tiles to load before revealing the map
+      // Wait for satellite tiles to load, then signal map is ready.
+      // Don't set loading=false here — the building sync effect will
+      // do that after placing markers, so the spinner covers the full
+      // init cycle (tiles + markers) with zero flashes.
       let revealed = false
       const reveal = () => {
         if (cancelled || revealed) return
         revealed = true
         map.invalidateSize()
-        setLoading(false)
         setMapReady(n => n + 1)
       }
 
-      satellite.once('load', reveal)
+      // If tiles are already cached, the 'load' event may have fired
+      // before we attached the listener. Check if tiles are loaded.
+      if (satellite.isLoading && !satellite.isLoading()) {
+        reveal()
+      } else {
+        satellite.once('load', reveal)
+      }
 
-      // Fallback: reveal after 3s even if tiles are slow
-      setTimeout(reveal, 3000)
+      // Fallback: reveal after 1.5s even if tiles are slow
+      setTimeout(reveal, 1500)
     })
 
     return () => {
@@ -1135,6 +1143,9 @@ export default function InteractiveCampusMap({
         }
       }
     })
+
+    // Buildings are placed — drop the loading spinner
+    setLoading(false)
   }, [buildings, addBuildingMarker, addBuildingPolygon, schoolColorByDivision, mapReady])
 
   // Re-render all outdoor spaces when they change
