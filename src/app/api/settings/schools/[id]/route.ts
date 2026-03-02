@@ -71,7 +71,7 @@ export async function PATCH(
 
       // If name is being updated, check for duplicates on the same campus
       if (input.name && input.name !== school.name) {
-        const campusId = input.campusId || school.campusId
+        const campusId = school.campusId
         const existing = await prisma.school.findFirst({
           where: {
             organizationId: orgId,
