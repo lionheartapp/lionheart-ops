@@ -69,11 +69,13 @@ export async function PATCH(
         return NextResponse.json(fail('NOT_FOUND', 'School not found'), { status: 404 })
       }
 
-      // If name is being updated, check for duplicates
+      // If name is being updated, check for duplicates on the same campus
       if (input.name && input.name !== school.name) {
+        const campusId = input.campusId || school.campusId
         const existing = await prisma.school.findFirst({
           where: {
             organizationId: orgId,
+            campusId: campusId,
             name: input.name,
             id: { not: id },
           },
@@ -81,7 +83,7 @@ export async function PATCH(
 
         if (existing) {
           return NextResponse.json(
-            fail('CONFLICT', 'A school with this name already exists'),
+            fail('CONFLICT', 'A school with this name already exists on this campus'),
             { status: 409 }
           )
         }

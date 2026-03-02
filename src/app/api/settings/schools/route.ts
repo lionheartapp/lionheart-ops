@@ -103,25 +103,27 @@ export async function POST(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
 
     return await runWithOrgContext(orgId, async () => {
-      // Check if school name already exists for this organization
+      // Check if school name already exists on this campus
       const existing = await prisma.school.findFirst({
         where: {
           organizationId: orgId,
+          campusId: input.campusId,
           name: input.name,
         },
       })
 
       if (existing) {
         return NextResponse.json(
-          fail('CONFLICT', 'A school with this name already exists'),
+          fail('CONFLICT', 'A school with this name already exists on this campus'),
           { status: 409 }
         )
       }
 
-      // Remove any soft-deleted school with the same name so the unique constraint doesn't block
+      // Remove any soft-deleted school with the same name on this campus so the unique constraint doesn't block
       await rawPrisma.school.deleteMany({
         where: {
           organizationId: orgId,
+          campusId: input.campusId,
           name: input.name,
           deletedAt: { not: null },
         },
