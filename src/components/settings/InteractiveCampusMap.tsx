@@ -1418,7 +1418,7 @@ export default function InteractiveCampusMap({
                       setPlacingMode('unified')
                     }
                   }}
-                  className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full transition-colors ${
                     drawingMode || editingPolygon
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : placingMode
@@ -1426,17 +1426,17 @@ export default function InteractiveCampusMap({
                         : 'bg-primary-600 text-white hover:bg-primary-700'
                   }`}
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   {placingMode ? 'Cancel Placement' : 'Add to Map'}
                 </button>
               )}
 
               <button
                 onClick={fitAllMarkers}
-                className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-center w-9 h-9 text-sm font-medium bg-white text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                 title="Fit all buildings"
               >
-                <Maximize2 className="w-3.5 h-3.5" />
+                <Maximize2 className="w-4 h-4" />
               </button>
             </>
           )}
