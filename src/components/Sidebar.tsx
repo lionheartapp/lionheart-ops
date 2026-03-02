@@ -438,28 +438,36 @@ export default function Sidebar({
           </div>
         )}
         {calendarSections.map(({ key, label, cals }) => {
-          // Always show MY SCHEDULE section (with empty state); hide MASTER only if empty
+          // Hide MASTER section if no calendars; always show MY SCHEDULE
           if (cals.length === 0 && key !== 'MY SCHEDULE') return null
-          const isExpanded = expandedTypes.has(key)
+          const isMySchedule = key === 'MY SCHEDULE'
+          const isExpanded = isMySchedule || expandedTypes.has(key)
           return (
             <div key={key} className="mb-1">
-              <button
-                onClick={() => toggleCalendarType(key)}
-                className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="w-3 h-3" />
-                ) : (
-                  <ChevronRight className="w-3 h-3" />
-                )}
-                {label}
-                <span className="ml-auto text-gray-300 normal-case tracking-normal font-normal text-xs">
-                  {cals.length}
-                </span>
-              </button>
+              {isMySchedule ? (
+                /* MY SCHEDULE — flat section label, no collapsible dropdown */
+                <div className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase">
+                  {label}
+                </div>
+              ) : (
+                <button
+                  onClick={() => toggleCalendarType(key)}
+                  className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors"
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="w-3 h-3" />
+                  ) : (
+                    <ChevronRight className="w-3 h-3" />
+                  )}
+                  {label}
+                  <span className="ml-auto text-gray-300 normal-case tracking-normal font-normal text-xs">
+                    {cals.length}
+                  </span>
+                </button>
+              )}
               {isExpanded && (
                 <div className="space-y-0.5">
-                  {cals.length === 0 && key === 'MY SCHEDULE' && (
+                  {cals.length === 0 && isMySchedule && (
                     <div className="px-3 py-4 text-center">
                       <p className="text-xs text-gray-400">Your personal calendar will appear here</p>
                     </div>
@@ -501,7 +509,7 @@ export default function Sidebar({
                                 className="w-3 h-3 rounded-sm flex-shrink-0"
                                 style={{ backgroundColor: cal.color }}
                               />
-                              <span className="truncate">{cal.name}</span>
+                              <span className="truncate">{cal.calendarType === 'PERSONAL' ? 'My Calendar' : cal.name}</span>
                             </div>
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {COLOR_PRESETS.map((c) => (
@@ -538,7 +546,7 @@ export default function Sidebar({
                             >
                               {isVisible && <Check className="w-3 h-3 text-white" />}
                             </div>
-                            <span className="truncate">{cal.name}</span>
+                            <span className="truncate">{cal.calendarType === 'PERSONAL' ? 'My Calendar' : cal.name}</span>
                             {canEditCal && (
                               <span
                                 className="ml-auto opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity p-1 -mr-1 rounded hover:bg-gray-200/50"
