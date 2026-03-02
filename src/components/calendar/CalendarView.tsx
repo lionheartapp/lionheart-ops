@@ -72,10 +72,22 @@ export default function CalendarView() {
   // Track visible calendars
   const [visibleCalendarIds, setVisibleCalendarIds] = useState<Set<string>>(new Set())
 
-  // Initialize visible calendars when they load
+  // Initialize visible calendars when they load, and auto-add new calendars
   useEffect(() => {
-    if (calendars.length > 0 && visibleCalendarIds.size === 0) {
-      setVisibleCalendarIds(new Set(calendars.filter((c) => c.isActive).map((c) => c.id)))
+    if (calendars.length > 0) {
+      setVisibleCalendarIds((prev) => {
+        if (prev.size === 0) {
+          // First load — show all active calendars
+          return new Set(calendars.filter((c) => c.isActive).map((c) => c.id))
+        }
+        // Subsequent loads — add any new calendar IDs that weren't in the set before
+        const knownIds = new Set([...prev, ...calendars.filter((c) => !c.isActive).map((c) => c.id)])
+        const newIds = calendars.filter((c) => c.isActive && !knownIds.has(c.id)).map((c) => c.id)
+        if (newIds.length === 0) return prev
+        const next = new Set(prev)
+        newIds.forEach((id) => next.add(id))
+        return next
+      })
     }
   }, [calendars]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -168,7 +180,7 @@ export default function CalendarView() {
   const activeCalendarIds = Array.from(visibleCalendarIds)
   const events = activeCalendarIds.length > 0
     ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
-    : allEvents
+    : []
 
   // Event interaction state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
@@ -288,39 +300,56 @@ export default function CalendarView() {
 
   const isRecurring = (event: CalendarEventData) => !!(event.rrule || event.parentEventId)
 
+  const hasAttendees = (event: CalendarEventData) => !!(event.attendees && event.attendees.length > 0)
+
   const handleDragReschedule = useCallback((event: CalendarEventData, deltaMinutes: number, deltaDays: number) => {
     const start = new Date(event.startTime)
     const end = new Date(event.endTime)
     const newStart = new Date(start.getTime() + deltaMinutes * 60_000 + deltaDays * 86_400_000)
     const newEnd = new Date(end.getTime() + deltaMinutes * 60_000 + deltaDays * 86_400_000)
 
-    setPendingChange({
+    const change = {
       event,
       newStart: newStart.toISOString(),
       newEnd: newEnd.toISOString(),
-      type: 'drag',
-    })
-    // Flow continues: if recurring → RecurringEditDialog, else → NotifyAttendeesDialog
+      type: 'drag' as const,
+    }
+    setPendingChange(change)
+    // Flow: recurring → RecurringEditDialog → NotifyDialog; non-recurring with attendees → NotifyDialog; otherwise → execute immediately
     if (!isRecurring(event)) {
       setRecurringMode('all')
-      setShowNotifyDialog(true)
+      if (hasAttendees(event)) {
+        setShowNotifyDialog(true)
+      } else {
+        // Execute immediately — no dialogs needed
+        reschedule({ event, newStartTime: change.newStart, newEndTime: change.newEnd, editMode: 'all' })
+        setPendingChange(null)
+        setRecurringMode(null)
+      }
     }
-  }, [])
+  }, [reschedule])
 
   const handleResize = useCallback((event: CalendarEventData, deltaMinutes: number) => {
     const newEnd = new Date(new Date(event.endTime).getTime() + deltaMinutes * 60_000)
 
-    setPendingChange({
+    const change = {
       event,
       newStart: event.startTime,
       newEnd: newEnd.toISOString(),
-      type: 'resize',
-    })
+      type: 'resize' as const,
+    }
+    setPendingChange(change)
     if (!isRecurring(event)) {
       setRecurringMode('all')
-      setShowNotifyDialog(true)
+      if (hasAttendees(event)) {
+        setShowNotifyDialog(true)
+      } else {
+        reschedule({ event, newStartTime: change.newStart, newEndTime: change.newEnd, editMode: 'all' })
+        setPendingChange(null)
+        setRecurringMode(null)
+      }
     }
-  }, [])
+  }, [reschedule])
 
   // Called after recurring dialog confirms a mode
   const handleRecurringConfirm = useCallback((mode: RecurringEditMode) => {

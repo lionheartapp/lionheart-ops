@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { usePathname, useRouter } from 'next/navigation'
@@ -105,6 +105,7 @@ export default function Sidebar({
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  const renameCancelledRef = useRef(false)
   const [colorEditId, setColorEditId] = useState<string | null>(null)
   const [deleteCalendar, setDeleteCalendar] = useState<CalendarSidebarData | null>(null)
 
@@ -169,11 +170,13 @@ export default function Sidebar({
 
   const handleRenameStart = (cal: CalendarSidebarData) => {
     setMenuOpenId(null)
+    renameCancelledRef.current = false
     setRenamingId(cal.id)
     setRenameValue(cal.name)
   }
 
   const handleRenameSubmit = (calendarId: string) => {
+    if (renameCancelledRef.current) return
     const trimmed = renameValue.trim()
     if (trimmed) {
       window.dispatchEvent(
@@ -182,6 +185,12 @@ export default function Sidebar({
         })
       )
     }
+    setRenamingId(null)
+    setRenameValue('')
+  }
+
+  const handleRenameCancel = () => {
+    renameCancelledRef.current = true
     setRenamingId(null)
     setRenameValue('')
   }
@@ -264,11 +273,12 @@ export default function Sidebar({
   }
 
   // Check workspace permissions from localStorage (optimistic — server enforces real perms)
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
-  const ADMIN_ROLES = ['super admin', 'administrator']
-  const canManageWorkspace = userRole
-    ? ADMIN_ROLES.includes(userRole.toLowerCase())
-    : false
+  const ADMIN_ROLES = ['super admin', 'administrator', 'super-admin', 'admin']
+  const [canManageWorkspace, setCanManageWorkspace] = useState(false)
+  useEffect(() => {
+    const role = localStorage.getItem('user-role')
+    setCanManageWorkspace(role ? ADMIN_ROLES.includes(role.toLowerCase()) : false)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const generalTabs = [
     { id: 'profile' as SettingsTab, label: 'Account', icon: User },
@@ -456,7 +466,7 @@ export default function Sidebar({
                               onChange={(e) => setRenameValue(e.target.value)}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') handleRenameSubmit(cal.id)
-                                if (e.key === 'Escape') { setRenamingId(null); setRenameValue('') }
+                                if (e.key === 'Escape') handleRenameCancel()
                               }}
                               onBlur={() => handleRenameSubmit(cal.id)}
                               className="flex-1 min-w-0 px-2 py-0.5 text-sm border border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-200 bg-white text-gray-700"
@@ -510,16 +520,31 @@ export default function Sidebar({
                             <span className="truncate">{cal.name}</span>
                             {canEditCal && (
                               <span
-                                className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity p-1 -mr-1 rounded hover:bg-gray-200/50"
-                                role="button"
-                                aria-label={`Calendar options for ${cal.name}`}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setMenuOpenId(isMenuOpen ? null : cal.id)
-                                  setColorEditId(null)
-                                }}
+                                className="ml-auto opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity p-1 -mr-1 rounded hover:bg-gray-200/50"
                               >
-                                <MoreHorizontal className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
+                                <button
+                                  type="button"
+                                  tabIndex={0}
+                                  aria-label={`Calendar options for ${cal.name}`}
+                                  aria-haspopup="menu"
+                                  aria-expanded={isMenuOpen}
+                                  className="focus:outline-none focus:ring-2 focus:ring-primary-400 rounded p-0.5"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setMenuOpenId(isMenuOpen ? null : cal.id)
+                                    setColorEditId(null)
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setMenuOpenId(isMenuOpen ? null : cal.id)
+                                      setColorEditId(null)
+                                    }
+                                  }}
+                                >
+                                  <MoreHorizontal className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
+                                </button>
                               </span>
                             )}
                           </button>
@@ -528,7 +553,19 @@ export default function Sidebar({
                         {/* Dropdown menu */}
                         {isMenuOpen && (
                           <div
-                            className="absolute right-2 top-full z-50 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
+                            className="absolute right-2 bottom-0 translate-y-full z-50 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
+                            style={{ maxHeight: '200px' }}
+                            ref={(el) => {
+                              // Flip to above if overflowing bottom of viewport
+                              if (el) {
+                                const rect = el.getBoundingClientRect()
+                                if (rect.bottom > window.innerHeight - 8) {
+                                  el.style.bottom = 'auto'
+                                  el.style.top = '0'
+                                  el.style.transform = 'translateY(-100%)'
+                                }
+                              }
+                            }}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button

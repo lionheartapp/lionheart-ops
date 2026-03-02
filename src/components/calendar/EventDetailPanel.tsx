@@ -180,12 +180,11 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
     setRejectReason('')
   }, [event?.id])
 
-  if (!event) return null
-
-  const status = statusStyles[event.calendarStatus] || statusStyles.DRAFT
+  const status = event ? (statusStyles[event.calendarStatus] || statusStyles.DRAFT) : statusStyles.DRAFT
   const approvals = eventDetail?.approvals || []
 
   const handleApprove = async (channelType: ApprovalChannelType) => {
+    if (!event) return
     try {
       await approveEvent.mutateAsync({ eventId: event.id, channelType })
       toast('Channel approved', 'success')
@@ -200,7 +199,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   }
 
   const handleRejectConfirm = async () => {
-    if (!rejectingChannel || !rejectReason.trim()) return
+    if (!event || !rejectingChannel || !rejectReason.trim()) return
     try {
       await rejectEvent.mutateAsync({ eventId: event.id, channelType: rejectingChannel, reason: rejectReason.trim() })
       toast('Channel rejected', 'success')
@@ -212,6 +211,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   }
 
   const handleSubmitForApproval = async () => {
+    if (!event) return
     try {
       await submitForApproval.mutateAsync(event.id)
       toast('Submitted for approval', 'success')
@@ -290,20 +290,24 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   </span>
                 </div>
                 <div className="flex items-center gap-0.5 -mt-0.5">
-                  <button
-                    onClick={() => onEdit(event)}
-                    className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
-                    aria-label="Edit event"
-                  >
-                    <Edit className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(event.id)}
-                    className="p-1.5 rounded-full hover:bg-red-50 transition-colors"
-                    aria-label="Delete event"
-                  >
-                    <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                  </button>
+                  {(isAdmin || isCreator) && (
+                    <button
+                      onClick={() => onEdit(event)}
+                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                      aria-label="Edit event"
+                    >
+                      <Edit className="w-4 h-4 text-gray-400" />
+                    </button>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={() => onDelete(event.id)}
+                      className="p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                      aria-label="Delete event"
+                    >
+                      <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                    </button>
+                  )}
                   <button
                     onClick={onClose}
                     className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"

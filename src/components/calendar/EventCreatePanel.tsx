@@ -105,12 +105,40 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
+  const currentIdx = TIME_OPTIONS.findIndex((o) => o.value === value)
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!open) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        setOpen(true)
+      }
+      return
+    }
+    if (e.key === 'Escape') { e.preventDefault(); setOpen(false); return }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const next = Math.min(currentIdx + 1, TIME_OPTIONS.length - 1)
+      onChange(TIME_OPTIONS[next].value)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const prev = Math.max(currentIdx - 1, 0)
+      onChange(TIME_OPTIONS[prev].value)
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      setOpen(false)
+    }
+  }
+
   return (
     <div ref={containerRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="flex items-center gap-1.5 min-h-0 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer"
+        onKeyDown={handleKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="flex items-center gap-1.5 min-h-0 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400"
       >
         {currentLabel}
         <ChevronDown className="w-3 h-3 text-gray-400" />
@@ -119,12 +147,15 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
       {open && (
         <div
           ref={listRef}
+          role="listbox"
           className="absolute top-full left-0 mt-1 w-36 max-h-52 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1"
         >
           {TIME_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               type="button"
+              role="option"
+              aria-selected={opt.value === value}
               onClick={() => {
                 onChange(opt.value)
                 setOpen(false)
@@ -327,7 +358,8 @@ export default function EventCreatePanel({
   const [categoryError, setCategoryError] = useState<string | null>(null)
   const userSelectedCategoryRef = useRef(false)
 
-  // Reset form when panel opens or calendars change
+  // Reset form when panel opens (not on calendar refetch — that would clear user input)
+  const calendarIdsKey = calendars.map((c) => c.id).join(',')
   useEffect(() => {
     if (isOpen) {
       setShowNewCategory(false)
@@ -345,9 +377,9 @@ export default function EventCreatePanel({
           endTime: toLocalDateTimeString(new Date(event.endTime)),
           isAllDay: event.isAllDay,
           locationText: event.locationText || '',
-          buildingId: (event as unknown as Record<string, unknown>).buildingId as string | null ?? null,
-          areaId: (event as unknown as Record<string, unknown>).areaId as string | null ?? null,
-          rrule: (event as unknown as Record<string, unknown>).rrule as string | null ?? null,
+          buildingId: event.building?.id ?? null,
+          areaId: event.area?.id ?? null,
+          rrule: event.rrule ?? null,
         })
       } else {
         const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
@@ -367,7 +399,7 @@ export default function EventCreatePanel({
         })
       }
     }
-  }, [isOpen, calendars, initialStart, initialEnd, event])
+  }, [isOpen, calendarIdsKey, initialStart, initialEnd, event]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-select category when calendar changes: match school name to category name
   useEffect(() => {
@@ -419,6 +451,17 @@ export default function EventCreatePanel({
   const startDateRef = useRef<HTMLInputElement>(null)
   const endDateRef = useRef<HTMLInputElement>(null)
   const endDateAddRef = useRef<HTMLInputElement>(null)
+
+  // Safe showPicker with fallback for browsers that don't support it
+  const safePick = (ref: React.RefObject<HTMLInputElement | null>) => {
+    const el = ref.current
+    if (!el) return
+    if (typeof el.showPicker === 'function') {
+      try { el.showPicker() } catch { el.click() }
+    } else {
+      el.click()
+    }
+  }
 
   const setStartTime = useCallback((time: string) => {
     setForm((p) => ({ ...p, startTime: `${getDatePart(p.startTime)}T${time}` }))
@@ -554,7 +597,7 @@ export default function EventCreatePanel({
                             key={c}
                             type="button"
                             onClick={() => setNewCatColor(c)}
-                            className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                            className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-400"
                             style={{ backgroundColor: c }}
                           >
                             {newCatColor === c && (
@@ -619,7 +662,7 @@ export default function EventCreatePanel({
                     <div className="inline-block">
                       <button
                         type="button"
-                        onClick={() => startDateRef.current?.showPicker()}
+                        onClick={() => safePick(startDateRef)}
                         className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
                       >
                         {formatDateDisplay(startDate)}
@@ -648,7 +691,7 @@ export default function EventCreatePanel({
                     <div className="inline-block">
                       <button
                         type="button"
-                        onClick={() => endDateAddRef.current?.showPicker()}
+                        onClick={() => safePick(endDateAddRef)}
                         className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0"
                       >
                         + end date
@@ -670,7 +713,7 @@ export default function EventCreatePanel({
                     <div className="flex items-center gap-3 flex-wrap">
                       <button
                         type="button"
-                        onClick={() => startDateRef.current?.showPicker()}
+                        onClick={() => safePick(startDateRef)}
                         className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
                       >
                         {formatDateDisplay(startDate)}
@@ -692,7 +735,7 @@ export default function EventCreatePanel({
                     <div className="flex items-center gap-3 flex-wrap">
                       <button
                         type="button"
-                        onClick={() => endDateRef.current?.showPicker()}
+                        onClick={() => safePick(endDateRef)}
                         className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 bg-transparent border-0 p-0"
                       >
                         to {formatDateDisplay(endDate)}
