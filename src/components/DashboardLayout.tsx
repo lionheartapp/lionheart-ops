@@ -138,7 +138,7 @@ export default function DashboardLayout({
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-dropdown overflow-hidden">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-dropdown overflow-hidden text-gray-800">
                 <Link
                   href="/settings"
                   onClick={() => setIsDropdownOpen(false)}
