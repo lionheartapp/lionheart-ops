@@ -328,6 +328,7 @@ export default function InteractiveCampusMap({
   const labelsRef = useRef<Map<string, any>>(new Map())
   const orgMarkerRef = useRef<any>(null)
   const [loading, setLoading] = useState(true)
+  const [mapReady, setMapReady] = useState(0) // increments each time map finishes init
   const [mapConfig, setMapConfig] = useState<MapConfig | null>(null)
   const [placingMode, setPlacingMode] = useState<'unified' | null>(null)
   const [activeLayer, setActiveLayer] = useState<'satellite' | 'street'>('satellite')
@@ -481,6 +482,7 @@ export default function InteractiveCampusMap({
       orgMarkerRef.current = orgMarker
 
       setLoading(false)
+      setMapReady(n => n + 1)
     })
 
     return () => {
@@ -1124,7 +1126,7 @@ export default function InteractiveCampusMap({
         }
       }
     })
-  }, [buildings, addBuildingMarker, addBuildingPolygon, schoolColorByDivision, loading])
+  }, [buildings, addBuildingMarker, addBuildingPolygon, schoolColorByDivision, mapReady])
 
   // Re-render all outdoor spaces when they change
   useEffect(() => {
@@ -1171,7 +1173,7 @@ export default function InteractiveCampusMap({
         }
       }
     })
-  }, [outdoorSpaces, addOutdoorMarker, addOutdoorPolygon, loading])
+  }, [outdoorSpaces, addOutdoorMarker, addOutdoorPolygon, mapReady])
 
   // Handle pending marker (marker shown while user fills in form)
   useEffect(() => {
