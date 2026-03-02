@@ -20,8 +20,8 @@ interface CreateEventInput {
   rrule?: string
   categoryId?: string
   locationText?: string
-  buildingId?: string
-  areaId?: string
+  buildingId?: string | null
+  areaId?: string | null
   metadata?: Record<string, unknown>
 }
 
@@ -33,10 +33,10 @@ interface UpdateEventInput {
   timezone?: string
   isAllDay?: boolean
   rrule?: string
-  categoryId?: string
+  categoryId?: string | null
   locationText?: string
-  buildingId?: string
-  areaId?: string
+  buildingId?: string | null
+  areaId?: string | null
   metadata?: Record<string, unknown>
 }
 
@@ -472,10 +472,10 @@ export async function updateEvent(
         timezone: data.timezone || event.timezone,
         isAllDay: data.isAllDay ?? event.isAllDay,
         calendarStatus: event.calendarStatus,
-        categoryId: data.categoryId ?? event.categoryId,
-        locationText: data.locationText ?? event.locationText,
-        buildingId: data.buildingId ?? event.buildingId,
-        areaId: data.areaId ?? event.areaId,
+        categoryId: data.categoryId === undefined ? event.categoryId : data.categoryId,
+        locationText: data.locationText === undefined ? event.locationText : data.locationText,
+        buildingId: data.buildingId === undefined ? event.buildingId : data.buildingId,
+        areaId: data.areaId === undefined ? event.areaId : data.areaId,
         metadata: (data.metadata as any) ?? event.metadata,
         parentEventId: event.parentEventId || event.id,
         originalStart: event.startTime,
@@ -522,10 +522,10 @@ export async function updateEvent(
       isAllDay: data.isAllDay ?? event.isAllDay,
       calendarStatus: event.calendarStatus,
       rrule: newRrule,
-      categoryId: data.categoryId ?? event.categoryId,
-      locationText: data.locationText ?? event.locationText,
-      buildingId: data.buildingId ?? event.buildingId,
-      areaId: data.areaId ?? event.areaId,
+      categoryId: data.categoryId === undefined ? event.categoryId : data.categoryId,
+      locationText: data.locationText === undefined ? event.locationText : data.locationText,
+      buildingId: data.buildingId === undefined ? event.buildingId : data.buildingId,
+      areaId: data.areaId === undefined ? event.areaId : data.areaId,
       metadata: (data.metadata as any) ?? event.metadata,
       createdById: userId,
     } as any, // Org-scoped extension injects organizationId at runtime

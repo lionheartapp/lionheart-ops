@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { X, Loader2, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { CalendarData, CalendarEventData } from '@/lib/hooks/useCalendar'
+import type { CalendarData, CalendarEventData, CalendarCategoryData } from '@/lib/hooks/useCalendar'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 import { FloatingInput, FloatingSelect, FloatingTextarea } from '@/components/ui/FloatingInput'
 
@@ -13,6 +13,8 @@ interface EventCreatePanelProps {
   onSubmit: (data: EventFormData) => void
   isSubmitting: boolean
   calendars: CalendarData[]
+  categories?: CalendarCategoryData[]
+  onCreateCategory?: (data: { name: string; color: string }) => Promise<CalendarCategoryData>
   initialStart?: Date
   initialEnd?: Date
   error?: string | null
@@ -21,6 +23,7 @@ interface EventCreatePanelProps {
 
 export interface EventFormData {
   calendarId: string
+  categoryId: string
   title: string
   description: string
   startTime: string
@@ -265,12 +268,19 @@ function LocationCombobox({
 }
 
 // ── Main Component ──────────────────────────────────────────────────
+const CATEGORY_COLOR_PRESETS = [
+  '#ef4444', '#f97316', '#f59e0b', '#22c55e', '#14b8a6',
+  '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b',
+]
+
 export default function EventCreatePanel({
   isOpen,
   onClose,
   onSubmit,
   isSubmitting,
   calendars,
+  categories = [],
+  onCreateCategory,
   initialStart,
   initialEnd,
   error,
@@ -283,6 +293,7 @@ export default function EventCreatePanel({
 
   const [form, setForm] = useState<EventFormData>({
     calendarId: calendars[0]?.id || '',
+    categoryId: '',
     title: '',
     description: '',
     startTime: toLocalDateTimeString(defaultStart),
@@ -293,12 +304,26 @@ export default function EventCreatePanel({
     areaId: null,
   })
 
+  // Inline category creation state
+  const [showNewCategory, setShowNewCategory] = useState(false)
+  const [newCatName, setNewCatName] = useState('')
+  const [newCatColor, setNewCatColor] = useState('#3b82f6')
+  const [creatingCategory, setCreatingCategory] = useState(false)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
+  const userSelectedCategoryRef = useRef(false)
+
   // Reset form when panel opens or calendars change
   useEffect(() => {
     if (isOpen) {
+      setShowNewCategory(false)
+      setNewCatName('')
+      setNewCatColor('#3b82f6')
+      setCategoryError(null)
+      userSelectedCategoryRef.current = false
       if (event) {
         setForm({
           calendarId: event.calendarId,
+          categoryId: event.categoryId || '',
           title: event.title,
           description: event.description || '',
           startTime: toLocalDateTimeString(new Date(event.startTime)),
@@ -313,6 +338,7 @@ export default function EventCreatePanel({
         const end = initialEnd || new Date(start.getTime() + 60 * 60 * 1000)
         setForm({
           calendarId: calendars[0]?.id || '',
+          categoryId: '',
           title: '',
           description: '',
           startTime: toLocalDateTimeString(start),
@@ -325,6 +351,23 @@ export default function EventCreatePanel({
       }
     }
   }, [isOpen, calendars, initialStart, initialEnd, event])
+
+  // Auto-select category when calendar changes: match school name to category name
+  useEffect(() => {
+    if (event) return // Don't auto-select when editing
+    if (userSelectedCategoryRef.current) return // Don't overwrite user's selection
+    const selectedCal = calendars.find((c) => c.id === form.calendarId)
+    if (selectedCal?.school?.name && categories.length > 0) {
+      const matchingCategory = categories.find(
+        (cat) => cat.name.toLowerCase() === selectedCal.school!.name.toLowerCase()
+      )
+      if (matchingCategory) {
+        setForm((p) => ({ ...p, categoryId: matchingCategory.id }))
+        return
+      }
+    }
+    // Don't clear categoryId if user already picked one
+  }, [form.calendarId, calendars, categories, event])
 
   const [timeError, setTimeError] = useState<string | null>(null)
 
@@ -342,6 +385,7 @@ export default function EventCreatePanel({
 
     onSubmit({
       ...form,
+      categoryId: form.categoryId || '',
       startTime: new Date(form.startTime).toISOString(),
       endTime: new Date(form.endTime).toISOString(),
       buildingId: form.buildingId || null,
@@ -429,6 +473,105 @@ export default function EventCreatePanel({
                   ))}
                 </FloatingSelect>
               </div>
+
+              {/* Category selector */}
+              {(categories.length > 0 || onCreateCategory) && (
+                <div>
+                  {!showNewCategory ? (
+                    <div className="relative">
+                      {form.categoryId && (
+                        <div
+                          className="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full pointer-events-none z-10"
+                          style={{ backgroundColor: categories.find((c) => c.id === form.categoryId)?.color }}
+                        />
+                      )}
+                      <FloatingSelect
+                        id="event-category"
+                        label="Category"
+                        value={form.categoryId}
+                        onChange={(e) => {
+                          if (e.target.value === '__new__') {
+                            setShowNewCategory(true)
+                          } else {
+                            userSelectedCategoryRef.current = true
+                            setForm((p) => ({ ...p, categoryId: e.target.value }))
+                          }
+                        }}
+                        className={form.categoryId ? '!pl-8' : ''}
+                      >
+                        <option value="">No category</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                        {onCreateCategory && <option value="__new__">+ New Category</option>}
+                      </FloatingSelect>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-gray-500">New Category</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowNewCategory(false)}
+                          className="text-xs text-gray-400 hover:text-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Category name"
+                        value={newCatName}
+                        onChange={(e) => setNewCatName(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900"
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {CATEGORY_COLOR_PRESETS.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setNewCatColor(c)}
+                            className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                            style={{ backgroundColor: c }}
+                          >
+                            {newCatColor === c && (
+                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!newCatName.trim() || creatingCategory}
+                        onClick={async () => {
+                          if (!onCreateCategory || !newCatName.trim()) return
+                          setCreatingCategory(true)
+                          setCategoryError(null)
+                          try {
+                            const created = await onCreateCategory({ name: newCatName.trim(), color: newCatColor })
+                            setForm((p) => ({ ...p, categoryId: created.id }))
+                            userSelectedCategoryRef.current = true
+                            setShowNewCategory(false)
+                            setNewCatName('')
+                            setNewCatColor('#3b82f6')
+                          } catch (err) {
+                            setCategoryError(err instanceof Error ? err.message : 'Failed to create category')
+                          } finally {
+                            setCreatingCategory(false)
+                          }
+                        }}
+                        className="w-full py-2 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                      >
+                        {creatingCategory ? 'Creating...' : 'Create Category'}
+                      </button>
+                      {categoryError && <p className="text-xs text-red-600">{categoryError}</p>}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* All-day toggle */}
               <label htmlFor="allDay" className="flex items-center justify-between cursor-pointer">

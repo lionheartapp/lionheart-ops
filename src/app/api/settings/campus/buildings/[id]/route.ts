@@ -97,6 +97,15 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'P2002') {
+      const target = (error as any).meta?.target as string[] | undefined
+      const field = target?.includes('name') ? 'name' : target?.includes('code') ? 'code' : null
+      const message = field
+        ? `A building with that ${field} already exists`
+        : 'A building with these values already exists'
+      return NextResponse.json(fail('VALIDATION_ERROR', message), { status: 409 })
+    }
+    console.error('Building update error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update building'), { status: 500 })
   }
 }

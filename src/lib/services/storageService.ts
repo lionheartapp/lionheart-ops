@@ -168,7 +168,7 @@ export async function deleteCampusImage(imageUrl: string): Promise<void> {
     if (idx === -1) {
       throw new Error('Invalid campus image URL')
     }
-    const path = imageUrl.slice(idx + marker.length)
+    const path = decodeURIComponent(imageUrl.slice(idx + marker.length))
 
     const { error } = await client.storage.from('campus-images').remove([path])
 
@@ -177,6 +177,75 @@ export async function deleteCampusImage(imageUrl: string): Promise<void> {
     }
   } catch (error) {
     console.error('Campus image delete error:', error instanceof Error ? error.message : error)
+    throw error
+  }
+}
+
+/**
+ * Upload a branding image (logo or hero) to Supabase Storage
+ *
+ * @param orgId - Organization ID
+ * @param imageType - 'logo' | 'hero'
+ * @param fileBuffer - File buffer to upload
+ * @param contentType - MIME type (e.g., 'image/png')
+ * @returns Public URL of the uploaded file
+ */
+export async function uploadBrandingImage(
+  orgId: string,
+  imageType: 'logo' | 'hero',
+  fileBuffer: Buffer,
+  contentType: string
+): Promise<string> {
+  try {
+    const config = getStorageConfig()
+    if (!config) {
+      throw new Error('Supabase storage not configured')
+    }
+
+    const client = getSupabaseClient()
+    const ext = contentType.split('/')[1] || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const path = `${orgId}/${imageType}/${fileName}`
+
+    const { error } = await client.storage.from('logos').upload(path, fileBuffer, {
+      contentType,
+      upsert: false,
+    })
+
+    if (error) {
+      throw new Error(`Upload failed: ${error.message}`)
+    }
+
+    return `${config.url}/storage/v1/object/public/logos/${path}`
+  } catch (error) {
+    console.error('Branding image upload error:', error instanceof Error ? error.message : error)
+    throw error
+  }
+}
+
+/**
+ * Delete a branding image from Supabase Storage
+ *
+ * @param imageUrl - Full public URL of the image
+ */
+export async function deleteBrandingImage(imageUrl: string): Promise<void> {
+  try {
+    const client = getSupabaseClient()
+
+    const marker = '/storage/v1/object/public/logos/'
+    const idx = imageUrl.indexOf(marker)
+    if (idx === -1) {
+      throw new Error('Invalid branding image URL')
+    }
+    const path = decodeURIComponent(imageUrl.slice(idx + marker.length))
+
+    const { error } = await client.storage.from('logos').remove([path])
+
+    if (error) {
+      throw new Error(`Delete failed: ${error.message}`)
+    }
+  } catch (error) {
+    console.error('Branding image delete error:', error instanceof Error ? error.message : error)
     throw error
   }
 }

@@ -122,6 +122,10 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'P2002') {
+      return NextResponse.json(fail('VALIDATION_ERROR', 'An area with that name already exists'), { status: 409 })
+    }
+    console.error('Area create error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create area'), { status: 500 })
   }
 }
