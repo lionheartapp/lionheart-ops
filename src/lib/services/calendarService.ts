@@ -467,7 +467,8 @@ export async function updateEvent(
   eventId: string,
   data: UpdateEventInput,
   editMode: EditMode,
-  userId: string
+  userId: string,
+  occurrenceStart?: Date
 ) {
   const event = await prisma.calendarEvent.findUnique({
     where: { id: eventId },
@@ -487,15 +488,21 @@ export async function updateEvent(
     })
   }
 
-  // 'this' mode: create an exception
+  // 'this' mode: create an exception for a specific occurrence
   if (editMode === 'this') {
+    // occurrenceStart = the specific occurrence date being modified.
+    // Falls back to event.startTime for non-virtual (already-persisted) events.
+    const exceptionOriginalStart = occurrenceStart || event.startTime
+    // Compute occurrence end time from the parent's duration
+    const parentDuration = event.endTime.getTime() - event.startTime.getTime()
+    const occurrenceEnd = new Date(exceptionOriginalStart.getTime() + parentDuration)
     return prisma.calendarEvent.create({
       data: {
         calendarId: event.calendarId,
         title: data.title || event.title,
         description: data.description ?? event.description,
-        startTime: data.startTime || event.startTime,
-        endTime: data.endTime || event.endTime,
+        startTime: data.startTime || exceptionOriginalStart,
+        endTime: data.endTime || occurrenceEnd,
         timezone: data.timezone || event.timezone,
         isAllDay: data.isAllDay ?? event.isAllDay,
         calendarStatus: event.calendarStatus,
@@ -505,7 +512,7 @@ export async function updateEvent(
         areaId: data.areaId === undefined ? event.areaId : data.areaId,
         metadata: (data.metadata as any) ?? event.metadata,
         parentEventId: event.parentEventId || event.id,
-        originalStart: event.startTime,
+        originalStart: exceptionOriginalStart,
         createdById: userId,
       } as any, // Org-scoped extension injects organizationId at runtime
       include: {

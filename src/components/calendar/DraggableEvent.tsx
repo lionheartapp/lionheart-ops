@@ -228,9 +228,12 @@ export default function DraggableEvent({
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         onClick={(e) => {
-          // Click is handled by handleDragEnd (totalOffsetRef < 3 detection).
-          // This handler only stops propagation to prevent slot-click underneath.
           e.stopPropagation()
+          // Fallback click: if onDragEnd didn't fire (zero pointer movement),
+          // totalOffsetRef stays at 0 — treat as a genuine click.
+          if (!isDragging && !isResizing && totalOffsetRef.current < 3) {
+            onClick(event)
+          }
         }}
         aria-label={getEventAriaLabel(event)}
         className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden transition-shadow ${className} ${

@@ -10,6 +10,32 @@ import { prisma } from '@/lib/db'
 import { getOrgContextId } from '@/lib/org-context'
 import { geocodeAddress } from '@/lib/services/geocodingService'
 
+// Distinct calendar color palette — ordered for maximum visual separation
+const CALENDAR_COLORS = [
+  '#3b82f6', // blue
+  '#22c55e', // green
+  '#f97316', // orange
+  '#a855f7', // purple
+  '#ef4444', // red
+  '#14b8a6', // teal
+  '#f59e0b', // amber
+  '#ec4899', // pink
+  '#6366f1', // indigo (reserved for personal calendars)
+  '#64748b', // slate
+]
+
+/** Pick the next unused color from the palette based on existing calendars in the org */
+async function pickNextCalendarColor(): Promise<string> {
+  const existing = await prisma.calendar.findMany({
+    where: { deletedAt: null },
+    select: { color: true },
+  })
+  const usedColors = new Set(existing.map((c) => c.color))
+  const available = CALENDAR_COLORS.find((c) => !usedColors.has(c))
+  // If all colors used, cycle back to the first
+  return available ?? CALENDAR_COLORS[existing.length % CALENDAR_COLORS.length]
+}
+
 // ============= Validation Schemas =============
 
 export const CreateCampusSchema = z.object({
@@ -134,7 +160,8 @@ export async function createCampus(input: CreateCampusInput) {
     },
   })
 
-  // Auto-create a master calendar for the new campus
+  // Auto-create a master calendar for the new campus with a distinct color
+  const calColor = await pickNextCalendarColor()
   await prisma.calendar.create({
     data: {
       name: `${input.name} Master`,
@@ -143,7 +170,7 @@ export async function createCampus(input: CreateCampusInput) {
       visibility: 'CAMPUS' as any,
       campusId: campus.id,
       isDefault: true,
-      color: '#3b82f6',
+      color: calColor,
     } as any,
   })
 

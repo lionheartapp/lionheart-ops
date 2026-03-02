@@ -34,7 +34,17 @@ export async function GET(
     const { id } = await params
 
     return await runWithOrgContext(orgId, async () => {
-      const event = await calendarService.getEventById(id)
+      // Parse compound virtual instance IDs: "parentId_isoDatetime"
+      let eventId = id
+      const underscoreIdx = id.indexOf('_')
+      if (underscoreIdx > 0) {
+        const maybeDateStr = id.slice(underscoreIdx + 1)
+        if (!isNaN(new Date(maybeDateStr).getTime())) {
+          eventId = id.slice(0, underscoreIdx)
+        }
+      }
+
+      const event = await calendarService.getEventById(eventId)
       if (!event) {
         return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
       }
@@ -62,8 +72,22 @@ export async function PUT(
     const { editMode, startTime, endTime, ...rest } = data
 
     return await runWithOrgContext(orgId, async () => {
+      // Virtual recurring instances have compound IDs: "parentId_isoDatetime".
+      // Extract the real parent ID and the occurrence start time.
+      let eventId = id
+      let occurrenceStart: Date | undefined
+      const underscoreIdx = id.indexOf('_')
+      if (underscoreIdx > 0) {
+        const maybeDateStr = id.slice(underscoreIdx + 1)
+        const parsed = new Date(maybeDateStr)
+        if (!isNaN(parsed.getTime())) {
+          eventId = id.slice(0, underscoreIdx)
+          occurrenceStart = parsed
+        }
+      }
+
       // Check if user can edit all or just own
-      const event = await calendarService.getEventById(id)
+      const event = await calendarService.getEventById(eventId)
       if (!event) {
         return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
       }
@@ -75,14 +99,15 @@ export async function PUT(
       }
 
       const updated = await calendarService.updateEvent(
-        id,
+        eventId,
         {
           ...rest,
           startTime: startTime ? new Date(startTime) : undefined,
           endTime: endTime ? new Date(endTime) : undefined,
         },
         editMode || 'all',
-        ctx.userId
+        ctx.userId,
+        occurrenceStart
       )
       return NextResponse.json(ok(updated))
     })
@@ -107,7 +132,17 @@ export async function DELETE(
     const { id } = await params
 
     return await runWithOrgContext(orgId, async () => {
-      const event = await calendarService.getEventById(id)
+      // Parse compound virtual instance IDs (same as PUT handler)
+      let eventId = id
+      const underscoreIdx = id.indexOf('_')
+      if (underscoreIdx > 0) {
+        const maybeDateStr = id.slice(underscoreIdx + 1)
+        if (!isNaN(new Date(maybeDateStr).getTime())) {
+          eventId = id.slice(0, underscoreIdx)
+        }
+      }
+
+      const event = await calendarService.getEventById(eventId)
       if (!event) {
         return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
       }
@@ -118,7 +153,7 @@ export async function DELETE(
         await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_ALL)
       }
 
-      await calendarService.deleteEvent(id)
+      await calendarService.deleteEvent(eventId)
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {

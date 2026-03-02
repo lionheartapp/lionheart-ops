@@ -529,13 +529,22 @@ export default function Sidebar({
                             </div>
                           </div>
                         ) : (
-                          <button
+                          <div
+                            role="button"
+                            tabIndex={0}
                             onClick={() => toggleCalendarVisibility(cal.id)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                toggleCalendarVisibility(cal.id)
+                              }
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition cursor-pointer ${
                               isVisible
                                 ? 'text-gray-700 hover:bg-[#e5eaf5]'
                                 : 'text-gray-400 hover:bg-[#e5eaf5]'
                             }`}
+                            title={cal.calendarType === 'PERSONAL' ? 'My Calendar' : cal.name}
                           >
                             <div
                               className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center transition-colors"
@@ -548,38 +557,33 @@ export default function Sidebar({
                             </div>
                             <span className="truncate">{cal.calendarType === 'PERSONAL' ? 'My Calendar' : cal.name}</span>
                             {canEditCal && (
-                              <span
-                                className="ml-auto opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity p-1 -mr-1 rounded hover:bg-gray-200/50"
-                              >
-                                <button
-                                  type="button"
-                                  tabIndex={0}
-                                  aria-label={`Calendar options for ${cal.name}`}
-                                  aria-haspopup="menu"
-                                  aria-expanded={isMenuOpen}
-                                  className="focus:outline-none focus:ring-2 focus:ring-primary-400 rounded p-0.5"
-                                  onClick={(e) => {
+                              <button
+                                type="button"
+                                tabIndex={0}
+                                aria-label={`Calendar options for ${cal.name}`}
+                                aria-haspopup="menu"
+                                aria-expanded={isMenuOpen}
+                                className="ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 -mr-1 rounded hover:bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setColorEditId(null)
+                                  if (renamingId) handleRenameCancel()
+                                  setMenuOpenId(isMenuOpen ? null : cal.id)
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
                                     e.stopPropagation()
-                                    // Close any other open menu/editor before toggling this one
                                     setColorEditId(null)
                                     if (renamingId) handleRenameCancel()
                                     setMenuOpenId(isMenuOpen ? null : cal.id)
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      setColorEditId(null)
-                                      if (renamingId) handleRenameCancel()
-                                      setMenuOpenId(isMenuOpen ? null : cal.id)
-                                    }
-                                  }}
-                                >
-                                  <MoreHorizontal className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
-                                </button>
-                              </span>
+                                  }
+                                }}
+                              >
+                                <MoreHorizontal className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
+                              </button>
                             )}
-                          </button>
+                          </div>
                         )}
 
                         {/* Dropdown menu */}
