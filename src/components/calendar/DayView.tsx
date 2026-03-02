@@ -2,6 +2,7 @@
 
 import { useMemo, useEffect, useRef } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { useDragToCreate } from '@/lib/hooks/useDragToCreate'
 import { getEventAriaLabel } from './a11y-helpers'
 import DraggableEvent from './DraggableEvent'
 
@@ -26,6 +27,7 @@ function formatHour(hour: number): string {
 
 export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const { dragState, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, getGhostStyle, getGhostLabel } = useDragToCreate({ onSlotClick })
 
   const { allDayEvents, timedEvents } = useMemo(() => {
     const allDay: CalendarEventData[] = []
@@ -98,7 +100,13 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
           </div>
 
           {/* Main column */}
-          <div className="flex-1 relative">
+          <div
+            className="flex-1 relative"
+            onPointerDown={(e) => handlePointerDown(currentDate, e)}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+          >
             {/* Hour lines */}
             {hours.map((hour) => (
               <div
@@ -121,24 +129,32 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
               </div>
             )}
 
-            {/* Click targets */}
+            {/* Hover targets */}
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="absolute left-0 right-0 cursor-pointer hover:bg-primary-50/20 transition-colors"
+                className="absolute left-0 right-0 cursor-pointer border border-transparent rounded-lg hover:bg-primary-100/30 hover:border-dashed hover:border-primary-300 transition-colors"
                 style={{
                   top: (hour - START_HOUR) * HOUR_HEIGHT,
                   height: HOUR_HEIGHT,
                 }}
-                onClick={() => {
-                  const start = new Date(currentDate)
-                  start.setHours(hour, 0, 0, 0)
-                  const end = new Date(currentDate)
-                  end.setHours(hour + 1, 0, 0, 0)
-                  onSlotClick(start, end)
-                }}
               />
             ))}
+
+            {/* Drag-to-create ghost */}
+            {(() => {
+              const ghostStyle = getGhostStyle(dragState?.dayDate ?? new Date(0), currentDate)
+              return ghostStyle ? (
+                <div
+                  className="bg-primary-100/50 border-2 border-dashed border-primary-400 rounded-xl flex items-start justify-start px-3 py-1.5"
+                  style={ghostStyle}
+                >
+                  <span className="text-xs font-medium text-primary-700 select-none">
+                    {getGhostLabel()}
+                  </span>
+                </div>
+              ) : null
+            })()}
 
             {/* Event blocks */}
             {timedEvents.map((event) => {

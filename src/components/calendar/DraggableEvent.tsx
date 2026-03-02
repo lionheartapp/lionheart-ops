@@ -207,7 +207,7 @@ export default function DraggableEvent({
   const displayHeight = isResizing ? Math.max(height + resizeDeltaPx, MIN_HEIGHT) : height
 
   return (
-    <div className="relative" style={{ position: 'absolute', top, left: 0, right: 0 }}>
+    <div data-event className="relative" style={{ position: 'absolute', top, left: 0, right: 0 }} onPointerDown={(e) => e.stopPropagation()}>
       {/* Ghost placeholder (original position) */}
       {(isDragging || isResizing) && (
         <div

@@ -2,6 +2,7 @@
 
 import { useMemo, useEffect, useRef, useState } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { useDragToCreate } from '@/lib/hooks/useDragToCreate'
 import { getEventAriaLabel } from './a11y-helpers'
 import DraggableEvent from './DraggableEvent'
 
@@ -32,6 +33,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
   const scrollRef = useRef<HTMLDivElement>(null)
   const columnsRef = useRef<HTMLDivElement>(null)
   const [columnWidth, setColumnWidth] = useState(0)
+  const { dragState, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, getGhostStyle, getGhostLabel } = useDragToCreate({ onSlotClick })
 
   const weekDates = useMemo(() => {
     const start = new Date(currentDate)
@@ -178,26 +180,39 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
             {/* Day columns with events */}
             {weekDates.map((date, dayIndex) => {
               const dayEvents = eventsByDay.get(dayIndex) || []
+              const ghostStyle = getGhostStyle(dragState?.dayDate ?? new Date(0), date)
               return (
-                <div key={dayIndex} className="relative">
-                  {/* Click targets */}
+                <div
+                  key={dayIndex}
+                  className="relative"
+                  onPointerDown={(e) => handlePointerDown(date, e)}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerCancel}
+                >
+                  {/* Hover targets */}
                   {hours.map((hour) => (
                     <div
                       key={hour}
-                      className="absolute left-0 right-0 cursor-pointer hover:bg-primary-50/20 transition-colors"
+                      className="absolute left-0 right-0 cursor-pointer border border-transparent rounded-lg hover:bg-primary-100/30 hover:border-dashed hover:border-primary-300 transition-colors"
                       style={{
                         top: (hour - START_HOUR) * HOUR_HEIGHT,
                         height: HOUR_HEIGHT,
                       }}
-                      onClick={() => {
-                        const start = new Date(date)
-                        start.setHours(hour, 0, 0, 0)
-                        const end = new Date(date)
-                        end.setHours(hour + 1, 0, 0, 0)
-                        onSlotClick(start, end)
-                      }}
                     />
                   ))}
+
+                  {/* Drag-to-create ghost */}
+                  {ghostStyle && (
+                    <div
+                      className="bg-primary-100/50 border-2 border-dashed border-primary-400 rounded-xl flex items-start justify-start px-3 py-1.5"
+                      style={ghostStyle}
+                    >
+                      <span className="text-xs font-medium text-primary-700 select-none">
+                        {getGhostLabel()}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Event blocks */}
                   {dayEvents.map((event) => {
