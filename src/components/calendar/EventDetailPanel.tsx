@@ -20,7 +20,7 @@ interface EventDetailPanelProps {
   event: CalendarEventData | null
   onClose: () => void
   onEdit: (event: CalendarEventData) => void
-  onDelete: (eventId: string) => void
+  onDelete: (event: CalendarEventData) => void
 }
 
 function formatDateTime(dateStr: string, isAllDay: boolean): string {
@@ -302,7 +302,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   )}
                   {isAdmin && (
                     <button
-                      onClick={() => onDelete(event.id)}
+                      onClick={() => onDelete(event)}
                       className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
                       aria-label="Delete event"
                     >

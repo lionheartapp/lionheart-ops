@@ -220,8 +220,11 @@ export function useUpdateEvent() {
 export function useDeleteEvent() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) =>
-      fetchApi(`/api/calendar-events/${id}`, { method: 'DELETE' }),
+    mutationFn: ({ id, editMode }: { id: string; editMode?: 'this' | 'thisAndFollowing' | 'all' }) =>
+      fetchApi(`/api/calendar-events/${id}`, {
+        method: 'DELETE',
+        body: JSON.stringify({ editMode: editMode || 'all' }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
     },

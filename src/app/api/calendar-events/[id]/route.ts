@@ -122,6 +122,10 @@ export async function PUT(
   }
 }
 
+const deleteEventSchema = z.object({
+  editMode: z.enum(['this', 'thisAndFollowing', 'all']).optional(),
+}).optional()
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -131,14 +135,27 @@ export async function DELETE(
     const ctx = await getUserContext(req)
     const { id } = await params
 
+    // Parse optional JSON body for editMode
+    let editMode: 'this' | 'thisAndFollowing' | 'all' = 'all'
+    try {
+      const body = await req.json()
+      const parsed = deleteEventSchema.parse(body)
+      if (parsed?.editMode) editMode = parsed.editMode
+    } catch {
+      // No body or invalid JSON — default to 'all'
+    }
+
     return await runWithOrgContext(orgId, async () => {
       // Parse compound virtual instance IDs (same as PUT handler)
       let eventId = id
+      let occurrenceStart: Date | undefined
       const underscoreIdx = id.indexOf('_')
       if (underscoreIdx > 0) {
         const maybeDateStr = id.slice(underscoreIdx + 1)
-        if (!isNaN(new Date(maybeDateStr).getTime())) {
+        const parsed = new Date(maybeDateStr)
+        if (!isNaN(parsed.getTime())) {
           eventId = id.slice(0, underscoreIdx)
+          occurrenceStart = parsed
         }
       }
 
@@ -153,10 +170,13 @@ export async function DELETE(
         await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_ALL)
       }
 
-      await calendarService.deleteEvent(eventId)
+      await calendarService.deleteEvent(eventId, editMode, occurrenceStart)
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
+    }
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }

@@ -26,8 +26,7 @@ import EventDetailPanel from './EventDetailPanel'
 import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
-// NotifyAttendeesDialog — will be re-enabled when notification API is built
-// import NotifyAttendeesDialog from './NotifyAttendeesDialog'
+import CancellationNotifyDialog from './CancellationNotifyDialog'
 import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
@@ -280,10 +279,14 @@ export default function CalendarView() {
     }
   }, [updateEvent, editingEvent])
 
-  const [deleteConfirmEventId, setDeleteConfirmEventId] = useState<string | null>(null)
+  // Delete flow state — multi-step for recurring events
+  const [pendingDelete, setPendingDelete] = useState<CalendarEventData | null>(null)
+  const [deleteRecurringMode, setDeleteRecurringMode] = useState<RecurringEditMode | null>(null)
+  const [showCancellationNotify, setShowCancellationNotify] = useState(false)
 
-  const handleDeleteEvent = useCallback((eventId: string) => {
-    setDeleteConfirmEventId(eventId)
+  const handleDeleteEvent = useCallback((event: CalendarEventData) => {
+    setPendingDelete(event)
+    setDeleteRecurringMode(null)
   }, [])
 
   // Drag-and-drop reschedule + resize
@@ -355,12 +358,25 @@ export default function CalendarView() {
     setRecurringMode(null)
   }, [])
 
+  // Called when RecurringEditDialog picks a mode for delete
+  const handleDeleteRecurringConfirm = useCallback((mode: RecurringEditMode) => {
+    setDeleteRecurringMode(mode)
+  }, [])
+
   const confirmDeleteEvent = useCallback(async () => {
-    if (!deleteConfirmEventId) return
-    await deleteEvent.mutateAsync(deleteConfirmEventId)
+    if (!pendingDelete) return
+    const editMode = isRecurring(pendingDelete) ? (deleteRecurringMode || 'all') : 'all'
+    await deleteEvent.mutateAsync({ id: pendingDelete.id, editMode })
     setSelectedEvent(null)
-    setDeleteConfirmEventId(null)
-  }, [deleteEvent, deleteConfirmEventId])
+    setPendingDelete(null)
+    setDeleteRecurringMode(null)
+    setShowCancellationNotify(true)
+  }, [deleteEvent, pendingDelete, deleteRecurringMode])
+
+  const cancelPendingDelete = useCallback(() => {
+    setPendingDelete(null)
+    setDeleteRecurringMode(null)
+  }, [])
 
   if (calendarsLoading) {
     return (
@@ -651,20 +667,42 @@ export default function CalendarView() {
         )}
       </AnimatePresence>
 
-      {/* Delete event confirmation */}
+      {/* Recurring event delete mode dialog — shown first for recurring events */}
+      <RecurringEditDialog
+        isOpen={!!pendingDelete && isRecurring(pendingDelete) && !deleteRecurringMode}
+        onClose={cancelPendingDelete}
+        onConfirm={handleDeleteRecurringConfirm}
+        title="Delete recurring event"
+        confirmLabel="OK"
+        variant="danger"
+      />
+
+      {/* Delete event confirmation — shown after mode selection (recurring) or immediately (non-recurring) */}
       <ConfirmDialog
-        isOpen={!!deleteConfirmEventId}
-        onClose={() => setDeleteConfirmEventId(null)}
+        isOpen={!!pendingDelete && (!isRecurring(pendingDelete) || !!deleteRecurringMode)}
+        onClose={cancelPendingDelete}
         onConfirm={confirmDeleteEvent}
         title="Delete event"
-        message="Are you sure you want to delete this event? This action cannot be undone."
+        message={
+          deleteRecurringMode === 'this'
+            ? 'This occurrence will be removed. Other instances of this recurring event will not be affected.'
+            : deleteRecurringMode === 'thisAndFollowing'
+              ? 'This and all following occurrences will be removed. Earlier instances will remain.'
+              : 'Are you sure you want to delete this event? This action cannot be undone.'
+        }
         confirmText="Delete"
         variant="danger"
         isLoading={deleteEvent.isPending}
         loadingText="Deleting..."
       />
 
-      {/* Recurring event edit mode dialog */}
+      {/* Cancellation notification dialog — shown after successful delete */}
+      <CancellationNotifyDialog
+        isOpen={showCancellationNotify}
+        onClose={() => setShowCancellationNotify(false)}
+      />
+
+      {/* Recurring event edit mode dialog (drag/resize) */}
       <RecurringEditDialog
         isOpen={!!pendingChange && isRecurring(pendingChange.event)}
         onClose={cancelPendingChange}

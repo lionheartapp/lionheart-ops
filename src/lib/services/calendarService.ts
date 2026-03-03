@@ -571,10 +571,92 @@ export async function updateEvent(
 }
 
 /**
- * Delete an event (soft-delete).
+ * Delete an event with three-mode support for recurring events.
+ *
+ * - 'this': Create a CANCELLED exception (exdate suppresses virtual occurrence)
+ * - 'thisAndFollowing': Add UNTIL to parent rrule, soft-delete affected exceptions
+ * - 'all' (or non-recurring): Soft-delete parent + all exceptions
  */
-export async function deleteEvent(eventId: string) {
-  return prisma.calendarEvent.delete({ where: { id: eventId } })
+export async function deleteEvent(
+  eventId: string,
+  editMode: EditMode = 'all',
+  occurrenceStart?: Date
+) {
+  const event = await prisma.calendarEvent.findUnique({
+    where: { id: eventId },
+  })
+
+  if (!event) throw new Error('Event not found')
+
+  // Non-recurring or 'all' mode: soft-delete parent + exceptions
+  if (!event.rrule || editMode === 'all') {
+    const parentId = event.parentEventId || eventId
+    // Soft-delete all exceptions first
+    await prisma.calendarEvent.deleteMany({
+      where: { parentEventId: parentId },
+    })
+    // Soft-delete the parent
+    return prisma.calendarEvent.delete({ where: { id: parentId } })
+  }
+
+  // 'this' mode: create a CANCELLED exception for a specific occurrence
+  if (editMode === 'this') {
+    const exceptionOriginalStart = occurrenceStart || event.startTime
+    const parentDuration = event.endTime.getTime() - event.startTime.getTime()
+    const occurrenceEnd = new Date(exceptionOriginalStart.getTime() + parentDuration)
+
+    return prisma.calendarEvent.create({
+      data: {
+        calendarId: event.calendarId,
+        title: event.title,
+        description: event.description,
+        startTime: exceptionOriginalStart,
+        endTime: occurrenceEnd,
+        timezone: event.timezone,
+        isAllDay: event.isAllDay,
+        calendarStatus: 'CANCELLED',
+        categoryId: event.categoryId,
+        locationText: event.locationText,
+        buildingId: event.buildingId,
+        areaId: event.areaId,
+        metadata: event.metadata as any,
+        parentEventId: event.parentEventId || event.id,
+        originalStart: exceptionOriginalStart,
+        createdById: event.createdById,
+      } as any,
+    })
+  }
+
+  // 'thisAndFollowing' mode: add UNTIL to parent rrule, soft-delete future exceptions
+  const { splitSeries } = await import('./recurrenceService')
+  const parentId = event.parentEventId || event.id
+
+  const parent = await prisma.calendarEvent.findUnique({
+    where: { id: parentId },
+  })
+  if (!parent || !parent.rrule) throw new Error('Parent event not found')
+
+  const splitDate = occurrenceStart || event.startTime
+  const { originalRrule } = splitSeries(parent.rrule, splitDate, parent.startTime)
+
+  // Update parent with UNTIL
+  await prisma.calendarEvent.update({
+    where: { id: parentId },
+    data: { rrule: originalRrule },
+  })
+
+  // Soft-delete exceptions on or after the split date
+  const exceptions = await prisma.calendarEvent.findMany({
+    where: { parentEventId: parentId },
+  })
+  for (const exc of exceptions) {
+    const excDate = exc.originalStart || exc.startTime
+    if (excDate >= splitDate) {
+      await prisma.calendarEvent.delete({ where: { id: exc.id } })
+    }
+  }
+
+  return { deleted: true, mode: 'thisAndFollowing' }
 }
 
 /**

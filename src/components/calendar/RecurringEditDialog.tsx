@@ -10,6 +10,9 @@ interface RecurringEditDialogProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: (mode: RecurringEditMode) => void
+  title?: string
+  confirmLabel?: string
+  variant?: 'default' | 'danger'
 }
 
 const OPTIONS: { value: RecurringEditMode; label: string }[] = [
@@ -18,7 +21,14 @@ const OPTIONS: { value: RecurringEditMode; label: string }[] = [
   { value: 'all', label: 'All events' },
 ]
 
-export default function RecurringEditDialog({ isOpen, onClose, onConfirm }: RecurringEditDialogProps) {
+export default function RecurringEditDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = 'Edit recurring event',
+  confirmLabel = 'OK',
+  variant = 'default',
+}: RecurringEditDialogProps) {
   const [selected, setSelected] = useState<RecurringEditMode>('this')
   const trapRef = useFocusTrap(isOpen)
 
@@ -61,7 +71,7 @@ export default function RecurringEditDialog({ isOpen, onClose, onConfirm }: Recu
           >
             <div className="px-6 pt-5 pb-4">
               <h2 id="recurring-edit-title" className="text-base font-semibold text-gray-900 mb-4">
-                Edit recurring event
+                {title}
               </h2>
 
               <div className="space-y-2">
@@ -103,9 +113,13 @@ export default function RecurringEditDialog({ isOpen, onClose, onConfirm }: Recu
               </button>
               <button
                 onClick={() => onConfirm(selected)}
-                className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
+                className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
+                  variant === 'danger'
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-primary-600 hover:bg-primary-700'
+                }`}
               >
-                OK
+                {confirmLabel}
               </button>
             </div>
           </motion.div>

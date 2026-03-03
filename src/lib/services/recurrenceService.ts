@@ -25,6 +25,7 @@ interface ParentEvent {
     originalStart: Date | null
     startTime: Date
     endTime: Date
+    calendarStatus?: string
     [key: string]: unknown
   }>
   [key: string]: unknown
@@ -84,6 +85,8 @@ export function expandRecurrence(
   // since exceptions are loaded with `include: { exceptions: true }` (no nested relations)
   if (event.exceptions) {
     for (const exc of event.exceptions) {
+      // Skip CANCELLED exceptions — their exdate already suppresses the virtual occurrence
+      if (exc.calendarStatus === 'CANCELLED') continue
       if (exc.startTime >= rangeStart && exc.startTime <= rangeEnd) {
         instances.push({
           ...event, // Inherit parent's calendar, category, building, area, createdBy, attendees
