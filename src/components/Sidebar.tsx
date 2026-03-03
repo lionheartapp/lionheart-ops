@@ -626,7 +626,7 @@ export default function Sidebar({
                           <div
                             role="menu"
                             aria-label={`Options for ${cal.name}`}
-                            className="absolute right-2 bottom-0 translate-y-full z-50 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
+                            className="absolute right-2 bottom-0 translate-y-full z-50 w-40 bg-white rounded-lg shadow-medium border border-gray-200 py-1"
                             style={{ maxHeight: '200px' }}
                             ref={(el) => {
                               // Flip to above if overflowing bottom of viewport

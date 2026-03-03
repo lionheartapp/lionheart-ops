@@ -329,7 +329,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
             htmlFor="recurrence-toggle"
             className="block w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-primary-600 transition-colors cursor-pointer"
           />
-          <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4 pointer-events-none" />
+          <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-subtle transition-transform peer-checked:translate-x-4 pointer-events-none" />
         </div>
       </div>
 
@@ -382,7 +382,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                     aria-pressed={config.weekdays.includes(i)}
                     className={`w-9 h-9 rounded-full text-sm font-medium transition-all cursor-pointer ${
                       config.weekdays.includes(i)
-                        ? 'bg-primary-600 text-white shadow-sm'
+                        ? 'bg-primary-600 text-white shadow-subtle'
                         : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                   >
@@ -403,7 +403,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                   onClick={() => updateConfig('monthlyMode', 'dayOfMonth')}
                   className={`flex-1 px-3 py-2 text-sm rounded-lg font-medium transition-all cursor-pointer ${
                     config.monthlyMode === 'dayOfMonth'
-                      ? 'bg-primary-600 text-white shadow-sm'
+                      ? 'bg-primary-600 text-white shadow-subtle'
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -414,7 +414,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                   onClick={() => updateConfig('monthlyMode', 'nthWeekday')}
                   className={`flex-1 px-3 py-2 text-sm rounded-lg font-medium transition-all cursor-pointer ${
                     config.monthlyMode === 'nthWeekday'
-                      ? 'bg-primary-600 text-white shadow-sm'
+                      ? 'bg-primary-600 text-white shadow-subtle'
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -444,7 +444,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                 </button>
 
                 {showEndDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-medium z-20 py-1">
                     {(['never', 'count', 'until'] as EndType[]).map((type) => (
                       <button
                         key={type}

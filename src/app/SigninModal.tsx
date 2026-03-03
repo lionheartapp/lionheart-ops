@@ -46,7 +46,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-modal" role="presentation">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full" role="dialog" aria-labelledby="signin-title" aria-modal="true">
+      <div className="bg-white rounded-lg shadow-heavy max-w-md w-full" role="dialog" aria-labelledby="signin-title" aria-modal="true">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
           <h2 id="signin-title" className="text-lg sm:text-xl font-bold text-gray-900">

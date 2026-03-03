@@ -40,7 +40,7 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm cursor-pointer" onClick={onClose} role="presentation">
-      <div className="w-full max-w-lg rounded-lg bg-zinc-900 p-6 shadow-2xl cursor-auto" role="dialog" aria-modal="true" aria-labelledby="smart-event-title" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg rounded-lg bg-zinc-900 p-6 shadow-heavy cursor-auto" role="dialog" aria-modal="true" aria-labelledby="smart-event-title" onClick={(e) => e.stopPropagation()}>
         <h2 id="smart-event-title" className="text-xl font-bold text-white">Smart Event Assistant</h2>
         <p className="mt-2 text-sm text-zinc-400">Describe your event in plain text or voice</p>
 

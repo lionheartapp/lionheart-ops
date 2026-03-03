@@ -97,7 +97,7 @@ export default function DetailDrawer({
       {/* Drawer - Right side slide */}
       <div
         ref={drawerRef}
-        className={`fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 ${widths[width]} bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out z-modal sm:rounded-2xl ${
+        className={`fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 ${widths[width]} bg-white shadow-heavy flex flex-col transition-transform duration-300 ease-out z-modal sm:rounded-2xl ${
           shouldShow ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"

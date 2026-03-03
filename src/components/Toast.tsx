@@ -68,7 +68,7 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg animate-[slideIn_200ms_ease-out] ${STYLES[t.variant]}`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-medium animate-[slideIn_200ms_ease-out] ${STYLES[t.variant]}`}
       role="status"
       aria-live="polite"
     >

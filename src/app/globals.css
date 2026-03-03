@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Primary palette */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Semantic tokens */
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #9ca3af;
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+
+  /* Shadows */
+  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  --shadow-heavy: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+}
+
 /* Accessibility: Smooth scrolling for all and reduced motion support */
 html {
   scroll-behavior: smooth;
@@ -21,14 +49,14 @@ html {
 
 /* Global focus styles for keyboard navigation */
 :focus-visible {
-  outline: 2px solid #2563eb; /* blue-600 */
+  outline: 2px solid var(--color-primary-600);
   outline-offset: 2px;
 }
 
 /* Ensure buttons and links have proper focus indicators */
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--color-primary-600);
   outline-offset: 2px;
   border-radius: 0.375rem;
 }
@@ -48,6 +76,10 @@ input:-webkit-autofill:focus ~ label {
   body {
     @apply bg-white text-gray-900;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
 }
 
 /* Skip to main content link for keyboard users */
@@ -62,7 +94,7 @@ input:-webkit-autofill:focus ~ label {
   position: static;
   left: auto;
   top: auto;
-  background-color: #2563eb;
+  background-color: var(--color-primary-600);
   color: white;
   padding: 0.5rem 1rem;
 }
@@ -123,8 +155,8 @@ a:visited {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-  50% { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 rgb(37 99 235 / 0); }
+  50% { box-shadow: 0 0 0 4px rgb(37 99 235 / 0.15); }
 }
 
 @keyframes typing {
@@ -134,7 +166,7 @@ a:visited {
 
 @keyframes blink-caret {
   from, to { border-color: transparent; }
-  50% { border-color: #2563eb; }
+  50% { border-color: var(--color-primary-600); }
 }
 
 /* Custom scrollbar for calendar views */
@@ -211,6 +243,22 @@ a:visited {
 
   .ui-btn-secondary {
     @apply text-gray-500 hover:text-gray-700 bg-transparent;
+  }
+
+  .ui-btn-accent {
+    @apply bg-primary-600 text-white hover:bg-primary-700;
+  }
+
+  .ui-btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+
+  .ui-btn-outline {
+    @apply border border-gray-300 text-gray-700 hover:bg-gray-50;
+  }
+
+  .ui-btn-ghost {
+    @apply text-gray-600 hover:bg-gray-100;
   }
 
   .ui-badge {

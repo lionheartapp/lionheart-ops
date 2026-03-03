@@ -67,7 +67,7 @@ export default function RecurringEditDialog({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[340px] bg-white rounded-2xl shadow-xl"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[340px] bg-white rounded-2xl shadow-heavy"
           >
             <div className="px-6 pt-5 pb-4">
               <h2 id="recurring-edit-title" className="text-base font-semibold text-gray-900 mb-4">

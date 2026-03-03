@@ -7,6 +7,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        heading: ['var(--font-heading)', 'Georgia', 'serif'],
+        body: ['var(--font-body)', 'Poppins', 'system-ui', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#eff6ff',
@@ -21,6 +25,11 @@ export default {
           900: '#1e3a8a',
           950: '#172554',
         },
+      },
+      boxShadow: {
+        subtle: 'var(--shadow-subtle)',
+        medium: 'var(--shadow-medium)',
+        heavy: 'var(--shadow-heavy)',
       },
       zIndex: {
         dropdown: '10',

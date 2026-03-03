@@ -282,7 +282,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-3 mt-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full ui-btn-lg ui-btn-accent rounded-lg mt-2 flex items-center justify-center gap-2"
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}

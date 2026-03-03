@@ -195,7 +195,7 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
 
       {/* Dialog */}
       <div className="fixed inset-0 z-[61] flex items-start justify-center pt-[15vh] px-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div className="w-full max-w-lg bg-white rounded-xl shadow-heavy overflow-hidden">
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
             <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />

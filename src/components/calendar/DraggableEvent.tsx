@@ -281,7 +281,7 @@ export default function DraggableEvent({
         <button
           onClick={(e) => { e.stopPropagation(); onClick(event) }}
           aria-label={getEventAriaLabel(event)}
-          className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg transition-all cursor-pointer ${className}`}
+          className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-medium transition-all cursor-pointer ${className}`}
           style={{
             ...style,
             height: displayHeight,
@@ -341,13 +341,13 @@ export default function DraggableEvent({
         className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden transition-shadow ${className} ${
           isResizing
             ? resizeConflict
-              ? 'shadow-xl ring-2 ring-red-400 z-[5]'
-              : 'shadow-xl ring-2 ring-blue-400 z-[5]'
+              ? 'shadow-heavy ring-2 ring-red-400 z-[5]'
+              : 'shadow-heavy ring-2 ring-blue-400 z-[5]'
             : isDragging
               ? hasConflict
-                ? 'shadow-xl ring-2 ring-red-400 z-[5]'
-                : 'shadow-xl ring-2 ring-blue-400 z-[5]'
-              : 'z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.02] cursor-grab active:cursor-grabbing'
+                ? 'shadow-heavy ring-2 ring-red-400 z-[5]'
+                : 'shadow-heavy ring-2 ring-blue-400 z-[5]'
+              : 'z-[1] hover:z-[2] hover:shadow-medium hover:scale-[1.02] cursor-grab active:cursor-grabbing'
         }`}
         style={{
           ...style,

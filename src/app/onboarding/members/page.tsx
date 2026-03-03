@@ -280,7 +280,7 @@ export default function MembersPage() {
                   setSelectedOption('csv')
                   setCsvError('')
                 }}
-                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
@@ -312,7 +312,7 @@ export default function MembersPage() {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedOption('manual')}
-                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
@@ -461,7 +461,7 @@ export default function MembersPage() {
                 <button
                   onClick={handleImportMembers}
                   disabled={importing}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-subtle flex items-center justify-center gap-2"
                 >
                   {importing && <Loader2 className="w-4 h-4 animate-spin" />}
                   Import {members.length} member{members.length !== 1 ? 's' : ''}
@@ -492,7 +492,7 @@ export default function MembersPage() {
               Back to options
             </button>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-subtle">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <label htmlFor="manual-name" className="block text-xs font-medium text-gray-500 mb-1.5">
@@ -535,7 +535,7 @@ export default function MembersPage() {
                 <div className="flex items-end">
                   <button
                     onClick={addManualMember}
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white flex items-center justify-center hover:from-primary-600 hover:to-primary-700 transition-all shadow-sm hover:shadow-md flex-shrink-0"
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white flex items-center justify-center hover:from-primary-600 hover:to-primary-700 transition-all shadow-subtle hover:shadow-medium flex-shrink-0"
                     aria-label="Add member"
                   >
                     <Plus className="w-5 h-5" />
@@ -596,7 +596,7 @@ export default function MembersPage() {
               <button
                 onClick={handleImportMembers}
                 disabled={importing}
-                className="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-subtle flex items-center justify-center gap-2"
               >
                 {importing && <Loader2 className="w-4 h-4 animate-spin" />}
                 Invite {members.length} member{members.length !== 1 ? 's' : ''}

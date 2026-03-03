@@ -79,7 +79,7 @@ export default function CreateModal({ isOpen, onClose, title, children, requestT
       {/* Modal Container - Full width bottom slide up to 80px from top */}
       <div
         ref={modalRef}
-        className={`fixed inset-x-0 bottom-0 top-20 bg-white rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 ease-out z-modal ${
+        className={`fixed inset-x-0 bottom-0 top-20 bg-white rounded-t-2xl shadow-heavy flex flex-col transition-transform duration-300 ease-out z-modal ${
           shouldShow ? 'translate-y-0' : 'translate-y-full'
         }`}
         onTransitionEnd={handleTransitionEnd}

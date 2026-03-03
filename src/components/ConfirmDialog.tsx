@@ -99,7 +99,7 @@ export default function ConfirmDialog({
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
-          className="relative w-full max-w-xl transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl transition-all"
+          className="relative w-full max-w-xl transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-heavy transition-all"
         >
           {/* Close button */}
           <button
@@ -165,7 +165,7 @@ export default function ConfirmDialog({
                   type="button"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="flex-1 ui-btn-md ui-btn-outline rounded-lg"
                 >
                   {cancelText}
                 </button>
@@ -176,7 +176,7 @@ export default function ConfirmDialog({
                     disabled={isLoading || extraAction.disabled}
                     className={
                       extraAction.className ||
-                      'flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition'
+                      'flex-1 ui-btn-md ui-btn-ghost rounded-lg bg-gray-100 hover:bg-gray-200'
                     }
                   >
                     {extraAction.label}
@@ -186,7 +186,7 @@ export default function ConfirmDialog({
                   type="button"
                   onClick={onConfirm}
                   disabled={isLoading}
-                  className={`flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${styles.button}`}
+                  className={`flex-1 ui-btn-md rounded-lg text-white ${styles.button}`}
                 >
                   {isLoading ? loadingText : confirmText}
                 </button>
