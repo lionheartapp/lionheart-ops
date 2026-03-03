@@ -717,6 +717,113 @@ export async function createCategory(data: {
   })
 }
 
+// ─── User Schedule (Meet With) ─────────────────────────────────────────
+
+/**
+ * Get events for a specific user in a date range.
+ * Returns events where the user is the creator OR an attendee, only CONFIRMED status.
+ */
+export async function getEventsForUser(userId: string, start: Date, end: Date) {
+  const events = await prisma.calendarEvent.findMany({
+    where: {
+      calendarStatus: 'CONFIRMED',
+      parentEventId: null,
+      OR: [
+        // Events created by the user (non-recurring in range, or recurring parent)
+        {
+          createdById: userId,
+          OR: [
+            { rrule: null, startTime: { lte: end }, endTime: { gte: start } },
+            { rrule: { not: null } },
+          ],
+        },
+        // Events where the user is an attendee
+        {
+          attendees: { some: { userId } },
+          OR: [
+            { rrule: null, startTime: { lte: end }, endTime: { gte: start } },
+            { rrule: { not: null } },
+          ],
+        },
+      ],
+    },
+    include: {
+      calendar: { select: { id: true, name: true, color: true, calendarType: true, campus: { select: { id: true, name: true } } } },
+      category: true,
+      building: { select: { id: true, name: true } },
+      area: { select: { id: true, name: true } },
+      createdBy: { select: { id: true, name: true, firstName: true, lastName: true, email: true } },
+      attendees: {
+        include: { user: { select: { id: true, name: true, firstName: true, lastName: true, avatar: true } } },
+      },
+      exceptions: true,
+    },
+    orderBy: { startTime: 'asc' },
+  })
+
+  // Expand recurring events
+  const allInstances: Array<Record<string, unknown>> = events.flatMap((event) => {
+    if (event.rrule) {
+      return expandRecurrence(
+        {
+          ...event,
+          exceptions: event.exceptions.map((e) => ({
+            ...e,
+            originalStart: e.originalStart,
+          })),
+        },
+        start,
+        end
+      ) as Array<Record<string, unknown>>
+    }
+    return [{
+      ...event,
+      parentEventId: null as string | null,
+      isException: false,
+    }]
+  })
+
+  allInstances.sort((a, b) => new Date(a.startTime as string).getTime() - new Date(b.startTime as string).getTime())
+  return allInstances
+}
+
+// ─── Attendee Management ──────────────────────────────────────────────
+
+/**
+ * Get all attendees for an event.
+ */
+export async function getEventAttendees(eventId: string) {
+  return prisma.eventAttendee.findMany({
+    where: { eventId },
+    select: { userId: true },
+  })
+}
+
+/**
+ * Add attendees to an event.
+ */
+export async function addAttendees(eventId: string, userIds: string[]) {
+  const records = await Promise.all(
+    userIds.map((userId) =>
+      prisma.eventAttendee.upsert({
+        where: { eventId_userId: { eventId, userId } },
+        update: {},
+        create: { eventId, userId, responseStatus: 'PENDING' } as any,
+      })
+    )
+  )
+  return records
+}
+
+/**
+ * Remove an attendee from an event.
+ */
+export async function removeAttendee(eventId: string, userId: string) {
+  return prisma.eventAttendee.delete({
+    where: { eventId_userId: { eventId, userId } },
+  })
+}
+
 // ─── Calendar Subscriptions ────────────────────────────────────────────
 
 export async function getUserSubscriptions(userId: string) {

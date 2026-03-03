@@ -6,6 +6,8 @@ import { useDragToCreate } from '@/lib/hooks/useDragToCreate'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import DraggableEvent from './DraggableEvent'
+import { computeSubColumns, getSubColumnStyle } from './MeetWithColumnLayout'
+import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 
 interface WeekViewProps {
   currentDate: Date
@@ -15,6 +17,8 @@ interface WeekViewProps {
   onDragReschedule?: (event: CalendarEventData, deltaMinutes: number, deltaDays: number) => void
   onResize?: (event: CalendarEventData, deltaMinutes: number) => void
   campusShapeMap: Map<string, number>
+  meetWithPeople?: MeetWithPerson[]
+  meetWithEvents?: Map<string, CalendarEventData[]>
 }
 
 const HOUR_HEIGHT = 64
@@ -31,7 +35,7 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function WeekView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap }: WeekViewProps) {
+export default function WeekView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map() }: WeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const columnsRef = useRef<HTMLDivElement>(null)
   const [columnWidth, setColumnWidth] = useState(0)
@@ -95,6 +99,8 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     observer.observe(columnsRef.current)
     return () => observer.disconnect()
   }, [])
+
+  const hasMeetWith = meetWithPeople.length > 0
 
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
 
@@ -188,6 +194,10 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
             {weekDates.map((date, dayIndex) => {
               const dayEvents = eventsByDay.get(dayIndex) || []
               const ghostStyle = getGhostStyle(dragState?.dayDate ?? new Date(0), date)
+              const subColumns = hasMeetWith
+                ? computeSubColumns(dayEvents, meetWithPeople, meetWithEvents, date)
+                : null
+
               return (
                 <div
                   key={dayIndex}
@@ -197,6 +207,40 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                   onPointerUp={handlePointerUp}
                   onPointerCancel={handlePointerCancel}
                 >
+                  {/* Sub-column labels (meet-with mode) */}
+                  {subColumns && (
+                    <div className="absolute top-0 left-0 right-0 z-20 flex pointer-events-none" style={{ height: 20 }}>
+                      {subColumns.map((col) => {
+                        const style = getSubColumnStyle(col.columnIndex, col.totalColumns)
+                        return (
+                          <div
+                            key={col.personId ?? 'self'}
+                            className="flex items-center justify-center gap-1 text-[9px] font-medium truncate px-0.5"
+                            style={{ width: style.width, color: col.color }}
+                          >
+                            <div
+                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: col.color }}
+                            />
+                            <span className="truncate">{col.initials}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Sub-column separator lines */}
+                  {subColumns && subColumns.length > 1 && subColumns.slice(1).map((col) => {
+                    const style = getSubColumnStyle(col.columnIndex, col.totalColumns)
+                    return (
+                      <div
+                        key={`sep-${col.personId}`}
+                        className="absolute top-0 bottom-0 border-l border-dashed border-gray-200 pointer-events-none z-[1]"
+                        style={{ left: style.left }}
+                      />
+                    )
+                  })}
+
                   {/* Hover targets */}
                   {hours.map((hour) => (
                     <div
@@ -221,30 +265,140 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                     </div>
                   )}
 
-                  {/* Event blocks */}
-                  {dayEvents.map((event) => {
-                    const start = new Date(event.startTime)
-                    const end = new Date(event.endTime)
-                    const startMinutes = (start.getHours() - START_HOUR) * 60 + start.getMinutes()
-                    const endMinutes = (end.getHours() - START_HOUR) * 60 + end.getMinutes()
-                    const top = (startMinutes / 60) * HOUR_HEIGHT
-                    const height = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
+                  {/* Event blocks — sub-column mode */}
+                  {subColumns ? (
+                    <>
+                      {subColumns.map((col) => {
+                        const colStyle = getSubColumnStyle(col.columnIndex, col.totalColumns)
+                        const isSelf = col.personId === null
+                        return col.events.map((event) => {
+                          const evStart = new Date(event.startTime)
+                          const evEnd = new Date(event.endTime)
+                          const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
+                          const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
+                          const evTop = (startMinutes / 60) * HOUR_HEIGHT
+                          const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
+                          const eventColor = isSelf ? getEventColor(event) : col.color
 
-                    if (onDragReschedule) {
+                          if (isSelf && onDragReschedule) {
+                            return (
+                              <DraggableEvent
+                                key={`${col.personId}-${event.id}`}
+                                event={event}
+                                top={evTop}
+                                height={evHeight}
+                                date={date}
+                                siblingEvents={timedEvents}
+                                onDragReschedule={onDragReschedule}
+                                onResize={onResize}
+                                onClick={onEventClick}
+                                dragAxis="both"
+                                columnWidth={columnWidth}
+                                weekDates={weekDates}
+                                subColumnStyle={colStyle}
+                              >
+                                <div className="font-semibold text-xs truncate" style={{ color: eventColor }}>
+                                  {event.title}
+                                </div>
+                                {evHeight > 36 && (
+                                  <div className="text-[10px] mt-0.5 opacity-60" style={{ color: eventColor }}>
+                                    {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                )}
+                              </DraggableEvent>
+                            )
+                          }
+
+                          return (
+                            <DraggableEvent
+                              key={`${col.personId}-${event.id}`}
+                              event={event}
+                              top={evTop}
+                              height={evHeight}
+                              date={date}
+                              siblingEvents={[]}
+                              onDragReschedule={onDragReschedule || (() => {})}
+                              onClick={onEventClick}
+                              dragAxis="y"
+                              subColumnStyle={colStyle}
+                              readOnly
+                              style={{
+                                backgroundColor: `${col.color}15`,
+                                borderLeft: `3px solid ${col.color}`,
+                              }}
+                            >
+                              <div className="font-semibold text-xs truncate" style={{ color: col.color }}>
+                                {event.title}
+                              </div>
+                              {evHeight > 36 && (
+                                <div className="text-[10px] mt-0.5 opacity-60" style={{ color: col.color }}>
+                                  {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                              )}
+                            </DraggableEvent>
+                          )
+                        })
+                      })}
+                    </>
+                  ) : (
+                    /* Normal mode — no sub-columns */
+                    dayEvents.map((event) => {
+                      const evStart = new Date(event.startTime)
+                      const evEnd = new Date(event.endTime)
+                      const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
+                      const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
+                      const evTop = (startMinutes / 60) * HOUR_HEIGHT
+                      const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
+
+                      if (onDragReschedule) {
+                        return (
+                          <DraggableEvent
+                            key={event.id}
+                            event={event}
+                            top={evTop}
+                            height={evHeight}
+                            date={date}
+                            siblingEvents={timedEvents}
+                            onDragReschedule={onDragReschedule}
+                            onResize={onResize}
+                            onClick={onEventClick}
+                            dragAxis="both"
+                            columnWidth={columnWidth}
+                            weekDates={weekDates}
+                          >
+                            <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
+                              <CampusShapeIndicator
+                                shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                                color={getEventColor(event)}
+                                size={8}
+                              />
+                              {event.title}
+                            </div>
+                            {evHeight > 36 && (
+                              <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
+                                {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {' - '}
+                                {evEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            )}
+                          </DraggableEvent>
+                        )
+                      }
+
                       return (
-                        <DraggableEvent
+                        <button
                           key={event.id}
-                          event={event}
-                          top={top}
-                          height={height}
-                          date={date}
-                          siblingEvents={timedEvents}
-                          onDragReschedule={onDragReschedule}
-                          onResize={onResize}
-                          onClick={onEventClick}
-                          dragAxis="both"
-                          columnWidth={columnWidth}
-                          weekDates={weekDates}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onEventClick(event)
+                          }}
+                          aria-label={getEventAriaLabel(event)}
+                          className="absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer"
+                          style={{
+                            top: evTop,
+                            height: evHeight,
+                            backgroundColor: `${getEventColor(event)}20`,
+                          }}
                         >
                           <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
                             <CampusShapeIndicator
@@ -254,50 +408,17 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                             />
                             {event.title}
                           </div>
-                          {height > 36 && (
+                          {evHeight > 36 && (
                             <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
-                              {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               {' - '}
-                              {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {evEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                           )}
-                        </DraggableEvent>
+                        </button>
                       )
-                    }
-
-                    return (
-                      <button
-                        key={event.id}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onEventClick(event)
-                        }}
-                        aria-label={getEventAriaLabel(event)}
-                        className="absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer"
-                        style={{
-                          top,
-                          height,
-                          backgroundColor: `${getEventColor(event)}20`,
-                        }}
-                      >
-                        <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
-                          <CampusShapeIndicator
-                            shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
-                            color={getEventColor(event)}
-                            size={8}
-                          />
-                          {event.title}
-                        </div>
-                        {height > 36 && (
-                          <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
-                            {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            {' - '}
-                            {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        )}
-                      </button>
-                    )
-                  })}
+                    })
+                  )}
                 </div>
               )
             })}

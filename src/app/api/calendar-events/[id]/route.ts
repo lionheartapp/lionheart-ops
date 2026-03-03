@@ -21,6 +21,7 @@ const updateEventSchema = z.object({
   areaId: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   editMode: z.enum(['this', 'thisAndFollowing', 'all']).optional(),
+  attendeeIds: z.array(z.string()).optional(),
 })
 
 export async function GET(
@@ -69,7 +70,7 @@ export async function PUT(
     const body = await req.json()
     const data = updateEventSchema.parse(body)
 
-    const { editMode, startTime, endTime, ...rest } = data
+    const { editMode, startTime, endTime, attendeeIds, ...rest } = data
 
     return await runWithOrgContext(orgId, async () => {
       // Virtual recurring instances have compound IDs: "parentId_isoDatetime".
@@ -109,6 +110,22 @@ export async function PUT(
         ctx.userId,
         occurrenceStart
       )
+
+      // Sync attendees if provided
+      if (attendeeIds !== undefined) {
+        const existingAttendees = await calendarService.getEventAttendees(eventId)
+        const existingUserIds = existingAttendees.map((a: { userId: string }) => a.userId)
+        const toAdd = attendeeIds.filter((id: string) => !existingUserIds.includes(id))
+        const toRemove = existingUserIds.filter((id: string) => !attendeeIds.includes(id))
+
+        if (toAdd.length > 0) {
+          await calendarService.addAttendees(eventId, toAdd)
+        }
+        for (const userId of toRemove) {
+          await calendarService.removeAttendee(eventId, userId)
+        }
+      }
+
       return NextResponse.json(ok(updated))
     })
   } catch (error) {

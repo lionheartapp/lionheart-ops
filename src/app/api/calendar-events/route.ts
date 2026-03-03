@@ -21,6 +21,7 @@ const createEventSchema = z.object({
   buildingId: z.string().optional().nullable(),
   areaId: z.string().optional().nullable(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  attendeeIds: z.array(z.string()).optional(),
 })
 
 export async function GET(req: NextRequest) {
@@ -88,15 +89,21 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const canPublish = await can(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_PUBLISH)
 
+      const { attendeeIds, ...eventData } = data
       const event = await calendarService.createEvent(
         {
-          ...data,
+          ...eventData,
           startTime: new Date(data.startTime),
           endTime: new Date(data.endTime),
         },
         ctx.userId,
         canPublish
       )
+
+      // Create attendee records if provided
+      if (attendeeIds && attendeeIds.length > 0) {
+        await calendarService.addAttendees(event.id, attendeeIds)
+      }
 
       return NextResponse.json(ok(event), { status: 201 })
     })

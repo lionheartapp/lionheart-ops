@@ -24,6 +24,7 @@ import AgendaView from './AgendaView'
 import MobileMonthView from './MobileMonthView'
 import EventDetailPanel from './EventDetailPanel'
 import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
+import type { AttendeeSelection } from './AttendeePicker'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
 import CancellationNotifyDialog from './CancellationNotifyDialog'
@@ -33,6 +34,7 @@ import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
+import { useUserSchedule, type MeetWithPerson } from '@/lib/hooks/useMeetWith'
 
 const COLOR_PRESETS = [
   { name: 'Red', value: '#ef4444' },
@@ -188,6 +190,39 @@ export default function CalendarView() {
     ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
     : []
 
+  // Meet-with state
+  const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
+
+  // Listen for meet-with-change events from Sidebar
+  useEffect(() => {
+    const handleMeetWithChange = (e: Event) => {
+      const event = e as CustomEvent<{ people: MeetWithPerson[] }>
+      if (event.detail?.people) {
+        setMeetWithPeople(event.detail.people)
+      }
+    }
+    window.addEventListener('meet-with-change', handleMeetWithChange)
+    return () => window.removeEventListener('meet-with-change', handleMeetWithChange)
+  }, [])
+
+  // Fetch schedules for all meet-with people
+  const schedule0 = useUserSchedule(meetWithPeople[0]?.id ?? null, start, end)
+  const schedule1 = useUserSchedule(meetWithPeople[1]?.id ?? null, start, end)
+  const schedule2 = useUserSchedule(meetWithPeople[2]?.id ?? null, start, end)
+  const schedule3 = useUserSchedule(meetWithPeople[3]?.id ?? null, start, end)
+  const schedule4 = useUserSchedule(meetWithPeople[4]?.id ?? null, start, end)
+
+  const meetWithEvents = useMemo(() => {
+    const map = new Map<string, CalendarEventData[]>()
+    const schedules = [schedule0, schedule1, schedule2, schedule3, schedule4]
+    meetWithPeople.forEach((person, i) => {
+      if (schedules[i]?.data) {
+        map.set(person.id, schedules[i].data!)
+      }
+    })
+    return map
+  }, [meetWithPeople, schedule0.data, schedule1.data, schedule2.data, schedule3.data, schedule4.data])
+
   // Event interaction state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -196,6 +231,17 @@ export default function CalendarView() {
 
   // Edit event state
   const [editingEvent, setEditingEvent] = useState<CalendarEventData | null>(null)
+
+  // Compute initial attendees from meet-with people for the create panel
+  const meetWithAttendees: AttendeeSelection[] = useMemo(() => {
+    return meetWithPeople.map((p) => ({
+      id: p.id,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      email: p.email,
+      avatar: p.avatar,
+    }))
+  }, [meetWithPeople])
 
   // Auto-open create panel when navigated with ?create=true
   const searchParams = useSearchParams()
@@ -258,13 +304,14 @@ export default function CalendarView() {
   const handleSubmitEvent = useCallback(async (data: EventFormData) => {
     setFormError(null)
     try {
-      const { categoryId, rrule, buildingId, areaId, ...rest } = data
+      const { categoryId, rrule, buildingId, areaId, attendeeIds, ...rest } = data
       const payload: Record<string, unknown> = {
         ...rest,
         ...(categoryId ? { categoryId } : {}),
         ...(rrule ? { rrule } : {}),
         ...(buildingId ? { buildingId } : {}),
         ...(areaId ? { areaId } : {}),
+        ...(attendeeIds && attendeeIds.length > 0 ? { attendeeIds } : {}),
       }
       await createEvent.mutateAsync(payload)
       setIsCreateOpen(false)
@@ -545,6 +592,8 @@ export default function CalendarView() {
                 onEventClick={handleEventClick}
                 onDateClick={handleDateClick}
                 campusShapeMap={campusShapeMap}
+                meetWithPeople={meetWithPeople}
+                meetWithEvents={meetWithEvents}
               />
             )
           )}
@@ -557,6 +606,8 @@ export default function CalendarView() {
               onDragReschedule={handleDragReschedule}
               onResize={handleResize}
               campusShapeMap={campusShapeMap}
+              meetWithPeople={meetWithPeople}
+              meetWithEvents={meetWithEvents}
             />
           )}
           {view === 'day' && (
@@ -568,6 +619,8 @@ export default function CalendarView() {
               onDragReschedule={handleDragReschedule}
               onResize={handleResize}
               campusShapeMap={campusShapeMap}
+              meetWithPeople={meetWithPeople}
+              meetWithEvents={meetWithEvents}
             />
           )}
           {view === 'agenda' && (
@@ -605,6 +658,7 @@ export default function CalendarView() {
         initialEnd={createInitialEnd}
         error={formError}
         event={editingEvent}
+        initialAttendees={!editingEvent && meetWithPeople.length > 0 ? meetWithAttendees : undefined}
       />
 
       {/* Create Calendar Drawer */}

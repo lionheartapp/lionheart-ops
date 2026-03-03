@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { usePathname, useRouter } from 'next/navigation'
@@ -25,6 +25,9 @@ import {
   Trash2,
 } from 'lucide-react'
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
+import MeetWithSection from '@/components/calendar/MeetWithSection'
+import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
+import { MEET_WITH_COLORS } from '@/lib/hooks/useMeetWith'
 
 const COLOR_PRESETS = [
   { name: 'Red', value: '#ef4444' },
@@ -106,6 +109,26 @@ export default function Sidebar({
 
   // Campus → shape index map
   const campusShapeMap = useMemo(() => buildCampusShapeMap(calendarData), [calendarData])
+
+  // Meet with state
+  const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
+
+  const handleMeetWithAdd = useCallback((person: MeetWithPerson) => {
+    setMeetWithPeople((prev) => {
+      if (prev.length >= 5 || prev.some((p) => p.id === person.id)) return prev
+      const next = [...prev, person]
+      window.dispatchEvent(new CustomEvent('meet-with-change', { detail: { people: next } }))
+      return next
+    })
+  }, [])
+
+  const handleMeetWithRemove = useCallback((personId: string) => {
+    setMeetWithPeople((prev) => {
+      const next = prev.filter((p) => p.id !== personId)
+      window.dispatchEvent(new CustomEvent('meet-with-change', { detail: { people: next } }))
+      return next
+    })
+  }, [])
 
   // Three-dot menu state
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
@@ -658,6 +681,17 @@ export default function Sidebar({
           <div className="text-center py-8 text-gray-400 text-xs">
             <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
             <p>No calendars yet</p>
+          </div>
+        )}
+
+        {/* Meet With Section */}
+        {calendarDataReceived && (
+          <div className="border-t border-gray-200 mt-2 pt-2">
+            <MeetWithSection
+              people={meetWithPeople}
+              onAdd={handleMeetWithAdd}
+              onRemove={handleMeetWithRemove}
+            />
           </div>
         )}
       </div>

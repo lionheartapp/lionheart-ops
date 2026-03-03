@@ -24,6 +24,8 @@ interface DraggableEventProps {
   children: ReactNode
   className?: string
   style?: React.CSSProperties
+  subColumnStyle?: { left: string; width: string }
+  readOnly?: boolean
 }
 
 function snapToGrid(px: number): number {
@@ -86,6 +88,8 @@ export default function DraggableEvent({
   children,
   className = '',
   style = {},
+  subColumnStyle,
+  readOnly = false,
 }: DraggableEventProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [hasConflict, setHasConflict] = useState(false)
@@ -260,8 +264,50 @@ export default function DraggableEvent({
   // Keep optimistic height while resizing OR while waiting for data to refetch after commit
   const displayHeight = resizeDeltaPx !== 0 ? Math.max(height + resizeDeltaPx, MIN_HEIGHT) : height
 
+  // Read-only events (other people's events in meet-with mode)
+  if (readOnly) {
+    return (
+      <div
+        data-event
+        className="relative"
+        style={{
+          position: 'absolute',
+          top,
+          ...(subColumnStyle
+            ? { left: subColumnStyle.left, width: subColumnStyle.width }
+            : { left: 0, right: 0 }),
+        }}
+      >
+        <button
+          onClick={(e) => { e.stopPropagation(); onClick(event) }}
+          aria-label={getEventAriaLabel(event)}
+          className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg transition-all cursor-pointer ${className}`}
+          style={{
+            ...style,
+            height: displayHeight,
+            backgroundColor: `${eventColor}20`,
+            top: 0,
+          }}
+        >
+          {children}
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div data-event className="relative" style={{ position: 'absolute', top, left: 0, right: 0 }} onPointerDown={(e) => e.stopPropagation()}>
+    <div
+      data-event
+      className="relative"
+      style={{
+        position: 'absolute',
+        top,
+        ...(subColumnStyle
+          ? { left: subColumnStyle.left, width: subColumnStyle.width }
+          : { left: 0, right: 0 }),
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       {/* Ghost placeholder (original position) */}
       {(isDragging || isResizing) && (
         <div

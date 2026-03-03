@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Clock, MapPin, Calendar, User, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield } from 'lucide-react'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -9,12 +9,15 @@ import {
   useSubmitForApproval,
   useApproveEvent,
   useRejectEvent,
+  useAddAttendees,
+  useRemoveAttendee,
   type CalendarEventData,
   type EventApprovalData,
   type ApprovalChannelType,
 } from '@/lib/hooks/useCalendar'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useToast } from '@/components/Toast'
+import AttendeePicker, { type AttendeeSelection } from '@/components/calendar/AttendeePicker'
 
 interface EventDetailPanelProps {
   event: CalendarEventData | null
@@ -146,6 +149,11 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   const approveEvent = useApproveEvent()
   const rejectEvent = useRejectEvent()
 
+  // Attendee mutations
+  const addAttendees = useAddAttendees()
+  const removeAttendee = useRemoveAttendee()
+  const [showAddAttendee, setShowAddAttendee] = useState(false)
+
   // Client-side permission check (server enforces real permissions)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isCreator, setIsCreator] = useState(false)
@@ -174,10 +182,11 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [event, onClose, rejectingChannel])
 
-  // Reset rejection state when event changes
+  // Reset state when event changes
   useEffect(() => {
     setRejectingChannel(null)
     setRejectReason('')
+    setShowAddAttendee(false)
   }, [event?.id])
 
   const status = event ? (statusStyles[event.calendarStatus] || statusStyles.DRAFT) : statusStyles.DRAFT
@@ -418,39 +427,99 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
               )}
 
               {/* Attendees */}
-              {event.attendees && event.attendees.length > 0 && (
+              {(event.attendees && event.attendees.length > 0 || isAdmin || isCreator) && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                    Attendees ({event.attendees.length})
+                    Attendees {event.attendees && event.attendees.length > 0 ? `(${event.attendees.length})` : ''}
                   </h3>
-                  <div className="space-y-2">
-                    {event.attendees.map((a) => (
-                      <div key={a.id} className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                          {a.user.avatar ? (
-                            <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
-                          ) : (
-                            <span className="text-xs font-medium text-gray-500">
-                              {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}
-                            </span>
+                  {event.attendees && event.attendees.length > 0 && (
+                    <div className="space-y-1">
+                      {event.attendees.map((a) => (
+                        <div key={a.id} className="group flex items-center gap-2.5 py-1 rounded-lg hover:bg-gray-50 px-1 -mx-1">
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            {a.user.avatar ? (
+                              <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
+                            ) : (
+                              <span className="text-xs font-medium text-gray-500">
+                                {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-900 truncate">
+                            {a.user.firstName
+                              ? `${a.user.firstName} ${a.user.lastName || ''}`
+                              : a.user.name || 'Unknown'}
+                          </span>
+                          <span className={`text-xs ml-auto px-2 py-0.5 rounded-full ${
+                            a.responseStatus === 'ACCEPTED' ? 'bg-green-50 text-green-600' :
+                            a.responseStatus === 'DECLINED' ? 'bg-red-50 text-red-600' :
+                            a.responseStatus === 'TENTATIVE' ? 'bg-amber-50 text-amber-600' :
+                            'bg-gray-50 text-gray-500'
+                          }`}>
+                            {a.responseStatus.charAt(0) + a.responseStatus.slice(1).toLowerCase()}
+                          </span>
+                          {(isAdmin || isCreator) && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await removeAttendee.mutateAsync({ eventId: event.id, userId: a.user.id })
+                                  toast('Attendee removed', 'success')
+                                } catch (err) {
+                                  toast(err instanceof Error ? err.message : 'Failed to remove attendee', 'error')
+                                }
+                              }}
+                              disabled={removeAttendee.isPending}
+                              className="opacity-0 group-hover:opacity-100 p-1 min-w-[28px] min-h-[28px] flex items-center justify-center rounded-full hover:bg-red-50 transition-all flex-shrink-0"
+                              aria-label={`Remove ${a.user.firstName || 'attendee'}`}
+                            >
+                              <X className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+                            </button>
                           )}
                         </div>
-                        <span className="text-sm text-gray-900 truncate">
-                          {a.user.firstName
-                            ? `${a.user.firstName} ${a.user.lastName || ''}`
-                            : a.user.name || 'Unknown'}
-                        </span>
-                        <span className={`text-xs ml-auto px-2 py-0.5 rounded-full ${
-                          a.responseStatus === 'ACCEPTED' ? 'bg-green-50 text-green-600' :
-                          a.responseStatus === 'DECLINED' ? 'bg-red-50 text-red-600' :
-                          a.responseStatus === 'TENTATIVE' ? 'bg-amber-50 text-amber-600' :
-                          'bg-gray-50 text-gray-500'
-                        }`}>
-                          {a.responseStatus.charAt(0) + a.responseStatus.slice(1).toLowerCase()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add attendee */}
+                  {(isAdmin || isCreator) && (
+                    <div className="mt-2">
+                      {showAddAttendee ? (
+                        <div className="space-y-2">
+                          <AttendeePicker
+                            compact
+                            value={[]}
+                            onChange={async (selected: AttendeeSelection[]) => {
+                              if (selected.length === 0) return
+                              try {
+                                await addAttendees.mutateAsync({
+                                  eventId: event.id,
+                                  userIds: selected.map((s) => s.id),
+                                })
+                                toast(`${selected.length === 1 ? 'Attendee' : 'Attendees'} added`, 'success')
+                                setShowAddAttendee(false)
+                              } catch (err) {
+                                toast(err instanceof Error ? err.message : 'Failed to add attendees', 'error')
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={() => setShowAddAttendee(false)}
+                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setShowAddAttendee(true)}
+                          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors py-1"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          Add attendee
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

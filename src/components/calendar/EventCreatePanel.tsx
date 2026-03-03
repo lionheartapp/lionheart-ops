@@ -8,6 +8,7 @@ import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 import { FloatingInput, FloatingTextarea, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RecurrenceBuilder from './RecurrenceBuilder'
+import AttendeePicker, { type AttendeeSelection } from './AttendeePicker'
 
 interface EventCreatePanelProps {
   isOpen: boolean
@@ -21,6 +22,7 @@ interface EventCreatePanelProps {
   initialEnd?: Date
   error?: string | null
   event?: CalendarEventData | null
+  initialAttendees?: AttendeeSelection[]
 }
 
 export interface EventFormData {
@@ -35,6 +37,7 @@ export interface EventFormData {
   buildingId: string | null
   areaId: string | null
   rrule: string | null
+  attendeeIds?: string[]
 }
 
 function toLocalDateTimeString(date: Date): string {
@@ -319,6 +322,7 @@ export default function EventCreatePanel({
   initialEnd,
   error,
   event,
+  initialAttendees,
 }: EventCreatePanelProps) {
   const isEditing = !!event
   const focusTrapRef = useFocusTrap(isOpen)
@@ -349,6 +353,9 @@ export default function EventCreatePanel({
     areaId: null,
     rrule: null,
   })
+
+  // Attendee state
+  const [attendees, setAttendees] = useState<AttendeeSelection[]>([])
 
   // Inline category creation state
   const [showNewCategory, setShowNewCategory] = useState(false)
@@ -381,6 +388,16 @@ export default function EventCreatePanel({
           areaId: event.area?.id ?? null,
           rrule: event.rrule ?? null,
         })
+        // Populate attendees from existing event
+        setAttendees(
+          (event.attendees || []).map((a) => ({
+            id: a.user.id,
+            firstName: a.user.firstName ?? null,
+            lastName: a.user.lastName ?? null,
+            email: '',
+            avatar: a.user.avatar ?? null,
+          }))
+        )
       } else {
         const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
         const end = initialEnd || new Date(start.getTime() + 60 * 60 * 1000)
@@ -397,9 +414,11 @@ export default function EventCreatePanel({
           areaId: null,
           rrule: null,
         })
+        // Pre-populate from initialAttendees (meet-with people)
+        setAttendees(initialAttendees || [])
       }
     }
-  }, [isOpen, calendarIdsKey, initialStart, initialEnd, event]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, calendarIdsKey, initialStart, initialEnd, event, initialAttendees]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-select category when calendar changes: match school name to category name
   useEffect(() => {
@@ -440,6 +459,7 @@ export default function EventCreatePanel({
       buildingId: form.buildingId || null,
       areaId: form.areaId || null,
       rrule: form.rrule || null,
+      attendeeIds: attendees.length > 0 ? attendees.map((a) => a.id) : undefined,
     })
   }
 
@@ -767,6 +787,12 @@ export default function EventCreatePanel({
                 onChange={(locationText, buildingId, areaId) =>
                   setForm((p) => ({ ...p, locationText, buildingId, areaId }))
                 }
+              />
+
+              {/* Attendees */}
+              <AttendeePicker
+                value={attendees}
+                onChange={setAttendees}
               />
 
               {/* Description */}

@@ -4,6 +4,7 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
+import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 
 interface MonthViewProps {
   currentDate: Date
@@ -11,6 +12,8 @@ interface MonthViewProps {
   onEventClick: (event: CalendarEventData) => void
   onDateClick: (date: Date) => void
   campusShapeMap: Map<string, number>
+  meetWithPeople?: MeetWithPerson[]
+  meetWithEvents?: Map<string, CalendarEventData[]>
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -32,7 +35,7 @@ function formatTime(dateStr: string): string {
   return m ? `${hour}:${m.toString().padStart(2, '0')}${ampm}` : `${hour}${ampm}`
 }
 
-export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap }: MonthViewProps) {
+export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map() }: MonthViewProps) {
   const weeks = useMemo(() => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -76,6 +79,27 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
     }
     return map
   }, [events])
+
+  // Build meet-with events by date
+  const meetWithEventsByDate = useMemo(() => {
+    if (meetWithPeople.length === 0) return new Map<string, Array<{ event: CalendarEventData; person: MeetWithPerson }>>()
+    const map = new Map<string, Array<{ event: CalendarEventData; person: MeetWithPerson }>>()
+    for (const person of meetWithPeople) {
+      const personEvents = meetWithEvents.get(person.id) || []
+      for (const event of personEvents) {
+        const start = new Date(event.startTime)
+        const end = new Date(event.endTime)
+        const current = new Date(start)
+        while (current <= end) {
+          const key = `${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`
+          if (!map.has(key)) map.set(key, [])
+          map.get(key)!.push({ event, person })
+          current.setDate(current.getDate() + 1)
+        }
+      }
+    }
+    return map
+  }, [meetWithPeople, meetWithEvents])
 
   const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
@@ -146,11 +170,14 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
               const today = isToday(date)
               const dk = dateKey(date)
               const dayEvents = eventsByDate.get(dk) || []
+              const meetWithDayEvents = meetWithEventsByDate.get(dk) || []
               const allDayEvents = dayEvents.filter((e) => e.isAllDay)
               const timedEvents = dayEvents.filter((e) => !e.isAllDay)
               const sortedEvents = [...allDayEvents, ...timedEvents]
               const maxVisible = weeks.length <= 4 ? 5 : weeks.length <= 5 ? 4 : 3
-              const moreCount = sortedEvents.length - maxVisible
+              const totalEvents = sortedEvents.length + meetWithDayEvents.length
+              const moreCount = totalEvents - maxVisible
+              const meetWithSlots = Math.max(0, maxVisible - sortedEvents.length)
               const isFocused = focusedDate ? isSameDay(date, focusedDate) : (wi === 0 && di === 0)
 
               return (
@@ -226,6 +253,25 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                         </button>
                       )
                     )}
+                    {/* Meet-with people's events (inline merge) */}
+                    {meetWithDayEvents.slice(0, meetWithSlots).map(({ event: mwEvent, person }) => (
+                      <button
+                        key={`mw-${person.id}-${mwEvent.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEventClick(mwEvent)
+                        }}
+                        title={`${person.firstName || person.email}'s event`}
+                        className="w-full text-left flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs truncate opacity-60 hover:opacity-80 transition-opacity"
+                        style={{ backgroundColor: `${person.color}10`, color: person.color }}
+                      >
+                        <div className="w-1 h-full min-h-[14px] rounded-full flex-shrink-0" style={{ backgroundColor: person.color }} />
+                        <span className="truncate">
+                          {!mwEvent.isAllDay && <span className="font-medium">{formatTime(mwEvent.startTime)} </span>}
+                          {mwEvent.title}
+                        </span>
+                      </button>
+                    ))}
                     {moreCount > 0 && (
                       <button
                         onClick={(e) => {

@@ -309,6 +309,38 @@ export function useRejectEvent() {
   })
 }
 
+// ─── Attendee mutation hooks ─────────────────────────────────────────
+
+export function useAddAttendees() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ eventId, userIds }: { eventId: string; userIds: string[] }) =>
+      fetchApi(`/api/calendar-events/${eventId}/attendees`, {
+        method: 'POST',
+        body: JSON.stringify({ userIds }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-event-detail'] })
+    },
+  })
+}
+
+export function useRemoveAttendee() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ eventId, userId }: { eventId: string; userId: string }) =>
+      fetchApi(`/api/calendar-events/${eventId}/attendees`, {
+        method: 'DELETE',
+        body: JSON.stringify({ userId }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-event-detail'] })
+    },
+  })
+}
+
 // ─── Calendar navigation state ─────────────────────────────────────────
 
 export function useCalendarNavigation() {
