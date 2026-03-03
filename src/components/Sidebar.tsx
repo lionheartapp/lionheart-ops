@@ -16,7 +16,6 @@ import {
   Building2,
   Calendar,
   CalendarClock,
-  ClipboardList,
   ChevronDown,
   ChevronRight,
   Plus,
@@ -279,7 +278,6 @@ export default function Sidebar({
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
     { icon: CalendarClock, label: 'Planning', href: '/planning' },
-    { icon: ClipboardList, label: 'My Events', href: '/planning?tab=my-events' },
   ]
 
   const handleSettingsClick = () => {
