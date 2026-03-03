@@ -4,6 +4,7 @@ import { useMemo, useEffect, useRef, useState } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { useDragToCreate } from '@/lib/hooks/useDragToCreate'
 import { getEventAriaLabel } from './a11y-helpers'
+import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import DraggableEvent from './DraggableEvent'
 
 interface WeekViewProps {
@@ -13,6 +14,7 @@ interface WeekViewProps {
   onSlotClick: (start: Date, end: Date) => void
   onDragReschedule?: (event: CalendarEventData, deltaMinutes: number, deltaDays: number) => void
   onResize?: (event: CalendarEventData, deltaMinutes: number) => void
+  campusShapeMap: Map<string, number>
 }
 
 const HOUR_HEIGHT = 64
@@ -29,7 +31,7 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function WeekView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize }: WeekViewProps) {
+export default function WeekView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap }: WeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const columnsRef = useRef<HTMLDivElement>(null)
   const [columnWidth, setColumnWidth] = useState(0)
@@ -121,13 +123,18 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                       key={event.id}
                       onClick={() => onEventClick(event)}
                       aria-label={getEventAriaLabel(event)}
-                      className="w-full text-left px-2 py-1 rounded-lg text-xs font-semibold truncate"
+                      className="w-full text-left flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold truncate"
                       style={{
                         backgroundColor: `${getEventColor(event)}20`,
                         color: getEventColor(event),
                       }}
                     >
-                      {event.title}
+                      <CampusShapeIndicator
+                        shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                        color={getEventColor(event)}
+                        size={8}
+                      />
+                      <span className="truncate">{event.title}</span>
                     </button>
                   ))}
                 </div>
@@ -239,7 +246,12 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                           columnWidth={columnWidth}
                           weekDates={weekDates}
                         >
-                          <div className="font-semibold text-sm truncate" style={{ color: getEventColor(event) }}>
+                          <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
+                            <CampusShapeIndicator
+                              shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                              color={getEventColor(event)}
+                              size={8}
+                            />
                             {event.title}
                           </div>
                           {height > 36 && (
@@ -268,7 +280,12 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                           backgroundColor: `${getEventColor(event)}20`,
                         }}
                       >
-                        <div className="font-semibold text-sm truncate" style={{ color: getEventColor(event) }}>
+                        <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
+                          <CampusShapeIndicator
+                            shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                            color={getEventColor(event)}
+                            size={8}
+                          />
                           {event.title}
                         </div>
                         {height > 36 && (

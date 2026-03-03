@@ -3,12 +3,14 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
+import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 
 interface MonthViewProps {
   currentDate: Date
   events: CalendarEventData[]
   onEventClick: (event: CalendarEventData) => void
   onDateClick: (date: Date) => void
+  campusShapeMap: Map<string, number>
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -30,7 +32,7 @@ function formatTime(dateStr: string): string {
   return m ? `${hour}:${m.toString().padStart(2, '0')}${ampm}` : `${hour}${ampm}`
 }
 
-export default function MonthView({ currentDate, events, onEventClick, onDateClick }: MonthViewProps) {
+export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap }: MonthViewProps) {
   const weeks = useMemo(() => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -191,10 +193,15 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             onEventClick(event)
                           }}
                           aria-label={getEventAriaLabel(event)}
-                          className="w-full text-left px-1.5 py-0.5 rounded-md text-xs font-medium text-white truncate hover:brightness-90 transition-[filter]"
+                          className="w-full text-left flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium text-white truncate hover:brightness-90 transition-[filter]"
                           style={{ backgroundColor: getEventColor(event) }}
                         >
-                          {event.title}
+                          <CampusShapeIndicator
+                            shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                            color="rgba(255,255,255,0.85)"
+                            size={8}
+                          />
+                          <span className="truncate">{event.title}</span>
                         </button>
                       ) : (
                         <button
@@ -207,9 +214,10 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           className="w-full text-left flex items-center gap-1.5 px-1.5 py-0.5 rounded-md text-xs truncate hover:brightness-95 transition-[filter]"
                           style={{ backgroundColor: `${getEventColor(event)}12`, color: getEventColor(event) }}
                         >
-                          <span
-                            className="w-2 h-2 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: getEventColor(event) }}
+                          <CampusShapeIndicator
+                            shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                            color={getEventColor(event)}
+                            size={8}
                           />
                           <span className="truncate">
                             <span className="font-medium">{formatTime(event.startTime)} </span>

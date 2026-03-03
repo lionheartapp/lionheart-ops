@@ -4,11 +4,13 @@ import { useMemo } from 'react'
 import { Clock, MapPin, Users as UsersIcon } from 'lucide-react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
+import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 
 interface AgendaViewProps {
   currentDate: Date
   events: CalendarEventData[]
   onEventClick: (event: CalendarEventData) => void
+  campusShapeMap: Map<string, number>
 }
 
 function formatDate(date: Date): string {
@@ -31,7 +33,7 @@ function isToday(date: Date): boolean {
     date.getDate() === today.getDate()
 }
 
-export default function AgendaView({ currentDate, events, onEventClick }: AgendaViewProps) {
+export default function AgendaView({ currentDate, events, onEventClick, campusShapeMap }: AgendaViewProps) {
   // Group events by date
   const grouped = useMemo(() => {
     const map = new Map<string, { date: Date; events: CalendarEventData[] }>()
@@ -99,12 +101,17 @@ export default function AgendaView({ currentDate, events, onEventClick }: Agenda
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-medium text-gray-900 truncate">{event.title}</h4>
                       <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
+                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
                         style={{
                           backgroundColor: `${getEventColor(event)}15`,
                           color: getEventColor(event),
                         }}
                       >
+                        <CampusShapeIndicator
+                          shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                          color={getEventColor(event)}
+                          size={8}
+                        />
                         {event.calendar.name}
                       </span>
                     </div>

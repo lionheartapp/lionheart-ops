@@ -4,6 +4,7 @@ import { useMemo, useEffect, useRef } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { useDragToCreate } from '@/lib/hooks/useDragToCreate'
 import { getEventAriaLabel } from './a11y-helpers'
+import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import DraggableEvent from './DraggableEvent'
 
 interface DayViewProps {
@@ -13,6 +14,7 @@ interface DayViewProps {
   onSlotClick: (start: Date, end: Date) => void
   onDragReschedule?: (event: CalendarEventData, deltaMinutes: number, deltaDays: number) => void
   onResize?: (event: CalendarEventData, deltaMinutes: number) => void
+  campusShapeMap: Map<string, number>
 }
 
 const HOUR_HEIGHT = 64
@@ -25,7 +27,7 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize }: DayViewProps) {
+export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { dragState, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, getGhostStyle, getGhostLabel } = useDragToCreate({ onSlotClick })
 
@@ -70,13 +72,18 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                 key={event.id}
                 onClick={() => onEventClick(event)}
                 aria-label={getEventAriaLabel(event)}
-                className="text-left px-3 py-1.5 rounded-lg text-sm font-semibold truncate"
+                className="text-left flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold truncate"
                 style={{
                   backgroundColor: `${getEventColor(event)}20`,
                   color: getEventColor(event),
                 }}
               >
-                {event.title}
+                <CampusShapeIndicator
+                  shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                  color={getEventColor(event)}
+                  size={10}
+                />
+                <span className="truncate">{event.title}</span>
               </button>
             ))}
           </div>
@@ -180,7 +187,12 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                     dragAxis="y"
                     className="right-4"
                   >
-                    <div className="font-semibold text-sm truncate" style={{ color: getEventColor(event) }}>
+                    <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
+                      <CampusShapeIndicator
+                        shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                        color={getEventColor(event)}
+                        size={10}
+                      />
                       {event.title}
                     </div>
                     {height > 36 && (
@@ -214,7 +226,12 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                     backgroundColor: `${getEventColor(event)}20`,
                   }}
                 >
-                  <div className="font-semibold text-sm truncate" style={{ color: getEventColor(event) }}>
+                  <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
+                    <CampusShapeIndicator
+                      shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                      color={getEventColor(event)}
+                      size={10}
+                    />
                     {event.title}
                   </div>
                   {height > 36 && (

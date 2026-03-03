@@ -4,11 +4,13 @@ import { useState, useMemo } from 'react'
 import { Clock, MapPin } from 'lucide-react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
+import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 
 interface MobileMonthViewProps {
   currentDate: Date
   events: CalendarEventData[]
   onEventClick: (event: CalendarEventData) => void
+  campusShapeMap: Map<string, number>
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -34,7 +36,7 @@ function formatFullDate(date: Date): string {
   return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`
 }
 
-export default function MobileMonthView({ currentDate, events, onEventClick }: MobileMonthViewProps) {
+export default function MobileMonthView({ currentDate, events, onEventClick, campusShapeMap }: MobileMonthViewProps) {
   // Initialize selectedDate: today if in current month, otherwise 1st of month
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const today = new Date()
@@ -132,8 +134,18 @@ export default function MobileMonthView({ currentDate, events, onEventClick }: M
               const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
               const dayEvents = eventsByDate.get(dateKey) || []
 
-              // Get unique colors for indicator dots (max 3)
-              const dotColors = [...new Set(dayEvents.map(e => getEventColor(e)))].slice(0, 3)
+              // Get unique campus+color combos for indicator shapes (max 3)
+              const seenKeys = new Set<string>()
+              const dotInfos: Array<{ color: string; shapeIndex: number }> = []
+              for (const e of dayEvents) {
+                const color = getEventColor(e)
+                const campusId = e.calendar.campus?.id || ''
+                const key = `${campusId}:${color}`
+                if (!seenKeys.has(key) && dotInfos.length < 3) {
+                  seenKeys.add(key)
+                  dotInfos.push({ color, shapeIndex: getShapeIndex(campusShapeMap, e.calendar.campus?.id) })
+                }
+              }
 
               return (
                 <button
@@ -154,13 +166,14 @@ export default function MobileMonthView({ currentDate, events, onEventClick }: M
                   >
                     {date.getDate()}
                   </span>
-                  {/* Event indicator dots */}
-                  <div className="flex gap-0.5 mt-0.5 h-1.5">
-                    {dotColors.map((color, i) => (
-                      <span
+                  {/* Event indicator shapes */}
+                  <div className="flex gap-0.5 mt-0.5 h-1.5 items-center">
+                    {dotInfos.map((info, i) => (
+                      <CampusShapeIndicator
                         key={i}
-                        className="w-1 h-1 rounded-full"
-                        style={{ backgroundColor: color }}
+                        shapeIndex={info.shapeIndex}
+                        color={info.color}
+                        size={5}
                       />
                     ))}
                   </div>
@@ -208,12 +221,17 @@ export default function MobileMonthView({ currentDate, events, onEventClick }: M
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-medium text-gray-900 truncate">{event.title}</h4>
                       <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
+                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
                         style={{
                           backgroundColor: `${getEventColor(event)}15`,
                           color: getEventColor(event),
                         }}
                       >
+                        <CampusShapeIndicator
+                          shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                          color={getEventColor(event)}
+                          size={8}
+                        />
                         {event.calendar.name}
                       </span>
                     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   useCalendars,
@@ -28,6 +28,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
 import CancellationNotifyDialog from './CancellationNotifyDialog'
 import NotifyAttendeesDialog from './NotifyAttendeesDialog'
+import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
@@ -104,6 +105,9 @@ export default function CalendarView() {
   // Category hooks
   const { data: categories = [] } = useCategories()
   const createCategory = useCreateCategory()
+
+  // Campus → shape index map (deterministic: sorted campus IDs → shape indices)
+  const campusShapeMap = useMemo(() => buildCampusShapeMap(calendars), [calendars])
 
   // Mutation hooks (declared before useEffect that references them)
   const createCalendar = useCreateCalendar()
@@ -531,6 +535,7 @@ export default function CalendarView() {
                 currentDate={currentDate}
                 events={events}
                 onEventClick={handleEventClick}
+                campusShapeMap={campusShapeMap}
               />
             ) : (
               <MonthView
@@ -538,6 +543,7 @@ export default function CalendarView() {
                 events={events}
                 onEventClick={handleEventClick}
                 onDateClick={handleDateClick}
+                campusShapeMap={campusShapeMap}
               />
             )
           )}
@@ -549,6 +555,7 @@ export default function CalendarView() {
               onSlotClick={handleSlotClick}
               onDragReschedule={handleDragReschedule}
               onResize={handleResize}
+              campusShapeMap={campusShapeMap}
             />
           )}
           {view === 'day' && (
@@ -559,6 +566,7 @@ export default function CalendarView() {
               onSlotClick={handleSlotClick}
               onDragReschedule={handleDragReschedule}
               onResize={handleResize}
+              campusShapeMap={campusShapeMap}
             />
           )}
           {view === 'agenda' && (
@@ -566,6 +574,7 @@ export default function CalendarView() {
               currentDate={currentDate}
               events={events}
               onEventClick={handleEventClick}
+              campusShapeMap={campusShapeMap}
             />
           )}
       </div>
