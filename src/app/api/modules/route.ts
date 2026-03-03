@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    console.error('[POST /api/modules] error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to toggle module'), { status: 500 })
   }
 }
