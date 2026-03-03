@@ -116,8 +116,8 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* All-day events row */}
       {allDayEvents.length > 0 && (
-        <div className="flex pb-2 border-b border-gray-100 mb-0 px-4 sm:px-10">
-          <div className="w-14 flex-shrink-0 text-[11px] text-gray-400 text-right pr-3 pt-1">All day</div>
+        <div className="flex items-center gap-3 py-4 border-b border-gray-100 mb-0 px-4 sm:px-10">
+          <span className="w-14 flex-shrink-0 text-[11px] text-gray-400 text-right pr-3">All day</span>
           <div className="flex-1 grid grid-cols-7 gap-1">
             {weekDates.map((date, i) => {
               const dayAllDay = allDayEvents.filter((e) => {
@@ -146,6 +146,36 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                       <span className="truncate">{event.title}</span>
                     </button>
                   ))}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Meet-with person headers — static above scroll */}
+      {hasMeetWith && (
+        <div className="flex items-center py-4 border-b border-gray-100 px-4 sm:px-10">
+          <div className="w-14 flex-shrink-0" />
+          <div className="flex-1 grid grid-cols-7 gap-0">
+            {weekDates.map((date, dayIndex) => {
+              const dayEvents = eventsByDay.get(dayIndex) || []
+              const cols = computeSubColumns(dayEvents, meetWithPeople, meetWithEvents, date)
+              return (
+                <div key={dayIndex} className="flex">
+                  {cols.map((col) => {
+                    const style = getSubColumnStyle(col.columnIndex, col.totalColumns)
+                    return (
+                      <div
+                        key={col.personId ?? 'self'}
+                        className="flex items-center justify-center gap-1 text-[10px] font-semibold truncate px-0.5"
+                        style={{ width: style.width, color: col.color }}
+                      >
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: col.color }} />
+                        <span className="truncate">{col.initials}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               )
             })}
@@ -213,28 +243,6 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                   onPointerUp={handlePointerUp}
                   onPointerCancel={handlePointerCancel}
                 >
-                  {/* Sub-column labels (meet-with mode) */}
-                  {subColumns && (
-                    <div className="absolute top-0 left-0 right-0 z-20 flex pointer-events-none" style={{ height: 20 }}>
-                      {subColumns.map((col) => {
-                        const style = getSubColumnStyle(col.columnIndex, col.totalColumns)
-                        return (
-                          <div
-                            key={col.personId ?? 'self'}
-                            className="flex items-center justify-center gap-1 text-[9px] font-medium truncate px-0.5"
-                            style={{ width: style.width, color: col.color }}
-                          >
-                            <div
-                              className="w-2 h-2 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: col.color }}
-                            />
-                            <span className="truncate">{col.initials}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-
                   {/* Sub-column separator lines */}
                   {subColumns && subColumns.length > 1 && subColumns.slice(1).map((col) => {
                     const style = getSubColumnStyle(col.columnIndex, col.totalColumns)

@@ -193,6 +193,31 @@ export default function CalendarView() {
     ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
     : []
 
+  // Search + category filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set())
+
+  const toggleCategory = useCallback((categoryId: string) => {
+    setActiveCategories((prev) => {
+      const next = new Set(prev)
+      if (next.has(categoryId)) next.delete(categoryId)
+      else next.add(categoryId)
+      return next
+    })
+  }, [])
+
+  const filteredEvents = useMemo(() => {
+    let result = events
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter((e) => e.title.toLowerCase().includes(q))
+    }
+    if (activeCategories.size > 0) {
+      result = result.filter((e) => e.categoryId && activeCategories.has(e.categoryId))
+    }
+    return result
+  }, [events, searchQuery, activeCategories])
+
   // Meet-with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
 
@@ -583,6 +608,11 @@ export default function CalendarView() {
           onNavigateForward={goNext}
           onToday={goToToday}
           onCreateEvent={handleCreateEvent}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          categories={categories}
+          activeCategories={activeCategories}
+          onToggleCategory={toggleCategory}
         />
 
       </div>
@@ -603,7 +633,7 @@ export default function CalendarView() {
             isMobile ? (
               <MobileMonthView
                 currentDate={currentDate}
-                events={events}
+                events={filteredEvents}
                 onEventClick={handleEventClick}
                 campusShapeMap={campusShapeMap}
                 isLoading={showSkeletons}
@@ -611,7 +641,7 @@ export default function CalendarView() {
             ) : (
               <MonthView
                 currentDate={currentDate}
-                events={events}
+                events={filteredEvents}
                 onEventClick={handleEventClick}
                 onDateClick={handleDateClick}
                 campusShapeMap={campusShapeMap}
@@ -624,7 +654,7 @@ export default function CalendarView() {
           {view === 'week' && (
             <WeekView
               currentDate={currentDate}
-              events={events}
+              events={filteredEvents}
               onEventClick={handleEventClick}
               onSlotClick={handleSlotClick}
               onDragReschedule={handleDragReschedule}
@@ -638,7 +668,7 @@ export default function CalendarView() {
           {view === 'day' && (
             <DayView
               currentDate={currentDate}
-              events={events}
+              events={filteredEvents}
               onEventClick={handleEventClick}
               onSlotClick={handleSlotClick}
               onDragReschedule={handleDragReschedule}
@@ -652,7 +682,7 @@ export default function CalendarView() {
           {view === 'agenda' && (
             <AgendaView
               currentDate={currentDate}
-              events={events}
+              events={filteredEvents}
               onEventClick={handleEventClick}
               campusShapeMap={campusShapeMap}
               isLoading={showSkeletons}

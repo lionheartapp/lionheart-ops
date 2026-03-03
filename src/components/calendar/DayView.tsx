@@ -102,6 +102,28 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
         </div>
       )}
 
+      {/* Meet-with person headers — static above scroll */}
+      {subColumns && (
+        <div className="flex items-center py-4 border-b border-gray-100 px-4 sm:px-10">
+          <div className="w-14 flex-shrink-0" />
+          <div className="flex-1 flex">
+            {subColumns.map((col) => {
+              const colStyle = getSubColumnStyle(col.columnIndex, col.totalColumns)
+              return (
+                <div
+                  key={col.personId ?? 'self'}
+                  className="flex items-center justify-center gap-1.5 text-xs font-semibold truncate px-1"
+                  style={{ width: colStyle.width, color: col.color }}
+                >
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: col.color }} />
+                  <span className="truncate">{col.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Time grid */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white calendar-scroll">
         <div className="flex relative pl-4 sm:pl-10 pr-4" style={{ height: hours.length * HOUR_HEIGHT }}>
@@ -175,27 +197,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
               ) : null
             })()}
 
-            {/* Sub-column labels + separators (meet-with mode) */}
-            {subColumns && (
-              <div className="absolute top-0 left-0 right-0 z-20 flex pointer-events-none" style={{ height: 24 }}>
-                {subColumns.map((col) => {
-                  const colStyle = getSubColumnStyle(col.columnIndex, col.totalColumns)
-                  return (
-                    <div
-                      key={col.personId ?? 'self'}
-                      className="flex items-center justify-center gap-1 text-[10px] font-medium truncate px-1"
-                      style={{ width: colStyle.width, color: col.color }}
-                    >
-                      <div
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: col.color }}
-                      />
-                      <span className="truncate">{col.label}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+            {/* Sub-column separator lines (meet-with mode) */}
             {subColumns && subColumns.length > 1 && subColumns.slice(1).map((col) => {
               const colStyle = getSubColumnStyle(col.columnIndex, col.totalColumns)
               return (

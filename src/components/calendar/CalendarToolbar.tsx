@@ -1,7 +1,13 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Search, X } from 'lucide-react'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
+
+interface CategoryChip {
+  id: string
+  name: string
+  color: string
+}
 
 interface CalendarToolbarProps {
   currentDate: Date
@@ -11,6 +17,11 @@ interface CalendarToolbarProps {
   onNavigateForward: () => void
   onToday: () => void
   onCreateEvent: () => void
+  searchQuery: string
+  onSearchChange: (query: string) => void
+  categories: CategoryChip[]
+  activeCategories: Set<string>
+  onToggleCategory: (categoryId: string) => void
 }
 
 const viewLabels: Record<CalendarViewType, string> = {
@@ -62,6 +73,11 @@ export default function CalendarToolbar({
   onNavigateForward,
   onToday,
   onCreateEvent,
+  searchQuery,
+  onSearchChange,
+  categories,
+  activeCategories,
+  onToggleCategory,
 }: CalendarToolbarProps) {
   const weekDates = getWeekDates(currentDate)
 
@@ -129,6 +145,53 @@ export default function CalendarToolbar({
             <span className="hidden sm:inline">Event</span>
           </button>
         </div>
+      </div>
+
+      {/* Search + Category Filters */}
+      <div className="flex items-center gap-3">
+        {/* Search input */}
+        <div className="relative flex-shrink-0 w-48 sm:w-56">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search events..."
+            className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 placeholder:text-gray-400"
+          />
+          {searchQuery && (
+            <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-100 rounded-full">
+              <X className="w-3.5 h-3.5 text-gray-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Category chips */}
+        {categories.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            {categories.map((cat) => {
+              const isActive = activeCategories.has(cat.id)
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => onToggleCategory(cat.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                    isActive
+                      ? 'text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  style={isActive ? { backgroundColor: cat.color } : undefined}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: isActive ? '#fff' : cat.color }}
+                  />
+                  {cat.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Row 2: View switcher — mobile only */}
