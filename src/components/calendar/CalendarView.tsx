@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -509,6 +509,48 @@ export default function CalendarView() {
   // Prefetch adjacent time ranges for instant navigation
   useCalendarPrefetch(currentDate, view, !calendarsLoading)
 
+  // Keyboard navigation: T=Today, M=Month, W=Week, D=Day, A=Agenda, N=New event
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger when typing in inputs, textareas, or contenteditable
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+      // Don't trigger with modifier keys (except shift)
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+
+      switch (e.key.toLowerCase()) {
+        case 't':
+          goToToday()
+          break
+        case 'm':
+          changeView('month')
+          break
+        case 'w':
+          changeView('week')
+          break
+        case 'd':
+          changeView('day')
+          break
+        case 'a':
+          changeView('agenda')
+          break
+        case 'n':
+          handleCreateEvent()
+          break
+        case 'arrowleft':
+          goPrev()
+          break
+        case 'arrowright':
+          goNext()
+          break
+        default:
+          return
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [goToToday, changeView, handleCreateEvent, goPrev, goNext])
+
   // Show skeletons only on cold load (no cached data yet)
   const showSkeletons = eventsLoading && allEvents.length === 0
 
@@ -744,7 +786,8 @@ export default function CalendarView() {
                 </span>
                 <button
                   onClick={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
-                  className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                  className="p-2.5 rounded-full hover:bg-gray-100 transition-colors"
+                  aria-label="Close"
                 >
                   <X className="w-4 h-4 text-gray-400" />
                 </button>

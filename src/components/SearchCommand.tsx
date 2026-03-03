@@ -189,12 +189,12 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-[60]"
+        className="fixed inset-0 bg-black/50 z-lightbox"
         onClick={onClose}
       />
 
       {/* Dialog */}
-      <div className="fixed inset-0 z-[61] flex items-start justify-center pt-[15vh] px-4">
+      <div className="fixed inset-0 z-command flex items-start justify-center pt-[15vh] px-4">
         <div className="w-full max-w-lg bg-white rounded-xl shadow-heavy overflow-hidden">
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
@@ -270,7 +270,7 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
           </div>
 
           {/* Footer hint */}
-          <div className="px-4 py-2 border-t border-gray-100 flex items-center gap-4 text-[11px] text-gray-400">
+          <div className="px-4 py-2 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">&uarr;</kbd>
               <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">&darr;</kbd>

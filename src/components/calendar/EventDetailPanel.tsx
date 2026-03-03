@@ -238,13 +238,13 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 z-40"
+            className="fixed inset-0 bg-black/30 z-mobilenav"
             onClick={onClose}
           />
 
           {/* Rejection modal overlay */}
           {rejectingChannel && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-lightbox flex items-center justify-center p-4">
               <div className="absolute inset-0 bg-black/20" onClick={() => { setRejectingChannel(null); setRejectReason('') }} />
               <div className="relative bg-white rounded-xl shadow-xl p-5 w-full max-w-sm">
                 <h4 className="text-sm font-semibold text-gray-900 mb-2">
@@ -289,7 +289,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] bg-white shadow-2xl z-50 flex flex-col sm:rounded-2xl"
+            className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] bg-white shadow-2xl z-modal flex flex-col sm:rounded-2xl"
           >
             {/* Header */}
             <div className="px-6 pt-5 pb-4">

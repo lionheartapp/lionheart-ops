@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, MotionConfig } from 'framer-motion'
 import { ChevronRight, CheckCircle2, Zap, Clock, Users } from 'lucide-react'
 import Link from 'next/link'
 
@@ -49,6 +49,7 @@ export default function Landing() {
   ]
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="border-b border-gray-200" role="navigation" aria-label="Main navigation">
@@ -332,5 +333,6 @@ export default function Landing() {
         </div>
       </footer>
     </div>
+    </MotionConfig>
   )
 }

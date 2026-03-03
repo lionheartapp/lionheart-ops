@@ -1433,8 +1433,9 @@ export default function InteractiveCampusMap({
 
               <button
                 onClick={fitAllMarkers}
-                className="flex items-center justify-center w-9 h-9 text-sm font-medium bg-white text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-center w-11 h-11 text-sm font-medium bg-white text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                 title="Fit all buildings"
+                aria-label="Fit all buildings"
               >
                 <Maximize2 className="w-4 h-4" />
               </button>
@@ -1461,8 +1462,7 @@ export default function InteractiveCampusMap({
             <button
               type="button"
               onClick={() => mapInstanceRef.current?.zoomIn()}
-              className="px-2.5 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition border-b border-gray-200"
-              style={{ minHeight: 'auto' }}
+              className="px-2.5 py-2 min-h-[44px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition border-b border-gray-200"
               aria-label="Zoom in"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1472,8 +1472,7 @@ export default function InteractiveCampusMap({
             <button
               type="button"
               onClick={() => mapInstanceRef.current?.zoomOut()}
-              className="px-2.5 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
-              style={{ minHeight: 'auto' }}
+              className="px-2.5 py-2 min-h-[44px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
               aria-label="Zoom out"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

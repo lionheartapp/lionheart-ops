@@ -750,6 +750,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                               <p className="text-xs text-amber-700">{user.email}</p>
                             </div>
                             <select
+                              aria-label="Reassign users to role"
                               value={roleUserReassignments[user.id] || ''}
                               onChange={(event) =>
                                 setRoleUserReassignments((previous) => ({

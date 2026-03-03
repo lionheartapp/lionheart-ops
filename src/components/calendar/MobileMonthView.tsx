@@ -163,7 +163,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                           ? 'ring-2 ring-primary-500 font-medium text-gray-900'
                           : isCurrentMonth
                             ? 'text-gray-900'
-                            : 'text-gray-300'
+                            : 'text-gray-400'
                     }`}
                   >
                     {date.getDate()}

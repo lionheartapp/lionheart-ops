@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Loader2, AlertCircle } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, MotionConfig } from 'framer-motion'
 import Link from 'next/link'
 
 export default function SigninPage() {
@@ -43,6 +43,7 @@ export default function SigninPage() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white">
       {/* Left Panel — Form */}
       <motion.div
@@ -228,5 +229,6 @@ export default function SigninPage() {
         </div>
       </div>
     </div>
+    </MotionConfig>
   )
 }

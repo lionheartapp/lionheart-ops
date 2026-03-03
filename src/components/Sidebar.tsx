@@ -15,6 +15,8 @@ import {
   UserCog,
   Building2,
   Calendar,
+  CalendarClock,
+  ClipboardList,
   ChevronDown,
   ChevronRight,
   Plus,
@@ -276,6 +278,8 @@ export default function Sidebar({
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
+    { icon: CalendarClock, label: 'Planning', href: '/planning' },
+    { icon: ClipboardList, label: 'My Events', href: '/planning?tab=my-events' },
   ]
 
   const handleSettingsClick = () => {
@@ -379,7 +383,7 @@ export default function Sidebar({
               <button
                 key={tab.id}
                 onClick={() => handleSettingsTabClick(tab.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                   isTabActive
                     ? 'bg-[#dde6f5] text-primary-600 font-medium'
                     : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
@@ -407,7 +411,7 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={() => handleSettingsTabClick(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                     isTabActive
                       ? 'bg-[#dde6f5] text-primary-600 font-medium'
                       : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
@@ -480,7 +484,7 @@ export default function Sidebar({
               ) : (
                 <button
                   onClick={() => toggleCalendarType(key)}
-                  className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors"
+                  className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
                   {isExpanded ? (
                     <ChevronDown className="w-3 h-3" />
@@ -626,7 +630,7 @@ export default function Sidebar({
                           <div
                             role="menu"
                             aria-label={`Options for ${cal.name}`}
-                            className="absolute right-2 bottom-0 translate-y-full z-50 w-40 bg-white rounded-lg shadow-medium border border-gray-200 py-1"
+                            className="absolute right-2 bottom-0 translate-y-full z-modal w-40 bg-white rounded-lg shadow-medium border border-gray-200 py-1"
                             style={{ maxHeight: '200px' }}
                             ref={(el) => {
                               // Flip to above if overflowing bottom of viewport

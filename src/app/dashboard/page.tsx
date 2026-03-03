@@ -240,7 +240,7 @@ export default function DashboardPage() {
                     setIsCreateDropdownOpen(false)
                     router.push('/calendar?create=true')
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
                   <Calendar className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -254,7 +254,7 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
                   <Sparkles className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -278,7 +278,7 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
                   <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -292,7 +292,7 @@ export default function DashboardPage() {
                     setIsCreateOpen(true)
                     setIsCreateDropdownOpen(false)
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
                   <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -309,7 +309,7 @@ export default function DashboardPage() {
       {/* Dashboard Panels Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* My Tasks Panel */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition">
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition min-h-[300px]">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
           </div>
@@ -327,7 +327,7 @@ export default function DashboardPage() {
                   setSelectedRequestType(null)
                   setIsCreateOpen(true)
                 }}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 Create your first task
               </button>

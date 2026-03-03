@@ -310,6 +310,19 @@ const CATEGORY_COLOR_PRESETS = [
   '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b',
 ]
 
+const COLOR_NAMES: Record<string, string> = {
+  '#ef4444': 'Red',
+  '#f97316': 'Orange',
+  '#f59e0b': 'Amber',
+  '#22c55e': 'Green',
+  '#14b8a6': 'Teal',
+  '#3b82f6': 'Blue',
+  '#6366f1': 'Indigo',
+  '#a855f7': 'Purple',
+  '#ec4899': 'Pink',
+  '#64748b': 'Slate',
+}
+
 export default function EventCreatePanel({
   isOpen,
   onClose,
@@ -587,7 +600,7 @@ export default function EventCreatePanel({
                         <button
                           type="button"
                           onClick={() => setShowNewCategory(false)}
-                          className="text-xs text-gray-400 hover:text-gray-600"
+                          className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         >
                           Cancel
                         </button>
@@ -595,6 +608,7 @@ export default function EventCreatePanel({
                       <input
                         type="text"
                         placeholder="Category name"
+                        aria-label="Category name"
                         value={newCatName}
                         onChange={(e) => setNewCatName(e.target.value)}
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900"
@@ -608,6 +622,7 @@ export default function EventCreatePanel({
                             onClick={() => setNewCatColor(c)}
                             className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-400"
                             style={{ backgroundColor: c }}
+                            aria-label={COLOR_NAMES[c] || c}
                           >
                             {newCatColor === c && (
                               <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -672,7 +687,7 @@ export default function EventCreatePanel({
                       <button
                         type="button"
                         onClick={() => safePick(startDateRef)}
-                        className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0"
+                        className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                       >
                         {formatDateDisplay(startDate)}
                       </button>
@@ -701,7 +716,7 @@ export default function EventCreatePanel({
                       <button
                         type="button"
                         onClick={() => safePick(endDateAddRef)}
-                        className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0"
+                        className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                       >
                         + end date
                       </button>

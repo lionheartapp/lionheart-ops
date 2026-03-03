@@ -64,14 +64,14 @@ export default function TicketDetailPage() {
           <p className="text-sm text-zinc-400">{ticket.organization?.name || 'Internal'} &middot; {ticket.category}</p>
         </div>
         <div className="flex gap-2">
-          <select value={ticket.status} onChange={(e) => updateTicket({ status: e.target.value })} className="ui-select w-auto text-sm">
+          <select aria-label="Ticket status" value={ticket.status} onChange={(e) => updateTicket({ status: e.target.value })} className="ui-select w-auto text-sm">
             <option value="OPEN">Open</option>
             <option value="IN_PROGRESS">In Progress</option>
             <option value="WAITING_ON_CUSTOMER">Waiting</option>
             <option value="RESOLVED">Resolved</option>
             <option value="CLOSED">Closed</option>
           </select>
-          <select value={ticket.priority} onChange={(e) => updateTicket({ priority: e.target.value })} className="ui-select w-auto text-sm">
+          <select aria-label="Ticket priority" value={ticket.priority} onChange={(e) => updateTicket({ priority: e.target.value })} className="ui-select w-auto text-sm">
             <option value="LOW">Low</option>
             <option value="NORMAL">Normal</option>
             <option value="HIGH">High</option>
@@ -102,6 +102,7 @@ export default function TicketDetailPage() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type your reply..."
+          aria-label="Reply message"
           className="ui-input-bordered flex-1 min-h-[80px] resize-y"
           onKeyDown={(e) => { if (e.key === 'Enter' && e.metaKey) sendMessage() }}
         />

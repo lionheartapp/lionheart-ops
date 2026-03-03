@@ -10,9 +10,11 @@ import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
 import CampusTab from '@/components/settings/CampusTab'
 import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
+import AcademicCalendarTab from '@/components/settings/AcademicCalendarTab'
+import ApprovalConfigTab from '@/components/settings/ApprovalConfigTab'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 
-type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
+type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config'
 
 type WorkspaceTab = Exclude<Tab, 'profile'>
 
@@ -395,6 +397,8 @@ export default function SettingsPage() {
       next.add('teams')
       next.add('users')
       next.add('campus')
+      next.add('academic-calendar')
+      next.add('approval-config')
       return next
     })
   }, [canManageWorkspace])
@@ -596,7 +600,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleChangeImageClick}
                           disabled={avatarUpdating}
-                          className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         >
                           {avatarUpdating ? 'Uploading...' : '+ Change Image'}
                         </button>
@@ -604,7 +608,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleRemoveAvatar}
                           disabled={avatarUpdating || !displayAvatar}
-                          className="px-5 py-2.5 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-5 py-2.5 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         >
                           Remove Image
                         </button>
@@ -643,7 +647,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={profileSaving}
-                          className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         >
                           {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -663,7 +667,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                             disabled
                           >
                             Change email
@@ -679,7 +683,7 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={openChangePassword}
-                          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap"
+                          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         >
                           Change password
                         </button>
@@ -700,7 +704,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             type="button"
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                             disabled
                           >
                             Log out
@@ -717,7 +721,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             type="button"
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default"
+                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                             disabled
                           >
                             Delete Account
@@ -786,7 +790,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={passwordSaving || passwordSuccess}
-                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         >
                           {passwordSaving ? 'Saving...' : 'Update Password'}
                         </button>
@@ -794,7 +798,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={closeChangePassword}
                           disabled={passwordSaving}
-                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         >
                           Cancel
                         </button>
@@ -835,6 +839,18 @@ export default function SettingsPage() {
               {canManageWorkspace && visitedTabs.has('campus') && (
                 <div className={activeTab === 'campus' ? '' : 'hidden'} aria-hidden={activeTab !== 'campus'}>
                   <CampusTab onDirtyChange={setCampusDirty} />
+                </div>
+              )}
+
+              {canManageWorkspace && visitedTabs.has('academic-calendar') && (
+                <div className={activeTab === 'academic-calendar' ? '' : 'hidden'} aria-hidden={activeTab !== 'academic-calendar'}>
+                  <AcademicCalendarTab />
+                </div>
+              )}
+
+              {canManageWorkspace && visitedTabs.has('approval-config') && (
+                <div className={activeTab === 'approval-config' ? '' : 'hidden'} aria-hidden={activeTab !== 'approval-config'}>
+                  <ApprovalConfigTab />
                 </div>
               )}
       </div>

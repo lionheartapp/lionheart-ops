@@ -5,6 +5,7 @@ import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
+import { useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
 
 interface MonthViewProps {
   currentDate: Date
@@ -37,6 +38,29 @@ function formatTime(dateStr: string): string {
 }
 
 export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map(), isLoading }: MonthViewProps) {
+  // Compute month range for special days query
+  const monthRange = useMemo(() => {
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const start = new Date(firstDay)
+    start.setDate(start.getDate() - start.getDay())
+    const lastDay = new Date(year, month + 1, 0)
+    const end = new Date(lastDay)
+    end.setDate(end.getDate() + (6 - end.getDay()))
+    end.setHours(23, 59, 59, 999)
+    return { start, end }
+  }, [currentDate])
+  const { data: specialDays = [] } = useSpecialDays(monthRange.start, monthRange.end)
+  const specialDaysByDate = useMemo(() => {
+    const map = new Map<string, typeof specialDays[0]>()
+    for (const sd of specialDays) {
+      const d = new Date(sd.date)
+      map.set(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`, sd)
+    }
+    return map
+  }, [specialDays])
+
   const weeks = useMemo(() => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -172,6 +196,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
               const dk = dateKey(date)
               const dayEvents = eventsByDate.get(dk) || []
               const meetWithDayEvents = meetWithEventsByDate.get(dk) || []
+              const specialDay = specialDaysByDate.get(dk)
               const allDayEvents = dayEvents.filter((e) => e.isAllDay)
               const timedEvents = dayEvents.filter((e) => !e.isAllDay)
               const sortedEvents = [...allDayEvents, ...timedEvents]
@@ -195,6 +220,20 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                     !isCurrentMonth ? 'bg-gray-50/40' : ''
                   }`}
                 >
+                  {/* Special day banner */}
+                  {specialDay && (() => {
+                    const sdColors = SPECIAL_DAY_COLORS[specialDay.type] || SPECIAL_DAY_COLORS.OTHER
+                    return (
+                      <div
+                        className="text-[9px] font-medium truncate px-1 py-0.5 rounded -mx-1 mb-0.5 flex-shrink-0"
+                        style={{ backgroundColor: sdColors.bg, color: sdColors.text }}
+                        title={specialDay.name}
+                      >
+                        {specialDay.name}
+                      </div>
+                    )
+                  })()}
+
                   {/* Date number */}
                   <div className="flex justify-end mb-1 flex-shrink-0">
                     <span
@@ -203,7 +242,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           ? 'bg-primary-600 text-white'
                           : isCurrentMonth
                             ? 'text-gray-900'
-                            : 'text-gray-300'
+                            : 'text-gray-400'
                       }`}
                     >
                       {date.getDate()}

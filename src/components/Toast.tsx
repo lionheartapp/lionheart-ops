@@ -80,14 +80,14 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
             t.action!.onClick()
             onDismiss(t.id)
           }}
-          className="text-sm font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity flex-shrink-0"
+          className="text-sm font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
           {t.action.label}
         </button>
       )}
       <button
         onClick={() => onDismiss(t.id)}
-        className="p-0.5 rounded-md hover:bg-black/5 transition-colors flex-shrink-0"
+        className="p-0.5 rounded-md hover:bg-black/5 transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         aria-label="Dismiss"
       >
         <X className="w-4 h-4 opacity-50" />

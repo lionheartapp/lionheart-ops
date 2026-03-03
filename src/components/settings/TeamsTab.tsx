@@ -402,7 +402,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                     <div className="text-xs text-gray-400 mt-0.5">@{team.slug}</div>
                   </td>
                   <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">
-                    {team.description || <span className="text-gray-300">—</span>}
+                    {team.description || <span className="text-gray-400">—</span>}
                   </td>
                   <td className="py-3 px-4 text-gray-600">{team._count?.members || 0}</td>
                   <td className="py-3 pl-4 pr-4 sm:pr-10">
@@ -629,6 +629,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                               <p className="text-xs text-amber-700">{user.email}</p>
                             </div>
                             <select
+                              aria-label="Reassign members to team"
                               value={teamUserReassignments[user.id] || ''}
                               onChange={(event) =>
                                 setTeamUserReassignments((previous) => ({

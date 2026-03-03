@@ -860,19 +860,19 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   setCampusMenuOpen(campus.id)
                 }
               }}
-              className={`p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition ${
+              className={`p-2.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition ${
                 selectedCampusId === campus.id ? 'visible' : 'invisible'
               }`}
-              style={{ minHeight: 'auto' }}
               tabIndex={selectedCampusId === campus.id ? 0 : -1}
+              aria-label="Campus options"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
             {campusMenuOpen === campus.id && campusMenuPos && createPortal(
               <>
-                <div className="fixed inset-0 z-[100]" onClick={() => { setCampusMenuOpen(null); setCampusMenuPos(null) }} />
+                <div className="fixed inset-0 z-popover" onClick={() => { setCampusMenuOpen(null); setCampusMenuPos(null) }} />
                 <div
-                  className="fixed z-[101] w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                  className="fixed z-[76] w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
                   style={{ top: campusMenuPos.top, left: campusMenuPos.left }}
                 >
                   <button
@@ -1467,6 +1467,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                       <tr key={r.id} className="border-b last:border-b-0 bg-primary-50">
                         <td className="py-2 px-4">
                           <input
+                            aria-label="Room number"
                             value={editRoomData.roomNumber}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, roomNumber: e.target.value }))}
                             className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -1476,6 +1477,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                         </td>
                         <td className="py-2 px-4">
                           <input
+                            aria-label="Room display name"
                             value={editRoomData.displayName}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, displayName: e.target.value }))}
                             placeholder="optional"
@@ -1485,6 +1487,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                         </td>
                         <td className="py-2 px-4">
                           <input
+                            aria-label="Room floor"
                             value={editRoomData.floor}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, floor: e.target.value }))}
                             placeholder="optional"
@@ -1500,6 +1503,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                               disabled={editRoomSaving}
                               className="p-2 text-green-600 hover:bg-green-50 rounded-full transition disabled:opacity-40"
                               title="Save"
+                              aria-label="Save"
                             >
                               <Save className="w-4 h-4" />
                             </button>
@@ -1508,6 +1512,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                               disabled={editRoomSaving}
                               className="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition"
                               title="Cancel"
+                              aria-label="Cancel"
                             >
                               <XCircle className="w-4 h-4" />
                             </button>
@@ -1519,8 +1524,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                       <React.Fragment key={r.id}>
                       <tr className="border-b last:border-b-0 hover:bg-gray-50">
                         <td className="py-3 px-4 font-medium text-gray-900">{r.roomNumber}</td>
-                        <td className="py-3 px-4 text-gray-600">{r.displayName || <span className="text-gray-300">—</span>}</td>
-                        <td className="py-3 px-4 text-gray-600">{r.floor || <span className="text-gray-300">—</span>}</td>
+                        <td className="py-3 px-4 text-gray-600">{r.displayName || <span className="text-gray-400">—</span>}</td>
+                        <td className="py-3 px-4 text-gray-600">{r.floor || <span className="text-gray-400">—</span>}</td>
                         <td className="py-3 px-4">{renderStatusBadge(r.isActive)}</td>
                         <td className="py-3 pl-4 pr-10">
                           <div className="flex justify-end">

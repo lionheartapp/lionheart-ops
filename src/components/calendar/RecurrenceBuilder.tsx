@@ -354,7 +354,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                   key={opt.value}
                   type="button"
                   onClick={() => updateConfig('frequency', opt.value)}
-                  className={`px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset ${
                     config.frequency === opt.value
                       ? 'bg-primary-600 text-white'
                       : 'text-gray-600 hover:bg-gray-50'
@@ -380,7 +380,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                     onClick={() => toggleWeekday(i)}
                     aria-label={WEEKDAY_NAMES[i]}
                     aria-pressed={config.weekdays.includes(i)}
-                    className={`w-9 h-9 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                    className={`w-11 h-11 rounded-full text-sm font-medium transition-all cursor-pointer ${
                       config.weekdays.includes(i)
                         ? 'bg-primary-600 text-white shadow-subtle'
                         : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
