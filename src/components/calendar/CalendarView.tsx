@@ -349,10 +349,12 @@ export default function CalendarView() {
   const [pendingDelete, setPendingDelete] = useState<CalendarEventData | null>(null)
   const [deleteRecurringMode, setDeleteRecurringMode] = useState<RecurringEditMode | null>(null)
   const [showCancellationNotify, setShowCancellationNotify] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const handleDeleteEvent = useCallback((event: CalendarEventData) => {
     setPendingDelete(event)
     setDeleteRecurringMode(null)
+    setDeleteError(null)
   }, [])
 
   // Drag-and-drop reschedule + resize
@@ -445,17 +447,24 @@ export default function CalendarView() {
 
   const confirmDeleteEvent = useCallback(async () => {
     if (!pendingDelete) return
-    const editMode = isRecurring(pendingDelete) ? (deleteRecurringMode || 'all') : 'all'
-    await deleteEvent.mutateAsync({ id: pendingDelete.id, editMode })
-    setSelectedEvent(null)
-    setPendingDelete(null)
-    setDeleteRecurringMode(null)
-    setShowCancellationNotify(true)
+    try {
+      setDeleteError(null)
+      const editMode = isRecurring(pendingDelete) ? (deleteRecurringMode || 'all') : 'all'
+      await deleteEvent.mutateAsync({ id: pendingDelete.id, editMode })
+      setSelectedEvent(null)
+      setPendingDelete(null)
+      setDeleteRecurringMode(null)
+      setShowCancellationNotify(true)
+    } catch (err) {
+      console.error('Delete event failed:', err)
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete event')
+    }
   }, [deleteEvent, pendingDelete, deleteRecurringMode])
 
   const cancelPendingDelete = useCallback(() => {
     setPendingDelete(null)
     setDeleteRecurringMode(null)
+    setDeleteError(null)
   }, [])
 
   if (calendarsLoading) {
@@ -788,7 +797,13 @@ export default function CalendarView() {
         variant="danger"
         isLoading={deleteEvent.isPending}
         loadingText="Deleting..."
-      />
+      >
+        {deleteError && (
+          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+            {deleteError}
+          </div>
+        )}
+      </ConfirmDialog>
 
       {/* Cancellation notification dialog — shown after successful delete */}
       <CancellationNotifyDialog

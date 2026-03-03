@@ -197,6 +197,8 @@ export async function DELETE(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+    console.error('DELETE /api/calendar-events/[id] error:', error)
+    const msg = error instanceof Error ? error.message : 'Something went wrong'
+    return NextResponse.json(fail('INTERNAL_ERROR', msg), { status: 500 })
   }
 }
