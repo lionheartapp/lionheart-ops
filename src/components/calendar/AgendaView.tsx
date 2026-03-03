@@ -107,7 +107,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-medium text-gray-900 truncate">{event.title}</h4>
                       <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
+                        className="text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
                         style={{
                           backgroundColor: `${getEventColor(event)}15`,
                           color: getEventColor(event),
@@ -150,7 +150,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                               {a.user.avatar ? (
                                 <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
                               ) : (
-                                <span className="text-[9px] font-medium text-gray-600">
+                                <span className="text-xs font-medium text-gray-600">
                                   {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}
                                 </span>
                               )}

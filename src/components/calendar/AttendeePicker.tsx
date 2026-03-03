@@ -90,7 +90,7 @@ export default function AttendeePicker({ value, onChange, compact = false }: Att
                 {attendee.avatar ? (
                   <img src={attendee.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                 ) : (
-                  <span className="text-[10px] font-medium text-gray-500">
+                  <span className="text-xs font-medium text-gray-500">
                     {(attendee.firstName?.[0] || attendee.email[0] || '?').toUpperCase()}
                   </span>
                 )}

@@ -117,7 +117,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
       {/* All-day events row */}
       {allDayEvents.length > 0 && (
         <div className="flex items-center gap-3 py-4 border-b border-gray-100 mb-0 px-4 sm:px-10">
-          <span className="w-14 flex-shrink-0 text-[11px] text-gray-400 text-right pr-3">All day</span>
+          <span className="w-14 flex-shrink-0 text-xs text-gray-400 text-right pr-3">All day</span>
           <div className="flex-1 grid grid-cols-7 gap-1">
             {weekDates.map((date, i) => {
               const dayAllDay = allDayEvents.filter((e) => {
@@ -168,7 +168,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                     return (
                       <div
                         key={col.personId ?? 'self'}
-                        className="flex items-center justify-center gap-1 text-[10px] font-semibold truncate px-0.5"
+                        className="flex items-center justify-center gap-1 text-xs font-semibold truncate px-0.5"
                         style={{ width: style.width, color: col.color }}
                       >
                         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: col.color }} />
@@ -322,7 +322,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                                     {event.title}
                                   </div>
                                   {evHeight > 36 && (
-                                    <div className="text-[10px] mt-0.5 opacity-60" style={{ color: eventColor }}>
+                                    <div className="text-xs mt-0.5 opacity-60" style={{ color: eventColor }}>
                                       {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                   )}
@@ -352,7 +352,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                                   {event.title}
                                 </div>
                                 {evHeight > 36 && (
-                                  <div className="text-[10px] mt-0.5 opacity-60" style={{ color: col.color }}>
+                                  <div className="text-xs mt-0.5 opacity-60" style={{ color: col.color }}>
                                     {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                   </div>
                                 )}

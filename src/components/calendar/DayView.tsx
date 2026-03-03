@@ -77,7 +77,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
       {/* All-day events */}
       {allDayEvents.length > 0 && (
         <div className="flex items-center gap-3 py-4 border-b border-gray-100 mb-0 px-4 sm:px-10">
-          <span className="w-14 flex-shrink-0 text-[11px] text-gray-400 text-right pr-3">All day</span>
+          <span className="w-14 flex-shrink-0 text-xs text-gray-400 text-right pr-3">All day</span>
           <div className="flex gap-1">
             {allDayEvents.map((event) => (
               <button

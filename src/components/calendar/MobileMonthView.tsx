@@ -120,7 +120,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
         {/* Day-of-week headers */}
         <div className="grid grid-cols-7 mb-1">
           {dayHeaders.map((day, i) => (
-            <div key={i} className="text-center text-[11px] font-medium text-gray-400">
+            <div key={i} className="text-center text-xs font-medium text-gray-400">
               {day}
             </div>
           ))}
@@ -225,7 +225,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-medium text-gray-900 truncate">{event.title}</h4>
                       <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
+                        className="text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
                         style={{
                           backgroundColor: `${getEventColor(event)}15`,
                           color: getEventColor(event),
@@ -268,7 +268,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                               {a.user.avatar ? (
                                 <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
                               ) : (
-                                <span className="text-[9px] font-medium text-gray-600">
+                                <span className="text-xs font-medium text-gray-600">
                                   {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}
                                 </span>
                               )}

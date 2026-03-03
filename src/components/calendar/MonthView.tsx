@@ -156,7 +156,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
       {/* Day headers */}
       <div className="grid grid-cols-7" role="row">
         {dayNames.map((day) => (
-          <div key={day} role="columnheader" className="py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-200">
+          <div key={day} role="columnheader" className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-200">
             {day}
           </div>
         ))}

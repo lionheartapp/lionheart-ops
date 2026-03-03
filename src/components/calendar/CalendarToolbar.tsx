@@ -234,7 +234,7 @@ export default function CalendarToolbar({
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
-                <div className={`text-[9px] sm:text-[11px] font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
+                <div className={`text-xs font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
                   <span className="sm:hidden">{dayNamesFull[date.getDay()].slice(0, 3)}</span>
                   <span className="hidden sm:inline">{dayNamesFull[date.getDay()]}</span>
                 </div>
@@ -255,7 +255,7 @@ export default function CalendarToolbar({
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
-                <div className={`text-[11px] font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
+                <div className={`text-xs font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
                   {dayNamesFull[currentDate.getDay()]}
                 </div>
                 <div className="text-2xl font-bold mt-0.5">

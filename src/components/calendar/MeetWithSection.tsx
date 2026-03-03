@@ -73,7 +73,7 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
       {/* Section header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors"
+        className="flex items-center gap-1.5 w-full px-2 py-2 text-xs font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors"
       >
         <Users className="w-3 h-3" />
         Meet with...
@@ -157,7 +157,7 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
                   }}
                 >
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-white text-[10px] font-semibold"
+                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-semibold"
                     style={{ backgroundColor: person.color }}
                   >
                     {person.avatar ? (
