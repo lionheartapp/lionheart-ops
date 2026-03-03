@@ -82,7 +82,7 @@ export default function CalendarToolbar({
   const weekDates = getWeekDates(currentDate)
 
   return (
-    <div className="pb-5 space-y-4">
+    <div className="pb-2 space-y-5">
       {/* Row 1: Title + Nav pill + Create button */}
       <div className="flex items-center justify-between gap-2">
         {/* Left: Title */}
@@ -157,7 +157,7 @@ export default function CalendarToolbar({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search events..."
-            className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 placeholder:text-gray-400"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 placeholder:text-gray-400"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-100 rounded-full">
@@ -168,14 +168,14 @@ export default function CalendarToolbar({
 
         {/* Category chips */}
         {categories.length > 0 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             {categories.map((cat) => {
               const isActive = activeCategories.has(cat.id)
               return (
                 <button
                   key={cat.id}
                   onClick={() => onToggleCategory(cat.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                     isActive
                       ? 'text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -216,7 +216,7 @@ export default function CalendarToolbar({
 
       {/* Row 2: Day header cards (week/day views only) */}
       {(view === 'week' || view === 'day') && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {/* Calendar icon */}
           <div className="w-10 flex-shrink-0 flex items-center justify-center">
             <CalendarIcon className="w-5 h-5 text-gray-400" />
