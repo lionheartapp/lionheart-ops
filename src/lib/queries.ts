@@ -52,6 +52,11 @@ export const queryKeys = {
   campuses: {
     all: ['campuses'] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+    list: (cursor?: string) => ['notifications', { cursor }] as const,
+    unreadCount: ['notifications', 'unread-count'] as const,
+  },
 } as const
 
 // ─── Query Option Factories ────────────────────────────────────────────

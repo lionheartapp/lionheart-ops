@@ -5,6 +5,9 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import * as notificationService from '@/lib/services/notificationService'
+import { sendEventUpdateEmails } from '@/lib/services/emailService'
+import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
 const updateEventSchema = z.object({
@@ -22,6 +25,7 @@ const updateEventSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
   editMode: z.enum(['this', 'thisAndFollowing', 'all']).optional(),
   attendeeIds: z.array(z.string()).optional(),
+  notify: z.boolean().optional(),
 })
 
 export async function GET(
@@ -70,7 +74,7 @@ export async function PUT(
     const body = await req.json()
     const data = updateEventSchema.parse(body)
 
-    const { editMode, startTime, endTime, attendeeIds, ...rest } = data
+    const { editMode, startTime, endTime, attendeeIds, notify, ...rest } = data
 
     return await runWithOrgContext(orgId, async () => {
       // Virtual recurring instances have compound IDs: "parentId_isoDatetime".
@@ -123,6 +127,44 @@ export async function PUT(
         }
         for (const userId of toRemove) {
           await calendarService.removeAttendee(eventId, userId)
+        }
+      }
+
+      // Fire-and-forget: send notifications to attendees if requested
+      if (notify && (startTime || endTime)) {
+        const attendees = await calendarService.getEventAttendees(eventId)
+        const recipientIds = attendees
+          .map((a: { userId: string }) => a.userId)
+          .filter((uid: string) => uid !== ctx.userId)
+
+        if (recipientIds.length > 0) {
+          // In-app notifications
+          notificationService.createBulkNotifications(
+            recipientIds.map((uid: string) => ({
+              userId: uid,
+              type: 'event_updated' as const,
+              title: `Event "${updated.title}" was rescheduled`,
+              body: `The event time has been updated.`,
+              linkUrl: `/calendar?eventId=${eventId}`,
+            }))
+          )
+
+          // Email notifications (fire-and-forget)
+          const recipientUsers = await prisma.user.findMany({
+            where: { id: { in: recipientIds }, status: 'ACTIVE' },
+            select: { email: true },
+          })
+          const updater = await prisma.user.findUnique({
+            where: { id: ctx.userId },
+            select: { firstName: true, lastName: true },
+          })
+          sendEventUpdateEmails({
+            eventTitle: updated.title,
+            eventStart: updated.startTime.toISOString(),
+            eventEnd: updated.endTime.toISOString(),
+            attendeeEmails: recipientUsers.map((u: { email: string }) => u.email),
+            updatedByName: [updater?.firstName, updater?.lastName].filter(Boolean).join(' ') || 'A team member',
+          }).catch(() => {})
         }
       }
 
@@ -185,6 +227,22 @@ export async function DELETE(
         await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_OWN)
       } else {
         await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_DELETE_ALL)
+      }
+
+      // Notify attendees before deletion (fire-and-forget)
+      const attendees = await calendarService.getEventAttendees(eventId)
+      const recipientIds = attendees
+        .map((a: { userId: string }) => a.userId)
+        .filter((uid: string) => uid !== ctx.userId)
+      if (recipientIds.length > 0) {
+        notificationService.createBulkNotifications(
+          recipientIds.map((uid: string) => ({
+            userId: uid,
+            type: 'event_deleted' as const,
+            title: `Event "${event.title}" was cancelled`,
+            body: 'This event has been removed from the calendar.',
+          }))
+        )
       }
 
       await calendarService.deleteEvent(eventId, editMode, occurrenceStart)

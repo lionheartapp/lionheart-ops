@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import * as notificationService from '@/lib/services/notificationService'
 import { z } from 'zod'
 
 const rejectSchema = z.object({
@@ -26,6 +27,19 @@ export async function POST(
 
     return await runWithOrgContext(orgId, async () => {
       const approval = await calendarService.rejectEvent(id, data.channelType, ctx.userId, data.reason)
+
+      // Notify event creator (fire-and-forget)
+      const event = await calendarService.getEventById(id)
+      if (event?.createdById && event.createdById !== ctx.userId) {
+        notificationService.createNotification({
+          userId: event.createdById,
+          type: 'event_rejected',
+          title: `Your event "${event.title}" was rejected`,
+          body: data.reason,
+          linkUrl: `/calendar?eventId=${id}`,
+        })
+      }
+
       return NextResponse.json(ok(approval))
     })
   } catch (error) {

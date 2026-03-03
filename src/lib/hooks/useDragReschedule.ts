@@ -10,6 +10,7 @@ interface RescheduleParams {
   newStartTime: string
   newEndTime: string
   editMode?: 'this' | 'thisAndFollowing' | 'all'
+  notify?: boolean
 }
 
 export function useDragReschedule() {
@@ -18,7 +19,7 @@ export function useDragReschedule() {
   const { toast } = useToast()
   const undoRef = useRef<{ originalStart: string; originalEnd: string; eventId: string } | null>(null)
 
-  const reschedule = useCallback(({ event, newStartTime, newEndTime, editMode = 'all' }: RescheduleParams) => {
+  const reschedule = useCallback(({ event, newStartTime, newEndTime, editMode = 'all', notify }: RescheduleParams) => {
     const originalStart = event.startTime
     const originalEnd = event.endTime
 
@@ -47,6 +48,7 @@ export function useDragReschedule() {
         startTime: newStartTime,
         endTime: newEndTime,
         editMode,
+        ...(notify !== undefined ? { notify } : {}),
       },
       {
         onSuccess: () => {

@@ -30,6 +30,7 @@ const orgScopedModels = new Set([
 	'PlanningSubmission',
 	'ApprovalChannelConfig',
 	'EventResourceRequest',
+	'Notification',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

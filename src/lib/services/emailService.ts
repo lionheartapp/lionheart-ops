@@ -163,6 +163,65 @@ async function sendViaSmtp(input: WelcomeEmailInput): Promise<SendEmailResult> {
   }
 }
 
+// ─── Event Update Emails ──────────────────────────────────────────────
+
+type EventUpdateEmailInput = {
+  eventTitle: string
+  eventStart: string
+  eventEnd: string
+  attendeeEmails: string[]
+  updatedByName: string
+}
+
+export async function sendEventUpdateEmails(input: EventUpdateEmailInput): Promise<void> {
+  const cfg = getResendConfig()
+  if (!cfg || input.attendeeEmails.length === 0) return
+
+  const startDate = new Date(input.eventStart)
+  const endDate = new Date(input.eventEnd)
+  const dateStr = startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  const startStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  const endStr = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+
+  const subject = `Event updated: ${input.eventTitle}`
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #111827;">
+      <h2 style="margin-bottom: 12px;">Event Rescheduled</h2>
+      <p style="line-height: 1.5; margin: 0 0 12px;">
+        <strong>${input.eventTitle}</strong> has been rescheduled by ${input.updatedByName}.
+      </p>
+      <p style="line-height: 1.5; margin: 0 0 12px;">
+        <strong>New time:</strong> ${dateStr}, ${startStr} – ${endStr}
+      </p>
+      <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin-top: 20px;">
+        You're receiving this because you're an attendee of this event.
+      </p>
+    </div>
+  `
+  const text = `Event "${input.eventTitle}" has been rescheduled by ${input.updatedByName}.\nNew time: ${dateStr}, ${startStr} – ${endStr}`
+
+  for (const email of input.attendeeEmails) {
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${cfg.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: cfg.from,
+          to: [email],
+          subject,
+          text,
+          html,
+        }),
+      })
+    } catch (err) {
+      console.error(`Failed to send event update email to ${email}:`, err)
+    }
+  }
+}
+
 export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendEmailResult> {
   const resendResult = await sendViaResend(input)
   if (resendResult.sent) {

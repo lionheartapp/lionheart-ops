@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { assertCan, canAny } from '@/lib/auth/permissions'
+import { canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import * as notificationService from '@/lib/services/notificationService'
 import { z } from 'zod'
 
 const addAttendeesSchema = z.object({
@@ -37,6 +38,24 @@ export async function POST(
 
     return await runWithOrgContext(orgId, async () => {
       const records = await calendarService.addAttendees(eventId, userIds)
+
+      // Notify newly added attendees (fire-and-forget)
+      const event = await calendarService.getEventById(eventId)
+      if (event) {
+        const recipientIds = userIds.filter((uid: string) => uid !== ctx.userId)
+        if (recipientIds.length > 0) {
+          notificationService.createBulkNotifications(
+            recipientIds.map((uid: string) => ({
+              userId: uid,
+              type: 'event_invite' as const,
+              title: `You were added to "${event.title}"`,
+              body: 'You have been added as an attendee to this event.',
+              linkUrl: `/calendar?eventId=${eventId}`,
+            }))
+          )
+        }
+      }
+
       return NextResponse.json(ok(records), { status: 201 })
     })
   } catch (error) {

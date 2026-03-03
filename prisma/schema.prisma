@@ -77,6 +77,7 @@ model Organization {
   approvalChannelConfigs ApprovalChannelConfig[]
   eventResourceRequests  EventResourceRequest[]
   tenantModules       TenantModule[]
+  notifications       Notification[]
 
   @@index([onboardingStatus])
 }
@@ -127,6 +128,7 @@ model User {
   planningSubmissions   PlanningSubmission[] @relation("PlanningSubmitter")
   planningComments      PlanningComment[]    @relation("PlanningCommentAuthor")
   ownedCalendars        Calendar[]           @relation("CalendarOwner")
+  notifications         Notification[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -1574,4 +1576,26 @@ enum ResourceRequestStatus {
   DECLINED
   FULFILLED
   CANCELLED
+}
+
+// ─── Notifications ─────────────────────────────────────────────────────
+
+model Notification {
+  id             String    @id @default(cuid())
+  organizationId String
+  userId         String    // recipient
+  type           String    // "event_updated", "event_deleted", "event_invite", "event_approved", "event_rejected"
+  title          String
+  body           String?
+  linkUrl        String?   // e.g. "/calendar?eventId=xxx"
+  isRead         Boolean   @default(false)
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([organizationId])
+  @@index([userId, createdAt])
 }

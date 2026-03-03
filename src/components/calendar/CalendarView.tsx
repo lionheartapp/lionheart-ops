@@ -378,12 +378,12 @@ export default function CalendarView() {
   // Execute the pending change (called after notify dialog)
   const executePendingChange = useCallback((notify: boolean) => {
     if (!pendingChange) return
-    // TODO: pass `notify` to the reschedule API when attendee notifications are wired up
     reschedule({
       event: pendingChange.event,
       newStartTime: pendingChange.newStart,
       newEndTime: pendingChange.newEnd,
       editMode: pendingEditMode,
+      notify,
     })
     setPendingChange(null)
     setPendingEditMode('all')

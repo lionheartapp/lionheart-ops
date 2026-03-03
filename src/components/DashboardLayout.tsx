@@ -2,8 +2,10 @@
 
 import { ReactNode, useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 import Sidebar, { type SidebarProps } from './Sidebar'
+import NotificationBell from './NotificationBell'
+import SearchCommand from './SearchCommand'
 
 interface DashboardLayoutProps extends SidebarProps {
   children: ReactNode
@@ -25,8 +27,21 @@ export default function DashboardLayout({
   onLogout,
 }: DashboardLayoutProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar || null)
+
+  // Cmd+K / Ctrl+K shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setIsSearchOpen((prev) => !prev)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Close dropdown on click outside or Escape
   const closeDropdown = useCallback(() => setIsDropdownOpen(false), [])
@@ -97,19 +112,23 @@ export default function DashboardLayout({
           </p>
         </div>
 
-        {/* Search Bar (placeholder - not yet implemented) */}
+        {/* Global Search Trigger */}
         <div className="hidden sm:block flex-1 pl-10 pr-6 max-w-md">
-          <div
-            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 flex items-center text-sm text-slate-400 cursor-not-allowed select-none"
-            title="Search coming soon"
-            aria-hidden="true"
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 flex items-center gap-2 text-sm text-slate-400 hover:bg-white/15 hover:border-white/30 transition cursor-pointer"
           >
-            Search...
-          </div>
+            <Search className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1 text-left">Search...</span>
+            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/10 rounded border border-white/10">
+              &#8984;K
+            </kbd>
+          </button>
         </div>
 
-        {/* User Profile with Dropdown */}
+        {/* Notifications + User Profile */}
         <div className="flex items-center gap-3 flex-shrink-0">
+          <NotificationBell />
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-white">{userName || 'User'}</p>
             <p className="text-xs text-slate-400 truncate">{subtitleParts.join(' • ')}</p>
@@ -180,6 +199,8 @@ export default function DashboardLayout({
           </div>
         </main>
       </div>
+
+      <SearchCommand isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   )
 }
