@@ -31,6 +31,13 @@ const orgScopedModels = new Set([
 	'ApprovalChannelConfig',
 	'EventResourceRequest',
 	'Notification',
+	// Athletics module
+	'Sport',
+	'AthleticSeason',
+	'AthleticTeam',
+	'Game',
+	'Practice',
+	'Tournament',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

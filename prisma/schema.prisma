@@ -78,6 +78,13 @@ model Organization {
   eventResourceRequests  EventResourceRequest[]
   tenantModules       TenantModule[]
   notifications       Notification[]
+  // Athletics module relations
+  sports              Sport[]
+  athleticSeasons     AthleticSeason[]
+  athleticTeams       AthleticTeam[]
+  games               Game[]
+  practices           Practice[]
+  tournaments         Tournament[]
 
   @@index([onboardingStatus])
 }
@@ -1598,4 +1605,188 @@ model Notification {
   @@index([userId, isRead])
   @@index([organizationId])
   @@index([userId, createdAt])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ATHLETICS MODULE
+// ═══════════════════════════════════════════════════════════════════════
+
+model Sport {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String   // "Football", "Basketball", "Track & Field"
+  abbreviation   String?  // "FB", "BKB", "TF"
+  color          String   @default("#6b7280")
+  icon           String?  // Lucide icon name
+  seasonType     SportSeasonType @default(FALL)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticSeasons AthleticSeason[]
+  athleticTeams   AthleticTeam[]
+  tournaments     Tournament[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isActive])
+}
+
+model AthleticSeason {
+  id             String   @id @default(cuid())
+  organizationId String
+  sportId        String
+  name           String   // "Fall 2026 Football"
+  startDate      DateTime
+  endDate        DateTime
+  isCurrent      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sport        Sport          @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  teams        AthleticTeam[]
+
+  @@index([organizationId])
+  @@index([sportId])
+  @@index([organizationId, isCurrent])
+}
+
+model AthleticTeam {
+  id             String   @id @default(cuid())
+  organizationId String
+  sportId        String
+  seasonId       String
+  name           String   // "Varsity Football", "JV Basketball"
+  level          TeamLevel @default(VARSITY)
+  coachUserId    String?
+  schoolId       String?
+  calendarId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sport        Sport           @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  season       AthleticSeason  @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  games        Game[]
+  practices    Practice[]
+  homeBrackets TournamentBracket[] @relation("BracketTeam1")
+  awayBrackets TournamentBracket[] @relation("BracketTeam2")
+  winBrackets  TournamentBracket[] @relation("BracketWinner")
+
+  @@index([organizationId])
+  @@index([sportId])
+  @@index([seasonId])
+  @@index([coachUserId])
+}
+
+model Game {
+  id               String   @id @default(cuid())
+  organizationId   String
+  athleticTeamId   String
+  opponentName     String
+  homeAway         HomeAway @default(HOME)
+  startTime        DateTime
+  endTime          DateTime
+  venue            String?
+  calendarEventId  String?  // Linked CalendarEvent
+  homeScore        Int?
+  awayScore        Int?
+  isFinal          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticTeam  AthleticTeam  @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
+  bracketEntry  TournamentBracket? @relation("BracketGame")
+
+  @@index([organizationId])
+  @@index([athleticTeamId])
+  @@index([organizationId, startTime])
+}
+
+model Practice {
+  id               String   @id @default(cuid())
+  organizationId   String
+  athleticTeamId   String
+  startTime        DateTime
+  endTime          DateTime
+  location         String?
+  notes            String?
+  calendarEventId  String?  // Linked CalendarEvent
+  rrule            String?  // RFC 5545 recurrence
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticTeam  AthleticTeam @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([athleticTeamId])
+}
+
+model Tournament {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  sportId        String
+  startDate      DateTime
+  endDate        DateTime
+  format         TournamentFormat @default(SINGLE_ELIMINATION)
+  calendarId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sport        Sport               @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  brackets     TournamentBracket[]
+
+  @@index([organizationId])
+  @@index([sportId])
+}
+
+model TournamentBracket {
+  id           String  @id @default(cuid())
+  tournamentId String
+  round        Int
+  matchNumber  Int
+  team1Id      String?
+  team2Id      String?
+  winnerId     String?
+  gameId       String? @unique
+
+  tournament Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team1      AthleticTeam? @relation("BracketTeam1", fields: [team1Id], references: [id], onDelete: SetNull)
+  team2      AthleticTeam? @relation("BracketTeam2", fields: [team2Id], references: [id], onDelete: SetNull)
+  winner     AthleticTeam? @relation("BracketWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+  game       Game?         @relation("BracketGame", fields: [gameId], references: [id], onDelete: SetNull)
+
+  @@index([tournamentId, round])
+}
+
+enum SportSeasonType {
+  FALL
+  WINTER
+  SPRING
+  YEAR_ROUND
+}
+
+enum TeamLevel {
+  VARSITY
+  JUNIOR_VARSITY
+  FRESHMAN
+  MIDDLE_SCHOOL
+}
+
+enum HomeAway {
+  HOME
+  AWAY
+  NEUTRAL
+}
+
+enum TournamentFormat {
+  SINGLE_ELIMINATION
+  DOUBLE_ELIMINATION
+  ROUND_ROBIN
+  POOL_PLAY
 }
