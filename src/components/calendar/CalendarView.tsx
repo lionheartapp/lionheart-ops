@@ -27,6 +27,7 @@ import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
 import CancellationNotifyDialog from './CancellationNotifyDialog'
+import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
@@ -300,7 +301,24 @@ export default function CalendarView() {
     type: 'drag' | 'resize'
   } | null>(null)
   const [recurringMode, setRecurringMode] = useState<RecurringEditMode | null>(null)
+  const [showNotifyDialog, setShowNotifyDialog] = useState(false)
+  const [pendingEditMode, setPendingEditMode] = useState<RecurringEditMode>('all')
   const isRecurring = (event: CalendarEventData) => !!(event.rrule || event.parentEventId)
+
+  // Execute the pending change (called after notify dialog)
+  const executePendingChange = useCallback((notify: boolean) => {
+    if (!pendingChange) return
+    // TODO: pass `notify` to the reschedule API when attendee notifications are wired up
+    reschedule({
+      event: pendingChange.event,
+      newStartTime: pendingChange.newStart,
+      newEndTime: pendingChange.newEnd,
+      editMode: pendingEditMode,
+    })
+    setPendingChange(null)
+    setPendingEditMode('all')
+    setShowNotifyDialog(false)
+  }, [pendingChange, pendingEditMode, reschedule])
 
   const handleDragReschedule = useCallback((event: CalendarEventData, deltaMinutes: number, deltaDays: number) => {
     const start = new Date(event.startTime)
@@ -315,13 +333,13 @@ export default function CalendarView() {
       type: 'drag' as const,
     }
     setPendingChange(change)
-    // Flow: recurring → RecurringEditDialog → execute; non-recurring → execute immediately
-    // Note: NotifyAttendeesDialog is skipped until notification API is wired up
+    // Recurring → RecurringEditDialog first, then notify dialog
+    // Non-recurring → show notify dialog directly
     if (!isRecurring(event)) {
-      reschedule({ event, newStartTime: change.newStart, newEndTime: change.newEnd, editMode: 'all' })
-      setPendingChange(null)
+      setPendingEditMode('all')
+      setShowNotifyDialog(true)
     }
-  }, [reschedule])
+  }, [])
 
   const handleResize = useCallback((event: CalendarEventData, deltaMinutes: number) => {
     const newEnd = new Date(new Date(event.endTime).getTime() + deltaMinutes * 60_000)
@@ -333,29 +351,26 @@ export default function CalendarView() {
       type: 'resize' as const,
     }
     setPendingChange(change)
-    // Recurring → RecurringEditDialog → execute; non-recurring → execute immediately
+    // Recurring → RecurringEditDialog first, then notify dialog
+    // Non-recurring → show notify dialog directly
     if (!isRecurring(event)) {
-      reschedule({ event, newStartTime: change.newStart, newEndTime: change.newEnd, editMode: 'all' })
-      setPendingChange(null)
+      setPendingEditMode('all')
+      setShowNotifyDialog(true)
     }
-  }, [reschedule])
+  }, [])
 
-  // Called after recurring dialog confirms a mode — execute immediately
+  // Called after recurring dialog confirms a mode — show notify dialog next
   const handleRecurringConfirm = useCallback((mode: RecurringEditMode) => {
-    if (!pendingChange) return
-    reschedule({
-      event: pendingChange.event,
-      newStartTime: pendingChange.newStart,
-      newEndTime: pendingChange.newEnd,
-      editMode: mode,
-    })
-    setPendingChange(null)
+    setPendingEditMode(mode)
     setRecurringMode(null)
-  }, [pendingChange, reschedule])
+    setShowNotifyDialog(true)
+  }, [])
 
   const cancelPendingChange = useCallback(() => {
     setPendingChange(null)
     setRecurringMode(null)
+    setPendingEditMode('all')
+    setShowNotifyDialog(false)
   }, [])
 
   // Called when RecurringEditDialog picks a mode for delete
@@ -706,9 +721,17 @@ export default function CalendarView() {
 
       {/* Recurring event edit mode dialog (drag/resize) */}
       <RecurringEditDialog
-        isOpen={!!pendingChange && isRecurring(pendingChange.event)}
+        isOpen={!!pendingChange && isRecurring(pendingChange.event) && !showNotifyDialog}
         onClose={cancelPendingChange}
         onConfirm={handleRecurringConfirm}
+      />
+
+      {/* Notify attendees dialog — shown after drag/resize (and after recurring mode selection) */}
+      <NotifyAttendeesDialog
+        isOpen={showNotifyDialog && !!pendingChange}
+        onClose={cancelPendingChange}
+        onSend={() => executePendingChange(true)}
+        onDontSend={() => executePendingChange(false)}
       />
     </div>
     </MotionConfig>
