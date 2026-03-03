@@ -253,9 +253,15 @@ export default function CalendarView() {
   const handleSubmitEvent = useCallback(async (data: EventFormData) => {
     setFormError(null)
     try {
-      const { categoryId, ...rest } = data
-      const payload = { ...rest, ...(categoryId ? { categoryId } : {}) }
-      await createEvent.mutateAsync(payload as unknown as Record<string, unknown>)
+      const { categoryId, rrule, buildingId, areaId, ...rest } = data
+      const payload: Record<string, unknown> = {
+        ...rest,
+        ...(categoryId ? { categoryId } : {}),
+        ...(rrule ? { rrule } : {}),
+        ...(buildingId ? { buildingId } : {}),
+        ...(areaId ? { areaId } : {}),
+      }
+      await createEvent.mutateAsync(payload)
       setIsCreateOpen(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create event'
@@ -268,8 +274,15 @@ export default function CalendarView() {
     if (!editingEvent) return
     setFormError(null)
     try {
-      const { categoryId, calendarId, ...rest } = data
-      const payload = { id: editingEvent.id, ...rest, ...(categoryId ? { categoryId } : {}) }
+      const { categoryId, calendarId, rrule, buildingId, areaId, ...rest } = data
+      const payload: Record<string, unknown> = {
+        id: editingEvent.id,
+        ...rest,
+        ...(categoryId ? { categoryId } : {}),
+        ...(rrule ? { rrule } : {}),
+        ...(buildingId ? { buildingId } : {}),
+        ...(areaId ? { areaId } : {}),
+      }
       await updateEvent.mutateAsync(payload as { id: string } & Record<string, unknown>)
       setIsCreateOpen(false)
       setEditingEvent(null)
