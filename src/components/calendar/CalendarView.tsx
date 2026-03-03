@@ -130,6 +130,7 @@ export default function CalendarView() {
               calendarType: c.calendarType,
               isActive: c.isActive,
               createdById: c.createdById ?? null,
+              campus: c.campus ?? null,
             })),
             visibleIds: Array.from(visibleCalendarIds),
           },

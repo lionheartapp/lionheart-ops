@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { usePathname, useRouter } from 'next/navigation'
@@ -24,6 +24,7 @@ import {
   Palette,
   Trash2,
 } from 'lucide-react'
+import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 
 const COLOR_PRESETS = [
   { name: 'Red', value: '#ef4444' },
@@ -52,6 +53,7 @@ export interface CalendarSidebarData {
   calendarType: string
   isActive: boolean
   createdById?: string | null
+  campus?: { id: string; name: string } | null
 }
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
@@ -101,6 +103,9 @@ export default function Sidebar({
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
     new Set(['MASTER', 'MY SCHEDULE'])
   )
+
+  // Campus → shape index map
+  const campusShapeMap = useMemo(() => buildCampusShapeMap(calendarData), [calendarData])
 
   // Three-dot menu state
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
@@ -555,6 +560,13 @@ export default function Sidebar({
                             >
                               {isVisible && <Check className="w-3 h-3 text-white" />}
                             </div>
+                            {cal.campus && (
+                              <CampusShapeIndicator
+                                shapeIndex={getShapeIndex(campusShapeMap, cal.campus.id)}
+                                color={cal.color}
+                                size={12}
+                              />
+                            )}
                             <span className="truncate">{cal.calendarType === 'PERSONAL' ? 'My Calendar' : cal.name}</span>
                             {canEditCal && (
                               <button
