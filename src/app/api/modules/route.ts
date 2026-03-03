@@ -45,31 +45,27 @@ export async function POST(req: NextRequest) {
       const input = ToggleModuleSchema.parse(body)
       const db = prisma as any
 
+      const whereFilter = {
+        organizationId: orgId,
+        moduleId: input.moduleId,
+        ...(input.campusId ? { campusId: input.campusId } : { campusId: null }),
+      }
+
       if (input.enabled) {
-        const mod = await db.tenantModule.upsert({
-          where: {
-            organizationId_moduleId_campusId: {
-              organizationId: orgId,
-              moduleId: input.moduleId,
-              campusId: input.campusId ?? null,
-            },
-          },
-          create: {
+        const existing = await db.tenantModule.findFirst({ where: whereFilter })
+        if (existing) {
+          return NextResponse.json(ok(existing), { status: 200 })
+        }
+        const mod = await db.tenantModule.create({
+          data: {
             organizationId: orgId,
             moduleId: input.moduleId,
             campusId: input.campusId ?? null,
           },
-          update: {},
         })
         return NextResponse.json(ok(mod), { status: 200 })
       } else {
-        await db.tenantModule.deleteMany({
-          where: {
-            organizationId: orgId,
-            moduleId: input.moduleId,
-            campusId: input.campusId ?? null,
-          },
-        })
+        await db.tenantModule.deleteMany({ where: whereFilter })
         return NextResponse.json(ok({ moduleId: input.moduleId, campusId: input.campusId ?? null, enabled: false }))
       }
     })
