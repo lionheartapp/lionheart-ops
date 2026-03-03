@@ -97,6 +97,8 @@ export default function DraggableEvent({
   const [resizeDeltaPx, setResizeDeltaPx] = useState(0)
   const [resizeConflict, setResizeConflict] = useState(false)
   const resizeStartYRef = useRef(0)
+  // Tracks when a resize just finished — prevents click from opening detail panel
+  const justResizedAtRef = useRef(0)
 
   const handleDragStart = (_: unknown, info: PanInfo) => {
     if (isResizing) return
@@ -177,10 +179,13 @@ export default function DraggableEvent({
           ? Math.ceil((15 * 60_000 - currentDuration) / 60_000)
           : deltaMinutes
 
-      setResizeDeltaPx(0)
-
       if (clampedDelta !== 0 && !checkResizeConflict(resizeEventRef.current, clampedDelta, resizeSiblingsRef.current)) {
+        // Keep resizeDeltaPx so the event stays at its new height until data refetches
+        justResizedAtRef.current = Date.now()
         onResizeRef.current(resizeEventRef.current, clampedDelta)
+      } else {
+        // No actual change or conflict — reset visuals
+        setResizeDeltaPx(0)
       }
     } else {
       // Cancelled — just reset visuals
@@ -242,8 +247,18 @@ export default function DraggableEvent({
     setResizeConflict(false)
   }, [onResize])
 
+  // When event data is refetched (endTime changes), clear the optimistic resize delta
+  const prevEndTimeRef = useRef(event.endTime)
+  useEffect(() => {
+    if (event.endTime !== prevEndTimeRef.current) {
+      prevEndTimeRef.current = event.endTime
+      setResizeDeltaPx(0)
+    }
+  }, [event.endTime])
+
   const eventColor = getEventColor(event)
-  const displayHeight = isResizing ? Math.max(height + resizeDeltaPx, MIN_HEIGHT) : height
+  // Keep optimistic height while resizing OR while waiting for data to refetch after commit
+  const displayHeight = resizeDeltaPx !== 0 ? Math.max(height + resizeDeltaPx, MIN_HEIGHT) : height
 
   return (
     <div data-event className="relative" style={{ position: 'absolute', top, left: 0, right: 0 }} onPointerDown={(e) => e.stopPropagation()}>
@@ -268,6 +283,8 @@ export default function DraggableEvent({
         onDragEnd={handleDragEnd}
         onClick={(e) => {
           e.stopPropagation()
+          // Skip click if a resize just finished (pointer-up fires click on the same element)
+          if (Date.now() - justResizedAtRef.current < 300) return
           // Fallback click: if onDragEnd didn't fire (zero pointer movement),
           // totalOffsetRef stays at 0 — treat as a genuine click.
           if (!isDragging && !isResizing && totalOffsetRef.current < 3) {
