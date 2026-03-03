@@ -31,7 +31,7 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
 
         <div className="relative z-10">
           {/* Logo */}
-          <h1 className="text-2xl font-bold text-white mb-12">Lionheart</h1>
+          <img src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mb-12" />
 
           {/* Step List */}
           <div className="space-y-0">
@@ -134,7 +134,7 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
       {/* Mobile Top Bar */}
       <div className="lg:hidden bg-gradient-to-r from-primary-600 to-indigo-700 px-4 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-white">Lionheart</h1>
+          <img src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto" />
 
           {/* Dot indicators + label */}
           <div className="flex items-center gap-3">

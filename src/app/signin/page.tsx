@@ -53,8 +53,8 @@ export default function SigninPage() {
       >
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700 inline-block mb-8">
-            Lionheart
+          <Link href="/" className="inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded">
+            <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>

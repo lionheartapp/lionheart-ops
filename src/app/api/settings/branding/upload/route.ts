@@ -12,7 +12,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const UploadSchema = z.object({
   imageType: z.enum(['logo', 'hero']),
   fileBase64: z.string().min(1),
-  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']),
 })
 
 const DeleteSchema = z.object({

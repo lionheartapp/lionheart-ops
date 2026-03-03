@@ -53,8 +53,8 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-mobilenav w-64 bg-zinc-900 border-r border-zinc-800 transform transition-transform lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center gap-2 h-16 px-6 border-b border-zinc-800">
-          <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold text-sm">L</div>
-          <span className="font-semibold text-lg">Lionheart Admin</span>
+          <img src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto" />
+          <span className="font-semibold text-lg">Admin</span>
         </div>
         <nav className="p-4 space-y-1">
           {NAV_ITEMS.map((item) => {

@@ -13,6 +13,7 @@ export default async function LoginPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
         <div className="text-center max-w-md">
+          <img src="/logo-white.svg" alt="Lionheart" className="h-12 w-auto mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-white mb-3">Lionheart Platform</h1>
           <p className="text-zinc-400 mb-6">
             Sign in through your school&apos;s unique URL.

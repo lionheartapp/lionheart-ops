@@ -28,8 +28,8 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="border-b border-gray-200" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-4">
-          <a href="#" className="text-2xl font-bold text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1" aria-label="Lionheart - home">
-            Lionheart
+          <a href="#" className="flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1" aria-label="Lionheart - home">
+            <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </a>
           <div className="flex gap-2 sm:gap-4">
             <Link
@@ -178,7 +178,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="text-white font-semibold mb-4">Lionheart</h3>
+              <img src="/logo-white.svg" alt="Lionheart" className="h-8 w-auto mb-4" />
               <p className="text-sm">School operations platform built by educators.</p>
             </div>
             <nav>
