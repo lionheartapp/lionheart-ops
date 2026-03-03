@@ -10,6 +10,7 @@ import { computeSubColumns, getSubColumnStyle } from './MeetWithColumnLayout'
 import { WeekViewSkeletons } from './EventSkeletons'
 import { motion } from 'framer-motion'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
+import { useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
 
 interface WeekViewProps {
   currentDate: Date
@@ -43,6 +44,28 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
   const columnsRef = useRef<HTMLDivElement>(null)
   const [columnWidth, setColumnWidth] = useState(0)
   const { dragState, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, getGhostStyle, getGhostLabel } = useDragToCreate({ onSlotClick })
+
+  // Compute week range for special days query
+  const weekRange = useMemo(() => {
+    const start = new Date(currentDate)
+    start.setDate(start.getDate() - start.getDay())
+    start.setHours(0, 0, 0, 0)
+    const end = new Date(start)
+    end.setDate(end.getDate() + 6)
+    end.setHours(23, 59, 59, 999)
+    return { start, end }
+  }, [currentDate])
+  const { data: specialDays = [] } = useSpecialDays(weekRange.start, weekRange.end)
+
+  // Map special days by date key
+  const specialDaysByDate = useMemo(() => {
+    const map = new Map<string, typeof specialDays[0]>()
+    for (const sd of specialDays) {
+      const d = new Date(sd.date)
+      map.set(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`, sd)
+    }
+    return map
+  }, [specialDays])
 
   const weekDates = useMemo(() => {
     const start = new Date(currentDate)
@@ -176,6 +199,31 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                       </div>
                     )
                   })}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Special day banners row */}
+      {specialDays.length > 0 && (
+        <div className="flex items-center px-4 sm:px-10 border-b border-gray-100">
+          <div className="w-14 flex-shrink-0" />
+          <div className="flex-1 grid grid-cols-7 gap-0">
+            {weekDates.map((date, i) => {
+              const dk = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+              const sd = specialDaysByDate.get(dk)
+              if (!sd) return <div key={i} />
+              const colors = SPECIAL_DAY_COLORS[sd.type] || SPECIAL_DAY_COLORS.OTHER
+              return (
+                <div
+                  key={i}
+                  className="text-center py-1 text-[10px] font-medium truncate px-1"
+                  style={{ backgroundColor: colors.bg, color: colors.text }}
+                  title={sd.name}
+                >
+                  {sd.name}
                 </div>
               )
             })}

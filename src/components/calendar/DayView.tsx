@@ -10,6 +10,7 @@ import { computeSubColumns, getSubColumnStyle } from './MeetWithColumnLayout'
 import { DayViewSkeletons } from './EventSkeletons'
 import { motion } from 'framer-motion'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
+import { useDaySchedule, useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
 
 interface DayViewProps {
   currentDate: Date
@@ -37,6 +38,21 @@ function formatHour(hour: number): string {
 export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map(), isLoading }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { dragState, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, getGhostStyle, getGhostLabel } = useDragToCreate({ onSlotClick })
+
+  // Academic calendar integrations
+  const { data: daySchedule } = useDaySchedule(currentDate)
+  const dayEnd = useMemo(() => {
+    const d = new Date(currentDate)
+    d.setHours(23, 59, 59, 999)
+    return d
+  }, [currentDate])
+  const { data: specialDays = [] } = useSpecialDays(currentDate, dayEnd)
+  const todaySpecial = specialDays.find((sd) => {
+    const sdDate = new Date(sd.date)
+    return sdDate.getFullYear() === currentDate.getFullYear() &&
+      sdDate.getMonth() === currentDate.getMonth() &&
+      sdDate.getDate() === currentDate.getDate()
+  })
 
   const { allDayEvents, timedEvents } = useMemo(() => {
     const allDay: CalendarEventData[] = []
@@ -74,6 +90,21 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Special day banner */}
+      {todaySpecial && (() => {
+        const colors = SPECIAL_DAY_COLORS[todaySpecial.type] || SPECIAL_DAY_COLORS.OTHER
+        return (
+          <div
+            className="flex items-center gap-2 px-4 sm:px-10 py-2 text-xs font-medium"
+            style={{ backgroundColor: colors.bg, color: colors.text, borderBottom: `1px solid ${colors.border}` }}
+          >
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: colors.text }} />
+            {todaySpecial.name}
+            <span className="opacity-60">({todaySpecial.type.replace(/_/g, ' ').toLowerCase()})</span>
+          </div>
+        )
+      })()}
+
       {/* All-day events */}
       {allDayEvents.length > 0 && (
         <div className="flex items-center gap-3 py-4 border-b border-gray-100 mb-0 px-4 sm:px-10">
@@ -148,6 +179,28 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
           >
+            {/* Bell schedule period markers */}
+            {daySchedule?.bellSchedule?.periods?.map((period) => {
+              const [startH, startM] = period.startTime.split(':').map(Number)
+              const [endH, endM] = period.endTime.split(':').map(Number)
+              const startMin = (startH - START_HOUR) * 60 + startM
+              const endMin = (endH - START_HOUR) * 60 + endM
+              const top = (startMin / 60) * HOUR_HEIGHT
+              const height = ((endMin - startMin) / 60) * HOUR_HEIGHT
+              return (
+                <div
+                  key={period.id}
+                  className="absolute left-0 right-0 pointer-events-none z-[0]"
+                  style={{ top, height }}
+                >
+                  <div className="absolute inset-0 bg-primary-50/30 border-l-2 border-primary-200" />
+                  <span className="absolute top-0.5 left-2 text-[10px] font-medium text-primary-400/70 truncate max-w-[120px]">
+                    {period.name}
+                  </span>
+                </div>
+              )
+            })}
+
             {/* Hour lines */}
             {hours.map((hour) => (
               <div
