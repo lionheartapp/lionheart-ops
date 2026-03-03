@@ -82,9 +82,9 @@ export default function CalendarToolbar({
   const weekDates = getWeekDates(currentDate)
 
   return (
-    <div className="pb-2 space-y-5">
-      {/* Row 1: Title + Nav pill + Create button */}
-      <div className="flex items-center justify-between gap-2">
+    <div className="pb-2">
+      {/* Zone 1: Navigation bar */}
+      <div className="flex items-center justify-between gap-2 pb-4">
         {/* Left: Title */}
         <h2 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight min-w-0 truncate">
           {formatTitle(currentDate, view)}
@@ -147,8 +147,8 @@ export default function CalendarToolbar({
         </div>
       </div>
 
-      {/* Search + Category Filters */}
-      <div className="flex items-center gap-3">
+      {/* Zone 2: Filter bar */}
+      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
         {/* Search input */}
         <div className="relative flex-shrink-0 w-48 sm:w-56">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -194,8 +194,8 @@ export default function CalendarToolbar({
         )}
       </div>
 
-      {/* Row 2: View switcher — mobile only */}
-      <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden" role="tablist" aria-label="Calendar view">
+      {/* Mobile view switcher */}
+      <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden mt-4" role="tablist" aria-label="Calendar view">
         {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
           <button
             key={v}
@@ -216,7 +216,7 @@ export default function CalendarToolbar({
 
       {/* Day column headers (week/day views only) */}
       {(view === 'week' || view === 'day') && (
-        <div className="flex">
+        <div className="flex pt-4">
           <div className="w-14 flex-shrink-0" />
           {view === 'week' && (
             <div className="flex-1 grid grid-cols-7">
