@@ -12,9 +12,10 @@ import CampusTab from '@/components/settings/CampusTab'
 import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
 import AcademicCalendarTab from '@/components/settings/AcademicCalendarTab'
 import ApprovalConfigTab from '@/components/settings/ApprovalConfigTab'
+import AddOnsTab from '@/components/settings/AddOnsTab'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 
-type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config'
+type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons'
 
 type WorkspaceTab = Exclude<Tab, 'profile'>
 
@@ -399,6 +400,7 @@ export default function SettingsPage() {
       next.add('campus')
       next.add('academic-calendar')
       next.add('approval-config')
+      next.add('add-ons')
       return next
     })
   }, [canManageWorkspace])
@@ -851,6 +853,12 @@ export default function SettingsPage() {
               {canManageWorkspace && visitedTabs.has('approval-config') && (
                 <div className={activeTab === 'approval-config' ? '' : 'hidden'} aria-hidden={activeTab !== 'approval-config'}>
                   <ApprovalConfigTab />
+                </div>
+              )}
+
+              {canManageWorkspace && visitedTabs.has('add-ons') && (
+                <div className={activeTab === 'add-ons' ? '' : 'hidden'} aria-hidden={activeTab !== 'add-ons'}>
+                  <AddOnsTab />
                 </div>
               )}
       </div>

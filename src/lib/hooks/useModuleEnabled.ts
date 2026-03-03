@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 interface TenantModule {
   id: string
   moduleId: string
+  campusId: string | null
   enabledAt: string
   planTier: string | null
 }

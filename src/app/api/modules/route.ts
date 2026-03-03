@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
 const ToggleModuleSchema = z.object({
   moduleId: z.string().min(1),
   enabled: z.boolean(),
+  campusId: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -46,16 +47,30 @@ export async function POST(req: NextRequest) {
 
       if (input.enabled) {
         const mod = await db.tenantModule.upsert({
-          where: { organizationId_moduleId: { organizationId: orgId, moduleId: input.moduleId } },
-          create: { organizationId: orgId, moduleId: input.moduleId },
+          where: {
+            organizationId_moduleId_campusId: {
+              organizationId: orgId,
+              moduleId: input.moduleId,
+              campusId: input.campusId ?? null,
+            },
+          },
+          create: {
+            organizationId: orgId,
+            moduleId: input.moduleId,
+            campusId: input.campusId ?? null,
+          },
           update: {},
         })
         return NextResponse.json(ok(mod), { status: 200 })
       } else {
         await db.tenantModule.deleteMany({
-          where: { organizationId: orgId, moduleId: input.moduleId },
+          where: {
+            organizationId: orgId,
+            moduleId: input.moduleId,
+            campusId: input.campusId ?? null,
+          },
         })
-        return NextResponse.json(ok({ moduleId: input.moduleId, enabled: false }))
+        return NextResponse.json(ok({ moduleId: input.moduleId, campusId: input.campusId ?? null, enabled: false }))
       }
     })
   } catch (error) {

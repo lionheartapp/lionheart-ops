@@ -16,6 +16,8 @@ import {
   Building2,
   Calendar,
   CalendarClock,
+  Trophy,
+  Puzzle,
   ChevronDown,
   ChevronRight,
   Plus,
@@ -25,6 +27,7 @@ import {
   Palette,
   Trash2,
 } from 'lucide-react'
+import { useModuleEnabled } from '@/lib/hooks/useModuleEnabled'
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 import MeetWithSection from '@/components/calendar/MeetWithSection'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -60,7 +63,7 @@ export interface CalendarSidebarData {
   campus?: { id: string; name: string } | null
 }
 
-export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus'
+export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons'
 
 export default function Sidebar({
   userName = 'User',
@@ -274,10 +277,13 @@ export default function Sidebar({
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
+  const { enabled: athleticsEnabled } = useModuleEnabled('athletics')
+
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
     { icon: CalendarClock, label: 'Planning', href: '/planning' },
+    ...(athleticsEnabled ? [{ icon: Trophy, label: 'Athletics', href: '/athletics' }] : []),
   ]
 
   const handleSettingsClick = () => {
@@ -322,6 +328,7 @@ export default function Sidebar({
     { id: 'teams' as SettingsTab, label: 'Teams', icon: Users },
     { id: 'users' as SettingsTab, label: 'Members', icon: UserCog },
     { id: 'campus' as SettingsTab, label: 'Campus', icon: Building2 },
+    { id: 'add-ons' as SettingsTab, label: 'Add-ons', icon: Puzzle },
   ]
 
   const secondaryOpen = settingsOpen || calendarOpen
