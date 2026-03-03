@@ -727,7 +727,7 @@ export default function Sidebar({
       <div className="hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)] z-sticky">
         {/* Main Navigation Sidebar */}
         <aside
-          className="flex flex-col w-64 bg-[#111827] border-r border-white/10 h-full relative z-10"
+          className="flex flex-col w-64 bg-[#111827] text-gray-100 border-r border-white/10 h-full relative z-10"
           aria-label="Sidebar navigation"
         >
           {mainNavContent}
@@ -749,7 +749,7 @@ export default function Sidebar({
 
       {/* Mobile Layout: Sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-[#111827] border-r border-white/10 flex flex-col transition-transform duration-300 z-navbar ${
+        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-[#111827] text-gray-100 border-r border-white/10 flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="navigation"

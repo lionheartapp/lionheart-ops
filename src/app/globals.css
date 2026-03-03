@@ -43,9 +43,11 @@ input:-webkit-autofill:focus ~ label {
   color: #6b7280; /* gray-500 */
 }
 
-/* Body styles: Light default — dark sections (admin, header) set their own text colors */
-body {
-  @apply bg-white text-gray-900;
+/* Body styles: Light default — dark sections (sidebar, header) set their own text colors */
+@layer base {
+  body {
+    @apply bg-white text-gray-900;
+  }
 }
 
 /* Skip to main content link for keyboard users */
