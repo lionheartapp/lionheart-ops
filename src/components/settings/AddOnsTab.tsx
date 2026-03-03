@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { Trophy, ChevronDown, ChevronRight, Building2 } from 'lucide-react'
+import { Trophy, Building2, X, Check, Plus, Settings2, Loader2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface ModuleDefinition {
@@ -12,6 +12,7 @@ interface ModuleDefinition {
   description: string
   icon: LucideIcon
   color: string
+  gradient: string
   scope: 'org' | 'campus'
 }
 
@@ -28,6 +29,7 @@ const MODULE_REGISTRY: ModuleDefinition[] = [
     description: 'Manage sports teams, schedules, seasons, and rosters for your athletic programs.',
     icon: Trophy,
     color: '#f59e0b',
+    gradient: 'from-amber-400 to-orange-500',
     scope: 'campus',
   },
 ]
@@ -59,6 +61,112 @@ async function toggleModule(moduleId: string, enabled: boolean, campusId?: strin
   return res.json()
 }
 
+function CampusConfigModal({
+  mod,
+  campuses,
+  enabledCampusIds,
+  togglingKey,
+  onToggle,
+  onClose,
+}: {
+  mod: ModuleDefinition
+  campuses: Campus[]
+  enabledCampusIds: string[]
+  togglingKey: string | null
+  onToggle: (moduleId: string, currentlyEnabled: boolean, campusId: string) => void
+  onClose: () => void
+}) {
+  const Icon = mod.icon
+  const activeCampuses = campuses.filter((c) => c.isActive)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Header with gradient */}
+        <div className={`bg-gradient-to-br ${mod.gradient} px-6 py-5`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">{mod.name}</h3>
+                <p className="text-sm text-white/80">Configure per campus</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Campus list */}
+        <div className="px-6 py-4">
+          {activeCampuses.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4 text-center">
+              No campuses configured. Add campuses in Campus settings first.
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              {activeCampuses.map((campus) => {
+                const campusEnabled = enabledCampusIds.includes(campus.id)
+                const toggleKey = `${mod.id}:${campus.id}`
+                const isToggling = togglingKey === toggleKey
+
+                return (
+                  <button
+                    key={campus.id}
+                    onClick={() => onToggle(mod.id, campusEnabled, campus.id)}
+                    disabled={isToggling}
+                    className={`w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-200 disabled:opacity-60 ${
+                      campusEnabled
+                        ? 'bg-amber-50 border border-amber-200 hover:bg-amber-100/80'
+                        : 'bg-gray-50 border border-transparent hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        campusEnabled ? 'bg-amber-100' : 'bg-gray-200/70'
+                      }`}>
+                        <Building2 className={`w-4 h-4 ${campusEnabled ? 'text-amber-600' : 'text-gray-400'}`} />
+                      </div>
+                      <span className={`text-sm font-medium ${campusEnabled ? 'text-gray-900' : 'text-gray-600'}`}>
+                        {campus.name}
+                      </span>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {isToggling ? (
+                        <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                      ) : campusEnabled ? (
+                        <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-300" />
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+          <p className="text-xs text-gray-400 text-center">
+            {enabledCampusIds.length} of {activeCampuses.length} campus{activeCampuses.length !== 1 ? 'es' : ''} enabled
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AddOnsTab() {
   const { data: modules = [], isLoading: modulesLoading } = useModules()
   const { data: campuses = [], isLoading: campusesLoading } = useQuery({
@@ -68,7 +176,7 @@ export default function AddOnsTab() {
   })
   const queryClient = useQueryClient()
   const [togglingKey, setTogglingKey] = useState<string | null>(null)
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(['athletics']))
+  const [configModuleId, setConfigModuleId] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: ({ moduleId, enabled, campusId }: { moduleId: string; enabled: boolean; campusId?: string }) =>
@@ -87,19 +195,8 @@ export default function AddOnsTab() {
     mutation.mutate({ moduleId, enabled: !currentlyEnabled, campusId })
   }
 
-  const toggleExpanded = (moduleId: string) => {
-    setExpandedModules((prev) => {
-      const next = new Set(prev)
-      if (next.has(moduleId)) {
-        next.delete(moduleId)
-      } else {
-        next.add(moduleId)
-      }
-      return next
-    })
-  }
-
   const isLoading = modulesLoading || campusesLoading
+  const configMod = MODULE_REGISTRY.find((m) => m.id === configModuleId)
 
   return (
     <div>
@@ -110,22 +207,19 @@ export default function AddOnsTab() {
       <div className="h-px bg-gray-200 mt-4 mb-6" />
 
       {isLoading ? (
-        <div className="space-y-4">
-          {[1].map((i) => (
-            <div key={i} className="animate-pulse rounded-xl border border-gray-200 p-5">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-gray-200" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-24 bg-gray-200 rounded" />
-                  <div className="h-3 w-64 bg-gray-100 rounded" />
-                </div>
-                <div className="w-11 h-6 bg-gray-200 rounded-full" />
-              </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse rounded-2xl border border-gray-200 p-5">
+              <div className="w-12 h-12 rounded-xl bg-gray-200 mb-4" />
+              <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
+              <div className="h-3 w-full bg-gray-100 rounded mb-1" />
+              <div className="h-3 w-2/3 bg-gray-100 rounded mb-6" />
+              <div className="h-9 w-full bg-gray-100 rounded-lg" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {MODULE_REGISTRY.map((mod) => {
             const Icon = mod.icon
             const enabledCampusIds = modules
@@ -133,146 +227,81 @@ export default function AddOnsTab() {
               .map((m) => m.campusId as string)
             const isOrgEnabled = modules.some((m) => m.moduleId === mod.id && !m.campusId)
             const hasAnyCampusEnabled = enabledCampusIds.length > 0
-            const isExpanded = expandedModules.has(mod.id)
-            const activeCampuses = campuses.filter((c) => c.isActive)
+            const isAdded = mod.scope === 'campus' ? hasAnyCampusEnabled : isOrgEnabled
 
-            if (mod.scope === 'campus') {
-              return (
-                <div
-                  key={mod.id}
-                  className={`rounded-xl border transition-colors ${
-                    hasAnyCampusEnabled
-                      ? 'border-gray-200 bg-white'
-                      : 'border-gray-200 bg-gray-50'
-                  }`}
-                >
-                  {/* Module header */}
-                  <button
-                    type="button"
-                    onClick={() => toggleExpanded(mod.id)}
-                    className="w-full p-5 flex items-center gap-4 text-left"
-                  >
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${mod.color}18` }}
-                    >
-                      <Icon className="w-5 h-5" style={{ color: mod.color }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-gray-900">{mod.name}</h3>
-                        {hasAnyCampusEnabled && (
-                          <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                            {enabledCampusIds.length} campus{enabledCampusIds.length !== 1 ? 'es' : ''}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 mt-0.5">{mod.description}</p>
-                    </div>
-                    <div className="flex-shrink-0 text-gray-400">
-                      {isExpanded ? (
-                        <ChevronDown className="w-5 h-5" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5" />
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Campus sub-toggles */}
-                  {isExpanded && (
-                    <div className="border-t border-gray-100 px-5 pb-4 pt-3">
-                      {activeCampuses.length === 0 ? (
-                        <p className="text-sm text-gray-400 py-2">
-                          No campuses configured. Add campuses in Campus settings first.
-                        </p>
-                      ) : (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-                            Enable per campus
-                          </p>
-                          {activeCampuses.map((campus) => {
-                            const campusEnabled = enabledCampusIds.includes(campus.id)
-                            const toggleKey = `${mod.id}:${campus.id}`
-                            const isToggling = togglingKey === toggleKey
-
-                            return (
-                              <div
-                                key={campus.id}
-                                className={`flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors ${
-                                  campusEnabled ? 'bg-amber-50/50' : 'bg-gray-50'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2.5">
-                                  <Building2 className="w-4 h-4 text-gray-400" />
-                                  <span className="text-sm font-medium text-gray-700">{campus.name}</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  role="switch"
-                                  aria-checked={campusEnabled}
-                                  aria-label={`${campusEnabled ? 'Disable' : 'Enable'} ${mod.name} for ${campus.name}`}
-                                  disabled={isToggling}
-                                  onClick={() => handleToggle(mod.id, campusEnabled, campus.id)}
-                                  className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                    campusEnabled ? 'bg-primary-600' : 'bg-gray-200'
-                                  }`}
-                                >
-                                  <span
-                                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                      campusEnabled ? 'translate-x-4' : 'translate-x-0'
-                                    }`}
-                                  />
-                                </button>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            }
-
-            // Org-scoped module — single toggle (future use)
-            const isToggling = togglingKey === mod.id
             return (
               <div
                 key={mod.id}
-                className={`rounded-xl border p-5 transition-colors ${
-                  isOrgEnabled
-                    ? 'border-gray-200 bg-white'
-                    : 'border-gray-200 bg-gray-50'
+                className={`group rounded-2xl border transition-all duration-200 ${
+                  isAdded
+                    ? 'border-gray-200 bg-white shadow-sm hover:shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="p-5">
+                  {/* Icon */}
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${mod.color}18` }}
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${mod.gradient} flex items-center justify-center mb-4 shadow-sm`}
                   >
-                    <Icon className="w-5 h-5" style={{ color: mod.color }} />
+                    <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
+
+                  {/* Name + badge */}
+                  <div className="flex items-center gap-2 mb-1.5">
                     <h3 className="text-sm font-semibold text-gray-900">{mod.name}</h3>
-                    <p className="text-sm text-gray-500 mt-0.5">{mod.description}</p>
+                    {isAdded && (
+                      <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                        Added
+                      </span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={isOrgEnabled}
-                    aria-label={`${isOrgEnabled ? 'Disable' : 'Enable'} ${mod.name}`}
-                    disabled={isToggling}
-                    onClick={() => handleToggle(mod.id, isOrgEnabled)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isOrgEnabled ? 'bg-primary-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        isOrgEnabled ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
+
+                  {/* Description */}
+                  <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-5">
+                    {mod.description}
+                  </p>
+
+                  {/* Action button */}
+                  {mod.scope === 'campus' ? (
+                    isAdded ? (
+                      <button
+                        onClick={() => setConfigModuleId(mod.id)}
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                      >
+                        <Settings2 className="w-4 h-4" />
+                        Configuration
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setConfigModuleId(mod.id)}
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add to workspace
+                      </button>
+                    )
+                  ) : (
+                    /* Org-scoped: simple toggle button */
+                    isOrgEnabled ? (
+                      <button
+                        onClick={() => handleToggle(mod.id, true)}
+                        disabled={togglingKey === mod.id}
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
+                      >
+                        <Settings2 className="w-4 h-4" />
+                        Configuration
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleToggle(mod.id, false)}
+                        disabled={togglingKey === mod.id}
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add to workspace
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             )
@@ -284,6 +313,22 @@ export default function AddOnsTab() {
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {mutation.error instanceof Error ? mutation.error.message : 'Failed to update module'}
         </div>
+      )}
+
+      {/* Campus config modal */}
+      {configMod && (
+        <CampusConfigModal
+          mod={configMod}
+          campuses={campuses}
+          enabledCampusIds={
+            modules
+              .filter((m) => m.moduleId === configMod.id && m.campusId)
+              .map((m) => m.campusId as string)
+          }
+          togglingKey={togglingKey}
+          onToggle={handleToggle}
+          onClose={() => setConfigModuleId(null)}
+        />
       )}
     </div>
   )
