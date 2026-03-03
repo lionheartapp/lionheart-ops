@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   useCalendars,
   useCalendarEvents,
@@ -71,6 +72,7 @@ export default function CalendarView() {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
+  const queryClient = useQueryClient()
   const { data: calendars = [], isLoading: calendarsLoading } = useCalendars()
 
   // Track visible calendars
@@ -456,10 +458,21 @@ export default function CalendarView() {
       setDeleteRecurringMode(null)
       setShowCancellationNotify(true)
     } catch (err) {
-      console.error('Delete event failed:', err)
-      setDeleteError(err instanceof Error ? err.message : 'Failed to delete event')
+      const msg = err instanceof Error ? err.message : 'Failed to delete event'
+      console.error('Delete event failed:', msg)
+
+      // Ghost event — already deleted or doesn't exist. Refresh the calendar.
+      if (msg.toLowerCase().includes('not found')) {
+        queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+        setSelectedEvent(null)
+        setPendingDelete(null)
+        setDeleteRecurringMode(null)
+        return
+      }
+
+      setDeleteError(msg)
     }
-  }, [deleteEvent, pendingDelete, deleteRecurringMode])
+  }, [deleteEvent, pendingDelete, deleteRecurringMode, queryClient])
 
   const cancelPendingDelete = useCallback(() => {
     setPendingDelete(null)

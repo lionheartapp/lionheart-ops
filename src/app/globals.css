@@ -43,13 +43,8 @@ input:-webkit-autofill:focus ~ label {
   color: #6b7280; /* gray-500 */
 }
 
-/* Body styles: Dark mode default but will be overridden by landing page's light mode */
+/* Body styles: Light default — dark sections (admin, header) set their own text colors */
 body {
-  @apply bg-zinc-950 text-zinc-100;
-}
-
-/* Landing page light mode */
-body.light-mode {
   @apply bg-white text-gray-900;
 }
 
