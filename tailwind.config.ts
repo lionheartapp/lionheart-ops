@@ -8,7 +8,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ['var(--font-heading)', 'Georgia', 'serif'],
+        heading: ['var(--font-heading)', 'Oswald', 'sans-serif'],
         body: ['var(--font-body)', 'Poppins', 'system-ui', 'sans-serif'],
       },
       colors: {

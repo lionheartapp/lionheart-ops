@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { Instrument_Serif, Poppins } from 'next/font/google'
+import { Oswald, Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
 
-const headingFont = Instrument_Serif({
-  weight: '400',
+const headingFont = Oswald({
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-heading',
