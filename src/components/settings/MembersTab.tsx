@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react'
 import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield, ChevronDown, X, Search } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
-import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -778,32 +778,32 @@ const MembersTab = (_props: MembersTabProps) => {
             {rolesLoading ? (
               <div className="h-12 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
             ) : (
-              <FloatingSelect
+              <FloatingDropdown
                 id="edit-roleId"
                 label="Role"
                 value={editForm.roleId}
-                onChange={(e) => setEditForm((p) => ({ ...p, roleId: e.target.value }))}
+                onChange={(v) => setEditForm((p) => ({ ...p, roleId: v }))}
                 disabled={editSaving}
-              >
-                <option value="">No role assigned</option>
-                {availableRoles.map((role) => (
-                  <option key={role.id} value={role.id}>{role.name}</option>
-                ))}
-              </FloatingSelect>
+                options={[
+                  { value: '', label: 'No role assigned' },
+                  ...availableRoles.map((role) => ({ value: role.id, label: role.name })),
+                ]}
+              />
             )}
 
-            <FloatingSelect
+            <FloatingDropdown
               id="edit-status"
               label="Status"
               value={editForm.status}
-              onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
+              onChange={(v) => setEditForm((p) => ({ ...p, status: v }))}
               disabled={editSaving}
-            >
-              <option value="ACTIVE">Active</option>
-              <option value="PENDING">Pending</option>
-              <option value="INACTIVE">Inactive</option>
-              <option value="SUSPENDED">Suspended</option>
-            </FloatingSelect>
+              options={[
+                { value: 'ACTIVE', label: 'Active' },
+                { value: 'PENDING', label: 'Pending' },
+                { value: 'INACTIVE', label: 'Inactive' },
+                { value: 'SUSPENDED', label: 'Suspended' },
+              ]}
+            />
 
             <div>
               <label htmlFor="edit-teamIds" className="block text-xs text-gray-500 font-medium mb-1.5">Teams</label>
@@ -986,17 +986,16 @@ const MembersTab = (_props: MembersTabProps) => {
               onChange={(e) => setInviteForm((p) => ({ ...p, lastName: e.target.value }))}
             />
           </div>
-          <FloatingSelect
+          <FloatingDropdown
             id="invite-roleId"
             label="Role"
             value={inviteForm.roleId}
-            onChange={(e) => setInviteForm((p) => ({ ...p, roleId: e.target.value }))}
-          >
-            <option value="">Default role</option>
-            {availableRoles.map((r) => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </FloatingSelect>
+            onChange={(v) => setInviteForm((p) => ({ ...p, roleId: v }))}
+            options={[
+              { value: '', label: 'Default role' },
+              ...availableRoles.map((r) => ({ value: r.id, label: r.name })),
+            ]}
+          />
 
           {inviteError && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">

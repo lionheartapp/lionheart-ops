@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Save, School } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
-import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import ImageDropZone from '@/components/settings/ImageDropZone'
 
 type SchoolInfo = {
@@ -382,22 +382,22 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
           <FloatingInput id="si-schoolName" label="School Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
 
-          <FloatingSelect id="si-institutionType" label="Institution Type" value={form.institutionType} onChange={(event) => setForm((prev) => ({ ...prev, institutionType: event.target.value as any }))}>
-            <option value="">-- Select Institution Type --</option>
-            <option value="PUBLIC">Public</option>
-            <option value="PRIVATE">Private</option>
-            <option value="CHARTER">Charter</option>
-            <option value="HYBRID">Hybrid</option>
-          </FloatingSelect>
+          <FloatingDropdown id="si-institutionType" label="Institution Type" value={form.institutionType} onChange={(v) => setForm((prev) => ({ ...prev, institutionType: v as any }))} options={[
+            { value: '', label: '-- Select Institution Type --' },
+            { value: 'PUBLIC', label: 'Public' },
+            { value: 'PRIVATE', label: 'Private' },
+            { value: 'CHARTER', label: 'Charter' },
+            { value: 'HYBRID', label: 'Hybrid' },
+          ]} />
 
-          <FloatingSelect id="si-gradeLevel" label="Grade Level / Organization Type" value={form.gradeLevel} onChange={(event) => setForm((prev) => ({ ...prev, gradeLevel: event.target.value as any }))}>
-            <option value="">-- Select Type --</option>
-            <option value="ELEMENTARY">Elementary School</option>
-            <option value="MIDDLE_SCHOOL">Middle School</option>
-            <option value="HIGH_SCHOOL">High School</option>
-            <option value="GLOBAL">Global</option>
-            <option value="MULTI_SCHOOL_CAMPUS">Multi-School Campus</option>
-          </FloatingSelect>
+          <FloatingDropdown id="si-gradeLevel" label="Grade Level / Organization Type" value={form.gradeLevel} onChange={(v) => setForm((prev) => ({ ...prev, gradeLevel: v as any }))} options={[
+            { value: '', label: '-- Select Type --' },
+            { value: 'ELEMENTARY', label: 'Elementary School' },
+            { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
+            { value: 'HIGH_SCHOOL', label: 'High School' },
+            { value: 'GLOBAL', label: 'Global' },
+            { value: 'MULTI_SCHOOL_CAMPUS', label: 'Multi-School Campus' },
+          ]} />
 
           <div>
             <FloatingInput id="si-slug" label="Subdomain Slug" value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required />
@@ -451,10 +451,10 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             aspectRatio="aspect-video"
             disabled={saving}
           />
-          <FloatingSelect id="si-imagePosition" label="Image Position" value={form.imagePosition} onChange={(event) => setForm((prev) => ({ ...prev, imagePosition: event.target.value as FormState['imagePosition'] }))}>
-            <option value="LEFT">Left</option>
-            <option value="RIGHT">Right</option>
-          </FloatingSelect>
+          <FloatingDropdown id="si-imagePosition" label="Image Position" value={form.imagePosition} onChange={(v) => setForm((prev) => ({ ...prev, imagePosition: v as FormState['imagePosition'] }))} options={[
+            { value: 'LEFT', label: 'Left' },
+            { value: 'RIGHT', label: 'Right' },
+          ]} />
         </div>
       </section>
 

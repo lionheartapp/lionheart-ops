@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Plus, Edit2, Trash2, ChevronDown, GraduationCap, Check } from 'lucide-react'
 import type { School } from '@prisma/client'
 import DetailDrawer from '@/components/DetailDrawer'
-import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 
 type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
@@ -722,23 +722,24 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               required
             />
 
-            <FloatingSelect
+            <FloatingDropdown
               id="sm-gradeLevel"
               label="Grade Level"
               value={form.gradeLevel}
-              onChange={(e) => {
-                const gl = e.target.value as SchoolFormData['gradeLevel']
+              onChange={(v) => {
+                const gl = v as SchoolFormData['gradeLevel']
                 setForm((prev) => ({
                   ...prev,
                   gradeLevel: gl,
                   ...(!editingId && GRADE_LEVEL_DEFAULTS[gl] ? { color: GRADE_LEVEL_DEFAULTS[gl] } : {}),
                 }))
               }}
-            >
-              <option value="ELEMENTARY">Elementary</option>
-              <option value="MIDDLE_SCHOOL">Middle School</option>
-              <option value="HIGH_SCHOOL">High School</option>
-            </FloatingSelect>
+              options={[
+                { value: 'ELEMENTARY', label: 'Elementary' },
+                { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
+                { value: 'HIGH_SCHOOL', label: 'High School' },
+              ]}
+            />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>

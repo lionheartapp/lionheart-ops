@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { CalendarData, CalendarEventData, CalendarCategoryData } from '@/lib/hooks/useCalendar'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
-import { FloatingInput, FloatingSelect, FloatingTextarea } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingTextarea, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RecurrenceBuilder from './RecurrenceBuilder'
 
 interface EventCreatePanelProps {
@@ -520,59 +520,46 @@ export default function EventCreatePanel({
               />
 
               {/* Calendar selector */}
-              <div className="relative">
-                {selectedCalendar && (
-                  <div
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full pointer-events-none z-10"
-                    style={{ backgroundColor: selectedCalendar.color }}
-                  />
-                )}
-                <FloatingSelect
-                  id="event-calendar"
-                  label="Calendar"
-                  value={form.calendarId}
-                  onChange={(e) => setForm((p) => ({ ...p, calendarId: e.target.value }))}
-                  required
-                  className={selectedCalendar ? '!pl-8' : ''}
-                >
-                  {calendars.map((cal) => (
-                    <option key={cal.id} value={cal.id}>{cal.name}</option>
-                  ))}
-                </FloatingSelect>
-              </div>
+              <FloatingDropdown
+                id="event-calendar"
+                label="Calendar"
+                value={form.calendarId}
+                onChange={(v) => setForm((p) => ({ ...p, calendarId: v }))}
+                required
+                options={calendars.map((cal) => ({
+                  value: cal.id,
+                  label: cal.name,
+                  color: cal.color,
+                  group: cal.calendarType === 'PERSONAL' ? 'My Calendar' : 'Calendars',
+                }))}
+              />
 
               {/* Category selector */}
               {(categories.length > 0 || onCreateCategory) && (
                 <div>
                   {!showNewCategory ? (
-                    <div className="relative">
-                      {form.categoryId && (
-                        <div
-                          className="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full pointer-events-none z-10"
-                          style={{ backgroundColor: categories.find((c) => c.id === form.categoryId)?.color }}
-                        />
-                      )}
-                      <FloatingSelect
-                        id="event-category"
-                        label="Category"
-                        value={form.categoryId}
-                        onChange={(e) => {
-                          if (e.target.value === '__new__') {
-                            setShowNewCategory(true)
-                          } else {
-                            userSelectedCategoryRef.current = true
-                            setForm((p) => ({ ...p, categoryId: e.target.value }))
-                          }
-                        }}
-                        className={form.categoryId ? '!pl-8' : ''}
-                      >
-                        <option value="">No category</option>
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                        {onCreateCategory && <option value="__new__">+ New Category</option>}
-                      </FloatingSelect>
-                    </div>
+                    <FloatingDropdown
+                      id="event-category"
+                      label="Category"
+                      value={form.categoryId}
+                      onChange={(v) => {
+                        if (v === '__new__') {
+                          setShowNewCategory(true)
+                        } else {
+                          userSelectedCategoryRef.current = true
+                          setForm((p) => ({ ...p, categoryId: v }))
+                        }
+                      }}
+                      options={[
+                        { value: '', label: 'No category' },
+                        ...categories.map((cat) => ({
+                          value: cat.id,
+                          label: cat.name,
+                          color: cat.color,
+                        })),
+                        ...(onCreateCategory ? [{ value: '__new__', label: '+ New Category' }] : []),
+                      ]}
+                    />
                   ) : (
                     <div className="space-y-2.5 p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center justify-between">

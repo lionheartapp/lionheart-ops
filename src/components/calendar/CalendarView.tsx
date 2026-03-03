@@ -27,7 +27,7 @@ import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
 import CancellationNotifyDialog from './CancellationNotifyDialog'
-import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
@@ -413,19 +413,20 @@ export default function CalendarView() {
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
               />
-              <FloatingSelect
+              <FloatingDropdown
                 id="empty-cal-type"
                 label="Type"
                 value={newCalendarType}
-                onChange={(e) => setNewCalendarType(e.target.value)}
-              >
-                <option value="GENERAL">General</option>
-                <option value="ACADEMIC">Academic</option>
-                <option value="STAFF">Staff</option>
-                <option value="ATHLETICS">Athletics</option>
-                <option value="PARENT_FACING">Parent-Facing</option>
-                <option value="TIMETABLE">Timetable</option>
-              </FloatingSelect>
+                onChange={(v) => setNewCalendarType(v)}
+                options={[
+                  { value: 'GENERAL', label: 'General' },
+                  { value: 'ACADEMIC', label: 'Academic' },
+                  { value: 'STAFF', label: 'Staff' },
+                  { value: 'ATHLETICS', label: 'Athletics' },
+                  { value: 'PARENT_FACING', label: 'Parent-Facing' },
+                  { value: 'TIMETABLE', label: 'Timetable' },
+                ]}
+              />
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">Color</label>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -610,19 +611,20 @@ export default function CalendarView() {
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
                 />
-                <FloatingSelect
+                <FloatingDropdown
                   id="drawer-cal-type"
                   label="Type"
                   value={newCalendarType}
-                  onChange={(e) => setNewCalendarType(e.target.value)}
-                >
-                  <option value="GENERAL">General</option>
-                  <option value="ACADEMIC">Academic</option>
-                  <option value="STAFF">Staff</option>
-                  <option value="ATHLETICS">Athletics</option>
-                  <option value="PARENT_FACING">Parent-Facing</option>
-                  <option value="TIMETABLE">Timetable</option>
-                </FloatingSelect>
+                  onChange={(v) => setNewCalendarType(v)}
+                  options={[
+                    { value: 'GENERAL', label: 'General' },
+                    { value: 'ACADEMIC', label: 'Academic' },
+                    { value: 'STAFF', label: 'Staff' },
+                    { value: 'ATHLETICS', label: 'Athletics' },
+                    { value: 'PARENT_FACING', label: 'Parent-Facing' },
+                    { value: 'TIMETABLE', label: 'Timetable' },
+                  ]}
+                />
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-2">Color</label>
                   <div className="flex items-center gap-2 flex-wrap">

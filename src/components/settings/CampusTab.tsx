@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera, MoreVertical } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
-import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
@@ -1256,31 +1256,33 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               onChange={(e) => setBuildingForm((p) => ({ ...p, code: e.target.value }))}
               disabled={buildingFormSaving}
             />
-            <FloatingSelect
+            <FloatingDropdown
               id="ct-buildingDivision"
               label="School division"
               value={buildingForm.schoolDivision}
-              onChange={(e) => setBuildingForm((p) => ({ ...p, schoolDivision: e.target.value }))}
+              onChange={(v) => setBuildingForm((p) => ({ ...p, schoolDivision: v }))}
               disabled={buildingFormSaving}
-            >
-              <option value="GLOBAL">Global (all divisions)</option>
-              <option value="ELEMENTARY">Elementary</option>
-              <option value="MIDDLE_SCHOOL">Middle School</option>
-              <option value="HIGH_SCHOOL">High School</option>
-            </FloatingSelect>
-            <FloatingSelect
+              options={[
+                { value: 'GLOBAL', label: 'Global (all divisions)' },
+                { value: 'ELEMENTARY', label: 'Elementary' },
+                { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
+                { value: 'HIGH_SCHOOL', label: 'High School' },
+              ]}
+            />
+            <FloatingDropdown
               id="ct-buildingType"
               label="Building type"
               value={buildingForm.buildingType}
-              onChange={(e) => setBuildingForm((p) => ({ ...p, buildingType: e.target.value }))}
+              onChange={(v) => setBuildingForm((p) => ({ ...p, buildingType: v }))}
               disabled={buildingFormSaving}
-            >
-              <option value="GENERAL">General</option>
-              <option value="ARTS_CULTURE">Arts &amp; Culture</option>
-              <option value="ATHLETICS">Athletics</option>
-              <option value="ADMINISTRATION">Administration</option>
-              <option value="SUPPORT_SERVICES">Support Services</option>
-            </FloatingSelect>
+              options={[
+                { value: 'GENERAL', label: 'General' },
+                { value: 'ARTS_CULTURE', label: 'Arts & Culture' },
+                { value: 'ATHLETICS', label: 'Athletics' },
+                { value: 'ADMINISTRATION', label: 'Administration' },
+                { value: 'SUPPORT_SERVICES', label: 'Support Services' },
+              ]}
+            />
           </section>
 
           {/* Photos section — only for existing buildings */}
@@ -1340,20 +1342,21 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               autoFocus
               required
             />
-            <FloatingSelect
+            <FloatingDropdown
               id="ct-areaType"
               label="Type"
               value={outdoorForm.areaType}
-              onChange={(e) => setOutdoorForm((p) => ({ ...p, areaType: e.target.value }))}
+              onChange={(v) => setOutdoorForm((p) => ({ ...p, areaType: v }))}
               disabled={outdoorFormSaving}
-            >
-              <option value="FIELD">Athletic Field</option>
-              <option value="COURT">Court</option>
-              <option value="GYM">Gymnasium</option>
-              <option value="COMMON">Gathering Area</option>
-              <option value="PARKING">Parking</option>
-              <option value="OTHER">Other</option>
-            </FloatingSelect>
+              options={[
+                { value: 'FIELD', label: 'Athletic Field' },
+                { value: 'COURT', label: 'Court' },
+                { value: 'GYM', label: 'Gymnasium' },
+                { value: 'COMMON', label: 'Gathering Area' },
+                { value: 'PARKING', label: 'Parking' },
+                { value: 'OTHER', label: 'Other' },
+              ]}
+            />
           </section>
 
           {/* Photos section — only for existing outdoor spaces */}
@@ -1699,17 +1702,18 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               Address (optional)
             </label>
           </div>
-          <FloatingSelect
+          <FloatingDropdown
             id="ct-campusType"
             label="Campus type"
             value={addCampusForm.campusType}
-            onChange={(e) => setAddCampusForm((p) => ({ ...p, campusType: e.target.value }))}
+            onChange={(v) => setAddCampusForm((p) => ({ ...p, campusType: v }))}
             disabled={addCampusSaving}
-          >
-            <option value="HEADQUARTERS">Headquarters</option>
-            <option value="CAMPUS">Campus</option>
-            <option value="SATELLITE">Satellite</option>
-          </FloatingSelect>
+            options={[
+              { value: 'HEADQUARTERS', label: 'Headquarters' },
+              { value: 'CAMPUS', label: 'Campus' },
+              { value: 'SATELLITE', label: 'Satellite' },
+            ]}
+          />
           <div className="space-y-3 pt-4">
             <button
               type="submit"
@@ -1756,17 +1760,18 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               Address (optional)
             </label>
           </div>
-          <FloatingSelect
+          <FloatingDropdown
             id="ct-editCampusType"
             label="Campus type"
             value={editCampusForm.campusType}
-            onChange={(e) => setEditCampusForm((p) => ({ ...p, campusType: e.target.value }))}
+            onChange={(v) => setEditCampusForm((p) => ({ ...p, campusType: v }))}
             disabled={editCampusSaving}
-          >
-            <option value="HEADQUARTERS">Headquarters</option>
-            <option value="CAMPUS">Campus</option>
-            <option value="SATELLITE">Satellite</option>
-          </FloatingSelect>
+            options={[
+              { value: 'HEADQUARTERS', label: 'Headquarters' },
+              { value: 'CAMPUS', label: 'Campus' },
+              { value: 'SATELLITE', label: 'Satellite' },
+            ]}
+          />
           <div className="space-y-3 pt-4">
             <button
               type="submit"
