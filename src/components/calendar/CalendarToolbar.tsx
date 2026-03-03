@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Search, X } from 'lucide-react'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
 
 interface CategoryChip {
@@ -214,53 +214,49 @@ export default function CalendarToolbar({
         ))}
       </div>
 
-      {/* Row 2: Day header cards (week/day views only) */}
+      {/* Day column headers (week/day views only) */}
       {(view === 'week' || view === 'day') && (
-        <div className="flex items-center gap-2.5">
-          {/* Calendar icon */}
-          <div className="w-10 flex-shrink-0 flex items-center justify-center">
-            <CalendarIcon className="w-5 h-5 text-gray-400" />
-          </div>
-
-          {/* Day cards */}
-          {view === 'week' && weekDates.map((date, i) => {
-            const today = isToday(date)
-            return (
-              <div
-                key={i}
-                className={`flex-1 flex flex-col items-center py-2.5 rounded-2xl transition-colors ${
-                  today
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
-              >
-                <div className={`text-xs font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
-                  <span className="sm:hidden">{dayNamesFull[date.getDay()].slice(0, 3)}</span>
-                  <span className="hidden sm:inline">{dayNamesFull[date.getDay()]}</span>
-                </div>
-                <div className="text-lg sm:text-2xl font-bold mt-0.5">
-                  {date.getDate()}
-                </div>
-              </div>
-            )
-          })}
-
+        <div className="flex">
+          <div className="w-14 flex-shrink-0" />
+          {view === 'week' && (
+            <div className="flex-1 grid grid-cols-7">
+              {weekDates.map((date, i) => {
+                const today = isToday(date)
+                return (
+                  <div key={i} className="flex flex-col items-center gap-0.5">
+                    <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-gray-400'}`}>
+                      {dayNamesFull[date.getDay()].slice(0, 3)}
+                    </span>
+                    <span
+                      className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-full ${
+                        today
+                          ? 'bg-primary-600 text-white'
+                          : 'text-gray-900'
+                      }`}
+                    >
+                      {date.getDate()}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
           {view === 'day' && (() => {
             const today = isToday(currentDate)
             return (
-              <div
-                className={`inline-flex flex-col items-center px-10 py-2.5 rounded-2xl transition-colors ${
-                  today
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
-              >
-                <div className={`text-xs font-semibold tracking-wide ${today ? 'text-gray-300' : 'text-gray-500'}`}>
-                  {dayNamesFull[currentDate.getDay()]}
-                </div>
-                <div className="text-2xl font-bold mt-0.5">
+              <div className="flex flex-col items-center gap-0.5">
+                <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-gray-400'}`}>
+                  {dayNamesFull[currentDate.getDay()].slice(0, 3)}
+                </span>
+                <span
+                  className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-full ${
+                    today
+                      ? 'bg-primary-600 text-white'
+                      : 'text-gray-900'
+                  }`}
+                >
                   {currentDate.getDate()}
-                </div>
+                </span>
               </div>
             )
           })()}
