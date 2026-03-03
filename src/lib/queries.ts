@@ -107,4 +107,13 @@ export const queryOptions = {
     queryFn: () => fetchApi<unknown[]>('/api/settings/campus'),
     staleTime: 5 * 60 * 1000,
   }),
+
+  calendarEvents: (calendarIds: string[], start: string, end: string) => ({
+    queryKey: queryKeys.calendarEvents.range(calendarIds, start, end),
+    queryFn: () => {
+      const params = new URLSearchParams({ calendarIds: calendarIds.join(','), start, end })
+      return fetchApi<unknown[]>(`/api/calendar-events?${params}`)
+    },
+    staleTime: 5 * 60_000,
+  }),
 } as const

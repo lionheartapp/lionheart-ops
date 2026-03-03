@@ -31,6 +31,7 @@ import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDial
 import CancellationNotifyDialog from './CancellationNotifyDialog'
 import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
+import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
@@ -480,16 +481,14 @@ export default function CalendarView() {
     setDeleteError(null)
   }, [])
 
-  if (calendarsLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
-      </div>
-    )
-  }
+  // Prefetch adjacent time ranges for instant navigation
+  useCalendarPrefetch(currentDate, view, !calendarsLoading)
 
-  // Empty state — no calendars
-  if (calendars.length === 0) {
+  // Show skeletons only on cold load (no cached data yet)
+  const showSkeletons = eventsLoading && allEvents.length === 0
+
+  // Empty state — no calendars (don't flash while still loading)
+  if (!calendarsLoading && calendars.length === 0) {
     return (
       <div className="flex items-center justify-center h-96 text-center">
         <div>
@@ -586,13 +585,14 @@ export default function CalendarView() {
           onCreateEvent={handleCreateEvent}
         />
 
-        {/* Loading overlay */}
-        {eventsLoading && (
-          <div className="flex items-center justify-center py-2">
-            <Loader2 className="w-4 h-4 text-primary-400 animate-spin" />
-          </div>
-        )}
       </div>
+
+      {/* Thin shimmer bar for background refetch */}
+      {eventsFetching && !eventsLoading && (
+        <div className="absolute top-0 inset-x-0 h-0.5 bg-primary-200 overflow-hidden z-20">
+          <div className="h-full w-1/3 bg-primary-400 animate-[shimmer_1.5s_infinite]" />
+        </div>
+      )}
 
       {/* Screen reader loading announcement */}
       <div className="sr-only" aria-live="polite">{eventsLoading ? 'Loading calendar events' : ''}</div>
@@ -606,6 +606,7 @@ export default function CalendarView() {
                 events={events}
                 onEventClick={handleEventClick}
                 campusShapeMap={campusShapeMap}
+                isLoading={showSkeletons}
               />
             ) : (
               <MonthView
@@ -616,6 +617,7 @@ export default function CalendarView() {
                 campusShapeMap={campusShapeMap}
                 meetWithPeople={meetWithPeople}
                 meetWithEvents={meetWithEvents}
+                isLoading={showSkeletons}
               />
             )
           )}
@@ -630,6 +632,7 @@ export default function CalendarView() {
               campusShapeMap={campusShapeMap}
               meetWithPeople={meetWithPeople}
               meetWithEvents={meetWithEvents}
+              isLoading={showSkeletons}
             />
           )}
           {view === 'day' && (
@@ -643,6 +646,7 @@ export default function CalendarView() {
               campusShapeMap={campusShapeMap}
               meetWithPeople={meetWithPeople}
               meetWithEvents={meetWithEvents}
+              isLoading={showSkeletons}
             />
           )}
           {view === 'agenda' && (
@@ -651,6 +655,7 @@ export default function CalendarView() {
               events={events}
               onEventClick={handleEventClick}
               campusShapeMap={campusShapeMap}
+              isLoading={showSkeletons}
             />
           )}
       </div>

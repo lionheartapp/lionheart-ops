@@ -14,6 +14,7 @@ interface MonthViewProps {
   campusShapeMap: Map<string, number>
   meetWithPeople?: MeetWithPerson[]
   meetWithEvents?: Map<string, CalendarEventData[]>
+  isLoading?: boolean
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -35,7 +36,7 @@ function formatTime(dateStr: string): string {
   return m ? `${hour}:${m.toString().padStart(2, '0')}${ampm}` : `${hour}${ampm}`
 }
 
-export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map() }: MonthViewProps) {
+export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map(), isLoading }: MonthViewProps) {
   const weeks = useMemo(() => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -211,6 +212,17 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
 
                   {/* Event pills */}
                   <div className="space-y-0.5 flex-1 overflow-hidden">
+                    {isLoading ? (
+                      /* Skeleton pills */
+                      ((wi * 7 + di) % 3 > 0) && Array.from({ length: (wi * 7 + di) % 3 }, (_, pi) => (
+                        <div
+                          key={pi}
+                          className="h-5 rounded-md bg-gray-100 animate-pulse"
+                          style={{ width: `${60 + ((wi * 7 + di + pi) % 3) * 15}%` }}
+                        />
+                      ))
+                    ) : (
+                    <>
                     {sortedEvents.slice(0, maxVisible).map((event) =>
                       event.isAllDay ? (
                         <button
@@ -282,6 +294,8 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                       >
                         +{moreCount} more
                       </button>
+                    )}
+                    </>
                     )}
                   </div>
                 </div>

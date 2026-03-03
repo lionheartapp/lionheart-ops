@@ -5,12 +5,14 @@ import { Clock, MapPin, Users as UsersIcon } from 'lucide-react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
+import { AgendaViewSkeletons } from './EventSkeletons'
 
 interface AgendaViewProps {
   currentDate: Date
   events: CalendarEventData[]
   onEventClick: (event: CalendarEventData) => void
   campusShapeMap: Map<string, number>
+  isLoading?: boolean
 }
 
 function formatDate(date: Date): string {
@@ -33,7 +35,7 @@ function isToday(date: Date): boolean {
     date.getDate() === today.getDate()
 }
 
-export default function AgendaView({ currentDate, events, onEventClick, campusShapeMap }: AgendaViewProps) {
+export default function AgendaView({ currentDate, events, onEventClick, campusShapeMap, isLoading }: AgendaViewProps) {
   // Group events by date
   const grouped = useMemo(() => {
     const map = new Map<string, { date: Date; events: CalendarEventData[] }>()
@@ -50,6 +52,10 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
     // Sort by date
     return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime())
   }, [events])
+
+  if (isLoading) {
+    return <AgendaViewSkeletons />
+  }
 
   if (events.length === 0) {
     return (

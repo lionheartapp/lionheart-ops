@@ -341,6 +341,34 @@ export function useRemoveAttendee() {
   })
 }
 
+// ─── Date range computation (shared by navigation + prefetch) ──────────
+
+export function computeDateRange(date: Date, view: CalendarViewType): { start: Date; end: Date } {
+  const start = new Date(date)
+  const end = new Date(date)
+
+  if (view === 'month') {
+    start.setDate(1)
+    start.setDate(start.getDate() - start.getDay()) // Start from Sunday
+    end.setMonth(end.getMonth() + 1, 0)
+    end.setDate(end.getDate() + (6 - end.getDay())) // End on Saturday
+    end.setHours(23, 59, 59, 999)
+  } else if (view === 'week') {
+    start.setDate(start.getDate() - start.getDay())
+    end.setDate(start.getDate() + 6)
+    end.setHours(23, 59, 59, 999)
+  } else {
+    // day or agenda
+    start.setHours(0, 0, 0, 0)
+    if (view === 'agenda') {
+      end.setDate(end.getDate() + 30)
+    }
+    end.setHours(23, 59, 59, 999)
+  }
+
+  return { start, end }
+}
+
 // ─── Calendar navigation state ─────────────────────────────────────────
 
 export function useCalendarNavigation() {
@@ -382,31 +410,10 @@ export function useCalendarNavigation() {
   }, [view])
 
   // Compute date range for the current view
-  const getDateRange = useCallback((): { start: Date; end: Date } => {
-    const start = new Date(currentDate)
-    const end = new Date(currentDate)
-
-    if (view === 'month') {
-      start.setDate(1)
-      start.setDate(start.getDate() - start.getDay()) // Start from Sunday
-      end.setMonth(end.getMonth() + 1, 0)
-      end.setDate(end.getDate() + (6 - end.getDay())) // End on Saturday
-      end.setHours(23, 59, 59, 999)
-    } else if (view === 'week') {
-      start.setDate(start.getDate() - start.getDay())
-      end.setDate(start.getDate() + 6)
-      end.setHours(23, 59, 59, 999)
-    } else {
-      // day or agenda
-      start.setHours(0, 0, 0, 0)
-      if (view === 'agenda') {
-        end.setDate(end.getDate() + 30)
-      }
-      end.setHours(23, 59, 59, 999)
-    }
-
-    return { start, end }
-  }, [currentDate, view])
+  const getDateRange = useCallback(
+    () => computeDateRange(currentDate, view),
+    [currentDate, view]
+  )
 
   return {
     currentDate,

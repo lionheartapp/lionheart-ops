@@ -5,12 +5,14 @@ import { Clock, MapPin } from 'lucide-react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
+import { MobileMonthViewSkeletons } from './EventSkeletons'
 
 interface MobileMonthViewProps {
   currentDate: Date
   events: CalendarEventData[]
   onEventClick: (event: CalendarEventData) => void
   campusShapeMap: Map<string, number>
+  isLoading?: boolean
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -36,7 +38,7 @@ function formatFullDate(date: Date): string {
   return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`
 }
 
-export default function MobileMonthView({ currentDate, events, onEventClick, campusShapeMap }: MobileMonthViewProps) {
+export default function MobileMonthView({ currentDate, events, onEventClick, campusShapeMap, isLoading }: MobileMonthViewProps) {
   // Initialize selectedDate: today if in current month, otherwise 1st of month
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const today = new Date()
@@ -196,7 +198,9 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
 
       {/* Event list */}
       <div className="flex-1 overflow-y-auto">
-        {selectedDayEvents.length === 0 ? (
+        {isLoading ? (
+          <MobileMonthViewSkeletons />
+        ) : selectedDayEvents.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-gray-400">
             <p className="text-sm">No events on this day</p>
           </div>

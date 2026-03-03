@@ -7,6 +7,8 @@ import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import DraggableEvent from './DraggableEvent'
 import { computeSubColumns, getSubColumnStyle } from './MeetWithColumnLayout'
+import { DayViewSkeletons } from './EventSkeletons'
+import { motion } from 'framer-motion'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 
 interface DayViewProps {
@@ -19,6 +21,7 @@ interface DayViewProps {
   campusShapeMap: Map<string, number>
   meetWithPeople?: MeetWithPerson[]
   meetWithEvents?: Map<string, CalendarEventData[]>
+  isLoading?: boolean
 }
 
 const HOUR_HEIGHT = 64
@@ -31,7 +34,7 @@ function formatHour(hour: number): string {
   return `${h} ${ampm}`
 }
 
-export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map() }: DayViewProps) {
+export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map(), isLoading }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { dragState, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, getGhostStyle, getGhostLabel } = useDragToCreate({ onSlotClick })
 
@@ -204,22 +207,65 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
               )
             })}
 
-            {/* Event blocks */}
-            {subColumns ? (
-              <>
-                {subColumns.map((col) => {
-                  const colStyle = getSubColumnStyle(col.columnIndex, col.totalColumns)
-                  const isSelf = col.personId === null
-                  return col.events.map((event) => {
-                    const evStart = new Date(event.startTime)
-                    const evEnd = new Date(event.endTime)
-                    const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
-                    const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
-                    const evTop = (startMinutes / 60) * HOUR_HEIGHT
-                    const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
-                    const eventColor = isSelf ? getEventColor(event) : col.color
+            {/* Skeleton overlay (cold load) */}
+            {isLoading && <DayViewSkeletons />}
 
-                    if (isSelf && onDragReschedule) {
+            {/* Event blocks */}
+            {!isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.25 }}
+                className="contents"
+              >
+              {subColumns ? (
+                <>
+                  {subColumns.map((col) => {
+                    const colStyle = getSubColumnStyle(col.columnIndex, col.totalColumns)
+                    const isSelf = col.personId === null
+                    return col.events.map((event) => {
+                      const evStart = new Date(event.startTime)
+                      const evEnd = new Date(event.endTime)
+                      const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
+                      const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
+                      const evTop = (startMinutes / 60) * HOUR_HEIGHT
+                      const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
+                      const eventColor = isSelf ? getEventColor(event) : col.color
+
+                      if (isSelf && onDragReschedule) {
+                        return (
+                          <DraggableEvent
+                            key={`${col.personId}-${event.id}`}
+                            event={event}
+                            top={evTop}
+                            height={evHeight}
+                            date={currentDate}
+                            siblingEvents={timedEvents}
+                            onDragReschedule={onDragReschedule}
+                            onResize={onResize}
+                            onClick={onEventClick}
+                            dragAxis="y"
+                            subColumnStyle={colStyle}
+                          >
+                            <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: eventColor }}>
+                              <CampusShapeIndicator
+                                shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                                color={eventColor}
+                                size={10}
+                              />
+                              {event.title}
+                            </div>
+                            {evHeight > 36 && (
+                              <div className="text-xs mt-0.5 opacity-60" style={{ color: eventColor }}>
+                                {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {' - '}
+                                {evEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            )}
+                          </DraggableEvent>
+                        )
+                      }
+
                       return (
                         <DraggableEvent
                           key={`${col.personId}-${event.id}`}
@@ -227,19 +273,18 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                           top={evTop}
                           height={evHeight}
                           date={currentDate}
-                          siblingEvents={timedEvents}
-                          onDragReschedule={onDragReschedule}
-                          onResize={onResize}
+                          siblingEvents={[]}
+                          onDragReschedule={onDragReschedule || (() => {})}
                           onClick={onEventClick}
                           dragAxis="y"
                           subColumnStyle={colStyle}
+                          readOnly={!isSelf}
+                          style={!isSelf ? {
+                            backgroundColor: `${col.color}15`,
+                            borderLeft: `3px solid ${col.color}`,
+                          } : undefined}
                         >
-                          <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: eventColor }}>
-                            <CampusShapeIndicator
-                              shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
-                              color={eventColor}
-                              size={10}
-                            />
+                          <div className="font-semibold text-sm truncate" style={{ color: eventColor }}>
                             {event.title}
                           </div>
                           {evHeight > 36 && (
@@ -251,64 +296,71 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                           )}
                         </DraggableEvent>
                       )
-                    }
+                    })
+                  })}
+                </>
+              ) : (
+                timedEvents.map((event) => {
+                  const evStart = new Date(event.startTime)
+                  const evEnd = new Date(event.endTime)
+                  const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
+                  const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
+                  const evTop = (startMinutes / 60) * HOUR_HEIGHT
+                  const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
 
+                  if (onDragReschedule) {
                     return (
                       <DraggableEvent
-                        key={`${col.personId}-${event.id}`}
+                        key={event.id}
                         event={event}
                         top={evTop}
                         height={evHeight}
                         date={currentDate}
-                        siblingEvents={[]}
-                        onDragReschedule={onDragReschedule || (() => {})}
+                        siblingEvents={timedEvents}
+                        onDragReschedule={onDragReschedule}
+                        onResize={onResize}
                         onClick={onEventClick}
                         dragAxis="y"
-                        subColumnStyle={colStyle}
-                        readOnly={!isSelf}
-                        style={!isSelf ? {
-                          backgroundColor: `${col.color}15`,
-                          borderLeft: `3px solid ${col.color}`,
-                        } : undefined}
+                        className="right-4"
                       >
-                        <div className="font-semibold text-sm truncate" style={{ color: eventColor }}>
+                        <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
+                          <CampusShapeIndicator
+                            shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                            color={getEventColor(event)}
+                            size={10}
+                          />
                           {event.title}
                         </div>
                         {evHeight > 36 && (
-                          <div className="text-xs mt-0.5 opacity-60" style={{ color: eventColor }}>
+                          <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
                             {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             {' - '}
                             {evEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         )}
+                        {evHeight > 56 && event.locationText && (
+                          <div className="text-xs mt-0.5 opacity-40" style={{ color: getEventColor(event) }}>
+                            {event.locationText}
+                          </div>
+                        )}
                       </DraggableEvent>
                     )
-                  })
-                })}
-              </>
-            ) : (
-              timedEvents.map((event) => {
-                const evStart = new Date(event.startTime)
-                const evEnd = new Date(event.endTime)
-                const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
-                const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
-                const evTop = (startMinutes / 60) * HOUR_HEIGHT
-                const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
+                  }
 
-                if (onDragReschedule) {
                   return (
-                    <DraggableEvent
+                    <button
                       key={event.id}
-                      event={event}
-                      top={evTop}
-                      height={evHeight}
-                      date={currentDate}
-                      siblingEvents={timedEvents}
-                      onDragReschedule={onDragReschedule}
-                      onResize={onResize}
-                      onClick={onEventClick}
-                      dragAxis="y"
-                      className="right-4"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEventClick(event)
+                      }}
+                      aria-label={getEventAriaLabel(event)}
+                      className="absolute left-1 right-4 rounded-xl px-4 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer"
+                      style={{
+                        top: evTop,
+                        height: evHeight,
+                        backgroundColor: `${getEventColor(event)}20`,
+                      }}
                     >
                       <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
                         <CampusShapeIndicator
@@ -330,48 +382,11 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                           {event.locationText}
                         </div>
                       )}
-                    </DraggableEvent>
+                    </button>
                   )
-                }
-
-                return (
-                  <button
-                    key={event.id}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onEventClick(event)
-                    }}
-                    aria-label={getEventAriaLabel(event)}
-                    className="absolute left-1 right-4 rounded-xl px-4 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer"
-                    style={{
-                      top: evTop,
-                      height: evHeight,
-                      backgroundColor: `${getEventColor(event)}20`,
-                    }}
-                  >
-                    <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
-                      <CampusShapeIndicator
-                        shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
-                        color={getEventColor(event)}
-                        size={10}
-                      />
-                      {event.title}
-                    </div>
-                    {evHeight > 36 && (
-                      <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
-                        {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        {' - '}
-                        {evEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    )}
-                    {evHeight > 56 && event.locationText && (
-                      <div className="text-xs mt-0.5 opacity-40" style={{ color: getEventColor(event) }}>
-                        {event.locationText}
-                      </div>
-                    )}
-                  </button>
-                )
-              })
+                })
+              )}
+              </motion.div>
             )}
           </div>
         </div>
