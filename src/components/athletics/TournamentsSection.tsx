@@ -231,7 +231,7 @@ export default function TournamentsSection({ activeCampusId }: TournamentsSectio
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
+          className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
         >
           <Plus className="w-4 h-4" />
           Add Tournament

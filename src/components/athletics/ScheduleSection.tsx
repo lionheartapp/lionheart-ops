@@ -416,7 +416,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
             type="button"
             onClick={openGameCreate}
             disabled={displayTeams.length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             Add Game
@@ -425,7 +425,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
             type="button"
             onClick={() => setPracticeDrawerOpen(true)}
             disabled={displayTeams.length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             Add Practice
