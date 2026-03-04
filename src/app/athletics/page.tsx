@@ -59,6 +59,8 @@ async function fetchCalendars(): Promise<CalendarBrief[]> {
 
 export default function AthleticsPage() {
   const router = useRouter()
+  const [isClient, setIsClient] = useState(false)
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
   const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
@@ -69,10 +71,39 @@ export default function AthleticsPage() {
   const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
   const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
   const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
-  const [orgLogoUrl] = useState<string | null>(typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null)
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
+    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
+  )
 
-  const [isClient, setIsClient] = useState(false)
-  useState(() => { setIsClient(true) })
+  // Hydration guard + auth redirect
+  useEffect(() => {
+    setIsClient(true)
+    if (!token || !orgId) {
+      router.push('/login')
+    }
+  }, [token, orgId, router])
+
+  // Fetch org logo from API if not in localStorage
+  useEffect(() => {
+    if (orgLogoUrl || !token) return
+    const fetchLogo = async () => {
+      try {
+        const res = await fetch('/api/onboarding/school-info', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.ok && data.data?.logoUrl) {
+            setOrgLogoUrl(data.data.logoUrl)
+            localStorage.setItem('org-logo-url', data.data.logoUrl)
+          }
+        }
+      } catch {
+        // Silently fail — logo is non-critical
+      }
+    }
+    fetchLogo()
+  }, [orgLogoUrl, token])
 
   const { data: modules = [] } = useModules()
   const { data: campuses = [] } = useQuery({
@@ -133,7 +164,7 @@ export default function AthleticsPage() {
         },
       })
     )
-  }, [enabledCampuses, activeCampusId, campusColorMap])
+  }, [enabledCampuses, activeCampusId, campusColorMap]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatchSidebarData()
@@ -151,11 +182,13 @@ export default function AthleticsPage() {
     }
   }, [])
 
-  if (!isClient && typeof window !== 'undefined') setIsClient(true)
-
-  if (!token || !orgId) {
-    if (typeof window !== 'undefined') router.push('/login')
-    return null
+  // Loading screen during hydration
+  if (!isClient || !token || !orgId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    )
   }
 
   const handleLogout = () => {
