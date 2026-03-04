@@ -31,31 +31,11 @@ interface Campus {
   isActive: boolean
 }
 
-async function fetchCampuses(): Promise<Campus[]> {
-  const token = localStorage.getItem('auth-token')
-  const res = await fetch('/api/settings/campus/campuses', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) return []
-  const data = await res.json()
-  return data.ok ? data.data : []
-}
-
 interface CalendarBrief {
   id: string
   color: string
   calendarType: string
   campus?: { id: string; name: string } | null
-}
-
-async function fetchCalendars(): Promise<CalendarBrief[]> {
-  const token = localStorage.getItem('auth-token')
-  const res = await fetch('/api/calendars', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) return []
-  const data = await res.json()
-  return data.ok ? data.data : []
 }
 
 export default function AthleticsPage() {
@@ -107,14 +87,10 @@ export default function AthleticsPage() {
   }, [orgLogoUrl, token])
 
   const { data: modules = [], isLoading: modulesLoading } = useModules()
-  const { data: campuses = [], isLoading: campusesLoading } = useQuery({
-    ...sharedQueryOptions.campuses(),
-    select: (data) => (data as Campus[]) ?? [],
-  })
-  const { data: calendars = [] } = useQuery({
-    ...sharedQueryOptions.calendars(),
-    select: (data) => (data as CalendarBrief[]) ?? [],
-  })
+  const { data: rawCampuses, isLoading: campusesLoading } = useQuery(sharedQueryOptions.campuses())
+  const campuses = (rawCampuses as Campus[] | undefined) ?? []
+  const { data: rawCalendars } = useQuery(sharedQueryOptions.calendars())
+  const calendars = (rawCalendars as CalendarBrief[] | undefined) ?? []
 
   const dataLoading = modulesLoading || campusesLoading
 

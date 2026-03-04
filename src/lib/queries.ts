@@ -112,7 +112,7 @@ export const queryOptions = {
 
   campuses: () => ({
     queryKey: queryKeys.campuses.all,
-    queryFn: () => fetchApi<unknown[]>('/api/settings/campus'),
+    queryFn: () => fetchApi<unknown[]>('/api/settings/campus/campuses'),
     staleTime: 5 * 60 * 1000,
   }),
 
