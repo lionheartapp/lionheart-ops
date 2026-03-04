@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
 import WeatherWidget from '@/components/dashboard/WeatherWidget'
+import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2 } from 'lucide-react'
 
 interface TicketData {
@@ -25,6 +26,12 @@ export default function DashboardPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
+
+  // Create ticket form state
+  const [createCategory, setCreateCategory] = useState<'MAINTENANCE' | 'IT' | null>(null)
+  const [createForm, setCreateForm] = useState({ title: '', description: '', locationText: '', priority: 'NORMAL' })
+  const [createSaving, setCreateSaving] = useState(false)
+  const [createError, setCreateError] = useState('')
 
   // Ticket data from API
   const [tickets, setTickets] = useState<TicketData[]>([])
@@ -93,6 +100,50 @@ export default function DashboardPage() {
   useEffect(() => {
     if (token) fetchTickets()
   }, [token, fetchTickets])
+
+  const openCreateDrawer = useCallback((category: 'MAINTENANCE' | 'IT') => {
+    setCreateCategory(category)
+    setCreateForm({ title: '', description: '', locationText: '', priority: 'NORMAL' })
+    setCreateError('')
+    setIsCreateDropdownOpen(false)
+  }, [])
+
+  const handleCreateSubmit = useCallback(async () => {
+    if (!token) return
+    if (!createForm.title.trim() || !createForm.locationText.trim()) {
+      setCreateError('Title and location are required.')
+      return
+    }
+    setCreateSaving(true)
+    setCreateError('')
+    try {
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: createForm.title.trim(),
+          description: createForm.description.trim() || undefined,
+          locationText: createForm.locationText.trim(),
+          category: createCategory,
+          priority: createForm.priority,
+          source: 'MANUAL',
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.ok) {
+          setCreateCategory(null)
+          fetchTickets()
+          return
+        }
+      }
+      setCreateError('Failed to create request. Please try again.')
+    } catch {
+      setCreateError('Failed to create request. Please try again.')
+    } finally {
+      setCreateSaving(false)
+    }
+  }, [token, createForm, createCategory, fetchTickets])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -262,24 +313,26 @@ export default function DashboardPage() {
               {/* Support Section */}
               <div className="p-3 space-y-1">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-2">Support</p>
-                <div
-                  className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed"
+                <button
+                  onClick={() => openCreateDrawer('MAINTENANCE')}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
-                  <Building2 className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-500">Facilities Request <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
-                    <p className="text-xs text-gray-400">Submit a facilities request</p>
+                    <p className="font-medium text-gray-900">Facilities Request</p>
+                    <p className="text-xs text-gray-600">Submit a facilities request</p>
                   </div>
-                </div>
-                <div
-                  className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed"
+                </button>
+                <button
+                  onClick={() => openCreateDrawer('IT')}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
-                  <Headphones className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-500">IT Request <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
-                    <p className="text-xs text-gray-400">Submit an IT support request</p>
+                    <p className="font-medium text-gray-900">IT Request</p>
+                    <p className="text-xs text-gray-600">Submit an IT support request</p>
                   </div>
-                </div>
+                </button>
               </div>
             </div>
           )}
@@ -303,7 +356,7 @@ export default function DashboardPage() {
               <CheckCircle className="w-10 h-10 mx-auto mb-3 text-gray-300" aria-hidden="true" />
               <p className="text-sm mb-2">No tasks yet.</p>
               <button
-                onClick={() => setIsCreateDropdownOpen(true)}
+                onClick={() => openCreateDrawer('MAINTENANCE')}
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 Create your first task
@@ -333,7 +386,7 @@ export default function DashboardPage() {
               </ul>
 
               <button
-                onClick={() => setIsCreateDropdownOpen(true)}
+                onClick={() => openCreateDrawer('MAINTENANCE')}
                 className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition flex items-center justify-center gap-1"
               >
                 <Plus className="w-4 h-4" /> Add task
@@ -430,6 +483,71 @@ export default function DashboardPage() {
         ) : (
           <p className="text-gray-400 text-sm">Select a task to view details.</p>
         )}
+      </DetailDrawer>
+
+      {/* Create Ticket Drawer */}
+      <DetailDrawer
+        isOpen={createCategory !== null}
+        onClose={() => setCreateCategory(null)}
+        title={createCategory === 'IT' ? 'New IT Request' : 'New Facilities Request'}
+        width="md"
+      >
+        <div className="space-y-5">
+          <FloatingInput
+            id="create-title"
+            label="Title"
+            required
+            value={createForm.title}
+            onChange={(e) => setCreateForm(f => ({ ...f, title: e.target.value }))}
+          />
+          <FloatingTextarea
+            id="create-description"
+            label="Description"
+            value={createForm.description}
+            onChange={(e) => setCreateForm(f => ({ ...f, description: e.target.value }))}
+            rows={3}
+          />
+          <FloatingInput
+            id="create-location"
+            label="Location"
+            required
+            placeholder="e.g. Room 204, Main Building"
+            value={createForm.locationText}
+            onChange={(e) => setCreateForm(f => ({ ...f, locationText: e.target.value }))}
+          />
+          <FloatingSelect
+            id="create-priority"
+            label="Priority"
+            value={createForm.priority}
+            onChange={(e) => setCreateForm(f => ({ ...f, priority: e.target.value }))}
+          >
+            <option value="LOW">Low</option>
+            <option value="NORMAL">Normal</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </FloatingSelect>
+
+          {createError && (
+            <p className="text-sm text-red-600">{createError}</p>
+          )}
+
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => setCreateCategory(null)}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateSubmit}
+              disabled={createSaving}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 flex items-center justify-center gap-2"
+            >
+              {createSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+              Submit Request
+            </button>
+          </div>
+        </div>
       </DetailDrawer>
     </DashboardLayout>
   )

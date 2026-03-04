@@ -188,6 +188,13 @@ export default function NotificationBell() {
               ))
             )}
           </div>
+
+          {/* Footer */}
+          <div className="border-t border-gray-100 px-4 py-2.5">
+            <span className="text-xs text-gray-400">
+              {notifications.length === 0 ? "You're all caught up" : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
+            </span>
+          </div>
         </div>
       )}
     </div>
