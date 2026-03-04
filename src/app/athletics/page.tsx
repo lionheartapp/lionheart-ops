@@ -9,6 +9,7 @@ import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { queryOptions as sharedQueryOptions } from '@/lib/queries'
 import { Dribbble, Users, CalendarDays, ClipboardList, Trophy, BarChart3 } from 'lucide-react'
+import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
 import ScheduleSection from '@/components/athletics/ScheduleSection'
@@ -240,19 +241,7 @@ export default function AthleticsPage() {
 
           {/* Loading skeleton while campuses/modules load */}
           {dataLoading ? (
-            <div className="space-y-4 animate-pulse">
-              {/* Toolbar skeleton */}
-              <div className="flex items-center justify-between">
-                <div className="h-9 w-64 bg-gray-100 rounded-lg" />
-                <div className="h-9 w-32 bg-gray-100 rounded-lg" />
-              </div>
-              {/* Table skeleton rows */}
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="h-14 bg-gray-50 rounded-lg" />
-                ))}
-              </div>
-            </div>
+            <AthleticsTableSkeleton columns={5} rows={5} />
           ) : (
             <>
               {activeTab === 'sports' && <SportsSection canWrite={canWrite} />}

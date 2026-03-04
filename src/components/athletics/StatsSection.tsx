@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BarChart3, Trophy, Plus, Trash2, Settings, ArrowRight, CalendarDays } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 
 interface Sport {
@@ -280,13 +281,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
   // ─── Render ───────────────────────────────────────────────────────
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-        ))}
-      </div>
-    )
+    return <AthleticsTableSkeleton columns={4} rows={4} />
   }
 
   return (
@@ -327,9 +322,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           </div>
 
           {loadingStandings ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
-            </div>
+            <AthleticsTableSkeleton columns={6} rows={4} showToolbar={false} />
           ) : standings.length === 0 ? (
             <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
               <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -431,9 +424,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
               )}
             </div>
           ) : loadingLeaders ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
-            </div>
+            <AthleticsTableSkeleton columns={4} rows={4} showToolbar={false} />
           ) : leaders.length === 0 ? (
             <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
               <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -501,9 +492,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
               <p className="text-sm text-gray-500">Choose a sport to configure its stat categories</p>
             </div>
           ) : loadingConfigs ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
-            </div>
+            <AthleticsTableSkeleton columns={3} rows={3} showToolbar={false} />
           ) : (
             <div className="space-y-4">
               {/* Existing configs */}

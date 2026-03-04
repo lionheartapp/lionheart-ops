@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Plus, Search, Users, Trash2, Edit2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -277,13 +278,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   // ─── Render ────────────────────────────────────────────────────────
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-        ))}
-      </div>
-    )
+    return <AthleticsTableSkeleton columns={5} rows={4} />
   }
 
   const userOptions: DropdownOption[] = [
@@ -342,11 +337,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           <p className="text-sm text-gray-500">Choose a team above to manage its roster</p>
         </div>
       ) : loadingRoster ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-          ))}
-        </div>
+        <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filteredRoster.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />

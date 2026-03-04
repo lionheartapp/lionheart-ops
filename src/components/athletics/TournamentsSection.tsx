@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Plus, Search, Eye, Edit2, Trash2, Trophy } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -243,11 +244,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
 
       {/* Table */}
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-          ))}
-        </div>
+        <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <Trophy className="w-10 h-10 text-gray-300 mx-auto mb-3" />

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Search, Eye, Edit2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -180,11 +181,7 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
 
       {/* Table */}
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-          ))}
-        </div>
+        <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filtered.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-sm text-gray-500">

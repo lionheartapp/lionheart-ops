@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Plus, CalendarDays, Trash2, Edit2, Trophy, ClipboardList } from 'lucide-react'
 import { RRule } from 'rrule'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { ScheduleSkeleton } from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -377,13 +378,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   // ─── Render ───────────────────────────────────────────────────────
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-        ))}
-      </div>
-    )
+    return <ScheduleSkeleton groups={3} />
   }
 
   return (
@@ -485,11 +480,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
           <p className="text-sm text-gray-500">Create teams in the Teams tab first</p>
         </div>
       ) : loadingSchedule ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-          ))}
-        </div>
+        <ScheduleSkeleton groups={2} />
       ) : agendaItems.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
           <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />

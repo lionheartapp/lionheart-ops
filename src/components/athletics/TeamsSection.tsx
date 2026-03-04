@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -433,11 +434,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
 
       {/* Table */}
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
-          ))}
-        </div>
+        <AthleticsTableSkeleton columns={7} rows={4} showToolbar={false} />
       ) : displayTeams.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-sm text-gray-500">

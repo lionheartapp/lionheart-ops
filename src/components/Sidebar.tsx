@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fragment } from 'react'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { usePathname, useRouter } from 'next/navigation'
@@ -388,7 +388,7 @@ export default function Sidebar({
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
-  const { enabled: athleticsEnabled } = useModuleEnabled('athletics')
+  const { enabled: athleticsEnabled, loading: athleticsModuleLoading } = useModuleEnabled('athletics')
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
@@ -491,7 +491,14 @@ export default function Sidebar({
             )
           })}
           {/* Athletics — toggle secondary sidebar (like Settings) */}
-          {athleticsEnabled && perms?.canWriteAthletics && (
+          {athleticsModuleLoading ? (
+            <li>
+              <div className="flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg animate-pulse">
+                <div className="w-5 h-5 rounded bg-white/10 flex-shrink-0" />
+                <div className="h-3.5 w-20 rounded bg-white/10" />
+              </div>
+            </li>
+          ) : athleticsEnabled && perms?.canWriteAthletics ? (
             <li>
               <button
                 onClick={() => {
@@ -516,7 +523,7 @@ export default function Sidebar({
                 <span className="text-sm">Athletics</span>
               </button>
             </li>
-          )}
+          ) : null}
         </ul>
       </nav>
     </>
@@ -663,53 +670,13 @@ export default function Sidebar({
                       <p className="text-xs text-gray-400">Your personal calendar will appear here</p>
                     </div>
                   )}
-                  {/* Athletics calendar toggles — shown in MASTER section for enabled campuses */}
-                  {!isMySchedule && athleticsEnabledCampusIds.size > 0 && (() => {
-                    // Get unique campus IDs from the calendars in this section
-                    const campusIdsInSection = new Set(
-                      cals.filter((c) => c.campus?.id).map((c) => c.campus!.id)
-                    )
-                    const athleticsCampuses = Array.from(campusIdsInSection).filter((id) => athleticsEnabledCampusIds.has(id))
-                    if (athleticsCampuses.length === 0) return null
-                    return athleticsCampuses.map((campusId) => {
-                      const campusCal = cals.find((c) => c.campus?.id === campusId)
-                      const campusName = campusCal?.campus?.name || 'Campus'
-                      const isAthVisible = athleticsVisibleCampusIds.has(campusId)
-                      return (
-                        <div
-                          key={`athletics-${campusId}`}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => toggleAthleticsCalendar(campusId)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              toggleAthleticsCalendar(campusId)
-                            }
-                          }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition cursor-pointer ${
-                            isAthVisible
-                              ? 'text-gray-700 hover:bg-[#e5eaf5]'
-                              : 'text-gray-400 hover:bg-[#e5eaf5]'
-                          }`}
-                          title={`Athletics — ${campusName}`}
-                        >
-                          <div
-                            className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center transition-colors"
-                            style={{
-                              backgroundColor: isAthVisible ? '#f59e0b' : 'transparent',
-                              border: isAthVisible ? 'none' : '2px solid #f59e0b',
-                            }}
-                          >
-                            {isAthVisible && <Check className="w-3 h-3 text-white" />}
-                          </div>
-                          <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
-                          <span className="truncate">Athletics{athleticsCampuses.length > 1 ? ` — ${campusName}` : ''}</span>
-                        </div>
-                      )
-                    })
-                  })()}
-                  {cals.map((cal) => {
+                  {cals.map((cal, calIdx) => {
+                    // Track which campuses already rendered athletics toggle
+                    // (render after the LAST calendar for that campus)
+                    const campusId = cal.campus?.id
+                    const hasAthletics = !isMySchedule && campusId && athleticsEnabledCampusIds.has(campusId)
+                    const isLastCalForCampus = hasAthletics && !cals.slice(calIdx + 1).some((c) => c.campus?.id === campusId)
+                    const isAthVisible = campusId ? athleticsVisibleCampusIds.has(campusId) : false
                     const isVisible = visibleCalendarIds.has(cal.id)
                     const isRenaming = renamingId === cal.id
                     const isColorEditing = colorEditId === cal.id
@@ -719,7 +686,8 @@ export default function Sidebar({
                     const canEditCal = canManageWorkspace || cal.calendarType === 'PERSONAL'
 
                     return (
-                      <div key={cal.id} className="relative group">
+                      <Fragment key={cal.id}>
+                      <div className="relative group">
                         {isRenaming ? (
                           <div className="flex items-center gap-2 px-3 py-2">
                             <div
@@ -879,6 +847,43 @@ export default function Sidebar({
                           </div>
                         )}
                       </div>
+                      {/* Athletics toggle — nested under campus calendar */}
+                      {isLastCalForCampus && campusId && (
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => toggleAthleticsCalendar(campusId)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              toggleAthleticsCalendar(campusId)
+                            }
+                          }}
+                          className={`flex items-center gap-2.5 pr-3 py-2 rounded-xl text-sm transition cursor-pointer ${
+                            isAthVisible
+                              ? 'text-gray-700 hover:bg-[#e5eaf5]'
+                              : 'text-gray-400 hover:bg-[#e5eaf5]'
+                          }`}
+                          title={`Athletics — ${cal.campus?.name || 'Campus'}`}
+                        >
+                          {/* Tree connector line */}
+                          <div className="flex items-center ml-5">
+                            <div className="w-3.5 h-5 border-l-2 border-b-2 border-gray-300/60 rounded-bl-sm -mt-3" />
+                          </div>
+                          <div
+                            className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center transition-colors ml-0.5"
+                            style={{
+                              backgroundColor: isAthVisible ? '#f59e0b' : 'transparent',
+                              border: isAthVisible ? 'none' : '2px solid #f59e0b',
+                            }}
+                          >
+                            {isAthVisible && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 ml-1" />
+                          <span className="truncate">Athletics</span>
+                        </div>
+                      )}
+                      </Fragment>
                     )
                   })}
                 </div>
