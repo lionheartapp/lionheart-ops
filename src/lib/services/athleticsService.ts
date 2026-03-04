@@ -278,6 +278,23 @@ export async function createPractice(data: {
   })
 }
 
+export async function updatePractice(id: string, data: {
+  startTime?: Date
+  endTime?: Date
+  location?: string
+  notes?: string
+  rrule?: string | null
+}) {
+  return db.practice.update({
+    where: { id },
+    data,
+  })
+}
+
+export async function deletePractice(id: string) {
+  return db.practice.delete({ where: { id } })
+}
+
 // ── Tournaments ────────────────────────────────────────────────────────
 
 export async function getTournaments(filters?: { sportId?: string }) {

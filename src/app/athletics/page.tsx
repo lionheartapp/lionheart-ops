@@ -165,7 +165,7 @@ export default function AthleticsPage() {
           {/* Active section */}
           {activeTab === 'sports' && <SportsSection />}
           {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} />}
-          {activeTab === 'schedule' && <ScheduleSection />}
+          {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} />}
         </div>
       </ModuleGate>
     </DashboardLayout>
