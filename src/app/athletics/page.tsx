@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
+import { Dribbble, Users, CalendarDays, ClipboardList, Trophy, BarChart3 } from 'lucide-react'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
 import ScheduleSection from '@/components/athletics/ScheduleSection'
@@ -13,6 +14,15 @@ import TournamentsSection from '@/components/athletics/TournamentsSection'
 import RosterSection from '@/components/athletics/RosterSection'
 import StatsSection from '@/components/athletics/StatsSection'
 import type { AthleticsTab } from '@/components/Sidebar'
+
+const SUB_TABS: { key: AthleticsTab; label: string; icon: typeof Dribbble }[] = [
+  { key: 'sports', label: 'Sports', icon: Dribbble },
+  { key: 'teams', label: 'Teams', icon: Users },
+  { key: 'schedule', label: 'Schedule', icon: CalendarDays },
+  { key: 'roster', label: 'Roster', icon: ClipboardList },
+  { key: 'tournaments', label: 'Tournaments', icon: Trophy },
+  { key: 'stats', label: 'Stats', icon: BarChart3 },
+]
 
 interface Campus {
   id: string
@@ -108,7 +118,7 @@ export default function AthleticsPage() {
   const dispatchSidebarData = useCallback(() => {
     if (enabledCampuses.length === 0) return
     const colorKeys = enabledCampuses.map((c) => campusColorMap.get(c.id) ?? '').join(',')
-    const key = enabledCampuses.map((c) => c.id).join(',') + '|' + colorKeys + '|' + activeCampusId + '|' + activeTab
+    const key = enabledCampuses.map((c) => c.id).join(',') + '|' + colorKeys + '|' + activeCampusId
     if (key === lastDispatchRef.current) return
     lastDispatchRef.current = key
     window.dispatchEvent(
@@ -120,30 +130,23 @@ export default function AthleticsPage() {
             color: campusColorMap.get(c.id) ?? DEFAULT_CAMPUS_COLORS[i % DEFAULT_CAMPUS_COLORS.length],
           })),
           activeCampusId,
-          activeTab,
         },
       })
     )
-  }, [enabledCampuses, activeCampusId, activeTab, campusColorMap])
+  }, [enabledCampuses, activeCampusId, campusColorMap])
 
   useEffect(() => {
     dispatchSidebarData()
   }, [dispatchSidebarData])
 
-  // Listen for sidebar-driven changes
+  // Listen for sidebar-driven campus changes
   useEffect(() => {
-    const handleTabChange = (e: Event) => {
-      const event = e as CustomEvent<{ tab: AthleticsTab }>
-      if (event.detail?.tab) setActiveTab(event.detail.tab)
-    }
     const handleCampusChange = (e: Event) => {
       const event = e as CustomEvent<{ campusId: string }>
       if (event.detail?.campusId) setSelectedCampusId(event.detail.campusId)
     }
-    window.addEventListener('athletics-tab-change', handleTabChange)
     window.addEventListener('athletics-campus-change', handleCampusChange)
     return () => {
-      window.removeEventListener('athletics-tab-change', handleTabChange)
       window.removeEventListener('athletics-campus-change', handleCampusChange)
     }
   }, [])
@@ -189,6 +192,24 @@ export default function AthleticsPage() {
             <p className="text-sm text-gray-500">
               {enabledCampuses.find((c) => c.id === activeCampusId)?.name || 'Manage sports teams, schedules, and rosters'}
             </p>
+          </div>
+
+          {/* Sub-navigation tabs */}
+          <div className="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+            {SUB_TABS.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === key
+                    ? 'border-primary-500 text-primary-700'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* Active section */}

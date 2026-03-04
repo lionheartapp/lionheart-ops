@@ -18,10 +18,6 @@ import {
   CalendarClock,
   Trophy,
   Puzzle,
-  Dribbble,
-  CalendarDays,
-  ClipboardList,
-  BarChart3,
   ChevronDown,
   ChevronRight,
   Plus,
@@ -91,7 +87,6 @@ export default function Sidebar({
 
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
-  const [activeAthleticsTab, setActiveAthleticsTab] = useState<AthleticsTab>('sports')
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
 
@@ -218,23 +213,15 @@ export default function Sidebar({
       const event = e as CustomEvent<{
         campuses: AthleticsCampus[]
         activeCampusId: string | null
-        activeTab: AthleticsTab
       }>
       if (event.detail) {
         setAthleticsCampuses(event.detail.campuses)
         if (event.detail.activeCampusId) setAthleticsCampusId(event.detail.activeCampusId)
-        if (event.detail.activeTab) setActiveAthleticsTab(event.detail.activeTab)
       }
     }
-    const handleAthleticsTabRequest = (e: Event) => {
-      const event = e as CustomEvent<{ tab: AthleticsTab }>
-      if (event.detail?.tab) setActiveAthleticsTab(event.detail.tab)
-    }
     window.addEventListener('athletics-sidebar-data', handleAthleticsData)
-    window.addEventListener('athletics-tab-request', handleAthleticsTabRequest)
     return () => {
       window.removeEventListener('athletics-sidebar-data', handleAthleticsData)
-      window.removeEventListener('athletics-tab-request', handleAthleticsTabRequest)
     }
   }, [])
 
@@ -357,13 +344,6 @@ export default function Sidebar({
       setAthleticsOpen(false)
       router.push('/dashboard')
     }
-  }
-
-  const handleAthleticsTabClick = (tab: AthleticsTab) => {
-    setActiveAthleticsTab(tab)
-    window.dispatchEvent(
-      new CustomEvent('athletics-tab-change', { detail: { tab } })
-    )
   }
 
   const handleAthleticsCampusClick = (campusId: string) => {
@@ -816,15 +796,6 @@ export default function Sidebar({
     </div>
   )
 
-  const athleticsSubTabs: { id: AthleticsTab; label: string; icon: typeof Dribbble }[] = [
-    { id: 'sports', label: 'Sports', icon: Dribbble },
-    { id: 'teams', label: 'Teams', icon: Users },
-    { id: 'schedule', label: 'Schedule', icon: CalendarDays },
-    { id: 'roster', label: 'Roster', icon: ClipboardList },
-    { id: 'tournaments', label: 'Tournaments', icon: Trophy },
-    { id: 'stats', label: 'Stats', icon: BarChart3 },
-  ]
-
   const athleticsNavContent = (
     <div className="flex flex-col h-full bg-[#f0f3f9]">
       {/* Athletics Header */}
@@ -864,37 +835,6 @@ export default function Sidebar({
         </div>
       )}
 
-      {/* Divider */}
-      <div className="px-5 py-2">
-        <div className="h-px bg-gray-200" />
-      </div>
-
-      {/* Navigation */}
-      <div className="px-3 pb-4">
-        <p className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase px-2 mb-2">
-          Navigation
-        </p>
-        <nav className="space-y-0.5" aria-label="Athletics navigation">
-          {athleticsSubTabs.map((tab) => {
-            const Icon = tab.icon
-            const isTabActive = activeAthleticsTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleAthleticsTabClick(tab.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                  isTabActive
-                    ? 'bg-[#dde6f5] text-primary-600 font-medium'
-                    : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
-                }`}
-              >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-gray-400'}`} />
-                {tab.label}
-              </button>
-            )
-          })}
-        </nav>
-      </div>
     </div>
   )
 
