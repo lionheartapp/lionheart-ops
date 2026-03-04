@@ -116,7 +116,7 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Season
@@ -156,7 +156,7 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
               type="checkbox"
               checked={form.isCurrent}
               onChange={(e) => setForm({ ...form, isCurrent: e.target.checked })}
-              className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+              className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
             />
             Mark as current season
           </label>

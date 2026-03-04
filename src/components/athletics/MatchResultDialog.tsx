@@ -179,7 +179,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                   type="button"
                   onClick={handleClear}
                   disabled={saving}
-                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Clear

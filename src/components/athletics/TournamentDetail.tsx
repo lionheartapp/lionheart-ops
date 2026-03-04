@@ -159,7 +159,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
     return (
       <div className="text-center py-12">
         <p className="text-sm text-gray-500">Tournament not found</p>
-        <button onClick={onBack} className="mt-2 text-sm text-amber-600 hover:text-amber-700">
+        <button onClick={onBack} className="mt-2 text-sm text-primary-600 hover:text-primary-700">
           Go back
         </button>
       </div>
@@ -203,7 +203,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
           <button
             onClick={() => setShowRegenConfirm(true)}
             disabled={generating || selectedTeamIds.size < 2}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Regenerate
@@ -221,7 +221,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-700">Select Teams</h3>
             {teams.length > 0 && (
-              <button onClick={selectAll} className="text-xs text-amber-600 hover:text-amber-700">
+              <button onClick={selectAll} className="text-xs text-primary-600 hover:text-primary-700">
                 {selectedTeamIds.size === teams.length ? 'Deselect All' : 'Select All'}
               </button>
             )}
@@ -241,7 +241,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                       key={team.id}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition ${
                         checked
-                          ? 'border-amber-300 bg-amber-50'
+                          ? 'border-primary-300 bg-primary-50'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
@@ -249,7 +249,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleTeam(team.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
                         <span

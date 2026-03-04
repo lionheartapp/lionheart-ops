@@ -38,6 +38,9 @@ const orgScopedModels = new Set([
 	'Game',
 	'Practice',
 	'Tournament',
+	'AthleticRoster',
+	'PlayerGameStat',
+	'SportStatConfig',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 
 const db = prisma as any
 
@@ -587,4 +588,422 @@ export async function clearMatchResult(bracketId: string) {
   }
 
   return { success: true }
+}
+
+// ── Roster ────────────────────────────────────────────────────────────────
+
+export async function getRoster(filters?: { teamId?: string; isActive?: boolean }) {
+  return db.athleticRoster.findMany({
+    where: {
+      ...(filters?.teamId ? { athleticTeamId: filters.teamId } : {}),
+      ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}),
+    },
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      athleticTeam: { select: { id: true, name: true, sport: { select: { name: true, color: true } } } },
+    },
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+  })
+}
+
+export async function getRosterPlayer(id: string) {
+  return db.athleticRoster.findUnique({
+    where: { id },
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      athleticTeam: { select: { id: true, name: true, sport: { select: { name: true, color: true } } } },
+      gameStats: {
+        include: { game: { select: { id: true, opponentName: true, startTime: true, isFinal: true } } },
+        orderBy: { game: { startTime: 'desc' } },
+      },
+    },
+  })
+}
+
+export async function createRosterPlayer(data: {
+  athleticTeamId: string
+  firstName: string
+  lastName: string
+  jerseyNumber?: string
+  position?: string
+  grade?: string
+  height?: string
+  weight?: string
+  userId?: string
+}) {
+  return db.athleticRoster.create({
+    data: {
+      athleticTeamId: data.athleticTeamId,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      jerseyNumber: data.jerseyNumber || null,
+      position: data.position || null,
+      grade: data.grade || null,
+      height: data.height || null,
+      weight: data.weight || null,
+      userId: data.userId || null,
+    },
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      athleticTeam: { select: { id: true, name: true } },
+    },
+  })
+}
+
+export async function updateRosterPlayer(id: string, data: {
+  firstName?: string
+  lastName?: string
+  jerseyNumber?: string | null
+  position?: string | null
+  grade?: string | null
+  height?: string | null
+  weight?: string | null
+  userId?: string | null
+  isActive?: boolean
+}) {
+  return db.athleticRoster.update({
+    where: { id },
+    data,
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      athleticTeam: { select: { id: true, name: true } },
+    },
+  })
+}
+
+export async function deleteRosterPlayer(id: string) {
+  return db.athleticRoster.delete({ where: { id } })
+}
+
+// ── Player Game Stats ─────────────────────────────────────────────────────
+
+export async function getPlayerGameStats(filters: { gameId?: string; rosterId?: string }) {
+  return db.playerGameStat.findMany({
+    where: {
+      ...(filters.gameId ? { gameId: filters.gameId } : {}),
+      ...(filters.rosterId ? { rosterId: filters.rosterId } : {}),
+    },
+    include: {
+      roster: { select: { id: true, firstName: true, lastName: true, jerseyNumber: true } },
+      game: { select: { id: true, opponentName: true, startTime: true } },
+    },
+    orderBy: { statKey: 'asc' },
+  })
+}
+
+export async function upsertPlayerGameStat(data: {
+  rosterId: string
+  gameId: string
+  statKey: string
+  statValue: number
+}) {
+  return db.playerGameStat.upsert({
+    where: {
+      rosterId_gameId_statKey: {
+        rosterId: data.rosterId,
+        gameId: data.gameId,
+        statKey: data.statKey,
+      },
+    },
+    create: {
+      rosterId: data.rosterId,
+      gameId: data.gameId,
+      statKey: data.statKey,
+      statValue: data.statValue,
+    },
+    update: {
+      statValue: data.statValue,
+    },
+  })
+}
+
+export async function bulkUpsertPlayerGameStats(
+  stats: Array<{ rosterId: string; gameId: string; statKey: string; statValue: number }>
+) {
+  const results = []
+  for (const stat of stats) {
+    results.push(await upsertPlayerGameStat(stat))
+  }
+  return results
+}
+
+export async function deletePlayerGameStats(gameId: string, rosterId?: string) {
+  return db.playerGameStat.deleteMany({
+    where: {
+      gameId,
+      ...(rosterId ? { rosterId } : {}),
+    },
+  })
+}
+
+// ── Sport Stat Configs ────────────────────────────────────────────────────
+
+export async function getSportStatConfigs(sportId: string) {
+  return db.sportStatConfig.findMany({
+    where: { sportId, isActive: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+}
+
+export async function upsertSportStatConfig(data: {
+  sportId: string
+  statKey: string
+  label: string
+  sortOrder?: number
+}) {
+  return db.sportStatConfig.upsert({
+    where: {
+      sportId_statKey: {
+        sportId: data.sportId,
+        statKey: data.statKey,
+      },
+    },
+    create: {
+      sportId: data.sportId,
+      statKey: data.statKey,
+      label: data.label,
+      sortOrder: data.sortOrder ?? 0,
+      isActive: true,
+    },
+    update: {
+      label: data.label,
+      sortOrder: data.sortOrder ?? 0,
+      isActive: true,
+    },
+  })
+}
+
+export async function deleteSportStatConfig(id: string) {
+  return db.sportStatConfig.update({
+    where: { id },
+    data: { isActive: false },
+  })
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────
+
+export async function getTeamStandings(filters?: { sportId?: string; seasonId?: string }) {
+  const teams = await db.athleticTeam.findMany({
+    where: {
+      ...(filters?.sportId ? { sportId: filters.sportId } : {}),
+      ...(filters?.seasonId ? { seasonId: filters.seasonId } : {}),
+    },
+    include: {
+      sport: { select: { id: true, name: true, color: true } },
+      season: { select: { id: true, name: true } },
+      games: { where: { isFinal: true } },
+      _count: { select: { roster: true } },
+    },
+  })
+
+  const standings = teams.map((team: any) => {
+    let wins = 0, losses = 0, ties = 0
+    for (const g of team.games) {
+      if (g.homeScore == null || g.awayScore == null) continue
+      if (g.homeScore === g.awayScore) { ties++; continue }
+      const isHome = g.homeAway === 'HOME'
+      const homeWon = g.homeScore > g.awayScore
+      if ((isHome && homeWon) || (!isHome && !homeWon)) wins++
+      else losses++
+    }
+    const gp = wins + losses + ties
+    return {
+      teamId: team.id,
+      teamName: team.name,
+      level: team.level,
+      sport: team.sport,
+      season: team.season,
+      wins,
+      losses,
+      ties,
+      gamesPlayed: gp,
+      winPct: gp > 0 ? wins / gp : 0,
+      rosterCount: team._count.roster,
+    }
+  })
+
+  standings.sort((a: any, b: any) => b.winPct - a.winPct || b.wins - a.wins)
+  return standings
+}
+
+export async function getPlayerStatLeaders(filters: {
+  sportId?: string
+  seasonId?: string
+  statKey: string
+  limit?: number
+}) {
+  const limit = filters.limit || 20
+
+  // Build team filter conditions
+  const teamWhere: Record<string, unknown> = {}
+  if (filters.sportId) teamWhere.sportId = filters.sportId
+  if (filters.seasonId) teamWhere.seasonId = filters.seasonId
+
+  const stats = await db.playerGameStat.findMany({
+    where: {
+      statKey: filters.statKey,
+      roster: {
+        athleticTeam: Object.keys(teamWhere).length > 0 ? teamWhere : undefined,
+      },
+    },
+    include: {
+      roster: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          jerseyNumber: true,
+          athleticTeam: { select: { id: true, name: true, sport: { select: { name: true } } } },
+        },
+      },
+    },
+  })
+
+  // Aggregate by player
+  const playerMap = new Map<string, { roster: any; total: number; games: number }>()
+  for (const stat of stats) {
+    const key = stat.rosterId
+    const existing = playerMap.get(key)
+    if (existing) {
+      existing.total += stat.statValue
+      existing.games++
+    } else {
+      playerMap.set(key, { roster: stat.roster, total: stat.statValue, games: 1 })
+    }
+  }
+
+  const leaders = Array.from(playerMap.values())
+    .map((p) => ({
+      ...p,
+      average: p.games > 0 ? p.total / p.games : 0,
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit)
+    .map((p, i) => ({
+      rank: i + 1,
+      rosterId: p.roster.id,
+      playerName: `${p.roster.firstName} ${p.roster.lastName}`,
+      jerseyNumber: p.roster.jerseyNumber,
+      team: p.roster.athleticTeam,
+      total: p.total,
+      gamesPlayed: p.games,
+      average: Math.round(p.average * 100) / 100,
+    }))
+
+  return leaders
+}
+
+// ── Public Data ───────────────────────────────────────────────────────────
+
+export async function getPublicScheduleData(orgSlug: string) {
+  const org = await rawPrisma.organization.findUnique({
+    where: { slug: orgSlug },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logoUrl: true,
+      theme: true,
+    },
+  })
+  if (!org) return null
+
+  const now = new Date()
+
+  const sports = await rawPrisma.sport.findMany({
+    where: { organizationId: org.id, isActive: true },
+    select: { id: true, name: true, color: true, abbreviation: true },
+    orderBy: { name: 'asc' },
+  })
+
+  const seasons = await rawPrisma.athleticSeason.findMany({
+    where: { organizationId: org.id, isCurrent: true },
+    select: { id: true, name: true, sportId: true },
+  })
+
+  const currentSeasonIds = seasons.map((s) => s.id)
+
+  const teams = await rawPrisma.athleticTeam.findMany({
+    where: { organizationId: org.id, seasonId: { in: currentSeasonIds } },
+    select: {
+      id: true,
+      name: true,
+      level: true,
+      sportId: true,
+      calendarId: true,
+      sport: { select: { name: true, color: true } },
+    },
+  })
+
+  const teamIds = teams.map((t) => t.id)
+
+  const games = await rawPrisma.game.findMany({
+    where: { organizationId: org.id, athleticTeamId: { in: teamIds } },
+    select: {
+      id: true,
+      opponentName: true,
+      homeAway: true,
+      startTime: true,
+      endTime: true,
+      venue: true,
+      homeScore: true,
+      awayScore: true,
+      isFinal: true,
+      athleticTeamId: true,
+      athleticTeam: { select: { name: true, level: true, sport: { select: { name: true, color: true } } } },
+    },
+    orderBy: { startTime: 'asc' },
+  })
+
+  const upcoming = games.filter((g) => new Date(g.startTime) >= now)
+  const recent = games.filter((g) => new Date(g.startTime) < now && g.isFinal).reverse().slice(0, 20)
+
+  // Build standings per sport
+  const standingsBySport: Record<string, any[]> = {}
+  for (const sport of sports) {
+    const sportTeams = teams.filter((t) => t.sportId === sport.id)
+    const sportGames = games.filter((g) => sportTeams.some((t) => t.id === g.athleticTeamId))
+
+    const teamStandings = sportTeams.map((team) => {
+      const tGames = sportGames.filter((g) => g.athleticTeamId === team.id && g.isFinal)
+      let wins = 0, losses = 0, ties = 0
+      for (const g of tGames) {
+        if (g.homeScore == null || g.awayScore == null) continue
+        if (g.homeScore === g.awayScore) { ties++; continue }
+        const isHome = g.homeAway === 'HOME'
+        const homeWon = g.homeScore > g.awayScore
+        if ((isHome && homeWon) || (!isHome && !homeWon)) wins++
+        else losses++
+      }
+      return { teamName: team.name, level: team.level, wins, losses, ties }
+    })
+
+    teamStandings.sort((a, b) => {
+      const aGp = a.wins + a.losses + a.ties
+      const bGp = b.wins + b.losses + b.ties
+      const aWp = aGp > 0 ? a.wins / aGp : 0
+      const bWp = bGp > 0 ? b.wins / bGp : 0
+      return bWp - aWp || b.wins - a.wins
+    })
+
+    if (teamStandings.length > 0) {
+      standingsBySport[sport.id] = teamStandings
+    }
+  }
+
+  // Collect calendar IDs for iCal feed
+  const calendarTeams = teams
+    .filter((t) => t.calendarId)
+    .map((t) => ({ teamId: t.id, teamName: t.name, calendarId: t.calendarId!, sportName: t.sport.name }))
+
+  return {
+    organization: org,
+    sports,
+    seasons,
+    teams: teams.map((t) => ({ id: t.id, name: t.name, level: t.level, sportId: t.sportId, sport: t.sport })),
+    upcoming,
+    recent,
+    standingsBySport,
+    calendarTeams,
+  }
 }

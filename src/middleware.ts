@@ -55,6 +55,7 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/branding')) return true
   if (pathname.startsWith('/api/organizations/slug-check')) return true
   if (pathname.startsWith('/api/organizations/signup')) return true
+  if (pathname.startsWith('/api/public/')) return true
   return false
 }
 
@@ -134,6 +135,10 @@ export async function middleware(req: NextRequest) {
 
   // Allow onboarding pages to pass through (frontend-only, no org context needed at page level)
   if (pathname.startsWith('/onboarding')) {
+    return NextResponse.next({ request: { headers: requestHeaders } })
+  }
+
+  if (pathname.startsWith('/athletics/public')) {
     return NextResponse.next({ request: { headers: requestHeaders } })
   }
 

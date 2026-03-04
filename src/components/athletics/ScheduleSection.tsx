@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Plus, CalendarDays, Trash2, Edit2, Trophy } from 'lucide-react'
+import { Plus, CalendarDays, Trash2, Edit2, Trophy, ClipboardList } from 'lucide-react'
 import { RRule } from 'rrule'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import GameDrawer from '@/components/athletics/GameDrawer'
 import PracticeDrawer from '@/components/athletics/PracticeDrawer'
 import ScoreDialog from '@/components/athletics/ScoreDialog'
+import PlayerStatsDialog from '@/components/athletics/PlayerStatsDialog'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -188,6 +189,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
   const [editingGame, setEditingGame] = useState<Game | null>(null)
   const [practiceDrawerOpen, setPracticeDrawerOpen] = useState(false)
   const [scoreGame, setScoreGame] = useState<Game | null>(null)
+  const [playerStatsGame, setPlayerStatsGame] = useState<Game | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'game' | 'practice'; id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -489,7 +491,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
             <button
               type="button"
               onClick={openGameCreate}
-              className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               Add a game
             </button>
@@ -497,7 +499,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
             <button
               type="button"
               onClick={() => setPracticeDrawerOpen(true)}
-              className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               Add a practice
             </button>
@@ -518,6 +520,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
                       game={item.data}
                       onEdit={() => openGameEdit(item.data)}
                       onScore={() => setScoreGame(item.data)}
+                      onPlayerStats={() => setPlayerStatsGame(item.data)}
                       onDelete={() => setDeleteTarget({
                         type: 'game',
                         id: item.data.id,
@@ -567,6 +570,14 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
         onClose={() => setScoreGame(null)}
         onSaved={refreshSchedule}
         game={scoreGame}
+        onOpenPlayerStats={(g) => setPlayerStatsGame(g as unknown as Game)}
+      />
+
+      <PlayerStatsDialog
+        isOpen={!!playerStatsGame}
+        onClose={() => setPlayerStatsGame(null)}
+        onSaved={refreshSchedule}
+        game={playerStatsGame}
       />
 
       <ConfirmDialog
@@ -590,11 +601,13 @@ function GameRow({
   game,
   onEdit,
   onScore,
+  onPlayerStats,
   onDelete,
 }: {
   game: Game
   onEdit: () => void
   onScore: () => void
+  onPlayerStats: () => void
   onDelete: () => void
 }) {
   const sportColor = game.athleticTeam?.sport?.color || '#6b7280'
@@ -608,7 +621,7 @@ function GameRow({
         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
         style={{ backgroundColor: sportColor }}
       />
-      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 rounded">
+      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-700 bg-primary-50 rounded">
         Game
       </span>
       <div className="flex-1 min-w-0">
@@ -636,6 +649,7 @@ function GameRow({
         items={[
           { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: onEdit },
           { label: 'Score', icon: <Trophy className="w-4 h-4" />, onClick: onScore },
+          { label: 'Player Stats', icon: <ClipboardList className="w-4 h-4" />, onClick: onPlayerStats },
           { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: onDelete, variant: 'danger' },
         ]}
       />

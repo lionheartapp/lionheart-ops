@@ -85,6 +85,9 @@ model Organization {
   games               Game[]
   practices           Practice[]
   tournaments         Tournament[]
+  athleticRosters     AthleticRoster[]
+  playerGameStats     PlayerGameStat[]
+  sportStatConfigs    SportStatConfig[]
 
   @@index([onboardingStatus])
 }
@@ -136,6 +139,7 @@ model User {
   planningComments      PlanningComment[]    @relation("PlanningCommentAuthor")
   ownedCalendars        Calendar[]           @relation("CalendarOwner")
   notifications         Notification[]
+  athleticRosters       AthleticRoster[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -1630,6 +1634,7 @@ model Sport {
   athleticSeasons AthleticSeason[]
   athleticTeams   AthleticTeam[]
   tournaments     Tournament[]
+  statConfigs     SportStatConfig[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isActive])
@@ -1676,6 +1681,7 @@ model AthleticTeam {
   homeBrackets TournamentBracket[] @relation("BracketTeam1")
   awayBrackets TournamentBracket[] @relation("BracketTeam2")
   winBrackets  TournamentBracket[] @relation("BracketWinner")
+  roster       AthleticRoster[]
 
   @@index([organizationId])
   @@index([sportId])
@@ -1702,6 +1708,7 @@ model Game {
   organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   athleticTeam  AthleticTeam  @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
   bracketEntry  TournamentBracket? @relation("BracketGame")
+  playerStats   PlayerGameStat[]
 
   @@index([organizationId])
   @@index([athleticTeamId])
@@ -1765,6 +1772,72 @@ model TournamentBracket {
   game       Game?         @relation("BracketGame", fields: [gameId], references: [id], onDelete: SetNull)
 
   @@index([tournamentId, round])
+}
+
+model AthleticRoster {
+  id             String   @id @default(cuid())
+  organizationId String
+  athleticTeamId String
+  firstName      String
+  lastName       String
+  jerseyNumber   String?
+  position       String?
+  grade          String?
+  height         String?
+  weight         String?
+  userId         String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticTeam AthleticTeam @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  gameStats    PlayerGameStat[]
+
+  @@unique([athleticTeamId, jerseyNumber])
+  @@index([organizationId])
+  @@index([athleticTeamId])
+  @@index([userId])
+}
+
+model PlayerGameStat {
+  id             String   @id @default(cuid())
+  organizationId String
+  rosterId       String
+  gameId         String
+  statKey        String
+  statValue      Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roster       AthleticRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  game         Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([rosterId, gameId, statKey])
+  @@index([organizationId])
+  @@index([rosterId])
+  @@index([gameId])
+}
+
+model SportStatConfig {
+  id             String   @id @default(cuid())
+  organizationId String
+  sportId        String
+  statKey        String
+  label          String
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sport        Sport        @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@unique([sportId, statKey])
+  @@index([organizationId])
+  @@index([sportId])
 }
 
 enum SportSeasonType {

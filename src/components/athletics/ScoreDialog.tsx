@@ -9,10 +9,14 @@ interface Game {
   id: string
   opponentName: string
   homeAway: string
+  startTime: string
+  endTime: string
+  venue: string | null
   homeScore: number | null
   awayScore: number | null
   isFinal: boolean
-  athleticTeam?: { name: string }
+  athleticTeamId: string
+  athleticTeam?: { id: string; name: string; sport: { name: string; color: string } }
 }
 
 interface ScoreDialogProps {
@@ -20,9 +24,10 @@ interface ScoreDialogProps {
   onClose: () => void
   onSaved: () => void
   game: Game | null
+  onOpenPlayerStats?: (game: Game) => void
 }
 
-export default function ScoreDialog({ isOpen, onClose, onSaved, game }: ScoreDialogProps) {
+export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlayerStats }: ScoreDialogProps) {
   const [homeScore, setHomeScore] = useState('')
   const [awayScore, setAwayScore] = useState('')
   const [isFinal, setIsFinal] = useState(false)
@@ -138,7 +143,7 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game }: ScoreDia
                 type="checkbox"
                 checked={isFinal}
                 onChange={(e) => setIsFinal(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+                className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
               />
               <span className="text-sm text-gray-700">Mark as final</span>
             </label>
@@ -163,6 +168,16 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game }: ScoreDia
                 {saving ? 'Saving...' : 'Save Score'}
               </button>
             </div>
+
+            {onOpenPlayerStats && game && (
+              <button
+                type="button"
+                onClick={() => { onClose(); onOpenPlayerStats(game) }}
+                className="w-full mt-2 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition text-center"
+              >
+                Enter Player Stats
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -167,7 +167,7 @@ export default function SportsSection() {
             <button
               type="button"
               onClick={() => setCreateOpen(true)}
-              className="mt-3 text-sm text-amber-600 hover:text-amber-700 font-medium"
+              className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               Create your first sport
             </button>

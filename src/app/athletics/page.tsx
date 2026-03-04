@@ -6,11 +6,13 @@ import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { Trophy, Building2, Dribbble, Users, CalendarDays } from 'lucide-react'
+import { Trophy, Building2, Dribbble, Users, CalendarDays, ClipboardList, BarChart3 } from 'lucide-react'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
 import ScheduleSection from '@/components/athletics/ScheduleSection'
 import TournamentsSection from '@/components/athletics/TournamentsSection'
+import RosterSection from '@/components/athletics/RosterSection'
+import StatsSection from '@/components/athletics/StatsSection'
 
 interface Campus {
   id: string
@@ -28,13 +30,15 @@ async function fetchCampuses(): Promise<Campus[]> {
   return data.ok ? data.data : []
 }
 
-type SubTab = 'sports' | 'teams' | 'schedule' | 'tournaments'
+type SubTab = 'sports' | 'teams' | 'schedule' | 'tournaments' | 'roster' | 'stats'
 
 const SUB_TABS: { key: SubTab; label: string; icon: typeof Dribbble }[] = [
   { key: 'sports', label: 'Sports', icon: Dribbble },
   { key: 'teams', label: 'Teams', icon: Users },
   { key: 'schedule', label: 'Schedule', icon: CalendarDays },
+  { key: 'roster', label: 'Roster', icon: ClipboardList },
   { key: 'tournaments', label: 'Tournaments', icon: Trophy },
+  { key: 'stats', label: 'Stats', icon: BarChart3 },
 ]
 
 export default function AthleticsPage() {
@@ -109,8 +113,8 @@ export default function AthleticsPage() {
         <div>
           {/* Page header */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-amber-500" />
+            <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">Athletics</h1>
@@ -127,7 +131,7 @@ export default function AthleticsPage() {
                   onClick={() => setSelectedCampusId(campus.id)}
                   className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                     activeCampusId === campus.id
-                      ? 'border-amber-500 text-amber-700'
+                      ? 'border-primary-500 text-primary-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -147,15 +151,15 @@ export default function AthleticsPage() {
           )}
 
           {/* Sub-navigation tabs */}
-          <div className="flex gap-1 mb-6">
+          <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1">
             {SUB_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full transition-all ${
                   activeTab === key
-                    ? 'bg-amber-50 text-amber-700'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -168,7 +172,9 @@ export default function AthleticsPage() {
           {activeTab === 'sports' && <SportsSection />}
           {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} />}
           {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} />}
+          {activeTab === 'roster' && <RosterSection activeCampusId={activeCampusId} />}
           {activeTab === 'tournaments' && <TournamentsSection activeCampusId={activeCampusId} />}
+          {activeTab === 'stats' && <StatsSection activeCampusId={activeCampusId} />}
         </div>
       </ModuleGate>
     </DashboardLayout>

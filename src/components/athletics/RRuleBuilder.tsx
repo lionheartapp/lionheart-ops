@@ -102,7 +102,7 @@ export default function RRuleBuilder({ value, onChange }: RRuleBuilderProps) {
               onClick={() => toggleDay(idx)}
               className={`w-9 h-9 rounded-full text-xs font-semibold transition-colors ${
                 selectedDays.includes(idx)
-                  ? 'bg-amber-500 text-white'
+                  ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
               title={day.label}
