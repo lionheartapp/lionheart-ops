@@ -516,7 +516,7 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={() => handleSettingsTabClick(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     isTabActive
                       ? 'bg-[#dde6f5] text-primary-600 font-medium'
                       : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
