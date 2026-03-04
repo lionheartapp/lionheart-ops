@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { rawPrisma } from '@/lib/db'
+import { RRule } from 'rrule'
 
 const db = prisma as any
 
@@ -912,6 +913,255 @@ export async function getPlayerStatLeaders(filters: {
     }))
 
   return leaders
+}
+
+// ── Calendar Events (virtual overlay) ─────────────────────────────────────
+
+export interface AthleticsCalendarEvent {
+  id: string
+  calendarId: string
+  title: string
+  description: string | null
+  startTime: string
+  endTime: string
+  timezone: string
+  isAllDay: boolean
+  calendarStatus: string
+  rrule: null
+  parentEventId: null
+  isException: false
+  locationText: string | null
+  categoryId: null
+  metadata: {
+    athleticsType: 'game' | 'practice'
+    sportId: string
+    sportName: string
+    sportColor: string
+    teamId: string
+    teamName: string
+    teamLevel: string
+    schoolId: string | null
+    campusId: string
+    opponentName?: string
+    homeAway?: string
+    venue?: string
+    homeScore?: number | null
+    awayScore?: number | null
+    isFinal?: boolean
+    location?: string | null
+    notes?: string | null
+  }
+  calendar: {
+    id: string
+    name: string
+    color: string
+    calendarType: 'ATHLETICS'
+    campus: { id: string; name: string } | null
+  }
+  category: null
+  building: null
+  area: null
+  createdBy: null
+  attendees: []
+}
+
+export async function getAthleticsCalendarEvents(
+  campusIds: string[],
+  start: Date,
+  end: Date,
+): Promise<AthleticsCalendarEvent[]> {
+  if (campusIds.length === 0) return []
+
+  // 1. Resolve campusId → schoolIds (School.campusId)
+  const schools = await db.school.findMany({
+    where: { campusId: { in: campusIds } },
+    select: { id: true, campusId: true, name: true },
+  })
+  if (schools.length === 0) return []
+
+  const schoolIdToCampusId = new Map<string, string>(
+    schools.map((s: { id: string; campusId: string }) => [s.id, s.campusId!])
+  )
+  const schoolIds = schools.map((s: { id: string }) => s.id)
+
+  // Build a campus name lookup from the campusIds
+  const campuses = await db.campus.findMany({
+    where: { id: { in: campusIds } },
+    select: { id: true, name: true },
+  })
+  const campusNameMap = new Map<string, string>(
+    campuses.map((c: { id: string; name: string }) => [c.id, c.name])
+  )
+
+  // 2. Fetch teams with schoolId in our set
+  const teams = await db.athleticTeam.findMany({
+    where: { schoolId: { in: schoolIds } },
+    include: {
+      sport: { select: { id: true, name: true, color: true } },
+    },
+  })
+  if (teams.length === 0) return []
+
+  const teamIds = teams.map((t: any) => t.id as string)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const teamMap = new Map<string, any>(teams.map((t: any) => [t.id, t]))
+
+  // 3. Fetch games in date range
+  const games = await db.game.findMany({
+    where: {
+      athleticTeamId: { in: teamIds },
+      startTime: { gte: start, lte: end },
+    },
+    orderBy: { startTime: 'asc' },
+  })
+
+  // 4. Fetch practices (non-recurring in range, plus all recurring to expand)
+  const practices = await db.practice.findMany({
+    where: {
+      athleticTeamId: { in: teamIds },
+      OR: [
+        { rrule: null, startTime: { gte: start, lte: end } },
+        { rrule: { not: null } },
+      ],
+    },
+  })
+
+  const results: AthleticsCalendarEvent[] = []
+
+  // Transform games
+  for (const game of games) {
+    const team = teamMap.get(game.athleticTeamId)
+    if (!team) continue
+    const campusId = schoolIdToCampusId.get(team.schoolId) || campusIds[0]
+    const prefix = game.homeAway === 'AWAY' ? '@ ' : 'vs '
+
+    results.push({
+      id: `ath-game-${game.id}`,
+      calendarId: `athletics-${campusId}`,
+      title: `${team.sport.name}: ${team.name} ${prefix}${game.opponentName}`,
+      description: null,
+      startTime: game.startTime.toISOString(),
+      endTime: game.endTime.toISOString(),
+      timezone: 'America/Chicago',
+      isAllDay: false,
+      calendarStatus: 'CONFIRMED',
+      rrule: null,
+      parentEventId: null,
+      isException: false,
+      locationText: game.venue || null,
+      categoryId: null,
+      metadata: {
+        athleticsType: 'game',
+        sportId: team.sport.id,
+        sportName: team.sport.name,
+        sportColor: team.sport.color,
+        teamId: team.id,
+        teamName: team.name,
+        teamLevel: team.level,
+        schoolId: team.schoolId,
+        campusId,
+        opponentName: game.opponentName,
+        homeAway: game.homeAway,
+        venue: game.venue,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
+        isFinal: game.isFinal,
+      },
+      calendar: {
+        id: `athletics-${campusId}`,
+        name: 'Athletics',
+        color: team.sport.color || '#6b7280',
+        calendarType: 'ATHLETICS',
+        campus: { id: campusId, name: campusNameMap.get(campusId) || 'Campus' },
+      },
+      category: null,
+      building: null,
+      area: null,
+      createdBy: null,
+      attendees: [],
+    })
+  }
+
+  // Transform practices (expand recurring)
+  for (const practice of practices) {
+    const team = teamMap.get(practice.athleticTeamId)
+    if (!team) continue
+    const campusId = schoolIdToCampusId.get(team.schoolId) || campusIds[0]
+    const duration = new Date(practice.endTime).getTime() - new Date(practice.startTime).getTime()
+
+    if (practice.rrule) {
+      // Expand recurring practice instances within range
+      try {
+        const rule = RRule.fromString(practice.rrule)
+        const instances = rule.between(start, end, true)
+        for (const instanceDate of instances) {
+          const instanceEnd = new Date(instanceDate.getTime() + duration)
+          results.push(buildPracticeEvent(practice, team, campusId, campusNameMap, instanceDate, instanceEnd))
+        }
+      } catch {
+        // Fallback: treat as non-recurring if rrule parse fails
+        if (new Date(practice.startTime) >= start && new Date(practice.startTime) <= end) {
+          results.push(buildPracticeEvent(practice, team, campusId, campusNameMap, practice.startTime, practice.endTime))
+        }
+      }
+    } else {
+      results.push(buildPracticeEvent(practice, team, campusId, campusNameMap, practice.startTime, practice.endTime))
+    }
+  }
+
+  results.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+  return results
+}
+
+function buildPracticeEvent(
+  practice: any,
+  team: any,
+  campusId: string,
+  campusNameMap: Map<string, string>,
+  startTime: Date,
+  endTime: Date,
+): AthleticsCalendarEvent {
+  return {
+    id: `ath-practice-${practice.id}-${startTime.getTime()}`,
+    calendarId: `athletics-${campusId}`,
+    title: `${team.sport.name} Practice: ${team.name}`,
+    description: practice.notes || null,
+    startTime: startTime instanceof Date ? startTime.toISOString() : new Date(startTime).toISOString(),
+    endTime: endTime instanceof Date ? endTime.toISOString() : new Date(endTime).toISOString(),
+    timezone: 'America/Chicago',
+    isAllDay: false,
+    calendarStatus: 'CONFIRMED',
+    rrule: null,
+    parentEventId: null,
+    isException: false,
+    locationText: practice.location || null,
+    categoryId: null,
+    metadata: {
+      athleticsType: 'practice',
+      sportId: team.sport.id,
+      sportName: team.sport.name,
+      sportColor: team.sport.color,
+      teamId: team.id,
+      teamName: team.name,
+      teamLevel: team.level,
+      schoolId: team.schoolId,
+      campusId,
+      location: practice.location,
+      notes: practice.notes,
+    },
+    calendar: {
+      id: `athletics-${campusId}`,
+      name: 'Athletics',
+      color: team.sport.color || '#6b7280',
+      calendarType: 'ATHLETICS',
+      campus: { id: campusId, name: campusNameMap.get(campusId) || 'Campus' },
+    },
+    category: null,
+    building: null,
+    area: null,
+    createdBy: null,
+    attendees: [],
+  }
 }
 
 // ── Public Data ───────────────────────────────────────────────────────────

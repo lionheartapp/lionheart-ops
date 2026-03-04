@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield } from 'lucide-react'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -189,6 +189,9 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
     setShowAddAttendee(false)
   }, [event?.id])
 
+  const isAthletics = !!(event?.metadata as any)?.athleticsType
+  const athleticsMeta = isAthletics ? (event?.metadata as any) : null
+
   const status = event ? (statusStyles[event.calendarStatus] || statusStyles.DRAFT) : statusStyles.DRAFT
   const approvals = eventDetail?.approvals || []
 
@@ -300,7 +303,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   </span>
                 </div>
                 <div className="flex items-center gap-0.5 -mt-0.5">
-                  {(isAdmin || isCreator) && (
+                  {!isAthletics && (isAdmin || isCreator) && (
                     <button
                       onClick={() => onEdit(event)}
                       className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
@@ -309,7 +312,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                       <Edit className="w-4 h-4 text-gray-400" />
                     </button>
                   )}
-                  {isAdmin && (
+                  {!isAthletics && isAdmin && (
                     <button
                       onClick={() => onDelete(event)}
                       className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
@@ -327,11 +330,93 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   </button>
                 </div>
               </div>
-              <h2 id="detail-panel-title" className="text-xl font-semibold text-gray-900">{event.title}</h2>
+              <h2 id="detail-panel-title" className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                {isAthletics && <Trophy className="w-5 h-5 flex-shrink-0 text-amber-500" />}
+                {event.title}
+              </h2>
             </div>
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 pb-6">
+              {/* Athletics-specific info */}
+              {isAthletics && athleticsMeta && (
+                <div className="mb-4 pb-4 border-b border-gray-100">
+                  {/* Sport badge */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span
+                      className="text-xs font-medium px-2.5 py-1 rounded-full"
+                      style={{
+                        backgroundColor: `${athleticsMeta.sportColor}15`,
+                        color: athleticsMeta.sportColor,
+                      }}
+                    >
+                      {athleticsMeta.sportName}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {athleticsMeta.teamLevel}
+                    </span>
+                  </div>
+
+                  {/* Game-specific details */}
+                  {athleticsMeta.athleticsType === 'game' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <Swords className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <div className="text-sm">
+                          <span className="text-gray-500">
+                            {athleticsMeta.homeAway === 'HOME' ? 'vs' : '@'}{' '}
+                          </span>
+                          <span className="font-medium text-gray-900">{athleticsMeta.opponentName}</span>
+                          <span className="ml-2 text-xs text-gray-400">
+                            ({athleticsMeta.homeAway === 'HOME' ? 'Home' : athleticsMeta.homeAway === 'AWAY' ? 'Away' : 'Neutral'})
+                          </span>
+                        </div>
+                      </div>
+                      {athleticsMeta.venue && (
+                        <div className="flex items-center gap-3">
+                          <MapPinned className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">{athleticsMeta.venue}</span>
+                        </div>
+                      )}
+                      {athleticsMeta.isFinal && athleticsMeta.homeScore != null && athleticsMeta.awayScore != null && (
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="w-4" />
+                          <div className="text-sm font-semibold">
+                            <span className="text-gray-900">
+                              {athleticsMeta.homeAway === 'HOME' ? athleticsMeta.homeScore : athleticsMeta.awayScore}
+                            </span>
+                            <span className="text-gray-400 mx-1">–</span>
+                            <span className="text-gray-900">
+                              {athleticsMeta.homeAway === 'HOME' ? athleticsMeta.awayScore : athleticsMeta.homeScore}
+                            </span>
+                            <span className="ml-2 text-xs font-normal text-gray-400">Final</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Practice-specific details */}
+                  {athleticsMeta.athleticsType === 'practice' && (
+                    <div className="space-y-2">
+                      {athleticsMeta.location && (
+                        <div className="flex items-center gap-3">
+                          <MapPinned className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">{athleticsMeta.location}</span>
+                        </div>
+                      )}
+                      {athleticsMeta.notes && (
+                        <p className="text-sm text-gray-600 pl-7">{athleticsMeta.notes}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-400 mt-3">
+                    Managed from the Athletics tab
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-1">
                 {/* Date/Time — icon row */}
                 <div className="flex items-start gap-4 py-3">

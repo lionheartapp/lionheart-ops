@@ -60,6 +60,16 @@ export const queryKeys = {
     list: (cursor?: string) => ['notifications', { cursor }] as const,
     unreadCount: ['notifications', 'unread-count'] as const,
   },
+
+  // Athletics Calendar
+  athleticsCalendar: {
+    all: ['athletics-calendar-events'] as const,
+    range: (campusIds: string[], start: string, end: string) =>
+      ['athletics-calendar-events', campusIds.join(','), start, end] as const,
+  },
+  athleticsSports: {
+    all: ['athletics-sports'] as const,
+  },
 } as const
 
 // ─── Query Option Factories ────────────────────────────────────────────
@@ -135,5 +145,20 @@ export const queryOptions = {
       return fetchApi<unknown[]>(`/api/calendar-events?${params}`)
     },
     staleTime: 5 * 60_000,
+  }),
+
+  athleticsCalendarEvents: (campusIds: string[], start: string, end: string) => ({
+    queryKey: queryKeys.athleticsCalendar.range(campusIds, start, end),
+    queryFn: () => {
+      const params = new URLSearchParams({ campusIds: campusIds.join(','), start, end })
+      return fetchApi<unknown[]>(`/api/athletics/calendar-events?${params}`)
+    },
+    staleTime: 5 * 60_000,
+  }),
+
+  athleticsSports: () => ({
+    queryKey: queryKeys.athleticsSports.all,
+    queryFn: () => fetchApi<unknown[]>('/api/athletics/sports'),
+    staleTime: 10 * 60_000,
   }),
 } as const

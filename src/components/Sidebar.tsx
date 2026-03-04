@@ -156,6 +156,7 @@ export default function Sidebar({
   const [calendarData, setCalendarData] = useState<CalendarSidebarData[]>([])
   const [calendarDataReceived, setCalendarDataReceived] = useState(false)
   const [visibleCalendarIds, setVisibleCalendarIds] = useState<Set<string>>(new Set())
+  const [athleticsVisibleCampusIds, setAthleticsVisibleCampusIds] = useState<Set<string>>(new Set())
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
     new Set(['MASTER', 'MY SCHEDULE'])
   )
@@ -281,6 +282,29 @@ export default function Sidebar({
       const next = new Set(prev)
       if (next.has(type)) next.delete(type)
       else next.add(type)
+      return next
+    })
+  }
+
+  // Athletics calendar toggle — which campuses have athletics module enabled
+  const athleticsEnabledCampusIds = useMemo(() => {
+    return new Set(
+      sidebarModules
+        .filter((m: any) => m.moduleId === 'athletics' && m.campusId)
+        .map((m: any) => m.campusId as string)
+    )
+  }, [sidebarModules])
+
+  const toggleAthleticsCalendar = (campusId: string) => {
+    setAthleticsVisibleCampusIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(campusId)) next.delete(campusId)
+      else next.add(campusId)
+      window.dispatchEvent(
+        new CustomEvent('athletics-calendar-toggle', {
+          detail: { campusId, visible: !prev.has(campusId) },
+        })
+      )
       return next
     })
   }
@@ -467,7 +491,7 @@ export default function Sidebar({
             )
           })}
           {/* Athletics — toggle secondary sidebar (like Settings) */}
-          {athleticsEnabled && (
+          {athleticsEnabled && perms?.canWriteAthletics && (
             <li>
               <button
                 onClick={() => {
@@ -639,6 +663,52 @@ export default function Sidebar({
                       <p className="text-xs text-gray-400">Your personal calendar will appear here</p>
                     </div>
                   )}
+                  {/* Athletics calendar toggles — shown in MASTER section for enabled campuses */}
+                  {!isMySchedule && athleticsEnabledCampusIds.size > 0 && (() => {
+                    // Get unique campus IDs from the calendars in this section
+                    const campusIdsInSection = new Set(
+                      cals.filter((c) => c.campus?.id).map((c) => c.campus!.id)
+                    )
+                    const athleticsCampuses = Array.from(campusIdsInSection).filter((id) => athleticsEnabledCampusIds.has(id))
+                    if (athleticsCampuses.length === 0) return null
+                    return athleticsCampuses.map((campusId) => {
+                      const campusCal = cals.find((c) => c.campus?.id === campusId)
+                      const campusName = campusCal?.campus?.name || 'Campus'
+                      const isAthVisible = athleticsVisibleCampusIds.has(campusId)
+                      return (
+                        <div
+                          key={`athletics-${campusId}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => toggleAthleticsCalendar(campusId)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              toggleAthleticsCalendar(campusId)
+                            }
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition cursor-pointer ${
+                            isAthVisible
+                              ? 'text-gray-700 hover:bg-[#e5eaf5]'
+                              : 'text-gray-400 hover:bg-[#e5eaf5]'
+                          }`}
+                          title={`Athletics — ${campusName}`}
+                        >
+                          <div
+                            className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center transition-colors"
+                            style={{
+                              backgroundColor: isAthVisible ? '#f59e0b' : 'transparent',
+                              border: isAthVisible ? 'none' : '2px solid #f59e0b',
+                            }}
+                          >
+                            {isAthVisible && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
+                          <span className="truncate">Athletics{athleticsCampuses.length > 1 ? ` — ${campusName}` : ''}</span>
+                        </div>
+                      )
+                    })
+                  })()}
                   {cals.map((cal) => {
                     const isVisible = visibleCalendarIds.has(cal.id)
                     const isRenaming = renamingId === cal.id

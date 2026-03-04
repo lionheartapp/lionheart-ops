@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Clock, MapPin } from 'lucide-react'
+import { Clock, MapPin, Trophy } from 'lucide-react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
@@ -223,7 +223,10 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                   <div className="flex-1 min-w-0">
                     {/* Title + calendar chip */}
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-medium text-gray-900 truncate">{event.title}</h4>
+                      <h4 className="font-medium text-gray-900 truncate flex items-center gap-1">
+                        {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
+                        {event.title}
+                      </h4>
                       <span
                         className="text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1"
                         style={{

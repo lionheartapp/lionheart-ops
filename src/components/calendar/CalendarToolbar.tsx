@@ -1,9 +1,17 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Plus, Search, X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight, Plus, Search, X, SlidersHorizontal } from 'lucide-react'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
+import AthleticsFilterPopover, { type AthleticsFilter } from './AthleticsFilterPopover'
 
 interface CategoryChip {
+  id: string
+  name: string
+  color: string
+}
+
+interface SportChip {
   id: string
   name: string
   color: string
@@ -22,6 +30,10 @@ interface CalendarToolbarProps {
   categories: CategoryChip[]
   activeCategories: Set<string>
   onToggleCategory: (categoryId: string) => void
+  athleticsVisible?: boolean
+  athleticsFilter?: AthleticsFilter
+  onAthleticsFilterChange?: (filter: AthleticsFilter) => void
+  sports?: SportChip[]
 }
 
 const viewLabels: Record<CalendarViewType, string> = {
@@ -78,8 +90,18 @@ export default function CalendarToolbar({
   categories,
   activeCategories,
   onToggleCategory,
+  athleticsVisible = false,
+  athleticsFilter,
+  onAthleticsFilterChange,
+  sports = [],
 }: CalendarToolbarProps) {
   const weekDates = getWeekDates(currentDate)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterBtnRef = useRef<HTMLButtonElement>(null)
+
+  const activeFilterCount = athleticsFilter
+    ? athleticsFilter.schoolLevels.size + athleticsFilter.sportIds.size + athleticsFilter.teamLevels.size
+    : 0
 
   return (
     <div className="pb-2">
@@ -191,6 +213,37 @@ export default function CalendarToolbar({
               )
             })}
           </div>
+        )}
+
+        {/* Athletics filter button — shown when athletics is toggled on */}
+        {athleticsVisible && athleticsFilter && onAthleticsFilterChange && (
+          <>
+            <button
+              ref={filterBtnRef}
+              onClick={() => setFilterOpen((o) => !o)}
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                activeFilterCount > 0
+                  ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              Athletics
+              {activeFilterCount > 0 && (
+                <span className="ml-0.5 w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+            <AthleticsFilterPopover
+              isOpen={filterOpen}
+              onClose={() => setFilterOpen(false)}
+              filter={athleticsFilter}
+              onFilterChange={onAthleticsFilterChange}
+              sports={sports}
+              anchorRef={filterBtnRef}
+            />
+          </>
         )}
       </div>
 

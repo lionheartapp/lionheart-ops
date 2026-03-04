@@ -31,6 +31,9 @@ import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDial
 import CancellationNotifyDialog from './CancellationNotifyDialog'
 import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
+import { useAthleticsCalendarEvents, useAthleticsSports } from '@/lib/hooks/useAthleticsCalendar'
+import { useModules } from '@/lib/hooks/useModuleEnabled'
+import AthleticsFilterPopover, { type AthleticsFilter } from './AthleticsFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
@@ -193,6 +196,70 @@ export default function CalendarView() {
     ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
     : []
 
+  // ── Athletics calendar overlay ──────────────────────────────────────
+  const [visibleAthleticsCampusIds, setVisibleAthleticsCampusIds] = useState<Set<string>>(new Set())
+  const [athleticsFilter, setAthleticsFilter] = useState<AthleticsFilter>({
+    schoolLevels: new Set(),
+    sportIds: new Set(),
+    teamLevels: new Set(),
+  })
+
+  // Listen for athletics-calendar-toggle from Sidebar
+  useEffect(() => {
+    const handleToggle = (e: Event) => {
+      const event = e as CustomEvent<{ campusId: string; visible: boolean }>
+      if (event.detail?.campusId) {
+        setVisibleAthleticsCampusIds((prev) => {
+          const next = new Set(prev)
+          if (event.detail.visible) next.add(event.detail.campusId)
+          else next.delete(event.detail.campusId)
+          return next
+        })
+      }
+    }
+    window.addEventListener('athletics-calendar-toggle', handleToggle)
+    return () => window.removeEventListener('athletics-calendar-toggle', handleToggle)
+  }, [])
+
+  const athleticsCampusArray = useMemo(() => Array.from(visibleAthleticsCampusIds), [visibleAthleticsCampusIds])
+  const anyAthleticsVisible = athleticsCampusArray.length > 0
+
+  const { data: athleticsEvents = [] } = useAthleticsCalendarEvents(
+    athleticsCampusArray,
+    start.toISOString(),
+    end.toISOString(),
+    anyAthleticsVisible,
+  )
+  const { data: athleticsSports = [] } = useAthleticsSports(anyAthleticsVisible)
+
+  // Apply athletics filters
+  const filteredAthleticsEvents = useMemo(() => {
+    if (!anyAthleticsVisible) return []
+    let result = athleticsEvents
+    const { schoolLevels, sportIds, teamLevels } = athleticsFilter
+    if (schoolLevels.size > 0) {
+      result = result.filter((e) => {
+        const meta = e.metadata as any
+        // Map gradeLevel values to display labels
+        const level = meta?.schoolLevel || meta?.teamLevel
+        return level && schoolLevels.has(level)
+      })
+    }
+    if (sportIds.size > 0) {
+      result = result.filter((e) => {
+        const meta = e.metadata as any
+        return meta?.sportId && sportIds.has(meta.sportId)
+      })
+    }
+    if (teamLevels.size > 0) {
+      result = result.filter((e) => {
+        const meta = e.metadata as any
+        return meta?.teamLevel && teamLevels.has(meta.teamLevel)
+      })
+    }
+    return result
+  }, [athleticsEvents, athleticsFilter, anyAthleticsVisible])
+
   // Search + category filter state
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set())
@@ -215,8 +282,18 @@ export default function CalendarView() {
     if (activeCategories.size > 0) {
       result = result.filter((e) => e.categoryId && activeCategories.has(e.categoryId))
     }
+    // Merge athletics events (already filtered by athletics filter)
+    if (filteredAthleticsEvents.length > 0) {
+      // Apply search filter to athletics events too
+      let athEvents = filteredAthleticsEvents
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase()
+        athEvents = athEvents.filter((e) => e.title.toLowerCase().includes(q))
+      }
+      result = [...result, ...athEvents]
+    }
     return result
-  }, [events, searchQuery, activeCategories])
+  }, [events, searchQuery, activeCategories, filteredAthleticsEvents])
 
   // Meet-with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
@@ -655,6 +732,10 @@ export default function CalendarView() {
           categories={categories}
           activeCategories={activeCategories}
           onToggleCategory={toggleCategory}
+          athleticsVisible={anyAthleticsVisible}
+          athleticsFilter={athleticsFilter}
+          onAthleticsFilterChange={setAthleticsFilter}
+          sports={athleticsSports}
         />
 
       </div>

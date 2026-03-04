@@ -3,6 +3,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
+import { Trophy } from 'lucide-react'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 import { useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
@@ -279,6 +280,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             color="rgba(255,255,255,0.85)"
                             size={8}
                           />
+                          {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-80" />}
                           <span className="truncate">{event.title}</span>
                         </button>
                       ) : (
@@ -297,6 +299,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             color={getEventColor(event)}
                             size={8}
                           />
+                          {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
                           <span className="truncate">
                             <span className="font-medium">{formatTime(event.startTime)} </span>
                             {event.title}
