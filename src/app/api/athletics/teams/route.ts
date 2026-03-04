@@ -13,6 +13,7 @@ const CreateTeamSchema = z.object({
   name: z.string().trim().min(1).max(200),
   level: z.enum(['VARSITY', 'JUNIOR_VARSITY', 'FRESHMAN', 'MIDDLE_SCHOOL']).optional(),
   coachUserId: z.string().optional(),
+  coachName: z.string().trim().max(200).optional(),
   schoolId: z.string().optional(),
   calendarId: z.string().optional(),
 })

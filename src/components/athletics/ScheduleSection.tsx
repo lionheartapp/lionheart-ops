@@ -439,7 +439,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
       </div>
 
       {/* Season Record Banner */}
-      {selectedTeamId && selectedTeam && !loadingSchedule && (record.wins + record.losses + record.ties > 0) && (
+      {selectedTeamId && selectedTeam && !loadingSchedule && (
         <div className="flex items-center gap-4 mb-5 px-4 py-3 rounded-xl border border-gray-200 bg-white">
           <div className="flex items-center gap-2">
             <span

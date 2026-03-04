@@ -11,6 +11,7 @@ const UpdateTeamSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   level: z.enum(['VARSITY', 'JUNIOR_VARSITY', 'FRESHMAN', 'MIDDLE_SCHOOL']).optional(),
   coachUserId: z.string().nullable().optional(),
+  coachName: z.string().trim().max(200).nullable().optional(),
   schoolId: z.string().nullable().optional(),
   calendarId: z.string().nullable().optional(),
 })

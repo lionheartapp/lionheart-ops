@@ -67,6 +67,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
   const [showRegenConfirm, setShowRegenConfirm] = useState(false)
+  const [showTeamPicker, setShowTeamPicker] = useState(false)
   const [matchDialogMatch, setMatchDialogMatch] = useState<Bracket | null>(null)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
@@ -201,9 +202,13 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
 
         {hasBrackets && (
           <button
-            onClick={() => setShowRegenConfirm(true)}
-            disabled={generating || selectedTeamIds.size < 2}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            onClick={() => setShowTeamPicker(!showTeamPicker)}
+            disabled={generating}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition disabled:opacity-50 ${
+              showTeamPicker
+                ? 'text-primary-700 border border-primary-300 bg-primary-50'
+                : 'text-gray-700 border border-gray-200 hover:bg-gray-50'
+            }`}
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Regenerate
@@ -294,6 +299,72 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
               >
                 {generating ? 'Generating...' : `Generate Bracket (${selectedTeamIds.size} teams)`}
               </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Team picker for regeneration */}
+      {hasBrackets && showTeamPicker && (
+        <div className="mb-6 p-4 rounded-xl border border-primary-200 bg-primary-50/30">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700">Select Teams for New Bracket</h3>
+            {teams.length > 0 && (
+              <button onClick={selectAll} className="text-xs text-primary-600 hover:text-primary-700">
+                {selectedTeamIds.size === teams.length ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
+          </div>
+
+          {teams.length === 0 ? (
+            <p className="text-sm text-gray-500">No teams found for this sport</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
+                {teams.map((team) => {
+                  const checked = selectedTeamIds.has(team.id)
+                  return (
+                    <label
+                      key={team.id}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition ${
+                        checked
+                          ? 'border-primary-300 bg-white'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleTeam(team.id)}
+                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                      />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: team.sport?.color || '#6b7280' }}
+                        />
+                        <span className="text-sm text-gray-900 truncate">{team.name}</span>
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowRegenConfirm(true)}
+                  disabled={generating || selectedTeamIds.size < 2}
+                  className="px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+                >
+                  {generating ? 'Generating...' : `Regenerate Bracket (${selectedTeamIds.size} teams)`}
+                </button>
+                <button
+                  onClick={() => { setShowTeamPicker(false); setSelectedTeamIds(new Set()) }}
+                  className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition"
+                >
+                  Cancel
+                </button>
+              </div>
             </>
           )}
         </div>

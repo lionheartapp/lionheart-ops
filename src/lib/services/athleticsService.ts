@@ -33,6 +33,21 @@ export async function createSport(data: {
   })
 }
 
+export async function updateSport(id: string, data: {
+  name?: string
+  abbreviation?: string | null
+  color?: string
+  seasonType?: string
+}) {
+  return db.sport.update({
+    where: { id },
+    data,
+    include: {
+      _count: { select: { athleticTeams: true, athleticSeasons: true } },
+    },
+  })
+}
+
 // ── Athletic Seasons ───────────────────────────────────────────────────
 
 export async function getAthleticSeasons(filters?: { sportId?: string }) {
@@ -106,6 +121,7 @@ export async function createTeam(data: {
   name: string
   level?: string
   coachUserId?: string
+  coachName?: string
   schoolId?: string
   calendarId?: string
 }) {
@@ -116,6 +132,7 @@ export async function createTeam(data: {
       name: data.name,
       level: data.level || 'VARSITY',
       coachUserId: data.coachUserId || null,
+      coachName: data.coachName || null,
       schoolId: data.schoolId || null,
       calendarId: data.calendarId || null,
     },
@@ -130,6 +147,7 @@ export async function updateTeam(id: string, data: {
   name?: string
   level?: string
   coachUserId?: string | null
+  coachName?: string | null
   schoolId?: string | null
   calendarId?: string | null
 }) {

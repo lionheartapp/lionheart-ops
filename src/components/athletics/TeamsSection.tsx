@@ -30,6 +30,7 @@ type Team = {
   name: string
   level: string
   coachUserId: string | null
+  coachName: string | null
   schoolId: string | null
   sport: { id: string; name: string; color: string }
   season: { id: string; name: string }
@@ -110,6 +111,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
     seasonId: '',
     level: 'VARSITY',
     coachUserId: '',
+    coachName: '',
   })
 
   // Delete state
@@ -269,7 +271,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
 
   const openCreate = () => {
     setEditingTeam(null)
-    setForm({ name: '', sportId: '', seasonId: '', level: 'VARSITY', coachUserId: '' })
+    setForm({ name: '', sportId: '', seasonId: '', level: 'VARSITY', coachUserId: '', coachName: '' })
     setFormError('')
     setDrawerOpen(true)
   }
@@ -282,6 +284,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
       seasonId: team.season.id,
       level: team.level,
       coachUserId: team.coachUserId || '',
+      coachName: team.coachName || '',
     })
     setFormError('')
     setDrawerOpen(true)
@@ -305,6 +308,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
             name: form.name.trim(),
             level: form.level,
             coachUserId: form.coachUserId || null,
+            coachName: form.coachName.trim() || null,
           }),
         })
         if (handleAuthResponse(res)) return
@@ -321,6 +325,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
             seasonId: form.seasonId,
             level: form.level,
             coachUserId: form.coachUserId || undefined,
+            coachName: form.coachName.trim() || undefined,
             schoolId: activeCampusId || undefined,
           }),
         })
@@ -440,8 +445,8 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
                 <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden sm:table-cell">Season</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Level</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Coach</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Record</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">G/P</th>
+                <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Record</th>
+                <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">G/P</th>
                 <th className="w-12 px-2 py-3" />
               </tr>
             </thead>
@@ -467,9 +472,9 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
-                      {coach ? coach.name || coach.email : '—'}
+                      {coach ? coach.name || coach.email : team.coachName || '—'}
                     </td>
-                    <td className="px-4 py-3 text-center hidden lg:table-cell">
+                    <td className="px-4 py-3 text-center hidden md:table-cell">
                       {(() => {
                         const rec = teamRecords[team.id]
                         if (!rec) return <span className="text-gray-400">—</span>
@@ -483,7 +488,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
                         )
                       })()}
                     </td>
-                    <td className="px-4 py-3 text-center text-gray-500 hidden lg:table-cell">
+                    <td className="px-4 py-3 text-center text-gray-500 hidden md:table-cell">
                       {team._count.games}/{team._count.practices}
                     </td>
                     <td className="px-2 py-3">
@@ -561,11 +566,21 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
 
           <FloatingDropdown
             id="team-coach"
-            label="Coach"
+            label="Link to Staff Member"
             value={form.coachUserId}
-            onChange={(v) => setForm({ ...form, coachUserId: v })}
-            options={[{ value: '', label: 'No coach assigned' }, ...coachOptions]}
+            onChange={(v) => setForm({ ...form, coachUserId: v, coachName: v ? '' : form.coachName })}
+            options={[{ value: '', label: 'None' }, ...coachOptions]}
           />
+
+          {!form.coachUserId && (
+            <FloatingInput
+              id="team-coach-name"
+              label="Coach Name"
+              value={form.coachName}
+              onChange={(e) => setForm({ ...form, coachName: e.target.value })}
+              placeholder="e.g. John Smith"
+            />
+          )}
 
           {formError && <p className="text-sm text-red-600">{formError}</p>}
 

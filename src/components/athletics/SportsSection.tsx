@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Search, Eye } from 'lucide-react'
+import { Plus, Search, Eye, Edit2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
@@ -43,8 +43,9 @@ export default function SportsSection() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
-  // Create drawer
-  const [createOpen, setCreateOpen] = useState(false)
+  // Create/Edit drawer
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editingSport, setEditingSport] = useState<Sport | null>(null)
   const [createForm, setCreateForm] = useState({
     name: '',
     abbreviation: '',
@@ -85,7 +86,26 @@ export default function SportsSection() {
     (s.abbreviation && s.abbreviation.toLowerCase().includes(search.toLowerCase()))
   )
 
-  const handleCreate = async () => {
+  const openCreate = () => {
+    setEditingSport(null)
+    setCreateForm({ name: '', abbreviation: '', color: '#3b82f6', seasonType: 'FALL' })
+    setCreateError('')
+    setDrawerOpen(true)
+  }
+
+  const openEdit = (sport: Sport) => {
+    setEditingSport(sport)
+    setCreateForm({
+      name: sport.name,
+      abbreviation: sport.abbreviation || '',
+      color: sport.color,
+      seasonType: sport.seasonType,
+    })
+    setCreateError('')
+    setDrawerOpen(true)
+  }
+
+  const handleSave = async () => {
     if (!createForm.name.trim()) {
       setCreateError('Sport name is required')
       return
@@ -93,15 +113,20 @@ export default function SportsSection() {
     setCreateSaving(true)
     setCreateError('')
     try {
-      const res = await fetch('/api/athletics/sports', {
-        method: 'POST',
+      const url = editingSport
+        ? `/api/athletics/sports/${editingSport.id}`
+        : '/api/athletics/sports'
+      const method = editingSport ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: createForm.name.trim(),
-          abbreviation: createForm.abbreviation.trim() || undefined,
+          abbreviation: createForm.abbreviation.trim() || null,
           color: createForm.color,
           seasonType: createForm.seasonType,
         }),
@@ -109,14 +134,14 @@ export default function SportsSection() {
       if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!data.ok) {
-        setCreateError(data.error?.message || 'Failed to create sport')
+        setCreateError(data.error?.message || `Failed to ${editingSport ? 'update' : 'create'} sport`)
         return
       }
       setCreateForm({ name: '', abbreviation: '', color: '#3b82f6', seasonType: 'FALL' })
-      setCreateOpen(false)
+      setDrawerOpen(false)
       fetchSports()
     } catch {
-      setCreateError('Failed to create sport')
+      setCreateError(`Failed to ${editingSport ? 'update' : 'create'} sport`)
     } finally {
       setCreateSaving(false)
     }
@@ -143,7 +168,7 @@ export default function SportsSection() {
         </div>
         <button
           type="button"
-          onClick={() => setCreateOpen(true)}
+          onClick={openCreate}
           className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
         >
           <Plus className="w-4 h-4" />
@@ -166,7 +191,7 @@ export default function SportsSection() {
           {!search && (
             <button
               type="button"
-              onClick={() => setCreateOpen(true)}
+              onClick={() => openCreate()}
               className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               Create your first sport
@@ -220,9 +245,14 @@ export default function SportsSection() {
                     <RowActionMenu
                       items={[
                         {
-                          label: 'View Seasons',
+                          label: 'Sport Details',
                           icon: <Eye className="w-4 h-4" />,
                           onClick: () => openDetail(sport),
+                        },
+                        {
+                          label: 'Edit',
+                          icon: <Edit2 className="w-4 h-4" />,
+                          onClick: () => openEdit(sport),
                         },
                       ]}
                     />
@@ -234,11 +264,11 @@ export default function SportsSection() {
         </div>
       )}
 
-      {/* Create Sport Drawer */}
+      {/* Create/Edit Sport Drawer */}
       <DetailDrawer
-        isOpen={createOpen}
-        onClose={() => { setCreateOpen(false); setCreateError('') }}
-        title="New Sport"
+        isOpen={drawerOpen}
+        onClose={() => { setDrawerOpen(false); setCreateError('') }}
+        title={editingSport ? 'Edit Sport' : 'New Sport'}
         width="md"
       >
         <div className="space-y-5">
@@ -293,11 +323,11 @@ export default function SportsSection() {
 
           <button
             type="button"
-            onClick={handleCreate}
+            onClick={handleSave}
             disabled={createSaving}
             className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
           >
-            {createSaving ? 'Creating...' : 'Create Sport'}
+            {createSaving ? 'Saving...' : editingSport ? 'Update Sport' : 'Create Sport'}
           </button>
         </div>
       </DetailDrawer>

@@ -1668,6 +1668,7 @@ model AthleticTeam {
   name           String   // "Varsity Football", "JV Basketball"
   level          TeamLevel @default(VARSITY)
   coachUserId    String?
+  coachName      String?   // Free-form coach name (alternative to coachUserId)
   schoolId       String?
   calendarId     String?
   createdAt      DateTime @default(now())
