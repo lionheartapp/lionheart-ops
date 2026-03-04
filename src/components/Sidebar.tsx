@@ -27,6 +27,8 @@ import {
   Palette,
   Trash2,
 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryOptions } from '@/lib/queries'
 import { useModuleEnabled } from '@/lib/hooks/useModuleEnabled'
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 import MeetWithSection from '@/components/calendar/MeetWithSection'
@@ -80,6 +82,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const athleticsPrefetched = useRef(false)
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
@@ -439,6 +443,13 @@ export default function Sidebar({
                 onClick={() => {
                   handleAthleticsClick()
                   setIsOpen(false)
+                }}
+                onMouseEnter={() => {
+                  if (athleticsPrefetched.current) return
+                  athleticsPrefetched.current = true
+                  queryClient.prefetchQuery(queryOptions.campuses()).catch(() => {})
+                  queryClient.prefetchQuery(queryOptions.modules()).catch(() => {})
+                  queryClient.prefetchQuery(queryOptions.calendars()).catch(() => {})
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                   athleticsOpen

@@ -25,6 +25,11 @@ const ROUTE_PREFETCH_MAP: Record<string, () => { queryKey: readonly unknown[]; q
     queryOptions.permissions(),
     queryOptions.schoolInfo(),
   ],
+  '/athletics': () => [
+    queryOptions.campuses(),
+    queryOptions.modules(),
+    queryOptions.calendars(),
+  ],
 }
 
 interface PrefetchLinkProps extends LinkProps {

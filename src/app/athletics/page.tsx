@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
+import { queryOptions as sharedQueryOptions } from '@/lib/queries'
 import { Dribbble, Users, CalendarDays, ClipboardList, Trophy, BarChart3 } from 'lucide-react'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
@@ -105,17 +106,17 @@ export default function AthleticsPage() {
     fetchLogo()
   }, [orgLogoUrl, token])
 
-  const { data: modules = [] } = useModules()
-  const { data: campuses = [] } = useQuery({
-    queryKey: ['campuses'],
-    queryFn: fetchCampuses,
-    staleTime: 5 * 60 * 1000,
+  const { data: modules = [], isLoading: modulesLoading } = useModules()
+  const { data: campuses = [], isLoading: campusesLoading } = useQuery({
+    ...sharedQueryOptions.campuses(),
+    select: (data) => (data as Campus[]) ?? [],
   })
   const { data: calendars = [] } = useQuery({
-    queryKey: ['calendars-brief'],
-    queryFn: fetchCalendars,
-    staleTime: 5 * 60 * 1000,
+    ...sharedQueryOptions.calendars(),
+    select: (data) => (data as CalendarBrief[]) ?? [],
   })
+
+  const dataLoading = modulesLoading || campusesLoading
 
   // Build campus → color map from master calendars (first calendar per campus wins)
   const campusColorMap = useMemo(() => {
@@ -245,13 +246,31 @@ export default function AthleticsPage() {
             ))}
           </div>
 
-          {/* Active section */}
-          {activeTab === 'sports' && <SportsSection />}
-          {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} />}
-          {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} />}
-          {activeTab === 'roster' && <RosterSection activeCampusId={activeCampusId} />}
-          {activeTab === 'tournaments' && <TournamentsSection activeCampusId={activeCampusId} />}
-          {activeTab === 'stats' && <StatsSection activeCampusId={activeCampusId} />}
+          {/* Loading skeleton while campuses/modules load */}
+          {dataLoading ? (
+            <div className="space-y-4 animate-pulse">
+              {/* Toolbar skeleton */}
+              <div className="flex items-center justify-between">
+                <div className="h-9 w-64 bg-gray-100 rounded-lg" />
+                <div className="h-9 w-32 bg-gray-100 rounded-lg" />
+              </div>
+              {/* Table skeleton rows */}
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-14 bg-gray-50 rounded-lg" />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              {activeTab === 'sports' && <SportsSection />}
+              {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} />}
+              {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} />}
+              {activeTab === 'roster' && <RosterSection activeCampusId={activeCampusId} />}
+              {activeTab === 'tournaments' && <TournamentsSection activeCampusId={activeCampusId} />}
+              {activeTab === 'stats' && <StatsSection activeCampusId={activeCampusId} />}
+            </>
+          )}
         </div>
       </ModuleGate>
     </DashboardLayout>

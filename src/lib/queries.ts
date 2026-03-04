@@ -52,6 +52,9 @@ export const queryKeys = {
   campuses: {
     all: ['campuses'] as const,
   },
+  modules: {
+    all: ['tenant-modules'] as const,
+  },
   notifications: {
     all: ['notifications'] as const,
     list: (cursor?: string) => ['notifications', { cursor }] as const,
@@ -110,6 +113,12 @@ export const queryOptions = {
   campuses: () => ({
     queryKey: queryKeys.campuses.all,
     queryFn: () => fetchApi<unknown[]>('/api/settings/campus'),
+    staleTime: 5 * 60 * 1000,
+  }),
+
+  modules: () => ({
+    queryKey: queryKeys.modules.all,
+    queryFn: () => fetchApi<unknown[]>('/api/modules'),
     staleTime: 5 * 60 * 1000,
   }),
 
