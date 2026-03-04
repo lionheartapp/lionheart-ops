@@ -8,6 +8,7 @@ import { Trophy } from 'lucide-react'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import DraggableEvent from './DraggableEvent'
 import { computeSubColumns, getSubColumnStyle } from './MeetWithColumnLayout'
+import { layoutEvents, getOverlapStyle } from './overlapLayout'
 import { DayViewSkeletons } from './EventSkeletons'
 import { motion } from 'framer-motion'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -358,28 +359,74 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                   })}
                 </>
               ) : (
-                timedEvents.map((event) => {
-                  const evStart = new Date(event.startTime)
-                  const evEnd = new Date(event.endTime)
-                  const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
-                  const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
-                  const evTop = (startMinutes / 60) * HOUR_HEIGHT
-                  const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
+                (() => {
+                  const overlapMap = layoutEvents(timedEvents)
+                  return timedEvents.map((event) => {
+                    const evStart = new Date(event.startTime)
+                    const evEnd = new Date(event.endTime)
+                    const startMinutes = (evStart.getHours() - START_HOUR) * 60 + evStart.getMinutes()
+                    const endMinutes = (evEnd.getHours() - START_HOUR) * 60 + evEnd.getMinutes()
+                    const evTop = (startMinutes / 60) * HOUR_HEIGHT
+                    const evHeight = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 28)
+                    const layout = overlapMap.get(event.id)
+                    const colStyle = layout ? getOverlapStyle(layout) : undefined
 
-                  if (onDragReschedule) {
+                    if (onDragReschedule) {
+                      return (
+                        <DraggableEvent
+                          key={event.id}
+                          event={event}
+                          top={evTop}
+                          height={evHeight}
+                          date={currentDate}
+                          siblingEvents={timedEvents}
+                          onDragReschedule={onDragReschedule}
+                          onResize={onResize}
+                          onClick={onEventClick}
+                          dragAxis="y"
+                          subColumnStyle={colStyle}
+                        >
+                          <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
+                            <CampusShapeIndicator
+                              shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                              color={getEventColor(event)}
+                              size={10}
+                            />
+                            {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
+                            {event.title}
+                          </div>
+                          {evHeight > 36 && (
+                            <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
+                              {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {' - '}
+                              {evEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          )}
+                          {evHeight > 56 && event.locationText && (
+                            <div className="text-xs mt-0.5 opacity-40" style={{ color: getEventColor(event) }}>
+                              {event.locationText}
+                            </div>
+                          )}
+                        </DraggableEvent>
+                      )
+                    }
+
                     return (
-                      <DraggableEvent
+                      <button
                         key={event.id}
-                        event={event}
-                        top={evTop}
-                        height={evHeight}
-                        date={currentDate}
-                        siblingEvents={timedEvents}
-                        onDragReschedule={onDragReschedule}
-                        onResize={onResize}
-                        onClick={onEventClick}
-                        dragAxis="y"
-                        className="right-4"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEventClick(event)
+                        }}
+                        aria-label={getEventAriaLabel(event)}
+                        className="absolute rounded-xl px-4 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer"
+                        style={{
+                          top: evTop,
+                          height: evHeight,
+                          left: colStyle?.left ?? '4px',
+                          width: colStyle?.width ?? 'calc(100% - 20px)',
+                          backgroundColor: `${getEventColor(event)}20`,
+                        }}
                       >
                         <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
                           <CampusShapeIndicator
@@ -402,49 +449,10 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                             {event.locationText}
                           </div>
                         )}
-                      </DraggableEvent>
+                      </button>
                     )
-                  }
-
-                  return (
-                    <button
-                      key={event.id}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onEventClick(event)
-                      }}
-                      aria-label={getEventAriaLabel(event)}
-                      className="absolute left-1 right-4 rounded-xl px-4 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer"
-                      style={{
-                        top: evTop,
-                        height: evHeight,
-                        backgroundColor: `${getEventColor(event)}20`,
-                      }}
-                    >
-                      <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
-                        <CampusShapeIndicator
-                          shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
-                          color={getEventColor(event)}
-                          size={10}
-                        />
-                        {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
-                        {event.title}
-                      </div>
-                      {evHeight > 36 && (
-                        <div className="text-xs mt-0.5 opacity-60" style={{ color: getEventColor(event) }}>
-                          {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          {' - '}
-                          {evEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      )}
-                      {evHeight > 56 && event.locationText && (
-                        <div className="text-xs mt-0.5 opacity-40" style={{ color: getEventColor(event) }}>
-                          {event.locationText}
-                        </div>
-                      )}
-                    </button>
-                  )
-                })
+                  })
+                })()
               )}
               </motion.div>
             )}
