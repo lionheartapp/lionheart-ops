@@ -42,6 +42,32 @@ type User = {
   email: string
 }
 
+type Game = {
+  id: string
+  athleticTeamId: string
+  homeAway: string
+  homeScore: number | null
+  awayScore: number | null
+  isFinal: boolean
+}
+
+type TeamRecord = { wins: number; losses: number; ties: number }
+
+function calcTeamRecords(games: Game[]): Record<string, TeamRecord> {
+  const records: Record<string, TeamRecord> = {}
+  for (const g of games) {
+    if (g.homeScore == null || g.awayScore == null || !g.isFinal) continue
+    if (!records[g.athleticTeamId]) records[g.athleticTeamId] = { wins: 0, losses: 0, ties: 0 }
+    const rec = records[g.athleticTeamId]
+    if (g.homeScore === g.awayScore) { rec.ties++; continue }
+    const isHome = g.homeAway === 'HOME'
+    const homeWon = g.homeScore > g.awayScore
+    if ((isHome && homeWon) || (!isHome && !homeWon)) rec.wins++
+    else rec.losses++
+  }
+  return records
+}
+
 const LEVEL_LABELS: Record<string, string> = {
   VARSITY: 'Varsity',
   JUNIOR_VARSITY: 'JV',
@@ -65,6 +91,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
   const [sports, setSports] = useState<Sport[]>([])
   const [seasons, setSeasons] = useState<Season[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [allGames, setAllGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
@@ -155,10 +182,25 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
     }
   }
 
+  const fetchGames = async () => {
+    if (!token) return
+    try {
+      const res = await fetch('/api/athletics/games', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (data.ok) setAllGames(data.data)
+    } catch {
+      // silent
+    }
+  }
+
   useEffect(() => {
     fetchSports()
     fetchSeasons()
     fetchUsers()
+    fetchGames()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -202,6 +244,9 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
     }
     return result
   }, [teams, activeCampusId, search])
+
+  // Per-team season records
+  const teamRecords = useMemo(() => calcTeamRecords(allGames), [allGames])
 
   // Dropdown options
   const sportOptions: DropdownOption[] = sports.map((s) => ({
@@ -394,6 +439,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
                 <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden sm:table-cell">Season</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Level</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Coach</th>
+                <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Record</th>
                 <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">G/P</th>
                 <th className="w-12 px-2 py-3" />
               </tr>
@@ -421,6 +467,20 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
                     </td>
                     <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
                       {coach ? coach.name || coach.email : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-center hidden lg:table-cell">
+                      {(() => {
+                        const rec = teamRecords[team.id]
+                        if (!rec) return <span className="text-gray-400">—</span>
+                        return (
+                          <span className="text-sm font-medium text-gray-700">
+                            <span className="text-green-600">{rec.wins}</span>
+                            {'-'}
+                            <span className="text-red-500">{rec.losses}</span>
+                            {rec.ties > 0 && <>{'-'}<span className="text-gray-500">{rec.ties}</span></>}
+                          </span>
+                        )
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-center text-gray-500 hidden lg:table-cell">
                       {team._count.games}/{team._count.practices}

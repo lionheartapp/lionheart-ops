@@ -147,6 +147,19 @@ function getScoreDisplay(game: Game): string | null {
   return `${prefix} ${game.homeScore}-${game.awayScore}`
 }
 
+function calcRecord(games: Game[]): { wins: number; losses: number; ties: number } {
+  let wins = 0, losses = 0, ties = 0
+  for (const g of games) {
+    if (g.homeScore == null || g.awayScore == null || !g.isFinal) continue
+    if (g.homeScore === g.awayScore) { ties++; continue }
+    const isHome = g.homeAway === 'HOME'
+    const homeWon = g.homeScore > g.awayScore
+    if ((isHome && homeWon) || (!isHome && !homeWon)) wins++
+    else losses++
+  }
+  return { wins, losses, ties }
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface ScheduleSectionProps {
@@ -298,6 +311,10 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
     return items
   }, [games, practices, filter])
 
+  // Season record (from final games)
+  const record = useMemo(() => calcRecord(games), [games])
+  const selectedTeam = displayTeams.find((t) => t.id === selectedTeamId)
+
   // Group by date
   const groupedByDate = useMemo(() => {
     const groups: { date: string; items: AgendaItem[] }[] = []
@@ -413,6 +430,36 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
           </button>
         </div>
       </div>
+
+      {/* Season Record Banner */}
+      {selectedTeamId && selectedTeam && !loadingSchedule && (record.wins + record.losses + record.ties > 0) && (
+        <div className="flex items-center gap-4 mb-5 px-4 py-3 rounded-xl border border-gray-200 bg-white">
+          <div className="flex items-center gap-2">
+            <span
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: selectedTeam.sport.color }}
+            />
+            <span className="text-sm font-semibold text-gray-900">{selectedTeam.name}</span>
+            <span className="text-xs text-gray-400">Season Record</span>
+          </div>
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-600">{record.wins}</div>
+              <div className="text-[10px] font-medium text-gray-400 uppercase">W</div>
+            </div>
+            <div className="w-px h-8 bg-gray-200" />
+            <div className="text-center">
+              <div className="text-lg font-bold text-red-500">{record.losses}</div>
+              <div className="text-[10px] font-medium text-gray-400 uppercase">L</div>
+            </div>
+            <div className="w-px h-8 bg-gray-200" />
+            <div className="text-center">
+              <div className="text-lg font-bold text-gray-500">{record.ties}</div>
+              <div className="text-[10px] font-medium text-gray-400 uppercase">T</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       {!selectedTeamId && displayTeams.length > 0 ? (
