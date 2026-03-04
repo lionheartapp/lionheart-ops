@@ -977,11 +977,14 @@ export async function getAthleticsCalendarEvents(
     where: { campusId: { in: campusIds } },
     select: { id: true, campusId: true, name: true },
   })
-  if (schools.length === 0) return []
 
   const schoolIdToCampusId = new Map<string, string>(
     schools.map((s: { id: string; campusId: string }) => [s.id, s.campusId!])
   )
+  // Also map campusId → itself so teams linked directly to a campus resolve correctly
+  for (const cid of campusIds) {
+    schoolIdToCampusId.set(cid, cid)
+  }
   const schoolIds = schools.map((s: { id: string }) => s.id)
 
   // Build a campus name lookup from the campusIds
@@ -993,9 +996,10 @@ export async function getAthleticsCalendarEvents(
     campuses.map((c: { id: string; name: string }) => [c.id, c.name])
   )
 
-  // 2. Fetch teams with schoolId in our set
+  // 2. Fetch teams — by schoolId OR by campusId (some teams reference campus directly)
+  const teamWhereIds = [...new Set([...schoolIds, ...campusIds])]
   const teams = await db.athleticTeam.findMany({
-    where: { schoolId: { in: schoolIds } },
+    where: { schoolId: { in: teamWhereIds } },
     include: {
       sport: { select: { id: true, name: true, color: true } },
     },
