@@ -6,7 +6,10 @@ import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { Trophy, Building2 } from 'lucide-react'
+import { Trophy, Building2, Dribbble, Users, CalendarDays } from 'lucide-react'
+import SportsSection from '@/components/athletics/SportsSection'
+import TeamsSection from '@/components/athletics/TeamsSection'
+import ScheduleSection from '@/components/athletics/ScheduleSection'
 
 interface Campus {
   id: string
@@ -23,6 +26,14 @@ async function fetchCampuses(): Promise<Campus[]> {
   const data = await res.json()
   return data.ok ? data.data : []
 }
+
+type SubTab = 'sports' | 'teams' | 'schedule'
+
+const SUB_TABS: { key: SubTab; label: string; icon: typeof Dribbble }[] = [
+  { key: 'sports', label: 'Sports', icon: Dribbble },
+  { key: 'teams', label: 'Teams', icon: Users },
+  { key: 'schedule', label: 'Schedule', icon: CalendarDays },
+]
 
 export default function AthleticsPage() {
   const router = useRouter()
@@ -56,6 +67,8 @@ export default function AthleticsPage() {
 
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
   const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
+
+  const [activeTab, setActiveTab] = useState<SubTab>('sports')
 
   if (!isClient && typeof window !== 'undefined') setIsClient(true)
 
@@ -92,6 +105,7 @@ export default function AthleticsPage() {
     >
       <ModuleGate moduleId="athletics">
         <div>
+          {/* Page header */}
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
               <Trophy className="w-5 h-5 text-amber-500" />
@@ -104,7 +118,7 @@ export default function AthleticsPage() {
 
           {/* Campus tabs */}
           {enabledCampuses.length > 1 && (
-            <div className="flex gap-1 border-b border-gray-200 mb-6">
+            <div className="flex gap-1 border-b border-gray-200 mb-4">
               {enabledCampuses.map((campus) => (
                 <button
                   key={campus.id}
@@ -124,19 +138,34 @@ export default function AthleticsPage() {
 
           {/* Single campus label */}
           {enabledCampuses.length === 1 && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">
+            <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
               <Building2 className="w-4 h-4" />
               {enabledCampuses[0].name}
             </div>
           )}
 
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-            <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h2 className="text-lg font-medium text-gray-700 mb-1">Coming Soon</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">
-              The athletics management interface is under development. Sports teams, seasons, schedules, and rosters will be available here.
-            </p>
+          {/* Sub-navigation tabs */}
+          <div className="flex gap-1 mb-6">
+            {SUB_TABS.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  activeTab === key
+                    ? 'bg-amber-50 text-amber-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
           </div>
+
+          {/* Active section */}
+          {activeTab === 'sports' && <SportsSection />}
+          {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} />}
+          {activeTab === 'schedule' && <ScheduleSection />}
         </div>
       </ModuleGate>
     </DashboardLayout>
