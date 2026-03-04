@@ -159,6 +159,18 @@ export default function AthleticsPage() {
     }
   }, [])
 
+  // Re-dispatch sidebar data when the Sidebar requests it (handles race condition)
+  useEffect(() => {
+    const handleRequest = () => {
+      lastDispatchRef.current = '' // clear dedup so dispatchSidebarData actually fires
+      dispatchSidebarData()
+    }
+    window.addEventListener('athletics-sidebar-request', handleRequest)
+    return () => {
+      window.removeEventListener('athletics-sidebar-request', handleRequest)
+    }
+  }, [dispatchSidebarData])
+
   // Loading screen during hydration
   if (!isClient || !token || !orgId) {
     return (

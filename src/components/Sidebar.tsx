@@ -224,6 +224,8 @@ export default function Sidebar({
       }
     }
     window.addEventListener('athletics-sidebar-data', handleAthleticsData)
+    // Ask the athletics page to re-send data (in case it dispatched before we were ready)
+    window.dispatchEvent(new CustomEvent('athletics-sidebar-request'))
     return () => {
       window.removeEventListener('athletics-sidebar-data', handleAthleticsData)
     }
