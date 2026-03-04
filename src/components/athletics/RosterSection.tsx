@@ -97,11 +97,12 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
     }
   }
 
-  const fetchRoster = async (teamId: string) => {
-    if (!token || !teamId) return
+  const fetchRoster = async (teamId?: string) => {
+    if (!token) return
     setLoadingRoster(true)
     try {
-      const res = await fetch(`/api/athletics/roster?teamId=${teamId}`, {
+      const param = teamId ? `?teamId=${teamId}` : ''
+      const res = await fetch(`/api/athletics/roster${param}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (handleAuthResponse(res)) return
@@ -134,11 +135,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   }, [canManageUsers]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (selectedTeamId) {
-      fetchRoster(selectedTeamId)
-    } else {
-      setRoster([])
-    }
+    fetchRoster(selectedTeamId || undefined)
   }, [selectedTeamId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Campus-filtered teams ─────────────────────────────────────────
@@ -162,17 +159,39 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
     }
   }, [displayTeams, selectedTeamId])
 
+  // ─── Campus-filtered roster (for all-teams view) ─────────────────
+
+  const displayRoster = useMemo(() => {
+    if (selectedTeamId || !activeCampusId) return roster
+    const teamIds = new Set(displayTeams.map((t) => t.id))
+    return roster.filter((p) => teamIds.has(p.athleticTeamId))
+  }, [roster, selectedTeamId, activeCampusId, displayTeams])
+
+  // ─── Team directory (grouped roster for all-teams view) ─────────
+
+  const teamDirectory = useMemo(() => {
+    if (selectedTeamId) return []
+    const counts = new Map<string, number>()
+    for (const p of displayRoster) {
+      counts.set(p.athleticTeamId, (counts.get(p.athleticTeamId) || 0) + 1)
+    }
+    return displayTeams.map((t) => ({
+      ...t,
+      playerCount: counts.get(t.id) || 0,
+    }))
+  }, [selectedTeamId, displayRoster, displayTeams])
+
   // ─── Filtered roster ───────────────────────────────────────────────
 
   const filteredRoster = useMemo(() => {
-    if (!search.trim()) return roster
+    if (!search.trim()) return displayRoster
     const q = search.toLowerCase()
-    return roster.filter((p) =>
+    return displayRoster.filter((p) =>
       `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
       p.jerseyNumber?.includes(q) ||
       p.position?.toLowerCase().includes(q)
     )
-  }, [roster, search])
+  }, [displayRoster, search])
 
   // ─── Drawer handlers ──────────────────────────────────────────────
 
@@ -249,7 +268,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       }
 
       setDrawerOpen(false)
-      fetchRoster(selectedTeamId)
+      fetchRoster(selectedTeamId || undefined)
     } catch {
       setError('Something went wrong')
     } finally {
@@ -267,7 +286,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       })
       if (handleAuthResponse(res)) return
       setDeleteTarget(null)
-      fetchRoster(selectedTeamId)
+      fetchRoster(selectedTeamId || undefined)
     } catch {
       // silent
     } finally {
@@ -299,7 +318,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             label="Select Team"
             value={selectedTeamId}
             onChange={setSelectedTeamId}
-            options={[{ value: '', label: 'Choose a team...' }, ...teamOptions]}
+            options={[{ value: '', label: 'All Teams' }, ...teamOptions]}
           />
         </div>
 
@@ -310,8 +329,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search players..."
-            disabled={!selectedTeamId}
-            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors disabled:opacity-50 disabled:bg-gray-50"
+            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
           />
         </div>
 
@@ -330,12 +348,93 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       </div>
 
       {/* Content */}
-      {!selectedTeamId ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h2 className="text-lg font-medium text-gray-700 mb-1">Select a team</h2>
-          <p className="text-sm text-gray-500">Choose a team above to manage its roster</p>
-        </div>
+      {!selectedTeamId && !search ? (
+        loadingRoster ? (
+          <AthleticsTableSkeleton columns={3} rows={4} showToolbar={false} />
+        ) : teamDirectory.length === 0 ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <h2 className="text-lg font-medium text-gray-700 mb-1">No teams available</h2>
+            <p className="text-sm text-gray-500">Create teams in the Teams tab first</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {teamDirectory.map((team) => (
+              <button
+                key={team.id}
+                type="button"
+                onClick={() => setSelectedTeamId(team.id)}
+                className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition-all text-left cursor-pointer"
+              >
+                <div
+                  className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
+                  style={{ backgroundColor: team.sport.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-900 truncate">{team.name}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {team.sport.name} &middot; {team.level}
+                  </div>
+                  <div className="flex items-center gap-1 mt-2">
+                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="text-xs font-medium text-gray-600">
+                      {team.playerCount} player{team.playerCount !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )
+      ) : !selectedTeamId && search ? (
+        loadingRoster ? (
+          <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
+        ) : filteredRoster.length === 0 ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <h2 className="text-lg font-medium text-gray-700 mb-1">No matching players</h2>
+            <p className="text-sm text-gray-500">Try a different search</p>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead>
+                  <tr className="bg-gray-50/50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Team</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Position</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Grade</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredRoster.map((player) => (
+                    <tr key={player.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                        {player.jerseyNumber || '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        {player.firstName} {player.lastName}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: player.athleticTeam?.sport?.color || '#6b7280' }} />
+                          <span className="text-sm text-gray-600">{player.athleticTeam?.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{player.position || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{player.grade || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="border-t border-gray-100 px-4 py-2.5 text-xs text-gray-500">
+              {filteredRoster.length} player{filteredRoster.length !== 1 ? 's' : ''} found
+            </div>
+          </div>
+        )
       ) : loadingRoster ? (
         <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filteredRoster.length === 0 ? (
