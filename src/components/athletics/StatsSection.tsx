@@ -327,7 +327,7 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
 
           {loadingStandings ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />)}
+              {[1, 2, 3].map((i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
             </div>
           ) : standings.length === 0 ? (
             <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
@@ -431,7 +431,7 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
             </div>
           ) : loadingLeaders ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />)}
+              {[1, 2, 3].map((i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
             </div>
           ) : leaders.length === 0 ? (
             <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
@@ -501,7 +501,7 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
             </div>
           ) : loadingConfigs ? (
             <div className="space-y-3">
-              {[1, 2].map((i) => <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />)}
+              {[1, 2].map((i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
             </div>
           ) : (
             <div className="space-y-4">

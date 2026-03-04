@@ -240,8 +240,10 @@ export default function TournamentsSection({ activeCampusId }: TournamentsSectio
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
