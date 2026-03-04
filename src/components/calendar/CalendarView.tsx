@@ -200,6 +200,7 @@ export default function CalendarView() {
   const [visibleAthleticsCampusIds, setVisibleAthleticsCampusIds] = useState<Set<string>>(new Set())
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>({
     categoryIds: new Set(),
+    campusIds: new Set(),
     schoolLevels: new Set(),
     sportIds: new Set(),
     teamLevels: new Set(),
@@ -233,11 +234,30 @@ export default function CalendarView() {
   )
   const { data: athleticsSports = [] } = useAthleticsSports(anyAthleticsVisible)
 
+  // Build unique campus list from athletics events for the filter popover
+  const athleticsCampuses = useMemo(() => {
+    if (!anyAthleticsVisible) return []
+    const seen = new Map<string, string>()
+    for (const e of athleticsEvents) {
+      const cal = e.calendar as { campus?: { id: string; name: string } | null } | undefined
+      if (cal?.campus && !seen.has(cal.campus.id)) {
+        seen.set(cal.campus.id, cal.campus.name)
+      }
+    }
+    return Array.from(seen, ([id, name]) => ({ id, name }))
+  }, [athleticsEvents, anyAthleticsVisible])
+
   // Apply athletics filters
   const filteredAthleticsEvents = useMemo(() => {
     if (!anyAthleticsVisible) return []
     let result = athleticsEvents
-    const { schoolLevels, sportIds, teamLevels } = calendarFilter
+    const { campusIds, schoolLevels, sportIds, teamLevels } = calendarFilter
+    if (campusIds.size > 0) {
+      result = result.filter((e) => {
+        const meta = e.metadata as any
+        return meta?.campusId && campusIds.has(meta.campusId)
+      })
+    }
     if (schoolLevels.size > 0) {
       result = result.filter((e) => {
         const meta = e.metadata as any
@@ -724,6 +744,7 @@ export default function CalendarView() {
           calendarFilter={calendarFilter}
           onCalendarFilterChange={setCalendarFilter}
           athleticsVisible={anyAthleticsVisible}
+          campuses={athleticsCampuses}
           sports={athleticsSports}
         />
 

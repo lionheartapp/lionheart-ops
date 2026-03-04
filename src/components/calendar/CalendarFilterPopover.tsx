@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export interface CalendarFilter {
   categoryIds: Set<string>
+  campusIds: Set<string>
   schoolLevels: Set<string>
   sportIds: Set<string>
   teamLevels: Set<string>
@@ -14,6 +16,11 @@ interface CategoryChip {
   id: string
   name: string
   color: string
+}
+
+interface CampusChip {
+  id: string
+  name: string
 }
 
 interface Sport {
@@ -29,6 +36,7 @@ interface CalendarFilterPopoverProps {
   onFilterChange: (filter: CalendarFilter) => void
   categories: CategoryChip[]
   athleticsVisible: boolean
+  campuses: CampusChip[]
   sports: Sport[]
   anchorRef: React.RefObject<HTMLButtonElement | null>
 }
@@ -59,6 +67,7 @@ export default function CalendarFilterPopover({
   onFilterChange,
   categories,
   athleticsVisible,
+  campuses,
   sports,
   anchorRef,
 }: CalendarFilterPopoverProps) {
@@ -106,18 +115,19 @@ export default function CalendarFilterPopover({
   if (!isOpen) return null
 
   const activeCount =
-    filter.categoryIds.size + filter.schoolLevels.size + filter.sportIds.size + filter.teamLevels.size
+    filter.categoryIds.size + filter.campusIds.size + filter.schoolLevels.size + filter.sportIds.size + filter.teamLevels.size
 
   const handleClear = () => {
     onFilterChange({
       categoryIds: new Set(),
+      campusIds: new Set(),
       schoolLevels: new Set(),
       sportIds: new Set(),
       teamLevels: new Set(),
     })
   }
 
-  return (
+  const popover = (
     <div
       ref={popoverRef}
       className="fixed z-modal bg-white rounded-2xl shadow-xl border border-gray-200 w-80 max-h-[70vh] overflow-y-auto"
@@ -158,6 +168,31 @@ export default function CalendarFilterPopover({
                     style={{ backgroundColor: active ? '#fff' : cat.color }}
                   />
                   {cat.name}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Campus — athletics only */}
+      {athleticsVisible && campuses.length > 1 && (
+        <div className="px-5 py-3 border-t border-gray-100">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Campus</p>
+          <div className="flex flex-wrap gap-2">
+            {campuses.map(({ id, name }) => {
+              const active = filter.campusIds.has(id)
+              return (
+                <button
+                  key={id}
+                  onClick={() => onFilterChange({ ...filter, campusIds: toggleInSet(filter.campusIds, id) })}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    active
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {name}
                 </button>
               )
             })}
@@ -258,4 +293,6 @@ export default function CalendarFilterPopover({
       )}
     </div>
   )
+
+  return createPortal(popover, document.body)
 }

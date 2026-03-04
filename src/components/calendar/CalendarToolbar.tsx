@@ -11,6 +11,11 @@ interface CategoryChip {
   color: string
 }
 
+interface CampusChip {
+  id: string
+  name: string
+}
+
 interface SportChip {
   id: string
   name: string
@@ -31,6 +36,7 @@ interface CalendarToolbarProps {
   calendarFilter: CalendarFilter
   onCalendarFilterChange: (filter: CalendarFilter) => void
   athleticsVisible?: boolean
+  campuses?: CampusChip[]
   sports?: SportChip[]
 }
 
@@ -89,6 +95,7 @@ export default function CalendarToolbar({
   calendarFilter,
   onCalendarFilterChange,
   athleticsVisible = false,
+  campuses = [],
   sports = [],
 }: CalendarToolbarProps) {
   const weekDates = getWeekDates(currentDate)
@@ -97,6 +104,7 @@ export default function CalendarToolbar({
 
   const activeFilterCount =
     calendarFilter.categoryIds.size +
+    calendarFilter.campusIds.size +
     calendarFilter.schoolLevels.size +
     calendarFilter.sportIds.size +
     calendarFilter.teamLevels.size
@@ -213,6 +221,7 @@ export default function CalendarToolbar({
               onFilterChange={onCalendarFilterChange}
               categories={categories}
               athleticsVisible={athleticsVisible}
+              campuses={campuses}
               sports={sports}
               anchorRef={filterBtnRef}
             />
