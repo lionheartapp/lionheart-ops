@@ -234,18 +234,18 @@ export default function CalendarView() {
   )
   const { data: athleticsSports = [] } = useAthleticsSports(anyAthleticsVisible)
 
-  // Build unique campus list from athletics events for the filter popover
+  // Build unique campus list from calendars that have campus info
   const athleticsCampuses = useMemo(() => {
     if (!anyAthleticsVisible) return []
     const seen = new Map<string, string>()
-    for (const e of athleticsEvents) {
-      const cal = e.calendar as { campus?: { id: string; name: string } | null } | undefined
-      if (cal?.campus && !seen.has(cal.campus.id)) {
-        seen.set(cal.campus.id, cal.campus.name)
+    for (const cal of calendars) {
+      const campus = cal.campus as { id: string; name: string } | null | undefined
+      if (campus && visibleAthleticsCampusIds.has(campus.id) && !seen.has(campus.id)) {
+        seen.set(campus.id, campus.name)
       }
     }
     return Array.from(seen, ([id, name]) => ({ id, name }))
-  }, [athleticsEvents, anyAthleticsVisible])
+  }, [calendars, visibleAthleticsCampusIds, anyAthleticsVisible])
 
   // Apply athletics filters
   const filteredAthleticsEvents = useMemo(() => {

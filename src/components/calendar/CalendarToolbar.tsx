@@ -200,10 +200,10 @@ export default function CalendarToolbar({
             <button
               ref={filterBtnRef}
               onClick={() => setFilterOpen((o) => !o)}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+              className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 border focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                 activeFilterCount > 0
-                  ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
