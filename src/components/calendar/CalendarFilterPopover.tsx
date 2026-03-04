@@ -3,10 +3,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { X } from 'lucide-react'
 
-export interface AthleticsFilter {
+export interface CalendarFilter {
+  categoryIds: Set<string>
   schoolLevels: Set<string>
   sportIds: Set<string>
   teamLevels: Set<string>
+}
+
+interface CategoryChip {
+  id: string
+  name: string
+  color: string
 }
 
 interface Sport {
@@ -15,11 +22,13 @@ interface Sport {
   color: string
 }
 
-interface AthleticsFilterPopoverProps {
+interface CalendarFilterPopoverProps {
   isOpen: boolean
   onClose: () => void
-  filter: AthleticsFilter
-  onFilterChange: (filter: AthleticsFilter) => void
+  filter: CalendarFilter
+  onFilterChange: (filter: CalendarFilter) => void
+  categories: CategoryChip[]
+  athleticsVisible: boolean
   sports: Sport[]
   anchorRef: React.RefObject<HTMLButtonElement | null>
 }
@@ -43,14 +52,16 @@ function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
   return next
 }
 
-export default function AthleticsFilterPopover({
+export default function CalendarFilterPopover({
   isOpen,
   onClose,
   filter,
   onFilterChange,
+  categories,
+  athleticsVisible,
   sports,
   anchorRef,
-}: AthleticsFilterPopoverProps) {
+}: CalendarFilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
 
@@ -95,10 +106,11 @@ export default function AthleticsFilterPopover({
   if (!isOpen) return null
 
   const activeCount =
-    filter.schoolLevels.size + filter.sportIds.size + filter.teamLevels.size
+    filter.categoryIds.size + filter.schoolLevels.size + filter.sportIds.size + filter.teamLevels.size
 
   const handleClear = () => {
     onFilterChange({
+      categoryIds: new Set(),
       schoolLevels: new Set(),
       sportIds: new Set(),
       teamLevels: new Set(),
@@ -113,7 +125,7 @@ export default function AthleticsFilterPopover({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-2">
-        <h3 className="text-sm font-semibold text-gray-900">Athletics Filters</h3>
+        <h3 className="text-sm font-semibold text-gray-900">Filters</h3>
         <button
           onClick={onClose}
           className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
@@ -123,31 +135,63 @@ export default function AthleticsFilterPopover({
         </button>
       </div>
 
-      {/* School Level */}
-      <div className="px-5 py-3">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">School Level</p>
-        <div className="flex flex-wrap gap-2">
-          {SCHOOL_LEVELS.map(({ value, label }) => {
-            const active = filter.schoolLevels.has(value)
-            return (
-              <button
-                key={value}
-                onClick={() => onFilterChange({ ...filter, schoolLevels: toggleInSet(filter.schoolLevels, value) })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  active
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {label}
-              </button>
-            )
-          })}
+      {/* Category */}
+      {categories.length > 0 && (
+        <div className="px-5 py-3">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Category</p>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => {
+              const active = filter.categoryIds.has(cat.id)
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => onFilterChange({ ...filter, categoryIds: toggleInSet(filter.categoryIds, cat.id) })}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    active
+                      ? 'text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  style={active ? { backgroundColor: cat.color } : undefined}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: active ? '#fff' : cat.color }}
+                  />
+                  {cat.name}
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Sport */}
-      {sports.length > 0 && (
+      {/* School Level — athletics only */}
+      {athleticsVisible && (
+        <div className="px-5 py-3 border-t border-gray-100">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">School Level</p>
+          <div className="flex flex-wrap gap-2">
+            {SCHOOL_LEVELS.map(({ value, label }) => {
+              const active = filter.schoolLevels.has(value)
+              return (
+                <button
+                  key={value}
+                  onClick={() => onFilterChange({ ...filter, schoolLevels: toggleInSet(filter.schoolLevels, value) })}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    active
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Sport — athletics only */}
+      {athleticsVisible && sports.length > 0 && (
         <div className="px-5 py-3 border-t border-gray-100">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Sport</p>
           <div className="flex flex-wrap gap-2">
@@ -176,28 +220,30 @@ export default function AthleticsFilterPopover({
         </div>
       )}
 
-      {/* Team Level */}
-      <div className="px-5 py-3 border-t border-gray-100">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Team Level</p>
-        <div className="flex flex-wrap gap-2">
-          {TEAM_LEVELS.map(({ value, label }) => {
-            const active = filter.teamLevels.has(value)
-            return (
-              <button
-                key={value}
-                onClick={() => onFilterChange({ ...filter, teamLevels: toggleInSet(filter.teamLevels, value) })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  active
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {label}
-              </button>
-            )
-          })}
+      {/* Team Level — athletics only */}
+      {athleticsVisible && (
+        <div className="px-5 py-3 border-t border-gray-100">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Team Level</p>
+          <div className="flex flex-wrap gap-2">
+            {TEAM_LEVELS.map(({ value, label }) => {
+              const active = filter.teamLevels.has(value)
+              return (
+                <button
+                  key={value}
+                  onClick={() => onFilterChange({ ...filter, teamLevels: toggleInSet(filter.teamLevels, value) })}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    active
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Footer */}
       {activeCount > 0 && (

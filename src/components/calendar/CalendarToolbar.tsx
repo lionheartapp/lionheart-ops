@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus, Search, X, SlidersHorizontal } from 'lucide-react'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
-import AthleticsFilterPopover, { type AthleticsFilter } from './AthleticsFilterPopover'
+import CalendarFilterPopover, { type CalendarFilter } from './CalendarFilterPopover'
 
 interface CategoryChip {
   id: string
@@ -28,11 +28,9 @@ interface CalendarToolbarProps {
   searchQuery: string
   onSearchChange: (query: string) => void
   categories: CategoryChip[]
-  activeCategories: Set<string>
-  onToggleCategory: (categoryId: string) => void
+  calendarFilter: CalendarFilter
+  onCalendarFilterChange: (filter: CalendarFilter) => void
   athleticsVisible?: boolean
-  athleticsFilter?: AthleticsFilter
-  onAthleticsFilterChange?: (filter: AthleticsFilter) => void
   sports?: SportChip[]
 }
 
@@ -88,20 +86,20 @@ export default function CalendarToolbar({
   searchQuery,
   onSearchChange,
   categories,
-  activeCategories,
-  onToggleCategory,
+  calendarFilter,
+  onCalendarFilterChange,
   athleticsVisible = false,
-  athleticsFilter,
-  onAthleticsFilterChange,
   sports = [],
 }: CalendarToolbarProps) {
   const weekDates = getWeekDates(currentDate)
   const [filterOpen, setFilterOpen] = useState(false)
   const filterBtnRef = useRef<HTMLButtonElement>(null)
 
-  const activeFilterCount = athleticsFilter
-    ? athleticsFilter.schoolLevels.size + athleticsFilter.sportIds.size + athleticsFilter.teamLevels.size
-    : 0
+  const activeFilterCount =
+    calendarFilter.categoryIds.size +
+    calendarFilter.schoolLevels.size +
+    calendarFilter.sportIds.size +
+    calendarFilter.teamLevels.size
 
   return (
     <div className="pb-2">
@@ -188,35 +186,8 @@ export default function CalendarToolbar({
           )}
         </div>
 
-        {/* Category chips */}
-        {categories.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            {categories.map((cat) => {
-              const isActive = activeCategories.has(cat.id)
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => onToggleCategory(cat.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                    isActive
-                      ? 'text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                  style={isActive ? { backgroundColor: cat.color } : undefined}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: isActive ? '#fff' : cat.color }}
-                  />
-                  {cat.name}
-                </button>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Athletics filter button — shown when athletics is toggled on */}
-        {athleticsVisible && athleticsFilter && onAthleticsFilterChange && (
+        {/* Filter button — shown when there are categories or athletics is visible */}
+        {(categories.length > 0 || athleticsVisible) && (
           <>
             <button
               ref={filterBtnRef}
@@ -228,18 +199,20 @@ export default function CalendarToolbar({
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              Athletics
+              Filters
               {activeFilterCount > 0 && (
                 <span className="ml-0.5 w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
             </button>
-            <AthleticsFilterPopover
+            <CalendarFilterPopover
               isOpen={filterOpen}
               onClose={() => setFilterOpen(false)}
-              filter={athleticsFilter}
-              onFilterChange={onAthleticsFilterChange}
+              filter={calendarFilter}
+              onFilterChange={onCalendarFilterChange}
+              categories={categories}
+              athleticsVisible={athleticsVisible}
               sports={sports}
               anchorRef={filterBtnRef}
             />

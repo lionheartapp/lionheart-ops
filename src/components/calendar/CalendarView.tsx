@@ -33,7 +33,7 @@ import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { useAthleticsCalendarEvents, useAthleticsSports } from '@/lib/hooks/useAthleticsCalendar'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import AthleticsFilterPopover, { type AthleticsFilter } from './AthleticsFilterPopover'
+import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
@@ -198,7 +198,8 @@ export default function CalendarView() {
 
   // ── Athletics calendar overlay ──────────────────────────────────────
   const [visibleAthleticsCampusIds, setVisibleAthleticsCampusIds] = useState<Set<string>>(new Set())
-  const [athleticsFilter, setAthleticsFilter] = useState<AthleticsFilter>({
+  const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>({
+    categoryIds: new Set(),
     schoolLevels: new Set(),
     sportIds: new Set(),
     teamLevels: new Set(),
@@ -236,7 +237,7 @@ export default function CalendarView() {
   const filteredAthleticsEvents = useMemo(() => {
     if (!anyAthleticsVisible) return []
     let result = athleticsEvents
-    const { schoolLevels, sportIds, teamLevels } = athleticsFilter
+    const { schoolLevels, sportIds, teamLevels } = calendarFilter
     if (schoolLevels.size > 0) {
       result = result.filter((e) => {
         const meta = e.metadata as any
@@ -258,20 +259,10 @@ export default function CalendarView() {
       })
     }
     return result
-  }, [athleticsEvents, athleticsFilter, anyAthleticsVisible])
+  }, [athleticsEvents, calendarFilter, anyAthleticsVisible])
 
-  // Search + category filter state
+  // Search filter state
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set())
-
-  const toggleCategory = useCallback((categoryId: string) => {
-    setActiveCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(categoryId)) next.delete(categoryId)
-      else next.add(categoryId)
-      return next
-    })
-  }, [])
 
   const filteredEvents = useMemo(() => {
     let result = events
@@ -279,8 +270,8 @@ export default function CalendarView() {
       const q = searchQuery.toLowerCase()
       result = result.filter((e) => e.title.toLowerCase().includes(q))
     }
-    if (activeCategories.size > 0) {
-      result = result.filter((e) => e.categoryId && activeCategories.has(e.categoryId))
+    if (calendarFilter.categoryIds.size > 0) {
+      result = result.filter((e) => e.categoryId && calendarFilter.categoryIds.has(e.categoryId))
     }
     // Merge athletics events (already filtered by athletics filter)
     if (filteredAthleticsEvents.length > 0) {
@@ -293,7 +284,7 @@ export default function CalendarView() {
       result = [...result, ...athEvents]
     }
     return result
-  }, [events, searchQuery, activeCategories, filteredAthleticsEvents])
+  }, [events, searchQuery, calendarFilter.categoryIds, filteredAthleticsEvents])
 
   // Meet-with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
@@ -730,11 +721,9 @@ export default function CalendarView() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           categories={categories}
-          activeCategories={activeCategories}
-          onToggleCategory={toggleCategory}
+          calendarFilter={calendarFilter}
+          onCalendarFilterChange={setCalendarFilter}
           athleticsVisible={anyAthleticsVisible}
-          athleticsFilter={athleticsFilter}
-          onAthleticsFilterChange={setAthleticsFilter}
           sports={athleticsSports}
         />
 
