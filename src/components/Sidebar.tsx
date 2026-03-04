@@ -27,9 +27,9 @@ import {
   Palette,
   Trash2,
 } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
-import { useModuleEnabled } from '@/lib/hooks/useModuleEnabled'
+import { useModuleEnabled, useModules } from '@/lib/hooks/useModuleEnabled'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 import MeetWithSection from '@/components/calendar/MeetWithSection'
@@ -94,6 +94,37 @@ export default function Sidebar({
   const [athleticsOpen, setAthleticsOpen] = useState(false)
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
+
+  // Directly fetch athletics campuses — eliminates race condition with CustomEvent
+  const DEFAULT_CAMPUS_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ef4444', '#14b8a6']
+  const { data: sidebarModules = [] } = useModules()
+  const { data: sidebarCampusesRaw } = useQuery({
+    ...queryOptions.campuses(),
+    enabled: athleticsOpen,
+  })
+
+  useEffect(() => {
+    if (!athleticsOpen) return
+    const enabledIds = sidebarModules
+      .filter((m) => m.moduleId === 'athletics' && m.campusId)
+      .map((m) => m.campusId as string)
+    const allCampuses = (sidebarCampusesRaw as { id: string; name: string; isActive: boolean }[] | undefined) ?? []
+    const enabled = allCampuses.filter((c) => enabledIds.includes(c.id))
+    if (enabled.length > 0) {
+      setAthleticsCampuses((prev) => {
+        // Only update if campus IDs actually changed
+        const prevIds = prev.map((c) => c.id).join(',')
+        const nextIds = enabled.map((c) => c.id).join(',')
+        if (prevIds === nextIds) return prev
+        return enabled.map((c, i) => ({
+          id: c.id,
+          name: c.name,
+          color: DEFAULT_CAMPUS_COLORS[i % DEFAULT_CAMPUS_COLORS.length],
+        }))
+      })
+      if (!athleticsCampusId) setAthleticsCampusId(enabled[0].id)
+    }
+  }, [athleticsOpen, sidebarModules, sidebarCampusesRaw]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Open settings panel when navigating to /settings
   const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
