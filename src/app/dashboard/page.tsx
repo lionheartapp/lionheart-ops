@@ -3,12 +3,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
-import CreateModal from '@/components/CreateModal'
 import DetailDrawer from '@/components/DetailDrawer'
 import WeatherWidget from '@/components/dashboard/WeatherWidget'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2 } from 'lucide-react'
-
-type RequestType = 'event' | 'smart-event' | 'facilities' | 'it' | null
 
 interface TicketData {
   id: string
@@ -25,10 +22,8 @@ interface TicketData {
 export default function DashboardPage() {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
-  const [selectedRequestType, setSelectedRequestType] = useState<RequestType>(null)
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
 
   // Ticket data from API
@@ -248,20 +243,15 @@ export default function DashboardPage() {
                     <p className="text-xs text-gray-600">Create a new event</p>
                   </div>
                 </button>
-                <button
-                  onClick={() => {
-                    setSelectedRequestType('smart-event')
-                    setIsCreateOpen(true)
-                    setIsCreateDropdownOpen(false)
-                  }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                <div
+                  className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed"
                 >
-                  <Sparkles className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                  <Sparkles className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Smart Event</p>
-                    <p className="text-xs text-gray-600">Create with AI</p>
+                    <p className="font-medium text-gray-500">Smart Event <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
+                    <p className="text-xs text-gray-400">Create with AI</p>
                   </div>
-                </button>
+                </div>
               </div>
 
               {/* Divider */}
@@ -272,34 +262,24 @@ export default function DashboardPage() {
               {/* Support Section */}
               <div className="p-3 space-y-1">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-2">Support</p>
-                <button
-                  onClick={() => {
-                    setSelectedRequestType('facilities')
-                    setIsCreateOpen(true)
-                    setIsCreateDropdownOpen(false)
-                  }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                <div
+                  className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed"
                 >
-                  <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                  <Building2 className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Facilities Request</p>
-                    <p className="text-xs text-gray-600">Submit a facilities request</p>
+                    <p className="font-medium text-gray-500">Facilities Request <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
+                    <p className="text-xs text-gray-400">Submit a facilities request</p>
                   </div>
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedRequestType('it')
-                    setIsCreateOpen(true)
-                    setIsCreateDropdownOpen(false)
-                  }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                </div>
+                <div
+                  className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed"
                 >
-                  <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                  <Headphones className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">IT Request</p>
-                    <p className="text-xs text-gray-600">Submit an IT support request</p>
+                    <p className="font-medium text-gray-500">IT Request <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
+                    <p className="text-xs text-gray-400">Submit an IT support request</p>
                   </div>
-                </button>
+                </div>
               </div>
             </div>
           )}
@@ -323,10 +303,7 @@ export default function DashboardPage() {
               <CheckCircle className="w-10 h-10 mx-auto mb-3 text-gray-300" aria-hidden="true" />
               <p className="text-sm mb-2">No tasks yet.</p>
               <button
-                onClick={() => {
-                  setSelectedRequestType(null)
-                  setIsCreateOpen(true)
-                }}
+                onClick={() => setIsCreateDropdownOpen(true)}
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 Create your first task
@@ -356,10 +333,7 @@ export default function DashboardPage() {
               </ul>
 
               <button
-                onClick={() => {
-                  setSelectedRequestType('facilities')
-                  setIsCreateOpen(true)
-                }}
+                onClick={() => setIsCreateDropdownOpen(true)}
                 className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition flex items-center justify-center gap-1"
               >
                 <Plus className="w-4 h-4" /> Add task
@@ -404,54 +378,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Create Modal */}
-      <CreateModal
-        isOpen={isCreateOpen}
-        onClose={() => {
-          setIsCreateOpen(false)
-          setSelectedRequestType(null)
-        }}
-        title={`Create ${selectedRequestType === 'event' ? 'Event' : selectedRequestType === 'smart-event' ? 'Smart Event' : selectedRequestType === 'facilities' ? 'Facilities Request' : selectedRequestType === 'it' ? 'IT Request' : 'Request'}`}
-        requestType={selectedRequestType}
-      >
-        <div className="space-y-6">
-          {!selectedRequestType && (
-            <p className="text-gray-600">
-              Please select a request type from the dropdown.
-            </p>
-          )}
-          {selectedRequestType && (
-            <>
-              <p className="text-gray-600">
-                Form fields for {selectedRequestType} request will appear here.
-              </p>
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Describe your request..."
-                  rows={4}
-                />
-              </div>
-            </>
-          )}
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setIsCreateOpen(false)}
-              className="flex-1 px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
-            >
-              Cancel
-            </button>
-            <button className="flex-1 px-4 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
-              Create
-            </button>
-          </div>
-        </div>
-      </CreateModal>
 
       {/* Detail Drawer */}
       <DetailDrawer

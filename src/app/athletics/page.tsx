@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
+import { usePermissions } from '@/lib/hooks/usePermissions'
 import { queryOptions as sharedQueryOptions } from '@/lib/queries'
 import { Dribbble, Users, CalendarDays, ClipboardList, Trophy, BarChart3 } from 'lucide-react'
 import SportsSection from '@/components/athletics/SportsSection'
@@ -87,6 +88,9 @@ export default function AthleticsPage() {
   }, [orgLogoUrl, token])
 
   const { data: modules = [], isLoading: modulesLoading } = useModules()
+  const { data: perms } = usePermissions()
+  const canWrite = perms?.canWriteAthletics ?? false
+  const canManageUsers = perms?.canManageUsers ?? false
   const { data: rawCampuses, isLoading: campusesLoading } = useQuery(sharedQueryOptions.campuses())
   const campuses = (rawCampuses as Campus[] | undefined) ?? []
   const { data: rawCalendars } = useQuery(sharedQueryOptions.calendars())
@@ -251,12 +255,12 @@ export default function AthleticsPage() {
             </div>
           ) : (
             <>
-              {activeTab === 'sports' && <SportsSection />}
-              {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} />}
-              {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} />}
-              {activeTab === 'roster' && <RosterSection activeCampusId={activeCampusId} />}
-              {activeTab === 'tournaments' && <TournamentsSection activeCampusId={activeCampusId} />}
-              {activeTab === 'stats' && <StatsSection activeCampusId={activeCampusId} />}
+              {activeTab === 'sports' && <SportsSection canWrite={canWrite} />}
+              {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />}
+              {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />}
+              {activeTab === 'roster' && <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />}
+              {activeTab === 'tournaments' && <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />}
+              {activeTab === 'stats' && <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />}
             </>
           )}
         </div>

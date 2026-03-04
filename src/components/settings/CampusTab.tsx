@@ -256,7 +256,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   }
 
   // ─── Load campuses on mount ───────────────────────────────────────────────
-  const loadCampuses = async () => {
+  const loadCampuses = async (andLoadData = false) => {
     setCampusesLoading(true)
     try {
       const res = await fetch('/api/settings/campus/campuses', { headers: getAuthHeaders() })
@@ -268,6 +268,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       // Set selectedCampusId to first campus (HQ) if available
       if (campusList.length > 0 && !selectedCampusId) {
         setSelectedCampusId(campusList[0].id)
+        // Eagerly start loading data for the first campus to avoid waterfall
+        if (andLoadData) loadDataForCampus(campusList[0].id)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load campuses')
@@ -277,11 +279,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   }
 
   // ─── Data loading ─────────────────────────────────────────────────────────
-  const loadData = async () => {
+  const loadDataForCampus = async (campusId: string) => {
     setLoading(true)
     setError('')
     try {
-      const campusQuery = selectedCampusId ? `?campusId=${selectedCampusId}` : ''
+      const campusQuery = campusId ? `?campusId=${campusId}` : ''
       const [campusRes, mapRes, schoolsRes] = await Promise.all([
         fetch(`/api/settings/campus${campusQuery}`, { headers: getAuthHeaders() }),
         fetch(`/api/settings/campus/map-data${campusQuery}`, { headers: getAuthHeaders() }),
@@ -326,9 +328,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     }
   }
 
-  // Load campuses on mount
+  const loadData = () => loadDataForCampus(selectedCampusId || '')
+
+  // Load campuses on mount — eagerly start data fetch for first campus
   useEffect(() => {
-    loadCampuses()
+    loadCampuses(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

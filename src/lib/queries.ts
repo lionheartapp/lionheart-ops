@@ -82,7 +82,13 @@ export const queryOptions = {
 
   permissions: () => ({
     queryKey: queryKeys.permissions.all,
-    queryFn: () => fetchApi<{ canManageWorkspace: boolean }>('/api/auth/permissions'),
+    queryFn: () =>
+      fetchApi<{
+        canManageWorkspace: boolean
+        canWriteAthletics: boolean
+        canManageUsers: boolean
+        legacyRole: string | null
+      }>('/api/auth/permissions'),
     staleTime: 10 * 60 * 1000, // 10 minutes — permissions rarely change mid-session
   }),
 

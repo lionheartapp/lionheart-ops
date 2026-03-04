@@ -28,6 +28,7 @@ interface Tournament {
 
 interface TournamentsSectionProps {
   activeCampusId: string | null
+  canWrite?: boolean
 }
 
 const FORMAT_LABELS: Record<string, string> = {
@@ -44,7 +45,7 @@ const FORMAT_OPTIONS = [
   { value: 'POOL_PLAY', label: 'Pool Play' },
 ]
 
-export default function TournamentsSection({ activeCampusId }: TournamentsSectionProps) {
+export default function TournamentsSection({ activeCampusId, canWrite = false }: TournamentsSectionProps) {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [sports, setSports] = useState<Sport[]>([])
   const [loading, setLoading] = useState(true)
@@ -229,13 +230,15 @@ export default function TournamentsSection({ activeCampusId }: TournamentsSectio
             ]}
           />
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Add Tournament
-        </button>
+        {canWrite && (
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Add Tournament
+          </button>
+        )}
       </div>
 
       {/* Table */}

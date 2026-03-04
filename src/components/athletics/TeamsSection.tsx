@@ -96,9 +96,10 @@ const GRADE_STYLES: Record<string, string> = {
 
 interface TeamsSectionProps {
   activeCampusId: string | null
+  canWrite?: boolean
 }
 
-export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
+export default function TeamsSection({ activeCampusId, canWrite = false }: TeamsSectionProps) {
   const [teams, setTeams] = useState<Team[]>([])
   const [sports, setSports] = useState<Sport[]>([])
   const [seasons, setSeasons] = useState<Season[]>([])
@@ -418,14 +419,16 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
             />
           </div>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Add Team
-        </button>
+        {canWrite && (
+          <button
+            type="button"
+            onClick={openCreate}
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Add Team
+          </button>
+        )}
       </div>
 
       {/* Table */}

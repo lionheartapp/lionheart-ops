@@ -1003,10 +1003,15 @@ const MembersTab = (_props: MembersTabProps) => {
             label="Role"
             value={inviteForm.roleId}
             onChange={(v) => setInviteForm((p) => ({ ...p, roleId: v }))}
-            options={[
-              { value: '', label: 'Default role' },
-              ...availableRoles.map((r) => ({ value: r.id, label: r.name })),
-            ]}
+            options={
+              rolesLoading
+                ? [{ value: '', label: 'Loading roles...' }]
+                : [
+                    { value: '', label: 'Default role' },
+                    ...availableRoles.map((r) => ({ value: r.id, label: r.name })),
+                  ]
+            }
+            disabled={rolesLoading}
           />
 
           {inviteError && (

@@ -108,10 +108,13 @@ export async function listTickets(
     where.schoolId = validated.schoolId
   }
 
-  // Check if user can see all tickets, otherwise only show assigned tickets
+  // Check if user can see all tickets, otherwise only show own (created or assigned)
   const canReadAll = await can(userId, PERMISSIONS.TICKETS_READ_ALL)
   if (!canReadAll) {
-    where.assignedToId = userId
+    where.OR = [
+      { assignedToId: userId },
+      { createdById: userId },
+    ]
   }
 
   const tickets = await prisma.ticket.findMany({
@@ -121,6 +124,9 @@ export async function listTickets(
     skip: validated.offset,
     include: {
       assignedTo: {
+        select: { id: true, name: true, email: true },
+      },
+      createdBy: {
         select: { id: true, name: true, email: true },
       },
     },
@@ -188,6 +194,7 @@ export async function createTicket(
       locationText: validated.locationText,
       status: 'OPEN',
       assignedToId: validated.assignedToId,
+      createdById: userId,
     } as any, // Temp workaround for org-scoped extension typing
   })
 

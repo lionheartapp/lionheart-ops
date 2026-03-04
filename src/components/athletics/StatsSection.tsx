@@ -51,11 +51,12 @@ interface StatConfig {
 
 interface StatsSectionProps {
   activeCampusId: string | null
+  canWrite?: boolean
 }
 
 type StatsView = 'standings' | 'leaders' | 'config'
 
-export default function StatsSection({ activeCampusId }: StatsSectionProps) {
+export default function StatsSection({ activeCampusId, canWrite = false }: StatsSectionProps) {
   const [sports, setSports] = useState<Sport[]>([])
   const [seasons, setSeasons] = useState<Season[]>([])
   const [loading, setLoading] = useState(true)
@@ -295,7 +296,7 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
         {([
           { key: 'standings' as const, label: 'Standings', icon: Trophy },
           { key: 'leaders' as const, label: 'Stat Leaders', icon: BarChart3 },
-          { key: 'config' as const, label: 'Stat Config', icon: Settings },
+          ...(canWrite ? [{ key: 'config' as const, label: 'Stat Config', icon: Settings }] : []),
         ]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}

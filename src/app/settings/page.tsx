@@ -666,16 +666,6 @@ export default function SettingsPage() {
                         <div className="flex-1">
                           <FloatingInput id="email" label="Email" type="email" defaultValue={userEmail || ''} readOnly />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                            disabled
-                          >
-                            Change email
-                          </button>
-                          <span className="text-xs text-gray-400 whitespace-nowrap">Coming soon</span>
-                        </div>
                       </div>
 
                       <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
@@ -689,47 +679,6 @@ export default function SettingsPage() {
                         >
                           Change password
                         </button>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* ── Support Access ──────────────────────────────────────── */}
-                  <section>
-                    <h3 className="text-2xl font-semibold text-gray-900">Support Access</h3>
-                    <div className="h-px bg-gray-200 mt-4 mb-6" />
-                    <div className="space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                        <div>
-                          <p className="text-base font-medium text-gray-900">Log out of all devices</p>
-                          <p className="text-sm text-gray-600">Log out of all other active sessions on other devices besides this one.</p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            type="button"
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                            disabled
-                          >
-                            Log out
-                          </button>
-                          <span className="text-xs text-gray-400 whitespace-nowrap">Coming soon</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                        <div>
-                          <p className="text-base font-medium text-red-600">Delete my account</p>
-                          <p className="text-sm text-gray-600">Permanently delete the account and remove access from all workspaces.</p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            type="button"
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-400 text-sm font-medium transition whitespace-nowrap cursor-default focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                            disabled
-                          >
-                            Delete Account
-                          </button>
-                          <span className="text-xs text-gray-400 whitespace-nowrap">Coming soon</span>
-                        </div>
                       </div>
                     </div>
                   </section>

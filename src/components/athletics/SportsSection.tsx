@@ -38,7 +38,7 @@ const COLOR_PRESETS = [
   '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
 ]
 
-export default function SportsSection() {
+export default function SportsSection({ canWrite = false }: { canWrite?: boolean }) {
   const [sports, setSports] = useState<Sport[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -166,14 +166,16 @@ export default function SportsSection() {
             className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
           />
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Add Sport
-        </button>
+        {canWrite && (
+          <button
+            type="button"
+            onClick={openCreate}
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Add Sport
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -249,11 +251,15 @@ export default function SportsSection() {
                           icon: <Eye className="w-4 h-4" />,
                           onClick: () => openDetail(sport),
                         },
-                        {
-                          label: 'Edit',
-                          icon: <Edit2 className="w-4 h-4" />,
-                          onClick: () => openEdit(sport),
-                        },
+                        ...(canWrite
+                          ? [
+                              {
+                                label: 'Edit',
+                                icon: <Edit2 className="w-4 h-4" />,
+                                onClick: () => openEdit(sport),
+                              },
+                            ]
+                          : []),
                       ]}
                     />
                   </td>

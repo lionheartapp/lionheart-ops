@@ -122,6 +122,7 @@ model User {
   submittedEvent Event[]          @relation("SubmittedEventUser")
   submittedDraft DraftEvent[]     @relation("DraftEventUser")
   assignedTicket Ticket[]         @relation("AssignedTicketUser")
+  createdTicket  Ticket[]         @relation("CreatedTicketUser")
   schedules      TeacherSchedule[]
   passwordSetupTokens PasswordSetupToken[]
   roomAssignments UserRoomAssignment[]
@@ -178,6 +179,7 @@ model Ticket {
   locationRefId   String?
   locationText    String?
   assignedToId   String?
+  createdById    String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   deletedAt      DateTime?
@@ -185,6 +187,7 @@ model Ticket {
   campus         Campus?        @relation(fields: [campusId], references: [id], onDelete: SetNull)
   school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   assignedTo     User?          @relation("AssignedTicketUser", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdBy      User?          @relation("CreatedTicketUser", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([organizationId, status])
   @@index([organizationId, category])
@@ -192,6 +195,7 @@ model Ticket {
   @@index([organizationId, deletedAt])
   @@index([organizationId, campusId])
   @@index([schoolId])
+  @@index([createdById])
 }
 
 model Building {

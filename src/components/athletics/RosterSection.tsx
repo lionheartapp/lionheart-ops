@@ -42,9 +42,11 @@ interface OrgUser {
 
 interface RosterSectionProps {
   activeCampusId: string | null
+  canWrite?: boolean
+  canManageUsers?: boolean
 }
 
-export default function RosterSection({ activeCampusId }: RosterSectionProps) {
+export default function RosterSection({ activeCampusId, canWrite = false, canManageUsers = false }: RosterSectionProps) {
   const [teams, setTeams] = useState<Team[]>([])
   const [roster, setRoster] = useState<RosterPlayer[]>([])
   const [orgUsers, setOrgUsers] = useState<OrgUser[]>([])
@@ -112,7 +114,7 @@ export default function RosterSection({ activeCampusId }: RosterSectionProps) {
   }
 
   const fetchUsers = async () => {
-    if (!token) return
+    if (!token || !canManageUsers) return
     try {
       const res = await fetch('/api/settings/users', {
         headers: { Authorization: `Bearer ${token}` },
@@ -127,8 +129,8 @@ export default function RosterSection({ activeCampusId }: RosterSectionProps) {
 
   useEffect(() => {
     fetchTeams()
-    fetchUsers()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (canManageUsers) fetchUsers()
+  }, [canManageUsers]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (selectedTeamId) {
@@ -318,16 +320,18 @@ export default function RosterSection({ activeCampusId }: RosterSectionProps) {
           />
         </div>
 
-        <button
-          type="button"
-          onClick={openCreate}
-          disabled={!selectedTeamId}
-          title={!selectedTeamId ? 'Select a team first' : undefined}
-          className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Plus className="w-4 h-4" />
-          Add Player
-        </button>
+        {canWrite && (
+          <button
+            type="button"
+            onClick={openCreate}
+            disabled={!selectedTeamId}
+            title={!selectedTeamId ? 'Select a team first' : undefined}
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Plus className="w-4 h-4" />
+            Add Player
+          </button>
+        )}
       </div>
 
       {/* Content */}

@@ -30,6 +30,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { useModuleEnabled } from '@/lib/hooks/useModuleEnabled'
+import { usePermissions } from '@/lib/hooks/usePermissions'
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 import MeetWithSection from '@/components/calendar/MeetWithSection'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -384,16 +385,12 @@ export default function Sidebar({
     )
   }
 
-  // Check workspace permissions from localStorage (optimistic — server enforces real perms)
-  const ADMIN_ROLES = ['super admin', 'administrator', 'super-admin', 'admin']
-  const [canManageWorkspace, setCanManageWorkspace] = useState(false)
-  useEffect(() => {
-    const role = localStorage.getItem('user-role')
-    setCanManageWorkspace(role ? ADMIN_ROLES.includes(role.toLowerCase()) : false)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // Check workspace permissions from server-confirmed permissions
+  const { data: perms } = usePermissions()
+  const canManageWorkspace = perms?.canManageWorkspace ?? false
 
   const generalTabs = [
-    { id: 'profile' as SettingsTab, label: 'Account', icon: User },
+    { id: 'profile' as SettingsTab, label: 'My Profile', icon: User },
   ]
 
   const workspaceTabs = [

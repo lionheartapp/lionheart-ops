@@ -170,6 +170,7 @@ function calcRecord(games: Game[]): { wins: number; losses: number; ties: number
 
 interface ScheduleSectionProps {
   activeCampusId: string | null
+  canWrite?: boolean
 }
 
 const FILTER_PILLS: { key: FilterType; label: string }[] = [
@@ -178,7 +179,7 @@ const FILTER_PILLS: { key: FilterType; label: string }[] = [
   { key: 'practices', label: 'Practices' },
 ]
 
-export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps) {
+export default function ScheduleSection({ activeCampusId, canWrite = false }: ScheduleSectionProps) {
   const [teams, setTeams] = useState<Team[]>([])
   const [games, setGames] = useState<Game[]>([])
   const [practices, setPractices] = useState<Practice[]>([])
@@ -416,26 +417,28 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
           ))}
         </div>
 
-        <div className="flex gap-2 sm:ml-auto">
-          <button
-            type="button"
-            onClick={openGameCreate}
-            disabled={displayTeams.length === 0}
-            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" />
-            Add Game
-          </button>
-          <button
-            type="button"
-            onClick={() => setPracticeDrawerOpen(true)}
-            disabled={displayTeams.length === 0}
-            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" />
-            Add Practice
-          </button>
-        </div>
+        {canWrite && (
+          <div className="flex gap-2 sm:ml-auto">
+            <button
+              type="button"
+              onClick={openGameCreate}
+              disabled={!selectedTeamId}
+              className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" />
+              Add Game
+            </button>
+            <button
+              type="button"
+              onClick={() => setPracticeDrawerOpen(true)}
+              disabled={!selectedTeamId}
+              className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" />
+              Add Practice
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Season Record Banner */}
