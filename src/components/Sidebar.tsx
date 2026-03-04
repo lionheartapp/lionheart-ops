@@ -73,6 +73,7 @@ export type AthleticsTab = 'sports' | 'teams' | 'schedule' | 'roster' | 'tournam
 interface AthleticsCampus {
   id: string
   name: string
+  color: string
 }
 
 export default function Sidebar({
@@ -128,8 +129,14 @@ export default function Sidebar({
     new Set(['MASTER', 'MY SCHEDULE'])
   )
 
-  // Campus → shape index map
+  // Campus → shape index map (calendar)
   const campusShapeMap = useMemo(() => buildCampusShapeMap(calendarData), [calendarData])
+
+  // Campus → shape index map (athletics) — built from athletics campus list
+  const athleticsCampusShapeMap = useMemo(() => {
+    const ids = athleticsCampuses.map((c) => c.id).sort()
+    return new Map(ids.map((id, i) => [id, i % 5])) // 5 shapes in CAMPUS_SHAPES
+  }, [athleticsCampuses])
 
   // Meet with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
@@ -844,7 +851,11 @@ export default function Sidebar({
                       : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
                   }`}
                 >
-                  <Building2 className={`w-4 h-4 flex-shrink-0 ${isActiveCampus ? 'text-primary-600' : 'text-gray-400'}`} />
+                  <CampusShapeIndicator
+                    shapeIndex={athleticsCampusShapeMap.get(campus.id) ?? 0}
+                    color={campus.color}
+                    size={14}
+                  />
                   {campus.name}
                 </button>
               )

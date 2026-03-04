@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -23,6 +23,23 @@ interface Campus {
 async function fetchCampuses(): Promise<Campus[]> {
   const token = localStorage.getItem('auth-token')
   const res = await fetch('/api/settings/campus/campuses', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) return []
+  const data = await res.json()
+  return data.ok ? data.data : []
+}
+
+interface CalendarBrief {
+  id: string
+  color: string
+  calendarType: string
+  campus?: { id: string; name: string } | null
+}
+
+async function fetchCalendars(): Promise<CalendarBrief[]> {
+  const token = localStorage.getItem('auth-token')
+  const res = await fetch('/api/calendars', {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) return []
@@ -53,6 +70,22 @@ export default function AthleticsPage() {
     queryFn: fetchCampuses,
     staleTime: 5 * 60 * 1000,
   })
+  const { data: calendars = [] } = useQuery({
+    queryKey: ['calendars-brief'],
+    queryFn: fetchCalendars,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  // Build campus → color map from master calendars (first calendar per campus wins)
+  const campusColorMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const cal of calendars) {
+      if (cal.campus?.id && !map.has(cal.campus.id)) {
+        map.set(cal.campus.id, cal.color)
+      }
+    }
+    return map
+  }, [calendars])
 
   const enabledCampusIds = modules
     .filter((m) => m.moduleId === 'athletics' && m.campusId)
@@ -68,22 +101,30 @@ export default function AthleticsPage() {
   // Track whether we've dispatched sidebar data so we re-dispatch when data changes
   const lastDispatchRef = useRef<string>('')
 
+  // Default color fallback for campuses without a master calendar
+  const DEFAULT_CAMPUS_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ef4444', '#14b8a6']
+
   // Dispatch sidebar data whenever campuses/modules load or change
   const dispatchSidebarData = useCallback(() => {
     if (enabledCampuses.length === 0) return
-    const key = enabledCampuses.map((c) => c.id).join(',') + '|' + activeCampusId + '|' + activeTab
+    const colorKeys = enabledCampuses.map((c) => campusColorMap.get(c.id) ?? '').join(',')
+    const key = enabledCampuses.map((c) => c.id).join(',') + '|' + colorKeys + '|' + activeCampusId + '|' + activeTab
     if (key === lastDispatchRef.current) return
     lastDispatchRef.current = key
     window.dispatchEvent(
       new CustomEvent('athletics-sidebar-data', {
         detail: {
-          campuses: enabledCampuses.map((c) => ({ id: c.id, name: c.name })),
+          campuses: enabledCampuses.map((c, i) => ({
+            id: c.id,
+            name: c.name,
+            color: campusColorMap.get(c.id) ?? DEFAULT_CAMPUS_COLORS[i % DEFAULT_CAMPUS_COLORS.length],
+          })),
           activeCampusId,
           activeTab,
         },
       })
     )
-  }, [enabledCampuses, activeCampusId, activeTab])
+  }, [enabledCampuses, activeCampusId, activeTab, campusColorMap])
 
   useEffect(() => {
     dispatchSidebarData()
