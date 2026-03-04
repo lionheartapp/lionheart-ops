@@ -18,6 +18,10 @@ import {
   CalendarClock,
   Trophy,
   Puzzle,
+  Dribbble,
+  CalendarDays,
+  ClipboardList,
+  BarChart3,
   ChevronDown,
   ChevronRight,
   Plus,
@@ -64,6 +68,12 @@ export interface CalendarSidebarData {
 }
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons'
+export type AthleticsTab = 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
+
+interface AthleticsCampus {
+  id: string
+  name: string
+}
 
 export default function Sidebar({
   userName = 'User',
@@ -78,11 +88,18 @@ export default function Sidebar({
 
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
 
+  // Athletics sidebar state
+  const [athleticsOpen, setAthleticsOpen] = useState(false)
+  const [activeAthleticsTab, setActiveAthleticsTab] = useState<AthleticsTab>('sports')
+  const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
+  const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
+
   // Open settings panel when navigating to /settings
   const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
   useIsomorphicLayoutEffect(() => {
     if (pathname.startsWith('/settings')) {
       setSettingsOpen(true)
+      setAthleticsOpen(false)
     }
   }, [pathname])
 
@@ -147,8 +164,20 @@ export default function Sidebar({
     if (pathname.startsWith('/calendar')) {
       setCalendarOpen(true)
       setSettingsOpen(false)
+      setAthleticsOpen(false)
     } else {
       setCalendarOpen(false)
+    }
+  }, [pathname])
+
+  // Open athletics panel when navigating to /athletics
+  useIsomorphicLayoutEffect(() => {
+    if (pathname.startsWith('/athletics')) {
+      setAthleticsOpen(true)
+      setSettingsOpen(false)
+      setCalendarOpen(false)
+    } else {
+      setAthleticsOpen(false)
     }
   }, [pathname])
 
@@ -173,6 +202,32 @@ export default function Sidebar({
     return () => {
       window.removeEventListener('calendar-sidebar-data', handleCalendarData)
       window.removeEventListener('calendar-visibility-change', handleVisibilityChange)
+    }
+  }, [])
+
+  // Listen for athletics sidebar data from the athletics page
+  useEffect(() => {
+    const handleAthleticsData = (e: Event) => {
+      const event = e as CustomEvent<{
+        campuses: AthleticsCampus[]
+        activeCampusId: string | null
+        activeTab: AthleticsTab
+      }>
+      if (event.detail) {
+        setAthleticsCampuses(event.detail.campuses)
+        if (event.detail.activeCampusId) setAthleticsCampusId(event.detail.activeCampusId)
+        if (event.detail.activeTab) setActiveAthleticsTab(event.detail.activeTab)
+      }
+    }
+    const handleAthleticsTabRequest = (e: Event) => {
+      const event = e as CustomEvent<{ tab: AthleticsTab }>
+      if (event.detail?.tab) setActiveAthleticsTab(event.detail.tab)
+    }
+    window.addEventListener('athletics-sidebar-data', handleAthleticsData)
+    window.addEventListener('athletics-tab-request', handleAthleticsTabRequest)
+    return () => {
+      window.removeEventListener('athletics-sidebar-data', handleAthleticsData)
+      window.removeEventListener('athletics-tab-request', handleAthleticsTabRequest)
     }
   }, [])
 
@@ -283,13 +338,39 @@ export default function Sidebar({
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
     { icon: CalendarClock, label: 'Planning', href: '/planning' },
-    ...(athleticsEnabled ? [{ icon: Trophy, label: 'Athletics', href: '/athletics' }] : []),
   ]
+
+  const handleAthleticsClick = () => {
+    if (!athleticsOpen) {
+      setAthleticsOpen(true)
+      setSettingsOpen(false)
+      setCalendarOpen(false)
+      router.push('/athletics')
+    } else {
+      setAthleticsOpen(false)
+      router.push('/dashboard')
+    }
+  }
+
+  const handleAthleticsTabClick = (tab: AthleticsTab) => {
+    setActiveAthleticsTab(tab)
+    window.dispatchEvent(
+      new CustomEvent('athletics-tab-change', { detail: { tab } })
+    )
+  }
+
+  const handleAthleticsCampusClick = (campusId: string) => {
+    setAthleticsCampusId(campusId)
+    window.dispatchEvent(
+      new CustomEvent('athletics-campus-change', { detail: { campusId } })
+    )
+  }
 
   const handleSettingsClick = () => {
     if (!settingsOpen) {
       setSettingsOpen(true)
       setCalendarOpen(false)
+      setAthleticsOpen(false)
       // Keep the last-used settings tab (stored in localStorage) instead of resetting
       router.push('/settings')
     } else {
@@ -331,7 +412,7 @@ export default function Sidebar({
     { id: 'add-ons' as SettingsTab, label: 'Add-ons', icon: Puzzle },
   ]
 
-  const secondaryOpen = settingsOpen || calendarOpen
+  const secondaryOpen = settingsOpen || calendarOpen || athleticsOpen
 
   const mainNavContent = (
     <>
@@ -347,15 +428,16 @@ export default function Sidebar({
                   href={item.href}
                   onClick={() => {
                     setSettingsOpen(false)
+                    setAthleticsOpen(false)
                     setIsOpen(false)
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
                   className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                    active && !settingsOpen
+                    active && !settingsOpen && !athleticsOpen
                       ? 'bg-white/10 text-white font-medium border border-white/20'
                       : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }`}
-                  aria-current={active && !settingsOpen ? 'page' : undefined}
+                  aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
@@ -363,6 +445,26 @@ export default function Sidebar({
               </li>
             )
           })}
+          {/* Athletics — toggle secondary sidebar (like Settings) */}
+          {athleticsEnabled && (
+            <li>
+              <button
+                onClick={() => {
+                  handleAthleticsClick()
+                  setIsOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                  athleticsOpen
+                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                    : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                }`}
+                aria-current={athleticsOpen ? 'page' : undefined}
+              >
+                <Trophy className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                <span className="text-sm">Athletics</span>
+              </button>
+            </li>
+          )}
         </ul>
       </nav>
     </>
@@ -707,6 +809,84 @@ export default function Sidebar({
     </div>
   )
 
+  const athleticsSubTabs: { id: AthleticsTab; label: string; icon: typeof Dribbble }[] = [
+    { id: 'sports', label: 'Sports', icon: Dribbble },
+    { id: 'teams', label: 'Teams', icon: Users },
+    { id: 'schedule', label: 'Schedule', icon: CalendarDays },
+    { id: 'roster', label: 'Roster', icon: ClipboardList },
+    { id: 'tournaments', label: 'Tournaments', icon: Trophy },
+    { id: 'stats', label: 'Stats', icon: BarChart3 },
+  ]
+
+  const athleticsNavContent = (
+    <div className="flex flex-col h-full bg-[#f0f3f9]">
+      {/* Athletics Header */}
+      <div className="px-5 py-4 border-b border-gray-200">
+        <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase">Athletics</h2>
+      </div>
+
+      {/* Campuses */}
+      {athleticsCampuses.length > 0 && (
+        <div className="px-3 pt-4">
+          <p className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase px-2 mb-2">
+            Campuses
+          </p>
+          <nav className="space-y-0.5" aria-label="Athletics campuses">
+            {athleticsCampuses.map((campus) => {
+              const isActiveCampus = athleticsCampusId === campus.id
+              return (
+                <button
+                  key={campus.id}
+                  onClick={() => handleAthleticsCampusClick(campus.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    isActiveCampus
+                      ? 'bg-[#dde6f5] text-primary-600 font-medium'
+                      : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
+                  }`}
+                >
+                  <Building2 className={`w-4 h-4 flex-shrink-0 ${isActiveCampus ? 'text-primary-600' : 'text-gray-400'}`} />
+                  {campus.name}
+                </button>
+              )
+            })}
+          </nav>
+        </div>
+      )}
+
+      {/* Divider */}
+      <div className="px-5 py-2">
+        <div className="h-px bg-gray-200" />
+      </div>
+
+      {/* Navigation */}
+      <div className="px-3 pb-4">
+        <p className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase px-2 mb-2">
+          Navigation
+        </p>
+        <nav className="space-y-0.5" aria-label="Athletics navigation">
+          {athleticsSubTabs.map((tab) => {
+            const Icon = tab.icon
+            const isTabActive = activeAthleticsTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleAthleticsTabClick(tab.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  isTabActive
+                    ? 'bg-[#dde6f5] text-primary-600 font-medium'
+                    : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
+                }`}
+              >
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-gray-400'}`} />
+                {tab.label}
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+    </div>
+  )
+
   return (
     <>
       {/* Mobile Menu Toggle */}
@@ -747,11 +927,11 @@ export default function Sidebar({
           className={`flex flex-col w-60 bg-[#f0f3f9] border-r border-gray-200 h-full transition-all duration-300 ease-in-out overflow-hidden ${
             secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
           }`}
-          aria-label={calendarOpen ? 'Calendar navigation' : 'Settings navigation'}
+          aria-label={athleticsOpen ? 'Athletics navigation' : calendarOpen ? 'Calendar navigation' : 'Settings navigation'}
           aria-hidden={!secondaryOpen}
         >
           <div className="w-60 h-full">
-            {calendarOpen ? calendarNavContent : settingsNavContent}
+            {athleticsOpen ? athleticsNavContent : calendarOpen ? calendarNavContent : settingsNavContent}
           </div>
         </aside>
       </div>
@@ -765,9 +945,9 @@ export default function Sidebar({
         aria-label="Mobile navigation"
       >
         {mainNavContent}
-        {(calendarOpen || settingsOpen) && (
+        {(calendarOpen || settingsOpen || athleticsOpen) && (
           <div className="flex-1 overflow-y-auto border-t border-white/10">
-            {calendarOpen ? calendarNavContent : settingsNavContent}
+            {athleticsOpen ? athleticsNavContent : calendarOpen ? calendarNavContent : settingsNavContent}
           </div>
         )}
       </aside>

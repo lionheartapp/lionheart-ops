@@ -1,18 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { Trophy, Building2, Dribbble, Users, CalendarDays, ClipboardList, BarChart3 } from 'lucide-react'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
 import ScheduleSection from '@/components/athletics/ScheduleSection'
 import TournamentsSection from '@/components/athletics/TournamentsSection'
 import RosterSection from '@/components/athletics/RosterSection'
 import StatsSection from '@/components/athletics/StatsSection'
+import type { AthleticsTab } from '@/components/Sidebar'
 
 interface Campus {
   id: string
@@ -29,17 +29,6 @@ async function fetchCampuses(): Promise<Campus[]> {
   const data = await res.json()
   return data.ok ? data.data : []
 }
-
-type SubTab = 'sports' | 'teams' | 'schedule' | 'tournaments' | 'roster' | 'stats'
-
-const SUB_TABS: { key: SubTab; label: string; icon: typeof Dribbble }[] = [
-  { key: 'sports', label: 'Sports', icon: Dribbble },
-  { key: 'teams', label: 'Teams', icon: Users },
-  { key: 'schedule', label: 'Schedule', icon: CalendarDays },
-  { key: 'roster', label: 'Roster', icon: ClipboardList },
-  { key: 'tournaments', label: 'Tournaments', icon: Trophy },
-  { key: 'stats', label: 'Stats', icon: BarChart3 },
-]
 
 export default function AthleticsPage() {
   const router = useRouter()
@@ -74,7 +63,49 @@ export default function AthleticsPage() {
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
   const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
 
-  const [activeTab, setActiveTab] = useState<SubTab>('sports')
+  const [activeTab, setActiveTab] = useState<AthleticsTab>('sports')
+
+  // Track whether we've dispatched sidebar data so we re-dispatch when data changes
+  const lastDispatchRef = useRef<string>('')
+
+  // Dispatch sidebar data whenever campuses/modules load or change
+  const dispatchSidebarData = useCallback(() => {
+    if (enabledCampuses.length === 0) return
+    const key = enabledCampuses.map((c) => c.id).join(',') + '|' + activeCampusId + '|' + activeTab
+    if (key === lastDispatchRef.current) return
+    lastDispatchRef.current = key
+    window.dispatchEvent(
+      new CustomEvent('athletics-sidebar-data', {
+        detail: {
+          campuses: enabledCampuses.map((c) => ({ id: c.id, name: c.name })),
+          activeCampusId,
+          activeTab,
+        },
+      })
+    )
+  }, [enabledCampuses, activeCampusId, activeTab])
+
+  useEffect(() => {
+    dispatchSidebarData()
+  }, [dispatchSidebarData])
+
+  // Listen for sidebar-driven changes
+  useEffect(() => {
+    const handleTabChange = (e: Event) => {
+      const event = e as CustomEvent<{ tab: AthleticsTab }>
+      if (event.detail?.tab) setActiveTab(event.detail.tab)
+    }
+    const handleCampusChange = (e: Event) => {
+      const event = e as CustomEvent<{ campusId: string }>
+      if (event.detail?.campusId) setSelectedCampusId(event.detail.campusId)
+    }
+    window.addEventListener('athletics-tab-change', handleTabChange)
+    window.addEventListener('athletics-campus-change', handleCampusChange)
+    return () => {
+      window.removeEventListener('athletics-tab-change', handleTabChange)
+      window.removeEventListener('athletics-campus-change', handleCampusChange)
+    }
+  }, [])
 
   if (!isClient && typeof window !== 'undefined') setIsClient(true)
 
@@ -114,53 +145,9 @@ export default function AthleticsPage() {
           {/* Page header */}
           <div className="mb-6">
             <h1 className="text-2xl font-semibold text-gray-900">Athletics</h1>
-            <p className="text-sm text-gray-500">Manage sports teams, schedules, and rosters</p>
-          </div>
-
-          {/* Campus tabs */}
-          {enabledCampuses.length > 1 && (
-            <div className="flex gap-1 border-b border-gray-200 mb-4">
-              {enabledCampuses.map((campus) => (
-                <button
-                  key={campus.id}
-                  onClick={() => setSelectedCampusId(campus.id)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                    activeCampusId === campus.id
-                      ? 'border-primary-500 text-primary-700'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Building2 className="w-4 h-4" />
-                  {campus.name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Single campus label */}
-          {enabledCampuses.length === 1 && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
-              <Building2 className="w-4 h-4" />
-              {enabledCampuses[0].name}
-            </div>
-          )}
-
-          {/* Sub-navigation tabs */}
-          <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1">
-            {SUB_TABS.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full transition-all ${
-                  activeTab === key
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </button>
-            ))}
+            <p className="text-sm text-gray-500">
+              {enabledCampuses.find((c) => c.id === activeCampusId)?.name || 'Manage sports teams, schedules, and rosters'}
+            </p>
           </div>
 
           {/* Active section */}
