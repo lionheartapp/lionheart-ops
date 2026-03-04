@@ -12,6 +12,7 @@ const CreateTeamSchema = z.object({
   name: z.string().trim().min(1).max(120),
   slug: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(500).optional().nullable(),
+  teamType: z.enum(['DEPARTMENT', 'DIVISION']).default('DEPARTMENT'),
 })
 
 function toSlug(value: string) {
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest) {
           name: true,
           slug: true,
           description: true,
+          teamType: true,
           _count: { select: { members: true } },
         },
         orderBy: { name: 'asc' },
@@ -88,6 +90,7 @@ export async function POST(req: NextRequest) {
           name: input.name,
           slug,
           description: input.description || null,
+          teamType: input.teamType,
         },
       })
 

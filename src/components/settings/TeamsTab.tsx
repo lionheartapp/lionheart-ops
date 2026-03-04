@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
-import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -13,6 +13,7 @@ interface Team {
   name: string
   slug: string
   description?: string
+  teamType?: 'DEPARTMENT' | 'DIVISION'
   _count?: {
     members: number
   }
@@ -35,10 +36,12 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [teamName, setTeamName] = useState('')
   const [teamDescription, setTeamDescription] = useState('')
+  const [teamType, setTeamType] = useState<'DEPARTMENT' | 'DIVISION'>('DEPARTMENT')
   const [createLoading, setCreateLoading] = useState(false)
   const [editTeam, setEditTeam] = useState<Team | null>(null)
   const [editTeamName, setEditTeamName] = useState('')
   const [editTeamDescription, setEditTeamDescription] = useState('')
+  const [editTeamType, setEditTeamType] = useState<'DEPARTMENT' | 'DIVISION'>('DEPARTMENT')
   const [editLoading, setEditLoading] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
@@ -55,7 +58,8 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     Boolean(editTeam) &&
     (
       editTeamName.trim() !== (editTeam?.name || '').trim() ||
-      editTeamDescription.trim() !== (editTeam?.description || '').trim()
+      editTeamDescription.trim() !== (editTeam?.description || '').trim() ||
+      editTeamType !== (editTeam?.teamType || 'DEPARTMENT')
     )
   const hasUnsavedChanges = hasCreateDraft || hasEditDraft
 
@@ -129,6 +133,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         body: JSON.stringify({
           name: trimmedName,
           description: teamDescription.trim() || null,
+          teamType,
         }),
       })
       if (handleAuthResponse(response)) return
@@ -142,6 +147,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
       setTeamName('')
       setTeamDescription('')
+      setTeamType('DEPARTMENT')
       setShowCreateModal(false)
       await loadTeams()
     } catch (error) {
@@ -157,6 +163,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     setEditTeam(team)
     setEditTeamName(team.name)
     setEditTeamDescription(team.description || '')
+    setEditTeamType(team.teamType || 'DEPARTMENT')
     setEditLoading(true)
 
     try {
@@ -174,6 +181,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
       setEditTeamName(payload?.data?.name || team.name)
       setEditTeamDescription(payload?.data?.description || '')
+      setEditTeamType(payload?.data?.teamType || team.teamType || 'DEPARTMENT')
     } catch (error) {
       console.error('Failed to load team details:', error)
       setEditError('Failed to load team details')
@@ -187,6 +195,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     setEditTeam(null)
     setEditTeamName('')
     setEditTeamDescription('')
+    setEditTeamType('DEPARTMENT')
     setEditError(null)
   }
 
@@ -212,6 +221,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         body: JSON.stringify({
           name: trimmedName,
           description: editTeamDescription.trim() || null,
+          teamType: editTeamType,
         }),
       })
       if (handleAuthResponse(response)) return
@@ -389,6 +399,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             <thead>
               <tr className="text-gray-500 border-b bg-gray-50">
                 <th className="py-3 px-4 text-left font-medium">Team</th>
+                <th className="py-3 px-4 text-left font-medium hidden md:table-cell">Type</th>
                 <th className="py-3 px-4 text-left font-medium hidden sm:table-cell">Description</th>
                 <th className="py-3 px-4 text-left font-medium">Members</th>
                 <th className="py-3 pl-4 pr-4 sm:pr-10 text-right font-medium">Actions</th>
@@ -400,6 +411,15 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                   <td className="py-3 px-4">
                     <div className="font-medium text-gray-900">{team.name}</div>
                     <div className="text-xs text-gray-400 mt-0.5">@{team.slug}</div>
+                  </td>
+                  <td className="py-3 px-4 hidden md:table-cell">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      team.teamType === 'DIVISION'
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {team.teamType === 'DIVISION' ? 'Division' : 'Department'}
+                    </span>
                   </td>
                   <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">
                     {team.description || <span className="text-gray-400">—</span>}
@@ -438,6 +458,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
           setShowCreateModal(false)
           setTeamName('')
           setTeamDescription('')
+          setTeamType('DEPARTMENT')
           setActionError(null)
         }}
         title="Create Team"
@@ -459,6 +480,17 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
               disabled={createLoading}
               autoFocus
             />
+
+            <FloatingSelect
+              id="team-type"
+              label="Type"
+              value={teamType}
+              onChange={(e) => setTeamType(e.target.value as 'DEPARTMENT' | 'DIVISION')}
+              disabled={createLoading}
+            >
+              <option value="DEPARTMENT">Department</option>
+              <option value="DIVISION">Division</option>
+            </FloatingSelect>
 
             <FloatingTextarea
               id="team-description"
@@ -484,6 +516,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 setShowCreateModal(false)
                 setTeamName('')
                 setTeamDescription('')
+                setTeamType('DEPARTMENT')
                 setActionError(null)
               }}
               className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
@@ -528,6 +561,17 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 disabled={editSaving}
                 autoFocus
               />
+
+              <FloatingSelect
+                id="edit-team-type"
+                label="Type"
+                value={editTeamType}
+                onChange={(e) => setEditTeamType(e.target.value as 'DEPARTMENT' | 'DIVISION')}
+                disabled={editSaving}
+              >
+                <option value="DEPARTMENT">Department</option>
+                <option value="DIVISION">Division</option>
+              </FloatingSelect>
 
               <FloatingTextarea
                 id="edit-team-description"

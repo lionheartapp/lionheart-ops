@@ -27,6 +27,7 @@ const DeleteTeamSchema = z.object({
 const UpdateTeamSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(500).optional().nullable(),
+  teamType: z.enum(['DEPARTMENT', 'DIVISION']).optional(),
 })
 
 function toSlug(value: string) {
@@ -55,6 +56,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
           name: true,
           slug: true,
           description: true,
+          teamType: true,
         },
       })
 
@@ -112,8 +114,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         data: {
           ...(input.name !== undefined ? { name: input.name, slug: nextSlug } : {}),
           ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.teamType !== undefined ? { teamType: input.teamType } : {}),
         },
-        select: { id: true, name: true, slug: true, description: true },
+        select: { id: true, name: true, slug: true, description: true, teamType: true },
       })
 
       // No need to update user records when slug changes — the junction table
@@ -130,6 +133,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         changes:        {
           ...(input.name !== undefined ? { name: input.name } : {}),
           ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.teamType !== undefined ? { teamType: input.teamType } : {}),
         },
         ipAddress:      getIp(req),
       })

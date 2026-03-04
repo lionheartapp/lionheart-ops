@@ -517,12 +517,18 @@ model UserPermission {
   @@index([permissionId])
 }
 
+enum TeamType {
+  DEPARTMENT
+  DIVISION
+}
+
 model Team {
   id             String       @id @default(cuid())
   organizationId String
   name           String       // "IT Support", "Maintenance", "Room 102"
   slug           String       // "it-support", "maintenance", "room-102"
   description    String?
+  teamType       TeamType     @default(DEPARTMENT)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

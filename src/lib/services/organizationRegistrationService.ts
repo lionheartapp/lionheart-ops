@@ -215,6 +215,7 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
           name:           teamDef.name,
           slug:           teamDef.slug,
           description:    teamDef.description,
+          teamType:       'DEPARTMENT',
         },
       })
     )
