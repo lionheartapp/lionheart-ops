@@ -234,15 +234,16 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
     }
   }
 
-  const fetchSchedule = async (teamId: string) => {
-    if (!token || !teamId) return
+  const fetchSchedule = async (teamId?: string) => {
+    if (!token) return
     setLoadingSchedule(true)
     try {
+      const teamParam = teamId ? `?teamId=${teamId}` : ''
       const [gamesRes, practicesRes] = await Promise.all([
-        fetch(`/api/athletics/games?teamId=${teamId}`, {
+        fetch(`/api/athletics/games${teamParam}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`/api/athletics/practices?teamId=${teamId}`, {
+        fetch(`/api/athletics/practices${teamParam}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ])
@@ -264,12 +265,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (selectedTeamId) {
-      fetchSchedule(selectedTeamId)
-    } else {
-      setGames([])
-      setPractices([])
-    }
+    fetchSchedule(selectedTeamId || undefined)
   }, [selectedTeamId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Campus-filtered teams ────────────────────────────────────────
@@ -294,13 +290,33 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
     }
   }, [displayTeams, selectedTeamId])
 
+  // ─── Campus-filtered games/practices when viewing all teams ──────
+
+  const displayGames = useMemo(() => {
+    if (selectedTeamId || !activeCampusId) return games
+    return games.filter((g) => {
+      const team = displayTeams.find((t) => t.id === g.athleticTeamId)
+      return !!team
+    })
+  }, [games, selectedTeamId, activeCampusId, displayTeams])
+
+  const displayPractices = useMemo(() => {
+    if (selectedTeamId || !activeCampusId) return practices
+    return practices.filter((p) => {
+      const team = displayTeams.find((t) => t.id === p.athleticTeamId)
+      return !!team
+    })
+  }, [practices, selectedTeamId, activeCampusId, displayTeams])
+
   // ─── Build agenda ─────────────────────────────────────────────────
+
+  const showingAllTeams = !selectedTeamId
 
   const agendaItems = useMemo(() => {
     const items: AgendaItem[] = []
 
     if (filter !== 'practices') {
-      for (const game of games) {
+      for (const game of displayGames) {
         items.push({
           type: 'game',
           data: game,
@@ -311,14 +327,14 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
     }
 
     if (filter !== 'games') {
-      for (const practice of practices) {
+      for (const practice of displayPractices) {
         items.push(...expandRecurringPractice(practice))
       }
     }
 
     items.sort((a, b) => a.sortTime - b.sortTime)
     return items
-  }, [games, practices, filter])
+  }, [displayGames, displayPractices, filter])
 
   // Season record (from final games)
   const record = useMemo(() => calcRecord(games), [games])
@@ -341,7 +357,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   // ─── Handlers ─────────────────────────────────────────────────────
 
   const refreshSchedule = () => {
-    if (selectedTeamId) fetchSchedule(selectedTeamId)
+    fetchSchedule(selectedTeamId || undefined)
   }
 
   const openGameCreate = () => {
@@ -417,8 +433,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             <button
               type="button"
               onClick={openGameCreate}
-              disabled={!selectedTeamId}
-              className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
             >
               <Plus className="w-4 h-4" />
               Add Game
@@ -426,8 +441,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             <button
               type="button"
               onClick={() => setPracticeDrawerOpen(true)}
-              disabled={!selectedTeamId}
-              className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
             >
               <Plus className="w-4 h-4" />
               Add Practice
@@ -467,13 +481,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
       )}
 
       {/* Content */}
-      {!selectedTeamId && displayTeams.length > 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h2 className="text-lg font-medium text-gray-700 mb-1">Select a team</h2>
-          <p className="text-sm text-gray-500">Choose a team above to view their schedule</p>
-        </div>
-      ) : displayTeams.length === 0 ? (
+      {displayTeams.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
           <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <h2 className="text-lg font-medium text-gray-700 mb-1">No teams available</h2>
@@ -550,6 +558,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                         <GameRow
                           key={`game-${item.data.id}-${idx}`}
                           game={item.data}
+                          showTeamName={showingAllTeams}
                           onEdit={() => openGameEdit(item.data)}
                           onScore={() => setScoreGame(item.data)}
                           onPlayerStats={() => setPlayerStatsGame(item.data)}
@@ -563,6 +572,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                         <PracticeRow
                           key={`practice-${item.data.id}-${idx}`}
                           practice={item.data}
+                          showTeamName={showingAllTeams}
                           isExpanded={item.isExpanded}
                           onDelete={() => setDeleteTarget({
                             type: 'practice',
@@ -633,12 +643,14 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
 function GameRow({
   game,
+  showTeamName,
   onEdit,
   onScore,
   onPlayerStats,
   onDelete,
 }: {
   game: Game
+  showTeamName?: boolean
   onEdit: () => void
   onScore: () => void
   onPlayerStats: () => void
@@ -660,6 +672,9 @@ function GameRow({
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
+          {showTeamName && game.athleticTeam && (
+            <span className="text-xs font-medium text-gray-500">{game.athleticTeam.name}</span>
+          )}
           <span className="font-medium text-gray-900 text-sm">
             {prefix} {game.opponentName}
           </span>
@@ -693,10 +708,12 @@ function GameRow({
 
 function PracticeRow({
   practice,
+  showTeamName,
   isExpanded,
   onDelete,
 }: {
   practice: Practice
+  showTeamName?: boolean
   isExpanded?: boolean
   onDelete: () => void
 }) {
@@ -710,7 +727,12 @@ function PracticeRow({
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-gray-900 text-sm">Practice</span>
+          {showTeamName && practice.athleticTeam && (
+            <span className="text-xs font-medium text-gray-500">{practice.athleticTeam.name}</span>
+          )}
+          <span className="font-medium text-gray-900 text-sm">
+            {showTeamName && practice.athleticTeam ? `${practice.athleticTeam.sport?.name} Practice` : 'Practice'}
+          </span>
           {rruleText && (
             <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-medium">
               {rruleText}
