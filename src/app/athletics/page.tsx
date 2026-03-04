@@ -112,14 +112,9 @@ export default function AthleticsPage() {
       <ModuleGate moduleId="athletics">
         <div>
           {/* Page header */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-primary-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Athletics</h1>
-              <p className="text-sm text-gray-500">Manage sports teams, schedules, and rosters</p>
-            </div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-semibold text-gray-900">Athletics</h1>
+            <p className="text-sm text-gray-500">Manage sports teams, schedules, and rosters</p>
           </div>
 
           {/* Campus tabs */}
