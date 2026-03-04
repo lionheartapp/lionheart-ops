@@ -29,6 +29,7 @@ type Team = {
   id: string
   name: string
   level: string
+  gradeLevel: string | null
   coachUserId: string | null
   coachName: string | null
   schoolId: string | null
@@ -73,14 +74,24 @@ const LEVEL_LABELS: Record<string, string> = {
   VARSITY: 'Varsity',
   JUNIOR_VARSITY: 'JV',
   FRESHMAN: 'Freshman',
-  MIDDLE_SCHOOL: 'Middle School',
 }
 
 const LEVEL_STYLES: Record<string, string> = {
   VARSITY: 'bg-indigo-100 text-indigo-700',
   JUNIOR_VARSITY: 'bg-sky-100 text-sky-700',
   FRESHMAN: 'bg-teal-100 text-teal-700',
+}
+
+const GRADE_LABELS: Record<string, string> = {
+  ELEMENTARY: 'Elementary',
+  MIDDLE_SCHOOL: 'Middle School',
+  HIGH_SCHOOL: 'High School',
+}
+
+const GRADE_STYLES: Record<string, string> = {
+  ELEMENTARY: 'bg-amber-100 text-amber-700',
   MIDDLE_SCHOOL: 'bg-gray-100 text-gray-600',
+  HIGH_SCHOOL: 'bg-emerald-100 text-emerald-700',
 }
 
 interface TeamsSectionProps {
@@ -110,6 +121,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
     sportId: '',
     seasonId: '',
     level: 'VARSITY',
+    gradeLevel: '',
     coachUserId: '',
     coachName: '',
   })
@@ -271,7 +283,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
 
   const openCreate = () => {
     setEditingTeam(null)
-    setForm({ name: '', sportId: '', seasonId: '', level: 'VARSITY', coachUserId: '', coachName: '' })
+    setForm({ name: '', sportId: '', seasonId: '', level: 'VARSITY', gradeLevel: '', coachUserId: '', coachName: '' })
     setFormError('')
     setDrawerOpen(true)
   }
@@ -283,6 +295,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
       sportId: team.sport.id,
       seasonId: team.season.id,
       level: team.level,
+      gradeLevel: team.gradeLevel || '',
       coachUserId: team.coachUserId || '',
       coachName: team.coachName || '',
     })
@@ -307,6 +320,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
           body: JSON.stringify({
             name: form.name.trim(),
             level: form.level,
+            gradeLevel: form.gradeLevel || null,
             coachUserId: form.coachUserId || null,
             coachName: form.coachName.trim() || null,
           }),
@@ -324,6 +338,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
             sportId: form.sportId,
             seasonId: form.seasonId,
             level: form.level,
+            gradeLevel: form.gradeLevel || null,
             coachUserId: form.coachUserId || undefined,
             coachName: form.coachName.trim() || undefined,
             schoolId: activeCampusId || undefined,
@@ -467,9 +482,16 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
                     <td className="px-4 py-3 text-gray-600">{team.sport.name}</td>
                     <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{team.season.name}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${LEVEL_STYLES[team.level] || 'bg-gray-100 text-gray-600'}`}>
-                        {LEVEL_LABELS[team.level] || team.level}
-                      </span>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {team.gradeLevel && (
+                          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${GRADE_STYLES[team.gradeLevel] || 'bg-gray-100 text-gray-600'}`}>
+                            {GRADE_LABELS[team.gradeLevel] || team.gradeLevel}
+                          </span>
+                        )}
+                        <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${LEVEL_STYLES[team.level] || 'bg-gray-100 text-gray-600'}`}>
+                          {LEVEL_LABELS[team.level] || team.level}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
                       {coach ? coach.name || coach.email : team.coachName || '—'}
@@ -553,15 +575,26 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
           />
 
           <FloatingSelect
+            id="team-grade-level"
+            label="Grade Level"
+            value={form.gradeLevel}
+            onChange={(e) => setForm({ ...form, gradeLevel: e.target.value })}
+          >
+            <option value="">None</option>
+            <option value="ELEMENTARY">Elementary</option>
+            <option value="MIDDLE_SCHOOL">Middle School</option>
+            <option value="HIGH_SCHOOL">High School</option>
+          </FloatingSelect>
+
+          <FloatingSelect
             id="team-level"
-            label="Level"
+            label="Competition Level"
             value={form.level}
             onChange={(e) => setForm({ ...form, level: e.target.value })}
           >
             <option value="VARSITY">Varsity</option>
             <option value="JUNIOR_VARSITY">Junior Varsity</option>
             <option value="FRESHMAN">Freshman</option>
-            <option value="MIDDLE_SCHOOL">Middle School</option>
           </FloatingSelect>
 
           <FloatingDropdown

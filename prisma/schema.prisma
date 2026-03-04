@@ -1667,6 +1667,7 @@ model AthleticTeam {
   seasonId       String
   name           String   // "Varsity Football", "JV Basketball"
   level          TeamLevel @default(VARSITY)
+  gradeLevel     SchoolType?  // ELEMENTARY, MIDDLE_SCHOOL, HIGH_SCHOOL — null means org-wide / unspecified
   coachUserId    String?
   coachName      String?   // Free-form coach name (alternative to coachUserId)
   schoolId       String?
@@ -1852,7 +1853,6 @@ enum TeamLevel {
   VARSITY
   JUNIOR_VARSITY
   FRESHMAN
-  MIDDLE_SCHOOL
 }
 
 enum HomeAway {

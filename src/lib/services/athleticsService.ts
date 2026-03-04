@@ -120,6 +120,7 @@ export async function createTeam(data: {
   seasonId: string
   name: string
   level?: string
+  gradeLevel?: string | null
   coachUserId?: string
   coachName?: string
   schoolId?: string
@@ -131,6 +132,7 @@ export async function createTeam(data: {
       seasonId: data.seasonId,
       name: data.name,
       level: data.level || 'VARSITY',
+      gradeLevel: data.gradeLevel || null,
       coachUserId: data.coachUserId || null,
       coachName: data.coachName || null,
       schoolId: data.schoolId || null,
@@ -146,6 +148,7 @@ export async function createTeam(data: {
 export async function updateTeam(id: string, data: {
   name?: string
   level?: string
+  gradeLevel?: string | null
   coachUserId?: string | null
   coachName?: string | null
   schoolId?: string | null
