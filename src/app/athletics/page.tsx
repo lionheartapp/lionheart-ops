@@ -10,6 +10,7 @@ import { Trophy, Building2, Dribbble, Users, CalendarDays } from 'lucide-react'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
 import ScheduleSection from '@/components/athletics/ScheduleSection'
+import TournamentsSection from '@/components/athletics/TournamentsSection'
 
 interface Campus {
   id: string
@@ -27,12 +28,13 @@ async function fetchCampuses(): Promise<Campus[]> {
   return data.ok ? data.data : []
 }
 
-type SubTab = 'sports' | 'teams' | 'schedule'
+type SubTab = 'sports' | 'teams' | 'schedule' | 'tournaments'
 
 const SUB_TABS: { key: SubTab; label: string; icon: typeof Dribbble }[] = [
   { key: 'sports', label: 'Sports', icon: Dribbble },
   { key: 'teams', label: 'Teams', icon: Users },
   { key: 'schedule', label: 'Schedule', icon: CalendarDays },
+  { key: 'tournaments', label: 'Tournaments', icon: Trophy },
 ]
 
 export default function AthleticsPage() {
@@ -166,6 +168,7 @@ export default function AthleticsPage() {
           {activeTab === 'sports' && <SportsSection />}
           {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} />}
           {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} />}
+          {activeTab === 'tournaments' && <TournamentsSection activeCampusId={activeCampusId} />}
         </div>
       </ModuleGate>
     </DashboardLayout>

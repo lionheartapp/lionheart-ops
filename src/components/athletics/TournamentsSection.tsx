@@ -1,0 +1,390 @@
+'use client'
+
+import { useEffect, useState, useMemo } from 'react'
+import { Plus, Search, Eye, Edit2, Trash2, Trophy } from 'lucide-react'
+import { handleAuthResponse } from '@/lib/client-auth'
+import DetailDrawer from '@/components/DetailDrawer'
+import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import RowActionMenu from '@/components/RowActionMenu'
+import ConfirmDialog from '@/components/ConfirmDialog'
+import TournamentDetail from '@/components/athletics/TournamentDetail'
+
+interface Sport {
+  id: string
+  name: string
+  color: string
+}
+
+interface Tournament {
+  id: string
+  name: string
+  sportId: string
+  format: string
+  startDate: string
+  endDate: string
+  sport: { id: string; name: string; color: string }
+  _count: { brackets: number }
+}
+
+interface TournamentsSectionProps {
+  activeCampusId: string | null
+}
+
+const FORMAT_LABELS: Record<string, string> = {
+  SINGLE_ELIMINATION: 'Single Elim',
+  DOUBLE_ELIMINATION: 'Double Elim',
+  ROUND_ROBIN: 'Round Robin',
+  POOL_PLAY: 'Pool Play',
+}
+
+const FORMAT_OPTIONS = [
+  { value: 'SINGLE_ELIMINATION', label: 'Single Elimination' },
+  { value: 'DOUBLE_ELIMINATION', label: 'Double Elimination' },
+  { value: 'ROUND_ROBIN', label: 'Round Robin' },
+  { value: 'POOL_PLAY', label: 'Pool Play' },
+]
+
+export default function TournamentsSection({ activeCampusId }: TournamentsSectionProps) {
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [sports, setSports] = useState<Sport[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [filterSportId, setFilterSportId] = useState('')
+
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editing, setEditing] = useState<Tournament | null>(null)
+  const [formName, setFormName] = useState('')
+  const [formSportId, setFormSportId] = useState('')
+  const [formFormat, setFormFormat] = useState('SINGLE_ELIMINATION')
+  const [formStartDate, setFormStartDate] = useState('')
+  const [formEndDate, setFormEndDate] = useState('')
+  const [formSaving, setFormSaving] = useState(false)
+  const [formError, setFormError] = useState('')
+
+  // Detail view
+  const [detailTournamentId, setDetailTournamentId] = useState<string | null>(null)
+
+  // Delete
+  const [deleteTarget, setDeleteTarget] = useState<Tournament | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+
+  const fetchTournaments = async () => {
+    try {
+      const res = await fetch('/api/athletics/tournaments', { headers: { Authorization: `Bearer ${token}` } })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (data.ok) setTournaments(data.data)
+    } catch { /* ignore */ } finally { setLoading(false) }
+  }
+
+  const fetchSports = async () => {
+    try {
+      const res = await fetch('/api/athletics/sports', { headers: { Authorization: `Bearer ${token}` } })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (data.ok) setSports(data.data)
+    } catch { /* ignore */ }
+  }
+
+  useEffect(() => {
+    fetchTournaments()
+    fetchSports()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const sportOptions: DropdownOption[] = useMemo(
+    () => sports.map((s) => ({ value: s.id, label: s.name })),
+    [sports],
+  )
+
+  const filtered = useMemo(() => {
+    let list = tournaments
+    if (search) {
+      const q = search.toLowerCase()
+      list = list.filter(
+        (t) => t.name.toLowerCase().includes(q) || t.sport.name.toLowerCase().includes(q),
+      )
+    }
+    if (filterSportId) {
+      list = list.filter((t) => t.sportId === filterSportId)
+    }
+    return list
+  }, [tournaments, search, filterSportId])
+
+  const openCreate = () => {
+    setEditing(null)
+    setFormName('')
+    setFormSportId(sports[0]?.id || '')
+    setFormFormat('SINGLE_ELIMINATION')
+    setFormStartDate('')
+    setFormEndDate('')
+    setFormError('')
+    setDrawerOpen(true)
+  }
+
+  const openEdit = (t: Tournament) => {
+    setEditing(t)
+    setFormName(t.name)
+    setFormSportId(t.sportId)
+    setFormFormat(t.format)
+    setFormStartDate(t.startDate.slice(0, 10))
+    setFormEndDate(t.endDate.slice(0, 10))
+    setFormError('')
+    setDrawerOpen(true)
+  }
+
+  const handleSave = async () => {
+    if (!formName.trim() || !formSportId || !formStartDate || !formEndDate) {
+      setFormError('All fields are required')
+      return
+    }
+
+    setFormSaving(true)
+    setFormError('')
+
+    try {
+      const url = editing
+        ? `/api/athletics/tournaments/${editing.id}`
+        : '/api/athletics/tournaments'
+      const method = editing ? 'PUT' : 'POST'
+
+      const body = editing
+        ? { name: formName, startDate: formStartDate, endDate: formEndDate }
+        : { name: formName, sportId: formSportId, format: formFormat, startDate: formStartDate, endDate: formEndDate }
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (!data.ok) { setFormError(data.error?.message || 'Failed to save'); return }
+
+      setDrawerOpen(false)
+      fetchTournaments()
+    } catch {
+      setFormError('Something went wrong')
+    } finally {
+      setFormSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/athletics/tournaments/${deleteTarget.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (data.ok) {
+        setDeleteTarget(null)
+        fetchTournaments()
+      }
+    } catch { /* ignore */ } finally { setDeleting(false) }
+  }
+
+  // Detail mode
+  if (detailTournamentId) {
+    return (
+      <TournamentDetail
+        tournamentId={detailTournamentId}
+        onBack={() => {
+          setDetailTournamentId(null)
+          fetchTournaments()
+        }}
+      />
+    )
+  }
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search tournaments..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-200"
+          />
+        </div>
+        <select
+          value={filterSportId}
+          onChange={(e) => setFilterSportId(e.target.value)}
+          className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+        >
+          <option value="">All Sports</option>
+          {sports.map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+        <button
+          onClick={openCreate}
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
+        >
+          <Plus className="w-4 h-4" />
+          Add Tournament
+        </button>
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <Trophy className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm text-gray-500">
+            {tournaments.length === 0 ? 'No tournaments yet. Create one to get started.' : 'No tournaments match your search.'}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Sport</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Format</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Dates</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">Matches</th>
+                <th className="px-4 py-3 w-10" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filtered.map((t) => {
+                const start = new Date(t.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                const end = new Date(t.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                return (
+                  <tr
+                    key={t.id}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => setDetailTournamentId(t.id)}
+                  >
+                    <td className="px-4 py-3 font-medium text-gray-900">{t.name}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.sport.color }} />
+                        <span className="text-gray-700">{t.sport.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                        {FORMAT_LABELS[t.format] || t.format}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">{start} – {end}</td>
+                    <td className="px-4 py-3 text-center text-gray-500">{t._count.brackets}</td>
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <RowActionMenu
+                        items={[
+                          { label: 'View', icon: <Eye className="w-4 h-4" />, onClick: () => setDetailTournamentId(t.id) },
+                          { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(t) },
+                          { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteTarget(t), variant: 'danger' },
+                        ]}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Create/Edit Drawer */}
+      <DetailDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={editing ? 'Edit Tournament' : 'New Tournament'}
+      >
+        <div className="space-y-4 p-1">
+          <FloatingInput
+            label="Tournament Name"
+            value={formName}
+            onChange={(e) => setFormName(e.target.value)}
+            placeholder="e.g. Fall Championship"
+          />
+
+          {!editing && (
+            <>
+              <FloatingDropdown
+                label="Sport"
+                value={formSportId}
+                onChange={setFormSportId}
+                options={sportOptions}
+                placeholder="Select sport"
+              />
+
+              <FloatingSelect
+                label="Format"
+                value={formFormat}
+                onChange={(e) => setFormFormat(e.target.value)}
+              >
+                {FORMAT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </FloatingSelect>
+            </>
+          )}
+
+          <FloatingInput
+            label="Start Date"
+            type="date"
+            value={formStartDate}
+            onChange={(e) => setFormStartDate(e.target.value)}
+          />
+
+          <FloatingInput
+            label="End Date"
+            type="date"
+            value={formEndDate}
+            onChange={(e) => setFormEndDate(e.target.value)}
+          />
+
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setDrawerOpen(false)}
+              disabled={formSaving}
+              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={formSaving}
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+            >
+              {formSaving ? 'Saving...' : editing ? 'Update' : 'Create'}
+            </button>
+          </div>
+        </div>
+      </DetailDrawer>
+
+      {/* Delete confirm */}
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete Tournament"
+        message={`Delete "${deleteTarget?.name}"? All brackets and results will be permanently removed.`}
+        confirmText="Delete"
+        variant="danger"
+        isLoading={deleting}
+        loadingText="Deleting..."
+      />
+    </div>
+  )
+}
