@@ -49,8 +49,14 @@ const SCHOOL_LEVELS = [
 
 const TEAM_LEVELS = [
   { value: 'VARSITY', label: 'Varsity' },
-  { value: 'JV', label: 'JV' },
+  { value: 'VARSITY_B', label: 'Varsity B' },
+  { value: 'JUNIOR_VARSITY', label: 'JV' },
   { value: 'FRESHMAN', label: 'Freshman' },
+  { value: 'FROSH_SOPH', label: 'Frosh-Soph' },
+  { value: 'C_TEAM', label: 'C-Team' },
+  { value: 'CLUB', label: 'Club' },
+  { value: 'INTRAMURAL', label: 'Intramural' },
+  { value: 'UNIFIED', label: 'Unified' },
 ]
 
 function toggleInSet<T>(set: Set<T>, value: T): Set<T> {

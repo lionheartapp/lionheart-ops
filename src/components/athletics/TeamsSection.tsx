@@ -73,14 +73,26 @@ function calcTeamRecords(games: Game[]): Record<string, TeamRecord> {
 
 const LEVEL_LABELS: Record<string, string> = {
   VARSITY: 'Varsity',
+  VARSITY_B: 'Varsity B',
   JUNIOR_VARSITY: 'JV',
   FRESHMAN: 'Freshman',
+  FROSH_SOPH: 'Frosh-Soph',
+  C_TEAM: 'C-Team',
+  CLUB: 'Club',
+  INTRAMURAL: 'Intramural',
+  UNIFIED: 'Unified',
 }
 
 const LEVEL_STYLES: Record<string, string> = {
   VARSITY: 'bg-indigo-100 text-indigo-700',
+  VARSITY_B: 'bg-indigo-50 text-indigo-600',
   JUNIOR_VARSITY: 'bg-sky-100 text-sky-700',
   FRESHMAN: 'bg-teal-100 text-teal-700',
+  FROSH_SOPH: 'bg-teal-50 text-teal-600',
+  C_TEAM: 'bg-slate-100 text-slate-600',
+  CLUB: 'bg-violet-100 text-violet-700',
+  INTRAMURAL: 'bg-orange-100 text-orange-700',
+  UNIFIED: 'bg-rose-100 text-rose-700',
 }
 
 const GRADE_LABELS: Record<string, string> = {
@@ -593,8 +605,14 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
             onChange={(e) => setForm({ ...form, level: e.target.value })}
           >
             <option value="VARSITY">Varsity</option>
+            <option value="VARSITY_B">Varsity B</option>
             <option value="JUNIOR_VARSITY">Junior Varsity</option>
             <option value="FRESHMAN">Freshman</option>
+            <option value="FROSH_SOPH">Frosh-Soph</option>
+            <option value="C_TEAM">C-Team</option>
+            <option value="CLUB">Club</option>
+            <option value="INTRAMURAL">Intramural</option>
+            <option value="UNIFIED">Unified</option>
           </FloatingSelect>
 
           <FloatingDropdown

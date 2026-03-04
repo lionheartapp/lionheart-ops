@@ -11,7 +11,7 @@ const CreateTeamSchema = z.object({
   sportId: z.string().min(1),
   seasonId: z.string().min(1),
   name: z.string().trim().min(1).max(200),
-  level: z.enum(['VARSITY', 'JUNIOR_VARSITY', 'FRESHMAN']).optional(),
+  level: z.enum(['VARSITY', 'VARSITY_B', 'JUNIOR_VARSITY', 'FRESHMAN', 'FROSH_SOPH', 'C_TEAM', 'CLUB', 'INTRAMURAL', 'UNIFIED']).optional(),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).nullable().optional(),
   coachUserId: z.string().optional(),
   coachName: z.string().trim().max(200).optional(),

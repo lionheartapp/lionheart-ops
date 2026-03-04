@@ -1863,8 +1863,14 @@ enum SportSeasonType {
 
 enum TeamLevel {
   VARSITY
+  VARSITY_B
   JUNIOR_VARSITY
   FRESHMAN
+  FROSH_SOPH
+  C_TEAM
+  CLUB
+  INTRAMURAL
+  UNIFIED
 }
 
 enum HomeAway {
