@@ -72,6 +72,7 @@ export const queryKeys = {
   },
   athleticsDashboard: {
     all: ['athletics-dashboard'] as const,
+    campus: (campusId?: string | null) => ['athletics-dashboard', campusId ?? 'all'] as const,
   },
 } as const
 
@@ -165,9 +166,12 @@ export const queryOptions = {
     staleTime: 10 * 60_000,
   }),
 
-  athleticsDashboard: () => ({
-    queryKey: queryKeys.athleticsDashboard.all,
-    queryFn: () => fetchApi<unknown>('/api/athletics/dashboard'),
+  athleticsDashboard: (campusId?: string | null) => ({
+    queryKey: queryKeys.athleticsDashboard.campus(campusId),
+    queryFn: () => {
+      const params = campusId ? `?campusId=${campusId}` : ''
+      return fetchApi<unknown>(`/api/athletics/dashboard${params}`)
+    },
     staleTime: 2 * 60_000,
   }),
 } as const

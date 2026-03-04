@@ -112,8 +112,8 @@ function getScoreDisplay(game: Game) {
   return `${ourScore}-${theirScore}`
 }
 
-export default function AthleticsDashboard({ canWrite, onTabChange }: AthleticsDashboardProps) {
-  const { data, isLoading } = useQuery(queryOptions.athleticsDashboard())
+export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChange }: AthleticsDashboardProps) {
+  const { data, isLoading } = useQuery(queryOptions.athleticsDashboard(activeCampusId))
 
   if (isLoading) return <DashboardSkeleton />
 

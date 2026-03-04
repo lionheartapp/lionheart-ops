@@ -12,6 +12,8 @@ export async function GET(req: NextRequest) {
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.ATHLETICS_READ)
 
+    const campusId = req.nextUrl.searchParams.get('campusId') || undefined
+
     return await runWithOrgContext(orgId, async () => {
       const now = new Date()
 
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest) {
       weekEnd.setDate(weekStart.getDate() + 6)
       weekEnd.setHours(23, 59, 59, 999)
 
-      const [teams, sports, allGames, practices, standings] = await Promise.all([
+      const [allTeams, sports, allGames, allPractices, allStandings] = await Promise.all([
         getTeams(),
         getSports({ isActive: true }),
         getGames(),
@@ -33,18 +35,37 @@ export async function GET(req: NextRequest) {
         getTeamStandings(),
       ])
 
+      // Filter by campus — teams use schoolId which maps to campusId
+      // Same pattern as TeamsSection/ScheduleSection client-side filter
+      const teams = campusId
+        ? allTeams.filter((t: any) => !t.schoolId || t.schoolId === campusId)
+        : allTeams
+      const campusTeamIds = new Set(teams.map((t: any) => t.id))
+
+      const games = campusId
+        ? allGames.filter((g: any) => campusTeamIds.has(g.athleticTeamId))
+        : allGames
+
+      const practices = campusId
+        ? allPractices.filter((p: any) => campusTeamIds.has(p.athleticTeamId))
+        : allPractices
+
+      const standings = campusId
+        ? (allStandings as any[]).filter((s: any) => campusTeamIds.has(s.teamId))
+        : allStandings
+
       // Split games into upcoming and recent
-      const upcomingGames = allGames
+      const upcomingGames = games
         .filter((g: any) => new Date(g.startTime) >= now)
         .slice(0, 7)
 
-      const recentResults = allGames
+      const recentResults = games
         .filter((g: any) => new Date(g.startTime) < now && g.isFinal)
         .reverse()
         .slice(0, 5)
 
       // Games & practices this week
-      const gamesThisWeek = allGames.filter((g: any) => {
+      const gamesThisWeek = games.filter((g: any) => {
         const t = new Date(g.startTime)
         return t >= weekStart && t <= weekEnd
       })
