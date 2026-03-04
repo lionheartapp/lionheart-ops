@@ -233,7 +233,7 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
   const displayTeams = useMemo(() => {
     let result = teams
     if (activeCampusId) {
-      result = result.filter((t) => t.schoolId === activeCampusId)
+      result = result.filter((t) => !t.schoolId || t.schoolId === activeCampusId)
     }
     if (search) {
       const q = search.toLowerCase()

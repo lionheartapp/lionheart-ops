@@ -274,7 +274,7 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
 
   const displayTeams = useMemo(() => {
     if (!activeCampusId) return teams
-    return teams.filter((t) => t.schoolId === activeCampusId)
+    return teams.filter((t) => !t.schoolId || t.schoolId === activeCampusId)
   }, [teams, activeCampusId])
 
   const teamOptions: DropdownOption[] = useMemo(() => {
