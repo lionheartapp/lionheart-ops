@@ -518,8 +518,10 @@ model UserPermission {
 }
 
 enum TeamType {
-  DEPARTMENT
-  DIVISION
+  PRE_SCHOOL
+  ELEMENTARY
+  MIDDLE_SCHOOL
+  HIGH_SCHOOL
 }
 
 model Team {
@@ -528,7 +530,7 @@ model Team {
   name           String       // "IT Support", "Maintenance", "Room 102"
   slug           String       // "it-support", "maintenance", "room-102"
   description    String?
-  teamType       TeamType     @default(DEPARTMENT)
+  teamType       TeamType?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

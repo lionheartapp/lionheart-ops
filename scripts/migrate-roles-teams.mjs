@@ -3,7 +3,7 @@
  * One-time migration: Add Teacher role + Security team to existing orgs.
  *
  * - For each org, creates a "teacher" role (if missing) with the correct permissions.
- * - For each org, creates a "security" team (if missing) with teamType DEPARTMENT.
+ * - For each org, creates a "security" team (if missing).
  * - Existing "Teachers" teams are left untouched.
  *
  * Run: node scripts/migrate-roles-teams.mjs
@@ -11,7 +11,12 @@
 
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+// Use DIRECT_URL to bypass PgBouncer (avoids prepared statement issues)
+const prisma = new PrismaClient({
+  datasources: {
+    db: { url: process.env.DIRECT_URL || process.env.DATABASE_URL },
+  },
+})
 
 // Teacher role permission strings (must match DEFAULT_ROLES.TEACHER in permissions.ts)
 const TEACHER_PERMISSIONS = [
@@ -59,20 +64,18 @@ async function main() {
     if (existingTeacherRole) {
       console.log('  Teacher role already exists — skipping.')
     } else {
-      // Upsert permission rows (shared globally)
+      // Upsert permission rows sequentially (pooler can't handle parallel prepared statements)
       const permissionMap = new Map()
-      await Promise.all(
-        TEACHER_PERMISSIONS.map(async (permString) => {
-          const { resource, action, scope } = parsePermissionString(permString)
-          const row = await prisma.permission.upsert({
-            where: { resource_action_scope: { resource, action, scope } },
-            create: { resource, action, scope },
-            update: {},
-            select: { id: true },
-          })
-          permissionMap.set(permString, row.id)
+      for (const permString of TEACHER_PERMISSIONS) {
+        const { resource, action, scope } = parsePermissionString(permString)
+        const row = await prisma.permission.upsert({
+          where: { resource_action_scope: { resource, action, scope } },
+          create: { resource, action, scope },
+          update: {},
+          select: { id: true },
         })
-      )
+        permissionMap.set(permString, row.id)
+      }
 
       await prisma.role.create({
         data: {
@@ -106,7 +109,7 @@ async function main() {
           name: 'Security',
           slug: 'security',
           description: 'Campus security and access control',
-          teamType: 'DEPARTMENT',
+          teamType: null,
         },
       })
       console.log('  ✓ Security team created.')

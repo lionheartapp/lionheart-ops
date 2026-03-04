@@ -27,7 +27,7 @@ const DeleteTeamSchema = z.object({
 const UpdateTeamSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(500).optional().nullable(),
-  teamType: z.enum(['DEPARTMENT', 'DIVISION']).optional(),
+  teamType: z.enum(['PRE_SCHOOL', 'ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).nullable().optional(),
 })
 
 function toSlug(value: string) {

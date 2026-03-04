@@ -13,7 +13,7 @@ interface Team {
   name: string
   slug: string
   description?: string
-  teamType?: 'DEPARTMENT' | 'DIVISION'
+  teamType?: 'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | null
   _count?: {
     members: number
   }
@@ -36,12 +36,12 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [teamName, setTeamName] = useState('')
   const [teamDescription, setTeamDescription] = useState('')
-  const [teamType, setTeamType] = useState<'DEPARTMENT' | 'DIVISION'>('DEPARTMENT')
+  const [teamType, setTeamType] = useState<'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
   const [editTeam, setEditTeam] = useState<Team | null>(null)
   const [editTeamName, setEditTeamName] = useState('')
   const [editTeamDescription, setEditTeamDescription] = useState('')
-  const [editTeamType, setEditTeamType] = useState<'DEPARTMENT' | 'DIVISION'>('DEPARTMENT')
+  const [editTeamType, setEditTeamType] = useState<'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | null>(null)
   const [editLoading, setEditLoading] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
@@ -59,7 +59,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     (
       editTeamName.trim() !== (editTeam?.name || '').trim() ||
       editTeamDescription.trim() !== (editTeam?.description || '').trim() ||
-      editTeamType !== (editTeam?.teamType || 'DEPARTMENT')
+      editTeamType !== (editTeam?.teamType ?? null)
     )
   const hasUnsavedChanges = hasCreateDraft || hasEditDraft
 
@@ -147,7 +147,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
       setTeamName('')
       setTeamDescription('')
-      setTeamType('DEPARTMENT')
+      setTeamType(null)
       setShowCreateModal(false)
       await loadTeams()
     } catch (error) {
@@ -163,7 +163,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     setEditTeam(team)
     setEditTeamName(team.name)
     setEditTeamDescription(team.description || '')
-    setEditTeamType(team.teamType || 'DEPARTMENT')
+    setEditTeamType(team.teamType ?? null)
     setEditLoading(true)
 
     try {
@@ -181,7 +181,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
       setEditTeamName(payload?.data?.name || team.name)
       setEditTeamDescription(payload?.data?.description || '')
-      setEditTeamType(payload?.data?.teamType || team.teamType || 'DEPARTMENT')
+      setEditTeamType(payload?.data?.teamType ?? team.teamType ?? null)
     } catch (error) {
       console.error('Failed to load team details:', error)
       setEditError('Failed to load team details')
@@ -195,7 +195,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     setEditTeam(null)
     setEditTeamName('')
     setEditTeamDescription('')
-    setEditTeamType('DEPARTMENT')
+    setEditTeamType(null)
     setEditError(null)
   }
 
@@ -413,13 +413,21 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                     <div className="text-xs text-gray-400 mt-0.5">@{team.slug}</div>
                   </td>
                   <td className="py-3 px-4 hidden md:table-cell">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      team.teamType === 'DIVISION'
-                        ? 'bg-blue-100 text-blue-600'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {team.teamType === 'DIVISION' ? 'Division' : 'Department'}
-                    </span>
+                    {team.teamType ? (
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                        team.teamType === 'PRE_SCHOOL' ? 'bg-purple-100 text-purple-600' :
+                        team.teamType === 'ELEMENTARY' ? 'bg-green-100 text-green-600' :
+                        team.teamType === 'MIDDLE_SCHOOL' ? 'bg-blue-100 text-blue-600' :
+                        'bg-amber-100 text-amber-600'
+                      }`}>
+                        {team.teamType === 'PRE_SCHOOL' ? 'Pre School' :
+                         team.teamType === 'ELEMENTARY' ? 'Elementary' :
+                         team.teamType === 'MIDDLE_SCHOOL' ? 'Middle School' :
+                         'High School'}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
                   </td>
                   <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">
                     {team.description || <span className="text-gray-400">—</span>}
@@ -458,7 +466,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
           setShowCreateModal(false)
           setTeamName('')
           setTeamDescription('')
-          setTeamType('DEPARTMENT')
+          setTeamType(null)
           setActionError(null)
         }}
         title="Create Team"
@@ -483,13 +491,16 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
             <FloatingSelect
               id="team-type"
-              label="Type"
-              value={teamType}
-              onChange={(e) => setTeamType(e.target.value as 'DEPARTMENT' | 'DIVISION')}
+              label="Type (optional)"
+              value={teamType ?? ''}
+              onChange={(e) => setTeamType(e.target.value ? e.target.value as 'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' : null)}
               disabled={createLoading}
             >
-              <option value="DEPARTMENT">Department</option>
-              <option value="DIVISION">Division</option>
+              <option value="">None</option>
+              <option value="PRE_SCHOOL">Pre School</option>
+              <option value="ELEMENTARY">Elementary</option>
+              <option value="MIDDLE_SCHOOL">Middle School</option>
+              <option value="HIGH_SCHOOL">High School</option>
             </FloatingSelect>
 
             <FloatingTextarea
@@ -516,7 +527,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 setShowCreateModal(false)
                 setTeamName('')
                 setTeamDescription('')
-                setTeamType('DEPARTMENT')
+                setTeamType(null)
                 setActionError(null)
               }}
               className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
@@ -564,13 +575,16 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
               <FloatingSelect
                 id="edit-team-type"
-                label="Type"
-                value={editTeamType}
-                onChange={(e) => setEditTeamType(e.target.value as 'DEPARTMENT' | 'DIVISION')}
+                label="Type (optional)"
+                value={editTeamType ?? ''}
+                onChange={(e) => setEditTeamType(e.target.value ? e.target.value as 'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' : null)}
                 disabled={editSaving}
               >
-                <option value="DEPARTMENT">Department</option>
-                <option value="DIVISION">Division</option>
+                <option value="">None</option>
+                <option value="PRE_SCHOOL">Pre School</option>
+                <option value="ELEMENTARY">Elementary</option>
+                <option value="MIDDLE_SCHOOL">Middle School</option>
+                <option value="HIGH_SCHOOL">High School</option>
               </FloatingSelect>
 
               <FloatingTextarea
