@@ -8,7 +8,7 @@ import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { queryOptions as sharedQueryOptions } from '@/lib/queries'
-import { Dribbble, Users, CalendarDays, ClipboardList, Trophy, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Dribbble, Users, CalendarDays, ClipboardList, Trophy, BarChart3 } from 'lucide-react'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
@@ -16,9 +16,11 @@ import ScheduleSection from '@/components/athletics/ScheduleSection'
 import TournamentsSection from '@/components/athletics/TournamentsSection'
 import RosterSection from '@/components/athletics/RosterSection'
 import StatsSection from '@/components/athletics/StatsSection'
+import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
 import type { AthleticsTab } from '@/components/Sidebar'
 
 const SUB_TABS: { key: AthleticsTab; label: string; icon: typeof Dribbble }[] = [
+  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
   { key: 'sports', label: 'Sports', icon: Dribbble },
   { key: 'teams', label: 'Teams', icon: Users },
   { key: 'schedule', label: 'Schedule', icon: CalendarDays },
@@ -119,7 +121,7 @@ export default function AthleticsPage() {
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
   const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
 
-  const [activeTab, setActiveTab] = useState<AthleticsTab>('sports')
+  const [activeTab, setActiveTab] = useState<AthleticsTab>('overview')
 
   // Track whether we've dispatched sidebar data so we re-dispatch when data changes
   const lastDispatchRef = useRef<string>('')
@@ -244,6 +246,7 @@ export default function AthleticsPage() {
             <AthleticsTableSkeleton columns={5} rows={5} />
           ) : (
             <>
+              {activeTab === 'overview' && <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={setActiveTab} />}
               {activeTab === 'sports' && <SportsSection canWrite={canWrite} />}
               {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />}
               {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />}

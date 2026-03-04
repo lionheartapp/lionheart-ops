@@ -67,7 +67,7 @@ export interface CalendarSidebarData {
 }
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons'
-export type AthleticsTab = 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
+export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
 
 interface AthleticsCampus {
   id: string

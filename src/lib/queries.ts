@@ -70,6 +70,9 @@ export const queryKeys = {
   athleticsSports: {
     all: ['athletics-sports'] as const,
   },
+  athleticsDashboard: {
+    all: ['athletics-dashboard'] as const,
+  },
 } as const
 
 // ─── Query Option Factories ────────────────────────────────────────────
@@ -160,5 +163,11 @@ export const queryOptions = {
     queryKey: queryKeys.athleticsSports.all,
     queryFn: () => fetchApi<unknown[]>('/api/athletics/sports'),
     staleTime: 10 * 60_000,
+  }),
+
+  athleticsDashboard: () => ({
+    queryKey: queryKeys.athleticsDashboard.all,
+    queryFn: () => fetchApi<unknown>('/api/athletics/dashboard'),
+    staleTime: 2 * 60_000,
   }),
 } as const
