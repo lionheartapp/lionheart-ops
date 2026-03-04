@@ -366,36 +366,37 @@ export default function TeamsSection({ activeCampusId }: TeamsSectionProps) {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-xs w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search teams..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400/10"
+            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
           />
         </div>
         <div className="flex items-center gap-2">
-          <select
-            value={filterSportId}
-            onChange={(e) => setFilterSportId(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
-          >
-            <option value="">All Sports</option>
-            {sports.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-          <select
-            value={filterSeasonId}
-            onChange={(e) => setFilterSeasonId(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
-          >
-            <option value="">All Seasons</option>
-            {filteredSeasons.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+          <div className="w-44">
+            <FloatingDropdown
+              id="filter-sport"
+              label="Sport"
+              value={filterSportId}
+              onChange={setFilterSportId}
+              options={[{ value: '', label: 'All Sports' }, ...sportOptions]}
+            />
+          </div>
+          <div className="w-44">
+            <FloatingDropdown
+              id="filter-season"
+              label="Season"
+              value={filterSeasonId}
+              onChange={setFilterSeasonId}
+              options={[
+                { value: '', label: 'All Seasons' },
+                ...filteredSeasons.map((s) => ({ value: s.id, label: s.name })),
+              ]}
+            />
+          </div>
         </div>
         <button
           type="button"

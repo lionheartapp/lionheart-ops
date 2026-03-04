@@ -207,26 +207,28 @@ export default function TournamentsSection({ activeCampusId }: TournamentsSectio
     <div>
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
           <input
             type="text"
             placeholder="Search tournaments..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-200"
+            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
           />
         </div>
-        <select
-          value={filterSportId}
-          onChange={(e) => setFilterSportId(e.target.value)}
-          className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
-        >
-          <option value="">All Sports</option>
-          {sports.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
+        <div className="w-44">
+          <FloatingDropdown
+            id="filter-tournament-sport"
+            label="Sport"
+            value={filterSportId}
+            onChange={setFilterSportId}
+            options={[
+              { value: '', label: 'All Sports' },
+              ...sports.map((s) => ({ value: s.id, label: s.name, color: s.color })),
+            ]}
+          />
+        </div>
         <button
           onClick={openCreate}
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
