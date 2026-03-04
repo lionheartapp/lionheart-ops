@@ -273,6 +273,7 @@ export default function DraggableEvent({
         style={{
           position: 'absolute',
           top,
+          transition: 'left 300ms ease-out, width 300ms ease-out',
           ...(subColumnStyle
             ? { left: subColumnStyle.left, width: subColumnStyle.width }
             : { left: 0, right: 0 }),
@@ -302,6 +303,7 @@ export default function DraggableEvent({
       style={{
         position: 'absolute',
         top,
+        transition: isDragging || isResizing ? 'none' : 'left 300ms ease-out, width 300ms ease-out',
         ...(subColumnStyle
           ? { left: subColumnStyle.left, width: subColumnStyle.width }
           : { left: 0, right: 0 }),

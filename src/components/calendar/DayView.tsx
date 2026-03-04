@@ -419,13 +419,14 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                           onEventClick(event)
                         }}
                         aria-label={getEventAriaLabel(event)}
-                        className="absolute rounded-xl px-4 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer"
+                        className="absolute rounded-xl px-4 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-lg hover:scale-[1.01] cursor-pointer"
                         style={{
                           top: evTop,
                           height: evHeight,
                           left: colStyle?.left ?? '4px',
                           width: colStyle?.width ?? 'calc(100% - 20px)',
                           backgroundColor: `${getEventColor(event)}20`,
+                          transition: 'left 300ms ease-out, width 300ms ease-out, box-shadow 200ms, transform 200ms',
                         }}
                       >
                         <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>

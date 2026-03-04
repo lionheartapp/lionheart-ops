@@ -226,7 +226,44 @@ export function useDeleteEvent() {
         method: 'DELETE',
         body: JSON.stringify({ editMode: editMode || 'all' }),
       }),
-    onSuccess: () => {
+    onMutate: async ({ id, editMode }) => {
+      // Cancel in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['calendar-events'] })
+
+      // Snapshot all calendar-events queries for rollback
+      const previousQueries = queryClient.getQueriesData<CalendarEventData[]>({ queryKey: ['calendar-events'] })
+
+      // Optimistically remove the event from all cached queries
+      queryClient.setQueriesData<CalendarEventData[]>(
+        { queryKey: ['calendar-events'] },
+        (old) => {
+          if (!old) return old
+          // For 'all' on a recurring series, also remove sibling instances
+          const baseId = id.includes('_') ? id.split('_')[0] : id
+          const isDeleteAll = editMode === 'all' || !editMode
+          return old.filter(e => {
+            if (e.id === id) return false
+            // If deleting entire series, remove all instances sharing the same parent
+            if (isDeleteAll) {
+              const eBase = e.id.includes('_') ? e.id.split('_')[0] : e.id
+              if (eBase === baseId || e.parentEventId === baseId) return false
+            }
+            return true
+          })
+        }
+      )
+
+      return { previousQueries }
+    },
+    onError: (_err, _variables, context) => {
+      // Rollback on error
+      if (context?.previousQueries) {
+        for (const [queryKey, data] of context.previousQueries) {
+          queryClient.setQueryData(queryKey, data)
+        }
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
     },
   })
