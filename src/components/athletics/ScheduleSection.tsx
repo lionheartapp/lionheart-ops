@@ -79,6 +79,11 @@ function toDateKey(iso: string): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function getTodayKey(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function expandRecurringPractice(practice: Practice, daysAhead: number = 60): AgendaItem[] {
   if (!practice.rrule) {
     return [{
@@ -507,42 +512,77 @@ export default function ScheduleSection({ activeCampusId }: ScheduleSectionProps
         </div>
       ) : (
         <div className="space-y-6">
-          {groupedByDate.map((group) => (
-            <div key={group.date}>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                {formatDate(group.date)}
-              </h3>
-              <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-50">
-                {group.items.map((item, idx) => (
-                  item.type === 'game' ? (
-                    <GameRow
-                      key={`game-${item.data.id}-${idx}`}
-                      game={item.data}
-                      onEdit={() => openGameEdit(item.data)}
-                      onScore={() => setScoreGame(item.data)}
-                      onPlayerStats={() => setPlayerStatsGame(item.data)}
-                      onDelete={() => setDeleteTarget({
-                        type: 'game',
-                        id: item.data.id,
-                        name: `vs ${item.data.opponentName}`,
-                      })}
-                    />
-                  ) : (
-                    <PracticeRow
-                      key={`practice-${item.data.id}-${idx}`}
-                      practice={item.data}
-                      isExpanded={item.isExpanded}
-                      onDelete={() => setDeleteTarget({
-                        type: 'practice',
-                        id: item.data.id,
-                        name: 'this practice',
-                      })}
-                    />
-                  )
-                ))}
-              </div>
-            </div>
-          ))}
+          {(() => {
+            const todayKey = getTodayKey()
+            const allDates = groupedByDate.map(g => g.date)
+            const hasPast = allDates.some(d => d < todayKey)
+            const hasFuture = allDates.some(d => d >= todayKey)
+            const needsTodayDivider = hasPast && hasFuture
+            let todayDividerShown = false
+
+            return groupedByDate.map((group) => {
+              const isPast = group.date < todayKey
+              const isToday = group.date === todayKey
+              let todayDivider = null
+
+              if (needsTodayDivider && !todayDividerShown && group.date >= todayKey) {
+                todayDividerShown = true
+                todayDivider = (
+                  <div key="today-divider" className="flex items-center gap-3 py-1">
+                    <div className="flex-1 h-px bg-primary-300" />
+                    <span className="text-xs font-semibold text-primary-600 uppercase tracking-wider">Today</span>
+                    <div className="flex-1 h-px bg-primary-300" />
+                  </div>
+                )
+              }
+
+              return (
+                <div key={group.date}>
+                  {todayDivider}
+                  <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${
+                    isToday
+                      ? 'text-primary-600'
+                      : isPast
+                        ? 'text-gray-300'
+                        : 'text-gray-400'
+                  }`}>
+                    {formatDate(group.date)}{isToday ? ' — Today' : ''}
+                  </h3>
+                  <div className={`rounded-xl border bg-white divide-y divide-gray-50 ${
+                    isPast ? 'border-gray-100 opacity-60' : 'border-gray-200'
+                  }`}>
+                    {group.items.map((item, idx) => (
+                      item.type === 'game' ? (
+                        <GameRow
+                          key={`game-${item.data.id}-${idx}`}
+                          game={item.data}
+                          onEdit={() => openGameEdit(item.data)}
+                          onScore={() => setScoreGame(item.data)}
+                          onPlayerStats={() => setPlayerStatsGame(item.data)}
+                          onDelete={() => setDeleteTarget({
+                            type: 'game',
+                            id: item.data.id,
+                            name: `vs ${item.data.opponentName}`,
+                          })}
+                        />
+                      ) : (
+                        <PracticeRow
+                          key={`practice-${item.data.id}-${idx}`}
+                          practice={item.data}
+                          isExpanded={item.isExpanded}
+                          onDelete={() => setDeleteTarget({
+                            type: 'practice',
+                            id: item.data.id,
+                            name: 'this practice',
+                          })}
+                        />
+                      )
+                    ))}
+                  </div>
+                </div>
+              )
+            })
+          })()}
         </div>
       )}
 

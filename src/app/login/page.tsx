@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { organizationService } from '@/lib/services'
 import LoginForm from './LoginForm'
+import SchoolLookup from './SchoolLookup'
 import { ImagePosition } from '@prisma/client'
 
 export default async function LoginPage() {
@@ -8,20 +9,17 @@ export default async function LoginPage() {
   const headersList = await headers()
   const subdomain = headersList.get('x-org-subdomain')
 
-  // No subdomain — show a generic landing screen directing users to their school URL
+  // No subdomain — show school lookup screen
   if (!subdomain) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
-        <div className="text-center max-w-md">
+        <div className="w-full max-w-sm text-center">
           <img src="/logo-white.svg" alt="Lionheart" className="h-12 w-auto mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-white mb-3">Lionheart Platform</h1>
-          <p className="text-zinc-400 mb-6">
-            Sign in through your school&apos;s unique URL.
+          <h1 className="text-3xl font-bold text-white mb-2">Lionheart Platform</h1>
+          <p className="text-zinc-400 mb-8">
+            Enter your school&apos;s URL to sign in.
           </p>
-          <p className="text-sm text-zinc-500">
-            Example:{' '}
-            <span className="text-zinc-300 font-mono">your-school.lionheartapp.com</span>
-          </p>
+          <SchoolLookup />
         </div>
       </div>
     )

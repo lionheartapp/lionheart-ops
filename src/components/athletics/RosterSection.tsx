@@ -306,29 +306,28 @@ export default function RosterSection({ activeCampusId }: RosterSectionProps) {
           />
         </div>
 
-        {selectedTeamId && (
-          <div className="relative w-full sm:w-52">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search players..."
-              className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
-            />
-          </div>
-        )}
+        <div className="relative w-full sm:w-52">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search players..."
+            disabled={!selectedTeamId}
+            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors disabled:opacity-50 disabled:bg-gray-50"
+          />
+        </div>
 
-        {selectedTeamId && (
-          <button
-            type="button"
-            onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition sm:ml-auto"
-          >
-            <Plus className="w-4 h-4" />
-            Add Player
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={openCreate}
+          disabled={!selectedTeamId}
+          title={!selectedTeamId ? 'Select a team first' : undefined}
+          className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Plus className="w-4 h-4" />
+          Add Player
+        </button>
       </div>
 
       {/* Content */}

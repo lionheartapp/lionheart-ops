@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { BarChart3, Trophy, Plus, Trash2, Settings } from 'lucide-react'
+import { BarChart3, Trophy, Plus, Trash2, Settings, ArrowRight, CalendarDays } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 
@@ -333,7 +333,12 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
             <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
               <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">No standings data</h2>
-              <p className="text-sm text-gray-500">Play some games and mark them final to see standings</p>
+              <p className="text-sm text-gray-500 mb-3">
+                Standings update when games are marked as final with scores recorded.
+              </p>
+              <p className="text-xs text-gray-400">
+                Go to the <span className="font-medium text-gray-600">Schedule</span> tab to score games and mark them final.
+              </p>
             </div>
           ) : (
             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -402,12 +407,27 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
           ) : !selectedStatKey ? (
             <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
               <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <h2 className="text-lg font-medium text-gray-700 mb-1">Select a stat category</h2>
-              <p className="text-sm text-gray-500">
-                {statConfigs.length === 0
-                  ? 'No stat categories configured — set them up in the Stat Config tab'
-                  : 'Choose a category above to see leaderboard'}
-              </p>
+              {statConfigs.length === 0 ? (
+                <>
+                  <h2 className="text-lg font-medium text-gray-700 mb-1">No stat categories configured</h2>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Set up stat categories for this sport first, then you can track player stats per game.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setView('config'); setConfigSportId(selectedSportId) }}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+                  >
+                    Go to Stat Config
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-lg font-medium text-gray-700 mb-1">Select a stat category</h2>
+                  <p className="text-sm text-gray-500">Choose a category above to see the leaderboard</p>
+                </>
+              )}
             </div>
           ) : loadingLeaders ? (
             <div className="space-y-3">
@@ -417,7 +437,12 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
             <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
               <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">No stats recorded yet</h2>
-              <p className="text-sm text-gray-500">Enter player stats after games to see leaders here</p>
+              <p className="text-sm text-gray-500 mb-3">
+                Enter player stats after games to see leaders here.
+              </p>
+              <p className="text-xs text-gray-400">
+                Go to <span className="font-medium text-gray-600">Schedule</span> tab, open a game, and select <span className="font-medium text-gray-600">Player Stats</span> to enter data.
+              </p>
             </div>
           ) : (
             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -525,9 +550,13 @@ export default function StatsSection({ activeCampusId }: StatsSectionProps) {
               </div>
 
               {configs.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No stat categories yet. Add one above to start tracking player stats.
-                </p>
+                <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
+                  <Settings className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500 mb-1">No stat categories yet</p>
+                  <p className="text-xs text-gray-400">
+                    Add categories above (e.g. Points, Assists, Rebounds for basketball) to start tracking player stats per game.
+                  </p>
+                </div>
               )}
             </div>
           )}

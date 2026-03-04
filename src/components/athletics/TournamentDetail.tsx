@@ -218,6 +218,26 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
       {/* Team picker (show when no brackets OR for regeneration) */}
       {!hasBrackets && (
         <div className="mb-6">
+          {/* Setup steps guide */}
+          <div className="flex items-center gap-6 mb-5 text-xs text-gray-400">
+            <div className="flex items-center gap-1.5">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                teams.length > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+              }`}>1</span>
+              <span className={teams.length > 0 ? 'text-green-700 font-medium' : ''}>Teams available</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                selectedTeamIds.size >= 2 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+              }`}>2</span>
+              <span className={selectedTeamIds.size >= 2 ? 'text-green-700 font-medium' : ''}>Select 2+ teams</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] font-bold">3</span>
+              <span>Generate bracket</span>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-700">Select Teams</h3>
             {teams.length > 0 && (
@@ -228,9 +248,12 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
           </div>
 
           {teams.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">
-              No teams found for this sport. Create teams first.
-            </p>
+            <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
+              <p className="text-sm text-gray-500 mb-1">No teams found for this sport</p>
+              <p className="text-xs text-gray-400">
+                Create teams in the <span className="font-medium text-gray-600">Teams</span> tab first, then come back to set up the bracket.
+              </p>
+            </div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">

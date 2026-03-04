@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { CalendarDays, Plus } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import PlanningSubmissionForm from '@/components/planning/PlanningSubmissionForm'
 import MySubmissions from '@/components/planning/MySubmissions'
 import PlanningSeasonAdmin from '@/components/planning/PlanningSeasonAdmin'
 import CommentThread from '@/components/planning/CommentThread'
-import { useSeasons, useSubmissions, useCreateSubmission, useSubmitSubmission, useComments, useAddComment } from '@/lib/hooks/usePlanningSeason'
+import { FloatingInput } from '@/components/ui/FloatingInput'
+import { useSeasons, useCreateSeason, useSubmissions, useCreateSubmission, useSubmitSubmission, useComments, useAddComment } from '@/lib/hooks/usePlanningSeason'
 import type { PlanningSubmission } from '@/lib/hooks/usePlanningSeason'
 
 export default function PlanningPage() {
@@ -31,11 +33,48 @@ export default function PlanningPage() {
 
   const { data: mySubmissions = [] } = useSubmissions(activeSeason?.id || null)
   const createSubmission = useCreateSubmission()
+  const createSeason = useCreateSeason()
   const submitSubmission = useSubmitSubmission()
   const addComment = useAddComment()
 
   const [showForm, setShowForm] = useState(false)
   const [selectedSubmission, setSelectedSubmission] = useState<PlanningSubmission | null>(null)
+
+  // Create season form state (admin)
+  const [showCreateSeason, setShowCreateSeason] = useState(false)
+  const [seasonName, setSeasonName] = useState('')
+  const [seasonStart, setSeasonStart] = useState('')
+  const [seasonEnd, setSeasonEnd] = useState('')
+  const [seasonSubOpen, setSeasonSubOpen] = useState('')
+  const [seasonSubClose, setSeasonSubClose] = useState('')
+  const [seasonError, setSeasonError] = useState('')
+
+  const handleCreateSeason = () => {
+    if (!seasonName.trim() || !seasonStart || !seasonEnd || !seasonSubOpen || !seasonSubClose) {
+      setSeasonError('All fields are required')
+      return
+    }
+    setSeasonError('')
+    createSeason.mutate({
+      name: seasonName.trim(),
+      startDate: seasonStart,
+      endDate: seasonEnd,
+      submissionOpen: seasonSubOpen,
+      submissionClose: seasonSubClose,
+    }, {
+      onSuccess: () => {
+        setShowCreateSeason(false)
+        setSeasonName('')
+        setSeasonStart('')
+        setSeasonEnd('')
+        setSeasonSubOpen('')
+        setSeasonSubClose('')
+      },
+      onError: (err) => {
+        setSeasonError(err.message || 'Failed to create season')
+      },
+    })
+  }
 
   const { data: comments = [] } = useComments(
     activeSeason?.id || null,
@@ -72,14 +111,34 @@ export default function PlanningPage() {
               {activeSeason ? `${activeSeason.name} — ${activeSeason.phase.replace('_', ' ')}` : 'No active planning season'}
             </p>
           </div>
-          {activeSeason && !isAdmin && activeSeason.phase === 'COLLECTING' && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
-            >
-              + New Submission
-            </button>
-          )}
+          <div className="flex gap-2">
+            {isAdmin && !activeSeason && (
+              <button
+                onClick={() => setShowCreateSeason(true)}
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+              >
+                <Plus className="w-4 h-4" />
+                Create Planning Season
+              </button>
+            )}
+            {isAdmin && activeSeason && (
+              <button
+                onClick={() => setShowCreateSeason(true)}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
+              >
+                <Plus className="w-4 h-4" />
+                New Season
+              </button>
+            )}
+            {activeSeason && !isAdmin && activeSeason.phase === 'COLLECTING' && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+              >
+                + New Submission
+              </button>
+            )}
+          </div>
         </div>
 
         {seasonsLoading && (
@@ -88,10 +147,61 @@ export default function PlanningPage() {
           </div>
         )}
 
-        {!seasonsLoading && !activeSeason && (
-          <div className="text-center py-16 text-gray-500">
-            <p className="text-lg font-medium">No Planning Seasons</p>
-            <p className="text-sm mt-1">An administrator needs to create a planning season first.</p>
+        {!seasonsLoading && !activeSeason && !showCreateSeason && (
+          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <h2 className="text-lg font-medium text-gray-700 mb-1">No Planning Seasons</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isAdmin
+                ? 'Create a planning season to start collecting event submissions from staff.'
+                : 'An administrator needs to create a planning season first.'}
+            </p>
+            {isAdmin && (
+              <button
+                onClick={() => setShowCreateSeason(true)}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition"
+              >
+                <Plus className="w-4 h-4" />
+                Create Planning Season
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Create Season Form (Admin) */}
+        {showCreateSeason && (
+          <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">New Planning Season</h3>
+            <FloatingInput
+              label="Season Name"
+              value={seasonName}
+              onChange={(e) => setSeasonName(e.target.value)}
+              placeholder="e.g. Fall 2026 Event Planning"
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FloatingInput label="Season Start Date" type="date" value={seasonStart} onChange={(e) => setSeasonStart(e.target.value)} />
+              <FloatingInput label="Season End Date" type="date" value={seasonEnd} onChange={(e) => setSeasonEnd(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FloatingInput label="Submissions Open" type="date" value={seasonSubOpen} onChange={(e) => setSeasonSubOpen(e.target.value)} />
+              <FloatingInput label="Submissions Close" type="date" value={seasonSubClose} onChange={(e) => setSeasonSubClose(e.target.value)} />
+            </div>
+            {seasonError && <p className="text-sm text-red-600">{seasonError}</p>}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => { setShowCreateSeason(false); setSeasonError('') }}
+                className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateSeason}
+                disabled={createSeason.isPending}
+                className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+              >
+                {createSeason.isPending ? 'Creating...' : 'Create Season'}
+              </button>
+            </div>
           </div>
         )}
 
