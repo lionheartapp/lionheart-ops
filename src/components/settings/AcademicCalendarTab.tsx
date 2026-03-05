@@ -288,7 +288,7 @@ export default function AcademicCalendarTab() {
           ) : (
             <div className="space-y-4">
               {years.map((year) => (
-                <div key={year.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                <div key={year.id} className="ui-glass-table">
                   <div className="flex items-center justify-between px-4 py-3 bg-white">
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-gray-900">{year.name}</span>
@@ -397,7 +397,7 @@ export default function AcademicCalendarTab() {
           ) : (
             <div className="space-y-3">
               {schedules.map((schedule) => (
-                <div key={schedule.id} className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                <div key={schedule.id} className="ui-glass-table bg-white">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-gray-900">{schedule.name}</span>
@@ -467,7 +467,7 @@ export default function AcademicCalendarTab() {
           ) : specialDays.length === 0 ? (
             <div className="text-center py-12 text-gray-500 text-sm">No special days configured</div>
           ) : (
-            <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden">
+            <div className="divide-y divide-gray-100 ui-glass-table">
               {specialDays.map((day) => {
                 const badge = getSpecialDayBadge(day.specialDayType)
                 return (

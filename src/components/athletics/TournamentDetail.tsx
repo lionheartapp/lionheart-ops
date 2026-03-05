@@ -326,8 +326,8 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                       key={team.id}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition ${
                         checked
-                          ? 'border-primary-300 bg-white'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'border-primary-300/50 bg-white/70 backdrop-blur-sm'
+                          : 'border-gray-200/30 bg-white/60 backdrop-blur-sm hover:border-gray-300/40'
                       }`}
                     >
                       <input

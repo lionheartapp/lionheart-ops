@@ -146,7 +146,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
       {/* Standings */}
       <div>
         <h4 className="text-sm font-semibold text-gray-700 mb-2">Standings</h4>
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="ui-glass-table">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="bg-gray-50">

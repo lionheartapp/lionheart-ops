@@ -371,7 +371,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+      <div className="ui-glass-table overflow-x-auto">
         {loading ? (
           <div className="animate-pulse p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, index) => (

@@ -12,9 +12,8 @@ import { staggerContainer, cardEntrance, listItem } from '@/lib/animations'
 import { GlassSportTile } from './SportIcon'
 import type { AthleticsTab } from '@/components/Sidebar'
 
-// ── Glass card classes ──────────────────────────────────────────────────
-const GLASS = 'bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm'
-const GLASS_HOVER = `${GLASS} hover:shadow-md hover:bg-white/70 transition-all duration-200`
+// Glass card classes — now using global CSS utilities from globals.css
+// .ui-glass and .ui-glass-hover
 
 interface AthleticsDashboardProps {
   activeCampusId: string | null
@@ -140,13 +139,6 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
 
   return (
     <div className="relative">
-      {/* Ambient gradient blobs — very subtle, gives glass cards depth */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute -top-32 right-0 w-[500px] h-[500px] rounded-full blur-[120px] bg-blue-200/[0.08]" />
-        <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[120px] bg-violet-200/[0.06]" />
-        <div className="absolute -bottom-20 right-1/4 w-[350px] h-[350px] rounded-full blur-[100px] bg-amber-100/[0.06]" />
-      </div>
-
       <motion.div
         className="relative space-y-6"
         initial="hidden"
@@ -162,7 +154,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
             <StatCard icon={CalendarDays} label="Games This Week" value={summary.gamesThisWeek} />
           </motion.div>
           <motion.div variants={cardEntrance}>
-            <div className={`${GLASS_HOVER} p-5 text-center`}
+            <div className={`ui-glass-hover p-5 text-center`}
               style={{
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.7), rgba(59,130,246,0.06))',
               }}
@@ -199,7 +191,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
           <div className="lg:col-span-2 space-y-6">
 
             {/* Upcoming Games */}
-            <motion.div variants={cardEntrance} className={GLASS_HOVER}>
+            <motion.div variants={cardEntrance} className="ui-glass-hover">
               <div className="flex items-center justify-between px-6 pt-5 pb-3">
                 <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Upcoming Games</h2>
                 <button
@@ -255,7 +247,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
             </motion.div>
 
             {/* Recent Results */}
-            <motion.div variants={cardEntrance} className={GLASS_HOVER}>
+            <motion.div variants={cardEntrance} className="ui-glass-hover">
               <div className="flex items-center justify-between px-6 pt-5 pb-3">
                 <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Recent Results</h2>
               </div>
@@ -306,7 +298,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
           <div className="space-y-6">
 
             {/* Standings */}
-            <motion.div variants={cardEntrance} className={GLASS_HOVER}>
+            <motion.div variants={cardEntrance} className="ui-glass-hover">
               <div className="flex items-center justify-between px-6 pt-5 pb-3">
                 <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Standings</h2>
                 <button
@@ -347,7 +339,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
             </motion.div>
 
             {/* This Week */}
-            <motion.div variants={cardEntrance} className={GLASS_HOVER}>
+            <motion.div variants={cardEntrance} className="ui-glass-hover">
               <div className="px-6 pt-5 pb-3">
                 <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
                   This Week
@@ -409,7 +401,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
 
             {/* Quick Actions */}
             {canWrite && (
-              <motion.div variants={cardEntrance} className={GLASS_HOVER}>
+              <motion.div variants={cardEntrance} className="ui-glass-hover">
                 <div className="px-6 pt-5 pb-3">
                   <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Quick Actions</h2>
                 </div>
@@ -443,7 +435,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
 
 function StatCard({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number }) {
   return (
-    <div className={`${GLASS_HOVER} p-5 text-center`}>
+    <div className={`ui-glass-hover p-5 text-center`}>
       <div
         className="w-10 h-10 rounded-xl mx-auto mb-2.5 flex items-center justify-center border border-gray-200/40"
         style={{

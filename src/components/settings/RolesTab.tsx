@@ -439,7 +439,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+      <div className="ui-glass-table overflow-x-auto">
         {loading ? (
           <div className="animate-pulse">
             <div className="flex items-center gap-4 p-4 border-b border-gray-100 bg-gray-50">

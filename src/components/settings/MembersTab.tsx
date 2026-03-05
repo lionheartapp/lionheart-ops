@@ -620,7 +620,7 @@ const MembersTab = (_props: MembersTabProps) => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+      <div className="ui-glass-table overflow-x-auto">
         <div className="flex items-center gap-2 p-4 border-b border-gray-100">
           <input
             className="flex-1 ui-input"

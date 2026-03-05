@@ -56,7 +56,7 @@ export default function MySubmissions({ submissions, onSubmit, onSelect, isSubmi
           {filtered.map((sub) => {
             const badge = STATUS_BADGES[sub.submissionStatus] || STATUS_BADGES.DRAFT
             return (
-              <div key={sub.id} onClick={() => onSelect(sub)} className="border border-gray-200 rounded-xl p-4 bg-white hover:bg-gray-50 cursor-pointer transition">
+              <div key={sub.id} onClick={() => onSelect(sub)} className="ui-glass-hover p-4 cursor-pointer">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

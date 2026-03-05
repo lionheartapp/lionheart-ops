@@ -90,19 +90,19 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="border border-gray-200 rounded-xl p-3 text-center">
+        <div className="ui-glass p-3 text-center">
           <div className="text-2xl font-bold text-gray-900">{submissions.length}</div>
           <div className="text-xs text-gray-500">Total Submissions</div>
         </div>
-        <div className="border border-gray-200 rounded-xl p-3 text-center">
+        <div className="ui-glass p-3 text-center">
           <div className="text-2xl font-bold text-green-600">{submissions.filter((s) => s.submissionStatus === 'APPROVED').length}</div>
           <div className="text-xs text-gray-500">Approved</div>
         </div>
-        <div className="border border-gray-200 rounded-xl p-3 text-center">
+        <div className="ui-glass p-3 text-center">
           <div className="text-2xl font-bold text-yellow-600">{submissions.filter((s) => s.submissionStatus === 'SUBMITTED').length}</div>
           <div className="text-xs text-gray-500">Awaiting Review</div>
         </div>
-        <div className="border border-gray-200 rounded-xl p-3 text-center">
+        <div className="ui-glass p-3 text-center">
           <div className="text-2xl font-bold text-red-600">{unresolvedConflicts.length}</div>
           <div className="text-xs text-gray-500">Conflicts</div>
         </div>
@@ -135,7 +135,7 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
         ) : (
           <div className="space-y-2">
             {submissions.map((sub) => (
-              <div key={sub.id} className="border border-gray-200 rounded-xl p-3 bg-white hover:bg-gray-50 transition">
+              <div key={sub.id} className="ui-glass-hover p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onSelectSubmission(sub)}>
                     <div className="flex items-center gap-2 mb-1">

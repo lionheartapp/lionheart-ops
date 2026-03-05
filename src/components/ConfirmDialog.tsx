@@ -103,7 +103,7 @@ export default function ConfirmDialog({
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
-          className="relative w-full max-w-xl transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-heavy"
+          className="relative w-full max-w-xl transform overflow-hidden rounded-2xl ui-glass-overlay"
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}

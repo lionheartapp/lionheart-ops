@@ -156,7 +156,7 @@ export default function PlanningPage() {
         )}
 
         {!seasonsLoading && !activeSeason && !showCreateSeason && (
-          <motion.div variants={cardEntrance} className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+          <motion.div variants={cardEntrance} className="ui-glass p-8 text-center">
             <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <h2 className="text-lg font-medium text-gray-700 mb-1">No Planning Seasons</h2>
             <p className="text-sm text-gray-500 mb-4">
@@ -178,7 +178,7 @@ export default function PlanningPage() {
 
         {/* Create Season Form (Admin) */}
         {showCreateSeason && (
-          <motion.div variants={cardEntrance} className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
+          <motion.div variants={cardEntrance} className="ui-glass p-6 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">New Planning Season</h3>
             <FloatingInput
               label="Season Name"
@@ -225,7 +225,7 @@ export default function PlanningPage() {
         {activeSeason && !isAdmin && (
           <>
             {showForm ? (
-              <div className="border border-gray-200 rounded-xl p-6 bg-white">
+              <div className="ui-glass p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">New Event Submission</h3>
                 <PlanningSubmissionForm
                   seasonId={activeSeason.id}
@@ -251,7 +251,7 @@ export default function PlanningPage() {
 
         {/* Submission Detail Panel */}
         {selectedSubmission && activeSeason && (
-          <div className="border border-gray-200 rounded-xl p-6 bg-white space-y-4">
+          <div className="ui-glass p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">{selectedSubmission.title}</h3>
               <button onClick={() => setSelectedSubmission(null)} className="text-sm text-gray-500 hover:text-gray-700">Close</button>

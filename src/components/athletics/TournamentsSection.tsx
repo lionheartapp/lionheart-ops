@@ -254,7 +254,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="ui-glass-table">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">

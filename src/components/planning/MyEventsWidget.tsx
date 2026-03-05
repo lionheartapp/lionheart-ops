@@ -15,7 +15,7 @@ export default function MyEventsWidget({ seasonId }: MyEventsWidgetProps) {
   const rejected = submissions.filter((s) => s.submissionStatus === 'REJECTED' || s.submissionStatus === 'REVISION_REQUESTED').length
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5">
+    <div className="ui-glass p-5">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">My Event Submissions</h3>
       <div className="grid grid-cols-3 gap-4">
         <div className="flex flex-col items-center gap-1.5">

@@ -290,7 +290,7 @@ export default function DashboardPage() {
           <AnimatePresence>
           {isCreateDropdownOpen && (
             <motion.div
-              className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-mobilenav"
+              className="absolute right-0 mt-2 w-64 ui-glass-dropdown z-mobilenav"
               variants={dropdownVariants}
               initial="hidden"
               animate="visible"
@@ -365,7 +365,7 @@ export default function DashboardPage() {
         variants={staggerContainer(0.1, 0.15)}
       >
         {/* My Tasks Panel */}
-        <motion.div variants={cardEntrance} className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition min-h-[300px]">
+        <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover p-6 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 min-h-[300px]">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
           </div>
@@ -427,7 +427,7 @@ export default function DashboardPage() {
           </motion.div>
 
           {/* Stats Card */}
-          <motion.div variants={cardEntrance} className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
+          <motion.div variants={cardEntrance} className="bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-2xl p-6 border border-primary-200/30 shadow-sm">
             <p className="text-sm text-gray-600 mb-2">Active Requests</p>
             <p className="text-4xl font-bold text-primary-600">
               <AnimatedCounter value={ticketCount} duration={0.8} />
@@ -436,7 +436,7 @@ export default function DashboardPage() {
           </motion.div>
 
           {/* Quick Links */}
-          <motion.div variants={cardEntrance} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition">
+          <motion.div variants={cardEntrance} className="ui-glass-hover p-6 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2">
             <h3 className="font-bold text-gray-900 mb-4">Quick Links</h3>
             <ul className="space-y-2" role="list">
               <li>

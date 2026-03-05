@@ -325,7 +325,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           {loadingStandings ? (
             <AthleticsTableSkeleton columns={6} rows={4} showToolbar={false} />
           ) : standings.length === 0 ? (
-            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <div className="ui-glass p-8 text-center">
               <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">No standings data</h2>
               <p className="text-sm text-gray-500 mb-3">
@@ -336,7 +336,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
               </p>
             </div>
           ) : (
-            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="ui-glass-table">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-100">
                   <thead>
@@ -394,13 +394,13 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           </div>
 
           {!selectedSportId ? (
-            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <div className="ui-glass p-8 text-center">
               <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">Select a sport</h2>
               <p className="text-sm text-gray-500">Choose a sport to see available stat categories</p>
             </div>
           ) : !selectedStatKey ? (
-            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <div className="ui-glass p-8 text-center">
               <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               {statConfigs.length === 0 ? (
                 <>
@@ -427,7 +427,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           ) : loadingLeaders ? (
             <AthleticsTableSkeleton columns={4} rows={4} showToolbar={false} />
           ) : leaders.length === 0 ? (
-            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <div className="ui-glass p-8 text-center">
               <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">No stats recorded yet</h2>
               <p className="text-sm text-gray-500 mb-3">
@@ -438,7 +438,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
               </p>
             </div>
           ) : (
-            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="ui-glass-table">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-100">
                   <thead>
@@ -487,7 +487,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           </div>
 
           {!configSportId ? (
-            <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <div className="ui-glass p-8 text-center">
               <Settings className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">Select a sport</h2>
               <p className="text-sm text-gray-500">Choose a sport to configure its stat categories</p>
@@ -498,7 +498,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
             <div className="space-y-4">
               {/* Existing configs */}
               {configs.length > 0 && (
-                <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-50">
+                <div className="ui-glass divide-y divide-gray-50">
                   {configs.map((cfg) => (
                     <div key={cfg.id} className="flex items-center gap-3 px-4 py-3">
                       <div className="flex-1 min-w-0">
@@ -519,7 +519,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
               )}
 
               {/* Add new config */}
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="ui-glass p-4">
                 <h4 className="text-sm font-semibold text-gray-900 mb-3">Add Stat Category</h4>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">

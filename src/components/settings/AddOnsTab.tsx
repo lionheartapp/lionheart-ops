@@ -82,7 +82,7 @@ function CampusConfigModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="relative ui-glass-overlay rounded-2xl w-full max-w-md overflow-hidden">
         {/* Header with gradient */}
         <div className={`bg-gradient-to-br ${mod.gradient} px-6 py-5`}>
           <div className="flex items-center justify-between">

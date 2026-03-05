@@ -279,4 +279,25 @@ a:visited {
   .ui-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
+
+  /* Glassmorphism surface utilities */
+  .ui-glass {
+    @apply bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm;
+  }
+
+  .ui-glass-hover {
+    @apply bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200;
+  }
+
+  .ui-glass-table {
+    @apply bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm overflow-hidden;
+  }
+
+  .ui-glass-overlay {
+    @apply bg-white/80 backdrop-blur-md border border-gray-200/30 shadow-heavy;
+  }
+
+  .ui-glass-dropdown {
+    @apply bg-white/80 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-heavy;
+  }
 }

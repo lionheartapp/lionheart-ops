@@ -353,7 +353,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         loadingRoster ? (
           <AthleticsTableSkeleton columns={3} rows={4} showToolbar={false} />
         ) : teamDirectory.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+          <div className="ui-glass p-8 text-center">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <h2 className="text-lg font-medium text-gray-700 mb-1">No teams available</h2>
             <p className="text-sm text-gray-500">Create teams in the Teams tab first</p>
@@ -365,7 +365,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                 key={team.id}
                 type="button"
                 onClick={() => setSelectedTeamId(team.id)}
-                className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition-all text-left cursor-pointer"
+                className="flex items-start gap-3 p-4 ui-glass-hover text-left cursor-pointer"
               >
                 <GlassSportTile sport={team.sport.name} color={team.sport.color} size="sm" />
                 <div className="flex-1 min-w-0">
@@ -388,13 +388,13 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         loadingRoster ? (
           <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
         ) : filteredRoster.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+          <div className="ui-glass p-8 text-center">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <h2 className="text-lg font-medium text-gray-700 mb-1">No matching players</h2>
             <p className="text-sm text-gray-500">Try a different search</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div className="ui-glass-table">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
@@ -436,7 +436,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       ) : loadingRoster ? (
         <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filteredRoster.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+        <div className="ui-glass p-8 text-center">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <h2 className="text-lg font-medium text-gray-700 mb-1">
             {roster.length === 0 ? 'No players on this roster' : 'No matching players'}
@@ -455,7 +455,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           )}
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="ui-glass-table">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
               <thead>

@@ -249,7 +249,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
           {rejectingChannel && (
             <div className="fixed inset-0 z-lightbox flex items-center justify-center p-4">
               <div className="absolute inset-0 bg-black/20" onClick={() => { setRejectingChannel(null); setRejectReason('') }} />
-              <div className="relative bg-white rounded-xl shadow-xl p-5 w-full max-w-sm">
+              <div className="relative ui-glass-overlay rounded-2xl p-5 w-full max-w-sm">
                 <h4 className="text-sm font-semibold text-gray-900 mb-2">
                   Reject {CHANNEL_LABELS[rejectingChannel] || rejectingChannel}
                 </h4>
@@ -292,7 +292,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] bg-white shadow-2xl z-modal flex flex-col sm:rounded-2xl"
+            className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] ui-glass-overlay z-modal flex flex-col sm:rounded-2xl"
           >
             {/* Header */}
             <div className="px-6 pt-5 pb-4">

@@ -59,7 +59,7 @@ export default function RowActionMenu({ items }: RowActionMenuProps) {
     <div
       ref={menuRef}
       style={{ position: 'fixed', top: pos.top, right: pos.right, zIndex: 9999 }}
-      className="min-w-[140px] rounded-lg border border-gray-200 bg-white shadow-medium py-1"
+      className="min-w-[140px] ui-glass-dropdown py-1"
     >
       {items.map((item, i) => (
         <button

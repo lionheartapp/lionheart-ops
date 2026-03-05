@@ -152,7 +152,7 @@ export default function NotificationBell() {
       <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-200 rounded-xl shadow-heavy z-dropdown overflow-hidden"
+          className="absolute right-0 mt-2 w-80 sm:w-96 ui-glass-dropdown z-dropdown overflow-hidden"
           variants={dropdownVariants}
           initial="hidden"
           animate="visible"

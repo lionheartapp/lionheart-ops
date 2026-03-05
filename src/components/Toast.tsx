@@ -45,10 +45,10 @@ const ICONS: Record<ToastVariant, typeof CheckCircle> = {
 }
 
 const STYLES: Record<ToastVariant, string> = {
-  success: 'bg-white border-green-200 text-green-800',
-  error: 'bg-white border-red-200 text-red-800',
-  warning: 'bg-white border-yellow-200 text-yellow-800',
-  info: 'bg-white border-gray-200 text-gray-800',
+  success: 'bg-white/80 backdrop-blur-md border-green-200/30 text-green-800',
+  error: 'bg-white/80 backdrop-blur-md border-red-200/30 text-red-800',
+  warning: 'bg-white/80 backdrop-blur-md border-yellow-200/30 text-yellow-800',
+  info: 'bg-white/80 backdrop-blur-md border-gray-200/30 text-gray-800',
 }
 
 const ICON_STYLES: Record<ToastVariant, string> = {

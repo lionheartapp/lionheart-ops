@@ -444,7 +444,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                 </button>
 
                 {showEndDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-medium z-20 py-1">
+                  <div className="absolute top-full left-0 right-0 mt-1 ui-glass-dropdown z-20 py-1">
                     {(['never', 'count', 'until'] as EndType[]).map((type) => (
                       <button
                         key={type}

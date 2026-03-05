@@ -102,7 +102,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
           role="dialog"
           aria-modal="true"
           aria-labelledby="match-result-title"
-          className="relative w-full max-w-sm transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-heavy transition-all"
+          className="relative w-full max-w-sm transform overflow-hidden rounded-2xl ui-glass-overlay transition-all"
         >
           <button
             onClick={onClose}

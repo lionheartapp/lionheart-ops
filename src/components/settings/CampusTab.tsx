@@ -768,7 +768,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   )
 
   const renderSkeleton = () => (
-    <div className="bg-white rounded-xl border border-gray-200 animate-pulse p-4 space-y-3">
+    <div className="ui-glass-table animate-pulse p-4 space-y-3">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 py-2">
           <div className="h-4 w-40 bg-gray-200 rounded" />
@@ -876,7 +876,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <>
                 <div className="fixed inset-0 z-popover" onClick={() => { setCampusMenuOpen(null); setCampusMenuPos(null) }} />
                 <div
-                  className="fixed z-[76] w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                  className="fixed z-[76] w-40 ui-glass-dropdown py-1"
                   style={{ top: campusMenuPos.top, left: campusMenuPos.left }}
                 >
                   <button
@@ -1068,7 +1068,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         </div>
 
         {loading ? renderSkeleton() : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+          <div className="ui-glass-table overflow-x-auto">
             {buildings.length === 0 ? (
               <div className="text-center py-14 text-gray-400">
                 <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-300" />
@@ -1171,7 +1171,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         </div>
 
         {loading ? renderSkeleton() : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+          <div className="ui-glass-table overflow-x-auto">
             {outdoorSpaces.length === 0 ? (
               <div className="text-center py-14 text-gray-400">
                 <MapPin className="w-10 h-10 mx-auto mb-3 text-gray-300" />
@@ -1453,7 +1453,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <p className="text-sm">No rooms yet — add one above.</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="ui-glass-table">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="text-gray-500 border-b bg-gray-50">
@@ -1799,7 +1799,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       {/* ── Delete Campus Confirm ──────────────────────────────────────────── */}
       {deleteCampusConfirm && createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
+          <div className="ui-glass-overlay rounded-2xl max-w-sm w-full p-6 text-center">
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
@@ -1832,7 +1832,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       {/* ── Place on Map Prompt ──────────────────────────────────────────── */}
       {placeOnMapBuilding && createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
+          <div className="ui-glass-overlay rounded-2xl max-w-sm w-full p-6 text-center">
             <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
               <MapPin className="w-6 h-6 text-primary-600" />
             </div>

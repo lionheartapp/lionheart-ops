@@ -199,7 +199,7 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+        <div className="overflow-x-auto ui-glass-table">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">

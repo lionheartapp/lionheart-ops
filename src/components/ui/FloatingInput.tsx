@@ -265,7 +265,7 @@ export function FloatingDropdown({
         <div
           ref={listRef}
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1"
+          className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto ui-glass-dropdown z-50 py-1"
         >
           {groupOrder.map((groupName) => {
             const groupOptions = options.filter((o) => o.group === groupName)

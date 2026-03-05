@@ -453,7 +453,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
       {/* Season Record Banner */}
       {selectedTeamId && selectedTeam && !loadingSchedule && (
-        <div className="flex items-center gap-4 mb-5 px-4 py-3 rounded-xl border border-gray-200 bg-white">
+        <div className="flex items-center gap-4 mb-5 px-4 py-3 ui-glass">
           <div className="flex items-center gap-2">
             <GlassSportTile sport={selectedTeam.sport.name} color={selectedTeam.sport.color} size="sm" />
             <span className="text-sm font-semibold text-gray-900">{selectedTeam.name}</span>
@@ -480,7 +480,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
       {/* Content */}
       {displayTeams.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+        <div className="ui-glass p-8 text-center">
           <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <h2 className="text-lg font-medium text-gray-700 mb-1">No teams available</h2>
           <p className="text-sm text-gray-500">Create teams in the Teams tab first</p>
@@ -488,7 +488,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
       ) : loadingSchedule ? (
         <ScheduleSkeleton groups={2} />
       ) : agendaItems.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+        <div className="ui-glass p-8 text-center">
           <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <h2 className="text-lg font-medium text-gray-700 mb-1">No games or practices scheduled</h2>
           <p className="text-sm text-gray-500 mb-4">Get started by creating a game or practice</p>
@@ -548,8 +548,8 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                   }`}>
                     {formatDate(group.date)}{isToday ? ' — Today' : ''}
                   </h3>
-                  <div className={`rounded-xl border bg-white divide-y divide-gray-50 ${
-                    isPast ? 'border-gray-100 opacity-60' : 'border-gray-200'
+                  <div className={`rounded-2xl border bg-white/60 backdrop-blur-sm divide-y divide-gray-50 shadow-sm ${
+                    isPast ? 'border-gray-100/30 opacity-60' : 'border-gray-200/30'
                   }`}>
                     {group.items.map((item, idx) => (
                       item.type === 'game' ? (

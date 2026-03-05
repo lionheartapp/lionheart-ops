@@ -76,7 +76,7 @@ export default function WeatherWidget() {
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="ui-glass p-5">
         <div className="flex items-center justify-center py-4">
           <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
         </div>
@@ -89,7 +89,7 @@ export default function WeatherWidget() {
   const WeatherIcon = ICON_MAP[weather.icon] || Cloud
 
   return (
-    <div className="bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-xl p-5">
+    <div className="bg-gradient-to-br from-sky-50/80 to-blue-50/80 backdrop-blur-sm border border-sky-200/30 rounded-2xl shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-700">Weather</h3>
         <span className="text-xs text-gray-500">Now</span>
