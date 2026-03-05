@@ -27,7 +27,9 @@ import {
   Pencil,
   Palette,
   Trash2,
+  HelpCircle,
 } from 'lucide-react'
+import ReportBugDialog from '@/components/ReportBugDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { useModuleEnabled, useModules } from '@/lib/hooks/useModuleEnabled'
@@ -88,6 +90,7 @@ export default function Sidebar({
   const athleticsPrefetched = useRef(false)
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [bugDialogOpen, setBugDialogOpen] = useState(false)
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -470,9 +473,9 @@ export default function Sidebar({
   const secondaryOpen = settingsOpen || calendarOpen || athleticsOpen
 
   const mainNavContent = (
-    <>
+    <div className="flex flex-col h-full">
       {/* Navigation Menu */}
-      <nav className="p-4 pt-8 lg:flex-1" role="navigation" aria-label="Main navigation">
+      <nav className="p-4 pt-8 flex-1" role="navigation" aria-label="Main navigation">
         <ul className="space-y-2" role="list">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -536,7 +539,18 @@ export default function Sidebar({
           ) : null}
         </ul>
       </nav>
-    </>
+
+      {/* Help & Support — pinned to bottom */}
+      <div className="p-4 border-t border-white/10">
+        <button
+          onClick={() => setBugDialogOpen(true)}
+          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg text-gray-400 hover:bg-white/10 hover:text-white border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827]"
+        >
+          <HelpCircle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+          <span className="text-sm">Help & Support</span>
+        </button>
+      </div>
+    </div>
   )
 
   const settingsNavContent = (
@@ -1115,6 +1129,9 @@ export default function Sidebar({
         confirmText="Delete"
         variant="danger"
       />
+
+      {/* Bug report dialog */}
+      <ReportBugDialog isOpen={bugDialogOpen} onClose={() => setBugDialogOpen(false)} />
     </>
   )
 }
