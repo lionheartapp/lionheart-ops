@@ -360,7 +360,13 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                 </>
               ) : (
                 (() => {
-                  const overlapMap = layoutEvents(timedEvents)
+                  // Separate calendar events from athletics events so they don't
+                  // interfere with each other's overlap/column calculations
+                  const calEvents = timedEvents.filter((e) => !(e.metadata as any)?.athleticsType)
+                  const athEvents = timedEvents.filter((e) => !!(e.metadata as any)?.athleticsType)
+                  const calOverlap = layoutEvents(calEvents)
+                  const athOverlap = layoutEvents(athEvents)
+                  const overlapMap = new Map([...calOverlap, ...athOverlap])
                   return timedEvents.map((event) => {
                     const evStart = new Date(event.startTime)
                     const evEnd = new Date(event.endTime)
