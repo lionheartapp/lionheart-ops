@@ -147,18 +147,29 @@ const heroContent = `
 
 // Detail section for event-type emails
 const detailContent = t.detail ? `
-    <mj-section background-color="${B.white}" padding="24px 40px">
+    <mj-section background-color="${B.white}" padding="8px 40px 0 40px">
       <mj-column>
-        <mj-text align="center" padding-bottom="16px" font-size="16px">
+        <mj-text align="center" padding="0" font-size="16px">
           ${t.detail}
         </mj-text>
-        ${t.detailCard ? `
-        <mj-text padding="20px" background-color="${t.detailBg || B.blueLight}" border-radius="12px" border-left="4px solid ${t.detailBorder || B.blue}" font-size="14px" line-height="1.6">
-          ${t.detailCard}
-        </mj-text>` : ''}
-        ${t.extra ? `<mj-text align="center" padding-top="16px" font-size="14px" color="${B.gray500}">${t.extra}</mj-text>` : ''}
       </mj-column>
-    </mj-section>` : ''
+    </mj-section>
+    ${t.detailCard ? `
+    <mj-section background-color="${B.white}" padding="16px 40px 8px 40px">
+      <mj-column>
+        <mj-text padding="0" align="center">
+          <div style="background-color: ${t.detailBg || B.blueLight}; border: 1px solid ${t.detailBorder || B.blue}; border-radius: 12px; padding: 20px 24px; text-align: center; display: inline-block; width: auto; max-width: 100%;">
+            <span style="font-size: 15px; line-height: 1.7; color: ${B.dark};">${t.detailCard}</span>
+          </div>
+        </mj-text>
+      </mj-column>
+    </mj-section>` : ''}
+    ${t.extra ? `
+    <mj-section background-color="${B.white}" padding="8px 40px 16px 40px">
+      <mj-column>
+        <mj-text align="center" font-size="14px" color="${B.gray500}">${t.extra}</mj-text>
+      </mj-column>
+    </mj-section>` : ''}` : ''
 
 // Footnote
 const footnoteContent = t.footnote ? `
@@ -185,6 +196,10 @@ const blueBand = isWelcome ? `
 const mjmlSource = `<mjml>
   <mj-head>
     <mj-preview>${t.subject}</mj-preview>
+    <mj-raw>
+      <meta name="color-scheme" content="light only" />
+      <meta name="supported-color-schemes" content="light only" />
+    </mj-raw>
     <mj-font name="Poppins" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
     <mj-font name="Oswald" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" />
     <mj-attributes>
@@ -199,8 +214,14 @@ const mjmlSource = `<mjml>
       .subheading { font-family: Poppins, sans-serif; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; }
     </mj-style>
     <mj-style>
+      :root { color-scheme: light only; }
       .footer-link { color: ${B.gray400} !important; text-decoration: underline; font-size: 12px; }
       a { color: ${B.blue}; }
+      [data-ogsc] body, [data-ogsb] body { background-color: ${B.white} !important; color: ${B.gray700} !important; }
+      @media (prefers-color-scheme: dark) {
+        body, .body { background-color: ${B.white} !important; }
+        h1, h2, h3, p, td, th, div, span { color: inherit !important; }
+      }
     </mj-style>
   </mj-head>
   <mj-body>
@@ -208,7 +229,7 @@ const mjmlSource = `<mjml>
     <!-- Logo -->
     <mj-section background-color="${B.white}" padding="32px 40px 16px 40px">
       <mj-column>
-        <mj-image src="${APP_URL}/email/logo-color.png" alt="Lionheart Educational Operations" width="280px" align="left" padding="0" />
+        <mj-image src="${APP_URL}/email/logo-color.png" alt="Lionheart Educational Operations" width="180px" align="center" padding="0" />
       </mj-column>
     </mj-section>
 

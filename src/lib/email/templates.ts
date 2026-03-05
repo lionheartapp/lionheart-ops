@@ -64,6 +64,10 @@ function wrapLayout(opts: {
 <mjml>
   <mj-head>
     <mj-preview>${opts.previewText}</mj-preview>
+    <mj-raw>
+      <meta name="color-scheme" content="light only" />
+      <meta name="supported-color-schemes" content="light only" />
+    </mj-raw>
     <mj-font name="Poppins" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
     <mj-font name="Oswald" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" />
     <mj-attributes>
@@ -78,8 +82,17 @@ function wrapLayout(opts: {
       .subheading { font-family: Poppins, sans-serif; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; }
     </mj-style>
     <mj-style>
+      :root { color-scheme: light only; }
       .footer-link { color: ${B.gray400} !important; text-decoration: underline; font-size: 12px; }
       a { color: ${B.blue}; }
+      /* Force light mode in all email clients */
+      [data-ogsc] body, [data-ogsb] body { background-color: ${B.white} !important; color: ${B.gray700} !important; }
+      @media (prefers-color-scheme: dark) {
+        body, .body { background-color: ${B.white} !important; }
+        h1, h2, h3, p, td, th, div, span { color: inherit !important; }
+        .dark-img { display: none !important; }
+        .light-img { display: block !important; }
+      }
     </mj-style>
   </mj-head>
   <mj-body>
@@ -87,7 +100,7 @@ function wrapLayout(opts: {
     <!-- Logo header -->
     <mj-section background-color="${B.white}" padding="32px 40px 16px 40px">
       <mj-column>
-        <mj-image src="${LOGO_URL}" alt="Lionheart Educational Operations" width="280px" align="left" padding="0" />
+        <mj-image src="${LOGO_URL}" alt="Lionheart Educational Operations" width="180px" align="center" padding="0" />
       </mj-column>
     </mj-section>
 
@@ -161,8 +174,24 @@ function contentSection(html: string, padding = '24px 40px'): string {
     </mj-section>`
 }
 
-function detailCard(content: string, bgColor = B.blueLight, borderColor = B.blue): string {
-  return `<mj-text padding="20px" background-color="${bgColor}" border-radius="12px" border-left="4px solid ${borderColor}" font-size="14px" line-height="1.6">${content}</mj-text>`
+/**
+ * Email-safe info card using inline HTML div inside mj-text.
+ * Supports border-radius, border, and hugs content width.
+ * Works in Gmail, Apple Mail, Outlook (web/Mac).
+ */
+function detailCard(content: string, bgColor = B.blueLight, accentColor = B.blue): string {
+  // Derive a slightly darker border from the accent color (20% opacity over white)
+  const borderColor = accentColor
+  return `
+    <mj-section background-color="${B.white}" padding="16px 40px 8px 40px">
+      <mj-column>
+        <mj-text padding="0" align="center">
+          <div style="background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 12px; padding: 20px 24px; text-align: center; display: inline-block; width: auto; max-width: 100%;">
+            <span style="font-size: 15px; line-height: 1.7; color: ${B.dark};">${content}</span>
+          </div>
+        </mj-text>
+      </mj-column>
+    </mj-section>`
 }
 
 function heroImage(src: string, alt: string): string {
@@ -223,15 +252,15 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         previewText: '{{eventTitle}} has been rescheduled',
         content: [
           heroHeading('- Event Update -', 'Event<br />Rescheduled'),
-          contentSection([
-            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
               <strong>{{eventTitle}}</strong> has been rescheduled by {{updatedByName}}.
             </mj-text>`,
-            detailCard(
-              `<strong>New Time</strong><br />{{eventDate}}<br />{{eventTime}}`
-            ),
-            `<mj-spacer height="24px" />`,
-          ].join('\n')),
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>New Time</strong><br />{{eventDate}}<br />{{eventTime}}`
+          ),
           centeredCta('View Event', '{{eventLink}}'),
           contentSection(
             `<mj-text align="center" font-size="12px" color="${B.gray400}">You're receiving this because you're an attendee of this event.</mj-text>`,
@@ -246,17 +275,17 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         previewText: 'Your event "{{eventTitle}}" has been approved',
         content: [
           heroHeading('- Good News -', 'Event<br />Approved'),
-          contentSection([
-            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
               Your event <strong>{{eventTitle}}</strong> has been approved.
             </mj-text>`,
-            detailCard(
-              `Approved via <strong>{{channelName}}</strong> channel.`,
-              B.greenLight,
-              B.green
-            ),
-            `<mj-spacer height="24px" />`,
-          ].join('\n')),
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `Approved via <strong>{{channelName}}</strong> channel.`,
+            B.greenLight,
+            B.green
+          ),
           centeredCta('View Event', '{{eventLink}}', B.green),
         ].join('\n'),
       })
@@ -267,20 +296,23 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         previewText: 'Your event "{{eventTitle}}" was not approved',
         content: [
           heroHeading('- Event Update -', 'Event Not<br />Approved'),
-          contentSection([
-            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
               Your event <strong>{{eventTitle}}</strong> was not approved.
             </mj-text>`,
-            vars.reason
-              ? detailCard(`<strong>Reason</strong><br />{{reason}}`, B.redLight, B.red)
-              : '',
-            `<mj-spacer height="16px" />`,
-            `<mj-text align="center" padding-bottom="8px" font-size="14px" color="${B.gray500}">
+            '8px 40px 0 40px'
+          ),
+          vars.reason
+            ? detailCard(`<strong>Reason</strong><br />{{reason}}`, B.redLight, B.red)
+            : '',
+          contentSection(
+            `<mj-text align="center" padding-bottom="0" font-size="14px" color="${B.gray500}">
               You can edit your event and resubmit it for approval.
             </mj-text>`,
-          ].filter(Boolean).join('\n')),
+            '8px 40px 16px 40px'
+          ),
           centeredCta('View Event', '{{eventLink}}'),
-        ].join('\n'),
+        ].filter(Boolean).join('\n'),
       })
 
     // ── Event cancelled ──
@@ -289,16 +321,17 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         previewText: '{{eventTitle}} has been cancelled',
         content: [
           heroHeading('- Event Update -', 'Event<br />Cancelled'),
-          contentSection([
-            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
               The event <strong>{{eventTitle}}</strong> has been cancelled and removed from the calendar.
             </mj-text>`,
-            detailCard(
-              'This event is no longer scheduled. No further action is needed.',
-              B.gray100,
-              B.gray500
-            ),
-          ].join('\n')),
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            'This event is no longer scheduled. No further action is needed.',
+            B.gray100,
+            B.gray500
+          ),
           contentSection(
             `<mj-text align="center" font-size="12px" color="${B.gray400}">You're receiving this because you were an attendee of this event.</mj-text>`,
             '8px 40px 24px 40px'
@@ -312,17 +345,17 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         previewText: 'You\'ve been added to "{{eventTitle}}"',
         content: [
           heroHeading("- You're Invited -", 'New Event<br />on Your Calendar'),
-          contentSection([
-            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
               You've been added as an attendee to <strong>{{eventTitle}}</strong>.
             </mj-text>`,
-            vars.eventDate
-              ? detailCard(`<strong>When</strong><br />{{eventDate}}<br />{{eventTime}}`)
-              : '',
-            `<mj-spacer height="24px" />`,
-          ].filter(Boolean).join('\n')),
+            '8px 40px 0 40px'
+          ),
+          vars.eventDate
+            ? detailCard(`<strong>When</strong><br />{{eventDate}}<br />{{eventTime}}`)
+            : '',
           centeredCta('View Event', '{{eventLink}}'),
-        ].join('\n'),
+        ].filter(Boolean).join('\n'),
       })
 
     default:
