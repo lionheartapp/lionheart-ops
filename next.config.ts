@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['mjml', 'mjml-core', 'mjml-preset-core'],
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,

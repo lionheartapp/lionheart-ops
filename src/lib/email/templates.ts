@@ -1,22 +1,24 @@
 /**
- * Branded MJML email templates for Lionheart Platform.
+ * Lionheart-branded MJML email templates.
  *
- * Brand: Primary blue #2563eb, headings Oswald, body Poppins.
- * All templates compile to production HTML via mjml at runtime.
+ * Design: Wix-style clean layout with Lionheart as the sender brand.
+ * Logo → divider → hero content → optional blue band → footer.
+ * Brand: Primary blue #1d4ed8, headings Oswald, body Poppins.
  */
 
 import mjml2html from 'mjml'
 
 // ─── Brand Tokens ────────────────────────────────────────────────────────────
 
-const BRAND = {
-  primary: '#2563eb',
-  primaryDark: '#1d4ed8',
-  primaryLight: '#eff6ff',
+const B = {
+  blue: '#1d4ed8',
+  blueDark: '#1e3a8a',
+  blueLight: '#eff6ff',
   dark: '#111827',
   gray50: '#f9fafb',
   gray100: '#f3f4f6',
   gray200: '#e5e7eb',
+  gray400: '#9ca3af',
   gray500: '#6b7280',
   gray700: '#374151',
   gray900: '#111827',
@@ -24,110 +26,152 @@ const BRAND = {
   greenLight: '#ecfdf5',
   red: '#dc2626',
   redLight: '#fef2f2',
-  amber: '#d97706',
-  amberLight: '#fffbeb',
   white: '#ffffff',
 }
 
-// ─── Shared Layout Wrapper ───────────────────────────────────────────────────
+// Hosted logo — PNG for email client compatibility (Gmail doesn't support SVG)
+const LOGO_URL = '{{appUrl}}/email/logo-color.png'
 
-function wrapLayout(content: string, previewText: string): string {
+// ─── Shared Layout ──────────────────────────────────────────────────────────
+
+/**
+ * Full Wix-style layout: logo header, content, optional blue band, footer.
+ */
+function wrapLayout(opts: {
+  previewText: string
+  content: string
+  /** Optional blue band section below main content */
+  blueBand?: { text: string; ctaLabel?: string; ctaUrl?: string }
+}): string {
+  const blueBandMjml = opts.blueBand
+    ? `
+    <!-- Blue band section -->
+    <mj-section background-color="${B.blue}" padding="48px 40px">
+      <mj-column>
+        <mj-text align="center" color="${B.white}" font-size="17px" line-height="1.6" padding-bottom="${opts.blueBand.ctaLabel ? '24px' : '0'}">
+          ${opts.blueBand.text}
+        </mj-text>
+        ${opts.blueBand.ctaLabel
+          ? `<mj-button href="${opts.blueBand.ctaUrl || '{{appUrl}}'}" background-color="${B.white}" color="${B.blue}" align="center" border-radius="24px" inner-padding="12px 36px" font-size="15px" font-weight="600">
+              ${opts.blueBand.ctaLabel}
+            </mj-button>`
+          : ''}
+      </mj-column>
+    </mj-section>`
+    : ''
+
   return `
 <mjml>
   <mj-head>
-    <mj-preview>${previewText}</mj-preview>
+    <mj-preview>${opts.previewText}</mj-preview>
     <mj-font name="Poppins" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
-    <mj-font name="Oswald" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&display=swap" />
+    <mj-font name="Oswald" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" />
     <mj-attributes>
       <mj-all font-family="Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" />
-      <mj-text font-size="15px" line-height="1.6" color="${BRAND.gray700}" />
-      <mj-button font-family="Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15px" font-weight="600" inner-padding="14px 32px" border-radius="10px" />
+      <mj-text font-size="15px" line-height="1.6" color="${B.gray700}" />
+      <mj-button font-family="Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15px" font-weight="600" />
       <mj-section padding="0" />
-      <mj-body background-color="${BRAND.gray50}" />
+      <mj-body background-color="${B.white}" width="600px" />
     </mj-attributes>
-    <mj-style>
-      .footer-link { color: ${BRAND.gray500} !important; text-decoration: underline; }
-      .subtle { color: ${BRAND.gray500} !important; font-size: 13px !important; }
-    </mj-style>
     <mj-style inline="inline">
-      .heading { font-family: Oswald, 'Arial Narrow', Arial, sans-serif; font-weight: 600; letter-spacing: 0.02em; }
+      .heading { font-family: Oswald, 'Arial Narrow', Arial, sans-serif; font-weight: 700; letter-spacing: -0.01em; text-transform: uppercase; }
+      .subheading { font-family: Poppins, sans-serif; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; }
+    </mj-style>
+    <mj-style>
+      .footer-link { color: ${B.gray400} !important; text-decoration: underline; font-size: 12px; }
+      a { color: ${B.blue}; }
     </mj-style>
   </mj-head>
   <mj-body>
-    <!-- Top spacer -->
-    <mj-section padding="24px 0 0 0">
+
+    <!-- Logo header -->
+    <mj-section background-color="${B.white}" padding="32px 40px 16px 40px">
       <mj-column>
-        <mj-spacer height="1px" />
+        <mj-image src="${LOGO_URL}" alt="Lionheart Educational Operations" width="280px" align="left" padding="0" />
       </mj-column>
     </mj-section>
 
-    <!-- Header with logo bar -->
-    <mj-section padding="28px 32px 20px 32px" background-color="${BRAND.dark}" border-radius="16px 16px 0 0" css-class="header">
+    <!-- Divider under logo -->
+    <mj-section padding="0 40px">
       <mj-column>
-        <mj-text align="center" font-size="22px" font-weight="600" color="${BRAND.white}" css-class="heading" letter-spacing="1.5px">
-          {{orgName}}
+        <mj-divider border-color="${B.blue}" border-width="2px" padding="0" />
+      </mj-column>
+    </mj-section>
+
+    <!-- Main content -->
+    ${opts.content}
+
+    ${blueBandMjml}
+
+    <!-- Footer -->
+    <mj-section background-color="${B.white}" padding="32px 40px 16px 40px">
+      <mj-column>
+        <mj-text align="center" font-size="13px" color="${B.gray400}" line-height="1.6">
+          Stay up to date with our latest news &amp; features.
         </mj-text>
       </mj-column>
     </mj-section>
 
-    <!-- Accent bar -->
-    <mj-section padding="0">
-      <mj-column background-color="${BRAND.primary}" padding="0">
-        <mj-spacer height="4px" />
-      </mj-column>
-    </mj-section>
-
-    <!-- Main content card -->
-    <mj-section background-color="${BRAND.white}" padding="36px 32px">
+    <mj-section background-color="${B.white}" padding="0 40px 32px 40px">
       <mj-column>
-        ${content}
-      </mj-column>
-    </mj-section>
-
-    <!-- Footer -->
-    <mj-section background-color="${BRAND.gray100}" padding="24px 32px" border-radius="0 0 16px 16px">
-      <mj-column>
-        <mj-text align="center" font-size="12px" color="${BRAND.gray500}" line-height="1.5">
-          Sent by {{orgName}} via Lionheart<br />
+        <mj-text align="center" font-size="11px" color="${B.gray400}" line-height="1.5">
+          &copy; {{currentYear}} Lionheart Educational Operations<br />
           <a href="{{appUrl}}" class="footer-link">Open Lionheart</a>
         </mj-text>
       </mj-column>
     </mj-section>
 
-    <!-- Bottom spacer -->
-    <mj-section padding="0 0 24px 0">
-      <mj-column>
-        <mj-spacer height="1px" />
-      </mj-column>
-    </mj-section>
   </mj-body>
 </mjml>`
 }
 
-// ─── Template Helpers ────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-function heading(text: string): string {
-  return `<mj-text font-size="24px" font-weight="600" color="${BRAND.gray900}" css-class="heading" line-height="1.3" padding-bottom="8px">${text}</mj-text>`
+function heroHeading(subtitle: string, headline: string): string {
+  return `
+    <mj-section background-color="${B.white}" padding="40px 40px 0 40px">
+      <mj-column>
+        <mj-text align="center" font-size="13px" color="${B.blue}" css-class="subheading" padding-bottom="12px" letter-spacing="2px">
+          ${subtitle}
+        </mj-text>
+        <mj-text align="center" font-size="36px" font-weight="700" color="${B.dark}" css-class="heading" line-height="1.15" padding-bottom="24px">
+          ${headline}
+        </mj-text>
+      </mj-column>
+    </mj-section>`
 }
 
-function paragraph(html: string): string {
-  return `<mj-text padding-bottom="16px">${html}</mj-text>`
+function centeredCta(label: string, url: string, color = B.blue): string {
+  return `
+    <mj-section background-color="${B.white}" padding="0 40px 8px 40px">
+      <mj-column>
+        <mj-button href="${url}" background-color="${color}" color="${B.white}" align="center" border-radius="24px" inner-padding="14px 40px">
+          ${label}
+        </mj-button>
+      </mj-column>
+    </mj-section>`
 }
 
-function ctaButton(label: string, url: string, color = BRAND.primary): string {
-  return `<mj-button href="${url}" background-color="${color}" color="${BRAND.white}" align="left">${label}</mj-button>`
+function contentSection(html: string, padding = '24px 40px'): string {
+  return `
+    <mj-section background-color="${B.white}" padding="${padding}">
+      <mj-column>
+        ${html}
+      </mj-column>
+    </mj-section>`
 }
 
-function divider(): string {
-  return `<mj-divider border-color="${BRAND.gray200}" border-width="1px" padding="16px 0" />`
+function detailCard(content: string, bgColor = B.blueLight, borderColor = B.blue): string {
+  return `<mj-text padding="20px" background-color="${bgColor}" border-radius="12px" border-left="4px solid ${borderColor}" font-size="14px" line-height="1.6">${content}</mj-text>`
 }
 
-function infoBox(content: string, bgColor = BRAND.primaryLight, borderColor = BRAND.primary): string {
-  return `<mj-text padding="16px" background-color="${bgColor}" border-radius="8px" border-left="4px solid ${borderColor}" font-size="14px" line-height="1.5">${content}</mj-text>`
-}
-
-function subtle(text: string): string {
-  return `<mj-text font-size="13px" color="${BRAND.gray500}" padding-top="16px">${text}</mj-text>`
+function heroImage(src: string, alt: string): string {
+  return `
+    <mj-section background-color="${B.white}" padding="16px 0 0 0">
+      <mj-column>
+        <mj-image src="${src}" alt="${alt}" width="600px" padding="0" />
+      </mj-column>
+    </mj-section>`
 }
 
 // ─── Template Definitions ────────────────────────────────────────────────────
@@ -145,110 +189,141 @@ type TemplateVars = Record<string, string | undefined>
 
 function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
   switch (template) {
+    // ── Welcome (new account created by admin) ──
     case 'welcome':
-      return wrapLayout(
-        [
-          heading('Welcome aboard, {{firstName}}!'),
-          paragraph(`Your account at <strong>{{orgName}}</strong> has been created. Set your password to get started and explore everything Lionheart has to offer.`),
-          ctaButton('Set Your Password', '{{setupLink}}'),
-          divider(),
-          subtle('This link expires on {{expiresAt}}. If you didn\'t expect this email, you can safely ignore it.'),
+      return wrapLayout({
+        previewText: 'Your account is ready — set your password to get started',
+        content: [
+          heroHeading('- Your Account Is Ready -', "It's Your Time<br />to Get Started"),
         ].join('\n'),
-        'Welcome to {{orgName}} — set your password to get started'
-      )
+        blueBand: {
+          text: `Your account at <strong>{{orgName}}</strong> is ready. Explore your calendar, manage events, track inventory, and more — all in one place. What will you accomplish with Lionheart?`,
+          ctaLabel: 'Set Your Password',
+          ctaUrl: '{{setupLink}}',
+        },
+      })
 
+    // ── Password setup (invited user) ──
     case 'password_setup':
-      return wrapLayout(
-        [
-          heading('Complete your setup'),
-          paragraph(`You've been invited to join <strong>{{orgName}}</strong> on Lionheart. Click below to set your password and complete your account setup.`),
-          ctaButton('Set Your Password', '{{setupLink}}'),
-          divider(),
-          subtle('This link expires on {{expiresAt}}. If you didn\'t expect this invitation, you can safely ignore it.'),
+      return wrapLayout({
+        previewText: 'Set your password to join {{orgName}} on Lionheart',
+        content: [
+          heroHeading("- You're Invited -", 'Complete Your<br />Account Setup'),
         ].join('\n'),
-        'You\'ve been invited to {{orgName}} — complete your setup'
-      )
+        blueBand: {
+          text: `You've been invited to join <strong>{{orgName}}</strong> on Lionheart. Set your password to access calendars, events, facilities, and everything your team uses to stay organized.`,
+          ctaLabel: 'Get Started',
+          ctaUrl: '{{setupLink}}',
+        },
+      })
 
+    // ── Event rescheduled ──
     case 'event_updated':
-      return wrapLayout(
-        [
-          heading('Event rescheduled'),
-          paragraph(`<strong>{{eventTitle}}</strong> has been rescheduled by {{updatedByName}}.`),
-          infoBox(
-            `<strong>New time</strong><br />${'{{eventDate}}'}<br />${'{{eventTime}}'}`,
+      return wrapLayout({
+        previewText: '{{eventTitle}} has been rescheduled',
+        content: [
+          heroHeading('- Event Update -', 'Event<br />Rescheduled'),
+          contentSection([
+            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+              <strong>{{eventTitle}}</strong> has been rescheduled by {{updatedByName}}.
+            </mj-text>`,
+            detailCard(
+              `<strong>New Time</strong><br />{{eventDate}}<br />{{eventTime}}`
+            ),
+            `<mj-spacer height="24px" />`,
+          ].join('\n')),
+          centeredCta('View Event', '{{eventLink}}'),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">You're receiving this because you're an attendee of this event.</mj-text>`,
+            '8px 40px 24px 40px'
           ),
-          `<mj-spacer height="16px" />`,
-          ctaButton('View Event', '{{eventLink}}'),
-          subtle('You\'re receiving this because you\'re an attendee of this event.'),
         ].join('\n'),
-        '{{eventTitle}} has been rescheduled'
-      )
+      })
 
+    // ── Event approved ──
     case 'event_approved':
-      return wrapLayout(
-        [
-          heading('Event approved'),
-          paragraph(`Great news! Your event <strong>{{eventTitle}}</strong> has been approved.`),
-          infoBox(
-            `Approved via <strong>{{channelName}}</strong> channel.`,
-            BRAND.greenLight,
-            BRAND.green,
-          ),
-          `<mj-spacer height="16px" />`,
-          ctaButton('View Event', '{{eventLink}}', BRAND.green),
+      return wrapLayout({
+        previewText: 'Your event "{{eventTitle}}" has been approved',
+        content: [
+          heroHeading('- Good News -', 'Event<br />Approved'),
+          contentSection([
+            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+              Your event <strong>{{eventTitle}}</strong> has been approved.
+            </mj-text>`,
+            detailCard(
+              `Approved via <strong>{{channelName}}</strong> channel.`,
+              B.greenLight,
+              B.green
+            ),
+            `<mj-spacer height="24px" />`,
+          ].join('\n')),
+          centeredCta('View Event', '{{eventLink}}', B.green),
         ].join('\n'),
-        'Your event "{{eventTitle}}" has been approved'
-      )
+      })
 
+    // ── Event rejected ──
     case 'event_rejected':
-      return wrapLayout(
-        [
-          heading('Event not approved'),
-          paragraph(`Your event <strong>{{eventTitle}}</strong> was not approved.`),
-          vars.reason
-            ? infoBox(
-                `<strong>Reason</strong><br />${'{{reason}}'}`,
-                BRAND.redLight,
-                BRAND.red,
-              )
-            : '',
-          `<mj-spacer height="16px" />`,
-          paragraph('You can edit your event and resubmit it for approval.'),
-          ctaButton('View Event', '{{eventLink}}'),
-        ].filter(Boolean).join('\n'),
-        'Your event "{{eventTitle}}" was not approved'
-      )
-
-    case 'event_cancelled':
-      return wrapLayout(
-        [
-          heading('Event cancelled'),
-          paragraph(`The event <strong>{{eventTitle}}</strong> has been cancelled and removed from the calendar.`),
-          infoBox(
-            'This event is no longer scheduled. No further action is needed.',
-            BRAND.gray100,
-            BRAND.gray500,
-          ),
-          subtle('You\'re receiving this because you were an attendee of this event.'),
+      return wrapLayout({
+        previewText: 'Your event "{{eventTitle}}" was not approved',
+        content: [
+          heroHeading('- Event Update -', 'Event Not<br />Approved'),
+          contentSection([
+            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+              Your event <strong>{{eventTitle}}</strong> was not approved.
+            </mj-text>`,
+            vars.reason
+              ? detailCard(`<strong>Reason</strong><br />{{reason}}`, B.redLight, B.red)
+              : '',
+            `<mj-spacer height="16px" />`,
+            `<mj-text align="center" padding-bottom="8px" font-size="14px" color="${B.gray500}">
+              You can edit your event and resubmit it for approval.
+            </mj-text>`,
+          ].filter(Boolean).join('\n')),
+          centeredCta('View Event', '{{eventLink}}'),
         ].join('\n'),
-        '{{eventTitle}} has been cancelled'
-      )
+      })
 
+    // ── Event cancelled ──
+    case 'event_cancelled':
+      return wrapLayout({
+        previewText: '{{eventTitle}} has been cancelled',
+        content: [
+          heroHeading('- Event Update -', 'Event<br />Cancelled'),
+          contentSection([
+            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+              The event <strong>{{eventTitle}}</strong> has been cancelled and removed from the calendar.
+            </mj-text>`,
+            detailCard(
+              'This event is no longer scheduled. No further action is needed.',
+              B.gray100,
+              B.gray500
+            ),
+          ].join('\n')),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">You're receiving this because you were an attendee of this event.</mj-text>`,
+            '8px 40px 24px 40px'
+          ),
+        ].join('\n'),
+      })
+
+    // ── Event invite ──
     case 'event_invite':
-      return wrapLayout(
-        [
-          heading('You\'re invited'),
-          paragraph(`You\'ve been added as an attendee to <strong>{{eventTitle}}</strong>.`),
-          vars.eventDate
-            ? infoBox(
-                `<strong>When</strong><br />${'{{eventDate}}'}<br />${'{{eventTime}}'}`,
-              )
-            : '',
-          `<mj-spacer height="16px" />`,
-          ctaButton('View Event', '{{eventLink}}'),
-        ].filter(Boolean).join('\n'),
-        'You\'ve been added to "{{eventTitle}}"'
-      )
+      return wrapLayout({
+        previewText: 'You\'ve been added to "{{eventTitle}}"',
+        content: [
+          heroHeading("- You're Invited -", 'New Event<br />on Your Calendar'),
+          contentSection([
+            `<mj-text align="center" padding-bottom="16px" font-size="16px">
+              You've been added as an attendee to <strong>{{eventTitle}}</strong>.
+            </mj-text>`,
+            vars.eventDate
+              ? detailCard(`<strong>When</strong><br />{{eventDate}}<br />{{eventTime}}`)
+              : '',
+            `<mj-spacer height="24px" />`,
+          ].filter(Boolean).join('\n')),
+          centeredCta('View Event', '{{eventLink}}'),
+        ].join('\n'),
+      })
 
     default:
       throw new Error(`Unknown email template: ${template}`)
@@ -268,18 +343,18 @@ export interface RenderEmailResult {
 }
 
 const SUBJECTS: Record<EmailTemplate, string> = {
-  welcome: 'Welcome to {{orgName}}',
-  password_setup: 'Complete your invitation to {{orgName}}',
+  welcome: 'Welcome to Lionheart',
+  password_setup: "You're invited to Lionheart",
   event_updated: 'Event rescheduled: {{eventTitle}}',
   event_approved: 'Event approved: {{eventTitle}}',
   event_rejected: 'Event not approved: {{eventTitle}}',
   event_cancelled: 'Event cancelled: {{eventTitle}}',
-  event_invite: 'You\'re invited: {{eventTitle}}',
+  event_invite: "You're invited: {{eventTitle}}",
 }
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
-  welcome: 'Welcome, {{firstName}}! Your account at {{orgName}} is ready. Set your password: {{setupLink}} (expires {{expiresAt}}).',
-  password_setup: 'You\'ve been invited to {{orgName}}. Set your password: {{setupLink}} (expires {{expiresAt}}).',
+  welcome: 'Welcome to Lionheart! Your account at {{orgName}} is ready. Set your password: {{setupLink}}',
+  password_setup: "You've been invited to join {{orgName}} on Lionheart. Set your password: {{setupLink}}",
   event_updated: '"{{eventTitle}}" was rescheduled by {{updatedByName}}. New time: {{eventDate}}, {{eventTime}}. View: {{eventLink}}',
   event_approved: 'Your event "{{eventTitle}}" was approved via {{channelName}} channel. View: {{eventLink}}',
   event_rejected: 'Your event "{{eventTitle}}" was not approved. {{reason}} View: {{eventLink}}',
@@ -288,18 +363,19 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
 }
 
 /**
- * Render a branded email template.
- *
- * @param template - Which email to render
- * @param vars - Template variables (orgName, firstName, eventTitle, etc.)
- * @returns { html, subject, text } ready to send
+ * Render a Lionheart-branded email template.
  */
 export function renderEmail(template: EmailTemplate, vars: TemplateVars): RenderEmailResult {
-  const mjmlSource = getTemplateMjml(template, vars)
-  const interpolated = interpolate(mjmlSource, vars)
+  // Inject current year for footer copyright
+  const enrichedVars = {
+    ...vars,
+    currentYear: new Date().getFullYear().toString(),
+  }
+
+  const mjmlSource = getTemplateMjml(template, enrichedVars)
+  const interpolated = interpolate(mjmlSource, enrichedVars)
 
   const { html, errors } = mjml2html(interpolated, {
-    minify: true,
     validationLevel: 'soft',
   })
 
@@ -309,7 +385,7 @@ export function renderEmail(template: EmailTemplate, vars: TemplateVars): Render
 
   return {
     html,
-    subject: interpolate(SUBJECTS[template], vars),
-    text: interpolate(TEXT_BODIES[template], vars),
+    subject: interpolate(SUBJECTS[template], enrichedVars),
+    text: interpolate(TEXT_BODIES[template], enrichedVars),
   }
 }

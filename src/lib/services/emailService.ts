@@ -53,7 +53,7 @@ type EventInviteEmailInput = EventNotifyEmailInput & {
 
 function getResendConfig() {
   const apiKey = process.env.RESEND_API_KEY?.trim()
-  const from = process.env.MAIL_FROM?.trim() || 'no-reply@lionheartapp.com'
+  const from = process.env.MAIL_FROM?.trim() || 'Lionheart <no-reply@lionheartapp.com>'
   if (!apiKey) return null
   return { apiKey, from }
 }
@@ -63,7 +63,7 @@ function getSmtpConfig() {
   const portRaw = process.env.SMTP_PORT?.trim()
   const user = process.env.SMTP_USER?.trim()
   const pass = process.env.SMTP_PASS?.trim()
-  const from = process.env.MAIL_FROM?.trim() || 'no-reply@lionheartapp.com'
+  const from = process.env.MAIL_FROM?.trim() || 'Lionheart <no-reply@lionheartapp.com>'
 
   if (!host || !portRaw || !user || !pass) return null
 
