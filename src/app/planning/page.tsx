@@ -121,9 +121,9 @@ export default function PlanningPage() {
       >
         <motion.div variants={fadeInUp} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Event Planning</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">Calendar Planning</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {activeSeason ? `${activeSeason.name} — ${activeSeason.phase.replace('_', ' ')}` : 'No active planning season'}
+              Collect, review, and coordinate event proposals before publishing to the calendar.
             </p>
           </div>
           <div className="flex items-center gap-2">

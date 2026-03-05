@@ -201,7 +201,7 @@ export default function Sidebar({
 
   // Open calendar panel when navigating to /calendar
   useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/calendar')) {
+    if (pathname.startsWith('/calendar') || pathname.startsWith('/planning')) {
       setCalendarOpen(true)
       setSettingsOpen(false)
       setAthleticsOpen(false)
@@ -394,7 +394,6 @@ export default function Sidebar({
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
-    { icon: CalendarClock, label: 'Planning', href: '/planning' },
   ]
 
   const handleAthleticsClick = () => {
@@ -919,6 +918,31 @@ export default function Sidebar({
             />
           </div>
         )}
+      </div>
+
+      {/* Calendar Planning CTA — pinned to bottom */}
+      <div className="px-3 pb-3 pt-2 flex-shrink-0">
+        <PrefetchLink
+          href="/planning"
+          onClick={() => setIsOpen(false)}
+          className="block relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-[#1e293b] to-[#0f172a] group hover:shadow-lg transition-all duration-200"
+        >
+          {/* Decorative gradient blobs */}
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary-500/20 rounded-full blur-2xl" />
+          <div className="absolute -left-4 -bottom-4 w-20 h-20 bg-indigo-500/15 rounded-full blur-xl" />
+
+          <div className="relative">
+            <CalendarClock className="w-5 h-5 text-primary-300 mb-2" />
+            <p className="text-sm font-semibold text-white">Calendar Planning</p>
+            <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">
+              Collect & coordinate events for the year
+            </p>
+            <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-primary-300 group-hover:text-primary-200 transition-colors">
+              Open Planning
+              <ChevronRight className="w-3 h-3" />
+            </span>
+          </div>
+        </PrefetchLink>
       </div>
     </div>
   )
