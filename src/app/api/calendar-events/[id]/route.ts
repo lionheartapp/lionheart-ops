@@ -150,20 +150,25 @@ export async function PUT(
           )
 
           // Email notifications (fire-and-forget)
-          const recipientUsers = await prisma.user.findMany({
-            where: { id: { in: recipientIds }, status: 'ACTIVE' },
-            select: { email: true },
-          })
-          const updater = await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { firstName: true, lastName: true },
-          })
+          const [recipientUsers, updater, org] = await Promise.all([
+            prisma.user.findMany({
+              where: { id: { in: recipientIds }, status: 'ACTIVE' },
+              select: { email: true },
+            }),
+            prisma.user.findUnique({
+              where: { id: ctx.userId },
+              select: { firstName: true, lastName: true },
+            }),
+            prisma.organization.findFirst({ select: { name: true } }),
+          ])
           sendEventUpdateEmails({
             eventTitle: updated.title,
             eventStart: updated.startTime.toISOString(),
             eventEnd: updated.endTime.toISOString(),
             attendeeEmails: recipientUsers.map((u: { email: string }) => u.email),
             updatedByName: [updater?.firstName, updater?.lastName].filter(Boolean).join(' ') || 'A team member',
+            orgName: org?.name || 'your school',
+            eventLink: `/calendar?eventId=${eventId}`,
           }).catch(() => {})
         }
       }

@@ -6,6 +6,8 @@ import { canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
 import * as notificationService from '@/lib/services/notificationService'
+import { sendEventInviteEmail } from '@/lib/services/emailService'
+import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
 const addAttendeesSchema = z.object({
@@ -53,6 +55,33 @@ export async function POST(
               linkUrl: `/calendar?eventId=${eventId}`,
             }))
           )
+
+          // Email notifications (fire-and-forget)
+          const [recipients, org] = await Promise.all([
+            prisma.user.findMany({
+              where: { id: { in: recipientIds }, status: 'ACTIVE' },
+              select: { email: true },
+            }),
+            prisma.organization.findFirst({ select: { name: true } }),
+          ])
+
+          const startDate = new Date(event.startTime)
+          const endDate = new Date(event.endTime)
+          const dateStr = startDate.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+          })
+          const timeStr = `${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} – ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+
+          for (const r of recipients) {
+            sendEventInviteEmail({
+              to: r.email,
+              eventTitle: event.title,
+              eventDate: dateStr,
+              eventTime: timeStr,
+              orgName: org?.name || 'your school',
+              eventLink: `/calendar?eventId=${eventId}`,
+            }).catch(() => {})
+          }
         }
       }
 

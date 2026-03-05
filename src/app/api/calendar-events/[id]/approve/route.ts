@@ -6,6 +6,8 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
 import * as notificationService from '@/lib/services/notificationService'
+import { sendEventApprovedEmail } from '@/lib/services/emailService'
+import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
 const approveSchema = z.object({
@@ -30,13 +32,30 @@ export async function POST(
       // Notify event creator (fire-and-forget)
       const event = await calendarService.getEventById(id)
       if (event?.createdById && event.createdById !== ctx.userId) {
+        const channelLabel = data.channelType.replace(/_/g, ' ').toLowerCase()
+
         notificationService.createNotification({
           userId: event.createdById,
           type: 'event_approved',
           title: `Your event "${event.title}" was approved`,
-          body: `Approved via ${data.channelType.replace(/_/g, ' ').toLowerCase()} channel.`,
+          body: `Approved via ${channelLabel} channel.`,
           linkUrl: `/calendar?eventId=${id}`,
         })
+
+        // Email notification (fire-and-forget)
+        const [creator, org] = await Promise.all([
+          prisma.user.findUnique({ where: { id: event.createdById }, select: { email: true } }),
+          prisma.organization.findFirst({ select: { name: true } }),
+        ])
+        if (creator?.email) {
+          sendEventApprovedEmail({
+            to: creator.email,
+            eventTitle: event.title,
+            channelName: channelLabel,
+            orgName: org?.name || 'your school',
+            eventLink: `/calendar?eventId=${id}`,
+          }).catch(() => {})
+        }
       }
 
       return NextResponse.json(ok(approval))

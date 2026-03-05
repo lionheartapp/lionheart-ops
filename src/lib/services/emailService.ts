@@ -1,4 +1,12 @@
 import nodemailer from 'nodemailer'
+import { renderEmail, type EmailTemplate } from '@/lib/email/templates'
+
+// ─── Types ────────────────────────────────────────────────────────────
+
+type SendEmailResult = {
+  sent: boolean
+  reason?: string
+}
 
 type WelcomeEmailInput = {
   to: string
@@ -9,18 +17,39 @@ type WelcomeEmailInput = {
   mode: 'ADMIN_CREATE' | 'INVITE_ONLY'
 }
 
-type SendEmailResult = {
-  sent: boolean
+type EventUpdateEmailInput = {
+  eventTitle: string
+  eventStart: string
+  eventEnd: string
+  attendeeEmails: string[]
+  updatedByName: string
+  orgName: string
+  appUrl?: string
+  eventLink?: string
+}
+
+type EventNotifyEmailInput = {
+  to: string
+  eventTitle: string
+  orgName: string
+  appUrl?: string
+  eventLink?: string
+}
+
+type EventApprovedEmailInput = EventNotifyEmailInput & {
+  channelName: string
+}
+
+type EventRejectedEmailInput = EventNotifyEmailInput & {
   reason?: string
 }
 
-type EmailContent = {
-  from: string
-  to: string
-  subject: string
-  text: string
-  html: string
+type EventInviteEmailInput = EventNotifyEmailInput & {
+  eventDate?: string
+  eventTime?: string
 }
+
+// ─── Config ───────────────────────────────────────────────────────────
 
 function getResendConfig() {
   const apiKey = process.env.RESEND_API_KEY?.trim()
@@ -36,79 +65,30 @@ function getSmtpConfig() {
   const pass = process.env.SMTP_PASS?.trim()
   const from = process.env.MAIL_FROM?.trim() || 'no-reply@lionheartapp.com'
 
-  if (!host || !portRaw || !user || !pass) {
-    return null
-  }
+  if (!host || !portRaw || !user || !pass) return null
 
   const port = Number(portRaw)
-  if (!Number.isFinite(port)) {
-    return null
-  }
+  if (!Number.isFinite(port)) return null
 
   const secure = process.env.SMTP_SECURE === 'true' || port === 465
-
-  return {
-    host,
-    port,
-    secure,
-    auth: { user, pass },
-    from,
-  }
+  return { host, port, secure, auth: { user, pass }, from }
 }
 
-function buildWelcomeEmail(input: WelcomeEmailInput, from: string): EmailContent {
-  const expiresAt = new Date(input.expiresAtIso)
-  const subject = input.mode === 'ADMIN_CREATE'
-    ? `Welcome to ${input.organizationName}`
-    : `Complete your invitation to ${input.organizationName}`
-
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #111827;">
-      <h2 style="margin-bottom: 12px;">Welcome, ${input.firstName}</h2>
-      <p style="line-height: 1.5; margin: 0 0 12px;">
-        ${input.mode === 'ADMIN_CREATE'
-          ? `Your account at <strong>${input.organizationName}</strong> is active. Set your password to get started.`
-          : `You've been invited to <strong>${input.organizationName}</strong>. Set your password to complete setup.`}
-      </p>
-      <p style="margin: 20px 0;">
-        <a href="${input.setupLink}" style="background:#2563eb;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;display:inline-block;">Set Password</a>
-      </p>
-      <p style="font-size: 12px; color: #6b7280; line-height: 1.5;">
-        This link expires on ${expiresAt.toUTCString()}.
-      </p>
-      <p style="font-size: 12px; color: #6b7280; line-height: 1.5;">
-        If you did not expect this email, you can safely ignore it.
-      </p>
-    </div>
-  `
-
-  const text = [
-    `Welcome, ${input.firstName}`,
-    '',
-    input.mode === 'ADMIN_CREATE'
-      ? `Your account at ${input.organizationName} is active. Set your password to get started.`
-      : `You've been invited to ${input.organizationName}. Set your password to complete setup.`,
-    '',
-    `Set Password: ${input.setupLink}`,
-    `Expires: ${expiresAt.toUTCString()}`,
-  ].join('\n')
-
-  return {
-    from,
-    to: input.to,
-    subject,
-    text,
-    html,
-  }
+function getAppUrl(): string {
+  return process.env.NEXT_PUBLIC_PLATFORM_URL || 'https://app.lionheartapp.com'
 }
 
-async function sendViaResend(input: WelcomeEmailInput): Promise<SendEmailResult> {
+// ─── Generic Send ─────────────────────────────────────────────────────
+
+async function sendViaResend(
+  to: string,
+  subject: string,
+  html: string,
+  text: string,
+  from: string
+): Promise<SendEmailResult> {
   const cfg = getResendConfig()
-  if (!cfg) {
-    return { sent: false, reason: 'RESEND_NOT_CONFIGURED' }
-  }
-
-  const email = buildWelcomeEmail(input, cfg.from)
+  if (!cfg) return { sent: false, reason: 'RESEND_NOT_CONFIGURED' }
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -118,11 +98,11 @@ async function sendViaResend(input: WelcomeEmailInput): Promise<SendEmailResult>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: email.from,
-        to: [email.to],
-        subject: email.subject,
-        text: email.text,
-        html: email.html,
+        from: from || cfg.from,
+        to: [to],
+        subject,
+        text,
+        html,
       }),
     })
 
@@ -139,11 +119,15 @@ async function sendViaResend(input: WelcomeEmailInput): Promise<SendEmailResult>
   }
 }
 
-async function sendViaSmtp(input: WelcomeEmailInput): Promise<SendEmailResult> {
+async function sendViaSmtp(
+  to: string,
+  subject: string,
+  html: string,
+  text: string,
+  from: string
+): Promise<SendEmailResult> {
   const cfg = getSmtpConfig()
-  if (!cfg) {
-    return { sent: false, reason: 'SMTP_NOT_CONFIGURED' }
-  }
+  if (!cfg) return { sent: false, reason: 'SMTP_NOT_CONFIGURED' }
 
   const transporter = nodemailer.createTransport({
     host: cfg.host,
@@ -152,86 +136,29 @@ async function sendViaSmtp(input: WelcomeEmailInput): Promise<SendEmailResult> {
     auth: cfg.auth,
   })
 
-  const email = buildWelcomeEmail(input, cfg.from)
-
   try {
-    await transporter.sendMail(email)
+    await transporter.sendMail({ from: from || cfg.from, to, subject, text, html })
     return { sent: true }
   } catch (error) {
-    console.error('Failed to send welcome email via SMTP:', error)
+    console.error('Failed to send email via SMTP:', error)
     return { sent: false, reason: 'SMTP_SEND_FAILED' }
   }
 }
 
-// ─── Event Update Emails ──────────────────────────────────────────────
+/** Send a branded email using Resend (primary) with SMTP fallback. */
+async function sendBrandedEmail(
+  template: EmailTemplate,
+  to: string,
+  vars: Record<string, string | undefined>
+): Promise<SendEmailResult> {
+  const from = getResendConfig()?.from || getSmtpConfig()?.from || 'no-reply@lionheartapp.com'
+  const { html, subject, text } = renderEmail(template, vars)
 
-type EventUpdateEmailInput = {
-  eventTitle: string
-  eventStart: string
-  eventEnd: string
-  attendeeEmails: string[]
-  updatedByName: string
-}
+  const resendResult = await sendViaResend(to, subject, html, text, from)
+  if (resendResult.sent) return resendResult
 
-export async function sendEventUpdateEmails(input: EventUpdateEmailInput): Promise<void> {
-  const cfg = getResendConfig()
-  if (!cfg || input.attendeeEmails.length === 0) return
-
-  const startDate = new Date(input.eventStart)
-  const endDate = new Date(input.eventEnd)
-  const dateStr = startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-  const startStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-  const endStr = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-
-  const subject = `Event updated: ${input.eventTitle}`
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #111827;">
-      <h2 style="margin-bottom: 12px;">Event Rescheduled</h2>
-      <p style="line-height: 1.5; margin: 0 0 12px;">
-        <strong>${input.eventTitle}</strong> has been rescheduled by ${input.updatedByName}.
-      </p>
-      <p style="line-height: 1.5; margin: 0 0 12px;">
-        <strong>New time:</strong> ${dateStr}, ${startStr} – ${endStr}
-      </p>
-      <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin-top: 20px;">
-        You're receiving this because you're an attendee of this event.
-      </p>
-    </div>
-  `
-  const text = `Event "${input.eventTitle}" has been rescheduled by ${input.updatedByName}.\nNew time: ${dateStr}, ${startStr} – ${endStr}`
-
-  for (const email of input.attendeeEmails) {
-    try {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${cfg.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: cfg.from,
-          to: [email],
-          subject,
-          text,
-          html,
-        }),
-      })
-    } catch (err) {
-      console.error(`Failed to send event update email to ${email}:`, err)
-    }
-  }
-}
-
-export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendEmailResult> {
-  const resendResult = await sendViaResend(input)
-  if (resendResult.sent) {
-    return resendResult
-  }
-
-  const smtpResult = await sendViaSmtp(input)
-  if (smtpResult.sent) {
-    return smtpResult
-  }
+  const smtpResult = await sendViaSmtp(to, subject, html, text, from)
+  if (smtpResult.sent) return smtpResult
 
   if (resendResult.reason === 'RESEND_SEND_FAILED') return resendResult
   if (smtpResult.reason === 'SMTP_SEND_FAILED') return smtpResult
@@ -240,4 +167,107 @@ export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendEm
   }
 
   return { sent: false, reason: smtpResult.reason || resendResult.reason || 'EMAIL_SEND_FAILED' }
+}
+
+// ─── Welcome / Password Setup ─────────────────────────────────────────
+
+export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendEmailResult> {
+  const expiresAt = new Date(input.expiresAtIso)
+  const template: EmailTemplate = input.mode === 'ADMIN_CREATE' ? 'welcome' : 'password_setup'
+
+  return sendBrandedEmail(template, input.to, {
+    firstName: input.firstName,
+    orgName: input.organizationName,
+    setupLink: input.setupLink,
+    expiresAt: expiresAt.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }),
+    appUrl: getAppUrl(),
+  })
+}
+
+// ─── Event Update (Reschedule) ────────────────────────────────────────
+
+export async function sendEventUpdateEmails(input: EventUpdateEmailInput): Promise<void> {
+  if (input.attendeeEmails.length === 0) return
+
+  const startDate = new Date(input.eventStart)
+  const endDate = new Date(input.eventEnd)
+  const dateStr = startDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const startStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  const endStr = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+
+  const vars = {
+    eventTitle: input.eventTitle,
+    eventDate: dateStr,
+    eventTime: `${startStr} – ${endStr}`,
+    updatedByName: input.updatedByName,
+    orgName: input.orgName,
+    appUrl: input.appUrl || getAppUrl(),
+    eventLink: input.eventLink || getAppUrl(),
+  }
+
+  for (const email of input.attendeeEmails) {
+    sendBrandedEmail('event_updated', email, vars).catch((err) => {
+      console.error(`Failed to send event update email to ${email}:`, err)
+    })
+  }
+}
+
+// ─── Event Approved ───────────────────────────────────────────────────
+
+export async function sendEventApprovedEmail(input: EventApprovedEmailInput): Promise<SendEmailResult> {
+  return sendBrandedEmail('event_approved', input.to, {
+    eventTitle: input.eventTitle,
+    channelName: input.channelName,
+    orgName: input.orgName,
+    appUrl: input.appUrl || getAppUrl(),
+    eventLink: input.eventLink || getAppUrl(),
+  })
+}
+
+// ─── Event Rejected ───────────────────────────────────────────────────
+
+export async function sendEventRejectedEmail(input: EventRejectedEmailInput): Promise<SendEmailResult> {
+  return sendBrandedEmail('event_rejected', input.to, {
+    eventTitle: input.eventTitle,
+    reason: input.reason,
+    orgName: input.orgName,
+    appUrl: input.appUrl || getAppUrl(),
+    eventLink: input.eventLink || getAppUrl(),
+  })
+}
+
+// ─── Event Cancelled ──────────────────────────────────────────────────
+
+export async function sendEventCancelledEmail(input: EventNotifyEmailInput): Promise<SendEmailResult> {
+  return sendBrandedEmail('event_cancelled', input.to, {
+    eventTitle: input.eventTitle,
+    orgName: input.orgName,
+    appUrl: input.appUrl || getAppUrl(),
+    eventLink: input.eventLink || getAppUrl(),
+  })
+}
+
+// ─── Event Invite ─────────────────────────────────────────────────────
+
+export async function sendEventInviteEmail(input: EventInviteEmailInput): Promise<SendEmailResult> {
+  return sendBrandedEmail('event_invite', input.to, {
+    eventTitle: input.eventTitle,
+    eventDate: input.eventDate,
+    eventTime: input.eventTime,
+    orgName: input.orgName,
+    appUrl: input.appUrl || getAppUrl(),
+    eventLink: input.eventLink || getAppUrl(),
+  })
 }

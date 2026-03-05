@@ -4,16 +4,18 @@ import type { CalendarEventData } from '@/lib/hooks/useCalendar'
  * Google Calendar-style overlap layout algorithm.
  *
  * 1. Sort events by start time, then by duration (longest first).
- * 2. Group overlapping events into collision clusters.
+ * 2. Group overlapping events into collision clusters (transitive).
  * 3. Assign each event a column index using greedy first-fit.
- * 4. Calculate left% and width% so events sit side-by-side.
+ * 4. For each event, compute totalColumns as the max columns actually
+ *    concurrent during that event's timespan (not the whole group).
+ * 5. Calculate left% and width% so events sit side-by-side.
  */
 
 export interface EventLayout {
   event: CalendarEventData
   /** Column index within the collision group (0-based) */
   column: number
-  /** Total columns in this collision group */
+  /** Total columns concurrent with this event */
   totalColumns: number
 }
 
@@ -68,9 +70,12 @@ export function layoutEvents(events: CalendarEventData[]): Map<string, EventLayo
   for (const group of groups) {
     // columnEnds[i] = end time of the last event placed in column i
     const columnEnds: number[] = []
+    // Track column assignment and times for each event
+    const assignments: { event: CalendarEventData; col: number; start: number; end: number }[] = []
 
     for (const event of group) {
       const start = new Date(event.startTime).getTime()
+      const end = new Date(event.endTime).getTime()
 
       // Find the first column where this event fits (no overlap)
       let col = -1
@@ -87,20 +92,30 @@ export function layoutEvents(events: CalendarEventData[]): Map<string, EventLayo
         columnEnds.push(0)
       }
 
-      columnEnds[col] = new Date(event.endTime).getTime()
-
-      result.set(event.id, {
-        event,
-        column: col,
-        totalColumns: 0, // will be set after all events are placed
-      })
+      columnEnds[col] = end
+      assignments.push({ event, col, start, end })
     }
 
-    // Set totalColumns for all events in this group
-    const totalColumns = columnEnds.length
-    for (const event of group) {
-      const layout = result.get(event.id)!
-      layout.totalColumns = totalColumns
+    // For each event, compute totalColumns as the max number of events
+    // that are actually concurrent during this event's time window.
+    // This prevents distant events in a transitive chain from forcing
+    // nearby events to be narrow.
+    for (const a of assignments) {
+      let maxConcurrent = 1
+      // Count how many other events in this group overlap with event a
+      const concurrent = assignments.filter(
+        (b) => b.start < a.end && b.end > a.start
+      )
+      // The max column index used by concurrent events + 1
+      maxConcurrent = Math.max(
+        ...concurrent.map((c) => c.col + 1)
+      )
+
+      result.set(a.event.id, {
+        event: a.event,
+        column: a.col,
+        totalColumns: maxConcurrent,
+      })
     }
   }
 

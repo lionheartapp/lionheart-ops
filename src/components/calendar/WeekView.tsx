@@ -416,13 +416,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                     ) : (
                       /* Normal mode — overlap layout */
                       (() => {
-                        // Separate calendar events from athletics events so they don't
-                        // interfere with each other's overlap/column calculations
-                        const calEvents = dayEvents.filter((e) => !(e.metadata as any)?.athleticsType)
-                        const athEvents = dayEvents.filter((e) => !!(e.metadata as any)?.athleticsType)
-                        const calOverlap = layoutEvents(calEvents)
-                        const athOverlap = layoutEvents(athEvents)
-                        const overlapMap = new Map([...calOverlap, ...athOverlap])
+                        const overlapMap = layoutEvents(dayEvents)
                         return dayEvents.map((event) => {
                           const evStart = new Date(event.startTime)
                           const evEnd = new Date(event.endTime)

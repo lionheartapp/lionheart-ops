@@ -6,6 +6,8 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
 import * as notificationService from '@/lib/services/notificationService'
+import { sendEventRejectedEmail } from '@/lib/services/emailService'
+import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
 const rejectSchema = z.object({
@@ -38,6 +40,21 @@ export async function POST(
           body: data.reason,
           linkUrl: `/calendar?eventId=${id}`,
         })
+
+        // Email notification (fire-and-forget)
+        const [creator, org] = await Promise.all([
+          prisma.user.findUnique({ where: { id: event.createdById }, select: { email: true } }),
+          prisma.organization.findFirst({ select: { name: true } }),
+        ])
+        if (creator?.email) {
+          sendEventRejectedEmail({
+            to: creator.email,
+            eventTitle: event.title,
+            reason: data.reason,
+            orgName: org?.name || 'your school',
+            eventLink: `/calendar?eventId=${id}`,
+          }).catch(() => {})
+        }
       }
 
       return NextResponse.json(ok(approval))
