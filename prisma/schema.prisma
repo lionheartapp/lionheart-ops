@@ -148,6 +148,7 @@ model User {
   @@index([roleId])
   @@index([status])
   @@index([organizationId, deletedAt])
+  @@index([organizationId, status, lastName, firstName])  // users list ordering
 }
 
 model PasswordSetupToken {
@@ -230,6 +231,7 @@ model Building {
   @@index([organizationId, deletedAt])
   @@index([campusId])
   @@index([schoolId])
+  @@index([organizationId, campusId, isActive, deletedAt, sortOrder])  // campus page query
 }
 
 model Area {
@@ -259,6 +261,7 @@ model Area {
   @@index([campusId])
   @@index([buildingId])
   @@index([organizationId, deletedAt])
+  @@index([organizationId, campusId, isActive, deletedAt, sortOrder])  // campus page query
 }
 
 model Room {
@@ -285,6 +288,7 @@ model Room {
   @@index([buildingId])
   @@index([areaId])
   @@index([organizationId, deletedAt])
+  @@index([organizationId, isActive, deletedAt, buildingId, sortOrder])  // campus page query
 }
 
 model UserRoomAssignment {
