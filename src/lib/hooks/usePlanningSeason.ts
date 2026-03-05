@@ -113,6 +113,24 @@ export function useTransitionPhase() {
   })
 }
 
+export function useUpdateSeason() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
+      apiFetch(`/api/planning-seasons/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['planning-seasons'] }),
+  })
+}
+
+export function useDeleteSeason() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`/api/planning-seasons/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['planning-seasons'] }),
+  })
+}
+
 // ── Submission Hooks ───────────────────────────────────────────────────
 
 export function useSubmissions(seasonId: string | null, filters?: { status?: string; submittedById?: string }) {

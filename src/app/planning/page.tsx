@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
-import { CalendarDays, Plus } from 'lucide-react'
+import { CalendarDays, Plus, ChevronDown } from 'lucide-react'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import PlanningSubmissionForm from '@/components/planning/PlanningSubmissionForm'
@@ -31,7 +31,14 @@ export default function PlanningPage() {
   const isAdmin = userRole ? (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('super')) : false
 
   const { data: seasons = [], isLoading: seasonsLoading } = useSeasons()
-  const activeSeason = seasons.find((s) => s.phase !== 'CLOSED') || seasons[0] || null
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null)
+
+  // Auto-select: prefer first non-CLOSED season, else first season
+  const defaultSeasonId = seasons.find((s) => s.phase !== 'CLOSED')?.id || seasons[0]?.id || null
+  const effectiveSeasonId = selectedSeasonId && seasons.some((s) => s.id === selectedSeasonId)
+    ? selectedSeasonId
+    : defaultSeasonId
+  const activeSeason = seasons.find((s) => s.id === effectiveSeasonId) || null
 
   const { data: mySubmissions = [] } = useSubmissions(activeSeason?.id || null)
   const createSubmission = useCreateSubmission()
@@ -119,7 +126,24 @@ export default function PlanningPage() {
               {activeSeason ? `${activeSeason.name} — ${activeSeason.phase.replace('_', ' ')}` : 'No active planning season'}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {/* Season Selector (when multiple seasons exist) */}
+            {seasons.length > 1 && (
+              <div className="relative">
+                <select
+                  value={effectiveSeasonId || ''}
+                  onChange={(e) => setSelectedSeasonId(e.target.value)}
+                  className="appearance-none pl-3 pr-8 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  {seasons.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} {s.phase === 'CLOSED' ? '(Closed)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            )}
             {isAdmin && !activeSeason && (
               <button
                 onClick={() => setShowCreateSeason(true)}

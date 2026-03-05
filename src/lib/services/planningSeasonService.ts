@@ -6,12 +6,12 @@ const db = prisma as any
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   SETUP: ['COLLECTING'],
-  COLLECTING: ['REVIEWING'],
-  REVIEWING: ['WAR_ROOM'],
-  WAR_ROOM: ['FINALIZING'],
-  FINALIZING: ['APPROVING'],
-  APPROVING: ['CLOSED'],
-  CLOSED: [],
+  COLLECTING: ['REVIEWING', 'SETUP'],
+  REVIEWING: ['WAR_ROOM', 'COLLECTING'],
+  WAR_ROOM: ['FINALIZING', 'REVIEWING'],
+  FINALIZING: ['APPROVING', 'WAR_ROOM'],
+  APPROVING: ['CLOSED', 'FINALIZING'],
+  CLOSED: ['APPROVING'],              // reopen
 }
 
 export function canTransition(from: string, to: string): boolean {
