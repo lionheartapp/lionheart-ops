@@ -10,11 +10,8 @@ import { queryOptions } from '@/lib/queries'
  * Call this once in a component that mounts after the user is authenticated
  * (e.g. inside the Providers wrapper or DashboardLayout).
  *
- * It fires prefetch requests for the most common data:
- *  - Tickets (dashboard)
- *  - Calendars (calendar page)
- *  - Permissions (settings access check)
- *  - School info / org logo (settings + header)
+ * It fires prefetch requests for data used across all major pages so that
+ * navigating between Dashboard, Calendar, Athletics, and Settings is instant.
  *
  * prefetchQuery will NOT refetch if data already exists and is within staleTime,
  * so calling this multiple times is safe and essentially free.
@@ -30,10 +27,23 @@ export function usePrefetchOnAuth(token: string | null) {
 
     // Fire all prefetches in parallel — don't await, let them run in background
     const prefetches = [
+      // Dashboard
       queryClient.prefetchQuery(queryOptions.tickets()),
+      // Calendar
       queryClient.prefetchQuery(queryOptions.calendars()),
+      // Auth / permissions
       queryClient.prefetchQuery(queryOptions.permissions()),
       queryClient.prefetchQuery(queryOptions.schoolInfo()),
+      // Settings tabs
+      queryClient.prefetchQuery(queryOptions.members()),
+      queryClient.prefetchQuery(queryOptions.roles()),
+      queryClient.prefetchQuery(queryOptions.teams()),
+      queryClient.prefetchQuery(queryOptions.settingsPermissions()),
+      queryClient.prefetchQuery(queryOptions.campuses()),
+      queryClient.prefetchQuery(queryOptions.modules()),
+      // Athletics
+      queryClient.prefetchQuery(queryOptions.athleticsDashboard()),
+      queryClient.prefetchQuery(queryOptions.athleticsSports()),
     ]
 
     // Swallow errors — prefetch failures are non-critical
