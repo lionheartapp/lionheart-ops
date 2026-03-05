@@ -49,6 +49,9 @@ export const queryKeys = {
   members: {
     all: ['members'] as const,
   },
+  settingsPermissions: {
+    all: ['settings-permissions'] as const,
+  },
   campuses: {
     all: ['campuses'] as const,
   },
@@ -126,8 +129,14 @@ export const queryOptions = {
 
   members: () => ({
     queryKey: queryKeys.members.all,
-    queryFn: () => fetchApi<unknown[]>('/api/settings/members'),
+    queryFn: () => fetchApi<unknown[]>('/api/settings/users'),
     staleTime: 5 * 60 * 1000,
+  }),
+
+  settingsPermissions: () => ({
+    queryKey: queryKeys.settingsPermissions.all,
+    queryFn: () => fetchApi<unknown[]>('/api/settings/permissions'),
+    staleTime: 10 * 60 * 1000,
   }),
 
   campuses: () => ({

@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield, ChevronDown, X, Search } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -238,9 +240,23 @@ function TeamMultiSelect({
 }
 
 const MembersTab = (_props: MembersTabProps) => {
-  const [users, setUsers] = useState<ApiUser[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const queryClient = useQueryClient()
+
+  // ─── Cached queries ─────────────────────────────────────────────────────
+  const { data: usersData, isLoading: loading, error: usersError } = useQuery(queryOptions.members())
+  const users = (usersData ?? []) as ApiUser[]
+  const error = usersError?.message ?? ''
+
+  const { data: rolesData, isLoading: rolesLoading } = useQuery(queryOptions.roles())
+  const availableRoles = (rolesData ?? []) as RoleOption[]
+
+  const { data: teamsData } = useQuery(queryOptions.teams())
+  const availableTeams = (teamsData ?? []) as TeamOption[]
+
+  const invalidateMembers = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.members.all })
+  }, [queryClient])
+
   const [statusTab, setStatusTab] = useState('all')
   const [search, setSearch] = useState('')
 
@@ -256,9 +272,6 @@ const MembersTab = (_props: MembersTabProps) => {
   })
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState('')
-  const [availableRoles, setAvailableRoles] = useState<RoleOption[]>([])
-  const [availableTeams, setAvailableTeams] = useState<TeamOption[]>([])
-  const [rolesLoading, setRolesLoading] = useState(false)
 
   // ─── Invite member state ──────────────────────────────────────────────────
   const [showInvite, setShowInvite] = useState(false)
@@ -287,69 +300,18 @@ const MembersTab = (_props: MembersTabProps) => {
     'X-Organization-ID': typeof window !== 'undefined' ? (localStorage.getItem('org-id') || '') : '',
   }), [token])
 
-  const fetchUsers = useCallback(async () => {
-    if (!token) {
-      setError('No auth token found. Please log in again.')
-      setLoading(false)
-      return
-    }
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/settings/users', {
-        headers: getAuthHeaders(),
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (!res.ok || !data.ok) {
-        throw new Error(data?.error?.message || 'Failed to load members')
-      }
-      setUsers(data.data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load members')
-    } finally {
-      setLoading(false)
-    }
-  }, [token])
-
   useEffect(() => {
-    fetchUsers()
-  }, [fetchUsers])
-
-  useEffect(() => {
-    const handleAvatarUpdated = () => { fetchUsers() }
+    const handleAvatarUpdated = () => { invalidateMembers() }
     window.addEventListener('avatar-updated', handleAvatarUpdated)
     return () => window.removeEventListener('avatar-updated', handleAvatarUpdated)
-  }, [fetchUsers])
-
-  // ─── Roles for edit dropdown ──────────────────────────────────────────────
-  const loadRolesAndTeams = useCallback(async () => {
-    setRolesLoading(true)
-    try {
-      const [rolesRes, teamsRes] = await Promise.all([
-        fetch('/api/settings/roles', { headers: getAuthHeaders() }),
-        fetch('/api/settings/teams', { headers: getAuthHeaders() }),
-      ])
-      if (handleAuthResponse(rolesRes)) return
-      if (handleAuthResponse(teamsRes)) return
-      const rolesData = await rolesRes.json()
-      const teamsData = await teamsRes.json()
-      if (rolesRes.ok && rolesData.ok) setAvailableRoles(rolesData.data || [])
-      if (teamsRes.ok && teamsData.ok) setAvailableTeams(teamsData.data || [])
-    } catch (e) {
-      console.error('Failed to load roles/teams:', e)
-    } finally {
-      setRolesLoading(false)
-    }
-  }, [getAuthHeaders])
+  }, [invalidateMembers])
 
   // ─── Invite member ─────────────────────────────────────────────────────────
-  const openInvite = useCallback(async () => {
+  const openInvite = useCallback(() => {
     setShowInvite(true)
     setInviteForm({ email: '', firstName: '', lastName: '', roleId: '' })
     setInviteError('')
-    if (availableRoles.length === 0) await loadRolesAndTeams()
-  }, [availableRoles.length, loadRolesAndTeams])
+  }, [])
 
   const handleInvite = useCallback(async (e: FormEvent) => {
     e.preventDefault()
@@ -373,16 +335,16 @@ const MembersTab = (_props: MembersTabProps) => {
         throw new Error(data?.error?.message || 'Failed to invite user')
       }
       setShowInvite(false)
-      fetchUsers()
+      invalidateMembers()
     } catch (err) {
       setInviteError(err instanceof Error ? err.message : 'Failed to invite user')
     } finally {
       setInviteSaving(false)
     }
-  }, [inviteForm, getAuthHeaders, fetchUsers])
+  }, [inviteForm, getAuthHeaders, invalidateMembers])
 
   // ─── Edit member ──────────────────────────────────────────────────────────
-  const openEditUser = useCallback(async (u: ApiUser) => {
+  const openEditUser = useCallback((u: ApiUser) => {
     setEditUser(u)
     setEditForm({
       firstName: u.firstName || '',
@@ -393,8 +355,7 @@ const MembersTab = (_props: MembersTabProps) => {
       teamIds: u.teams.map((t) => t.team.id),
     })
     setEditError('')
-    await loadRolesAndTeams()
-  }, [loadRolesAndTeams])
+  }, [])
 
   const closeEditUser = () => {
     if (editSaving) return
@@ -424,7 +385,7 @@ const MembersTab = (_props: MembersTabProps) => {
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to update member')
       setEditUser(null)
-      await fetchUsers()
+      invalidateMembers()
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Failed to update member')
     } finally {
@@ -444,11 +405,11 @@ const MembersTab = (_props: MembersTabProps) => {
       if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to update status')
-      await fetchUsers()
+      invalidateMembers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update status')
+      console.error('Failed to update status:', err)
     }
-  }, [fetchUsers, getAuthHeaders])
+  }, [invalidateMembers, getAuthHeaders])
 
   // ─── Remove member ────────────────────────────────────────────────────────
   const confirmRemoveUser = async () => {
@@ -463,9 +424,9 @@ const MembersTab = (_props: MembersTabProps) => {
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to remove member')
       setUserToRemove(null)
-      await fetchUsers()
+      invalidateMembers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove member')
+      console.error('Failed to remove member:', err)
       setUserToRemove(null)
     } finally {
       setRemovingUserId(null)
@@ -589,7 +550,7 @@ const MembersTab = (_props: MembersTabProps) => {
         <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
           <p className="text-sm text-red-700">{error}</p>
           <button
-            onClick={fetchUsers}
+            onClick={invalidateMembers}
             className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-800 font-medium"
           >
             <RefreshCw className="w-4 h-4" /> Retry

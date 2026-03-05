@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -31,8 +33,16 @@ type TeamsTabProps = {
 }
 
 export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+
+  // ─── Cached query ───────────────────────────────────────────────────────
+  const { data: teamsData, isLoading: loading } = useQuery(queryOptions.teams())
+  const teams = (teamsData ?? []) as Team[]
+
+  const invalidateTeams = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.teams.all })
+  }
+
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [teamName, setTeamName] = useState('')
   const [teamDescription, setTeamDescription] = useState('')
@@ -78,10 +88,6 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
   }
 
   useEffect(() => {
-    loadTeams()
-  }, [])
-
-  useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (!hasUnsavedChanges) return
       event.preventDefault()
@@ -93,24 +99,6 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       window.removeEventListener('beforeunload', handleBeforeUnload)
     }
   }, [hasUnsavedChanges])
-
-  const loadTeams = async () => {
-    try {
-      const response = await fetch('/api/settings/teams', {
-        headers: getAuthHeaders(),
-      })
-      if (handleAuthResponse(response)) return
-
-      if (response.ok) {
-        const data = await response.json()
-        setTeams(data.data || [])
-      }
-    } catch (error) {
-      console.error('Failed to load teams:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleCreateTeam = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -149,7 +137,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       setTeamDescription('')
       setTeamType(null)
       setShowCreateModal(false)
-      await loadTeams()
+      invalidateTeams()
     } catch (error) {
       console.error('Failed to create team:', error)
       setActionError('Failed to create team')
@@ -236,7 +224,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       setEditTeam(null)
       setEditTeamName('')
       setEditTeamDescription('')
-      await loadTeams()
+      invalidateTeams()
     } catch (error) {
       console.error('Failed to update team:', error)
       setEditError('Failed to update team')
@@ -334,7 +322,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         return
       }
 
-      setTeams((previous) => previous.filter((item) => item.id !== teamToDelete.id))
+      invalidateTeams()
       setTeamToDelete(null)
     } catch (error) {
       console.error('Failed to delete team:', error)

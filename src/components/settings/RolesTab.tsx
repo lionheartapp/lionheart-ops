@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Shield, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -44,14 +46,23 @@ type RolesTabProps = {
 }
 
 export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
-  const [roles, setRoles] = useState<Role[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+
+  // ─── Cached queries ─────────────────────────────────────────────────────
+  const { data: rolesData, isLoading: loading } = useQuery(queryOptions.roles())
+  const roles = (rolesData ?? []) as Role[]
+
+  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsQueryError } = useQuery(queryOptions.settingsPermissions())
+  const permissions = (permissionsData ?? []) as PermissionOption[]
+  const permissionsError = permissionsQueryError?.message ?? null
+
+  const invalidateRoles = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.roles.all })
+  }
+
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [roleName, setRoleName] = useState('')
-  const [permissions, setPermissions] = useState<PermissionOption[]>([])
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<string[]>([])
-  const [permissionsLoading, setPermissionsLoading] = useState(false)
-  const [permissionsError, setPermissionsError] = useState<string | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
   const [editRole, setEditRole] = useState<Role | null>(null)
   const [editRoleName, setEditRoleName] = useState('')
@@ -91,11 +102,6 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
   }
 
   useEffect(() => {
-    loadRoles()
-    loadPermissions()
-  }, [])
-
-  useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (!hasUnsavedChanges) return
       event.preventDefault()
@@ -107,49 +113,6 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       window.removeEventListener('beforeunload', handleBeforeUnload)
     }
   }, [hasUnsavedChanges])
-
-  const loadRoles = async () => {
-    try {
-      const response = await fetch('/api/settings/roles', {
-        headers: getAuthHeaders(),
-      })
-      if (handleAuthResponse(response)) return
-
-      if (response.ok) {
-        const data = await response.json()
-        setRoles(data.data || [])
-      }
-    } catch (error) {
-      console.error('Failed to load roles:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadPermissions = async () => {
-    setPermissionsLoading(true)
-    setPermissionsError(null)
-
-    try {
-      const response = await fetch('/api/settings/permissions', {
-        headers: getAuthHeaders(),
-      })
-      if (handleAuthResponse(response)) return
-
-      if (!response.ok) {
-        setPermissionsError('Failed to load permissions')
-        return
-      }
-
-      const data = await response.json()
-      setPermissions(data.data || [])
-    } catch (error) {
-      console.error('Failed to load permissions:', error)
-      setPermissionsError('Failed to load permissions')
-    } finally {
-      setPermissionsLoading(false)
-    }
-  }
 
   const openCreateDrawer = () => {
     setActionError(null)
@@ -258,7 +221,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       setRoleName('')
       setSelectedPermissionIds([])
       setShowCreateModal(false)
-      await loadRoles()
+      invalidateRoles()
     } catch (error) {
       console.error('Failed to create role:', error)
       setActionError('Failed to create role')
@@ -304,7 +267,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       setEditRoleName('')
       setEditPermissionIds([])
       setEditInitialPermissionIds([])
-      await loadRoles()
+      invalidateRoles()
     } catch (error) {
       console.error('Failed to update role:', error)
       setEditError('Failed to update role')
@@ -402,7 +365,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         return
       }
 
-      setRoles((previous) => previous.filter((item) => item.id !== roleToDelete.id))
+      invalidateRoles()
       setRoleToDelete(null)
     } catch (error) {
       console.error('Failed to delete role:', error)
