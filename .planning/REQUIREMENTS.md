@@ -238,17 +238,156 @@
 
 ## Traceability
 
-Updated during roadmap creation.
+Updated during roadmap creation — 2026-03-05.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| SCHEMA-01 | Phase 1 | Pending |
+| SCHEMA-02 | Phase 1 | Pending |
+| SCHEMA-03 | Phase 1 | Pending |
+| SCHEMA-04 | Phase 1 | Pending |
+| SCHEMA-05 | Phase 1 | Pending |
+| SCHEMA-06 | Phase 1 | Pending |
+| SCHEMA-07 | Phase 1 | Pending |
+| NAV-01 | Phase 1 | Pending |
+| NAV-02 | Phase 1 | Pending |
+| NAV-03 | Phase 1 | Pending |
+| NAV-04 | Phase 1 | Pending |
+| SUBMIT-01 | Phase 2 | Pending |
+| SUBMIT-02 | Phase 2 | Pending |
+| SUBMIT-03 | Phase 2 | Pending |
+| SUBMIT-04 | Phase 2 | Pending |
+| SUBMIT-05 | Phase 2 | Pending |
+| SUBMIT-06 | Phase 2 | Pending |
+| SUBMIT-07 | Phase 2 | Pending |
+| SUBMIT-08 | Phase 2 | Pending |
+| SUBMIT-09 | Phase 2 | Pending |
+| SUBMIT-10 | Phase 2 | Pending |
+| SUBMIT-11 | Phase 2 | Pending |
+| LIFE-01 | Phase 2 | Pending |
+| LIFE-02 | Phase 2 | Pending |
+| LIFE-03 | Phase 2 | Pending |
+| LIFE-04 | Phase 2 | Pending |
+| LIFE-05 | Phase 2 | Pending |
+| LIFE-06 | Phase 2 | Pending |
+| LIFE-07 | Phase 2 | Pending |
+| LIFE-08 | Phase 2 | Pending |
+| DETAIL-01 | Phase 2 | Pending |
+| DETAIL-02 | Phase 2 | Pending |
+| DETAIL-03 | Phase 2 | Pending |
+| DETAIL-04 | Phase 2 | Pending |
+| DETAIL-05 | Phase 2 | Pending |
+| ROUTE-01 | Phase 2 | Pending |
+| ROUTE-02 | Phase 2 | Pending |
+| ROUTE-03 | Phase 2 | Pending |
+| ROUTE-04 | Phase 2 | Pending |
+| ROUTE-05 | Phase 2 | Pending |
+| NOTIF-01 | Phase 2 | Pending |
+| NOTIF-02 | Phase 2 | Pending |
+| NOTIF-03 | Phase 2 | Pending |
+| NOTIF-04 | Phase 2 | Pending |
+| NOTIF-05 | Phase 2 | Pending |
+| NOTIF-06 | Phase 2 | Pending |
+| NOTIF-07 | Phase 2 | Pending |
+| NOTIF-08 | Phase 2 | Pending |
+| NOTIF-09 | Phase 2 | Pending |
+| NOTIF-10 | Phase 2 | Pending |
+| NOTIF-11 | Phase 2 | Pending |
+| BOARD-01 | Phase 3 | Pending |
+| BOARD-02 | Phase 3 | Pending |
+| BOARD-03 | Phase 3 | Pending |
+| BOARD-04 | Phase 3 | Pending |
+| BOARD-05 | Phase 3 | Pending |
+| BOARD-06 | Phase 3 | Pending |
+| BOARD-07 | Phase 3 | Pending |
+| BOARD-08 | Phase 3 | Pending |
+| AI-01 | Phase 3 | Pending |
+| AI-02 | Phase 3 | Pending |
+| AI-03 | Phase 3 | Pending |
+| AI-04 | Phase 3 | Pending |
+| AI-05 | Phase 3 | Pending |
+| AI-06 | Phase 3 | Pending |
+| AI-07 | Phase 3 | Pending |
+| AI-08 | Phase 3 | Pending |
+| ASSET-01 | Phase 4 | Pending |
+| ASSET-02 | Phase 4 | Pending |
+| ASSET-03 | Phase 4 | Pending |
+| ASSET-04 | Phase 4 | Pending |
+| ASSET-05 | Phase 4 | Pending |
+| ASSET-06 | Phase 4 | Pending |
+| QR-01 | Phase 4 | Pending |
+| QR-02 | Phase 4 | Pending |
+| QR-03 | Phase 4 | Pending |
+| QR-04 | Phase 4 | Pending |
+| QR-05 | Phase 4 | Pending |
+| PM-01 | Phase 4 | Pending |
+| PM-02 | Phase 4 | Pending |
+| PM-03 | Phase 4 | Pending |
+| PM-04 | Phase 4 | Pending |
+| PM-05 | Phase 4 | Pending |
+| PM-06 | Phase 4 | Pending |
+| PM-07 | Phase 4 | Pending |
+| PM-08 | Phase 4 | Pending |
+| PM-09 | Phase 4 | Pending |
+| PM-10 | Phase 4 | Pending |
+| LABOR-01 | Phase 4 | Pending |
+| LABOR-02 | Phase 4 | Pending |
+| LABOR-03 | Phase 4 | Pending |
+| LABOR-04 | Phase 4 | Pending |
+| LABOR-05 | Phase 4 | Pending |
+| LABOR-06 | Phase 4 | Pending |
+| LABOR-07 | Phase 4 | Pending |
+| ANALYTICS-01 | Phase 5 | Pending |
+| ANALYTICS-02 | Phase 5 | Pending |
+| ANALYTICS-03 | Phase 5 | Pending |
+| ANALYTICS-04 | Phase 5 | Pending |
+| ANALYTICS-05 | Phase 5 | Pending |
+| ANALYTICS-06 | Phase 5 | Pending |
+| ANALYTICS-07 | Phase 5 | Pending |
+| ANALYTICS-08 | Phase 5 | Pending |
+| REPAIR-01 | Phase 5 | Pending |
+| REPAIR-02 | Phase 5 | Pending |
+| REPAIR-03 | Phase 5 | Pending |
+| REPAIR-04 | Phase 5 | Pending |
+| COMPLY-01 | Phase 6 | Pending |
+| COMPLY-02 | Phase 6 | Pending |
+| COMPLY-03 | Phase 6 | Pending |
+| COMPLY-04 | Phase 6 | Pending |
+| COMPLY-05 | Phase 6 | Pending |
+| COMPLY-06 | Phase 6 | Pending |
+| COMPLY-07 | Phase 6 | Pending |
+| COMPLY-08 | Phase 6 | Pending |
+| REPORT-01 | Phase 6 | Pending |
+| REPORT-02 | Phase 6 | Pending |
+| REPORT-03 | Phase 6 | Pending |
+| REPORT-04 | Phase 6 | Pending |
+| REPORT-05 | Phase 6 | Pending |
+| REPORT-06 | Phase 6 | Pending |
+| REPORT-07 | Phase 6 | Pending |
+| REPORT-08 | Phase 6 | Pending |
+| REPORT-09 | Phase 6 | Pending |
+| REPORT-10 | Phase 6 | Pending |
+| KB-01 | Phase 7 | Pending |
+| KB-02 | Phase 7 | Pending |
+| KB-03 | Phase 7 | Pending |
+| KB-04 | Phase 7 | Pending |
+| KB-05 | Phase 7 | Pending |
+| KB-06 | Phase 7 | Pending |
+| OFFLINE-01 | Phase 7 | Pending |
+| OFFLINE-02 | Phase 7 | Pending |
+| OFFLINE-03 | Phase 7 | Pending |
+| OFFLINE-04 | Phase 7 | Pending |
+| OFFLINE-05 | Phase 7 | Pending |
+| OFFLINE-06 | Phase 7 | Pending |
+| OFFLINE-07 | Phase 7 | Pending |
+| OFFLINE-08 | Phase 7 | Pending |
+| OFFLINE-09 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 101 total
-- Mapped to phases: 0
-- Unmapped: 101
+- Mapped to phases: 101
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-05*
-*Last updated: 2026-03-05 after initial definition*
+*Last updated: 2026-03-05 — traceability populated by roadmapper*
