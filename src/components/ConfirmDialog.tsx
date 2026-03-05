@@ -135,32 +135,30 @@ export default function ConfirmDialog({
             {requiresConfirmation && (
               <div className="mt-6">
                 <p className="text-sm text-gray-500">
-                  To confirm this, type "{requireText}"
+                  To confirm this, type &ldquo;{requireText}&rdquo;
                 </p>
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <input
-                    value={confirmInput}
-                    onChange={(event) => setConfirmInput(event.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    placeholder={requireText}
-                  />
-                  <button
-                    type="button"
-                    onClick={onConfirm}
-                    disabled={isLoading || !canConfirm}
-                    className={`w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${styles.button}`}
-                  >
-                    {isLoading ? loadingText : confirmText}
-                  </button>
-                </div>
-                <div className="mt-4">
+                <input
+                  value={confirmInput}
+                  onChange={(event) => setConfirmInput(event.target.value)}
+                  className="mt-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  placeholder={requireText}
+                />
+                <div className="mt-6 flex gap-3">
                   <button
                     type="button"
                     onClick={onClose}
                     disabled={isLoading}
-                    className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="flex-1 ui-btn-md ui-btn-outline rounded-lg"
                   >
                     {cancelText}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onConfirm}
+                    disabled={isLoading || !canConfirm}
+                    className={`flex-1 px-5 py-2.5 text-sm font-semibold text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${styles.button}`}
+                  >
+                    {isLoading ? loadingText : confirmText}
                   </button>
                 </div>
               </div>
