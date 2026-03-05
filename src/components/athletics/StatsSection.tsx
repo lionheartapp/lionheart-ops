@@ -5,6 +5,7 @@ import { BarChart3, Trophy, Plus, Trash2, Settings, ArrowRight, CalendarDays } f
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { GlassSportTile } from '@/components/athletics/SportIcon'
 
 interface Sport {
   id: string
@@ -356,7 +357,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
                         <td className="px-4 py-3 text-sm font-bold text-gray-400">{i + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.sport.color }} />
+                            <GlassSportTile sport={s.sport.name} color={s.sport.color} size="sm" />
                             <span className="text-sm font-medium text-gray-900">{s.teamName}</span>
                             <span className="text-[10px] text-gray-400">{s.sport.name}</span>
                           </div>

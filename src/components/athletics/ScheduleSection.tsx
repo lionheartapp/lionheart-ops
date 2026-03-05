@@ -10,6 +10,7 @@ import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import GameDrawer from '@/components/athletics/GameDrawer'
 import PracticeDrawer from '@/components/athletics/PracticeDrawer'
+import SportIcon, { GlassSportTile } from '@/components/athletics/SportIcon'
 import ScoreDialog from '@/components/athletics/ScoreDialog'
 import PlayerStatsDialog from '@/components/athletics/PlayerStatsDialog'
 
@@ -454,10 +455,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
       {selectedTeamId && selectedTeam && !loadingSchedule && (
         <div className="flex items-center gap-4 mb-5 px-4 py-3 rounded-xl border border-gray-200 bg-white">
           <div className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: selectedTeam.sport.color }}
-            />
+            <GlassSportTile sport={selectedTeam.sport.name} color={selectedTeam.sport.color} size="sm" />
             <span className="text-sm font-semibold text-gray-900">{selectedTeam.name}</span>
             <span className="text-xs text-gray-400">Season Record</span>
           </div>
@@ -663,10 +661,7 @@ function GameRow({
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors">
-      <span
-        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-        style={{ backgroundColor: sportColor }}
-      />
+      <SportIcon sport={game.athleticTeam?.sport?.name || ''} size={16} style={{ color: sportColor }} className="flex-shrink-0" />
       <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-700 bg-primary-50 rounded">
         Game
       </span>

@@ -9,6 +9,7 @@ import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } 
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import TournamentDetail from '@/components/athletics/TournamentDetail'
+import { GlassSportTile } from '@/components/athletics/SportIcon'
 
 interface Sport {
   id: string
@@ -277,8 +278,8 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
                   >
                     <td className="px-4 py-3 font-medium text-gray-900">{t.name}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.sport.color }} />
+                      <div className="flex items-center gap-2">
+                        <GlassSportTile sport={t.sport.name} color={t.sport.color} size="sm" />
                         <span className="text-gray-700">{t.sport.name}</span>
                       </div>
                     </td>

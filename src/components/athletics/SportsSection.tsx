@@ -8,6 +8,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import SeasonsPanel from '@/components/athletics/SeasonsPanel'
+import { GlassSportTile } from '@/components/athletics/SportIcon'
 
 type Sport = {
   id: string
@@ -219,10 +220,7 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <span
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: sport.color }}
-                      />
+                      <GlassSportTile sport={sport.name} color={sport.color} size="sm" />
                       <span className="font-medium text-gray-900">{sport.name}</span>
                     </div>
                   </td>

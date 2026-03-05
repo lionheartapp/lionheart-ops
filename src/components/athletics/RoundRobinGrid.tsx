@@ -1,5 +1,7 @@
 'use client'
 
+import SportIcon from '@/components/athletics/SportIcon'
+
 interface BracketTeam {
   id: string
   name: string
@@ -81,10 +83,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                   className="px-3 py-2 text-center text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 min-w-[100px]"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: t.sport?.color || '#6b7280' }}
-                    />
+                    <SportIcon sport={t.sport?.name || ''} size={12} style={{ color: t.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                     <span className="truncate">{t.name}</span>
                   </div>
                 </th>
@@ -96,10 +95,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
               <tr key={rowTeam.id}>
                 <td className="px-3 py-2.5 font-medium text-gray-900 bg-white border border-gray-200 sticky left-0 z-10 whitespace-nowrap">
                   <div className="flex items-center gap-2">
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: rowTeam.sport?.color || '#6b7280' }}
-                    />
+                    <SportIcon sport={rowTeam.sport?.name || ''} size={14} style={{ color: rowTeam.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                     {rowTeam.name}
                   </div>
                 </td>
@@ -169,10 +165,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                     <td className="px-3 py-2 text-gray-400 font-medium">{idx + 1}</td>
                     <td className="px-3 py-2 font-medium text-gray-900">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: team.sport?.color || '#6b7280' }}
-                        />
+                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                         {team.name}
                       </div>
                     </td>

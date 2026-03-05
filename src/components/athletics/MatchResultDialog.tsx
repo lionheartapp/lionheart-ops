@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Trophy, RotateCcw } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { GlassSportTile } from '@/components/athletics/SportIcon'
 
 interface BracketMatch {
   id: string
@@ -13,8 +14,8 @@ interface BracketMatch {
   team1Id: string | null
   team2Id: string | null
   winnerId: string | null
-  team1: { id: string; name: string; sport: { color: string } } | null
-  team2: { id: string; name: string; sport: { color: string } } | null
+  team1: { id: string; name: string; sport: { color: string; name?: string } } | null
+  team2: { id: string; name: string; sport: { color: string; name?: string } } | null
   winner: { id: string; name: string } | null
 }
 
@@ -134,10 +135,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   } disabled:opacity-50`}
                 >
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: match.team1?.sport?.color || '#6b7280' }}
-                  />
+                  <GlassSportTile sport={match.team1?.sport?.name || ''} color={match.team1?.sport?.color || '#6b7280'} size="sm" />
                   <span className="text-sm font-medium text-gray-900 flex-1">{match.team1?.name || 'TBD'}</span>
                   {match.winnerId === match.team1Id && <Trophy className="w-4 h-4 text-green-600" />}
                 </button>
@@ -153,10 +151,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   } disabled:opacity-50`}
                 >
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: match.team2?.sport?.color || '#6b7280' }}
-                  />
+                  <GlassSportTile sport={match.team2?.sport?.name || ''} color={match.team2?.sport?.color || '#6b7280'} size="sm" />
                   <span className="text-sm font-medium text-gray-900 flex-1">{match.team2?.name || 'TBD'}</span>
                   {match.winnerId === match.team2Id && <Trophy className="w-4 h-4 text-green-600" />}
                 </button>

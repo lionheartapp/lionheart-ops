@@ -8,6 +8,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { GlassSportTile } from '@/components/athletics/SportIcon'
 
 type Sport = {
   id: string
@@ -484,10 +485,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
                   <tr key={team.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <span
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: team.sport.color }}
-                        />
+                        <GlassSportTile sport={team.sport.name} color={team.sport.color} size="sm" />
                         <span className="font-medium text-gray-900">{team.name}</span>
                       </div>
                     </td>

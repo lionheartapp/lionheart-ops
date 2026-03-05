@@ -8,6 +8,7 @@ import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/componen
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
+import SportIcon, { GlassSportTile } from '@/components/athletics/SportIcon'
 
 interface Team {
   id: string
@@ -366,10 +367,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                 onClick={() => setSelectedTeamId(team.id)}
                 className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition-all text-left cursor-pointer"
               >
-                <div
-                  className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
-                  style={{ backgroundColor: team.sport.color }}
-                />
+                <GlassSportTile sport={team.sport.name} color={team.sport.color} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-gray-900 truncate">{team.name}</div>
                   <div className="text-xs text-gray-500 mt-0.5">
@@ -419,7 +417,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: player.athleticTeam?.sport?.color || '#6b7280' }} />
+                          <SportIcon sport={player.athleticTeam?.sport?.name || ''} size={14} style={{ color: player.athleticTeam?.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                           <span className="text-sm text-gray-600">{player.athleticTeam?.name}</span>
                         </div>
                       </td>

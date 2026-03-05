@@ -7,6 +7,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import MatchResultDialog from '@/components/athletics/MatchResultDialog'
 import SingleEliminationBracket from '@/components/athletics/SingleEliminationBracket'
 import RoundRobinGrid from '@/components/athletics/RoundRobinGrid'
+import SportIcon from '@/components/athletics/SportIcon'
 
 interface BracketTeam {
   id: string
@@ -190,7 +191,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                 color: tournament.sport.color,
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tournament.sport.color }} />
+              <SportIcon sport={tournament.sport.name} size={12} style={{ color: tournament.sport.color }} />
               {tournament.sport.name}
             </span>
             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
@@ -280,10 +281,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                         className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: team.sport?.color || '#6b7280' }}
-                        />
+                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                         <span className="text-sm text-gray-900 truncate">{team.name}</span>
                         <span className="text-xs text-gray-400">{team.season?.name}</span>
                       </div>
@@ -339,10 +337,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                         className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: team.sport?.color || '#6b7280' }}
-                        />
+                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                         <span className="text-sm text-gray-900 truncate">{team.name}</span>
                       </div>
                     </label>
