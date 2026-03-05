@@ -415,14 +415,44 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         </div>
       ) : (
         <div className="ui-glass-table">
-          <div className="overflow-x-auto">
+          {/* Mobile card list */}
+          <div className="sm:hidden divide-y divide-gray-100">
+            {filteredRoster.map((player) => (
+              <div key={player.id} className="flex items-center gap-3 px-4 py-3">
+                <div className="w-8 text-center text-sm font-semibold text-gray-900 flex-shrink-0">
+                  {player.jerseyNumber || '—'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900">
+                    {player.firstName} {player.lastName}
+                    {!player.isActive && (
+                      <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-medium">Inactive</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                    <span>{player.position || '—'}</span>
+                    {player.grade && <><span className="text-gray-300">|</span><span>{player.grade}</span></>}
+                  </div>
+                </div>
+                <RowActionMenu
+                  items={[
+                    { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(player) },
+                    { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteTarget({ id: player.id, name: `${player.firstName} ${player.lastName}` }), variant: 'danger' },
+                  ]}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="overflow-x-auto hidden sm:block">
             <table className="min-w-full divide-y divide-gray-100">
               <thead>
                 <tr className="bg-gray-50/50">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">#</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Position</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Grade</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Grade</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Ht/Wt</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Linked User</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-12" />
@@ -445,7 +475,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{player.position || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{player.grade || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{player.grade || '—'}</td>
                     <td className="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">
                       {player.height || player.weight
                         ? `${player.height || '—'} / ${player.weight || '—'}`

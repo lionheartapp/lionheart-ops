@@ -69,8 +69,54 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
 
   return (
     <div className="space-y-6">
-      {/* Grid */}
-      <div className="overflow-x-auto -mx-4 px-4">
+      {/* Mobile: per-team card list */}
+      <div className="sm:hidden space-y-3">
+        {sortedTeams.map((team) => {
+          const s = standings[team.id]
+          return (
+            <div key={team.id} className="ui-glass p-4 rounded-xl">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                  <span className="font-medium text-gray-900 text-sm">{team.name}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-green-700 font-semibold">{s.wins}W</span>
+                  <span className="text-red-600">{s.losses}L</span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                {teams.filter((t) => t.id !== team.id).map((opponent) => {
+                  const match = matchLookup.get(`${team.id}-${opponent.id}`)
+                  if (!match) return null
+                  const isWinner = match.winnerId === team.id
+                  const isLoser = match.winnerId && match.winnerId !== team.id
+                  const hasResult = Boolean(match.winnerId)
+                  return (
+                    <div
+                      key={opponent.id}
+                      className="flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => onMatchClick(match)}
+                    >
+                      <span className="text-sm text-gray-600">vs {opponent.name}</span>
+                      {hasResult ? (
+                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${isWinner ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                          {isWinner ? 'W' : 'L'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: Grid */}
+      <div className="overflow-x-auto -mx-4 px-4 hidden sm:block">
         <table className="min-w-full border-collapse text-sm">
           <thead>
             <tr>

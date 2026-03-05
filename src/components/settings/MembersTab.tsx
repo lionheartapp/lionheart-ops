@@ -531,7 +531,7 @@ const MembersTab = (_props: MembersTabProps) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
+          <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-gray-900">
             <UserCog className="w-6 h-6 text-primary-600" />
             Members
           </h2>
@@ -605,27 +605,59 @@ const MembersTab = (_props: MembersTabProps) => {
               </div>
             ))}
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-gray-400 text-sm">
+            {search ? 'No members match your search.' : 'No members found.'}
+          </div>
         ) : (
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-gray-500 border-b bg-gray-50">
-                <th className="py-3 px-4 text-left font-medium">Name</th>
-                <th className="py-3 px-4 text-left font-medium">Role</th>
-                <th className="py-3 px-4 text-left font-medium">Status</th>
-                <th className="py-3 px-4 text-left font-medium hidden md:table-cell">Teams</th>
-                <th className="py-3 px-4 text-left font-medium hidden lg:table-cell">Date added</th>
-                <th className="py-3 pl-4 pr-4 sm:pr-10 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-16 text-center text-gray-400">
-                    {search ? 'No members match your search.' : 'No members found.'}
-                  </td>
+          <>
+            {/* Mobile card list */}
+            <div className="sm:hidden divide-y divide-gray-100">
+              {filtered.map((u) => (
+                <div key={u.id} className="flex items-center gap-3 px-4 py-3">
+                  {u.avatar ? (
+                    <img src={u.avatar} alt={`${u.firstName} ${u.lastName}`} className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <span className={`inline-flex items-center justify-center h-9 w-9 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
+                      {getInitials(u.firstName, u.lastName, u.email)}
+                    </span>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 text-sm truncate">
+                      {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate">{u.email}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-600 capitalize">{u.userRole?.name ?? '—'}</span>
+                      <StatusBadge status={u.status} />
+                    </div>
+                  </div>
+                  <RowActionMenu
+                    items={[
+                      { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditUser(u) },
+                      { label: 'Manage Permissions', icon: <Shield className="w-4 h-4" />, onClick: () => openManagePermissions(u) },
+                      { label: u.status === 'ACTIVE' ? 'Deactivate' : 'Activate', icon: u.status === 'ACTIVE' ? <UserMinus className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />, onClick: () => handleToggleStatus(u) },
+                      { label: 'Remove', icon: <Trash2 className="w-4 h-4" />, onClick: () => setUserToRemove(u), variant: 'danger' },
+                    ]}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <table className="min-w-full text-sm hidden sm:table">
+              <thead>
+                <tr className="text-gray-500 border-b bg-gray-50">
+                  <th className="py-3 px-4 text-left font-medium">Name</th>
+                  <th className="py-3 px-4 text-left font-medium">Role</th>
+                  <th className="py-3 px-4 text-left font-medium">Status</th>
+                  <th className="py-3 px-4 text-left font-medium hidden md:table-cell">Teams</th>
+                  <th className="py-3 px-4 text-left font-medium hidden lg:table-cell">Date added</th>
+                  <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
                 </tr>
-              ) : (
-                filtered.map((u) => (
+              </thead>
+              <tbody>
+                {filtered.map((u) => (
                   <tr key={u.id} className="border-b last:border-b-0 hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
@@ -660,7 +692,7 @@ const MembersTab = (_props: MembersTabProps) => {
                         : <span className="text-gray-400">—</span>}
                     </td>
                     <td className="py-3 px-4 text-gray-600 hidden lg:table-cell">{formatDate(u.createdAt)}</td>
-                    <td className="py-3 pl-4 pr-4 sm:pr-10">
+                    <td className="py-3 pl-4 pr-10">
                       <div className="flex justify-end">
                         <RowActionMenu
                           items={[
@@ -692,10 +724,10 @@ const MembersTab = (_props: MembersTabProps) => {
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 

@@ -370,7 +370,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
               key={pill.key}
               type="button"
               onClick={() => setFilter(pill.key)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`px-4 py-2.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-md transition-colors ${
                 filter === pill.key
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'

@@ -787,7 +787,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
+          <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-gray-900">
             <Building2 className="w-6 h-6 text-primary-600" />
             Campus
           </h2>

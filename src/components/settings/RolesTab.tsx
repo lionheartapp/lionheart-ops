@@ -381,7 +381,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
+          <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-gray-900">
             <Shield className="w-6 h-6 text-primary-600" />
             Roles & Permissions
           </h2>
@@ -434,57 +434,88 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             </button>
           </div>
         ) : (
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-gray-500 border-b bg-gray-50">
-                <th className="py-3 px-4 text-left font-medium">Role</th>
-                <th className="py-3 px-4 text-left font-medium hidden sm:table-cell">Permissions</th>
-                <th className="py-3 px-4 text-left font-medium">Members</th>
-                <th className="py-3 pl-4 pr-4 sm:pr-10 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile card list */}
+            <div className="sm:hidden divide-y divide-gray-100">
               {roles.map((role) => (
-                <tr key={role.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                  <td className="py-3 px-4">
+                <div key={role.id} className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">{role.name}</span>
+                      <span className="font-medium text-gray-900 text-sm">{role.name}</span>
                       {role.isSystem && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
-                          System
-                        </span>
+                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">System</span>
                       )}
                     </div>
-                    <div className="text-xs text-gray-400 mt-0.5">@{role.slug}</div>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 hidden sm:table-cell">{role._count?.permissions || 0}</td>
-                  <td className="py-3 px-4 text-gray-600">{role._count?.users || 0}</td>
-                  <td className="py-3 pl-4 pr-4 sm:pr-10">
-                    <div className="flex justify-end">
-                      {!role.isSystem && (
-                        <RowActionMenu
-                          items={[
-                            {
-                              label: 'Edit',
-                              icon: <Edit2 className="w-4 h-4" />,
-                              onClick: () => openEditDrawer(role),
-                            },
-                            {
-                              label: 'Delete',
-                              icon: <Trash2 className="w-4 h-4" />,
-                              onClick: () => handleDeleteRole(role),
-                              variant: 'danger',
-                              disabled: deletingRoleId === role.id,
-                            },
-                          ]}
-                        />
-                      )}
+                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                      <span>{role._count?.permissions || 0} permissions</span>
+                      <span>{role._count?.users || 0} members</span>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                  {!role.isSystem && (
+                    <RowActionMenu
+                      items={[
+                        { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditDrawer(role) },
+                        { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => handleDeleteRole(role), variant: 'danger', disabled: deletingRoleId === role.id },
+                      ]}
+                    />
+                  )}
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop table */}
+            <table className="min-w-full text-sm hidden sm:table">
+              <thead>
+                <tr className="text-gray-500 border-b bg-gray-50">
+                  <th className="py-3 px-4 text-left font-medium">Role</th>
+                  <th className="py-3 px-4 text-left font-medium">Permissions</th>
+                  <th className="py-3 px-4 text-left font-medium">Members</th>
+                  <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roles.map((role) => (
+                  <tr key={role.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">{role.name}</span>
+                        {role.isSystem && (
+                          <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                            System
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-0.5">@{role.slug}</div>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">{role._count?.permissions || 0}</td>
+                    <td className="py-3 px-4 text-gray-600">{role._count?.users || 0}</td>
+                    <td className="py-3 pl-4 pr-10">
+                      <div className="flex justify-end">
+                        {!role.isSystem && (
+                          <RowActionMenu
+                            items={[
+                              {
+                                label: 'Edit',
+                                icon: <Edit2 className="w-4 h-4" />,
+                                onClick: () => openEditDrawer(role),
+                              },
+                              {
+                                label: 'Delete',
+                                icon: <Trash2 className="w-4 h-4" />,
+                                onClick: () => handleDeleteRole(role),
+                                variant: 'danger',
+                                disabled: deletingRoleId === role.id,
+                              },
+                            ]}
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 

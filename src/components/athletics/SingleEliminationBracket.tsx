@@ -65,7 +65,40 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
   }
 
   return (
-    <div className="overflow-x-auto -mx-4 px-4">
+    <>
+    {/* Mobile: vertical match list by round */}
+    <div className="sm:hidden space-y-4">
+      {Array.from({ length: maxRound }, (_, i) => i + 1).map((round) => (
+        <div key={round}>
+          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{roundLabel(round)}</h4>
+          <div className="space-y-2">
+            {(roundMap[round] || []).map((match) => {
+              const hasTeams = match.team1Id || match.team2Id
+              return (
+                <div
+                  key={match.id}
+                  className={`ui-glass p-3 rounded-xl ${hasTeams ? 'cursor-pointer active:scale-[0.97]' : ''}`}
+                  onClick={() => hasTeams && onMatchClick(match)}
+                >
+                  <div className={`flex items-center justify-between py-1 ${match.winnerId === match.team1Id ? 'font-semibold text-green-700' : 'text-gray-700'}`}>
+                    <span className="text-sm">{match.team1?.name || 'TBD'}</span>
+                    {match.winnerId === match.team1Id && <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">W</span>}
+                  </div>
+                  <div className="h-px bg-gray-100 my-1" />
+                  <div className={`flex items-center justify-between py-1 ${match.winnerId === match.team2Id ? 'font-semibold text-green-700' : 'text-gray-700'}`}>
+                    <span className="text-sm">{match.team2?.name || 'TBD'}</span>
+                    {match.winnerId === match.team2Id && <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">W</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Desktop: SVG bracket */}
+    <div className="overflow-x-auto -mx-4 px-4 hidden sm:block">
       <svg
         width={svgWidth}
         height={svgHeight + 32}
@@ -243,5 +276,6 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
         </g>
       </svg>
     </div>
+    </>
   )
 }

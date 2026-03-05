@@ -132,6 +132,13 @@ export default function DashboardLayout({
 
         {/* Notifications + User Profile */}
         <div className="flex items-center gap-3 flex-shrink-0">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="sm:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+            aria-label="Search"
+          >
+            <Search className="w-5 h-5" />
+          </button>
           <NotificationBell />
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-white">{userName || 'User'}</p>

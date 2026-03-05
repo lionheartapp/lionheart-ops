@@ -118,10 +118,10 @@ export default function ConfirmDialog({
           </button>
 
           {/* Content */}
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             {/* Title */}
             <div>
-              <h3 id="confirm-dialog-title" className="text-2xl font-semibold text-gray-900">
+              <h3 id="confirm-dialog-title" className="text-xl sm:text-2xl font-semibold text-gray-900">
                 {title}
               </h3>
               <div className="mt-4 h-px w-full bg-gray-200" />
@@ -143,7 +143,7 @@ export default function ConfirmDialog({
                   className="mt-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
                   placeholder={requireText}
                 />
-                <div className="mt-6 flex gap-3">
+                <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3">
                   <button
                     type="button"
                     onClick={onClose}
@@ -165,7 +165,7 @@ export default function ConfirmDialog({
             )}
 
             {!requiresConfirmation && (
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={onClose}

@@ -209,7 +209,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
             className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
           />
         </div>
-        <div className="w-44">
+        <div className="w-full sm:w-44">
           <FloatingDropdown
             id="filter-tournament-sport"
             label="Sport"
@@ -243,57 +243,95 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
           </p>
         </div>
       ) : (
-        <div className="ui-glass-table">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Sport</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Format</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Dates</th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">Matchups</th>
-                <th className="px-4 py-3 w-10" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.map((t) => {
-                const start = new Date(t.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                const end = new Date(t.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                return (
-                  <tr
-                    key={t.id}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => setDetailTournamentId(t.id)}
-                  >
-                    <td className="px-4 py-3 font-medium text-gray-900">{t.name}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <GlassSportTile sport={t.sport.name} color={t.sport.color} size="sm" />
-                        <span className="text-gray-700">{t.sport.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
+        <>
+          {/* Mobile card list */}
+          <div className="sm:hidden space-y-2">
+            {filtered.map((t) => {
+              const start = new Date(t.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              const end = new Date(t.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              return (
+                <div
+                  key={t.id}
+                  className="ui-glass-hover p-4 flex items-center gap-3 cursor-pointer"
+                  onClick={() => setDetailTournamentId(t.id)}
+                >
+                  <GlassSportTile sport={t.sport.name} color={t.sport.color} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 text-sm">{t.name}</div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
                         {FORMAT_LABELS[t.format] || t.format}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{start} – {end}</td>
-                    <td className="px-4 py-3 text-center text-gray-500">{t._count.brackets}</td>
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <RowActionMenu
-                        items={[
-                          { label: 'View', icon: <Eye className="w-4 h-4" />, onClick: () => setDetailTournamentId(t.id) },
-                          { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(t) },
-                          { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteTarget(t), variant: 'danger' },
-                        ]}
-                      />
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                      <span className="text-xs text-gray-500">{start} – {end}</span>
+                    </div>
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <RowActionMenu
+                      items={[
+                        { label: 'View', icon: <Eye className="w-4 h-4" />, onClick: () => setDetailTournamentId(t.id) },
+                        { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(t) },
+                        { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteTarget(t), variant: 'danger' },
+                      ]}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="ui-glass-table hidden sm:block">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Sport</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Format</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Dates</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">Matchups</th>
+                  <th className="px-4 py-3 w-10" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filtered.map((t) => {
+                  const start = new Date(t.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  const end = new Date(t.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  return (
+                    <tr
+                      key={t.id}
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => setDetailTournamentId(t.id)}
+                    >
+                      <td className="px-4 py-3 font-medium text-gray-900">{t.name}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <GlassSportTile sport={t.sport.name} color={t.sport.color} size="sm" />
+                          <span className="text-gray-700">{t.sport.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                          {FORMAT_LABELS[t.format] || t.format}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{start} – {end}</td>
+                      <td className="px-4 py-3 text-center text-gray-500">{t._count.brackets}</td>
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <RowActionMenu
+                          items={[
+                            { label: 'View', icon: <Eye className="w-4 h-4" />, onClick: () => setDetailTournamentId(t.id) },
+                            { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(t) },
+                            { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteTarget(t), variant: 'danger' },
+                          ]}
+                        />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Create/Edit Drawer */}

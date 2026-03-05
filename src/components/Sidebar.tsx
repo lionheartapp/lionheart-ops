@@ -89,6 +89,16 @@ export default function Sidebar({
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
 
   // Athletics sidebar state
@@ -1074,7 +1084,7 @@ export default function Sidebar({
 
       {/* Mobile Layout: Sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-[#111827] text-gray-100 border-r border-white/10 flex flex-col transition-transform duration-300 z-navbar ${
+        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-[#111827] text-gray-100 border-r border-white/10 flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="navigation"

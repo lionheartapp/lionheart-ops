@@ -338,7 +338,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
+          <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-gray-900">
             <Users className="w-6 h-6 text-primary-600" />
             Teams
           </h2>
@@ -383,68 +383,105 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             </button>
           </div>
         ) : (
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-gray-500 border-b bg-gray-50">
-                <th className="py-3 px-4 text-left font-medium">Team</th>
-                <th className="py-3 px-4 text-left font-medium hidden md:table-cell">Type</th>
-                <th className="py-3 px-4 text-left font-medium hidden sm:table-cell">Description</th>
-                <th className="py-3 px-4 text-left font-medium">Members</th>
-                <th className="py-3 pl-4 pr-4 sm:pr-10 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile card list */}
+            <div className="sm:hidden divide-y divide-gray-100">
               {teams.map((team) => (
-                <tr key={team.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                  <td className="py-3 px-4">
-                    <div className="font-medium text-gray-900">{team.name}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">@{team.slug}</div>
-                  </td>
-                  <td className="py-3 px-4 hidden md:table-cell">
-                    {team.teamType ? (
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        team.teamType === 'PRE_SCHOOL' ? 'bg-purple-100 text-purple-600' :
-                        team.teamType === 'ELEMENTARY' ? 'bg-green-100 text-green-600' :
-                        team.teamType === 'MIDDLE_SCHOOL' ? 'bg-blue-100 text-blue-600' :
-                        'bg-amber-100 text-amber-600'
-                      }`}>
-                        {team.teamType === 'PRE_SCHOOL' ? 'Pre School' :
-                         team.teamType === 'ELEMENTARY' ? 'Elementary' :
-                         team.teamType === 'MIDDLE_SCHOOL' ? 'Middle School' :
-                         'High School'}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">
-                    {team.description || <span className="text-gray-400">—</span>}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">{team._count?.members || 0}</td>
-                  <td className="py-3 pl-4 pr-4 sm:pr-10">
-                    <div className="flex justify-end">
-                      <RowActionMenu
-                        items={[
-                          {
-                            label: 'Edit',
-                            icon: <Edit2 className="w-4 h-4" />,
-                            onClick: () => openEditDrawer(team),
-                          },
-                          {
-                            label: 'Delete',
-                            icon: <Trash2 className="w-4 h-4" />,
-                            onClick: () => handleDeleteTeam(team),
-                            variant: 'danger',
-                            disabled: deletingTeamId === team.id,
-                          },
-                        ]}
-                      />
+                <div key={team.id} className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 text-sm">{team.name}</div>
+                    <div className="text-xs text-gray-400">@{team.slug}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      {team.teamType && (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          team.teamType === 'PRE_SCHOOL' ? 'bg-purple-100 text-purple-600' :
+                          team.teamType === 'ELEMENTARY' ? 'bg-green-100 text-green-600' :
+                          team.teamType === 'MIDDLE_SCHOOL' ? 'bg-blue-100 text-blue-600' :
+                          'bg-amber-100 text-amber-600'
+                        }`}>
+                          {team.teamType === 'PRE_SCHOOL' ? 'Pre School' :
+                           team.teamType === 'ELEMENTARY' ? 'Elementary' :
+                           team.teamType === 'MIDDLE_SCHOOL' ? 'Middle School' :
+                           'High School'}
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-500">{team._count?.members || 0} members</span>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                  <RowActionMenu
+                    items={[
+                      { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditDrawer(team) },
+                      { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => handleDeleteTeam(team), variant: 'danger', disabled: deletingTeamId === team.id },
+                    ]}
+                  />
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop table */}
+            <table className="min-w-full text-sm hidden sm:table">
+              <thead>
+                <tr className="text-gray-500 border-b bg-gray-50">
+                  <th className="py-3 px-4 text-left font-medium">Team</th>
+                  <th className="py-3 px-4 text-left font-medium hidden md:table-cell">Type</th>
+                  <th className="py-3 px-4 text-left font-medium">Description</th>
+                  <th className="py-3 px-4 text-left font-medium">Members</th>
+                  <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((team) => (
+                  <tr key={team.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <div className="font-medium text-gray-900">{team.name}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">@{team.slug}</div>
+                    </td>
+                    <td className="py-3 px-4 hidden md:table-cell">
+                      {team.teamType ? (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          team.teamType === 'PRE_SCHOOL' ? 'bg-purple-100 text-purple-600' :
+                          team.teamType === 'ELEMENTARY' ? 'bg-green-100 text-green-600' :
+                          team.teamType === 'MIDDLE_SCHOOL' ? 'bg-blue-100 text-blue-600' :
+                          'bg-amber-100 text-amber-600'
+                        }`}>
+                          {team.teamType === 'PRE_SCHOOL' ? 'Pre School' :
+                           team.teamType === 'ELEMENTARY' ? 'Elementary' :
+                           team.teamType === 'MIDDLE_SCHOOL' ? 'Middle School' :
+                           'High School'}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-gray-500">
+                      {team.description || <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">{team._count?.members || 0}</td>
+                    <td className="py-3 pl-4 pr-10">
+                      <div className="flex justify-end">
+                        <RowActionMenu
+                          items={[
+                            {
+                              label: 'Edit',
+                              icon: <Edit2 className="w-4 h-4" />,
+                              onClick: () => openEditDrawer(team),
+                            },
+                            {
+                              label: 'Delete',
+                              icon: <Trash2 className="w-4 h-4" />,
+                              onClick: () => handleDeleteTeam(team),
+                              variant: 'danger',
+                              disabled: deletingTeamId === team.id,
+                            },
+                          ]}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 

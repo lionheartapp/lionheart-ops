@@ -340,8 +340,8 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
             className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-44">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+          <div className="w-full sm:w-44">
             <FloatingDropdown
               id="filter-sport"
               label="Sport"
@@ -350,7 +350,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
               options={[{ value: '', label: 'All Sports' }, ...sportOptions]}
             />
           </div>
-          <div className="w-44">
+          <div className="w-full sm:w-44">
             <FloatingDropdown
               id="filter-season"
               label="Season"
@@ -394,88 +394,124 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto ui-glass-table">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Team</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Sport</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden sm:table-cell">Season</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Level</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Coach</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Record</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">G/P</th>
-                <th className="w-12 px-2 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {displayTeams.map((team) => {
-                const coach = users.find((u) => u.id === team.coachUserId)
-                return (
-                  <tr key={team.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <GlassSportTile sport={team.sport.name} color={team.sport.color} size="sm" />
-                        <span className="font-medium text-gray-900">{team.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{team.sport.name}</td>
-                    <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{team.season.name}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {team.gradeLevel && (
-                          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${GRADE_STYLES[team.gradeLevel] || 'bg-gray-100 text-gray-600'}`}>
-                            {GRADE_LABELS[team.gradeLevel] || team.gradeLevel}
-                          </span>
-                        )}
-                        <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${LEVEL_STYLES[team.level] || 'bg-gray-100 text-gray-600'}`}>
-                          {LEVEL_LABELS[team.level] || team.level}
+        <>
+          {/* Mobile card list */}
+          <div className="sm:hidden space-y-2">
+            {displayTeams.map((team) => {
+              const rec = teamRecords[team.id]
+              return (
+                <div key={team.id} className="ui-glass-hover p-4 flex items-center gap-3">
+                  <GlassSportTile sport={team.sport.name} color={team.sport.color} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 text-sm">{team.name}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{team.sport.name}</div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${LEVEL_STYLES[team.level] || 'bg-gray-100 text-gray-600'}`}>
+                        {LEVEL_LABELS[team.level] || team.level}
+                      </span>
+                      {rec && (
+                        <span className="text-xs font-medium text-gray-600">
+                          <span className="text-green-600">{rec.wins}</span>-<span className="text-red-500">{rec.losses}</span>
+                          {rec.ties > 0 && <>-<span className="text-gray-500">{rec.ties}</span></>}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
-                      {coach ? coach.name || coach.email : team.coachName || '—'}
-                    </td>
-                    <td className="px-4 py-3 text-center hidden md:table-cell">
-                      {(() => {
-                        const rec = teamRecords[team.id]
-                        if (!rec) return <span className="text-gray-400">—</span>
-                        return (
-                          <span className="text-sm font-medium text-gray-700">
-                            <span className="text-green-600">{rec.wins}</span>
-                            {'-'}
-                            <span className="text-red-500">{rec.losses}</span>
-                            {rec.ties > 0 && <>{'-'}<span className="text-gray-500">{rec.ties}</span></>}
+                      )}
+                    </div>
+                  </div>
+                  <RowActionMenu
+                    items={[
+                      { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(team) },
+                      { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteTarget(team), variant: 'danger' },
+                    ]}
+                  />
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="overflow-x-auto ui-glass-table hidden sm:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Team</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Sport</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Season</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Level</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Coach</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Record</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">G/P</th>
+                  <th className="w-12 px-2 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {displayTeams.map((team) => {
+                  const coach = users.find((u) => u.id === team.coachUserId)
+                  return (
+                    <tr key={team.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <GlassSportTile sport={team.sport.name} color={team.sport.color} size="sm" />
+                          <span className="font-medium text-gray-900">{team.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{team.sport.name}</td>
+                      <td className="px-4 py-3 text-gray-500">{team.season.name}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {team.gradeLevel && (
+                            <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${GRADE_STYLES[team.gradeLevel] || 'bg-gray-100 text-gray-600'}`}>
+                              {GRADE_LABELS[team.gradeLevel] || team.gradeLevel}
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${LEVEL_STYLES[team.level] || 'bg-gray-100 text-gray-600'}`}>
+                            {LEVEL_LABELS[team.level] || team.level}
                           </span>
-                        )
-                      })()}
-                    </td>
-                    <td className="px-4 py-3 text-center text-gray-500 hidden md:table-cell">
-                      {team._count.games}/{team._count.practices}
-                    </td>
-                    <td className="px-2 py-3">
-                      <RowActionMenu
-                        items={[
-                          {
-                            label: 'Edit',
-                            icon: <Edit2 className="w-4 h-4" />,
-                            onClick: () => openEdit(team),
-                          },
-                          {
-                            label: 'Delete',
-                            icon: <Trash2 className="w-4 h-4" />,
-                            onClick: () => setDeleteTarget(team),
-                            variant: 'danger',
-                          },
-                        ]}
-                      />
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
+                        {coach ? coach.name || coach.email : team.coachName || '—'}
+                      </td>
+                      <td className="px-4 py-3 text-center hidden md:table-cell">
+                        {(() => {
+                          const rec = teamRecords[team.id]
+                          if (!rec) return <span className="text-gray-400">—</span>
+                          return (
+                            <span className="text-sm font-medium text-gray-700">
+                              <span className="text-green-600">{rec.wins}</span>
+                              {'-'}
+                              <span className="text-red-500">{rec.losses}</span>
+                              {rec.ties > 0 && <>{'-'}<span className="text-gray-500">{rec.ties}</span></>}
+                            </span>
+                          )
+                        })()}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-500 hidden md:table-cell">
+                        {team._count.games}/{team._count.practices}
+                      </td>
+                      <td className="px-2 py-3">
+                        <RowActionMenu
+                          items={[
+                            {
+                              label: 'Edit',
+                              icon: <Edit2 className="w-4 h-4" />,
+                              onClick: () => openEdit(team),
+                            },
+                            {
+                              label: 'Delete',
+                              icon: <Trash2 className="w-4 h-4" />,
+                              onClick: () => setDeleteTarget(team),
+                              variant: 'danger',
+                            },
+                          ]}
+                        />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Create/Edit Team Drawer */}
