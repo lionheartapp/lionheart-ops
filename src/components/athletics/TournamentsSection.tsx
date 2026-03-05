@@ -198,7 +198,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
           <input
@@ -224,7 +224,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
         {canWrite && (
           <button
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition sm:ml-auto"
           >
             <Plus className="w-4 h-4" />
             Add Tournament

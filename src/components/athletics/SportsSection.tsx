@@ -159,7 +159,7 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition"
+            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition ml-auto"
           >
             <Plus className="w-4 h-4" />
             Add Sport
