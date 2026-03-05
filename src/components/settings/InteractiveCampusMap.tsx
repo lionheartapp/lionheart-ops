@@ -1400,7 +1400,7 @@ export default function InteractiveCampusMap({
               {editable && pendingMoves.size > 0 && (
                 <button
                   onClick={handleSavePositions}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-colors"
                 >
                   <Save className="w-3.5 h-3.5" />
                   Save {pendingMoves.size} change{pendingMoves.size > 1 ? 's' : ''}

@@ -276,7 +276,7 @@ export default function DashboardPage() {
         <motion.div variants={fadeInUp} className="relative self-start sm:self-center">
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
-            className="px-4 sm:px-6 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition flex items-center gap-2"
+            className="px-4 sm:px-6 py-3 min-h-[44px] bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition flex items-center gap-2"
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
             whileTap={buttonTap}
@@ -563,14 +563,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => setCreateCategory(null)}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
             >
               Cancel
             </button>
             <button
               onClick={handleCreateSubmit}
               disabled={createSaving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 flex items-center justify-center gap-2"
             >
               {createSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               Submit Request

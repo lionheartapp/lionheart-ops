@@ -130,7 +130,7 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                     </p>
                     <button
                       onClick={onClose}
-                      className="px-6 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors duration-200 cursor-pointer active:scale-[0.97]"
+                      className="px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors duration-200 cursor-pointer active:scale-[0.97]"
                     >
                       Done
                     </button>
@@ -190,7 +190,7 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                       <button
                         type="submit"
                         disabled={submitting || !subject.trim() || !description.trim()}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors duration-200 cursor-pointer active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors duration-200 cursor-pointer active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {submitting ? (
                           <>

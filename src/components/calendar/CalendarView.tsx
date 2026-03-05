@@ -655,7 +655,7 @@ export default function CalendarView() {
           {!showCreateCalendar ? (
             <button
               onClick={() => setShowCreateCalendar(true)}
-              className="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+              className="px-5 py-2.5 bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 transition-colors"
             >
               Create Calendar
             </button>

@@ -497,7 +497,7 @@ function EmptyState({ onTabChange }: { onTabChange: (tab: AthleticsTab) => void 
       </p>
       <button
         onClick={() => onTabChange('sports')}
-        className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+        className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors"
       >
         Add First Sport
       </button>
