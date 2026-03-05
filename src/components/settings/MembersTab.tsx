@@ -539,7 +539,7 @@ const MembersTab = (_props: MembersTabProps) => {
         </div>
         <button
           onClick={openInvite}
-          className="border border-gray-900 text-gray-900 px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-50 text-sm font-semibold transition self-start sm:self-auto flex-shrink-0"
+          className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition self-start sm:self-auto flex-shrink-0"
         >
           <Plus className="w-4 h-4" /> Invite user
         </button>

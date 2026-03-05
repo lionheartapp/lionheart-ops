@@ -224,7 +224,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
         {canWrite && (
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-gray-900 border border-gray-900 rounded-full hover:bg-gray-50 transition sm:ml-auto"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-full hover:bg-gray-800 transition sm:ml-auto"
           >
             <Plus className="w-4 h-4" />
             Add Tournament
@@ -390,14 +390,14 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
             <button
               onClick={() => setDrawerOpen(false)}
               disabled={formSaving}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={formSaving}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
             >
               {formSaving ? 'Saving...' : editing ? 'Update' : 'Create'}
             </button>

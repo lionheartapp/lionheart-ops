@@ -307,7 +307,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                   type="button"
                   onClick={onClose}
                   disabled={saving}
-                  className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -315,7 +315,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                   type="button"
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : 'Save Stats'}
                 </button>

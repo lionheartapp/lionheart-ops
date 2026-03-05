@@ -293,7 +293,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
               <button
                 onClick={handleGenerate}
                 disabled={generating || selectedTeamIds.size < 2}
-                className="px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+                className="px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
               >
                 {generating ? 'Generating...' : `Generate Bracket (${selectedTeamIds.size} teams)`}
               </button>
@@ -349,7 +349,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                 <button
                   onClick={() => setShowRegenConfirm(true)}
                   disabled={generating || selectedTeamIds.size < 2}
-                  className="px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+                  className="px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
                 >
                   {generating ? 'Generating...' : `Regenerate Bracket (${selectedTeamIds.size} teams)`}
                 </button>

@@ -165,7 +165,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                 type="button"
                 onClick={onClose}
                 disabled={saving}
-                className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -174,7 +174,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                   type="button"
                   onClick={handleClear}
                   disabled={saving}
-                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Clear

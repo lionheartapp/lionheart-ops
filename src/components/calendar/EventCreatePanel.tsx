@@ -652,7 +652,7 @@ export default function EventCreatePanel({
                             setCreatingCategory(false)
                           }
                         }}
-                        className="w-full py-2 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                        className="w-full py-2 text-xs font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition-colors"
                       >
                         {creatingCategory ? 'Creating...' : 'Create Category'}
                       </button>

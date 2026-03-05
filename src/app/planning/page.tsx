@@ -147,7 +147,7 @@ export default function PlanningPage() {
             {isAdmin && !activeSeason && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="flex items-center gap-1.5 px-5 py-2.5 border border-gray-900 text-gray-900 text-sm font-semibold rounded-full hover:bg-gray-50 transition"
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
               >
                 <Plus className="w-4 h-4" />
                 Create Planning Season
@@ -165,7 +165,7 @@ export default function PlanningPage() {
             {activeSeason && !isAdmin && activeSeason.phase === 'COLLECTING' && (
               <button
                 onClick={() => setShowForm(true)}
-                className="px-5 py-2.5 border border-gray-900 text-gray-900 text-sm font-semibold rounded-full hover:bg-gray-50 transition"
+                className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
               >
                 + New Submission
               </button>
@@ -191,7 +191,7 @@ export default function PlanningPage() {
             {isAdmin && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 border border-gray-900 text-gray-900 text-sm font-semibold rounded-full hover:bg-gray-50 transition"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
               >
                 <Plus className="w-4 h-4" />
                 Create Planning Season

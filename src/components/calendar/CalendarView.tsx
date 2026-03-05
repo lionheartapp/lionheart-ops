@@ -705,14 +705,14 @@ export default function CalendarView() {
               <div className="flex gap-2">
                 <button
                   onClick={() => { setShowCreateCalendar(false); setNewCalendarColor('#3b82f6') }}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateCalendar}
                   disabled={!newCalendarName.trim() || createCalendar.isPending}
-                  className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {createCalendar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create

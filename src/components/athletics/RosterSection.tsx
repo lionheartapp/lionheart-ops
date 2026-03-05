@@ -299,7 +299,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             onClick={openCreate}
             disabled={!selectedTeamId}
             title={!selectedTeamId ? 'Select a team first' : undefined}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-gray-900 border border-gray-900 rounded-full hover:bg-gray-50 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-full hover:bg-gray-800 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Add Player
@@ -543,7 +543,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
               type="button"
               onClick={() => setDrawerOpen(false)}
               disabled={saving}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
             >
               Cancel
             </button>
@@ -551,7 +551,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
             >
               {saving ? 'Saving...' : editing ? 'Update Player' : 'Add Player'}
             </button>

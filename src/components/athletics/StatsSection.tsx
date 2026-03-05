@@ -517,7 +517,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
                     type="button"
                     onClick={handleAddConfig}
                     disabled={!newStatKey.trim() || !newStatLabel.trim() || savingConfig}
-                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
                   >
                     <Plus className="w-4 h-4" />
                     {savingConfig ? 'Adding...' : 'Add'}

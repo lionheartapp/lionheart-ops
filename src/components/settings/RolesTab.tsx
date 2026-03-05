@@ -389,7 +389,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         </div>
         <button
           onClick={openCreateDrawer}
-          className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold border border-gray-900 text-gray-900 rounded-full hover:bg-gray-50 transition self-start sm:self-auto flex-shrink-0"
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-full hover:bg-gray-800 transition self-start sm:self-auto flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
           Create Role

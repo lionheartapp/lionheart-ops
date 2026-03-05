@@ -67,7 +67,7 @@ export default function CommentThread({ comments, onAddComment, isSubmitting, is
             Admin
           </label>
         )}
-        <button type="submit" disabled={isSubmitting || !message.trim()} className="px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition">
+        <button type="submit" disabled={isSubmitting || !message.trim()} className="px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-full hover:bg-gray-800 disabled:opacity-50 transition">
           Send
         </button>
       </form>
