@@ -201,7 +201,7 @@ export default function Sidebar({
 
   // Open calendar panel when navigating to /calendar
   useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/calendar') || pathname.startsWith('/planning')) {
+    if (pathname.startsWith('/calendar')) {
       setCalendarOpen(true)
       setSettingsOpen(false)
       setAthleticsOpen(false)
