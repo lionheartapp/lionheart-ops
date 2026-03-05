@@ -925,22 +925,37 @@ export default function Sidebar({
         <PrefetchLink
           href="/planning"
           onClick={() => setIsOpen(false)}
-          className="block relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-[#1e293b] to-[#0f172a] group hover:shadow-lg transition-all duration-200"
+          className="block relative overflow-hidden rounded-2xl group hover:shadow-lg transition-all duration-200"
         >
-          {/* Decorative gradient blobs */}
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary-500/20 rounded-full blur-2xl" />
-          <div className="absolute -left-4 -bottom-4 w-20 h-20 bg-indigo-500/15 rounded-full blur-xl" />
+          {/* Background image */}
+          <img
+            src="/planning-cta-bg.webp"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
 
-          <div className="relative">
-            <CalendarClock className="w-5 h-5 text-primary-300 mb-2" />
-            <p className="text-sm font-semibold text-white">Calendar Planning</p>
-            <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">
-              Collect & coordinate events for the year
+          <div className="relative p-4 pb-5 flex flex-col" style={{ aspectRatio: '1' }}>
+            {/* Orange circle with icon */}
+            <div className="w-8 h-8 rounded-full bg-[#e8a854] flex items-center justify-center mb-3">
+              <CalendarClock className="w-4 h-4 text-white" />
+            </div>
+
+            {/* Heading */}
+            <h3 className="text-[15px] font-bold text-gray-900 leading-tight">
+              Start planning<br />your calendar
+            </h3>
+
+            {/* Subtitle */}
+            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+              Collect & coordinate events<br />for the year
             </p>
-            <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-primary-300 group-hover:text-primary-200 transition-colors">
-              Open Planning
-              <ChevronRight className="w-3 h-3" />
-            </span>
+
+            {/* Button — pushed to bottom */}
+            <div className="mt-auto pt-3">
+              <span className="inline-flex items-center justify-center px-5 py-2 bg-[#1e293b] text-white text-xs font-semibold rounded-full group-hover:bg-[#334155] transition-colors">
+                Open Planning
+              </span>
+            </div>
           </div>
         </PrefetchLink>
       </div>
