@@ -934,7 +934,36 @@ export default function Sidebar({
             className="absolute inset-0 w-full h-full object-cover"
           />
 
-          <div className="relative p-4 pb-5 flex flex-col" style={{ aspectRatio: '1' }}>
+          {/* Animated AI stroke border — conic gradient spinning around the card */}
+          <div
+            className="absolute -inset-[1px] rounded-2xl pointer-events-none"
+            style={{
+              zIndex: 1,
+              background: 'conic-gradient(from var(--cta-angle, 0deg), #93c5fd88, #c4b5fd99, #e8a854aa, #93c5fd44, transparent 40%, transparent 60%, #c4b5fdaa, #93c5fd88)',
+              animation: 'cta-spin 6s linear infinite',
+              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              maskComposite: 'exclude',
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              padding: '1.5px',
+            }}
+          />
+          {/* Glow echo — softer, larger, offset timing */}
+          <div
+            className="absolute -inset-[2px] rounded-2xl pointer-events-none opacity-40 blur-[2px]"
+            style={{
+              zIndex: 1,
+              background: 'conic-gradient(from var(--cta-angle, 0deg), #93c5fd66, #c4b5fd77, #e8a85488, transparent 50%, transparent 70%, #c4b5fd66, #93c5fd66)',
+              animation: 'cta-spin 6s linear infinite reverse',
+              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              maskComposite: 'exclude',
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              padding: '3px',
+            }}
+          />
+
+          <div className="relative p-4 pb-5 flex flex-col" style={{ aspectRatio: '1', zIndex: 2 }}>
             {/* Orange circle with icon */}
             <div className="w-8 h-8 rounded-full bg-[#e8a854] flex items-center justify-center mb-3">
               <CalendarClock className="w-4 h-4 text-white" />
