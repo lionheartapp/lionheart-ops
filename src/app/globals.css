@@ -184,14 +184,8 @@ a:visited {
   50% { border-color: var(--color-primary-600); }
 }
 
-@property --cta-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes cta-spin {
-  to { --cta-angle: 360deg; }
+@keyframes cta-border-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Custom scrollbar for calendar views */

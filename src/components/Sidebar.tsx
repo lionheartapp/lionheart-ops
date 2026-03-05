@@ -922,71 +922,61 @@ export default function Sidebar({
 
       {/* Calendar Planning CTA — pinned to bottom */}
       <div className="px-3 pb-3 pt-2 flex-shrink-0">
-        <PrefetchLink
-          href="/planning"
-          onClick={() => setIsOpen(false)}
-          className="block relative overflow-hidden rounded-2xl group hover:shadow-lg transition-all duration-200"
-        >
-          {/* Background image */}
-          <img
-            src="/planning-cta-bg.webp"
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-
-          {/* Animated AI stroke border — conic gradient spinning around the card */}
+        {/* Outer border wrapper — clips the rotating gradient */}
+        <div className="relative rounded-2xl p-[1.5px] overflow-hidden">
+          {/* Spinning gradient disc behind the card — creates animated border */}
           <div
-            className="absolute -inset-[1px] rounded-2xl pointer-events-none"
+            className="absolute inset-[-50%] animate-[cta-border-spin_6s_linear_infinite]"
             style={{
-              zIndex: 1,
-              background: 'conic-gradient(from var(--cta-angle, 0deg), #93c5fd88, #c4b5fd99, #e8a854aa, #93c5fd44, transparent 40%, transparent 60%, #c4b5fdaa, #93c5fd88)',
-              animation: 'cta-spin 6s linear infinite',
-              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              maskComposite: 'exclude',
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor',
-              padding: '1.5px',
+              background: 'conic-gradient(from 0deg, #93c5fd, #c4b5fd, #e8a854, transparent, transparent, #c4b5fd, #93c5fd)',
             }}
           />
-          {/* Glow echo — softer, larger, offset timing */}
+          {/* Glow layer */}
           <div
-            className="absolute -inset-[2px] rounded-2xl pointer-events-none opacity-40 blur-[2px]"
+            className="absolute inset-[-50%] animate-[cta-border-spin_6s_linear_infinite_reverse] opacity-30 blur-[3px]"
             style={{
-              zIndex: 1,
-              background: 'conic-gradient(from var(--cta-angle, 0deg), #93c5fd66, #c4b5fd77, #e8a85488, transparent 50%, transparent 70%, #c4b5fd66, #93c5fd66)',
-              animation: 'cta-spin 6s linear infinite reverse',
-              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              maskComposite: 'exclude',
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor',
-              padding: '3px',
+              background: 'conic-gradient(from 180deg, #93c5fd, #e8a854, transparent, transparent, #c4b5fd, #93c5fd)',
             }}
           />
 
-          <div className="relative p-4 pb-5 flex flex-col" style={{ aspectRatio: '1', zIndex: 2 }}>
-            {/* Orange circle with icon */}
-            <div className="w-8 h-8 rounded-full bg-[#e8a854] flex items-center justify-center mb-3">
-              <CalendarClock className="w-4 h-4 text-white" />
+          {/* Inner card */}
+          <PrefetchLink
+            href="/planning"
+            onClick={() => setIsOpen(false)}
+            className="block relative overflow-hidden rounded-[14px] group hover:shadow-lg transition-all duration-200"
+          >
+            {/* Background image */}
+            <img
+              src="/planning-cta-bg.webp"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+
+            <div className="relative p-4 pb-5 flex flex-col" style={{ aspectRatio: '1' }}>
+              {/* Orange circle with icon */}
+              <div className="w-8 h-8 rounded-full bg-[#e8a854] flex items-center justify-center mb-3">
+                <CalendarClock className="w-4 h-4 text-white" />
+              </div>
+
+              {/* Heading */}
+              <h3 className="text-[15px] font-bold text-gray-900 leading-tight">
+                Start planning<br />your calendar
+              </h3>
+
+              {/* Subtitle */}
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                Collect & coordinate events<br />for the year
+              </p>
+
+              {/* Button — pushed to bottom */}
+              <div className="mt-auto pt-3">
+                <span className="inline-flex items-center justify-center px-5 py-2 bg-[#1e293b] text-white text-xs font-semibold rounded-full group-hover:bg-[#334155] transition-colors">
+                  Open Planning
+                </span>
+              </div>
             </div>
-
-            {/* Heading */}
-            <h3 className="text-[15px] font-bold text-gray-900 leading-tight">
-              Start planning<br />your calendar
-            </h3>
-
-            {/* Subtitle */}
-            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-              Collect & coordinate events<br />for the year
-            </p>
-
-            {/* Button — pushed to bottom */}
-            <div className="mt-auto pt-3">
-              <span className="inline-flex items-center justify-center px-5 py-2 bg-[#1e293b] text-white text-xs font-semibold rounded-full group-hover:bg-[#334155] transition-colors">
-                Open Planning
-              </span>
-            </div>
-          </div>
-        </PrefetchLink>
+          </PrefetchLink>
+        </div>
       </div>
     </div>
   )
