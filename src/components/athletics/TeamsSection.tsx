@@ -367,7 +367,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition sm:ml-auto"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-gray-900 border border-gray-900 rounded-full hover:bg-gray-50 transition sm:ml-auto"
           >
             <Plus className="w-4 h-4" />
             Add Team
