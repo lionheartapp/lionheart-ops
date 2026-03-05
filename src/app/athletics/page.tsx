@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
+import { motion, MotionConfig } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
-import { tabContent, fadeInUp, staggerContainer } from '@/lib/animations'
+import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
@@ -253,23 +253,29 @@ export default function AthleticsPage() {
           {dataLoading ? (
             <AthleticsTableSkeleton columns={5} rows={5} />
           ) : (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                variants={tabContent}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                {activeTab === 'overview' && <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={setActiveTab} />}
-                {activeTab === 'sports' && <SportsSection canWrite={canWrite} />}
-                {activeTab === 'teams' && <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />}
-                {activeTab === 'schedule' && <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />}
-                {activeTab === 'roster' && <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />}
-                {activeTab === 'tournaments' && <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />}
-                {activeTab === 'stats' && <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />}
-              </motion.div>
-            </AnimatePresence>
+            <>
+              <div className={activeTab === 'overview' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
+                <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={setActiveTab} />
+              </div>
+              <div className={activeTab === 'sports' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'sports'}>
+                <SportsSection canWrite={canWrite} />
+              </div>
+              <div className={activeTab === 'teams' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
+                <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+              </div>
+              <div className={activeTab === 'schedule' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
+                <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />
+              </div>
+              <div className={activeTab === 'roster' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'roster'}>
+                <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />
+              </div>
+              <div className={activeTab === 'tournaments' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'tournaments'}>
+                <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+              </div>
+              <div className={activeTab === 'stats' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
+                <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+              </div>
+            </>
           )}
         </div>
         </MotionConfig>
