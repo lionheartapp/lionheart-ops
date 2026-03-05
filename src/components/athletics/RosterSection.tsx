@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, Search, Users, Trash2, Edit2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
@@ -49,14 +51,30 @@ interface RosterSectionProps {
 }
 
 export default function RosterSection({ activeCampusId, canWrite = false, canManageUsers = false }: RosterSectionProps) {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [roster, setRoster] = useState<RosterPlayer[]>([])
-  const [orgUsers, setOrgUsers] = useState<OrgUser[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadingRoster, setLoadingRoster] = useState(false)
+  const queryClient = useQueryClient()
 
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [search, setSearch] = useState('')
+
+  // ─── Cached Data ──────────────────────────────────────────────────
+
+  const { data: teamsData, isLoading: loading } = useQuery(queryOptions.athleticsTeams())
+  const teams = (teamsData ?? []) as Team[]
+
+  const { data: rosterData, isLoading: loadingRoster } = useQuery(
+    queryOptions.athleticsRoster(selectedTeamId || undefined)
+  )
+  const roster = (rosterData ?? []) as RosterPlayer[]
+
+  const { data: usersData } = useQuery({
+    ...queryOptions.members(),
+    enabled: canManageUsers,
+  })
+  const orgUsers = (usersData ?? []) as OrgUser[]
+
+  const invalidateRoster = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.athleticsRoster.all })
+  }, [queryClient])
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -79,65 +97,6 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   const [deleting, setDeleting] = useState(false)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-
-  // ─── Data fetching ─────────────────────────────────────────────────
-
-  const fetchTeams = async () => {
-    if (!token) return
-    try {
-      const res = await fetch('/api/athletics/teams', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setTeams(data.data)
-    } catch {
-      // silent
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchRoster = async (teamId?: string) => {
-    if (!token) return
-    setLoadingRoster(true)
-    try {
-      const param = teamId ? `?teamId=${teamId}` : ''
-      const res = await fetch(`/api/athletics/roster${param}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setRoster(data.data)
-    } catch {
-      // silent
-    } finally {
-      setLoadingRoster(false)
-    }
-  }
-
-  const fetchUsers = async () => {
-    if (!token || !canManageUsers) return
-    try {
-      const res = await fetch('/api/settings/users', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setOrgUsers(data.data)
-    } catch {
-      // silent
-    }
-  }
-
-  useEffect(() => {
-    fetchTeams()
-    if (canManageUsers) fetchUsers()
-  }, [canManageUsers]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    fetchRoster(selectedTeamId || undefined)
-  }, [selectedTeamId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Campus-filtered teams ─────────────────────────────────────────
 
@@ -269,7 +228,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       }
 
       setDrawerOpen(false)
-      fetchRoster(selectedTeamId || undefined)
+      invalidateRoster()
     } catch {
       setError('Something went wrong')
     } finally {
@@ -287,7 +246,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       })
       if (handleAuthResponse(res)) return
       setDeleteTarget(null)
-      fetchRoster(selectedTeamId || undefined)
+      invalidateRoster()
     } catch {
       // silent
     } finally {

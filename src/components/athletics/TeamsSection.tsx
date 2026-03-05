@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
@@ -114,17 +116,35 @@ interface TeamsSectionProps {
 }
 
 export default function TeamsSection({ activeCampusId, canWrite = false }: TeamsSectionProps) {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [sports, setSports] = useState<Sport[]>([])
-  const [seasons, setSeasons] = useState<Season[]>([])
-  const [users, setUsers] = useState<User[]>([])
-  const [allGames, setAllGames] = useState<Game[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
 
   // Filter state
   const [filterSportId, setFilterSportId] = useState('')
   const [filterSeasonId, setFilterSeasonId] = useState('')
+
+  // ─── Cached Data ──────────────────────────────────────────────────
+
+  const { data: teamsData, isLoading: loading } = useQuery(
+    queryOptions.athleticsTeams(filterSportId || undefined, filterSeasonId || undefined)
+  )
+  const teams = (teamsData ?? []) as Team[]
+
+  const { data: sportsData } = useQuery(queryOptions.athleticsSports())
+  const sports = (sportsData ?? []) as Sport[]
+
+  const { data: seasonsData } = useQuery(queryOptions.athleticsSeasons())
+  const seasons = (seasonsData ?? []) as Season[]
+
+  const { data: usersData } = useQuery(queryOptions.members())
+  const users = (usersData ?? []) as User[]
+
+  const { data: gamesData } = useQuery(queryOptions.athleticsGames())
+  const allGames = (gamesData ?? []) as Game[]
+
+  const invalidateTeams = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.athleticsTeams.all })
+  }, [queryClient])
 
   // Create/Edit drawer
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -146,96 +166,6 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
   const [deleting, setDeleting] = useState(false)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-
-  // ─── Data Fetching ──────────────────────────────────────────────────
-
-  const fetchTeams = async () => {
-    if (!token) return
-    try {
-      const params = new URLSearchParams()
-      if (filterSportId) params.set('sportId', filterSportId)
-      if (filterSeasonId) params.set('seasonId', filterSeasonId)
-      const res = await fetch(`/api/athletics/teams?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setTeams(data.data)
-    } catch {
-      // silent
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchSports = async () => {
-    if (!token) return
-    try {
-      const res = await fetch('/api/athletics/sports', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setSports(data.data)
-    } catch {
-      // silent
-    }
-  }
-
-  const fetchSeasons = async (sportId?: string) => {
-    if (!token) return
-    try {
-      const params = sportId ? `?sportId=${sportId}` : ''
-      const res = await fetch(`/api/athletics/seasons${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setSeasons(data.data)
-    } catch {
-      // silent
-    }
-  }
-
-  const fetchUsers = async () => {
-    if (!token) return
-    try {
-      const res = await fetch('/api/settings/users', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setUsers(data.data)
-    } catch {
-      // silent
-    }
-  }
-
-  const fetchGames = async () => {
-    if (!token) return
-    try {
-      const res = await fetch('/api/athletics/games', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setAllGames(data.data)
-    } catch {
-      // silent
-    }
-  }
-
-  useEffect(() => {
-    fetchSports()
-    fetchSeasons()
-    fetchUsers()
-    fetchGames()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    setLoading(true)
-    fetchTeams()
-  }, [filterSportId, filterSeasonId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset season filter when sport filter changes
   useEffect(() => {
@@ -365,7 +295,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
       }
 
       setDrawerOpen(false)
-      fetchTeams()
+      invalidateTeams()
     } catch {
       setFormError('Something went wrong')
     } finally {
@@ -383,7 +313,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
       })
       if (handleAuthResponse(res)) return
       setDeleteTarget(null)
-      fetchTeams()
+      invalidateTeams()
     } catch {
       // silent
     } finally {

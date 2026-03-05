@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, Search, Eye, Edit2, Trash2, Trophy } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
@@ -48,9 +50,20 @@ const FORMAT_OPTIONS = [
 ]
 
 export default function TournamentsSection({ activeCampusId, canWrite = false }: TournamentsSectionProps) {
-  const [tournaments, setTournaments] = useState<Tournament[]>([])
-  const [sports, setSports] = useState<Sport[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+
+  // ─── Cached Data ──────────────────────────────────────────────────
+
+  const { data: tournamentsData, isLoading: loading } = useQuery(queryOptions.athleticsTournaments())
+  const tournaments = (tournamentsData ?? []) as Tournament[]
+
+  const { data: sportsData } = useQuery(queryOptions.athleticsSports())
+  const sports = (sportsData ?? []) as Sport[]
+
+  const invalidateTournaments = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.athleticsTournaments.all })
+  }, [queryClient])
+
   const [search, setSearch] = useState('')
   const [filterSportId, setFilterSportId] = useState('')
 
@@ -73,30 +86,6 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
   const [deleting, setDeleting] = useState(false)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-
-  const fetchTournaments = async () => {
-    try {
-      const res = await fetch('/api/athletics/tournaments', { headers: { Authorization: `Bearer ${token}` } })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setTournaments(data.data)
-    } catch { /* ignore */ } finally { setLoading(false) }
-  }
-
-  const fetchSports = async () => {
-    try {
-      const res = await fetch('/api/athletics/sports', { headers: { Authorization: `Bearer ${token}` } })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setSports(data.data)
-    } catch { /* ignore */ }
-  }
-
-  useEffect(() => {
-    fetchTournaments()
-    fetchSports()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const sportOptions: DropdownOption[] = useMemo(
     () => sports.map((s) => ({ value: s.id, label: s.name })),
@@ -168,7 +157,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
       if (!data.ok) { setFormError(data.error?.message || 'Failed to save'); return }
 
       setDrawerOpen(false)
-      fetchTournaments()
+      invalidateTournaments()
     } catch {
       setFormError('Something went wrong')
     } finally {
@@ -188,7 +177,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
       const data = await res.json()
       if (data.ok) {
         setDeleteTarget(null)
-        fetchTournaments()
+        invalidateTournaments()
       }
     } catch { /* ignore */ } finally { setDeleting(false) }
   }
@@ -200,7 +189,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
         tournamentId={detailTournamentId}
         onBack={() => {
           setDetailTournamentId(null)
-          fetchTournaments()
+          invalidateTournaments()
         }}
       />
     )

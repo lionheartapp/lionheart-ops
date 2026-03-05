@@ -44,6 +44,12 @@ export function usePrefetchOnAuth(token: string | null) {
       // Athletics
       queryClient.prefetchQuery(queryOptions.athleticsDashboard()),
       queryClient.prefetchQuery(queryOptions.athleticsSports()),
+      queryClient.prefetchQuery(queryOptions.athleticsTeams()),
+      queryClient.prefetchQuery(queryOptions.athleticsSeasons()),
+      queryClient.prefetchQuery(queryOptions.athleticsTournaments()),
+      queryClient.prefetchQuery(queryOptions.athleticsGames()),
+      queryClient.prefetchQuery(queryOptions.athleticsPractices()),
+      queryClient.prefetchQuery(queryOptions.athleticsRoster()),
     ]
 
     // Swallow errors — prefetch failures are non-critical

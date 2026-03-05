@@ -77,6 +77,34 @@ export const queryKeys = {
     all: ['athletics-dashboard'] as const,
     campus: (campusId?: string | null) => ['athletics-dashboard', campusId ?? 'all'] as const,
   },
+  athleticsTeams: {
+    all: ['athletics-teams'] as const,
+    filtered: (sportId?: string, seasonId?: string) =>
+      ['athletics-teams', { sportId: sportId ?? '', seasonId: seasonId ?? '' }] as const,
+  },
+  athleticsSeasons: {
+    all: ['athletics-seasons'] as const,
+    bySport: (sportId?: string) =>
+      ['athletics-seasons', { sportId: sportId ?? '' }] as const,
+  },
+  athleticsTournaments: {
+    all: ['athletics-tournaments'] as const,
+  },
+  athleticsGames: {
+    all: ['athletics-games'] as const,
+    byTeam: (teamId?: string) =>
+      ['athletics-games', { teamId: teamId ?? '' }] as const,
+  },
+  athleticsPractices: {
+    all: ['athletics-practices'] as const,
+    byTeam: (teamId?: string) =>
+      ['athletics-practices', { teamId: teamId ?? '' }] as const,
+  },
+  athleticsRoster: {
+    all: ['athletics-roster'] as const,
+    byTeam: (teamId?: string) =>
+      ['athletics-roster', { teamId: teamId ?? '' }] as const,
+  },
 } as const
 
 // ─── Query Option Factories ────────────────────────────────────────────
@@ -182,5 +210,59 @@ export const queryOptions = {
       return fetchApi<unknown>(`/api/athletics/dashboard${params}`)
     },
     staleTime: 2 * 60_000,
+  }),
+
+  athleticsTeams: (sportId?: string, seasonId?: string) => ({
+    queryKey: queryKeys.athleticsTeams.filtered(sportId, seasonId),
+    queryFn: () => {
+      const params = new URLSearchParams()
+      if (sportId) params.set('sportId', sportId)
+      if (seasonId) params.set('seasonId', seasonId)
+      const qs = params.toString()
+      return fetchApi<unknown[]>(`/api/athletics/teams${qs ? `?${qs}` : ''}`)
+    },
+    staleTime: 5 * 60_000,
+  }),
+
+  athleticsSeasons: (sportId?: string) => ({
+    queryKey: queryKeys.athleticsSeasons.bySport(sportId),
+    queryFn: () => {
+      const param = sportId ? `?sportId=${sportId}` : ''
+      return fetchApi<unknown[]>(`/api/athletics/seasons${param}`)
+    },
+    staleTime: 5 * 60_000,
+  }),
+
+  athleticsTournaments: () => ({
+    queryKey: queryKeys.athleticsTournaments.all,
+    queryFn: () => fetchApi<unknown[]>('/api/athletics/tournaments'),
+    staleTime: 5 * 60_000,
+  }),
+
+  athleticsGames: (teamId?: string) => ({
+    queryKey: queryKeys.athleticsGames.byTeam(teamId),
+    queryFn: () => {
+      const param = teamId ? `?teamId=${teamId}` : ''
+      return fetchApi<unknown[]>(`/api/athletics/games${param}`)
+    },
+    staleTime: 5 * 60_000,
+  }),
+
+  athleticsPractices: (teamId?: string) => ({
+    queryKey: queryKeys.athleticsPractices.byTeam(teamId),
+    queryFn: () => {
+      const param = teamId ? `?teamId=${teamId}` : ''
+      return fetchApi<unknown[]>(`/api/athletics/practices${param}`)
+    },
+    staleTime: 5 * 60_000,
+  }),
+
+  athleticsRoster: (teamId?: string) => ({
+    queryKey: queryKeys.athleticsRoster.byTeam(teamId),
+    queryFn: () => {
+      const param = teamId ? `?teamId=${teamId}` : ''
+      return fetchApi<unknown[]>(`/api/athletics/roster${param}`)
+    },
+    staleTime: 5 * 60_000,
   }),
 } as const

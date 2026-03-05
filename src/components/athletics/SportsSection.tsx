@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, Search, Eye, Edit2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
@@ -41,8 +43,13 @@ const COLOR_PRESETS = [
 ]
 
 export default function SportsSection({ canWrite = false }: { canWrite?: boolean }) {
-  const [sports, setSports] = useState<Sport[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const { data: sportsData, isLoading: loading } = useQuery(queryOptions.athleticsSports())
+  const sports = (sportsData ?? []) as Sport[]
+  const invalidateSports = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.athleticsSports.all })
+  }, [queryClient])
+
   const [search, setSearch] = useState('')
 
   // Create/Edit drawer
@@ -62,26 +69,6 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-
-  const fetchSports = async () => {
-    if (!token) return
-    try {
-      const res = await fetch('/api/athletics/sports', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setSports(data.data)
-    } catch {
-      // silent
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchSports()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = sports.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -141,7 +128,7 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
       }
       setCreateForm({ name: '', abbreviation: '', color: '#3b82f6', seasonType: 'FALL' })
       setDrawerOpen(false)
-      fetchSports()
+      invalidateSports()
     } catch {
       setCreateError(`Failed to ${editingSport ? 'update' : 'create'} sport`)
     } finally {

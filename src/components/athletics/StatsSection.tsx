@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { queryOptions } from '@/lib/queries'
 import { BarChart3, Trophy, Plus, Trash2, Settings, ArrowRight, CalendarDays } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
@@ -59,9 +61,15 @@ interface StatsSectionProps {
 type StatsView = 'standings' | 'leaders' | 'config'
 
 export default function StatsSection({ activeCampusId, canWrite = false }: StatsSectionProps) {
-  const [sports, setSports] = useState<Sport[]>([])
-  const [seasons, setSeasons] = useState<Season[]>([])
-  const [loading, setLoading] = useState(true)
+  // ─── Cached Data ──────────────────────────────────────────────────
+
+  const { data: sportsData, isLoading: sportsLoading } = useQuery(queryOptions.athleticsSports())
+  const sports = (sportsData ?? []) as Sport[]
+
+  const { data: seasonsData, isLoading: seasonsLoading } = useQuery(queryOptions.athleticsSeasons())
+  const seasons = (seasonsData ?? []) as Season[]
+
+  const loading = sportsLoading || seasonsLoading
 
   const [view, setView] = useState<StatsView>('standings')
   const [selectedSportId, setSelectedSportId] = useState('')
@@ -86,29 +94,6 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
   const [savingConfig, setSavingConfig] = useState(false)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-
-  // ─── Data Fetching ────────────────────────────────────────────────
-
-  useEffect(() => {
-    if (!token) return
-    const fetchBase = async () => {
-      try {
-        const [sportsRes, seasonsRes] = await Promise.all([
-          fetch('/api/athletics/sports', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('/api/athletics/seasons', { headers: { Authorization: `Bearer ${token}` } }),
-        ])
-        if (handleAuthResponse(sportsRes) || handleAuthResponse(seasonsRes)) return
-        const [sportsData, seasonsData] = await Promise.all([sportsRes.json(), seasonsRes.json()])
-        if (sportsData.ok) setSports(sportsData.data)
-        if (seasonsData.ok) setSeasons(seasonsData.data)
-      } catch {
-        // silent
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchBase()
-  }, [token])
 
   // Fetch standings when filters change
   useEffect(() => {

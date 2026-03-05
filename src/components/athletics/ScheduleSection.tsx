@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, CalendarDays, Trash2, Edit2, Trophy, ClipboardList } from 'lucide-react'
 import { RRule } from 'rrule'
 import { handleAuthResponse } from '@/lib/client-auth'
@@ -182,15 +184,35 @@ const FILTER_PILLS: { key: FilterType; label: string }[] = [
 ]
 
 export default function ScheduleSection({ activeCampusId, canWrite = false }: ScheduleSectionProps) {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [games, setGames] = useState<Game[]>([])
-  const [practices, setPractices] = useState<Practice[]>([])
-  const [calendars, setCalendars] = useState<Calendar[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadingSchedule, setLoadingSchedule] = useState(false)
+  const queryClient = useQueryClient()
 
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
+
+  // ─── Cached Data ──────────────────────────────────────────────────
+
+  const { data: teamsData, isLoading: loading } = useQuery(queryOptions.athleticsTeams())
+  const teams = (teamsData ?? []) as Team[]
+
+  const { data: allCalendars } = useQuery(queryOptions.calendars())
+  const calendars = ((allCalendars ?? []) as Calendar[]).filter(c => c.calendarType === 'ATHLETICS')
+
+  const { data: gamesData, isLoading: gamesLoading } = useQuery(
+    queryOptions.athleticsGames(selectedTeamId || undefined)
+  )
+  const games = (gamesData ?? []) as Game[]
+
+  const { data: practicesData, isLoading: practicesLoading } = useQuery(
+    queryOptions.athleticsPractices(selectedTeamId || undefined)
+  )
+  const practices = (practicesData ?? []) as Practice[]
+
+  const loadingSchedule = gamesLoading || practicesLoading
+
+  const refreshSchedule = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.athleticsGames.all })
+    queryClient.invalidateQueries({ queryKey: queryKeys.athleticsPractices.all })
+  }, [queryClient])
 
   // Drawer/dialog state
   const [gameDrawerOpen, setGameDrawerOpen] = useState(false)
@@ -202,72 +224,6 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   const [deleting, setDeleting] = useState(false)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-
-  // ─── Data Fetching ──────────────────────────────────────────────────
-
-  const fetchTeams = async () => {
-    if (!token) return
-    try {
-      const res = await fetch('/api/athletics/teams', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setTeams(data.data)
-    } catch {
-      // silent
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchCalendars = async () => {
-    if (!token) return
-    try {
-      const res = await fetch('/api/calendars?calendarType=ATHLETICS', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (data.ok) setCalendars(data.data)
-    } catch {
-      // silent
-    }
-  }
-
-  const fetchSchedule = async (teamId?: string) => {
-    if (!token) return
-    setLoadingSchedule(true)
-    try {
-      const teamParam = teamId ? `?teamId=${teamId}` : ''
-      const [gamesRes, practicesRes] = await Promise.all([
-        fetch(`/api/athletics/games${teamParam}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`/api/athletics/practices${teamParam}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ])
-      if (handleAuthResponse(gamesRes) || handleAuthResponse(practicesRes)) return
-
-      const [gamesData, practicesData] = await Promise.all([gamesRes.json(), practicesRes.json()])
-      if (gamesData.ok) setGames(gamesData.data)
-      if (practicesData.ok) setPractices(practicesData.data)
-    } catch {
-      // silent
-    } finally {
-      setLoadingSchedule(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchTeams()
-    fetchCalendars()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    fetchSchedule(selectedTeamId || undefined)
-  }, [selectedTeamId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Campus-filtered teams ────────────────────────────────────────
 
@@ -356,10 +312,6 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   }, [agendaItems])
 
   // ─── Handlers ─────────────────────────────────────────────────────
-
-  const refreshSchedule = () => {
-    fetchSchedule(selectedTeamId || undefined)
-  }
 
   const openGameCreate = () => {
     setEditingGame(null)
