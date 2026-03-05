@@ -361,3 +361,45 @@ npm run smoke:set-password # Password setup flow
 ```
 
 Tests hit the live API (configured by base URL in each script). Run after significant changes.
+
+---
+
+## Design & UI Standards (Always Apply)
+
+When creating or editing ANY UI — components, pages, layouts, modals, drawers — always:
+
+1. **Use 21st-dev-magic MCP tools** for animations, transitions, and polished component patterns
+2. **Apply ui-ux-pro-max skill** for layout, accessibility, color contrast, interaction patterns, and the Pre-Delivery Checklist
+3. **Apply frontend-design skill** for distinctive, production-grade interfaces that avoid generic AI aesthetics
+4. **Check memory files** before starting — reuse patterns, color decisions, and component conventions from previous work
+
+### UI Rules (non-negotiable)
+- No empty states that require user action to see data — always show a useful default (e.g., "All Teams" shows all data, not "Select a team")
+- Skeleton loading (`animate-pulse`) during data fetches, matching the final layout shape
+- Card style: `bg-white border border-gray-200 rounded-xl p-6`
+- Gradient accent cards: `bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200`
+- All clickable elements get `cursor-pointer`
+- Transitions: `transition-colors duration-200` on interactive elements
+- Win/loss/tie badges: green-100/700, red-100/700, yellow-100/700
+- Sport color dots: `w-2.5 h-2.5 rounded-full` with inline `backgroundColor`
+- Campus filtering: always filter client-side by `activeCampusId` when in multi-campus views
+
+### Marketing Skills (Available on Demand)
+
+34 marketing skills are installed in `.claude/skills/`. Use them when working on any marketing-related task:
+
+- **Conversion optimization**: `page-cro`, `signup-flow-cro`, `form-cro`, `onboarding-cro`, `popup-cro`, `paywall-upgrade-cro`, `churn-prevention`
+- **Copy & content**: `copywriting`, `copy-editing`, `content-strategy`, `cold-email`, `email-sequence`, `social-content`
+- **SEO & discovery**: `seo-audit`, `ai-seo`, `programmatic-seo`, `schema-markup`, `site-architecture`
+- **Paid & growth**: `paid-ads`, `ad-creative`, `ab-test-setup`, `analytics-tracking`, `referral-program`, `free-tool-strategy`
+- **Strategy & sales**: `launch-strategy`, `pricing-strategy`, `marketing-ideas`, `marketing-psychology`, `competitor-alternatives`, `sales-enablement`, `revops`
+- **Foundation**: `product-marketing-context` — set up once, referenced by all other skills
+
+When building public-facing pages (landing pages, pricing, onboarding flows), automatically apply relevant CRO and copywriting skills alongside the UI skills.
+
+### Continuous Learning
+After completing any significant work, update the memory files at `~/.claude/projects/-Users-mkerley-Desktop-Linfield-Test/memory/` with:
+- New patterns established (component structure, data flow, styling decisions)
+- UX lessons learned (what worked, what was a bad pattern)
+- Reusable code patterns for future reference
+- Marketing decisions and copy patterns that performed well

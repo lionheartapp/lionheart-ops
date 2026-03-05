@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 
@@ -87,19 +88,25 @@ export default function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-modal overflow-y-auto">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer"
+      <motion.div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
         onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.15 }}
       />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div
+        <motion.div
           ref={focusTrapRef}
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
-          className="relative w-full max-w-xl transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-heavy transition-all"
+          className="relative w-full max-w-xl transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-heavy"
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
         >
           {/* Close button */}
           <button
@@ -193,7 +200,7 @@ export default function ConfirmDialog({
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

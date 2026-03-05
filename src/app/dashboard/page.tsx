@@ -2,9 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
 import WeatherWidget from '@/components/dashboard/WeatherWidget'
+import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2 } from 'lucide-react'
 
@@ -256,29 +259,43 @@ export default function DashboardPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
+      <MotionConfig reducedMotion="user">
       {/* Greeting Section with Create Dropdown Button */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+      <motion.div
+        className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer(0.08, 0.05)}
+      >
+        <motion.div variants={fadeInUp}>
           <p className="text-gray-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
             {getGreeting()}, {userName?.split(' ')[0] || 'there'}
           </h1>
-        </div>
-        <div className="relative self-start sm:self-center">
-          <button
+        </motion.div>
+        <motion.div variants={fadeInUp} className="relative self-start sm:self-center">
+          <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
             className="px-4 sm:px-6 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition flex items-center gap-2"
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
+            whileTap={buttonTap}
           >
             <Plus className="w-5 h-5" aria-hidden="true" />
             Create
             <ChevronDown className={`w-4 h-4 transition-transform ${isCreateDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-          </button>
+          </motion.button>
 
           {/* Create Dropdown Menu */}
+          <AnimatePresence>
           {isCreateDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-mobilenav">
+            <motion.div
+              className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-mobilenav"
+              variants={dropdownVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
               {/* Events Section */}
               <div className="p-3 space-y-2">
                 <button
@@ -334,15 +351,21 @@ export default function DashboardPage() {
                   </div>
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
-      </div>
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
 
       {/* Dashboard Panels Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <motion.div
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer(0.1, 0.15)}
+      >
         {/* My Tasks Panel */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition min-h-[300px]">
+        <motion.div variants={cardEntrance} className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition min-h-[300px]">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
           </div>
@@ -364,10 +387,11 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              <ul className="space-y-3" role="list">
+              <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
                 {tickets.filter(t => t.status !== 'RESOLVED').slice(0, 8).map((ticket) => (
-                  <li
+                  <motion.li
                     key={ticket.id}
+                    variants={listItem}
                     className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary-50 cursor-pointer transition"
                     onClick={() => { setSelectedTicket(ticket); setIsDetailOpen(true) }}
                   >
@@ -381,9 +405,9 @@ export default function DashboardPage() {
                     <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(ticket.priority)}`}>
                       {ticket.priority === 'NORMAL' ? 'Normal' : ticket.priority === 'CRITICAL' ? 'Critical' : ticket.priority}
                     </div>
-                  </li>
+                  </motion.li>
                 ))}
-              </ul>
+              </motion.ul>
 
               <button
                 onClick={() => openCreateDrawer('MAINTENANCE')}
@@ -393,22 +417,26 @@ export default function DashboardPage() {
               </button>
             </>
           )}
-        </div>
+        </motion.div>
 
         {/* Side Panel - Projects/Stats */}
-        <div className="space-y-6">
+        <motion.div variants={staggerContainer(0.1, 0)} initial="hidden" animate="visible" className="space-y-6">
           {/* Weather Widget */}
-          <WeatherWidget />
+          <motion.div variants={cardEntrance}>
+            <WeatherWidget />
+          </motion.div>
 
           {/* Stats Card */}
-          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
+          <motion.div variants={cardEntrance} className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
             <p className="text-sm text-gray-600 mb-2">Active Requests</p>
-            <p className="text-4xl font-bold text-primary-600">{ticketCount}</p>
+            <p className="text-4xl font-bold text-primary-600">
+              <AnimatedCounter value={ticketCount} duration={0.8} />
+            </p>
             <p className="text-xs text-gray-600 mt-2">Open &amp; in-progress</p>
-          </div>
+          </motion.div>
 
           {/* Quick Links */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition">
+          <motion.div variants={cardEntrance} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 transition">
             <h3 className="font-bold text-gray-900 mb-4">Quick Links</h3>
             <ul className="space-y-2" role="list">
               <li>
@@ -428,9 +456,10 @@ export default function DashboardPage() {
                 </button>
               </li>
             </ul>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+      </MotionConfig>
 
       {/* Detail Drawer */}
       <DetailDrawer

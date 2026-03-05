@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
+import { badgePop, dropdownVariants, listItem, staggerContainer } from '@/lib/animations'
 
 interface NotificationData {
   id: string
@@ -131,15 +133,31 @@ export default function NotificationBell() {
         aria-haspopup="true"
       >
         <Bell className="w-5 h-5 text-slate-200" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
+        <AnimatePresence>
+          {unreadCount > 0 && (
+            <motion.span
+              key="badge"
+              variants={badgePop}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full"
+            >
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </button>
 
+      <AnimatePresence>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-200 rounded-xl shadow-heavy z-dropdown overflow-hidden">
+        <motion.div
+          className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-200 rounded-xl shadow-heavy z-dropdown overflow-hidden"
+          variants={dropdownVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
@@ -195,8 +213,9 @@ export default function NotificationBell() {
               {notifications.length === 0 ? "You're all caught up" : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
             </span>
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }

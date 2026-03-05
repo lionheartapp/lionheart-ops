@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fragment } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { usePathname, useRouter } from 'next/navigation'
@@ -652,19 +653,28 @@ export default function Sidebar({
                   onClick={() => toggleCalendarType(key)}
                   className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
-                  {isExpanded ? (
+                  <motion.span
+                    animate={{ rotate: isExpanded ? 0 : -90 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-flex"
+                  >
                     <ChevronDown className="w-3 h-3" />
-                  ) : (
-                    <ChevronRight className="w-3 h-3" />
-                  )}
+                  </motion.span>
                   {label}
                   <span className="ml-auto text-gray-300 normal-case tracking-normal font-normal text-xs">
                     {cals.length}
                   </span>
                 </button>
               )}
+              <AnimatePresence initial={false}>
               {isExpanded && (
-                <div className="space-y-0.5">
+                <motion.div
+                  className="space-y-0.5 overflow-hidden"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                >
                   {cals.length === 0 && isMySchedule && (
                     <div className="px-3 py-4 text-center">
                       <p className="text-xs text-gray-400">Your personal calendar will appear here</p>
@@ -886,8 +896,9 @@ export default function Sidebar({
                       </Fragment>
                     )
                   })}
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </div>
           )
         })}

@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Search, User, Calendar, Ticket, MapPin, X } from 'lucide-react'
 import { useGlobalSearch, type SearchResults } from '@/lib/hooks/useGlobalSearch'
+import { scaleIn, listItem, staggerContainer } from '@/lib/animations'
 
 interface SearchCommandProps {
   isOpen: boolean
@@ -188,14 +190,24 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 z-lightbox"
+      <motion.div
+        className="fixed inset-0 bg-black/50 z-lightbox backdrop-blur-[2px]"
         onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
       />
 
       {/* Dialog */}
       <div className="fixed inset-0 z-command flex items-start justify-center pt-[15vh] px-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-heavy overflow-hidden">
+        <motion.div
+          className="w-full max-w-lg bg-white rounded-xl shadow-heavy overflow-hidden"
+          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
             <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -285,7 +297,7 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
               close
             </span>
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   )

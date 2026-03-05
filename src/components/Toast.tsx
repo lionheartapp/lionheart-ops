@@ -1,7 +1,9 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
+import { toastSlideIn } from '@/lib/animations'
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info'
 
@@ -67,8 +69,13 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
   }, [t.id, t.duration, onDismiss])
 
   return (
-    <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-medium animate-[slideIn_200ms_ease-out] ${STYLES[t.variant]}`}
+    <motion.div
+      layout
+      variants={toastSlideIn}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-medium ${STYLES[t.variant]}`}
       role="status"
       aria-live="polite"
     >
@@ -92,7 +99,7 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
       >
         <X className="w-4 h-4 opacity-50" />
       </button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -112,13 +119,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ toast }}>
       {children}
       {/* Toast container */}
-      {toasts.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-toast flex flex-col gap-2 max-w-sm" aria-label="Notifications">
+      <div className="fixed bottom-6 right-6 z-toast flex flex-col gap-2 max-w-sm" aria-label="Notifications">
+        <AnimatePresence mode="popLayout">
           {toasts.map((t) => (
             <ToastItem key={t.id} toast={t} onDismiss={dismiss} />
           ))}
-        </div>
-      )}
+        </AnimatePresence>
+      </div>
     </ToastContext.Provider>
   )
 }

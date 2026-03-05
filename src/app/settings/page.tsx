@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, MotionConfig } from 'framer-motion'
+import { fadeInUp, staggerContainer, cardEntrance } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -571,12 +573,18 @@ export default function SettingsPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
+      <MotionConfig reducedMotion="user">
       <div>
               {activeTab === 'profile' && (
-                <div className="space-y-8">
+                <motion.div
+                  className="space-y-8"
+                  initial="hidden"
+                  animate="visible"
+                  variants={staggerContainer(0.08, 0.05)}
+                >
 
                   {/* ── My Profile ─────────────────────────────────────────── */}
-                  <section>
+                  <motion.section variants={cardEntrance}>
                     <h2 className="text-2xl font-semibold text-gray-900">My Profile</h2>
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
 
@@ -655,10 +663,10 @@ export default function SettingsPage() {
                         </button>
                       </div>
                     </form>
-                  </section>
+                  </motion.section>
 
                   {/* ── Account Security ────────────────────────────────────── */}
-                  <section>
+                  <motion.section variants={cardEntrance}>
                     <h3 className="text-2xl font-semibold text-gray-900">Account Security</h3>
                     <div className="h-px bg-gray-200 mt-4 mb-6" />
                     <div className="space-y-6">
@@ -681,7 +689,7 @@ export default function SettingsPage() {
                         </button>
                       </div>
                     </div>
-                  </section>
+                  </motion.section>
 
                   {/* ── Change Password Drawer ──────────────────────────────── */}
                   <DetailDrawer
@@ -756,17 +764,17 @@ export default function SettingsPage() {
                       </div>
                     </form>
                   </DetailDrawer>
-                </div>
+                </motion.div>
               )}
 
               {canManageWorkspace && visitedTabs.has('roles') && (
-                <div className={activeTab === 'roles' ? '' : 'hidden'} aria-hidden={activeTab !== 'roles'}>
+                <div className={activeTab === 'roles' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'roles'}>
                   <RolesTab onDirtyChange={setRolesDirty} />
                 </div>
               )}
 
               {canManageWorkspace && visitedTabs.has('school-info') && (
-                <div className={activeTab === 'school-info' ? '' : 'hidden'} aria-hidden={activeTab !== 'school-info'}>
+                <div className={activeTab === 'school-info' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'school-info'}>
                   <SchoolInfoTab
                     onDirtyChange={setSchoolInfoDirty}
                     onRegisterSave={(handler) => setSchoolInfoSaveHandler(() => handler)}
@@ -776,41 +784,42 @@ export default function SettingsPage() {
               )}
 
               {canManageWorkspace && visitedTabs.has('teams') && (
-                <div className={activeTab === 'teams' ? '' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
+                <div className={activeTab === 'teams' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
                   <TeamsTab onDirtyChange={setTeamsDirty} />
                 </div>
               )}
 
               {canManageWorkspace && visitedTabs.has('users') && (
-                <div className={activeTab === 'users' ? '' : 'hidden'} aria-hidden={activeTab !== 'users'}>
+                <div className={activeTab === 'users' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'users'}>
                   <MembersTab onDirtyChange={setUsersDirty} />
                 </div>
               )}
 
               {canManageWorkspace && visitedTabs.has('campus') && (
-                <div className={activeTab === 'campus' ? '' : 'hidden'} aria-hidden={activeTab !== 'campus'}>
+                <div className={activeTab === 'campus' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'campus'}>
                   <CampusTab onDirtyChange={setCampusDirty} />
                 </div>
               )}
 
               {canManageWorkspace && visitedTabs.has('academic-calendar') && (
-                <div className={activeTab === 'academic-calendar' ? '' : 'hidden'} aria-hidden={activeTab !== 'academic-calendar'}>
+                <div className={activeTab === 'academic-calendar' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'academic-calendar'}>
                   <AcademicCalendarTab />
                 </div>
               )}
 
               {canManageWorkspace && visitedTabs.has('approval-config') && (
-                <div className={activeTab === 'approval-config' ? '' : 'hidden'} aria-hidden={activeTab !== 'approval-config'}>
+                <div className={activeTab === 'approval-config' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'approval-config'}>
                   <ApprovalConfigTab />
                 </div>
               )}
 
               {canManageWorkspace && visitedTabs.has('add-ons') && (
-                <div className={activeTab === 'add-ons' ? '' : 'hidden'} aria-hidden={activeTab !== 'add-ons'}>
+                <div className={activeTab === 'add-ons' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'add-ons'}>
                   <AddOnsTab />
                 </div>
               )}
       </div>
+      </MotionConfig>
 
       <ConfirmDialog
         isOpen={showUnsavedDialog}

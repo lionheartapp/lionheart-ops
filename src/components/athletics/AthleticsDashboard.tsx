@@ -1,8 +1,11 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
 import { queryOptions } from '@/lib/queries'
 import { Trophy, Users, CalendarDays, Dribbble, ArrowRight, Clock, MapPin, ChevronRight, Plus } from 'lucide-react'
+import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import { staggerContainer, cardEntrance, listItem } from '@/lib/animations'
 import type { AthleticsTab } from '@/components/Sidebar'
 
 interface AthleticsDashboardProps {
@@ -129,32 +132,43 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
   const weekDays = getWeekDays(weekSchedule.weekStart)
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={staggerContainer(0.08, 0.05)}
+    >
       {/* Summary Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard
-          icon={Users}
-          label="Teams"
-          value={summary.totalTeams}
-        />
-        <StatCard
-          icon={CalendarDays}
-          label="Games This Week"
-          value={summary.gamesThisWeek}
-        />
-        <div className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-xl p-4 text-center">
+      <motion.div variants={staggerContainer(0.06)} initial="hidden" animate="visible" className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <motion.div variants={cardEntrance}>
+          <StatCard
+            icon={Users}
+            label="Teams"
+            value={summary.totalTeams}
+          />
+        </motion.div>
+        <motion.div variants={cardEntrance}>
+          <StatCard
+            icon={CalendarDays}
+            label="Games This Week"
+            value={summary.gamesThisWeek}
+          />
+        </motion.div>
+        <motion.div variants={cardEntrance} className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-primary-800">
-            {summary.overallRecord.wins}-{summary.overallRecord.losses}
-            {summary.overallRecord.ties > 0 ? `-${summary.overallRecord.ties}` : ''}
+            <AnimatedCounter value={summary.overallRecord.wins} duration={0.6} />-<AnimatedCounter value={summary.overallRecord.losses} duration={0.6} />
+            {summary.overallRecord.ties > 0 && <>-<AnimatedCounter value={summary.overallRecord.ties} duration={0.6} /></>}
           </div>
           <div className="text-xs text-primary-600 mt-1">Overall Record</div>
-        </div>
-        <StatCard
-          icon={Dribbble}
-          label="Active Sports"
-          value={summary.activeSports}
-        />
-      </div>
+        </motion.div>
+        <motion.div variants={cardEntrance}>
+          <StatCard
+            icon={Dribbble}
+            label="Active Sports"
+            value={summary.activeSports}
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -356,7 +370,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -364,7 +378,9 @@ function StatCard({ icon: Icon, label, value }: { icon: typeof Users; label: str
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
       <Icon className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
+      <div className="text-2xl font-bold text-gray-900">
+        <AnimatedCounter value={value} duration={0.6} />
+      </div>
       <div className="text-xs text-gray-500 mt-1">{label}</div>
     </div>
   )

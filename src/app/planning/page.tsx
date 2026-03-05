@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { CalendarDays, Plus } from 'lucide-react'
+import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import PlanningSubmissionForm from '@/components/planning/PlanningSubmissionForm'
 import MySubmissions from '@/components/planning/MySubmissions'
@@ -103,8 +105,14 @@ export default function PlanningPage() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <MotionConfig reducedMotion="user">
+      <motion.div
+        className="space-y-6"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer(0.08, 0.05)}
+      >
+        <motion.div variants={fadeInUp} className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Event Planning</h1>
             <p className="text-sm text-gray-500 mt-1">
@@ -139,7 +147,7 @@ export default function PlanningPage() {
               </button>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {seasonsLoading && (
           <div className="flex items-center justify-center py-20">
@@ -148,7 +156,7 @@ export default function PlanningPage() {
         )}
 
         {!seasonsLoading && !activeSeason && !showCreateSeason && (
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+          <motion.div variants={cardEntrance} className="rounded-xl border border-gray-200 bg-white p-8 text-center">
             <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <h2 className="text-lg font-medium text-gray-700 mb-1">No Planning Seasons</h2>
             <p className="text-sm text-gray-500 mb-4">
@@ -165,12 +173,12 @@ export default function PlanningPage() {
                 Create Planning Season
               </button>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Create Season Form (Admin) */}
         {showCreateSeason && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
+          <motion.div variants={cardEntrance} className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">New Planning Season</h3>
             <FloatingInput
               label="Season Name"
@@ -202,7 +210,7 @@ export default function PlanningPage() {
                 {createSeason.isPending ? 'Creating...' : 'Create Season'}
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Admin View */}
@@ -283,7 +291,8 @@ export default function PlanningPage() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
+      </MotionConfig>
     </DashboardLayout>
   )
 }

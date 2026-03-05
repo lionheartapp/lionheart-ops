@@ -2,7 +2,10 @@
 
 import { ReactNode, useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Search } from 'lucide-react'
+import { dropdownVariants } from '@/lib/animations'
 import Sidebar, { type SidebarProps } from './Sidebar'
 import NotificationBell from './NotificationBell'
 import SearchCommand from './SearchCommand'
@@ -26,6 +29,7 @@ export default function DashboardLayout({
   teamLabel,
   onLogout,
 }: DashboardLayoutProps) {
+  const pathname = usePathname()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -156,8 +160,15 @@ export default function DashboardLayout({
             </button>
 
             {/* Dropdown Menu */}
+            <AnimatePresence>
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-medium z-dropdown overflow-hidden text-gray-800">
+              <motion.div
+                className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-medium z-dropdown overflow-hidden text-gray-800"
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
                 <Link
                   href="/settings"
                   onClick={() => setIsDropdownOpen(false)}
@@ -177,8 +188,9 @@ export default function DashboardLayout({
                     Log Out
                   </button>
                 )}
-              </div>
+              </motion.div>
             )}
+            </AnimatePresence>
           </div>
         </div>
       </header>
@@ -194,13 +206,24 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1 min-w-0 overflow-hidden">
-          <div className="py-4 sm:py-6 lg:py-8 px-4 sm:px-10">
-            {children}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="py-4 sm:py-6 lg:py-8 px-4 sm:px-10"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 
-      <SearchCommand isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <AnimatePresence>
+        {isSearchOpen && <SearchCommand isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}
+      </AnimatePresence>
     </div>
   )
 }
