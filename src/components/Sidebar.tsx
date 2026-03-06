@@ -113,7 +113,9 @@ export default function Sidebar({
   // Facilities nav indicator refs
   const facilitiesContainerRef = useRef<HTMLDivElement | null>(null)
   const facilityIndicatorRef = useRef<HTMLDivElement>(null)
+  const facilityTrailRef = useRef<HTMLDivElement>(null)
   const facilityMeasuredRef = useRef(false)
+  const facilityPosRef = useRef<{ top: number; height: number } | null>(null)
   const [facilityContainerMounted, setFacilityContainerMounted] = useState(false)
 
   // Ref callback: detects when the facilities container mounts/unmounts in the DOM
@@ -274,6 +276,7 @@ export default function Sidebar({
   useEffect(() => {
     if (!facilitiesOpen || !facilityContainerMounted) {
       facilityMeasuredRef.current = false
+      facilityPosRef.current = null
       return
     }
 
@@ -304,6 +307,7 @@ export default function Sidebar({
         indicator.style.top = `${top}px`
         indicator.style.height = `${eRect.height}px`
         indicator.style.opacity = '1'
+        facilityPosRef.current = { top, height: eRect.height }
 
         // Restore transitions after browser paints the position
         requestAnimationFrame(() => {
@@ -314,10 +318,36 @@ export default function Sidebar({
           })
         })
       } else {
-        // Slide to new position with CSS transitions
+        // ── Glow trail: spans from old position to new, then fades out ──
+        const trail = facilityTrailRef.current
+        const prev = facilityPosRef.current
+        if (trail && prev) {
+          const movingDown = top > prev.top
+          const trailTop = Math.min(prev.top, top)
+          const trailBottom = Math.max(prev.top + prev.height, top + eRect.height)
+          const trailHeight = trailBottom - trailTop
+
+          // Position trail instantly covering the full travel path
+          trail.style.transition = 'none'
+          trail.style.top = `${trailTop}px`
+          trail.style.height = `${trailHeight}px`
+          trail.style.opacity = '0.7'
+          // Directional gradient — fades toward the trailing (origin) edge
+          trail.style.background = movingDown
+            ? 'linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 40%, rgba(236,72,153,0.6) 100%)'
+            : 'linear-gradient(0deg, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 40%, rgba(236,72,153,0.6) 100%)'
+          trail.offsetHeight // force reflow
+
+          // Fade trail out
+          trail.style.transition = 'opacity 0.55s ease-out'
+          trail.style.opacity = '0'
+        }
+
+        // Slide main indicator to new position
         indicator.style.top = `${top}px`
         indicator.style.height = `${eRect.height}px`
         indicator.style.opacity = '1'
+        facilityPosRef.current = { top, height: eRect.height }
       }
 
       return true
@@ -696,14 +726,24 @@ export default function Sidebar({
                           {/* Track line */}
                           <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
 
+                          {/* Glow trail — fading afterimage that spans the travel path */}
+                          <div
+                            ref={facilityTrailRef}
+                            className="absolute left-0 w-0.5 rounded-full pointer-events-none"
+                            style={{
+                              opacity: 0,
+                              filter: 'blur(1.5px)',
+                            }}
+                          />
+
                           {/* Animated gradient indicator */}
                           <div
                             ref={facilityIndicatorRef}
                             className="absolute left-0 w-0.5 rounded-full pointer-events-none"
                             style={{
                               background: 'linear-gradient(180deg, #A78BFA 0%, #EC4899 100%)',
-                              boxShadow: '0 0 10px rgba(167, 139, 250, 0.6), 0 0 20px rgba(236, 72, 153, 0.3)',
-                              transition: 'top 0.35s cubic-bezier(0.34, 1.1, 0.64, 1), height 0.35s cubic-bezier(0.34, 1.1, 0.64, 1), opacity 0.2s ease',
+                              boxShadow: '0 0 8px rgba(167, 139, 250, 0.5), 0 0 16px rgba(236, 72, 153, 0.25)',
+                              transition: 'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease',
                               opacity: 0,
                             }}
                           />
