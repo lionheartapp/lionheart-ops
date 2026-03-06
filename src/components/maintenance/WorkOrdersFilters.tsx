@@ -9,7 +9,7 @@ export type MaintenanceStatus =
   | 'IN_PROGRESS'
   | 'ON_HOLD'
   | 'SCHEDULED'
-  | 'QA_REVIEW'
+  | 'QA'
   | 'DONE'
   | 'CANCELLED'
 
@@ -19,10 +19,10 @@ export type MaintenanceCategory =
   | 'ELECTRICAL'
   | 'PLUMBING'
   | 'HVAC'
-  | 'CARPENTRY'
-  | 'PAINTING'
+  | 'STRUCTURAL'
+  | 'CUSTODIAL_BIOHAZARD'
   | 'GROUNDS'
-  | 'CLEANING'
+  | 'IT_AV'
   | 'OTHER'
 
 export interface WorkOrdersFilterState {
@@ -69,7 +69,7 @@ const STATUS_OPTIONS: { value: MaintenanceStatus; label: string }[] = [
   { value: 'IN_PROGRESS', label: 'In Progress' },
   { value: 'ON_HOLD', label: 'On Hold' },
   { value: 'SCHEDULED', label: 'Scheduled' },
-  { value: 'QA_REVIEW', label: 'QA Review' },
+  { value: 'QA', label: 'QA' },
   { value: 'DONE', label: 'Done' },
   { value: 'CANCELLED', label: 'Cancelled' },
 ]
@@ -85,10 +85,10 @@ const CATEGORY_OPTIONS: { value: MaintenanceCategory; label: string }[] = [
   { value: 'ELECTRICAL', label: 'Electrical' },
   { value: 'PLUMBING', label: 'Plumbing' },
   { value: 'HVAC', label: 'HVAC' },
-  { value: 'CARPENTRY', label: 'Carpentry' },
-  { value: 'PAINTING', label: 'Painting' },
+  { value: 'STRUCTURAL', label: 'Structural' },
+  { value: 'CUSTODIAL_BIOHAZARD', label: 'Custodial / Biohazard' },
   { value: 'GROUNDS', label: 'Grounds' },
-  { value: 'CLEANING', label: 'Cleaning' },
+  { value: 'IT_AV', label: 'IT / AV' },
   { value: 'OTHER', label: 'Other' },
 ]
 
