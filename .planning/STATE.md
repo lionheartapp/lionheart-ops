@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 03-02: AI diagnostics panel, PPE safety panel, Anthropic service layer"
-last_updated: "2026-03-06T04:18:47.074Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-06T04:20:46.364Z"
 last_activity: "2026-03-06 — Completed 02-03: Work Orders table, filters, specialty highlighting, and live dashboard stats"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 83
 ---
 
@@ -57,6 +57,7 @@ Progress: [████████░░] 83%
 | Phase 02-core-tickets P03 | 6min | 2 tasks | 5 files |
 | Phase 02-core-tickets P04 | 25min | 2 tasks | 10 files |
 | Phase 03-kanban-ai P02 | 18min | 2 tasks | 8 files |
+| Phase 03-kanban-ai P01 | 25min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 03-kanban-ai]: Anthropic claude-sonnet-4-5 model used (not Gemini) per project decision — pinned model for maintenance AI diagnostics
 - [Phase 03-kanban-ai]: AI cache stored in existing MaintenanceTicket.aiAnalysis Json? field — no schema change needed for Phase 03
 - [Phase 03-kanban-ai]: MAINTENANCE_CLAIM permission guards both AI routes — technicians and heads can use AI, submitter-only users cannot
+- [Phase 03-kanban-ai]: Client-safe maintenance-transitions.ts: importing maintenanceTicketService pulls mjml/fs server deps into client bundle — created separate lightweight file
+- [Phase 03-kanban-ai]: Fixed WorkOrdersFilters enum mismatches: QA_REVIEW->QA, CARPENTRY->STRUCTURAL, PAINTING->CUSTODIAL_BIOHAZARD, CLEANING->IT_AV to match Prisma schema
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T04:18:47.072Z
-Stopped at: Completed 03-02: AI diagnostics panel, PPE safety panel, Anthropic service layer
+Last session: 2026-03-06T04:20:46.362Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None

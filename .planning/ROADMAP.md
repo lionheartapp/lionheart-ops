@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Schema, permissions, org-scope registration, module gate, and navigation shell (completed 2026-03-06)
 - [x] **Phase 2: Core Tickets** - Mobile-first ticket submission, 8-status lifecycle, specialty routing, and all notifications (completed 2026-03-06)
-- [ ] **Phase 3: Kanban & AI** - Drag-and-drop Kanban board with all views, AI photo diagnosis, and activity feed
+- [x] **Phase 3: Kanban & AI** - Drag-and-drop Kanban board with all views, AI photo diagnosis, and activity feed (completed 2026-03-06)
 - [ ] **Phase 4: Assets, QR & PM** - Asset register, QR codes, preventive maintenance scheduling, and labor/cost tracking
 - [ ] **Phase 5: Analytics & Repair Intelligence** - Operational analytics dashboard and repeat repair detection
 - [ ] **Phase 6: Compliance & Board Reporting** - 10-domain compliance calendar and FCI board reports with AI narrative
@@ -151,7 +151,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete   | 2026-03-06 |
 | 2. Core Tickets | 4/4 | Complete   | 2026-03-06 |
-| 3. Kanban & AI | 1/2 | In Progress|  |
+| 3. Kanban & AI | 2/2 | Complete   | 2026-03-06 |
 | 4. Assets, QR & PM | 0/3 | Not started | - |
 | 5. Analytics & Repair Intelligence | 0/2 | Not started | - |
 | 6. Compliance & Board Reporting | 0/3 | Not started | - |

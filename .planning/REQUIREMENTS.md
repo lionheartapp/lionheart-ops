@@ -31,14 +31,14 @@
 
 ### Kanban Board (BOARD)
 
-- [ ] **BOARD-01**: Kanban board displays columns mapping 1:1 to ticket statuses
-- [ ] **BOARD-02**: Drag-and-drop moves tickets between columns with role-based validation
-- [ ] **BOARD-03**: "My Board" view shows only tickets assigned to current technician
-- [ ] **BOARD-04**: "Campus Board" view shows all tickets for one campus (Head/Admin only)
-- [ ] **BOARD-05**: "All Campuses" view shows cross-campus tickets with filtering (Head/Admin only)
-- [ ] **BOARD-06**: Ticket cards show: ID, title, location, priority badge, category tag, assigned tech, age, photo/AI indicators
-- [ ] **BOARD-07**: Backlog filters: specialty, priority, campus, technician, date range, keyword search, unassigned toggle
-- [ ] **BOARD-08**: SCHEDULED tickets shown in separate view, not in main backlog
+- [x] **BOARD-01**: Kanban board displays columns mapping 1:1 to ticket statuses
+- [x] **BOARD-02**: Drag-and-drop moves tickets between columns with role-based validation
+- [x] **BOARD-03**: "My Board" view shows only tickets assigned to current technician
+- [x] **BOARD-04**: "Campus Board" view shows all tickets for one campus (Head/Admin only)
+- [x] **BOARD-05**: "All Campuses" view shows cross-campus tickets with filtering (Head/Admin only)
+- [x] **BOARD-06**: Ticket cards show: ID, title, location, priority badge, category tag, assigned tech, age, photo/AI indicators
+- [x] **BOARD-07**: Backlog filters: specialty, priority, campus, technician, date range, keyword search, unassigned toggle
+- [x] **BOARD-08**: SCHEDULED tickets shown in separate view, not in main backlog
 
 ### Ticket Lifecycle (LIFE)
 
@@ -293,14 +293,14 @@ Updated during roadmap creation — 2026-03-05.
 | NOTIF-09 | Phase 2 | Complete |
 | NOTIF-10 | Phase 2 | Complete |
 | NOTIF-11 | Phase 2 | Complete |
-| BOARD-01 | Phase 3 | Pending |
-| BOARD-02 | Phase 3 | Pending |
-| BOARD-03 | Phase 3 | Pending |
-| BOARD-04 | Phase 3 | Pending |
-| BOARD-05 | Phase 3 | Pending |
-| BOARD-06 | Phase 3 | Pending |
-| BOARD-07 | Phase 3 | Pending |
-| BOARD-08 | Phase 3 | Pending |
+| BOARD-01 | Phase 3 | Complete |
+| BOARD-02 | Phase 3 | Complete |
+| BOARD-03 | Phase 3 | Complete |
+| BOARD-04 | Phase 3 | Complete |
+| BOARD-05 | Phase 3 | Complete |
+| BOARD-06 | Phase 3 | Complete |
+| BOARD-07 | Phase 3 | Complete |
+| BOARD-08 | Phase 3 | Complete |
 | AI-01 | Phase 3 | Complete |
 | AI-02 | Phase 3 | Complete |
 | AI-03 | Phase 3 | Complete |
