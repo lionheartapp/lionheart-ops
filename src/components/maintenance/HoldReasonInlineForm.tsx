@@ -83,7 +83,7 @@ export default function HoldReasonInlineForm({
           <select
             value={holdReason}
             onChange={(e) => setHoldReason(e.target.value as HoldReason | '')}
-            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 cursor-pointer"
           >
             <option value="">Select a reason...</option>
             {HOLD_REASON_OPTIONS.map((opt) => (
@@ -109,7 +109,7 @@ export default function HoldReasonInlineForm({
             onChange={(e) => setHoldNote(e.target.value)}
             placeholder="Add context for the team..."
             rows={2}
-            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder:text-gray-400"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 placeholder:text-gray-400"
           />
         </div>
 

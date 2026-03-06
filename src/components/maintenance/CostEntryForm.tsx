@@ -151,7 +151,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
           }}
           onFocus={() => setShowVendorDropdown(true)}
           placeholder="e.g. Home Depot, Grainger..."
-          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
+          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-gray-400"
           autoComplete="off"
         />
         {showVendorDropdown && filteredVendors.length > 0 && (
@@ -183,7 +183,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g. PVC fittings, replacement belt..."
-          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
+          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-gray-400"
         />
       </div>
 
@@ -201,7 +201,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="w-full pl-7 pr-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
+            className="w-full pl-7 pr-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-gray-400"
           />
         </div>
       </div>

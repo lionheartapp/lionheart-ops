@@ -610,7 +610,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleChangeImageClick}
                           disabled={avatarUpdating}
-                          className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           {avatarUpdating ? 'Uploading...' : '+ Change Image'}
                         </button>
@@ -618,7 +618,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleRemoveAvatar}
                           disabled={avatarUpdating || !displayAvatar}
-                          className="px-5 py-2.5 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          className="px-5 py-2.5 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           Remove Image
                         </button>
@@ -657,7 +657,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={profileSaving}
-                          className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -683,7 +683,7 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={openChangePassword}
-                          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           Change password
                         </button>
@@ -749,7 +749,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={passwordSaving || passwordSuccess}
-                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           {passwordSaving ? 'Saving...' : 'Update Password'}
                         </button>
@@ -757,7 +757,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={closeChangePassword}
                           disabled={passwordSaving}
-                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           Cancel
                         </button>
@@ -837,7 +837,7 @@ export default function SettingsPage() {
               label: 'Discard & Leave',
               onClick: handleDiscardAndLeave,
               className:
-                'flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition',
+                'flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition',
             }
           : undefined}
       />

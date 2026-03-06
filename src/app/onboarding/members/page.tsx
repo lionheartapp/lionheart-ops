@@ -280,7 +280,7 @@ export default function MembersPage() {
                   setSelectedOption('csv')
                   setCsvError('')
                 }}
-                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
@@ -312,7 +312,7 @@ export default function MembersPage() {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedOption('manual')}
-                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
@@ -461,7 +461,7 @@ export default function MembersPage() {
                 <button
                   onClick={handleImportMembers}
                   disabled={importing}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-subtle flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-subtle flex items-center justify-center gap-2"
                 >
                   {importing && <Loader2 className="w-4 h-4 animate-spin" />}
                   Import {members.length} member{members.length !== 1 ? 's' : ''}
@@ -510,7 +510,7 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="John Smith"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 ui-input focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-all"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
                   />
                 </div>
                 <div className="flex-1">
@@ -529,7 +529,7 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="john@school.edu"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 ui-input focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-all"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
                   />
                 </div>
                 <div className="flex items-end">
@@ -596,7 +596,7 @@ export default function MembersPage() {
               <button
                 onClick={handleImportMembers}
                 disabled={importing}
-                className="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-subtle flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-subtle flex items-center justify-center gap-2"
               >
                 {importing && <Loader2 className="w-4 h-4 animate-spin" />}
                 Invite {members.length} member{members.length !== 1 ? 's' : ''}

@@ -421,7 +421,7 @@ export default function SetupPage() {
       >
         <motion.button
           onClick={handleGoToDashboard}
-          className="px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
+          className="px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -431,7 +431,7 @@ export default function SetupPage() {
           href="https://help.lionheartapp.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-8 py-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition flex items-center justify-center gap-2"
+          className="px-8 py-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition flex items-center justify-center gap-2"
         >
           View Help & Docs
           <ExternalLink className="w-4 h-4" />

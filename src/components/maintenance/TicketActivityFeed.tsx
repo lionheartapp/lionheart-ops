@@ -290,7 +290,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
           onChange={(e) => setComment(e.target.value)}
           placeholder="Add a comment..."
           rows={3}
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 placeholder:text-gray-400 transition-colors"
+          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus:border-primary-400 placeholder:text-gray-400 transition-colors"
         />
 
         <div className="flex items-center justify-between gap-3">
@@ -301,7 +301,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
                 type="checkbox"
                 checked={isInternal}
                 onChange={(e) => setIsInternal(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600 focus:ring-purple-400 cursor-pointer"
+                className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600 focus-visible:ring-purple-400 cursor-pointer"
               />
               <Lock className="w-3 h-3 text-purple-500" />
               Internal note (not visible to submitter)

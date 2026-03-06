@@ -141,7 +141,7 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
         onKeyDown={handleKeyDown}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-center gap-1.5 min-h-0 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400"
+        className="flex items-center gap-1.5 min-h-0 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
       >
         {currentLabel}
         <ChevronDown className="w-3 h-3 text-gray-400" />
@@ -249,7 +249,7 @@ function LocationCombobox({
         value={query}
         onChange={handleInputChange}
         onFocus={() => { if (query.length > 0 || locations.length > 0) setOpen(true) }}
-        className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10"
+        className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10"
         aria-label="Event location"
         aria-autocomplete="list"
       />
@@ -600,7 +600,7 @@ export default function EventCreatePanel({
                         <button
                           type="button"
                           onClick={() => setShowNewCategory(false)}
-                          className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           Cancel
                         </button>
@@ -611,7 +611,7 @@ export default function EventCreatePanel({
                         aria-label="Category name"
                         value={newCatName}
                         onChange={(e) => setNewCatName(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900"
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 focus:border-gray-900"
                         autoFocus
                       />
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -620,7 +620,7 @@ export default function EventCreatePanel({
                             key={c}
                             type="button"
                             onClick={() => setNewCatColor(c)}
-                            className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-400"
+                            className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary-400"
                             style={{ backgroundColor: c }}
                             aria-label={COLOR_NAMES[c] || c}
                           >
@@ -687,7 +687,7 @@ export default function EventCreatePanel({
                       <button
                         type="button"
                         onClick={() => safePick(startDateRef)}
-                        className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        className="text-sm text-gray-900 cursor-pointer hover:text-gray-600 bg-transparent border-0 p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                       >
                         {formatDateDisplay(startDate)}
                       </button>
@@ -716,7 +716,7 @@ export default function EventCreatePanel({
                       <button
                         type="button"
                         onClick={() => safePick(endDateAddRef)}
-                        className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        className="text-xs text-gray-400 cursor-pointer hover:text-gray-500 bg-transparent border-0 p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                       >
                         + end date
                       </button>

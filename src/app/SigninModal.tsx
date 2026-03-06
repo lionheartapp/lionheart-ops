@@ -108,7 +108,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
             <button
               type="submit"
               disabled={loading || !subdomain.trim()}
-              className="w-full mt-6 px-4 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full mt-6 px-4 py-3 min-h-[44px] bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
@@ -118,7 +118,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="w-full px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
+              className="w-full px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition"
             >
               Cancel
             </button>
@@ -133,7 +133,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
                 onClose()
                 // Will need to trigger signup modal from parent
               }}
-              className="w-full mt-2 px-4 py-3 min-h-[44px] text-primary-600 font-medium hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded transition"
+              className="w-full mt-2 px-4 py-3 min-h-[44px] text-primary-600 font-medium hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded transition"
             >
               Sign Up Here
             </button>

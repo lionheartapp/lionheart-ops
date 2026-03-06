@@ -1474,7 +1474,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                             aria-label="Room number"
                             value={editRoomData.roomNumber}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, roomNumber: e.target.value }))}
-                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
                             disabled={editRoomSaving}
                             autoFocus
                           />
@@ -1485,7 +1485,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                             value={editRoomData.displayName}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, displayName: e.target.value }))}
                             placeholder="optional"
-                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
                             disabled={editRoomSaving}
                           />
                         </td>
@@ -1495,7 +1495,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                             value={editRoomData.floor}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, floor: e.target.value }))}
                             placeholder="optional"
-                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
                             disabled={editRoomSaving}
                           />
                         </td>
@@ -1705,7 +1705,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               value={addCampusForm.address}
               onChange={(val) => setAddCampusForm((p) => ({ ...p, address: val }))}
               placeholder=" "
-              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10"
+              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10"
             />
             <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none">
               Address (optional)
@@ -1763,7 +1763,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               value={editCampusForm.address}
               onChange={(val) => setEditCampusForm((p) => ({ ...p, address: val }))}
               placeholder=" "
-              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10"
+              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10"
             />
             <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none">
               Address (optional)

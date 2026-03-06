@@ -206,7 +206,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
             placeholder="Search tournaments..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
+            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
           />
         </div>
         <div className="w-full sm:w-44">

@@ -50,7 +50,7 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Schedule gym Friday 3pm for basketball practice"
             aria-label="Describe your event"
-            className="h-32 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white placeholder-zinc-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="h-32 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white placeholder-zinc-500 focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             disabled={stage !== 'input'}
           />
 

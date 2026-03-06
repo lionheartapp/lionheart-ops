@@ -217,7 +217,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                   onClick={() => onDateClick(date)}
                   onKeyDown={(e) => handleGridKeyDown(e, date)}
                   onFocus={() => setFocusedDate(date)}
-                  className={`border-r border-b border-gray-100 last:border-r-0 p-2 cursor-pointer hover:bg-gray-50/50 transition-colors flex flex-col overflow-hidden focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 ${
+                  className={`border-r border-b border-gray-100 last:border-r-0 p-2 cursor-pointer hover:bg-gray-50/50 transition-colors flex flex-col overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
                     !isCurrentMonth ? 'bg-gray-50/40' : ''
                   }`}
                 >

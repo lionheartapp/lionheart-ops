@@ -54,7 +54,7 @@ export default function SigninPage() {
       >
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
-          <Link href="/" className="inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded">
+          <Link href="/" className="inline-block mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded">
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
@@ -87,7 +87,7 @@ export default function SigninPage() {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="w-full px-4 py-2.5 pr-44 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                  className="w-full px-4 py-2.5 pr-44 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                   required
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
@@ -108,7 +108,7 @@ export default function SigninPage() {
             <button
               type="submit"
               disabled={loading || !subdomain.trim()}
-              className="w-full px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}

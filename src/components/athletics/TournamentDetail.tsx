@@ -278,7 +278,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleTeam(team.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
                         <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
@@ -334,7 +334,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleTeam(team.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
                         <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />

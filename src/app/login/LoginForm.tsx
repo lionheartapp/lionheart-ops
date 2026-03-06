@@ -96,7 +96,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900/10 transition-colors"
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
             required
             autoComplete="email"
             autoFocus
@@ -114,7 +114,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900/10 transition-colors"
+              className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
               required
               autoComplete="current-password"
             />
@@ -141,7 +141,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-full bg-gray-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-full bg-gray-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? 'Signing in...' : `Sign in to ${organizationName}`}
       </button>

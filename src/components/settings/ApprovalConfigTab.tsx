@@ -107,7 +107,7 @@ export default function ApprovalConfigTab() {
           <button
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 disabled:opacity-50 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 disabled:opacity-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           >
             {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
           </button>
@@ -137,7 +137,7 @@ export default function ApprovalConfigTab() {
                       aria-label="Approval mode"
                       value={config.mode}
                       onChange={(e) => updateConfig(channel.type, 'mode', e.target.value)}
-                      className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900/10"
+                      className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10"
                     >
                       {MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
@@ -148,7 +148,7 @@ export default function ApprovalConfigTab() {
                           aria-label="Assigned team"
                           value={config.assignedTeamId || ''}
                           onChange={(e) => updateConfig(channel.type, 'assignedTeamId', e.target.value || null)}
-                          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900/10"
+                          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10"
                         >
                           <option value="">No team assigned</option>
                           {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -162,7 +162,7 @@ export default function ApprovalConfigTab() {
                             onChange={(e) => updateConfig(channel.type, 'escalationHours', parseInt(e.target.value) || 72)}
                             min={1}
                             max={720}
-                            className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900/10"
+                            className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10"
                           />
                           <span className="text-xs text-gray-500">hrs</span>
                         </div>

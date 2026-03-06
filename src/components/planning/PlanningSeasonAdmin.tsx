@@ -322,7 +322,7 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
               onChange={(e) => setReviewNotes(e.target.value)}
               placeholder="Add review notes..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent resize-none"
             />
           </div>
         </ConfirmDialog>

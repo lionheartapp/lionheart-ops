@@ -59,7 +59,7 @@ export default function CancellationNotifyDialog({ isOpen, onClose }: Cancellati
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Add a message (optional)"
                 aria-label="Cancellation message"
-                className="mt-3 w-full px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900 resize-none"
+                className="mt-3 w-full px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 focus:border-gray-900 resize-none"
                 rows={2}
               />
             </div>

@@ -149,7 +149,7 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
                         placeholder="Brief summary of the issue"
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-gray-400"
+                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-gray-400"
                         required
                       />
                     </div>
@@ -165,7 +165,7 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Describe the bug: what you expected vs. what happened, and any steps to reproduce it."
                         rows={4}
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-gray-400 resize-none"
+                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-gray-400 resize-none"
                         required
                       />
                     </div>

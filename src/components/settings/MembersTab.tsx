@@ -141,7 +141,7 @@ function TeamMultiSelect({
         type="button"
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
-        className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-left text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 ${
+        className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-left text-sm focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:bg-gray-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 ${
           selectedIds.length === 0 ? 'text-gray-400' : 'text-gray-900'
         }`}
         style={{ minHeight: '40px' }}
@@ -191,7 +191,7 @@ function TeamMultiSelect({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search teams…"
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 style={{ minHeight: 'auto' }}
               />
             </div>

@@ -267,7 +267,7 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
                 type="checkbox"
                 checked={showAll}
                 onChange={(e) => setShowAll(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 cursor-pointer"
+                className="w-4 h-4 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400 cursor-pointer"
               />
               Show all (including other specialties)
             </label>

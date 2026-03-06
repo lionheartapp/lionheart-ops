@@ -156,7 +156,7 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
               type="checkbox"
               checked={form.isCurrent}
               onChange={(e) => setForm({ ...form, isCurrent: e.target.checked })}
-              className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+              className="rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
             />
             Mark as current season
           </label>

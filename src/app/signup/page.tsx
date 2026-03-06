@@ -145,7 +145,7 @@ export default function SignupPage() {
       >
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
-          <Link href="/" className="inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded">
+          <Link href="/" className="inline-block mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded">
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
@@ -208,7 +208,7 @@ export default function SignupPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sarah Mitchell"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -224,7 +224,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g., sarah@mitchell.edu"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -240,7 +240,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min 8 characters"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -256,7 +256,7 @@ export default function SignupPage() {
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
                 placeholder="e.g., Mitchell Academy"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -272,7 +272,7 @@ export default function SignupPage() {
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="e.g., mitchell.edu"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
               />
               <p className="text-xs text-gray-500 mt-1">

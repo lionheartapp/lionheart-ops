@@ -1,0 +1,207 @@
+{
+  "bugs": [
+    {
+      "severity": "MEDIUM",
+      "title": "Campus picker not visible on calendar",
+      "description": "No campus selector found on calendar page",
+      "page": "calendar"
+    },
+    {
+      "severity": "HIGH",
+      "title": "My Profile tab not found in settings",
+      "description": "Cannot find profile tab",
+      "page": "settings"
+    },
+    {
+      "severity": "HIGH",
+      "title": "Team \"Maintenance\" missing from teams list",
+      "description": "Expected to see Maintenance in the teams table",
+      "page": "settings/teams"
+    },
+    {
+      "severity": "MEDIUM",
+      "title": "Notification bell click did not open panel",
+      "description": "Bell icon clicked but no panel appeared",
+      "page": "notifications"
+    }
+  ],
+  "uxIssues": [
+    {
+      "title": "No visible \"Add Event\" button on calendar",
+      "description": "Consider adding a prominent CTA button",
+      "page": "calendar"
+    },
+    {
+      "title": "No team type badges visible",
+      "description": "Teams should show type badges",
+      "page": "settings/teams"
+    },
+    {
+      "title": "Academic Calendar tab not found",
+      "description": "Expected Academic Calendar settings tab",
+      "page": "settings"
+    }
+  ],
+  "working": [
+    {
+      "title": "Login page renders correctly with email/password fields",
+      "page": "login"
+    },
+    {
+      "title": "Login successful - redirected away from login page",
+      "page": "login"
+    },
+    {
+      "title": "Sidebar navigation visible",
+      "page": "dashboard"
+    },
+    {
+      "title": "Dashboard content loaded (no lingering skeletons)",
+      "page": "dashboard"
+    },
+    {
+      "title": "Calendar page navigates correctly",
+      "page": "calendar"
+    },
+    {
+      "title": "Calendar view buttons present (13 found)",
+      "page": "calendar"
+    },
+    {
+      "title": "Calendar week view works",
+      "page": "calendar"
+    },
+    {
+      "title": "Athletics page navigates correctly",
+      "page": "athletics"
+    },
+    {
+      "title": "Athletics Sports tab visible and clickable",
+      "page": "athletics"
+    },
+    {
+      "title": "Athletics Teams tab visible and clickable",
+      "page": "athletics"
+    },
+    {
+      "title": "Athletics Schedule tab visible and clickable",
+      "page": "athletics"
+    },
+    {
+      "title": "Athletics Roster tab visible and clickable",
+      "page": "athletics"
+    },
+    {
+      "title": "Athletics Tournaments tab visible and clickable",
+      "page": "athletics"
+    },
+    {
+      "title": "Athletics Stats tab visible and clickable",
+      "page": "athletics"
+    },
+    {
+      "title": "School Information tab accessible",
+      "page": "settings/school-info"
+    },
+    {
+      "title": "Roles tab accessible",
+      "page": "settings/roles"
+    },
+    {
+      "title": "Role \"Super Admin\" visible in roles list",
+      "page": "settings/roles"
+    },
+    {
+      "title": "Role \"Administrator\" visible in roles list",
+      "page": "settings/roles"
+    },
+    {
+      "title": "Role \"Teacher\" visible in roles list",
+      "page": "settings/roles"
+    },
+    {
+      "title": "Role \"Member\" visible in roles list",
+      "page": "settings/roles"
+    },
+    {
+      "title": "Role \"Viewer\" visible in roles list",
+      "page": "settings/roles"
+    },
+    {
+      "title": "System badge present on 5 role(s)",
+      "page": "settings/roles"
+    },
+    {
+      "title": "Create role dialog opens",
+      "page": "settings/roles"
+    },
+    {
+      "title": "Teams tab accessible",
+      "page": "settings/teams"
+    },
+    {
+      "title": "Team \"IT Support\" visible in teams list",
+      "page": "settings/teams"
+    },
+    {
+      "title": "Team \"A/V Production\" visible in teams list",
+      "page": "settings/teams"
+    },
+    {
+      "title": "Team \"Administration\" visible in teams list",
+      "page": "settings/teams"
+    },
+    {
+      "title": "Members tab accessible",
+      "page": "settings/members"
+    },
+    {
+      "title": "Members list populated",
+      "page": "settings/members"
+    },
+    {
+      "title": "Invite member button visible",
+      "page": "settings/members"
+    },
+    {
+      "title": "Invite member dialog opens",
+      "page": "settings/members"
+    },
+    {
+      "title": "Campus tab accessible",
+      "page": "settings/campus"
+    },
+    {
+      "title": "Add Building button visible",
+      "page": "settings/campus"
+    },
+    {
+      "title": "Add-ons tab accessible",
+      "page": "settings/addons"
+    },
+    {
+      "title": "Athletics module visible in Add-ons",
+      "page": "settings/addons"
+    },
+    {
+      "title": "Global search dialog opens with Cmd+K",
+      "page": "search"
+    },
+    {
+      "title": "No JavaScript console errors detected",
+      "page": "browser-console"
+    }
+  ],
+  "info": [
+    "Dashboard has 0 card/widget elements",
+    "Calendar sidebar has 8 items",
+    "Athletics page has 0 select/combobox elements",
+    "Members list has 29 member rows visible",
+    "Role dropdown content: Default role",
+    "Campus table has 29 rows",
+    "Found 36 potentially indented elements in campus",
+    "Search returned 40 result elements",
+    "Tabbed through first two elements to check focus rings",
+    "Sidebar overflow: visible / visible / visible"
+  ]
+}

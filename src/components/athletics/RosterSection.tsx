@@ -289,7 +289,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search players..."
-            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 transition-colors"
+            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
           />
         </div>
 

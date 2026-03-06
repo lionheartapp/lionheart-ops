@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "mobile-android-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "03ea37d709b89168792e8ea59e1344cf0b695967d2c66651011fa99bc36ef6e4"
+    },
+    "mobile-design": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "63843b274e951c940fcd408ba39a8800489fe0b9eeff4fe6bda39478bc4f662d"
+    },
+    "mobile-ios-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "b7652af80989c86dd8945a89c6cb188acf6de8a3ca2205c427adf2ed478e63c3"
+    },
+    "mobile-touch": {
+      "source": "dylantarre/animation-principles",
+      "sourceType": "github",
+      "computedHash": "0675004b7f955c8cbcd8a8bb16aafa3fb56a05fd4a01f9895c1246f1e915970a"
+    },
+    "senior-mobile": {
+      "source": "borghei/claude-skills",
+      "sourceType": "github",
+      "computedHash": "a2beea69021a3620077b2652dd598418edfb86241fc8fe440406fadc0b7ebde0"
+    },
+    "sleek-design-mobile-apps": {
+      "source": "sleekdotdesign/agent-skills",
+      "sourceType": "github",
+      "computedHash": "344009860c9d6f527b22695696c766cf153a3c90028a51119d08779b530067f0"
+    },
+    "tailwindcss-mobile-first": {
+      "source": "josiahsiegel/claude-plugin-marketplace",
+      "sourceType": "github",
+      "computedHash": "9caf8e2089086a5f67150065921e3137ef4e010565e21f0d179a45650b0c126d"
+    }
+  }
+}

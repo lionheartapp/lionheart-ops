@@ -136,7 +136,7 @@ export function ComplianceSetupWizard({
                   <button
                     type="button"
                     onClick={() => setIsEnabled(!isEnabled)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                       isEnabled ? 'bg-primary-600' : 'bg-gray-200'
                     }`}
                     role="switch"
@@ -170,7 +170,7 @@ export function ComplianceSetupWizard({
                       <select
                         value={customMonth}
                         onChange={(e) => setCustomMonth(e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                       >
                         {MONTH_NAMES.slice(1).map((name, i) => (
                           <option key={i + 1} value={i + 1}>
@@ -188,7 +188,7 @@ export function ComplianceSetupWizard({
                         value={customDay}
                         onChange={(e) => setCustomDay(e.target.value)}
                         placeholder={meta.defaultDay.toString()}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                       />
                     </div>
                   </div>
@@ -205,7 +205,7 @@ export function ComplianceSetupWizard({
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Inspector contact info, local requirements, etc."
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 resize-none"
                 />
               </div>
 

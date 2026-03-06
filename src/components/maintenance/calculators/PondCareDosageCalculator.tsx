@@ -84,7 +84,7 @@ export default function PondCareDosageCalculator() {
             value={volume}
             onChange={(e) => setVolume(e.target.value)}
             placeholder="e.g. 10000"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
           />
         </div>
 
@@ -100,7 +100,7 @@ export default function PondCareDosageCalculator() {
             value={concentration}
             onChange={(e) => setConcentration(e.target.value)}
             placeholder="e.g. 47.5"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
           />
         </div>
 
@@ -115,7 +115,7 @@ export default function PondCareDosageCalculator() {
             value={targetPpm}
             onChange={(e) => setTargetPpm(e.target.value)}
             placeholder="e.g. 1.0"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
           />
         </div>
       </div>

@@ -161,7 +161,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                     type="date"
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                   />
                 </div>
                 <div>
@@ -170,7 +170,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                     type="date"
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                   />
                 </div>
               </div>
@@ -182,7 +182,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                   <select
                     value={schoolId}
                     onChange={(e) => setSchoolId(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                   >
                     <option value="">All Schools</option>
                     {schools.map((s) => (
@@ -198,7 +198,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                 <select
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                 >
                   <option value="">All Domains</option>
                   {COMPLIANCE_DOMAINS.map((d) => (

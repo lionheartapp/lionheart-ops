@@ -264,7 +264,7 @@ export default function AnalyticsDashboard() {
             <select
               value={selectedCampusId}
               onChange={(e) => setSelectedCampusId(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
             >
               <option value="">All Campuses</option>
               {campuses.map((c) => (

@@ -247,7 +247,7 @@ export default function WorkOrdersFilters({
           type="checkbox"
           checked={filters.unassigned}
           onChange={(e) => update({ unassigned: e.target.checked })}
-          className="w-3.5 h-3.5 rounded border-gray-300 text-gray-900 focus:ring-gray-400 cursor-pointer"
+          className="w-3.5 h-3.5 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400 cursor-pointer"
         />
         Unassigned only
       </label>

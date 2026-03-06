@@ -66,15 +66,15 @@ export default function ConfirmDialog({
   const variantStyles = {
     danger: {
       icon: 'bg-red-100 text-red-600',
-      button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+      button: 'bg-red-600 hover:bg-red-700 focus-visible:ring-red-500',
     },
     warning: {
       icon: 'bg-yellow-100 text-yellow-600',
-      button: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
+      button: 'bg-yellow-600 hover:bg-yellow-700 focus-visible:ring-yellow-500',
     },
     info: {
       icon: 'bg-primary-100 text-primary-600',
-      button: 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500',
+      button: 'bg-primary-600 hover:bg-primary-700 focus-visible:ring-primary-500',
     },
   }
 
@@ -140,7 +140,7 @@ export default function ConfirmDialog({
                 <input
                   value={confirmInput}
                   onChange={(event) => setConfirmInput(event.target.value)}
-                  className="mt-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  className="mt-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
                   placeholder={requireText}
                 />
                 <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3">
@@ -156,7 +156,7 @@ export default function ConfirmDialog({
                     type="button"
                     onClick={onConfirm}
                     disabled={isLoading || !canConfirm}
-                    className={`flex-1 px-5 py-2.5 text-sm font-semibold text-white rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${styles.button}`}
+                    className={`flex-1 px-5 py-2.5 text-sm font-semibold text-white rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${styles.button}`}
                   >
                     {isLoading ? loadingText : confirmText}
                   </button>

@@ -152,7 +152,7 @@ export function GenerateReportDialog({
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(Number(e.target.value))}
                       disabled={loading}
-                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:opacity-60"
+                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
                     >
                       {months.map((m) => (
                         <option key={m.value} value={m.value}>
@@ -164,7 +164,7 @@ export function GenerateReportDialog({
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(Number(e.target.value))}
                       disabled={loading}
-                      className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:opacity-60"
+                      className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
                     >
                       {years.map((y) => (
                         <option key={y} value={y}>

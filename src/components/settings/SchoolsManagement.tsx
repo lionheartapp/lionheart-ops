@@ -749,7 +749,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                     key={c.value}
                     type="button"
                     onClick={() => setForm((prev) => ({ ...prev, color: c.value }))}
-                    className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400"
+                    className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400"
                     style={{ backgroundColor: c.value }}
                     title={c.name}
                   >

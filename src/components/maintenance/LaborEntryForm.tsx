@@ -152,7 +152,7 @@ export default function LaborEntryForm({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             />
           </div>
           <div>
@@ -161,7 +161,7 @@ export default function LaborEntryForm({
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             />
           </div>
           <div>
@@ -170,7 +170,7 @@ export default function LaborEntryForm({
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             />
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function LaborEntryForm({
             value={durationInput}
             onChange={(e) => setDurationInput(e.target.value)}
             placeholder="e.g. 1.5 for 1h 30m"
-            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
           />
         </div>
       )}
@@ -204,7 +204,7 @@ export default function LaborEntryForm({
           <select
             value={technicianId}
             onChange={(e) => setTechnicianId(e.target.value)}
-            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 cursor-pointer"
           >
             {technicians.map((t) => (
               <option key={t.id} value={t.id}>
@@ -223,7 +223,7 @@ export default function LaborEntryForm({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Optional: describe work performed..."
           rows={2}
-          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
+          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-gray-400"
         />
       </div>
 

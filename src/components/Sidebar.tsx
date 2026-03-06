@@ -505,7 +505,7 @@ export default function Sidebar({
                     setIsOpen(false)
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
-                  className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                  className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                     active && !settingsOpen && !athleticsOpen
                       ? 'bg-white/10 text-white font-medium border border-white/20'
                       : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
@@ -540,7 +540,7 @@ export default function Sidebar({
                   queryClient.prefetchQuery(queryOptions.modules()).catch(() => {})
                   queryClient.prefetchQuery(queryOptions.calendars()).catch(() => {})
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                   athleticsOpen
                     ? 'bg-white/10 text-white font-medium border border-white/20'
                     : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
@@ -572,7 +572,7 @@ export default function Sidebar({
                         setAthleticsOpen(false)
                         setIsOpen(false)
                       }}
-                      className={`flex-1 flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                      className={`flex-1 flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                         pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen
                           ? 'bg-white/10 text-white font-medium border border-white/20'
                           : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
@@ -633,7 +633,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/work-orders'
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -660,7 +660,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname.includes('my-requests')
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -687,7 +687,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/assets'
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -715,7 +715,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/pm-calendar'
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -743,7 +743,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/analytics'
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -771,7 +771,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/compliance'
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -799,7 +799,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/board-report'
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -827,7 +827,7 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname.startsWith('/maintenance/knowledge-base')
                                     ? 'text-primary-400 font-medium'
                                     : 'text-gray-400 hover:text-white'
@@ -853,7 +853,7 @@ export default function Sidebar({
       <div className="p-4 border-t border-white/10">
         <button
           onClick={() => setBugDialogOpen(true)}
-          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg text-gray-400 hover:bg-white/10 hover:text-white border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827]"
+          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg text-gray-400 hover:bg-white/10 hover:text-white border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
         >
           <HelpCircle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
           <span className="text-sm">Help & Support</span>
@@ -882,7 +882,7 @@ export default function Sidebar({
               <button
                 key={tab.id}
                 onClick={() => handleSettingsTabClick(tab.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                   isTabActive
                     ? 'bg-[#dde6f5] text-primary-600 font-medium'
                     : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
@@ -983,7 +983,7 @@ export default function Sidebar({
               ) : (
                 <button
                   onClick={() => toggleCalendarType(key)}
-                  className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <motion.span
                     animate={{ rotate: isExpanded ? 0 : -90 }}
@@ -1045,7 +1045,7 @@ export default function Sidebar({
                                 if (e.key === 'Escape') handleRenameCancel()
                               }}
                               onBlur={() => handleRenameSubmit(cal.id)}
-                              className="flex-1 min-w-0 px-2 py-0.5 text-sm border border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-200 bg-white text-gray-700"
+                              className="flex-1 min-w-0 px-2 py-0.5 text-sm border border-primary-300 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-200 bg-white text-gray-700"
                               autoFocus
                             />
                           </div>
@@ -1064,7 +1064,7 @@ export default function Sidebar({
                                   key={c.value}
                                   type="button"
                                   onClick={() => handleColorSelect(cal.id, c.value)}
-                                  className="w-6 h-6 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-400"
+                                  className="w-6 h-6 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary-400"
                                   style={{ backgroundColor: c.value }}
                                   title={c.name}
                                 >
@@ -1117,7 +1117,7 @@ export default function Sidebar({
                                 aria-label={`Calendar options for ${cal.name}`}
                                 aria-haspopup="menu"
                                 aria-expanded={isMenuOpen}
-                                className="ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 rounded hover:bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                className="ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 rounded hover:bg-gray-200/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setColorEditId(null)
@@ -1334,7 +1334,7 @@ export default function Sidebar({
                 <button
                   key={campus.id}
                   onClick={() => handleAthleticsCampusClick(campus.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                     isActiveCampus
                       ? 'bg-[#dde6f5] text-primary-600 font-medium'
                       : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
@@ -1361,7 +1361,7 @@ export default function Sidebar({
       {/* Mobile Menu Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-lg bg-[#111827] border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-primary-400"
+        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-lg bg-[#111827] border border-white/10 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
       >

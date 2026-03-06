@@ -133,7 +133,7 @@ export default function PlanningPage() {
                 <select
                   value={effectiveSeasonId || ''}
                   onChange={(e) => setSelectedSeasonId(e.target.value)}
-                  className="appearance-none pl-3 pr-8 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="appearance-none pl-3 pr-8 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   {seasons.map((s) => (
                     <option key={s.id} value={s.id}>

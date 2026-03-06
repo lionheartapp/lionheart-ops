@@ -55,9 +55,9 @@ const CALCULATOR_OPTIONS = [
 
 const labelClass = 'block text-xs font-medium text-gray-600 mb-1'
 const inputClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors'
+  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors'
 const selectClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent cursor-pointer transition-colors'
+  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent cursor-pointer transition-colors'
 
 // ─── Initial form ─────────────────────────────────────────────────────────────
 
@@ -336,7 +336,7 @@ export default function KnowledgeBaseArticleEditor({
                   role="switch"
                   aria-checked={form.isPublished}
                   onClick={() => updateField('isPublished', !form.isPublished)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-400 ${
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
                     form.isPublished ? 'bg-gray-900' : 'bg-gray-200'
                   }`}
                 >

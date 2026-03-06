@@ -127,7 +127,7 @@ export default function CalendarToolbar({
               aria-selected={view === v}
               aria-current={view === v ? 'true' : undefined}
               onClick={() => onViewChange(v)}
-              className={`w-20 text-center py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset ${
+              className={`w-20 text-center py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                 view === v
                   ? 'bg-gray-100 text-gray-900'
                   : 'text-gray-400 hover:text-gray-600'
@@ -144,21 +144,21 @@ export default function CalendarToolbar({
           <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
             <button
               onClick={onNavigateBack}
-              className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
+              className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               aria-label="Previous"
             >
               <ChevronLeft className="w-4 h-4 text-gray-600" />
             </button>
             <button
               onClick={onToday}
-              className="px-3 sm:px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors border-l border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
+              className="px-3 sm:px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors border-l border-r border-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <span className="hidden sm:inline">Today</span>
               <span className="sm:hidden text-xs">Now</span>
             </button>
             <button
               onClick={onNavigateForward}
-              className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
+              className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               aria-label="Next"
             >
               <ChevronRight className="w-4 h-4 text-gray-600" />
@@ -167,7 +167,7 @@ export default function CalendarToolbar({
 
           <button
             onClick={onCreateEvent}
-            className="flex items-center gap-2 px-3 sm:px-5 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+            className="flex items-center gap-2 px-3 sm:px-5 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Event</span>
@@ -185,10 +185,10 @@ export default function CalendarToolbar({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search events..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 placeholder:text-gray-400"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus:border-primary-300 placeholder:text-gray-400"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" aria-label="Clear search">
+            <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2" aria-label="Clear search">
               <X className="w-3.5 h-3.5 text-gray-400" />
             </button>
           )}
@@ -200,7 +200,7 @@ export default function CalendarToolbar({
             <button
               ref={filterBtnRef}
               onClick={() => setFilterOpen((o) => !o)}
-              className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 border focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+              className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                 activeFilterCount > 0
                   ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -238,7 +238,7 @@ export default function CalendarToolbar({
             aria-selected={view === v}
             aria-current={view === v ? 'true' : undefined}
             onClick={() => onViewChange(v)}
-            className={`flex-1 text-center py-2 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset ${
+            className={`flex-1 text-center py-2 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
               view === v
                 ? 'bg-gray-100 text-gray-900'
                 : 'text-gray-400 hover:text-gray-600'

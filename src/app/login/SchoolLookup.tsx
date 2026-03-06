@@ -45,7 +45,7 @@ export default function SchoolLookup() {
             onChange={(e) => { setSlug(e.target.value); setError('') }}
             placeholder="your-school"
             autoFocus
-            className="w-full pl-10 pr-4 py-3.5 text-sm bg-zinc-800/80 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 transition-colors"
+            className="w-full pl-10 pr-4 py-3.5 text-sm bg-zinc-800/80 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus-visible:ring-1 focus-visible:ring-zinc-500/30 transition-colors"
           />
         </div>
 

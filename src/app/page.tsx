@@ -54,7 +54,7 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="border-b border-gray-200" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-4">
-          <a href="#" className="flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1" aria-label="Lionheart - home">
+          <a href="#" className="flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-2 py-1" aria-label="Lionheart - home">
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </a>
           <div className="flex gap-2 sm:gap-4">
@@ -288,7 +288,7 @@ export default function Landing() {
           >
             <Link
               href="/signup"
-              className="px-6 sm:px-8 py-4 min-h-[48px] bg-white text-primary-600 font-semibold rounded-xl hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600 transition inline-flex items-center justify-center gap-2"
+              className="px-6 sm:px-8 py-4 min-h-[48px] bg-white text-primary-600 font-semibold rounded-xl hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 transition inline-flex items-center justify-center gap-2"
               aria-label="Get started free - create account"
             >
               Get Started Free <ChevronRight className="w-5 h-5" aria-hidden="true" />
@@ -308,22 +308,22 @@ export default function Landing() {
             <nav>
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Features</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Pricing</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Features</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Pricing</a></li>
               </ul>
             </nav>
             <nav>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">About</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Contact</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">About</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Contact</a></li>
               </ul>
             </nav>
             <nav>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 inline-block transition">Terms</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Privacy</a></li>
+                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Terms</a></li>
               </ul>
             </nav>
           </div>

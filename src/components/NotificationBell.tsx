@@ -165,7 +165,7 @@ export default function NotificationBell() {
               <button
                 onClick={() => markAllRead.mutate()}
                 disabled={markAllRead.isPending}
-                className="text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 Mark all as read
               </button>
@@ -183,7 +183,7 @@ export default function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => handleNotificationClick(n)}
-                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition border-b border-gray-50 last:border-b-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset ${
+                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition border-b border-gray-50 last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     !n.isRead ? 'bg-primary-50/50' : ''
                   }`}
                 >

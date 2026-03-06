@@ -212,7 +212,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sarah Mitchell"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
                 required
               />
@@ -228,7 +228,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g., sarah@mitchell.edu"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
                 required
               />
@@ -244,7 +244,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min 8 characters"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 aria-describedby="password-hint"
                 disabled={loading}
                 required
@@ -264,7 +264,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
                 placeholder="e.g., Mitchell Academy"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
                 required
               />
@@ -280,7 +280,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="e.g., mitchell.edu (optional)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -291,7 +291,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-3 mt-6 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 mt-6 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}

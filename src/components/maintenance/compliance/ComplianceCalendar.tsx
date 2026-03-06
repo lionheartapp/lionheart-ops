@@ -263,7 +263,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
         <select
           value={filterDomain}
           onChange={(e) => setFilterDomain(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
         >
           <option value="">All Domains</option>
           {COMPLIANCE_DOMAINS.map((d) => (
@@ -274,7 +274,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
         >
           <option value="">All Statuses</option>
           <option value="PENDING">Pending</option>

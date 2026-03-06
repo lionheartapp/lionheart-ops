@@ -251,7 +251,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   value={inspectionDate}
                   onChange={(e) => setInspectionDate(e.target.value)}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400 cursor-pointer"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400 cursor-pointer"
                 />
               </div>
 
@@ -265,7 +265,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   value={inspector}
                   onChange={(e) => setInspector(e.target.value)}
                   placeholder="Inspector name or company"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 />
               </div>
 
@@ -277,7 +277,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Inspection notes, findings, follow-up actions..."
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 resize-none"
                 />
               </div>
             </section>

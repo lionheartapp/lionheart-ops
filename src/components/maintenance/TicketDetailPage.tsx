@@ -756,7 +756,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                                 onChange={(e) => setCancellationReason(e.target.value)}
                                 placeholder="Explain why this ticket is being cancelled..."
                                 rows={2}
-                                className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-red-400 placeholder:text-gray-400"
+                                className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 placeholder:text-gray-400"
                               />
                             </div>
                             {cancelError && (

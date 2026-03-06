@@ -691,7 +691,7 @@ export default function CalendarView() {
                       key={c.value}
                       type="button"
                       onClick={() => setNewCalendarColor(c.value)}
-                      className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400"
+                      className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400"
                       style={{ backgroundColor: c.value }}
                       title={c.name}
                     >
@@ -916,7 +916,7 @@ export default function CalendarView() {
                         key={c.value}
                         type="button"
                         onClick={() => setNewCalendarColor(c.value)}
-                        className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400"
+                        className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400"
                         style={{ backgroundColor: c.value }}
                         title={c.name}
                       >

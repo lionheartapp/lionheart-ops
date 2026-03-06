@@ -282,7 +282,7 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
                     onChange={(e) => setRejectionNote(e.target.value)}
                     placeholder="Describe what needs to be fixed or completed before approval..."
                     rows={3}
-                    className="w-full px-3 py-2.5 border border-red-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-red-400 placeholder:text-gray-400"
+                    className="w-full px-3 py-2.5 border border-red-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-400 placeholder:text-gray-400"
                   />
                   {sendBackError && (
                     <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-xl">{sendBackError}</p>

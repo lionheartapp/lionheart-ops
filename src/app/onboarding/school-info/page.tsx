@@ -539,14 +539,14 @@ export default function SchoolInfoPage() {
         <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-gray-200">
           <button
             onClick={() => router.push('/onboarding/members')}
-            className="px-6 py-3 text-gray-700 font-medium text-center hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded transition"
+            className="px-6 py-3 text-gray-700 font-medium text-center hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded transition"
           >
             Skip for now
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+            className="px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             Looks good, continue

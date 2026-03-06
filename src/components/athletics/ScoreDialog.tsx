@@ -121,7 +121,7 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
                   min="0"
                   value={homeScore}
                   onChange={(e) => setHomeScore(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 text-center text-lg font-semibold"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 text-center text-lg font-semibold"
                   placeholder="0"
                 />
               </div>
@@ -132,7 +132,7 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
                   min="0"
                   value={awayScore}
                   onChange={(e) => setAwayScore(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10 text-center text-lg font-semibold"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 text-center text-lg font-semibold"
                   placeholder="0"
                 />
               </div>
@@ -143,7 +143,7 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
                 type="checkbox"
                 checked={isFinal}
                 onChange={(e) => setIsFinal(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                className="w-4 h-4 rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
               />
               <span className="text-sm text-gray-700">Mark as final</span>
             </label>

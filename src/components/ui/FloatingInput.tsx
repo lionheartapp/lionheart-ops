@@ -4,7 +4,7 @@ import { forwardRef, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttr
 
 // Shared styles
 const borderBase = 'border border-gray-300 rounded-lg bg-white transition-colors'
-const borderFocus = 'focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10'
+const borderFocus = 'focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10'
 const borderDisabled = 'disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-200'
 const labelBase = 'absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none transition-all duration-200'
 const labelInside = 'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-gray-400'

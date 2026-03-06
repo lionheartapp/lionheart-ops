@@ -46,7 +46,7 @@ export default function DiscountCodesPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
           <Plus size={16} /> New Code
         </button>
       </div>
@@ -83,8 +83,8 @@ export default function DiscountCodesPage() {
             </div>
           </div>
           <div className="flex gap-2 justify-end">
-            <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Cancel</button>
-            <button type="submit" disabled={creating} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">{creating ? 'Creating...' : 'Create Code'}</button>
+            <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Cancel</button>
+            <button type="submit" disabled={creating} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">{creating ? 'Creating...' : 'Create Code'}</button>
           </div>
         </form>
       )}

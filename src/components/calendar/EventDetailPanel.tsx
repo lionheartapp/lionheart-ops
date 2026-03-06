@@ -258,7 +258,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder="Reason for rejection (required)"
                   aria-label="Reason for rejection"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900 resize-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 focus:border-gray-900 resize-none"
                   rows={3}
                   autoFocus
                 />

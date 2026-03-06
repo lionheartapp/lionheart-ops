@@ -276,7 +276,7 @@ export default function DashboardPage() {
         <motion.div variants={fadeInUp} className="relative self-start sm:self-center">
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
-            className="px-4 sm:px-6 py-3 min-h-[44px] bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition flex items-center gap-2"
+            className="px-4 sm:px-6 py-3 min-h-[44px] bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 transition flex items-center gap-2"
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
             whileTap={buttonTap}
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                     setIsCreateDropdownOpen(false)
                     router.push('/calendar?create=true')
                   }}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Calendar className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-2">Support</p>
                 <button
                   onClick={() => openCreateDrawer('MAINTENANCE')}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -342,7 +342,7 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={() => openCreateDrawer('IT')}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -380,7 +380,7 @@ export default function DashboardPage() {
               <p className="text-sm mb-2">No tasks yet.</p>
               <button
                 onClick={() => openCreateDrawer('MAINTENANCE')}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 Create your first task
               </button>
@@ -411,7 +411,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => openCreateDrawer('MAINTENANCE')}
-                className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition flex items-center justify-center gap-1"
+                className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition flex items-center justify-center gap-1"
               >
                 <Plus className="w-4 h-4" /> Add task
               </button>
@@ -442,7 +442,7 @@ export default function DashboardPage() {
               <li>
                 <button
                   onClick={() => router.push('/calendar')}
-                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition"
                 >
                   Calendar
                 </button>
@@ -450,7 +450,7 @@ export default function DashboardPage() {
               <li>
                 <button
                   onClick={() => router.push('/settings')}
-                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition"
                 >
                   Settings
                 </button>
@@ -563,14 +563,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => setCreateCategory(null)}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
             >
               Cancel
             </button>
             <button
               onClick={handleCreateSubmit}
               disabled={createSaving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
             >
               {createSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               Submit Request

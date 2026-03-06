@@ -103,7 +103,7 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
                 }}
                 placeholder="Search people..."
                 disabled={people.length >= 5}
-                className="w-full h-9 pl-8 pr-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-9 pl-8 pr-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-full focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-400 focus:border-primary-400 placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 

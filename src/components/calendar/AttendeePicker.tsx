@@ -126,7 +126,7 @@ export default function AttendeePicker({ value, onChange, compact = false }: Att
             if (query.length >= 2) setShowResults(true)
           }}
           placeholder="Add attendees..."
-          className={`w-full pl-9 pr-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900/10 focus:border-gray-900 placeholder-gray-400 ${
+          className={`w-full pl-9 pr-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 focus:border-gray-900 placeholder-gray-400 ${
             compact ? 'py-2' : 'py-3'
           }`}
           role="combobox"

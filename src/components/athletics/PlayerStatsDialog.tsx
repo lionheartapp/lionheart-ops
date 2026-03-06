@@ -287,7 +287,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                               step="any"
                               value={values[player.id]?.[cfg.statKey] || ''}
                               onChange={(e) => handleCellChange(player.id, cfg.statKey, e.target.value)}
-                              className="w-full px-2 py-1.5 text-sm text-center border border-gray-200 rounded-md focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900/10"
+                              className="w-full px-2 py-1.5 text-sm text-center border border-gray-200 rounded-md focus:outline-none focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10"
                               placeholder="—"
                             />
                           </td>

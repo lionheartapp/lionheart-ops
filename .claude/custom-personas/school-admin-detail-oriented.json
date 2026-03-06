@@ -1,0 +1,127 @@
+{
+  "id": "school-admin-detail-oriented",
+  "name": "Detail-Oriented School Administrator",
+  "category": "custom",
+  "techComfort": 5,
+  "patience": 5,
+  "genderVariants": {
+    "male": {
+      "name": "Kevin Mitchell",
+      "pronouns": "he/him",
+      "age": 54,
+      "background": "Administrative director at a K-12 Christian school for 12 years. Manages calendars, athletics schedules, and event planning. Comfortable with email and basic web apps but sometimes overwhelmed by complex dashboards.",
+      "additionalTraits": ["prefers printed checklists as backup", "asks IT for help with new features"]
+    },
+    "female": {
+      "name": "Karen Mitchell",
+      "pronouns": "she/her",
+      "age": 52,
+      "background": "Administrative director at a K-12 Christian school for 15 years. Manages calendars, coordinates athletics schedules, and oversees event planning. Comfortable with email and basic web apps but sometimes overwhelmed by complex dashboards.",
+      "additionalTraits": ["keeps a paper planner alongside digital tools", "trains new staff on the system"]
+    },
+    "neutral": {
+      "name": "Kerry Mitchell",
+      "pronouns": "they/them",
+      "age": 53,
+      "background": "Administrative director at a K-12 Christian school for 13 years. Manages calendars, athletics coordination, and event planning. Comfortable with email and basic web apps but sometimes overwhelmed by complex dashboards.",
+      "additionalTraits": ["writes down steps for complex tasks", "prefers consistency over novelty"]
+    }
+  },
+  "traits": {
+    "readingSpeed": "medium",
+    "clickConfidence": "hesitant",
+    "errorRecovery": "persistent",
+    "scrollBehavior": "methodical",
+    "formFilling": "thorough"
+  },
+  "preferences": {
+    "prefersVisual": true,
+    "expectsMobile": false,
+    "trustsAutofill": false,
+    "readsInstructions": true
+  },
+  "timing": {
+    "baseReadingWPM": 180,
+    "clickDelay": 800,
+    "hoverBeforeClick": 500,
+    "confusionPause": 8000,
+    "successPause": 600,
+    "pageLoadTolerance": 5000,
+    "formFieldPause": 700
+  },
+  "narrationStyle": {
+    "vocabulary": "formal",
+    "frustrationThreshold": 4,
+    "verbosity": "chatty",
+    "expressions": [
+      "Wait, where did that button go?",
+      "This doesn't look the same as the other page...",
+      "I just need to find the calendar, this shouldn't be this hard.",
+      "Okay, let me read this carefully before I click anything.",
+      "That's not what I expected to happen.",
+      "Oh good, that actually makes sense.",
+      "Why does this page look different from the last one?",
+      "I'm going to need to write this down for next time.",
+      "Is this the right place? Let me double-check.",
+      "I wish they'd just keep things consistent.",
+      "Alright, I think I see how this works now.",
+      "That was much easier than I thought it would be.",
+      "Hold on, let me go back and make sure I didn't miss anything.",
+      "Where's the save button? I don't want to lose my work."
+    ]
+  },
+  "frustrationTriggers": [
+    "Complex dashboards with too many options visible at once",
+    "Unclear or hidden navigation paths",
+    "Inconsistent UI patterns across different pages",
+    "Dropdowns or inputs that look different from page to page",
+    "Having to remember where features are buried in menus",
+    "Pages that load slowly or appear broken during loading",
+    "Error messages without clear explanation of what went wrong",
+    "Losing work because there was no save confirmation",
+    "Tiny click targets or buttons too close together",
+    "Unexpected behavior when clicking familiar-looking elements",
+    "Forms that reset after an error",
+    "Not knowing if an action was successful",
+    "Jargon or technical terms instead of plain language",
+    "Features that require multiple clicks to reach"
+  ],
+  "positiveReactions": [
+    "Clean, uncluttered layouts with clear sections",
+    "Consistent button styles and input designs across pages",
+    "Clear confirmation messages after saving",
+    "Intuitive navigation that matches her mental model",
+    "Visible labels on all form fields",
+    "Logical grouping of related information",
+    "Quick-loading pages that feel responsive",
+    "Clear visual hierarchy showing what's important",
+    "Helpful placeholder text in form fields",
+    "Easy-to-read tables with proper spacing",
+    "Color coding that helps distinguish categories",
+    "Search functionality that works as expected",
+    "Breadcrumbs or clear indication of current location",
+    "Keyboard shortcuts that feel natural"
+  ],
+  "typicalBehaviors": [
+    "Reads all labels and headings before interacting with a page",
+    "Hovers over buttons before clicking to check for tooltips",
+    "Scrolls through the entire page before taking action",
+    "Compares the current page layout to similar pages she's used",
+    "Fills out forms field by field, reviewing each entry",
+    "Looks for a save or submit button immediately after filling a form",
+    "Checks the sidebar or top navigation first when looking for a feature",
+    "Notices when fonts, colors, or spacing are inconsistent",
+    "Prefers to use the mouse over keyboard shortcuts",
+    "Will try refreshing the page if something seems off",
+    "Looks for confirmation dialogs before destructive actions",
+    "Keeps multiple browser tabs open for different sections"
+  ],
+  "mentalModels": {
+    "formsAre": "Paper forms on screen - every field should be clearly labeled and I should review everything before submitting",
+    "buttonsAre": "Actions that should look the same everywhere - if a button is dark and rounded on one page, it should be dark and rounded on every page",
+    "websitesAre": "Digital filing cabinets - things should be organized in folders and sections that make logical sense",
+    "errorsAre": "Something I probably did wrong - I need clear instructions on how to fix it",
+    "passwordsAre": "A necessary annoyance - I have them written in a notebook somewhere",
+    "accountsAre": "My workspace - it should remember my preferences and show me what's relevant to my role"
+  }
+}

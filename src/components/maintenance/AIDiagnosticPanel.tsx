@@ -485,7 +485,7 @@ export default function AIDiagnosticPanel({
                       placeholder="Ask a follow-up question..."
                       rows={2}
                       disabled={isSending}
-                      className="flex-1 px-3 py-2 text-xs border border-gray-200 rounded-xl bg-white resize-none focus:outline-none focus:ring-2 focus:ring-gray-400 placeholder:text-gray-400 disabled:opacity-50"
+                      className="flex-1 px-3 py-2 text-xs border border-gray-200 rounded-xl bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 placeholder:text-gray-400 disabled:opacity-50"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault()

@@ -299,7 +299,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 value={formData.name}
                 onChange={(e) => update({ name: e.target.value })}
                 placeholder="e.g. HVAC Filter Replacement"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
               />
             </div>
             <div>
@@ -311,7 +311,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 onChange={(e) => update({ description: e.target.value })}
                 placeholder="Optional — describe what this PM task involves"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
               />
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                   min="1"
                   value={formData.intervalDays}
                   onChange={(e) => update({ intervalDays: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
                 />
               </div>
             )}
@@ -379,7 +379,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 min="0"
                 value={formData.advanceNoticeDays}
                 onChange={(e) => update({ advanceNoticeDays: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
               />
               <p className="text-xs text-gray-500 mt-1">
                 How many days before the due date to show this task as upcoming
@@ -391,7 +391,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 type="checkbox"
                 checked={formData.avoidSchoolYear}
                 onChange={(e) => update({ avoidSchoolYear: e.target.checked })}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400"
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400"
               />
               <div>
                 <span className="text-sm font-medium text-gray-700">Avoid School Year</span>
@@ -424,7 +424,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                   }
                 }}
                 placeholder="e.g. Replace air filter, Check belt tension"
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
+                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
               />
               <button
                 type="button"

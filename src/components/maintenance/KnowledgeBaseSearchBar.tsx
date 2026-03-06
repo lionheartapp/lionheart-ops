@@ -56,7 +56,7 @@ export default function KnowledgeBaseSearchBar({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="ui-glass w-full pl-9 pr-9 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 transition-shadow"
+        className="ui-glass w-full pl-9 pr-9 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition-shadow"
         aria-label="Search knowledge base"
       />
       {value && (
