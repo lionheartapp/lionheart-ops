@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { X, Search } from 'lucide-react'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 export type AssetStatusFilter = 'ACTIVE' | 'INACTIVE' | 'DECOMMISSIONED' | 'PENDING_DISPOSAL' | ''
 export type AssetCategoryFilter =
@@ -83,9 +84,6 @@ const SORT_OPTIONS: { value: AssetSortField; label: string }[] = [
   { value: 'replacementCost', label: 'Replacement Cost' },
 ]
 
-const selectClass =
-  'px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer transition-colors'
-
 const inputClass =
   'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors'
 
@@ -144,93 +142,77 @@ export default function AssetRegisterFilters({
   const active = hasActiveFilters(filters)
 
   return (
-    <div className="flex flex-wrap items-center gap-2 pb-3">
+    <div className="flex flex-wrap items-end gap-x-2 gap-y-4 pb-3 pt-2">
       {/* Category */}
-      <select
+      <FloatingDropdown
+        label="Category"
         value={filters.category}
-        onChange={(e) => update({ category: e.target.value as AssetCategoryFilter })}
-        className={selectClass}
-        aria-label="Filter by category"
-      >
-        <option value="">All Categories</option>
-        {CATEGORY_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+        onChange={(v) => update({ category: v as AssetCategoryFilter })}
+        options={[
+          { value: '', label: 'All Categories' },
+          ...CATEGORY_OPTIONS,
+        ]}
+        className="min-w-[150px]"
+      />
 
       {/* Building */}
       {buildingOptions.length > 0 && (
-        <select
+        <FloatingDropdown
+          label="Building"
           value={filters.buildingId}
-          onChange={(e) => update({ buildingId: e.target.value, areaId: '', roomId: '' })}
-          className={selectClass}
-          aria-label="Filter by building"
-        >
-          <option value="">All Buildings</option>
-          {buildingOptions.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => update({ buildingId: v, areaId: '', roomId: '' })}
+          options={[
+            { value: '', label: 'All Buildings' },
+            ...buildingOptions,
+          ]}
+          className="min-w-[150px]"
+        />
       )}
 
       {/* Status */}
-      <select
+      <FloatingDropdown
+        label="Status"
         value={filters.status}
-        onChange={(e) => update({ status: e.target.value as AssetStatusFilter })}
-        className={selectClass}
-        aria-label="Filter by status"
-      >
-        <option value="">All Statuses</option>
-        {STATUS_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+        onChange={(v) => update({ status: v as AssetStatusFilter })}
+        options={[
+          { value: '', label: 'All Statuses' },
+          ...STATUS_OPTIONS,
+        ]}
+        className="min-w-[140px]"
+      />
 
       {/* Warranty Status */}
-      <select
+      <FloatingDropdown
+        label="Warranty"
         value={filters.warrantyStatus}
-        onChange={(e) => update({ warrantyStatus: e.target.value as WarrantyStatusFilter })}
-        className={selectClass}
-        aria-label="Filter by warranty status"
-      >
-        <option value="">Any Warranty</option>
-        {WARRANTY_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+        onChange={(v) => update({ warrantyStatus: v as WarrantyStatusFilter })}
+        options={[
+          { value: '', label: 'Any Warranty' },
+          ...WARRANTY_OPTIONS,
+        ]}
+        className="min-w-[160px]"
+      />
 
       {/* Sort */}
-      <select
+      <FloatingDropdown
+        label="Sort By"
         value={filters.sortField}
-        onChange={(e) => update({ sortField: e.target.value as AssetSortField })}
-        className={selectClass}
-        aria-label="Sort by"
-      >
-        {SORT_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+        onChange={(v) => update({ sortField: v as AssetSortField })}
+        options={SORT_OPTIONS}
+        className="min-w-[150px]"
+      />
 
       {/* Sort direction */}
-      <select
+      <FloatingDropdown
+        label="Direction"
         value={filters.sortDir}
-        onChange={(e) => update({ sortDir: e.target.value as AssetSortDir })}
-        className={selectClass}
-        aria-label="Sort direction"
-      >
-        <option value="asc">Asc</option>
-        <option value="desc">Desc</option>
-      </select>
+        onChange={(v) => update({ sortDir: v as AssetSortDir })}
+        options={[
+          { value: 'asc', label: 'Ascending' },
+          { value: 'desc', label: 'Descending' },
+        ]}
+        className="min-w-[130px]"
+      />
 
       {/* Keyword search */}
       <div className="relative flex-1 min-w-[180px] max-w-xs">

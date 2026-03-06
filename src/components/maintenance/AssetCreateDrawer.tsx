@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, Package } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 import type { MaintenanceAsset } from './AssetRegisterTable'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -39,7 +40,7 @@ interface AssetCreateDrawerProps {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const CATEGORY_OPTIONS = [
-  { value: '', label: 'Select category...' },
+  { value: '', label: 'None' },
   { value: 'ELECTRICAL', label: 'Electrical' },
   { value: 'PLUMBING', label: 'Plumbing' },
   { value: 'HVAC', label: 'HVAC' },
@@ -75,9 +76,6 @@ function getInitialForm() {
 const labelClass = 'block text-xs font-medium text-gray-600 mb-1'
 const inputClass =
   'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors'
-const selectClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent cursor-pointer transition-colors'
-
 function SectionHeader({ title }: { title: string }) {
   return (
     <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-3 mt-6 first:mt-0">
@@ -296,18 +294,12 @@ export default function AssetCreateDrawer({
                     />
                   </div>
 
-                  <div>
-                    <label className={labelClass}>Category</label>
-                    <select
-                      value={form.category}
-                      onChange={(e) => updateField('category', e.target.value)}
-                      className={selectClass}
-                    >
-                      {CATEGORY_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <FloatingDropdown
+                    label="Category"
+                    value={form.category}
+                    onChange={(v) => updateField('category', v)}
+                    options={CATEGORY_OPTIONS}
+                  />
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -350,19 +342,12 @@ export default function AssetCreateDrawer({
                 {/* ── Location ──────────────────────────────────── */}
                 <SectionHeader title="Location" />
 
-                <div>
-                  <label className={labelClass}>Building / Area / Room</label>
-                  <select
-                    value={form.locationKey}
-                    onChange={(e) => updateField('locationKey', e.target.value)}
-                    className={selectClass}
-                  >
-                    <option value="">No specific location</option>
-                    {locationSelectOptions.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
+                <FloatingDropdown
+                  label="Building / Area / Room"
+                  value={form.locationKey}
+                  onChange={(v) => updateField('locationKey', v)}
+                  options={[{ value: '', label: 'No specific location' }, ...locationSelectOptions]}
+                />
 
                 {/* ── Financials ────────────────────────────────── */}
                 <SectionHeader title="Financials" />
@@ -431,19 +416,17 @@ export default function AssetCreateDrawer({
                     />
                   </div>
 
-                  <div>
-                    <label className={labelClass}>Initial Status</label>
-                    <select
-                      value={form.status}
-                      onChange={(e) => updateField('status', e.target.value)}
-                      className={selectClass}
-                    >
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
-                      <option value="DECOMMISSIONED">Decommissioned</option>
-                      <option value="PENDING_DISPOSAL">Pending Disposal</option>
-                    </select>
-                  </div>
+                  <FloatingDropdown
+                    label="Initial Status"
+                    value={form.status}
+                    onChange={(v) => updateField('status', v)}
+                    options={[
+                      { value: 'ACTIVE', label: 'Active' },
+                      { value: 'INACTIVE', label: 'Inactive' },
+                      { value: 'DECOMMISSIONED', label: 'Decommissioned' },
+                      { value: 'PENDING_DISPOSAL', label: 'Pending Disposal' },
+                    ]}
+                  />
                 </div>
 
                 {/* ── Notes ─────────────────────────────────────── */}

@@ -11,6 +11,8 @@ import { z } from 'zod'
 import { addDays, addWeeks, addMonths, addYears, startOfDay, isBefore } from 'date-fns'
 import { prisma, rawPrisma } from '@/lib/db'
 import { generateTicketNumber } from '@/lib/services/maintenanceTicketService'
+import { PM_RECURRENCE_TYPES, type PmRecurrenceType, type PmCalendarEvent } from '@/lib/types/pm-schedule'
+export type { PmRecurrenceType, PmCalendarEvent } from '@/lib/types/pm-schedule'
 
 // ─── PM Status Constants ───────────────────────────────────────────────────────
 
@@ -20,32 +22,6 @@ export const PM_STATUS = {
 } as const
 
 export type PmStatus = typeof PM_STATUS[keyof typeof PM_STATUS]
-
-// ─── Recurrence Types ─────────────────────────────────────────────────────────
-
-export const PM_RECURRENCE_TYPES = [
-  'DAILY',
-  'WEEKLY',
-  'BIWEEKLY',
-  'MONTHLY',
-  'QUARTERLY',
-  'SEMIANNUAL',
-  'ANNUAL',
-  'CUSTOM',
-] as const
-
-export type PmRecurrenceType = typeof PM_RECURRENCE_TYPES[number]
-
-export const PM_RECURRENCE_LABELS: Record<PmRecurrenceType, string> = {
-  DAILY: 'Daily',
-  WEEKLY: 'Weekly',
-  BIWEEKLY: 'Bi-Weekly',
-  MONTHLY: 'Monthly',
-  QUARTERLY: 'Quarterly',
-  SEMIANNUAL: 'Semi-Annual',
-  ANNUAL: 'Annual',
-  CUSTOM: 'Custom',
-}
 
 // ─── Zod Schemas ──────────────────────────────────────────────────────────────
 
@@ -237,18 +213,6 @@ export async function getPmSchedules(orgId: string, filters: PmScheduleFilters =
 }
 
 // ─── Get PM Calendar Events ───────────────────────────────────────────────────
-
-export interface PmCalendarEvent {
-  id: string
-  title: string
-  start: string
-  end: string
-  color: 'blue' | 'red' | 'green'
-  assetName: string | null
-  locationName: string | null
-  recurrenceType: string
-  isActive: boolean
-}
 
 export async function getPmCalendarEvents(
   orgId: string,

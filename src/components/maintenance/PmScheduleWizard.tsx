@@ -22,6 +22,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
 import { PM_RECURRENCE_TYPES, PM_RECURRENCE_LABELS } from '@/lib/types/pm-schedule'
 import type { CampusLocationOption } from '@/lib/hooks/useCampusLocations'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -319,22 +320,16 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
       case 1:
         return (
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Recurrence Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.recurrenceType}
-                onChange={(e) => update({ recurrenceType: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors bg-white cursor-pointer"
-              >
-                {PM_RECURRENCE_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {PM_RECURRENCE_LABELS[type]}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FloatingDropdown
+              label="Recurrence Type"
+              value={formData.recurrenceType}
+              onChange={(v) => update({ recurrenceType: v })}
+              options={PM_RECURRENCE_TYPES.map((type) => ({
+                value: type,
+                label: PM_RECURRENCE_LABELS[type],
+              }))}
+              required
+            />
 
             {formData.recurrenceType === 'CUSTOM' && (
               <div>
@@ -501,106 +496,94 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
             </p>
 
             {/* Asset link */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Link to Asset (optional)
-              </label>
-              <select
-                value={formData.assetId || ''}
-                onChange={(e) => {
-                  const selected = assets.find((a: { id: string; name: string; assetNumber: string }) => a.id === e.target.value)
-                  update({
-                    assetId: e.target.value || null,
-                    assetName: selected ? `${selected.assetNumber} — ${selected.name}` : '',
-                  })
-                }}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors bg-white cursor-pointer"
-              >
-                <option value="">— No asset —</option>
-                {assets.map((a: { id: string; assetNumber: string; name: string }) => (
-                  <option key={a.id} value={a.id}>
-                    {a.assetNumber} — {a.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FloatingDropdown
+              label="Link to Asset"
+              value={formData.assetId || ''}
+              onChange={(v) => {
+                const selected = assets.find((a: { id: string; name: string; assetNumber: string }) => a.id === v)
+                update({
+                  assetId: v || null,
+                  assetName: selected ? `${selected.assetNumber} — ${selected.name}` : '',
+                })
+              }}
+              options={[
+                { value: '', label: 'No asset' },
+                ...assets.map((a: { id: string; assetNumber: string; name: string }) => ({
+                  value: a.id,
+                  label: `${a.assetNumber} — ${a.name}`,
+                })),
+              ]}
+            />
 
             {/* Location link */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Link to Location (optional)
-              </label>
-              <select
-                value={
-                  formData.roomId
-                    ? `room-${formData.roomId}`
-                    : formData.areaId
-                    ? `area-${formData.areaId}`
-                    : formData.buildingId
-                    ? `building-${formData.buildingId}`
-                    : ''
+            <FloatingDropdown
+              label="Link to Location"
+              value={
+                formData.roomId
+                  ? `room-${formData.roomId}`
+                  : formData.areaId
+                  ? `area-${formData.areaId}`
+                  : formData.buildingId
+                  ? `building-${formData.buildingId}`
+                  : ''
+              }
+              onChange={(v) => {
+                if (!v) {
+                  update({ buildingId: null, areaId: null, roomId: null, locationLabel: '' })
+                  return
                 }
-                onChange={(e) => {
-                  if (!e.target.value) {
-                    update({ buildingId: null, areaId: null, roomId: null, locationLabel: '' })
-                    return
-                  }
-                  const [typePrefix, locationId] = e.target.value.split('-')
-                  const opt = campusLocations.find((loc) => {
-                    if (typePrefix === 'room') return loc.roomId === locationId
-                    if (typePrefix === 'area') return loc.areaId === locationId && !loc.roomId
-                    if (typePrefix === 'building') return loc.buildingId === locationId && !loc.areaId && !loc.roomId
-                    return false
-                  })
-                  if (opt) handleLocationSelect(opt)
-                }}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors bg-white cursor-pointer"
-              >
-                <option value="">— No location —</option>
-                {campusLocations.map((loc, idx) => {
+                const dashIdx = v.indexOf('-')
+                const typePrefix = v.slice(0, dashIdx)
+                const locationId = v.slice(dashIdx + 1)
+                const opt = campusLocations.find((loc) => {
+                  if (typePrefix === 'room') return loc.roomId === locationId
+                  if (typePrefix === 'area') return loc.areaId === locationId && !loc.roomId
+                  if (typePrefix === 'building') return loc.buildingId === locationId && !loc.areaId && !loc.roomId
+                  return false
+                })
+                if (opt) handleLocationSelect(opt)
+              }}
+              options={[
+                { value: '', label: 'No location' },
+                ...campusLocations.map((loc, idx) => {
                   const key = loc.roomId
                     ? `room-${loc.roomId}`
                     : loc.areaId
                     ? `area-${loc.areaId}`
                     : `building-${loc.buildingId}`
-                  const indent = loc.type === 'room' ? '    ' : loc.type === 'area' ? '  ' : ''
-                  return (
-                    <option key={`${key}-${idx}`} value={key}>
-                      {indent}{loc.hierarchy ? loc.hierarchy.join(' › ') : loc.label}
-                    </option>
-                  )
-                })}
-              </select>
-            </div>
+                  return {
+                    value: key,
+                    label: loc.hierarchy ? loc.hierarchy.join(' › ') : loc.label,
+                  }
+                }),
+              ]}
+            />
           </div>
         )
 
       case 4:
         return (
           <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Default Technician (optional)
-              </label>
-              <select
+            <div className="space-y-2">
+              <FloatingDropdown
+                label="Default Technician"
                 value={formData.defaultTechnicianId || ''}
-                onChange={(e) => {
-                  const selected = technicians.find((t: { id: string; name: string }) => t.id === e.target.value)
+                onChange={(v) => {
+                  const selected = technicians.find((t: { id: string; name: string }) => t.id === v)
                   update({
-                    defaultTechnicianId: e.target.value || null,
+                    defaultTechnicianId: v || null,
                     technicianName: selected?.name || '',
                   })
                 }}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors bg-white cursor-pointer"
-              >
-                <option value="">— Unassigned —</option>
-                {technicians.map((t: { id: string; name: string; email?: string }) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} {t.email ? `(${t.email})` : ''}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
+                options={[
+                  { value: '', label: 'Unassigned' },
+                  ...technicians.map((t: { id: string; name: string; email?: string }) => ({
+                    value: t.id,
+                    label: `${t.name}${t.email ? ` (${t.email})` : ''}`,
+                  })),
+                ]}
+              />
+              <p className="text-xs text-gray-500">
                 This technician will be assigned when PM tickets are generated
               </p>
             </div>
