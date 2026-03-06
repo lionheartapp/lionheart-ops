@@ -74,7 +74,7 @@ export default function TechnicianAssignPanel({
         'flex items-center gap-4 px-4 py-2.5 rounded-xl border transition-all duration-200',
         isDragging
           ? 'bg-primary-50/60 border-primary-200 shadow-sm'
-          : 'bg-gray-50/40 border-gray-200/60',
+          : 'bg-white border-gray-200',
       ]
         .filter(Boolean)
         .join(' ')}

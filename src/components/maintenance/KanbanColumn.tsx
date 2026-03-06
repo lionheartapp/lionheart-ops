@@ -45,7 +45,7 @@ export default function KanbanColumn({
     <div
       className={[
         'flex flex-col min-w-[280px] max-w-[320px] flex-shrink-0 rounded-2xl transition-all duration-150',
-        'bg-gray-50/60 border border-gray-200/60',
+        'bg-white border border-gray-200 shadow-sm',
         highlightValid ? 'ring-2 ring-primary-400 bg-primary-50/40' : '',
         highlightInvalid ? 'ring-2 ring-red-400 opacity-70 bg-red-50/20' : '',
         isDragInProgress && !isOver && isValidTarget ? 'ring-1 ring-primary-200' : '',
@@ -55,8 +55,8 @@ export default function KanbanColumn({
       style={{ minHeight: 'calc(100vh - 320px)' }}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200/60">
-        <span className="text-sm font-semibold text-gray-700">{config.label}</span>
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200">
+        <span className="text-sm font-semibold text-gray-900">{config.label}</span>
         <span
           className={`inline-flex items-center justify-center min-w-[22px] px-1.5 py-0.5 rounded-full text-xs font-semibold ${config.badgeColor}`}
         >
@@ -80,7 +80,7 @@ export default function KanbanColumn({
         </SortableContext>
 
         {tickets.length === 0 && (
-          <div className="flex items-center justify-center py-8 text-[11px] text-gray-300 italic">
+          <div className="flex items-center justify-center py-8 text-xs text-gray-400">
             No tickets
           </div>
         )}
