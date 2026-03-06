@@ -7,13 +7,13 @@
 
 ### Schema & Foundation (SCHEMA)
 
-- [ ] **SCHEMA-01**: MaintenanceTicket model with 8-status lifecycle, org-scoped, soft-delete
-- [ ] **SCHEMA-02**: TechnicianProfile model with specialties array, workload cap, loaded hourly rate
-- [ ] **SCHEMA-03**: TicketActivity model for full audit trail (status changes, comments, assignments)
-- [ ] **SCHEMA-04**: Maintenance-specific permissions added to Permission table and DEFAULT_ROLES
-- [ ] **SCHEMA-05**: MaintenanceTicket includes `version` field for future offline sync (Phase 3 prep)
-- [ ] **SCHEMA-06**: Organization model extended with `timezone` field for compliance date arithmetic (Phase 3 prep)
-- [ ] **SCHEMA-07**: Auto-incrementing ticket number generation (MT-0001 format)
+- [x] **SCHEMA-01**: MaintenanceTicket model with 8-status lifecycle, org-scoped, soft-delete
+- [x] **SCHEMA-02**: TechnicianProfile model with specialties array, workload cap, loaded hourly rate
+- [x] **SCHEMA-03**: TicketActivity model for full audit trail (status changes, comments, assignments)
+- [x] **SCHEMA-04**: Maintenance-specific permissions added to Permission table and DEFAULT_ROLES
+- [x] **SCHEMA-05**: MaintenanceTicket includes `version` field for future offline sync (Phase 3 prep)
+- [x] **SCHEMA-06**: Organization model extended with `timezone` field for compliance date arithmetic (Phase 3 prep)
+- [x] **SCHEMA-07**: Auto-incrementing ticket number generation (MT-0001 format)
 
 ### Ticket Submission (SUBMIT)
 
@@ -242,13 +242,13 @@ Updated during roadmap creation — 2026-03-05.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 1 | Pending |
-| SCHEMA-02 | Phase 1 | Pending |
-| SCHEMA-03 | Phase 1 | Pending |
-| SCHEMA-04 | Phase 1 | Pending |
-| SCHEMA-05 | Phase 1 | Pending |
-| SCHEMA-06 | Phase 1 | Pending |
-| SCHEMA-07 | Phase 1 | Pending |
+| SCHEMA-01 | Phase 1 | Complete |
+| SCHEMA-02 | Phase 1 | Complete |
+| SCHEMA-03 | Phase 1 | Complete |
+| SCHEMA-04 | Phase 1 | Complete |
+| SCHEMA-05 | Phase 1 | Complete |
+| SCHEMA-06 | Phase 1 | Complete |
+| SCHEMA-07 | Phase 1 | Complete |
 | NAV-01 | Phase 1 | Pending |
 | NAV-02 | Phase 1 | Pending |
 | NAV-03 | Phase 1 | Pending |
