@@ -123,9 +123,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Compliance record model, domain configuration, calendar population, and reminders
-- [ ] 06-02-PLAN.md — Compliance ticket auto-generation, document attachments, and audit PDF export
-- [ ] 06-03-PLAN.md — FCI calculation, board report page, PDF generation with AI narrative
+- [ ] 06-01-PLAN.md — ComplianceDomainConfig + ComplianceRecord schema, compliance service, domain config UI with 10-domain card grid, calendar view, and cron reminder endpoint
+- [ ] 06-02-PLAN.md — Auto-generate MaintenanceTicket from compliance events, remediation ticket on FAILED inspection, document attachment via signed URLs, and jsPDF audit export
+- [ ] 06-03-PLAN.md — FCI calculation service, board report page with live metric panels, jsPDF export with Claude Sonnet AI narrative, and weekly/monthly cron delivery
 
 ### Phase 7: Knowledge Base & Offline PWA
 **Goal**: Institutional knowledge is captured and searchable in-app, and technicians can work through poor Wi-Fi with full ticket functionality offline
