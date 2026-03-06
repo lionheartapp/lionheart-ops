@@ -53,9 +53,9 @@
 
 ### Ticket Detail (DETAIL)
 
-- [ ] **DETAIL-01**: Submitter section: name, role, contact info, submitted timestamp, availability note
-- [ ] **DETAIL-02**: Location section: full hierarchy (Campus → Building → Area → Room), room photo, Google Maps link
-- [ ] **DETAIL-03**: Issue section: title, description, category, priority, photos (full-size on click)
+- [x] **DETAIL-01**: Submitter section: name, role, contact info, submitted timestamp, availability note
+- [x] **DETAIL-02**: Location section: full hierarchy (Campus → Building → Area → Room), room photo, Google Maps link
+- [x] **DETAIL-03**: Issue section: title, description, category, priority, photos (full-size on click)
 - [x] **DETAIL-04**: Activity feed with internal comments (tech/head only, not visible to submitter)
 - [x] **DETAIL-05**: Assignment and reassignment history logged in activity feed
 
@@ -272,9 +272,9 @@ Updated during roadmap creation — 2026-03-05.
 | LIFE-06 | Phase 2 | Complete |
 | LIFE-07 | Phase 2 | Complete |
 | LIFE-08 | Phase 2 | Complete |
-| DETAIL-01 | Phase 2 | Pending |
-| DETAIL-02 | Phase 2 | Pending |
-| DETAIL-03 | Phase 2 | Pending |
+| DETAIL-01 | Phase 2 | Complete |
+| DETAIL-02 | Phase 2 | Complete |
+| DETAIL-03 | Phase 2 | Complete |
 | DETAIL-04 | Phase 2 | Complete |
 | DETAIL-05 | Phase 2 | Complete |
 | ROUTE-01 | Phase 2 | Complete |

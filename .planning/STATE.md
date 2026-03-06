@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 02-core-tickets/02-03-PLAN.md
-last_updated: "2026-03-06T03:05:00.000Z"
-last_activity: 2026-03-05 — Roadmap created; all 101 v1 requirements mapped across 7 phases
+status: executing
+stopped_at: Completed 02-core-tickets/02-04-PLAN.md
+last_updated: "2026-03-06T03:10:37.314Z"
+last_activity: "2026-03-06 — Completed 02-03: Work Orders table, filters, specialty highlighting, and live dashboard stats"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 0
+  completed_plans: 6
+  percent: 83
 ---
 
 # Project State
@@ -55,6 +55,7 @@ Progress: [████████░░] 83%
 | Phase 02-core-tickets P01 | 11min | 2 tasks | 16 files |
 | Phase 02-core-tickets P02 | 6min | 2 tasks | 8 files |
 | Phase 02-core-tickets P03 | 6min | 2 tasks | 5 files |
+| Phase 02-core-tickets P04 | 25min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 02-core-tickets]: AI suggested category auto-applies on first photo upload; user can override freely — reduces friction
 - [Phase 02-core-tickets]: Two-query split for Work Orders: main tickets (excludeStatus=SCHEDULED) + dedicated scheduled query keeps scheduled section independent of main filter state
 - [Phase 02-core-tickets]: Optimistic claim mutation: onMutate snapshots cache + patches with placeholder, onError rolls back, onSettled invalidates — user sees instant assignment feedback
+- [Phase 02-core-tickets]: TicketStatusTracker uses primary linear path with ON_HOLD/SCHEDULED/CANCELLED as branch state badges, not sequential steps
+- [Phase 02-core-tickets]: All gate UIs follow CONTEXT.md: inline expansion for hold, modal for QA transition, review panel for sign-off — consistent across phase
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T03:05:00.000Z
-Stopped at: Completed 02-core-tickets/02-03-PLAN.md
+Last session: 2026-03-06T03:10:37.312Z
+Stopped at: Completed 02-core-tickets/02-04-PLAN.md
 Resume file: None
