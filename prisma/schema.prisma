@@ -2003,6 +2003,7 @@ model MaintenanceTicket {
   aiAnalysis              Json?
   version                 Int                     @default(1)
   estimatedRepairCostUSD  Float?
+  staleAlertSent          Boolean                 @default(false)
   submittedById           String
   assignedToId            String?
   buildingId              String?

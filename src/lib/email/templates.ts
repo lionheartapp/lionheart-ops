@@ -213,6 +213,17 @@ export type EmailTemplate =
   | 'event_cancelled'
   | 'event_invite'
   | 'password_setup'
+  // Maintenance email templates (10 triggers)
+  | 'maintenance_submitted'
+  | 'maintenance_assigned'
+  | 'maintenance_claimed'
+  | 'maintenance_in_progress'
+  | 'maintenance_on_hold'
+  | 'maintenance_qa_ready'
+  | 'maintenance_done'
+  | 'maintenance_urgent'
+  | 'maintenance_stale'
+  | 'maintenance_qa_rejected'
 
 type TemplateVars = Record<string, string | undefined>
 
@@ -358,6 +369,228 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         ].filter(Boolean).join('\n'),
       })
 
+    // ── Maintenance: Ticket Submitted (to submitter) ──
+    case 'maintenance_submitted':
+      return wrapLayout({
+        previewText: 'Your maintenance request {{ticketNumber}} has been submitted',
+        content: [
+          heroHeading('- Maintenance Request -', 'Request<br />Submitted'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Your maintenance request has been received and is now in our queue.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}`,
+            B.blueLight,
+            B.blue
+          ),
+          centeredCta('View Request', '{{ticketLink}}'),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll keep you updated as your request is processed.</mj-text>`,
+            '8px 40px 24px 40px'
+          ),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: Ticket Assigned (to assignee) ──
+    case 'maintenance_assigned':
+      return wrapLayout({
+        previewText: 'Maintenance ticket {{ticketNumber}} has been assigned to you',
+        content: [
+          heroHeading('- Work Order -', 'Ticket<br />Assigned to You'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              A maintenance ticket has been assigned to you for action.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}<br /><strong>Category:</strong> {{category}}`,
+            B.blueLight,
+            B.blue
+          ),
+          centeredCta('View Ticket', '{{ticketLink}}'),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: Ticket Claimed (to Head) ──
+    case 'maintenance_claimed':
+      return wrapLayout({
+        previewText: '{{technicianName}} has claimed ticket {{ticketNumber}}',
+        content: [
+          heroHeading('- Work Order Update -', 'Ticket<br />Claimed'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              <strong>{{technicianName}}</strong> has self-claimed ticket {{ticketNumber}} and will begin work soon.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Assigned to:</strong> {{technicianName}}`,
+            B.greenLight,
+            B.green
+          ),
+          centeredCta('View Ticket', '{{ticketLink}}', B.green),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: In Progress (to submitter) ──
+    case 'maintenance_in_progress':
+      return wrapLayout({
+        previewText: 'Work has begun on your request {{ticketNumber}}',
+        content: [
+          heroHeading('- Maintenance Update -', 'Work<br />In Progress'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Good news — work has started on your maintenance request.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Assigned to:</strong> {{technicianName}}`,
+            B.greenLight,
+            B.green
+          ),
+          centeredCta('View Request', '{{ticketLink}}', B.green),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: On Hold (to submitter and Head) ──
+    case 'maintenance_on_hold':
+      return wrapLayout({
+        previewText: 'Maintenance request {{ticketNumber}} is temporarily on hold',
+        content: [
+          heroHeading('- Maintenance Update -', 'Request<br />On Hold'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Your maintenance request has been temporarily placed on hold.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Reason:</strong> {{holdReason}}`,
+            B.gray100,
+            B.gray500
+          ),
+          centeredCta('View Request', '{{ticketLink}}'),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll update you when work resumes.</mj-text>`,
+            '8px 40px 24px 40px'
+          ),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: QA Ready (to Head) ──
+    case 'maintenance_qa_ready':
+      return wrapLayout({
+        previewText: 'Ticket {{ticketNumber}} is ready for QA review',
+        content: [
+          heroHeading('- QA Review Needed -', 'Ready for<br />Approval'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              A maintenance ticket is ready for your QA review and sign-off.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Completed by:</strong> {{technicianName}}`,
+            B.blueLight,
+            B.blue
+          ),
+          centeredCta('Review & Approve', '{{ticketLink}}'),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: Done (to submitter) ──
+    case 'maintenance_done':
+      return wrapLayout({
+        previewText: 'Your maintenance request {{ticketNumber}} has been completed',
+        content: [
+          heroHeading('- All Done -', 'Request<br />Completed'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Your maintenance request has been completed and closed.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
+            B.greenLight,
+            B.green
+          ),
+          centeredCta('View Details', '{{ticketLink}}', B.green),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">Thank you for using Lionheart maintenance.</mj-text>`,
+            '8px 40px 24px 40px'
+          ),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: Urgent Alert (to Head/admin) ──
+    case 'maintenance_urgent':
+      return wrapLayout({
+        previewText: 'URGENT: New maintenance request {{ticketNumber}} requires immediate attention',
+        content: [
+          heroHeading('- Urgent Alert -', 'Urgent<br />Maintenance Request'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              An <strong>URGENT</strong> maintenance request has been submitted and requires immediate attention.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Category:</strong> {{category}}<br /><strong>Location:</strong> {{location}}`,
+            B.redLight,
+            B.red
+          ),
+          centeredCta('View Urgent Ticket', '{{ticketLink}}'),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: Stale Alert (to Head) ──
+    case 'maintenance_stale':
+      return wrapLayout({
+        previewText: 'Ticket {{ticketNumber}} has been unassigned for 48+ hours',
+        content: [
+          heroHeading('- Action Required -', 'Unassigned<br />Ticket Alert'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              A maintenance ticket has been in the backlog for over 48 hours without assignment.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}<br /><strong>Age:</strong> {{ticketAge}}`,
+            B.redLight,
+            B.red
+          ),
+          centeredCta('Assign Now', '{{ticketLink}}'),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: QA Rejected (to technician) ──
+    case 'maintenance_qa_rejected':
+      return wrapLayout({
+        previewText: 'QA review for {{ticketNumber}} was not approved — action required',
+        content: [
+          heroHeading('- QA Update -', 'Review Not<br />Approved'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Your QA submission for ticket {{ticketNumber}} was not approved. Please review the feedback and resubmit.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Feedback:</strong> {{rejectionNote}}`,
+            B.redLight,
+            B.red
+          ),
+          centeredCta('View Ticket', '{{ticketLink}}'),
+        ].join('\n'),
+      })
+
     default:
       throw new Error(`Unknown email template: ${template}`)
   }
@@ -383,6 +616,17 @@ const SUBJECTS: Record<EmailTemplate, string> = {
   event_rejected: 'Event not approved: {{eventTitle}}',
   event_cancelled: 'Event cancelled: {{eventTitle}}',
   event_invite: "You're invited: {{eventTitle}}",
+  // Maintenance
+  maintenance_submitted: 'Maintenance request {{ticketNumber}} received',
+  maintenance_assigned: 'Work order assigned: {{ticketNumber}}',
+  maintenance_claimed: '{{technicianName}} claimed ticket {{ticketNumber}}',
+  maintenance_in_progress: 'Work started on your request {{ticketNumber}}',
+  maintenance_on_hold: 'Maintenance request {{ticketNumber}} is on hold',
+  maintenance_qa_ready: 'QA review needed: {{ticketNumber}}',
+  maintenance_done: 'Request {{ticketNumber}} completed',
+  maintenance_urgent: 'URGENT maintenance request: {{ticketNumber}}',
+  maintenance_stale: 'Action required: Unassigned ticket {{ticketNumber}}',
+  maintenance_qa_rejected: 'QA not approved for {{ticketNumber}}',
 }
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
@@ -393,6 +637,17 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
   event_rejected: 'Your event "{{eventTitle}}" was not approved. {{reason}} View: {{eventLink}}',
   event_cancelled: '"{{eventTitle}}" has been cancelled and removed from the calendar.',
   event_invite: 'You\'ve been added to "{{eventTitle}}". View: {{eventLink}}',
+  // Maintenance
+  maintenance_submitted: 'Your maintenance request {{ticketNumber}} "{{ticketTitle}}" has been received. Priority: {{priority}}. View: {{ticketLink}}',
+  maintenance_assigned: 'Maintenance ticket {{ticketNumber}} "{{ticketTitle}}" has been assigned to you. Priority: {{priority}}. View: {{ticketLink}}',
+  maintenance_claimed: '{{technicianName}} has claimed ticket {{ticketNumber}} "{{ticketTitle}}". View: {{ticketLink}}',
+  maintenance_in_progress: 'Work has started on your maintenance request {{ticketNumber}} "{{ticketTitle}}". Assigned to: {{technicianName}}. View: {{ticketLink}}',
+  maintenance_on_hold: 'Maintenance request {{ticketNumber}} "{{ticketTitle}}" is on hold. Reason: {{holdReason}}. View: {{ticketLink}}',
+  maintenance_qa_ready: 'Ticket {{ticketNumber}} "{{ticketTitle}}" is ready for QA review. Completed by: {{technicianName}}. View: {{ticketLink}}',
+  maintenance_done: 'Maintenance request {{ticketNumber}} "{{ticketTitle}}" has been completed and closed. View: {{ticketLink}}',
+  maintenance_urgent: 'URGENT: Maintenance request {{ticketNumber}} "{{ticketTitle}}" requires immediate attention. Category: {{category}}. View: {{ticketLink}}',
+  maintenance_stale: 'Ticket {{ticketNumber}} "{{ticketTitle}}" has been unassigned for 48+ hours. Priority: {{priority}}. View: {{ticketLink}}',
+  maintenance_qa_rejected: 'QA review for {{ticketNumber}} "{{ticketTitle}}" was not approved. Feedback: {{rejectionNote}}. View: {{ticketLink}}',
 }
 
 /**

@@ -8,6 +8,18 @@ export type NotificationType =
   | 'event_invite'
   | 'event_approved'
   | 'event_rejected'
+  // Maintenance ticket notifications (11 triggers)
+  | 'maintenance_submitted'
+  | 'maintenance_assigned'
+  | 'maintenance_claimed'
+  | 'maintenance_in_progress'
+  | 'maintenance_on_hold'
+  | 'maintenance_qa_ready'
+  | 'maintenance_done'
+  | 'maintenance_urgent'
+  | 'maintenance_stale'
+  | 'maintenance_qa_rejected'
+  | 'maintenance_scheduled_released'
 
 export interface CreateNotificationInput {
   userId: string
