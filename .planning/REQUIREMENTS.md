@@ -141,14 +141,14 @@
 
 ### Analytics Dashboard (ANALYTICS)
 
-- [ ] **ANALYTICS-01**: Tickets by status count per campus (real-time)
-- [ ] **ANALYTICS-02**: Average resolution time by category and campus
-- [ ] **ANALYTICS-03**: Technician workload: active tickets, hours logged per week/month
-- [ ] **ANALYTICS-04**: PM compliance rate: % completed on time vs overdue
-- [ ] **ANALYTICS-05**: Labor hours by month, broken down by building and category
-- [ ] **ANALYTICS-06**: Cost by building per month (materials + labor)
-- [ ] **ANALYTICS-07**: Top 10 ticket locations
-- [ ] **ANALYTICS-08**: Category breakdown (ticket volume by specialty)
+- [x] **ANALYTICS-01**: Tickets by status count per campus (real-time)
+- [x] **ANALYTICS-02**: Average resolution time by category and campus
+- [x] **ANALYTICS-03**: Technician workload: active tickets, hours logged per week/month
+- [x] **ANALYTICS-04**: PM compliance rate: % completed on time vs overdue
+- [x] **ANALYTICS-05**: Labor hours by month, broken down by building and category
+- [x] **ANALYTICS-06**: Cost by building per month (materials + labor)
+- [x] **ANALYTICS-07**: Top 10 ticket locations
+- [x] **ANALYTICS-08**: Category breakdown (ticket volume by specialty)
 
 ### Repeat Repair Detection (REPAIR)
 
@@ -337,14 +337,14 @@ Updated during roadmap creation — 2026-03-05.
 | LABOR-05 | Phase 4 | Complete |
 | LABOR-06 | Phase 4 | Complete |
 | LABOR-07 | Phase 4 | Complete |
-| ANALYTICS-01 | Phase 5 | Pending |
-| ANALYTICS-02 | Phase 5 | Pending |
-| ANALYTICS-03 | Phase 5 | Pending |
-| ANALYTICS-04 | Phase 5 | Pending |
-| ANALYTICS-05 | Phase 5 | Pending |
-| ANALYTICS-06 | Phase 5 | Pending |
-| ANALYTICS-07 | Phase 5 | Pending |
-| ANALYTICS-08 | Phase 5 | Pending |
+| ANALYTICS-01 | Phase 5 | Complete |
+| ANALYTICS-02 | Phase 5 | Complete |
+| ANALYTICS-03 | Phase 5 | Complete |
+| ANALYTICS-04 | Phase 5 | Complete |
+| ANALYTICS-05 | Phase 5 | Complete |
+| ANALYTICS-06 | Phase 5 | Complete |
+| ANALYTICS-07 | Phase 5 | Complete |
+| ANALYTICS-08 | Phase 5 | Complete |
 | REPAIR-01 | Phase 5 | Pending |
 | REPAIR-02 | Phase 5 | Pending |
 | REPAIR-03 | Phase 5 | Pending |
