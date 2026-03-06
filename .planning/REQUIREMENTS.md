@@ -101,16 +101,16 @@
 
 ### Asset Register (ASSET)
 
-- [ ] **ASSET-01**: Asset model with full fields: assetNumber, category, make/model/serial, purchase/warranty dates, replacement cost, photos, notes, status
-- [ ] **ASSET-02**: Auto-generated asset numbers (AST-0001 format)
-- [ ] **ASSET-03**: Assets linked to physical hierarchy (building/area/room)
+- [x] **ASSET-01**: Asset model with full fields: assetNumber, category, make/model/serial, purchase/warranty dates, replacement cost, photos, notes, status
+- [x] **ASSET-02**: Auto-generated asset numbers (AST-0001 format)
+- [x] **ASSET-03**: Assets linked to physical hierarchy (building/area/room)
 - [ ] **ASSET-04**: Asset detail page showing full ticket history, open tickets, upcoming PM, warranty status
 - [ ] **ASSET-05**: Cumulative repair cost tracked and displayed vs. replacement cost
 - [ ] **ASSET-06**: Repair threshold alert when cumulative repairs exceed configurable % of replacement cost
 
 ### QR Codes (QR)
 
-- [ ] **QR-01**: Every asset record generates a unique QR code
+- [x] **QR-01**: Every asset record generates a unique QR code
 - [ ] **QR-02**: QR code resolves to asset detail page when scanned
 - [ ] **QR-03**: Submitters can scan QR to auto-populate location and asset fields on new ticket
 - [ ] **QR-04**: QR code printable for physical asset tagging
@@ -309,13 +309,13 @@ Updated during roadmap creation — 2026-03-05.
 | AI-06 | Phase 3 | Complete |
 | AI-07 | Phase 3 | Complete |
 | AI-08 | Phase 3 | Complete |
-| ASSET-01 | Phase 4 | Pending |
-| ASSET-02 | Phase 4 | Pending |
-| ASSET-03 | Phase 4 | Pending |
+| ASSET-01 | Phase 4 | Complete |
+| ASSET-02 | Phase 4 | Complete |
+| ASSET-03 | Phase 4 | Complete |
 | ASSET-04 | Phase 4 | Pending |
 | ASSET-05 | Phase 4 | Pending |
 | ASSET-06 | Phase 4 | Pending |
-| QR-01 | Phase 4 | Pending |
+| QR-01 | Phase 4 | Complete |
 | QR-02 | Phase 4 | Pending |
 | QR-03 | Phase 4 | Pending |
 | QR-04 | Phase 4 | Pending |
