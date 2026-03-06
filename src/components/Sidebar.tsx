@@ -33,6 +33,7 @@ import {
   Package,
   CalendarCheck,
   BarChart2,
+  FileText,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -701,6 +702,28 @@ export default function Sidebar({
                   >
                     <Shield className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                     <span className="text-sm">Compliance</span>
+                  </PrefetchLink>
+                </li>
+              )}
+              {/* Board Report */}
+              {canManageMaintenance && (
+                <li>
+                  <PrefetchLink
+                    href="/maintenance/board-report"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                      pathname === '/maintenance/board-report'
+                        ? 'bg-white/10 text-white font-medium border border-white/20'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                    }`}
+                    aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
+                  >
+                    <FileText className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                    <span className="text-sm">Board Report</span>
                   </PrefetchLink>
                 </li>
               )}
