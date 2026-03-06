@@ -109,6 +109,8 @@ export default function Sidebar({
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
   const [facilitiesOpen, setFacilitiesOpen] = useState(false)
+  const facilitiesListRef = useRef<HTMLUListElement>(null)
+  const [facilityIndicator, setFacilityIndicator] = useState<{ top: number; height: number } | null>(null)
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
 
@@ -244,6 +246,26 @@ export default function Sidebar({
     }
   }, [pathname])
 
+  // Measure active facility child link position for sliding indicator
+  useEffect(() => {
+    if (!facilitiesOpen || !facilitiesListRef.current) {
+      setFacilityIndicator(null)
+      return
+    }
+    const measure = () => {
+      const list = facilitiesListRef.current
+      if (!list) return
+      const activeEl = list.querySelector('[data-facility-active="true"]') as HTMLElement | null
+      if (activeEl) {
+        setFacilityIndicator({ top: activeEl.offsetTop + 4, height: activeEl.offsetHeight - 8 })
+      } else {
+        setFacilityIndicator(null)
+      }
+    }
+    // Small delay to let expand animation settle on first open
+    const timer = setTimeout(measure, 60)
+    return () => clearTimeout(timer)
+  }, [facilitiesOpen, pathname])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
@@ -609,23 +631,26 @@ export default function Sidebar({
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
                         <motion.ul
-                          className="relative space-y-0.5 ml-8 pl-4 mt-1 border-l border-gray-600/30"
+                          ref={facilitiesListRef}
+                          className="relative space-y-0.5 ml-8 pl-4 mt-1 border-l border-gray-600/30 overflow-hidden"
                           role="list"
-                          initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
-                          animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
-                          exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                         >
+                          {/* Sliding accent indicator */}
+                          {facilityIndicator && (
+                            <motion.div
+                              className="absolute left-0 w-[3px] rounded-full bg-primary-400"
+                              initial={false}
+                              animate={{ top: facilityIndicator.top, height: facilityIndicator.height }}
+                              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            />
+                          )}
                           {/* Work Orders — for Head/Admin */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/work-orders' && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname === '/maintenance/work-orders' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/work-orders"
                                 onClick={() => {
@@ -645,14 +670,7 @@ export default function Sidebar({
                           )}
                           {/* My Requests — for Technicians */}
                           {canClaimMaintenance && !canManageMaintenance && (
-                            <li className="relative">
-                              {pathname.includes('my-requests') && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname.includes('my-requests') || undefined}>
                               <PrefetchLink
                                 href="/maintenance?tab=my-requests"
                                 onClick={() => {
@@ -672,14 +690,7 @@ export default function Sidebar({
                           )}
                           {/* Assets */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/assets' && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname === '/maintenance/assets' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/assets"
                                 onClick={() => {
@@ -700,14 +711,7 @@ export default function Sidebar({
                           )}
                           {/* PM Calendar */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/pm-calendar' && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname === '/maintenance/pm-calendar' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/pm-calendar"
                                 onClick={() => {
@@ -728,14 +732,7 @@ export default function Sidebar({
                           )}
                           {/* Analytics */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/analytics' && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname === '/maintenance/analytics' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/analytics"
                                 onClick={() => {
@@ -756,14 +753,7 @@ export default function Sidebar({
                           )}
                           {/* Compliance */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/compliance' && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname === '/maintenance/compliance' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/compliance"
                                 onClick={() => {
@@ -784,14 +774,7 @@ export default function Sidebar({
                           )}
                           {/* Board Report */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/board-report' && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname === '/maintenance/board-report' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/board-report"
                                 onClick={() => {
@@ -812,14 +795,7 @@ export default function Sidebar({
                           )}
                           {/* Knowledge Base */}
                           {(canManageMaintenance || canClaimMaintenance) && (
-                            <li className="relative">
-                              {pathname.startsWith('/maintenance/knowledge-base') && (
-                                <motion.div
-                                  layoutId="facility-active-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li data-facility-active={pathname.startsWith('/maintenance/knowledge-base') || undefined}>
                               <PrefetchLink
                                 href="/maintenance/knowledge-base"
                                 onClick={() => {
