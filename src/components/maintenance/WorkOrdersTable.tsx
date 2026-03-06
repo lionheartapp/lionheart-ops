@@ -74,7 +74,7 @@ const STATUS_COLORS: Record<string, string> = {
   IN_PROGRESS: 'bg-amber-100 text-amber-700',
   ON_HOLD: 'bg-red-100 text-red-700',
   SCHEDULED: 'bg-purple-100 text-purple-700',
-  QA_REVIEW: 'bg-pink-100 text-pink-700',
+  QA: 'bg-pink-100 text-pink-700',
   DONE: 'bg-green-100 text-green-700',
   CANCELLED: 'bg-gray-100 text-gray-400',
 }
@@ -92,7 +92,7 @@ const STATUS_LABELS: Record<string, string> = {
   IN_PROGRESS: 'In Progress',
   ON_HOLD: 'On Hold',
   SCHEDULED: 'Scheduled',
-  QA_REVIEW: 'QA Review',
+  QA: 'QA Review',
   DONE: 'Done',
   CANCELLED: 'Cancelled',
 }
@@ -101,10 +101,10 @@ const STATUS_LABELS: Record<string, string> = {
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   BACKLOG: ['TODO', 'SCHEDULED', 'CANCELLED'],
   TODO: ['IN_PROGRESS', 'BACKLOG', 'SCHEDULED', 'ON_HOLD', 'CANCELLED'],
-  IN_PROGRESS: ['QA_REVIEW', 'DONE', 'ON_HOLD', 'TODO', 'CANCELLED'],
+  IN_PROGRESS: ['QA', 'DONE', 'ON_HOLD', 'TODO', 'CANCELLED'],
   ON_HOLD: ['TODO', 'IN_PROGRESS', 'CANCELLED'],
   SCHEDULED: ['TODO', 'IN_PROGRESS', 'CANCELLED'],
-  QA_REVIEW: ['DONE', 'IN_PROGRESS', 'CANCELLED'],
+  QA: ['DONE', 'IN_PROGRESS', 'CANCELLED'],
   DONE: [],
   CANCELLED: [],
 }
