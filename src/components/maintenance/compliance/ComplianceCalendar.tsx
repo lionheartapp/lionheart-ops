@@ -175,7 +175,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
                         e.stopPropagation()
                         onEditRecord?.(record)
                       }}
-                      className="text-xs text-emerald-600 hover:text-emerald-700 font-medium cursor-pointer"
+                      className="text-xs text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
                     >
                       Edit
                     </button>
@@ -263,7 +263,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
         <select
           value={filterDomain}
           onChange={(e) => setFilterDomain(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
         >
           <option value="">All Domains</option>
           {COMPLIANCE_DOMAINS.map((d) => (
@@ -274,7 +274,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
         >
           <option value="">All Statuses</option>
           <option value="PENDING">Pending</option>
@@ -287,7 +287,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
           <button
             onClick={() => setViewMode('list')}
             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-              viewMode === 'list' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
             }`}
             title="List view"
           >
@@ -296,7 +296,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
           <button
             onClick={() => setViewMode('timeline')}
             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-              viewMode === 'timeline' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              viewMode === 'timeline' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
             }`}
             title="Timeline view"
           >

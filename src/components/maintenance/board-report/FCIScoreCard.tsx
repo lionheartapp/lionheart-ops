@@ -34,12 +34,12 @@ function AnimatedFCI({ value }: { value: number }) {
 const RATING_CONFIG = {
   GOOD: {
     label: 'Good',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    textColor: 'text-emerald-700',
-    badgeBg: 'bg-emerald-100 text-emerald-700',
-    scoreColor: 'text-emerald-600',
-    dot: 'bg-emerald-500',
+    bg: 'bg-primary-50',
+    border: 'border-primary-200',
+    textColor: 'text-primary-700',
+    badgeBg: 'bg-primary-100 text-primary-700',
+    scoreColor: 'text-primary-600',
+    dot: 'bg-primary-500',
     description: 'Facility is in excellent condition',
   },
   FAIR: {
@@ -107,7 +107,7 @@ export function FCIScoreCard({ fci }: FCIScoreCardProps) {
               <p className="text-gray-300 mb-2">FCI = Deferred Maintenance ÷ Replacement Value</p>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="w-2 h-2 rounded-full bg-primary-400" />
                   <span className="text-gray-300">{"< 5%"} — Good</span>
                 </div>
                 <div className="flex items-center gap-2">

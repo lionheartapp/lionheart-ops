@@ -10,7 +10,6 @@ import { dropdownVariants } from '@/lib/animations'
 import Sidebar, { type SidebarProps } from './Sidebar'
 import NotificationBell from './NotificationBell'
 import SearchCommand from './SearchCommand'
-import ConnectivityIndicator from './maintenance/ConnectivityIndicator'
 import { syncOfflineData } from '@/lib/offline/sync'
 import { useConnectivity } from '@/hooks/useConnectivity'
 
@@ -161,7 +160,6 @@ export default function DashboardLayout({
           >
             <Search className="w-5 h-5" />
           </button>
-          <ConnectivityIndicator />
           <NotificationBell />
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-white">{userName || 'User'}</p>

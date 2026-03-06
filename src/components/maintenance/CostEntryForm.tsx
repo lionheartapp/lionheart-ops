@@ -151,7 +151,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
           }}
           onFocus={() => setShowVendorDropdown(true)}
           placeholder="e.g. Home Depot, Grainger..."
-          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-gray-400"
+          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
           autoComplete="off"
         />
         {showVendorDropdown && filteredVendors.length > 0 && (
@@ -183,7 +183,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g. PVC fittings, replacement belt..."
-          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-gray-400"
+          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
         />
       </div>
 
@@ -201,7 +201,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="w-full pl-7 pr-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-gray-400"
+            className="w-full pl-7 pr-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
           />
         </div>
       </div>
@@ -215,7 +215,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={receiptUrl} alt="Receipt" className="w-full h-full object-cover" />
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+            <div className="flex items-center gap-1.5 text-xs text-primary-600">
               <Check className="w-3 h-3" />
               Receipt uploaded
             </div>
@@ -260,7 +260,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
         <button
           type="submit"
           disabled={isSubmitting || !vendor.trim() || !description.trim() || !amount}
-          className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <DollarSign className="w-3 h-3" />}
           Add Cost

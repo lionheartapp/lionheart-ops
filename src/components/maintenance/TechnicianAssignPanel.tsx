@@ -36,9 +36,9 @@ function TechAvatar({ tech, isDragging }: { tech: Technician; isDragging: boolea
         className={[
           'w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-150',
           isOver
-            ? 'bg-emerald-500 text-white ring-2 ring-emerald-400 ring-offset-1 scale-110'
+            ? 'bg-primary-500 text-white ring-2 ring-primary-400 ring-offset-1 scale-110'
             : isDragging
-            ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
+            ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200'
             : 'bg-gray-100 text-gray-600',
         ]
           .filter(Boolean)
@@ -49,7 +49,7 @@ function TechAvatar({ tech, isDragging }: { tech: Technician; isDragging: boolea
       <span
         className={[
           'text-[10px] truncate max-w-[56px] transition-colors duration-150',
-          isOver ? 'text-emerald-700 font-semibold' : 'text-gray-400',
+          isOver ? 'text-primary-700 font-semibold' : 'text-gray-400',
         ]
           .filter(Boolean)
           .join(' ')}
@@ -73,7 +73,7 @@ export default function TechnicianAssignPanel({
       className={[
         'flex items-center gap-4 px-4 py-2.5 rounded-xl border transition-all duration-200',
         isDragging
-          ? 'bg-emerald-50/60 border-emerald-200 shadow-sm'
+          ? 'bg-primary-50/60 border-primary-200 shadow-sm'
           : 'bg-gray-50/40 border-gray-200/60',
       ]
         .filter(Boolean)
@@ -81,7 +81,7 @@ export default function TechnicianAssignPanel({
     >
       <span
         className={`text-xs font-medium whitespace-nowrap transition-colors ${
-          isDragging ? 'text-emerald-700' : 'text-gray-400'
+          isDragging ? 'text-primary-700' : 'text-gray-400'
         }`}
       >
         Drag to assign:

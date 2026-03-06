@@ -90,19 +90,19 @@ export default function PmChecklistSection({
   return (
     <div
       className={`ui-glass p-5 rounded-2xl space-y-4 ${
-        !allDone && completedCount > 0 ? 'border border-emerald-200' : ''
+        !allDone && completedCount > 0 ? 'border border-primary-200' : ''
       }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <ClipboardList className="w-4 h-4 text-emerald-600" />
+          <ClipboardList className="w-4 h-4 text-primary-600" />
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">PM Checklist</h3>
         </div>
         <span
           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
             allDone
-              ? 'bg-emerald-100 text-emerald-700'
+              ? 'bg-primary-100 text-primary-700'
               : completedCount > 0
               ? 'bg-amber-100 text-amber-700'
               : 'bg-gray-100 text-gray-500'
@@ -115,7 +115,7 @@ export default function PmChecklistSection({
       {/* Progress bar */}
       <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
         <div
-          className="h-2 rounded-full bg-emerald-500 transition-all duration-300"
+          className="h-2 rounded-full bg-primary-500 transition-all duration-300"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
@@ -130,8 +130,8 @@ export default function PmChecklistSection({
             <label
               key={index}
               className={`flex items-start gap-3 p-2.5 rounded-xl cursor-pointer select-none transition-colors duration-150 ${
-                canEdit ? 'hover:bg-emerald-50/50' : 'cursor-default'
-              } ${isChecked ? 'bg-emerald-50/40' : ''}`}
+                canEdit ? 'hover:bg-primary-50/50' : 'cursor-default'
+              } ${isChecked ? 'bg-primary-50/40' : ''}`}
             >
               {/* Checkbox */}
               <div className="relative flex-shrink-0 mt-0.5">
@@ -145,8 +145,8 @@ export default function PmChecklistSection({
                 <div
                   className={`w-4.5 h-4.5 w-[18px] h-[18px] rounded flex items-center justify-center border-2 transition-all duration-150 active:scale-95 ${
                     isChecked
-                      ? 'bg-emerald-500 border-emerald-500'
-                      : 'bg-white border-gray-300 hover:border-emerald-400'
+                      ? 'bg-primary-500 border-primary-500'
+                      : 'bg-white border-gray-300 hover:border-primary-400'
                   } ${!canEdit ? 'opacity-60' : ''}`}
                   onClick={canEdit ? () => handleToggle(index) : undefined}
                 >
@@ -180,9 +180,9 @@ export default function PmChecklistSection({
 
       {/* All complete banner */}
       {allDone && (
-        <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <p className="text-sm font-medium text-emerald-800">All items complete — ready for QA</p>
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-primary-50 border border-primary-200 rounded-xl">
+          <CheckCircle2 className="w-4 h-4 text-primary-600 flex-shrink-0" />
+          <p className="text-sm font-medium text-primary-800">All items complete — ready for QA</p>
         </div>
       )}
     </div>

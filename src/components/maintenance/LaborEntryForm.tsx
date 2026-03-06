@@ -152,7 +152,7 @@ export default function LaborEntryForm({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </div>
           <div>
@@ -161,7 +161,7 @@ export default function LaborEntryForm({
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </div>
           <div>
@@ -170,7 +170,7 @@ export default function LaborEntryForm({
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </div>
         </div>
@@ -184,14 +184,14 @@ export default function LaborEntryForm({
             value={durationInput}
             onChange={(e) => setDurationInput(e.target.value)}
             placeholder="e.g. 1.5 for 1h 30m"
-            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </div>
       )}
 
       {/* Computed duration hint */}
       {computedMinutes != null && computedMinutes > 0 && inputMode === 'times' && (
-        <p className="flex items-center gap-1.5 text-xs text-emerald-600">
+        <p className="flex items-center gap-1.5 text-xs text-primary-600">
           <Clock className="w-3 h-3" />
           Duration: {formatDuration(computedMinutes)}
         </p>
@@ -204,7 +204,7 @@ export default function LaborEntryForm({
           <select
             value={technicianId}
             onChange={(e) => setTechnicianId(e.target.value)}
-            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
           >
             {technicians.map((t) => (
               <option key={t.id} value={t.id}>
@@ -223,7 +223,7 @@ export default function LaborEntryForm({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Optional: describe work performed..."
           rows={2}
-          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-gray-400"
+          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-400 placeholder:text-gray-400"
         />
       </div>
 
@@ -233,7 +233,7 @@ export default function LaborEntryForm({
         <button
           type="submit"
           disabled={!canSubmit}
-          className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Clock className="w-3 h-3" />}
           Log Time

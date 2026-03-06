@@ -25,8 +25,8 @@ function EOLChip({
   cost: number
 }) {
   return (
-    <div className="bg-emerald-50/80 border border-emerald-100 rounded-xl p-3">
-      <p className="text-xs text-emerald-600 font-semibold mb-1">{label}</p>
+    <div className="bg-primary-50/80 border border-primary-100 rounded-xl p-3">
+      <p className="text-xs text-primary-600 font-semibold mb-1">{label}</p>
       <p className="text-lg font-black text-gray-900">{count}</p>
       <p className="text-xs text-gray-500">{fmt(cost)}</p>
     </div>
@@ -135,7 +135,7 @@ export function AssetForecastPanel({
               {topRepairCostAssets.length > 5 && (
                 <motion.button
                   onClick={() => setShowAll(!showAll)}
-                  className="w-full mt-2 flex items-center justify-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 font-medium py-1.5 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer"
+                  className="w-full mt-2 flex items-center justify-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium py-1.5 rounded-lg hover:bg-primary-50 transition-colors cursor-pointer"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}

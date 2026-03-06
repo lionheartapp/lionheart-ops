@@ -39,7 +39,7 @@ export default function ConnectivityIndicator() {
           aria-label="Online"
           title="Connected"
         >
-          <Wifi className="w-4 h-4 text-emerald-400" />
+          <Wifi className="w-4 h-4 text-primary-400" />
         </motion.span>
       ) : (
         <motion.span

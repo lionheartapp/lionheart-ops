@@ -99,7 +99,7 @@ function YoyCard({
       {!unchanged && (
         <div
           className={`flex items-center gap-1 mt-1.5 text-xs font-semibold ${
-            improved ? 'text-emerald-600' : 'text-red-600'
+            improved ? 'text-primary-600' : 'text-red-600'
           }`}
         >
           {improved ? (
@@ -175,8 +175,8 @@ export function BoardReportPage({ token }: BoardReportPageProps) {
       >
         <motion.div variants={fadeInUp} className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-emerald-600" />
+            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">Board Report</h1>
@@ -227,7 +227,7 @@ export function BoardReportPage({ token }: BoardReportPageProps) {
             {/* Generate Report */}
             <button
               onClick={() => setDialogOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors cursor-pointer"
             >
               <FileText className="w-4 h-4" />
               Generate Report

@@ -12,7 +12,7 @@ const QRScannerInner = dynamic(() => import('./QRScannerInner'), {
   loading: () => (
     <div className="flex items-center justify-center h-64 bg-gray-100 rounded-xl">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-sm text-gray-500">Starting camera...</p>
       </div>
     </div>
@@ -48,8 +48,8 @@ export default function QRScannerModal({ isOpen, onClose }: QRScannerModalProps)
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <QrCode className="w-4 h-4 text-emerald-600" />
+                <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                  <QrCode className="w-4 h-4 text-primary-600" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-gray-900">Scan Asset QR</h3>

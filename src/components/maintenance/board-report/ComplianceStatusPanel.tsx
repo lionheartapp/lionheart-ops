@@ -41,7 +41,7 @@ function TableSkeleton() {
 function PctBadge({ pct }: { pct: number }) {
   const color =
     pct >= 80
-      ? 'bg-emerald-100 text-emerald-700'
+      ? 'bg-primary-100 text-primary-700'
       : pct >= 50
       ? 'bg-amber-100 text-amber-700'
       : 'bg-red-100 text-red-700'
@@ -77,7 +77,7 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
           {totalAll > 0 && <PctBadge pct={overallPct} />}
           <a
             href="/maintenance/compliance"
-            className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors cursor-pointer"
           >
             Details <ExternalLink className="w-3 h-3" />
           </a>
@@ -90,7 +90,7 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
       ) : domains.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-sm text-gray-500">No compliance records yet.</p>
-          <a href="/maintenance/compliance" className="text-xs text-emerald-600 hover:underline cursor-pointer">
+          <a href="/maintenance/compliance" className="text-xs text-primary-600 hover:underline cursor-pointer">
             Configure compliance domains
           </a>
         </div>
@@ -114,13 +114,13 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
                 <motion.tr
                   key={domain}
                   variants={listItem}
-                  className="border-t border-gray-100/60 hover:bg-emerald-50/30 transition-colors duration-150"
+                  className="border-t border-gray-100/60 hover:bg-primary-50/30 transition-colors duration-150"
                 >
                   <td className="px-3 py-2.5 text-gray-700 font-medium text-xs">
                     {DOMAIN_LABELS[domain] ?? domain.replace(/_/g, ' ')}
                   </td>
                   <td className="px-3 py-2.5 text-center">
-                    <span className="text-xs font-semibold text-emerald-600">{d.current}</span>
+                    <span className="text-xs font-semibold text-primary-600">{d.current}</span>
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     {d.overdue > 0 ? (

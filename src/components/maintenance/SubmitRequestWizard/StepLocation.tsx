@@ -80,8 +80,8 @@ export default function StepLocation({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <MapPin className="w-4 h-4 text-emerald-600" />
+              <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4 text-primary-600" />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900 mb-1.5">{locationLabel}</p>
@@ -136,7 +136,7 @@ export default function StepLocation({
                   onFocus={() => setIsOpen(true)}
                   onBlur={() => setTimeout(() => setIsOpen(false), 150)}
                   placeholder="Search rooms, areas, or buildings..."
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
                 />
               </div>
 
@@ -163,11 +163,11 @@ export default function StepLocation({
                             key={`${opt.buildingId}-${opt.areaId}-${opt.roomId}`}
                             type="button"
                             onMouseDown={() => handleSelect(opt)}
-                            className="w-full text-left px-3 py-2 hover:bg-emerald-50 transition-colors cursor-pointer"
+                            className="w-full text-left px-3 py-2 hover:bg-primary-50 transition-colors cursor-pointer"
                           >
                             <div className="flex items-center gap-2">
                               <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${
-                                opt.type === 'room' ? 'text-emerald-500' :
+                                opt.type === 'room' ? 'text-primary-500' :
                                 opt.type === 'area' ? 'text-blue-400' : 'text-gray-400'
                               }`} />
                               <div className="min-w-0">
@@ -181,7 +181,7 @@ export default function StepLocation({
                                 )}
                               </div>
                               <span className={`ml-auto text-xs px-1.5 py-0.5 rounded-md flex-shrink-0 ${
-                                opt.type === 'room' ? 'bg-emerald-100 text-emerald-700' :
+                                opt.type === 'room' ? 'bg-primary-100 text-primary-700' :
                                 opt.type === 'area' ? 'bg-blue-100 text-blue-700' :
                                 'bg-gray-100 text-gray-600'
                               }`}>

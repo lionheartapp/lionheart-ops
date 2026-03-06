@@ -174,8 +174,8 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
   if (assets.length === 0) {
     return (
       <div className="ui-glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4">
-          <Package className="w-7 h-7 text-emerald-600" />
+        <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mb-4">
+          <Package className="w-7 h-7 text-primary-600" />
         </div>
         <h3 className="text-base font-semibold text-gray-900 mb-1">No assets found</h3>
         <p className="text-sm text-gray-500 mb-4">
@@ -186,7 +186,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
         {!filters.search && !filters.category && !filters.status && (
           <button
             onClick={onAddAsset}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add your first asset
@@ -223,9 +223,9 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
                 key={asset.id}
                 variants={listItem}
                 onClick={() => router.push(`/maintenance/assets/${asset.id}`)}
-                className="border-b border-gray-100 hover:bg-emerald-50/30 transition-colors cursor-pointer"
+                className="border-b border-gray-100 hover:bg-primary-50/30 transition-colors cursor-pointer"
               >
-                <td className="px-4 py-3 whitespace-nowrap font-mono text-xs text-emerald-700 font-semibold">
+                <td className="px-4 py-3 whitespace-nowrap font-mono text-xs text-primary-700 font-semibold">
                   {asset.assetNumber}
                 </td>
                 <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">

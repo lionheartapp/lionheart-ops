@@ -33,8 +33,8 @@ export default function LaborCostSummaryCards({ summary }: LaborCostSummaryCards
       label: 'Labor Cost',
       value: summary.laborCost,
       format: (v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      colorClass: 'text-emerald-600',
-      bgClass: 'bg-emerald-50',
+      colorClass: 'text-primary-600',
+      bgClass: 'bg-primary-50',
     },
     {
       icon: Receipt,

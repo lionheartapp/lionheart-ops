@@ -26,7 +26,7 @@ function PMRatioBar({ pmPct }: { pmPct: number }) {
       </div>
       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
         <motion.div
-          className={`h-2 rounded-full ${isGood ? 'bg-emerald-500' : 'bg-amber-500'}`}
+          className={`h-2 rounded-full ${isGood ? 'bg-primary-500' : 'bg-amber-500'}`}
           initial={{ width: 0 }}
           animate={{ width: `${pmPct}%` }}
           transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
@@ -48,7 +48,7 @@ interface MetricCardProps {
 
 function MetricCard({ icon, label, value, subValue, accent = 'default' }: MetricCardProps) {
   const accentMap = {
-    green: 'bg-emerald-50 text-emerald-600',
+    green: 'bg-primary-50 text-primary-600',
     amber: 'bg-amber-50 text-amber-600',
     blue: 'bg-blue-50 text-blue-600',
     default: 'bg-gray-100 text-gray-600',
@@ -98,7 +98,7 @@ export function BoardMetricsGrid({ metrics }: BoardMetricsGridProps) {
           metrics.costPerStudent == null ? (
             <p className="text-[10px] text-gray-400">
               Set student count in{' '}
-              <a href="/settings?tab=school-info" className="text-emerald-600 underline cursor-pointer">
+              <a href="/settings?tab=school-info" className="text-primary-600 underline cursor-pointer">
                 School Info settings
               </a>
             </p>

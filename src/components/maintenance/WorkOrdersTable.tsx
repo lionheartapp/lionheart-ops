@@ -239,7 +239,7 @@ function RowActionMenu({
         aria-label="Row actions"
       >
         {isClaiming ? (
-          <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+          <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
         ) : (
           <MoreHorizontal className="w-4 h-4" />
         )}
@@ -261,7 +261,7 @@ function RowActionMenu({
                     onClick={handleClaim}
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                   >
-                    <UserCheck className="w-4 h-4 text-emerald-500" />
+                    <UserCheck className="w-4 h-4 text-primary-500" />
                     Claim
                   </button>
                 )}

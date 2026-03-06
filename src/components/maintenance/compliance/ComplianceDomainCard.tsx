@@ -70,7 +70,7 @@ const DOMAIN_ICON_COLORS: Record<ComplianceDomain, string> = {
   KITCHEN: 'text-yellow-600',
   ADA: 'text-purple-600',
   RADON: 'text-teal-600',
-  IPM: 'text-emerald-600',
+  IPM: 'text-primary-600',
 }
 
 const DOMAIN_BG_COLORS: Record<ComplianceDomain, string> = {
@@ -83,7 +83,7 @@ const DOMAIN_BG_COLORS: Record<ComplianceDomain, string> = {
   KITCHEN: 'bg-yellow-50',
   ADA: 'bg-purple-50',
   RADON: 'bg-teal-50',
-  IPM: 'bg-emerald-50',
+  IPM: 'bg-primary-50',
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -123,8 +123,8 @@ function ToggleSwitch({
         if (!disabled) onToggle()
       }}
       disabled={disabled}
-      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-        enabled ? 'bg-emerald-600' : 'bg-gray-200'
+      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+        enabled ? 'bg-primary-600' : 'bg-gray-200'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       aria-checked={enabled}
       role="switch"

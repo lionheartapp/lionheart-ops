@@ -66,11 +66,11 @@ function StatusBadge({ status }: { status: ComplianceStatus }) {
 
 function TicketChip({ ticket, label }: { ticket: { ticketNumber: string; status: string }; label?: string }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200">
-      <Ticket className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50 border border-primary-200">
+      <Ticket className="w-3.5 h-3.5 text-primary-600 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         {label && <p className="text-xs text-gray-500 leading-none mb-0.5">{label}</p>}
-        <span className="text-sm font-medium text-emerald-700">{ticket.ticketNumber}</span>
+        <span className="text-sm font-medium text-primary-700">{ticket.ticketNumber}</span>
         <span className="ml-2 text-xs text-gray-400">{ticket.status}</span>
       </div>
       <ExternalLink className="w-3 h-3 text-gray-400" />
@@ -251,7 +251,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   value={inspectionDate}
                   onChange={(e) => setInspectionDate(e.target.value)}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-50 disabled:text-gray-400 cursor-pointer"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400 cursor-pointer"
                 />
               </div>
 
@@ -265,7 +265,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   value={inspector}
                   onChange={(e) => setInspector(e.target.value)}
                   placeholder="Inspector name or company"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -277,7 +277,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Inspection notes, findings, follow-up actions..."
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                 />
               </div>
             </section>
@@ -293,7 +293,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                 <button
                   onClick={() => ticketMutation.mutate('compliance')}
                   disabled={ticketMutation.isPending}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-60"
                 >
                   {ticketMutation.isPending && ticketMutation.variables === 'compliance' ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -359,7 +359,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
             <button
               onClick={() => saveMutation.mutate()}
               disabled={saveMutation.isPending}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-60"
             >
               {saveMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

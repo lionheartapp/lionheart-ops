@@ -136,8 +136,8 @@ export function ComplianceSetupWizard({
                   <button
                     type="button"
                     onClick={() => setIsEnabled(!isEnabled)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                      isEnabled ? 'bg-emerald-600' : 'bg-gray-200'
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                      isEnabled ? 'bg-primary-600' : 'bg-gray-200'
                     }`}
                     role="switch"
                     aria-checked={isEnabled}
@@ -170,7 +170,7 @@ export function ComplianceSetupWizard({
                       <select
                         value={customMonth}
                         onChange={(e) => setCustomMonth(e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       >
                         {MONTH_NAMES.slice(1).map((name, i) => (
                           <option key={i + 1} value={i + 1}>
@@ -188,7 +188,7 @@ export function ComplianceSetupWizard({
                         value={customDay}
                         onChange={(e) => setCustomDay(e.target.value)}
                         placeholder={meta.defaultDay.toString()}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                   </div>
@@ -205,7 +205,7 @@ export function ComplianceSetupWizard({
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Inspector contact info, local requirements, etc."
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                 />
               </div>
 
@@ -220,7 +220,7 @@ export function ComplianceSetupWizard({
                     type="button"
                     onClick={() => populateMutation.mutate()}
                     disabled={populateMutation.isPending}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-medium hover:bg-emerald-100 transition-colors cursor-pointer disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary-50 text-primary-700 border border-primary-200 text-sm font-medium hover:bg-primary-100 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {populateMutation.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -228,7 +228,7 @@ export function ComplianceSetupWizard({
                     {populateMutation.isPending ? 'Populating...' : 'Populate Calendar for This Year'}
                   </button>
                   {populateMutation.isSuccess && (
-                    <p className="text-xs text-emerald-600 mt-2 text-center">Calendar populated successfully</p>
+                    <p className="text-xs text-primary-600 mt-2 text-center">Calendar populated successfully</p>
                   )}
                 </div>
               )}
@@ -247,7 +247,7 @@ export function ComplianceSetupWizard({
                 type="button"
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-50"
               >
                 {saveMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

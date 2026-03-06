@@ -121,8 +121,8 @@ export function GenerateReportDialog({
               {/* Header */}
               <div className="flex items-start justify-between p-6 pb-4 border-b border-gray-100/60">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-emerald-600" />
+                  <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
                     <h2 className="text-base font-semibold text-gray-900">Generate Board Report</h2>
@@ -152,7 +152,7 @@ export function GenerateReportDialog({
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(Number(e.target.value))}
                       disabled={loading}
-                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:opacity-60"
+                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:opacity-60"
                     >
                       {months.map((m) => (
                         <option key={m.value} value={m.value}>
@@ -164,7 +164,7 @@ export function GenerateReportDialog({
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(Number(e.target.value))}
                       disabled={loading}
-                      className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:opacity-60"
+                      className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:opacity-60"
                     >
                       {years.map((y) => (
                         <option key={y} value={y}>
@@ -179,10 +179,10 @@ export function GenerateReportDialog({
                 </div>
 
                 {/* AI narrative toggle */}
-                <div className="flex items-start gap-3 p-4 bg-emerald-50/60 border border-emerald-100 rounded-xl">
+                <div className="flex items-start gap-3 p-4 bg-primary-50/60 border border-primary-100 rounded-xl">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      <Sparkles className="w-4 h-4 text-primary-600" />
                       <span className="text-sm font-semibold text-gray-800">
                         AI Executive Summary
                       </span>
@@ -196,7 +196,7 @@ export function GenerateReportDialog({
                     onClick={() => setIncludeAI(!includeAI)}
                     disabled={loading}
                     className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-60 ${
-                      includeAI ? 'bg-emerald-600' : 'bg-gray-300'
+                      includeAI ? 'bg-primary-600' : 'bg-gray-300'
                     }`}
                     role="switch"
                     aria-checked={includeAI}
@@ -247,7 +247,7 @@ export function GenerateReportDialog({
                 <button
                   onClick={handleGenerate}
                   disabled={loading}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-60"
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-60"
                 >
                   {loading ? (
                     <>

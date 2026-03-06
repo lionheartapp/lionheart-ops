@@ -151,7 +151,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 text-xs text-gray-700 hover:text-emerald-600 truncate cursor-pointer transition-colors"
+                className="flex-1 text-xs text-gray-700 hover:text-primary-600 truncate cursor-pointer transition-colors"
                 title={getFileName(url)}
               >
                 {getFileName(url)}
@@ -172,7 +172,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
       {canAddMore && (
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-emerald-300 text-emerald-600 text-xs font-medium hover:bg-emerald-50/50 transition-colors cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-primary-300 text-primary-600 text-xs font-medium hover:bg-primary-50/50 transition-colors cursor-pointer"
         >
           <UploadCloud className="w-3.5 h-3.5" />
           Attach Document
@@ -181,7 +181,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
 
       {uploading && (
         <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-600" />
           Uploading...
         </div>
       )}

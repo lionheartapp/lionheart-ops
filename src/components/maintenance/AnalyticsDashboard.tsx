@@ -155,7 +155,7 @@ function TopLocationsSection({ data }: { data: TopLocationResult[] }) {
     <div className="space-y-2">
       {data.map((loc) => (
         <div key={loc.rank} className="flex items-center gap-3">
-          <span className="w-5 h-5 flex-shrink-0 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center justify-center">
+          <span className="w-5 h-5 flex-shrink-0 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center">
             {loc.rank}
           </span>
           <div className="flex-1 min-w-0">
@@ -167,7 +167,7 @@ function TopLocationsSection({ data }: { data: TopLocationResult[] }) {
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-emerald-400 rounded-full transition-all"
+                className="h-full bg-primary-400 rounded-full transition-all"
                 style={{ width: `${(loc.ticketCount / maxCount) * 100}%` }}
               />
             </div>
@@ -245,8 +245,8 @@ export default function AnalyticsDashboard() {
         {/* Header */}
         <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-              <BarChart2 className="w-5 h-5 text-emerald-600" />
+            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+              <BarChart2 className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Analytics Dashboard</h2>
@@ -264,7 +264,7 @@ export default function AnalyticsDashboard() {
             <select
               value={selectedCampusId}
               onChange={(e) => setSelectedCampusId(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
             >
               <option value="">All Campuses</option>
               {campuses.map((c) => (

@@ -221,8 +221,8 @@ function ComplianceContent() {
               variants={staggerContainer(0.08, 0.05)}
             >
               <motion.div variants={fadeInUp} className="flex items-center gap-3 mb-1">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-emerald-600" />
+                <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-primary-600" />
                 </div>
                 <h1 className="text-2xl font-semibold text-gray-900">Regulatory Compliance</h1>
               </motion.div>
@@ -248,7 +248,7 @@ function ComplianceContent() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setExportOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-200 bg-white text-emerald-700 text-sm font-medium hover:bg-emerald-50 transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary-200 bg-white text-primary-700 text-sm font-medium hover:bg-primary-50 transition-colors cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     Export Audit PDF
@@ -256,7 +256,7 @@ function ComplianceContent() {
                   <button
                     onClick={() => populateMutation.mutate()}
                     disabled={populateMutation.isPending}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-60"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     {populateMutation.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -296,7 +296,7 @@ function ComplianceContent() {
                 <motion.p
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-xs text-emerald-600 mt-2"
+                  className="text-xs text-primary-600 mt-2"
                 >
                   Calendar populated successfully. Scroll down to see your compliance deadlines.
                 </motion.p>

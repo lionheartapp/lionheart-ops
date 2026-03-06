@@ -67,7 +67,7 @@ const STATUS_COLORS: Record<string, string> = {
   ON_HOLD: 'bg-orange-100 text-orange-700',
   SCHEDULED: 'bg-purple-100 text-purple-700',
   QA: 'bg-pink-100 text-pink-700',
-  DONE: 'bg-emerald-100 text-emerald-700',
+  DONE: 'bg-primary-100 text-primary-700',
   CANCELLED: 'bg-gray-100 text-gray-400',
 }
 
@@ -112,7 +112,7 @@ function getActivityDotColor(type: ActivityType, isInternal: boolean): string {
   if (isInternal) return 'bg-purple-500'
   switch (type) {
     case 'STATUS_CHANGE': return 'bg-blue-500'
-    case 'COMMENT': return 'bg-emerald-500'
+    case 'COMMENT': return 'bg-primary-500'
     case 'ASSIGNMENT': return 'bg-orange-500'
     case 'PHOTO_ADDED': return 'bg-teal-500'
     default: return 'bg-gray-400'
@@ -290,7 +290,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
           onChange={(e) => setComment(e.target.value)}
           placeholder="Add a comment..."
           rows={3}
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 placeholder:text-gray-400 transition-colors"
+          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 placeholder:text-gray-400 transition-colors"
         />
 
         <div className="flex items-center justify-between gap-3">
@@ -312,7 +312,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
           <button
             onClick={() => commentMutation.mutate()}
             disabled={!comment.trim() || commentMutation.isPending}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {commentMutation.isPending ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />

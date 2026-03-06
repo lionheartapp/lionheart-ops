@@ -126,7 +126,7 @@ function getStatusConfig(status: TicketStatus) {
     case 'QA':
       return { label: 'QA Review', color: 'bg-indigo-100 text-indigo-700' }
     case 'DONE':
-      return { label: 'Done', color: 'bg-emerald-100 text-emerald-700' }
+      return { label: 'Done', color: 'bg-primary-100 text-primary-700' }
     case 'CANCELLED':
       return { label: 'Cancelled', color: 'bg-red-100 text-red-700' }
     default:
@@ -141,7 +141,7 @@ function getWarrantyBadge(warrantyExpiry: string | null | undefined) {
   const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
   if (daysLeft < 0) return { label: 'Expired', color: 'bg-red-100 text-red-700' }
   if (daysLeft < 90) return { label: `Expires ${formatDate(warrantyExpiry)}`, color: 'bg-amber-100 text-amber-700' }
-  return { label: `Active until ${formatDate(warrantyExpiry)}`, color: 'bg-emerald-100 text-emerald-700' }
+  return { label: `Active until ${formatDate(warrantyExpiry)}`, color: 'bg-primary-100 text-primary-700' }
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         <button
           type="button"
           onClick={() => refetch()}
-          className="mt-3 text-sm text-emerald-600 hover:text-emerald-700 cursor-pointer"
+          className="mt-3 text-sm text-primary-600 hover:text-primary-700 cursor-pointer"
         >
           Try again
         </button>
@@ -290,7 +290,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">{asset.name}</h1>
-                  <p className="text-sm font-mono text-emerald-700 font-semibold mt-0.5">{asset.assetNumber}</p>
+                  <p className="text-sm font-mono text-primary-700 font-semibold mt-0.5">{asset.assetNumber}</p>
                 </div>
                 <button
                   type="button"
@@ -386,7 +386,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           <div className="mt-4 pt-4 border-t border-gray-100 flex gap-2">
             <a
               href={`/maintenance?openWizard=true&${reportIssueParams.toString()}`}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors cursor-pointer"
             >
               <Wrench className="w-4 h-4" />
               Report Issue
@@ -398,7 +398,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         {(asset.replacementCost !== null && asset.replacementCost !== undefined) && (
           <motion.div variants={fadeInUp} className="ui-glass p-6">
             <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <Package className="w-4 h-4 text-emerald-500" />
+              <Package className="w-4 h-4 text-primary-500" />
               Cost Health
             </h2>
             <AssetRepairGauge
@@ -451,7 +451,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         {/* Ticket history section */}
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-emerald-500" />
+            <Clock className="w-4 h-4 text-primary-500" />
             Ticket History
             {asset.ticketHistory.length > 0 && (
               <span className="ml-auto text-xs font-normal text-gray-400">
@@ -487,7 +487,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                         className="hover:bg-gray-50/60 cursor-pointer transition-colors"
                         onClick={() => router.push(`/maintenance/tickets/${ticket.id}`)}
                       >
-                        <td className="px-4 py-3 font-mono text-xs font-semibold text-emerald-700">
+                        <td className="px-4 py-3 font-mono text-xs font-semibold text-primary-700">
                           {ticket.ticketNumber}
                         </td>
                         <td className="px-4 py-3 text-gray-700 max-w-xs truncate">
@@ -513,7 +513,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         {/* PM Schedules section */}
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-emerald-500" />
+            <Calendar className="w-4 h-4 text-primary-500" />
             Preventive Maintenance
             {asset.pmSchedules.length > 0 && (
               <span className="ml-auto text-xs font-normal text-gray-400">

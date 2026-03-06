@@ -29,8 +29,8 @@ export default function KnowledgeBasePage() {
             className="flex items-start justify-between gap-4 flex-wrap"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                <BookOpen className="w-5 h-5 text-emerald-700" />
+              <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <BookOpen className="w-5 h-5 text-primary-700" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Knowledge Base</h1>
@@ -42,7 +42,7 @@ export default function KnowledgeBasePage() {
             <button
               type="button"
               onClick={() => setEditorOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               New Article

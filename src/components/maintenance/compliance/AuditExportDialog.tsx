@@ -135,8 +135,8 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
             {/* Header */}
             <div className="flex items-start justify-between p-6 border-b border-gray-200/50">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-emerald-600" />
+                <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-primary-600" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-gray-900">Export Compliance Audit Report</h2>
@@ -161,7 +161,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                     type="date"
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
                   />
                 </div>
                 <div>
@@ -170,7 +170,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                     type="date"
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
                   />
                 </div>
               </div>
@@ -182,7 +182,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                   <select
                     value={schoolId}
                     onChange={(e) => setSchoolId(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
                   >
                     <option value="">All Schools</option>
                     {schools.map((s) => (
@@ -198,7 +198,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
                 <select
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
                 >
                   <option value="">All Domains</option>
                   {COMPLIANCE_DOMAINS.map((d) => (
@@ -226,7 +226,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
               <button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-60"
+                className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-60"
               >
                 {isExporting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

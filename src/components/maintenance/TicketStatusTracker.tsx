@@ -130,9 +130,9 @@ export default function TicketStatusTracker({
                     className={`
                       w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all duration-300
                       ${isCompleted
-                        ? 'bg-emerald-500 border-emerald-500'
+                        ? 'bg-primary-500 border-primary-500'
                         : isCurrent && !isPaused && !isWaiting
-                          ? 'bg-emerald-500 border-emerald-500 ring-2 ring-emerald-200 ring-offset-1'
+                          ? 'bg-primary-500 border-primary-500 ring-2 ring-primary-200 ring-offset-1'
                           : isPaused
                             ? 'bg-amber-400 border-amber-400 ring-2 ring-amber-200 ring-offset-1'
                             : isWaiting
@@ -164,9 +164,9 @@ export default function TicketStatusTracker({
                       hidden sm:block text-center mt-1.5 leading-tight transition-colors duration-300
                       text-[10px] font-medium whitespace-nowrap
                       ${isCompleted
-                        ? 'text-emerald-600'
+                        ? 'text-primary-600'
                         : isCurrent && !isPaused && !isWaiting
-                          ? 'text-emerald-700 font-semibold'
+                          ? 'text-primary-700 font-semibold'
                           : isPaused
                             ? 'text-amber-600 font-semibold'
                             : isWaiting
@@ -187,7 +187,7 @@ export default function TicketStatusTracker({
                     className={`
                       flex-1 h-0.5 mx-1 transition-colors duration-300
                       ${isCompleted
-                        ? 'bg-emerald-400'
+                        ? 'bg-primary-400'
                         : isCancelledStep || (isCancelled && index === 0)
                           ? 'bg-gray-100'
                           : 'border-t border-dashed border-gray-200'

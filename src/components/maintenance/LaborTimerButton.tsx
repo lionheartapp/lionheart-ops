@@ -171,7 +171,7 @@ export default function LaborTimerButton({
         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.97] ${
           isRunning
             ? 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300'
-            : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'
+            : 'bg-primary-600 text-white hover:bg-primary-700 shadow-sm'
         }`}
         title={isRunning ? 'Stop timer and save labor entry' : 'Start tracking time on this ticket'}
       >

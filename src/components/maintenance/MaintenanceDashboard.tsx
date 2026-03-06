@@ -143,8 +143,8 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
       value: doneCount,
       icon: CheckCircle2,
       accent: false,
-      iconColor: 'text-emerald-500',
-      bgColor: 'bg-emerald-50',
+      iconColor: 'text-primary-500',
+      bgColor: 'bg-primary-50',
     },
   ]
 
@@ -264,8 +264,8 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
             <PanelHeader title="Avg. Resolution Time" />
             {stats?.avgResolutionHours !== null ? (
               <div className="flex items-center gap-3 py-2">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-emerald-400" />
+                <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-primary-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">

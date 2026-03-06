@@ -106,9 +106,9 @@ export default function PmScheduleList({ onRowClick }: PmScheduleListProps) {
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ChevronUp className="w-3.5 h-3.5 opacity-30" />
     return sortDir === 'asc' ? (
-      <ChevronUp className="w-3.5 h-3.5 text-emerald-600" />
+      <ChevronUp className="w-3.5 h-3.5 text-primary-600" />
     ) : (
-      <ChevronDown className="w-3.5 h-3.5 text-emerald-600" />
+      <ChevronDown className="w-3.5 h-3.5 text-primary-600" />
     )
   }
 
@@ -156,8 +156,8 @@ export default function PmScheduleList({ onRowClick }: PmScheduleListProps) {
   if (schedules.length === 0) {
     return (
       <div className="ui-glass p-12 text-center">
-        <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-          <RepeatIcon className="w-6 h-6 text-emerald-500" />
+        <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <RepeatIcon className="w-6 h-6 text-primary-500" />
         </div>
         <p className="text-sm font-medium text-gray-700">No PM schedules yet</p>
         <p className="text-sm text-gray-500 mt-1">Create a schedule to get started</p>

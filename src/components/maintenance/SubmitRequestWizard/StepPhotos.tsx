@@ -180,7 +180,7 @@ export default function StepPhotos({
         <p className="text-sm text-gray-500">
           Photos help the maintenance team diagnose the issue faster
           {photos.length > 0 && (
-            <span className="ml-2 text-emerald-600 font-medium">{photos.length}/{MAX_PHOTOS} photos</span>
+            <span className="ml-2 text-primary-600 font-medium">{photos.length}/{MAX_PHOTOS} photos</span>
           )}
         </p>
       </div>
@@ -199,14 +199,14 @@ export default function StepPhotos({
           className={`
             relative rounded-xl border-2 border-dashed p-6 text-center transition-all cursor-pointer
             ${dragOver
-              ? 'border-emerald-400 bg-emerald-50'
-              : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30'
+              ? 'border-primary-400 bg-primary-50'
+              : 'border-gray-200 hover:border-primary-300 hover:bg-primary-50/30'
             }
           `}
         >
           <div className="flex flex-col items-center gap-2">
             {dragOver ? (
-              <Upload className="w-8 h-8 text-emerald-500" />
+              <Upload className="w-8 h-8 text-primary-500" />
             ) : (
               <Camera className="w-8 h-8 text-gray-400" />
             )}
@@ -291,7 +291,7 @@ export default function StepPhotos({
                   <Loader2 className="w-6 h-6 text-white animate-spin" />
                 )}
                 {u.status === 'done' && (
-                  <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
                     <Check className="w-5 h-5 text-white" />
                   </div>
                 )}

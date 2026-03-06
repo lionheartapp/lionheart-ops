@@ -370,13 +370,13 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
         transition={transition}
         className="flex flex-col items-center justify-center py-12 text-center"
       >
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-5">
-          <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+        <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-5">
+          <CheckCircle2 className="w-8 h-8 text-primary-500" />
         </div>
         <h3 className="text-lg font-bold text-gray-900 mb-1">Request Submitted!</h3>
         <p className="text-sm text-gray-500 mb-2">Your ticket has been created successfully</p>
-        <div className="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100 mb-6">
-          <p className="text-emerald-700 font-bold text-lg tracking-wide">{success.ticketNumber}</p>
+        <div className="px-4 py-2 bg-primary-50 rounded-xl border border-primary-100 mb-6">
+          <p className="text-primary-700 font-bold text-lg tracking-wide">{success.ticketNumber}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
           <a

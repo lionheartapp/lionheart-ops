@@ -50,7 +50,7 @@ export default function OfflineSyncStatus({
         >
           <div className="flex items-start gap-3">
             {isSuccess ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
             ) : (
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             )}

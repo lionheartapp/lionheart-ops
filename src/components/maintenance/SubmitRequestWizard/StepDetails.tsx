@@ -113,7 +113,7 @@ export default function StepDetails({
           value={title}
           onChange={(e) => onTitleChange(e.target.value.slice(0, 200))}
           placeholder="e.g. Leaking faucet in Room 201"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
         />
       </div>
 
@@ -133,7 +133,7 @@ export default function StepDetails({
         <select
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow cursor-pointer appearance-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer appearance-none"
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}
         >
           <option value="">Select a category...</option>
@@ -189,7 +189,7 @@ export default function StepDetails({
           onChange={(e) => onDescriptionChange(e.target.value.slice(0, 2000))}
           placeholder="Provide additional details about the issue..."
           rows={3}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow resize-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow resize-none"
         />
       </div>
 
@@ -203,7 +203,7 @@ export default function StepDetails({
           value={availabilityNote}
           onChange={(e) => onAvailabilityNoteChange(e.target.value)}
           placeholder="e.g. Room available after 3pm, contact front office for key"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
         />
       </div>
 
@@ -225,8 +225,8 @@ export default function StepDetails({
             aria-checked={scheduleEnabled}
             onClick={() => handleScheduleToggle(!scheduleEnabled)}
             className={`
-              relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1
-              ${scheduleEnabled ? 'bg-emerald-500' : 'bg-gray-200'}
+              relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1
+              ${scheduleEnabled ? 'bg-primary-500' : 'bg-gray-200'}
             `}
           >
             <span
@@ -255,7 +255,7 @@ export default function StepDetails({
                     value={scheduledDate}
                     min={minDateStr}
                     onChange={(e) => onScheduledDateChange(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow cursor-pointer"
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer"
                   />
                 </div>
                 {scheduledDate && (

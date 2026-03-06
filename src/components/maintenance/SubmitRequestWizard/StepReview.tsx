@@ -159,7 +159,7 @@ export default function StepReview({
                   Splitting into separate tickets helps the maintenance team address each one faster and track them independently.
                 </p>
                 {splitState.firstTicketNumber && (
-                  <p className="text-xs text-emerald-700 font-medium mb-2">
+                  <p className="text-xs text-primary-700 font-medium mb-2">
                     First ticket {splitState.firstTicketNumber} created. Complete the second ticket below.
                   </p>
                 )}
@@ -200,7 +200,7 @@ export default function StepReview({
         {/* Location */}
         <div className="px-4 py-3 border-b border-gray-100/50">
           <div className="flex items-center gap-2 mb-1">
-            <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+            <MapPin className="w-3.5 h-3.5 text-primary-500" />
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Location</span>
           </div>
           <p className="text-sm text-gray-900 font-medium">{formData.locationLabel || 'Not specified'}</p>
@@ -228,7 +228,7 @@ export default function StepReview({
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.category && (
-              <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-lg">
+              <span className="px-2.5 py-1 bg-primary-100 text-primary-700 text-xs font-medium rounded-lg">
                 {CATEGORY_LABELS[formData.category] || formData.category}
               </span>
             )}
@@ -312,7 +312,7 @@ export default function StepReview({
         type="button"
         onClick={onSubmit}
         disabled={isSubmitting}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm shadow-emerald-200"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm shadow-primary-200"
       >
         {isSubmitting ? (
           <>

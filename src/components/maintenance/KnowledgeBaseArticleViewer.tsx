@@ -88,7 +88,7 @@ export default function KnowledgeBaseArticleViewer({
       {/* Back link */}
       <Link
         href="/maintenance/knowledge-base"
-        className="inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         Back to Knowledge Base
@@ -109,7 +109,7 @@ export default function KnowledgeBaseArticleViewer({
             <button
               type="button"
               onClick={onEdit}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer"
+              className="ui-btn-sm ui-btn-outline"
             >
               <Pencil className="w-3 h-3" />
               Edit

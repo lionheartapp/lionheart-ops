@@ -51,7 +51,7 @@ export default function AssetRepairGauge({
   } else if (repairRatio >= halfThreshold) {
     barColor = 'bg-amber-400'
   } else {
-    barColor = 'bg-emerald-500'
+    barColor = 'bg-primary-500'
   }
 
   const isAtThreshold = cumulativeRepairCost >= thresholdAmt

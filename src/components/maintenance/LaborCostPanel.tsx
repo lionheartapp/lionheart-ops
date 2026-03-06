@@ -185,10 +185,10 @@ export default function LaborCostPanel({
         className="w-full flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50/50 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-emerald-600" />
+          <DollarSign className="w-4 h-4 text-primary-600" />
           <h3 className="text-sm font-semibold text-gray-700">Costs & Labor</h3>
           {summary.grandTotal > 0 && (
-            <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-primary-600 font-medium bg-primary-50 px-2 py-0.5 rounded-full">
               {formatMoney(summary.grandTotal)}
             </span>
           )}
@@ -224,7 +224,7 @@ export default function LaborCostPanel({
                   </div>
                   <button
                     onClick={() => { setShowLaborForm((v) => !v); setShowCostForm(false) }}
-                    className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer font-medium"
+                    className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 transition-colors cursor-pointer font-medium"
                   >
                     <Plus className="w-3 h-3" />
                     Add Manual Entry
@@ -283,7 +283,7 @@ export default function LaborCostPanel({
                                 </span>
                               )}
                               {entry.laborCost != null && entry.laborCost > 0 && (
-                                <span className="text-xs text-emerald-600 font-medium">
+                                <span className="text-xs text-primary-600 font-medium">
                                   {formatMoney(entry.laborCost)}
                                 </span>
                               )}
@@ -327,7 +327,7 @@ export default function LaborCostPanel({
                   </div>
                   <button
                     onClick={() => { setShowCostForm((v) => !v); setShowLaborForm(false) }}
-                    className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer font-medium"
+                    className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 transition-colors cursor-pointer font-medium"
                   >
                     <Plus className="w-3 h-3" />
                     Add Cost

@@ -121,7 +121,7 @@ const STATUS_COLORS: Record<string, string> = {
   ON_HOLD: 'bg-orange-100 text-orange-700',
   SCHEDULED: 'bg-purple-100 text-purple-700',
   QA: 'bg-pink-100 text-pink-700',
-  DONE: 'bg-emerald-100 text-emerald-700',
+  DONE: 'bg-primary-100 text-primary-700',
   CANCELLED: 'bg-gray-100 text-gray-400',
 }
 
@@ -401,7 +401,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                 {ticket.pmScheduleId && (
                   <a
                     href="/maintenance/pm-calendar"
-                    className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors font-medium cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary-50 border border-primary-200 text-primary-700 hover:bg-primary-100 transition-colors font-medium cursor-pointer"
                     title="View PM schedule"
                   >
                     <Wrench className="w-3 h-3" />
@@ -820,11 +820,11 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
 
             {/* Completed/cancelled banner */}
             {(ticket.status === 'DONE' || ticket.status === 'CANCELLED') && (
-              <motion.div variants={fadeInUp} className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${ticket.status === 'DONE' ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
+              <motion.div variants={fadeInUp} className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${ticket.status === 'DONE' ? 'bg-primary-50 border-primary-200' : 'bg-gray-50 border-gray-200'}`}>
                 {ticket.status === 'DONE' ? (
                   <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <p className="text-sm font-medium text-emerald-800">Ticket completed and closed</p>
+                    <CheckCircle2 className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                    <p className="text-sm font-medium text-primary-800">Ticket completed and closed</p>
                   </>
                 ) : (
                   <>

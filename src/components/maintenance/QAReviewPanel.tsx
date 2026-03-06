@@ -216,9 +216,9 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
         </div>
 
         {totalCost > 0 && (
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 flex items-center justify-between">
-            <p className="text-xs font-medium text-emerald-700">Total Cost</p>
-            <p className="text-sm font-semibold text-emerald-800">${totalCost.toFixed(2)}</p>
+          <div className="bg-primary-50 border border-primary-100 rounded-xl px-3 py-2 flex items-center justify-between">
+            <p className="text-xs font-medium text-primary-700">Total Cost</p>
+            <p className="text-sm font-semibold text-primary-800">${totalCost.toFixed(2)}</p>
           </div>
         )}
 

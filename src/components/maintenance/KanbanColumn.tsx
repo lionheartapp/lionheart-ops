@@ -13,7 +13,7 @@ const COLUMN_CONFIG: Record<string, { label: string; badgeColor: string }> = {
   IN_PROGRESS: { label: 'In Progress', badgeColor: 'bg-amber-100 text-amber-700' },
   ON_HOLD: { label: 'On Hold', badgeColor: 'bg-red-100 text-red-700' },
   QA: { label: 'QA Review', badgeColor: 'bg-pink-100 text-pink-700' },
-  DONE: { label: 'Done', badgeColor: 'bg-emerald-100 text-emerald-700' },
+  DONE: { label: 'Done', badgeColor: 'bg-primary-100 text-primary-700' },
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────

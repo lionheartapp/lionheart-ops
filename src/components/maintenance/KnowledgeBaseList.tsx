@@ -141,8 +141,8 @@ function ArticleSkeleton() {
 function EmptyState({ onCreateNew }: { onCreateNew?: () => void }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-16 text-center gap-4">
-      <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center">
-        <BookOpen className="w-8 h-8 text-emerald-400" />
+      <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center">
+        <BookOpen className="w-8 h-8 text-primary-400" />
       </div>
       <div>
         <p className="text-base font-semibold text-gray-700">No articles yet</p>
@@ -152,7 +152,7 @@ function EmptyState({ onCreateNew }: { onCreateNew?: () => void }) {
         <button
           type="button"
           onClick={onCreateNew}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors cursor-pointer"
+          className="ui-btn-md ui-btn-primary"
         >
           <Plus className="w-4 h-4" />
           Create Article
@@ -247,7 +247,7 @@ export default function KnowledgeBaseList({
             onClick={() => setActiveType(tab.value)}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
               activeType === tab.value
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-gray-900 text-white'
                 : 'bg-white/60 text-gray-600 hover:bg-white/80 border border-gray-200'
             }`}
           >

@@ -60,7 +60,7 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="group relative w-20 h-20 border border-gray-200 rounded-xl bg-white flex items-center justify-center hover:border-emerald-300 transition-colors cursor-pointer overflow-hidden"
+          className="group relative w-20 h-20 border border-gray-200 rounded-xl bg-white flex items-center justify-center hover:border-primary-300 transition-colors cursor-pointer overflow-hidden"
           title="View QR code"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -70,7 +70,7 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
             className="w-16 h-16 object-contain"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-emerald-50/0 group-hover:bg-emerald-50/60 transition-colors" />
+          <div className="absolute inset-0 bg-primary-50/0 group-hover:bg-primary-50/60 transition-colors" />
         </button>
 
         <div className="flex gap-1.5">

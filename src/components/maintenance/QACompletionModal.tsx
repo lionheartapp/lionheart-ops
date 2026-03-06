@@ -258,7 +258,7 @@ export default function QACompletionModal({
                           <img src={u.preview} alt="Uploading..." className="w-full h-full object-cover opacity-60" />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                             {u.status === 'uploading' && <Loader2 className="w-5 h-5 text-white animate-spin" />}
-                            {u.status === 'done' && <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center"><Check className="w-4 h-4 text-white" /></div>}
+                            {u.status === 'done' && <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center"><Check className="w-4 h-4 text-white" /></div>}
                             {u.status === 'error' && <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center"><X className="w-3 h-3 text-white" /></div>}
                           </div>
                         </div>
