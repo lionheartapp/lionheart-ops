@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { rawPrisma } from '@/lib/db'
 import { createNotification } from '@/lib/services/notificationService'
 import { sendComplianceReminderEmail } from '@/lib/services/emailService'
+import { generateTicketNumber, CATEGORY_TO_SPECIALTY } from '@/lib/services/maintenanceTicketService'
 import {
   COMPLIANCE_DOMAIN_DEFAULTS,
   COMPLIANCE_DOMAINS,
@@ -19,6 +20,7 @@ import type {
   ComplianceDomain,
   ComplianceStatus,
   ComplianceOutcome,
+  MaintenanceCategory,
 } from '@prisma/client'
 
 // Re-export for consumers that expect these from the service
@@ -454,6 +456,153 @@ export async function updateComplianceRecord(orgId: string, id: string, data: un
       ...(parsed.attachments !== undefined && { attachments: parsed.attachments }),
       status,
     },
+  })
+}
+
+// ─── Ticket Generation ────────────────────────────────────────────────────────
+
+/**
+ * Auto-generate a MaintenanceTicket work order from a compliance record.
+ * Stores the generated ticket ID back on the ComplianceRecord.
+ */
+export async function generateComplianceTicket(
+  orgId: string,
+  recordId: string,
+  submittedByUserId: string
+) {
+  const record = await rawPrisma.complianceRecord.findFirst({
+    where: { id: recordId, organizationId: orgId, deletedAt: null },
+    include: { domainConfig: true },
+  })
+  if (!record) throw new Error('Record not found')
+  if (record.generatedTicketId) throw new Error('Ticket already generated for this compliance record')
+
+  const meta = COMPLIANCE_DOMAIN_DEFAULTS[record.domain]
+  const category = meta.category as MaintenanceCategory
+  const specialty = CATEGORY_TO_SPECIALTY[category]
+  const ticketNumber = await generateTicketNumber(orgId)
+
+  const now = new Date()
+  const daysUntilDue = Math.floor((record.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  const priority = daysUntilDue < 14 ? 'URGENT' : daysUntilDue < 30 ? 'HIGH' : 'MEDIUM'
+
+  const ticket = await rawPrisma.maintenanceTicket.create({
+    data: {
+      organizationId: orgId,
+      ticketNumber,
+      title: `Compliance: ${meta.label} – ${record.title}`,
+      description: `Auto-generated from compliance record. Due: ${record.dueDate.toLocaleDateString()}`,
+      status: 'BACKLOG',
+      category,
+      specialty,
+      priority,
+      submittedById: submittedByUserId,
+      schoolId: record.schoolId,
+      version: 1,
+    },
+  })
+
+  const updatedRecord = await rawPrisma.complianceRecord.update({
+    where: { id: recordId },
+    data: { generatedTicketId: ticket.id },
+    include: {
+      domainConfig: true,
+      school: { select: { id: true, name: true } },
+      generatedTicket: { select: { id: true, ticketNumber: true, status: true } },
+    },
+  })
+
+  return { ticket, record: updatedRecord }
+}
+
+/**
+ * Auto-generate a remediation MaintenanceTicket from a FAILED compliance record.
+ * Stores the remediation ticket ID back on the ComplianceRecord.
+ * Only callable when record.outcome === 'FAILED'.
+ */
+export async function generateRemediationTicket(
+  orgId: string,
+  recordId: string,
+  submittedByUserId: string
+) {
+  const record = await rawPrisma.complianceRecord.findFirst({
+    where: { id: recordId, organizationId: orgId, deletedAt: null },
+    include: { domainConfig: true },
+  })
+  if (!record) throw new Error('Record not found')
+  if (record.outcome !== 'FAILED') throw new Error('Record must have FAILED outcome for remediation ticket')
+  if (record.remediationTicketId) throw new Error('Remediation ticket already generated for this compliance record')
+
+  const meta = COMPLIANCE_DOMAIN_DEFAULTS[record.domain]
+  const category = meta.category as MaintenanceCategory
+  const specialty = CATEGORY_TO_SPECIALTY[category]
+  const ticketNumber = await generateTicketNumber(orgId)
+
+  const inspectionDateStr = record.inspectionDate
+    ? record.inspectionDate.toLocaleDateString()
+    : 'unknown date'
+
+  const ticket = await rawPrisma.maintenanceTicket.create({
+    data: {
+      organizationId: orgId,
+      ticketNumber,
+      title: `Remediation Required: ${meta.label} – ${record.title}`,
+      description: `FAILED inspection on ${inspectionDateStr}. Remediation required. Auto-generated from compliance record.`,
+      status: 'BACKLOG',
+      category,
+      specialty,
+      priority: 'URGENT',
+      submittedById: submittedByUserId,
+      schoolId: record.schoolId,
+      version: 1,
+    },
+  })
+
+  const updatedRecord = await rawPrisma.complianceRecord.update({
+    where: { id: recordId },
+    data: { remediationTicketId: ticket.id },
+    include: {
+      domainConfig: true,
+      school: { select: { id: true, name: true } },
+      generatedTicket: { select: { id: true, ticketNumber: true, status: true } },
+      remediationTicket: { select: { id: true, ticketNumber: true, status: true } },
+    },
+  })
+
+  return { ticket, record: updatedRecord }
+}
+
+/**
+ * Get compliance records for audit PDF export.
+ * Returns all non-deleted records for the date range, sorted by domain ASC, dueDate ASC.
+ */
+export async function getComplianceRecordsForExport(
+  orgId: string,
+  filters: {
+    from: Date
+    to: Date
+    schoolId?: string
+    domain?: ComplianceDomain
+  }
+) {
+  return rawPrisma.complianceRecord.findMany({
+    where: {
+      organizationId: orgId,
+      deletedAt: null,
+      dueDate: {
+        gte: filters.from,
+        lte: filters.to,
+      },
+      ...(filters.schoolId ? { schoolId: filters.schoolId } : {}),
+      ...(filters.domain ? { domain: filters.domain } : {}),
+    },
+    include: {
+      domainConfig: true,
+      school: { select: { id: true, name: true } },
+      generatedTicket: { select: { id: true, ticketNumber: true, status: true } },
+      remediationTicket: { select: { id: true, ticketNumber: true, status: true } },
+    },
+    orderBy: [{ domain: 'asc' }, { dueDate: 'asc' }],
   })
 }
 
