@@ -124,10 +124,7 @@ export default function Sidebar({
   // style props, because React re-renders would reset them.
   const facilityIndicatorRefCb = useCallback((node: HTMLDivElement | null) => {
     facilityIndicatorRef.current = node
-    if (node) {
-      node.style.opacity = '0'
-      console.log('[indicator] indicator element mounted, initial opacity set to 0')
-    }
+    if (node) node.style.opacity = '0'
   }, [])
   const facilityTrailRefCb = useCallback((node: HTMLDivElement | null) => {
     facilityTrailRef.current = node
@@ -290,7 +287,6 @@ export default function Sidebar({
   // the effect would not re-run when the async permission query resolves and the active
   // nav item appears in the DOM for the first time.
   useEffect(() => {
-    console.log('[indicator] effect running', { facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance })
     if (!facilitiesOpen || !facilityContainerMounted) {
       facilityMeasuredRef.current = false
       facilityPosRef.current = null
@@ -304,40 +300,37 @@ export default function Sidebar({
     const positionIndicator = (animate: boolean): boolean => {
       const container = facilitiesContainerRef.current
       const indicator = facilityIndicatorRef.current
-      if (!container || !indicator) {
-        console.log('[indicator] missing refs', { container: !!container, indicator: !!indicator })
-        return false
-      }
+      if (!container || !indicator) return false
 
-      const cRect = container.getBoundingClientRect()
-      if (cRect.height < 10) {
-        console.log('[indicator] container too small', cRect.height)
-        return false
-      }
-
+      // Find the active nav item
       const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
       if (!activeEl) {
-        console.log('[indicator] no active element found. All data-facility-active attrs:',
-          [...container.querySelectorAll('[data-facility-active]')].map(el => ({
-            text: el.textContent?.trim(),
-            value: el.getAttribute('data-facility-active'),
-          }))
-        )
         indicator.style.opacity = '0'
         return true
       }
 
-      const eRect = activeEl.getBoundingClientRect()
-      const top = eRect.top - cRect.top + container.scrollTop
-      console.log('[indicator] positioning', { animate, activeText: activeEl.textContent?.trim(), top, height: eRect.height, containerHeight: cRect.height })
+      const height = activeEl.offsetHeight
+      if (height < 1) return false // element not laid out yet
+
+      // Use offsetTop walk instead of getBoundingClientRect.
+      // Framer Motion's AnimatePresence can leave the container's reported
+      // height at 0 (via getBoundingClientRect) even when children are
+      // fully visible. offsetTop is immune to this because it's relative
+      // to the offsetParent, not the viewport.
+      let top = 0
+      let walker: HTMLElement | null = activeEl
+      while (walker && walker !== container) {
+        top += walker.offsetTop
+        walker = walker.offsetParent as HTMLElement | null
+      }
 
       if (!animate) {
-        // Snap into position without animation (initial placement or after DOM changes)
+        // Snap into position without animation
         indicator.style.transition = 'none'
         indicator.style.top = `${top}px`
-        indicator.style.height = `${eRect.height}px`
+        indicator.style.height = `${height}px`
         indicator.style.opacity = '1'
-        facilityPosRef.current = { top, height: eRect.height }
+        facilityPosRef.current = { top, height }
 
         // Restore transitions after browser paints the position
         requestAnimationFrame(() => {
@@ -354,30 +347,26 @@ export default function Sidebar({
         if (trail && prev) {
           const movingDown = top > prev.top
           const trailTop = Math.min(prev.top, top)
-          const trailBottom = Math.max(prev.top + prev.height, top + eRect.height)
+          const trailBottom = Math.max(prev.top + prev.height, top + height)
           const trailHeight = trailBottom - trailTop
 
-          // Position trail instantly covering the full travel path
           trail.style.transition = 'none'
           trail.style.top = `${trailTop}px`
           trail.style.height = `${trailHeight}px`
           trail.style.opacity = '0.7'
-          // Directional gradient — fades toward the trailing (origin) edge
           trail.style.background = movingDown
             ? 'linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 40%, rgba(236,72,153,0.6) 100%)'
             : 'linear-gradient(0deg, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 40%, rgba(236,72,153,0.6) 100%)'
           trail.offsetHeight // force reflow
-
-          // Fade trail out
           trail.style.transition = 'opacity 0.55s ease-out'
           trail.style.opacity = '0'
         }
 
         // Slide main indicator to new position
         indicator.style.top = `${top}px`
-        indicator.style.height = `${eRect.height}px`
+        indicator.style.height = `${height}px`
         indicator.style.opacity = '1'
-        facilityPosRef.current = { top, height: eRect.height }
+        facilityPosRef.current = { top, height }
       }
 
       return true
@@ -396,22 +385,17 @@ export default function Sidebar({
     // t2 always uses animate=false as a snap fallback (covers open-animation timing).
     let t1Succeeded = false
     const t1 = setTimeout(() => {
-      console.log('[indicator] t1 (50ms) firing, animate=', alreadyMeasured)
       t1Succeeded = positionIndicator(alreadyMeasured)
-      console.log('[indicator] t1 result:', t1Succeeded)
       if (t1Succeeded) facilityMeasuredRef.current = true
     }, 50)
     const t2 = setTimeout(() => {
       if (!t1Succeeded) {
-        console.log('[indicator] t2 (300ms) firing as fallback')
         if (positionIndicator(false)) facilityMeasuredRef.current = true
       }
     }, 300)
-    // t3: extra fallback at 600ms for slow animations / permission loads
     const t3 = setTimeout(() => {
       const indicator = facilityIndicatorRef.current
       if (indicator && indicator.style.opacity !== '1') {
-        console.log('[indicator] t3 (600ms) — indicator still not visible, retrying')
         positionIndicator(false)
         facilityMeasuredRef.current = true
       }
