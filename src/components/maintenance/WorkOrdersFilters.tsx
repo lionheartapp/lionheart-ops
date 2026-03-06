@@ -92,9 +92,9 @@ const CATEGORY_OPTIONS: { value: MaintenanceCategory; label: string }[] = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-const selectClass = 'ui-select cursor-pointer'
+const selectClass = 'ui-select !w-auto !py-2 cursor-pointer'
 
-const inputClass = 'ui-input'
+const inputClass = 'ui-input !w-full !py-2'
 
 function hasActiveFilters(filters: WorkOrdersFilterState): boolean {
   return (

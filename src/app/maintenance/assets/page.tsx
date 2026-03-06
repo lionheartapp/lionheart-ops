@@ -151,7 +151,7 @@ function AssetRegisterContent() {
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
-              className="ui-glass p-4 mb-4"
+              className="ui-glass p-4 mb-4 overflow-visible"
             >
               <AssetRegisterFilters filters={filters} onChange={setFilters} />
             </motion.div>
