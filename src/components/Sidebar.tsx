@@ -295,8 +295,11 @@ export default function Sidebar({
   // nav item appears in the DOM for the first time.
   useEffect(() => {
     if (!facilitiesOpen || !facilityContainerMounted) {
-      facilityMeasuredRef.current = false
-      facilityPosRef.current = null
+      // Don't reset facilityMeasuredRef here — the section briefly closes
+      // and re-opens during Next.js page transitions. Resetting it causes
+      // the indicator to snap instead of animating on every navigation.
+      // facilityPosRef is also preserved so the glow trail knows where
+      // the indicator was before the transition.
       return
     }
 
