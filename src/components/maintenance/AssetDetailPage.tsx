@@ -9,6 +9,7 @@ import {
   Wrench,
   Calendar,
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   Clock,
   Package,
@@ -17,6 +18,8 @@ import {
   Edit2,
   QrCode,
   ChevronRight,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import AssetRepairGauge from './AssetRepairGauge'
@@ -62,6 +65,13 @@ interface AssetDetail extends MaintenanceAsset {
   area: { id: string; name: string } | null
   room: { id: string; roomNumber: string; displayName: string | null } | null
   school: { id: string; name: string } | null
+  aiRecommendation?: {
+    recommendation: string
+    decision: 'REPLACE' | 'REPAIR' | 'UNKNOWN'
+    urgency: 'LOW' | 'MEDIUM' | 'HIGH'
+  } | null
+  aiRecommendationAt?: string | null
+  repeatAlertSentAt?: string | null
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -209,6 +219,27 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 
   const warrantyBadge = getWarrantyBadge(asset.warrantyExpiry as string | null | undefined)
 
+  // ── Repeat repair intelligence badge computation ──────────────────────────
+  const twelveMonthsAgo = new Date()
+  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
+
+  const repairsInYear = asset.ticketHistory.filter(
+    (t) => t.status === 'DONE' && new Date(t.updatedAt) >= twelveMonthsAgo
+  )
+  const isRepeatRepair = repairsInYear.length >= 3
+
+  const isCostThresholdExceeded =
+    asset.replacementCost != null &&
+    asset.cumulativeRepairCost >= asset.repairThresholdPct * asset.replacementCost
+
+  const assetAgeYears = asset.purchaseDate
+    ? (Date.now() - new Date(asset.purchaseDate as string).getTime()) / (365.25 * 24 * 3600 * 1000)
+    : null
+  const isEndOfLife =
+    asset.expectedLifespanYears != null &&
+    assetAgeYears != null &&
+    assetAgeYears >= asset.expectedLifespanYears
+
   // Location hierarchy
   const locationParts: string[] = []
   if (asset.building) locationParts.push(asset.building.name)
@@ -272,7 +303,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
               </div>
 
               {/* Badges row */}
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {asset.category && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
                     <Tag className="w-3 h-3" />
@@ -294,6 +325,30 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                   )}
                 </span>
               </div>
+
+              {/* Alert badges row — visible when intelligence conditions are met */}
+              {(isRepeatRepair || isCostThresholdExceeded || isEndOfLife) && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {isRepeatRepair && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
+                      <AlertTriangle className="w-3 h-3" />
+                      Repeat Repair
+                    </span>
+                  )}
+                  {isCostThresholdExceeded && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                      <TrendingUp className="w-3 h-3" />
+                      Cost Threshold Exceeded
+                    </span>
+                  )}
+                  {isEndOfLife && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                      <Clock className="w-3 h-3" />
+                      End of Life
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Make / Model / Serial */}
               <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 text-sm mb-3">
@@ -351,6 +406,45 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
               replacementCost={asset.replacementCost as number}
               thresholdPct={asset.repairThresholdPct}
             />
+
+            {/* AI Replace vs. Repair Recommendation panel */}
+            {isCostThresholdExceeded && asset.aiRecommendation && (
+              <div className="ui-glass p-4 border-l-4 border-amber-400 mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span className="text-sm font-medium text-gray-900">AI Replace vs. Repair Recommendation</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      asset.aiRecommendation.decision === 'REPLACE'
+                        ? 'bg-red-100 text-red-700'
+                        : asset.aiRecommendation.decision === 'REPAIR'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {asset.aiRecommendation.decision}
+                  </span>
+                  {asset.aiRecommendation.urgency && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        asset.aiRecommendation.urgency === 'HIGH'
+                          ? 'bg-red-50 text-red-600'
+                          : asset.aiRecommendation.urgency === 'MEDIUM'
+                            ? 'bg-amber-50 text-amber-600'
+                            : 'bg-gray-50 text-gray-500'
+                      }`}
+                    >
+                      {asset.aiRecommendation.urgency} urgency
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-700">{asset.aiRecommendation.recommendation}</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  AI Suggestion — always verify with professional judgment.
+                  {asset.aiRecommendationAt && ` Generated ${formatDate(asset.aiRecommendationAt)}.`}
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
 

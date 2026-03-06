@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Plus, Package } from 'lucide-react'
+import { Plus, Package, AlertTriangle, TrendingUp, Clock } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { listItem, staggerContainer } from '@/lib/animations'
 import type { AssetFilterState } from './AssetRegisterFilters'
@@ -31,6 +31,10 @@ export interface MaintenanceAsset {
   roomId: string | null
   schoolId: string | null
   createdAt: string
+  // Repeat repair intelligence sentinel fields
+  repeatAlertSentAt?: string | null
+  costAlertSentAt?: string | null
+  eolAlertSentAt?: string | null
   building?: { id: string; name: string } | null
   area?: { id: string; name: string } | null
   room?: { id: string; roomNumber: string; displayName?: string | null } | null
@@ -204,6 +208,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
               <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Make / Model</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Location</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Alerts</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Warranty Exp.</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Replacement</th>
             </tr>
@@ -245,6 +250,28 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
                   >
                     {STATUS_LABELS[asset.status] || asset.status}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1">
+                    {asset.repeatAlertSentAt && (
+                      <span title="Repeat Repair" className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
+                        <AlertTriangle className="w-3 h-3 text-orange-600" />
+                      </span>
+                    )}
+                    {asset.costAlertSentAt && (
+                      <span title="Cost Threshold" className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
+                        <TrendingUp className="w-3 h-3 text-red-600" />
+                      </span>
+                    )}
+                    {asset.eolAlertSentAt && (
+                      <span title="End of Life" className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
+                        <Clock className="w-3 h-3 text-gray-600" />
+                      </span>
+                    )}
+                    {!asset.repeatAlertSentAt && !asset.costAlertSentAt && !asset.eolAlertSentAt && (
+                      <span className="text-gray-300 text-xs">—</span>
+                    )}
+                  </div>
                 </td>
                 <td className={`px-4 py-3 whitespace-nowrap text-xs ${getWarrantyColor(asset.warrantyExpiry)}`}>
                   {formatDate(asset.warrantyExpiry)}

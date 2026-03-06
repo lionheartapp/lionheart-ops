@@ -72,6 +72,11 @@ interface MaintenanceTicketLite {
   building?: { name: string } | null
   area?: { name: string } | null
   room?: { displayName: string | null; roomNumber: string | null } | null
+  asset?: {
+    repeatAlertSentAt?: string | Date | null
+    costAlertSentAt?: string | Date | null
+    eolAlertSentAt?: string | Date | null
+  } | null
 }
 
 interface TicketCardProps {
@@ -85,12 +90,26 @@ export default function TicketCard({ ticket }: TicketCardProps) {
     ticket.room?.displayName || ticket.room?.roomNumber,
   ].filter(Boolean)
 
+  const hasAssetAlerts = ticket.asset && (
+    ticket.asset.repeatAlertSentAt ||
+    ticket.asset.costAlertSentAt ||
+    ticket.asset.eolAlertSentAt
+  )
+
   return (
     <motion.a
       href={`/maintenance/tickets/${ticket.id}`}
       variants={cardEntrance}
-      className="block ui-glass-hover rounded-2xl p-4 cursor-pointer no-underline"
+      className="relative block ui-glass-hover rounded-2xl p-4 cursor-pointer no-underline"
     >
+      {/* Asset alert pulse dot */}
+      {hasAssetAlerts && (
+        <span
+          className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-orange-500 ring-2 ring-white animate-pulse"
+          title="Asset has active alerts"
+        />
+      )}
+
       {/* Ticket number */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-mono text-gray-400 font-medium">{ticket.ticketNumber}</span>

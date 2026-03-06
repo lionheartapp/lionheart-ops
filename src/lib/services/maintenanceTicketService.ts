@@ -170,6 +170,13 @@ const TICKET_INCLUDES = {
   area: { select: { id: true, name: true } },
   room: { select: { id: true, roomNumber: true, displayName: true } },
   school: { select: { id: true, name: true } },
+  asset: {
+    select: {
+      repeatAlertSentAt: true,
+      costAlertSentAt: true,
+      eolAlertSentAt: true,
+    },
+  },
 } as const
 
 // ─── Generate Ticket Number ───────────────────────────────────────────────────
