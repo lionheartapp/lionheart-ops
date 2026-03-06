@@ -52,9 +52,9 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Complete backend: ticket service layer with state machine, all CRUD/lifecycle API routes, signed URL photo upload, AI category/multi-issue endpoints, notification dispatch, email templates, dashboard aggregation, and cron job
-- [ ] 02-02-PLAN.md — Mobile-first 4-step submission wizard (Location > Photos > Details > Review) with AI category suggest, AI multi-issue detection, and My Requests card grid
-- [ ] 02-03-PLAN.md — Work Orders filtered sortable table with inline actions, specialty highlighting, self-claim with optimistic UI, scheduled tickets section, and live dashboard stats
+- [x] 02-01-PLAN.md — Complete backend: ticket service layer with state machine, all CRUD/lifecycle API routes, signed URL photo upload, AI category/multi-issue endpoints, notification dispatch, email templates, dashboard aggregation, and cron job
+- [x] 02-02-PLAN.md — Mobile-first 4-step submission wizard (Location > Photos > Details > Review) with AI category suggest, AI multi-issue detection, and My Requests card grid
+- [x] 02-03-PLAN.md — Work Orders filtered sortable table with inline actions, specialty highlighting, self-claim with optimistic UI, scheduled tickets section, and live dashboard stats
 - [ ] 02-04-PLAN.md — Ticket detail page with status tracker, activity feed, comment system, ON_HOLD inline form, QA completion modal, and QA review/sign-off panel
 
 ### Phase 3: Kanban & AI
