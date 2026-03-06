@@ -76,7 +76,7 @@
 - [x] **ROUTE-02**: Technicians can self-claim tickets matching their specialty or GENERAL
 - [x] **ROUTE-03**: Head of Maintenance can assign any ticket to any technician regardless of specialty
 - [x] **ROUTE-04**: Self-claim guard enforced: techs cannot claim tickets outside their specialty
-- [ ] **ROUTE-05**: Matching-specialty tickets highlighted in technician's backlog view
+- [x] **ROUTE-05**: Matching-specialty tickets highlighted in technician's backlog view
 
 ### Notifications (NOTIF)
 
@@ -281,7 +281,7 @@ Updated during roadmap creation — 2026-03-05.
 | ROUTE-02 | Phase 2 | Complete |
 | ROUTE-03 | Phase 2 | Complete |
 | ROUTE-04 | Phase 2 | Complete |
-| ROUTE-05 | Phase 2 | Pending |
+| ROUTE-05 | Phase 2 | Complete |
 | NOTIF-01 | Phase 2 | Complete |
 | NOTIF-02 | Phase 2 | Complete |
 | NOTIF-03 | Phase 2 | Complete |

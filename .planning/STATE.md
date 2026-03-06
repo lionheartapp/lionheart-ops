@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-core-tickets/02-02-PLAN.md
-last_updated: "2026-03-06T02:54:02.325Z"
+stopped_at: "Checkpoint Task 3: human-verify — 02-core-tickets/02-03-PLAN.md"
+last_updated: "2026-03-06T02:54:30.458Z"
 last_activity: 2026-03-05 — Roadmap created; all 101 v1 requirements mapped across 7 phases
 progress:
   total_phases: 7
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-foundation P02 | 6 | 2 tasks | 9 files |
 | Phase 02-core-tickets P01 | 11min | 2 tasks | 16 files |
 | Phase 02-core-tickets P02 | 6min | 2 tasks | 8 files |
+| Phase 02-core-tickets P03 | 6min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Recent decisions affecting current work:
 - [Phase 02-core-tickets]: Room-level entries in useCampusLocations use roomId field with hierarchy array for Building > Area > Room display
 - [Phase 02-core-tickets]: Wizard renders inline as full-area panel (not modal) for mobile usability — avoids scroll lock and z-index issues
 - [Phase 02-core-tickets]: AI suggested category auto-applies on first photo upload; user can override freely — reduces friction
+- [Phase 02-core-tickets]: Two-query split for Work Orders: main tickets (excludeStatus=SCHEDULED) + dedicated scheduled query keeps scheduled section independent of main filter state
+- [Phase 02-core-tickets]: Optimistic claim mutation: onMutate snapshots cache + patches with placeholder, onError rolls back, onSettled invalidates — user sees instant assignment feedback
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T02:54:02.323Z
-Stopped at: Completed 02-core-tickets/02-02-PLAN.md
+Last session: 2026-03-06T02:54:30.456Z
+Stopped at: Checkpoint Task 3: human-verify — 02-core-tickets/02-03-PLAN.md
 Resume file: None
