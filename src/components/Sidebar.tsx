@@ -609,7 +609,7 @@ export default function Sidebar({
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
                         <motion.ul
-                          className="space-y-0.5 ml-8 pl-4 mt-1 border-l border-gray-600/30 overflow-hidden"
+                          className="space-y-0.5 ml-8 mt-1 overflow-hidden"
                           role="list"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -618,14 +618,7 @@ export default function Sidebar({
                         >
                           {/* Work Orders — for Head/Admin */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/work-orders' && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance/work-orders"
                                 onClick={() => {
@@ -633,10 +626,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/work-orders'
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                               >
                                 <span className="text-sm">Work Orders</span>
@@ -645,14 +638,7 @@ export default function Sidebar({
                           )}
                           {/* My Requests — for Technicians */}
                           {canClaimMaintenance && !canManageMaintenance && (
-                            <li className="relative">
-                              {pathname.includes('my-requests') && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance?tab=my-requests"
                                 onClick={() => {
@@ -660,10 +646,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname.includes('my-requests')
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                               >
                                 <span className="text-sm">My Requests</span>
@@ -672,14 +658,7 @@ export default function Sidebar({
                           )}
                           {/* Assets */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/assets' && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance/assets"
                                 onClick={() => {
@@ -687,10 +666,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/assets'
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                                 aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                               >
@@ -700,14 +679,7 @@ export default function Sidebar({
                           )}
                           {/* PM Calendar */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/pm-calendar' && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance/pm-calendar"
                                 onClick={() => {
@@ -715,10 +687,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/pm-calendar'
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                                 aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
                               >
@@ -728,14 +700,7 @@ export default function Sidebar({
                           )}
                           {/* Analytics */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/analytics' && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance/analytics"
                                 onClick={() => {
@@ -743,10 +708,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/analytics'
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                                 aria-current={pathname === '/maintenance/analytics' ? 'page' : undefined}
                               >
@@ -756,14 +721,7 @@ export default function Sidebar({
                           )}
                           {/* Compliance */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/compliance' && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance/compliance"
                                 onClick={() => {
@@ -771,10 +729,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/compliance'
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                                 aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
                               >
@@ -784,14 +742,7 @@ export default function Sidebar({
                           )}
                           {/* Board Report */}
                           {canManageMaintenance && (
-                            <li className="relative">
-                              {pathname === '/maintenance/board-report' && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance/board-report"
                                 onClick={() => {
@@ -799,10 +750,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/board-report'
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                                 aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
                               >
@@ -812,14 +763,7 @@ export default function Sidebar({
                           )}
                           {/* Knowledge Base */}
                           {(canManageMaintenance || canClaimMaintenance) && (
-                            <li className="relative">
-                              {pathname.startsWith('/maintenance/knowledge-base') && (
-                                <motion.div
-                                  layoutId="facilities-nav-indicator"
-                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
+                            <li>
                               <PrefetchLink
                                 href="/maintenance/knowledge-base"
                                 onClick={() => {
@@ -827,10 +771,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname.startsWith('/maintenance/knowledge-base')
-                                    ? 'text-primary-400 font-medium'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'text-primary-400 font-medium border-primary-400'
+                                    : 'text-gray-400 hover:text-white border-transparent'
                                 }`}
                                 aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                               >
