@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_UPDATE_OWN)
 
     const body = await req.json()
-    const { assignedToId, photos, description, ...rest } = body
+    const { assignedToId, photos, description, estimatedRepairCostUSD, ...rest } = body
 
     // If assigning, delegate to assignTicket (which checks MAINTENANCE_ASSIGN permission)
     if (assignedToId !== undefined) {
@@ -68,9 +68,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       return NextResponse.json(ok(updated))
     }
 
-    // Otherwise do a metadata update (add photos, update description, etc.)
+    // Otherwise do a metadata update (add photos, update description, estimated cost, etc.)
     const updateData: Record<string, unknown> = {}
     if (description !== undefined) updateData.description = description
+    if (estimatedRepairCostUSD !== undefined) {
+      updateData.estimatedRepairCostUSD =
+        typeof estimatedRepairCostUSD === 'number' ? estimatedRepairCostUSD : null
+    }
 
     // Append photos if provided
     if (photos && Array.isArray(photos) && photos.length > 0) {
