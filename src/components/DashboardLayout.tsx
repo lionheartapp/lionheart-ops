@@ -244,7 +244,7 @@ export default function DashboardLayout({
           </div>
           <AnimatePresence mode="wait">
             <motion.div
-              key={pathname}
+              key={pathname.startsWith('/maintenance') ? '/maintenance' : pathname.startsWith('/settings') ? '/settings' : pathname.startsWith('/athletics') ? '/athletics' : pathname}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
