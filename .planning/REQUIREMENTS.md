@@ -131,13 +131,13 @@
 
 ### Labor & Cost Tracking (LABOR)
 
-- [ ] **LABOR-01**: Multiple labor entries per ticket (multi-tech, multi-session)
-- [ ] **LABOR-02**: Labor entry: technician, start/end time, duration, notes
-- [ ] **LABOR-03**: Labor cost auto-computed from hours × technician's loadedHourlyRate
-- [ ] **LABOR-04**: Cost/receipt entries: vendor, description, amount, receipt photo upload
-- [ ] **LABOR-05**: Pre-populated vendor list with autocomplete
-- [ ] **LABOR-06**: Running cost summary on ticket detail: total labor hours, labor cost, materials cost, combined total
-- [ ] **LABOR-07**: MaintenanceTicket includes `estimatedRepairCostUSD` field for FCI calculation
+- [x] **LABOR-01**: Multiple labor entries per ticket (multi-tech, multi-session)
+- [x] **LABOR-02**: Labor entry: technician, start/end time, duration, notes
+- [x] **LABOR-03**: Labor cost auto-computed from hours × technician's loadedHourlyRate
+- [x] **LABOR-04**: Cost/receipt entries: vendor, description, amount, receipt photo upload
+- [x] **LABOR-05**: Pre-populated vendor list with autocomplete
+- [x] **LABOR-06**: Running cost summary on ticket detail: total labor hours, labor cost, materials cost, combined total
+- [x] **LABOR-07**: MaintenanceTicket includes `estimatedRepairCostUSD` field for FCI calculation
 
 ### Analytics Dashboard (ANALYTICS)
 
@@ -330,13 +330,13 @@ Updated during roadmap creation — 2026-03-05.
 | PM-08 | Phase 4 | Pending |
 | PM-09 | Phase 4 | Pending |
 | PM-10 | Phase 4 | Pending |
-| LABOR-01 | Phase 4 | Pending |
-| LABOR-02 | Phase 4 | Pending |
-| LABOR-03 | Phase 4 | Pending |
-| LABOR-04 | Phase 4 | Pending |
-| LABOR-05 | Phase 4 | Pending |
-| LABOR-06 | Phase 4 | Pending |
-| LABOR-07 | Phase 4 | Pending |
+| LABOR-01 | Phase 4 | Complete |
+| LABOR-02 | Phase 4 | Complete |
+| LABOR-03 | Phase 4 | Complete |
+| LABOR-04 | Phase 4 | Complete |
+| LABOR-05 | Phase 4 | Complete |
+| LABOR-06 | Phase 4 | Complete |
+| LABOR-07 | Phase 4 | Complete |
 | ANALYTICS-01 | Phase 5 | Pending |
 | ANALYTICS-02 | Phase 5 | Pending |
 | ANALYTICS-03 | Phase 5 | Pending |
