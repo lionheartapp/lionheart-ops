@@ -194,13 +194,13 @@
 
 - [x] **OFFLINE-01**: Progressive Web App with service workers for offline caching
 - [x] **OFFLINE-02**: View assigned tickets offline (cached on device at login)
-- [ ] **OFFLINE-03**: Create new tickets offline with photos stored locally
-- [ ] **OFFLINE-04**: Update ticket status offline (queued locally)
-- [ ] **OFFLINE-05**: Log labor hours and costs offline
-- [ ] **OFFLINE-06**: Complete PM checklists offline
+- [x] **OFFLINE-03**: Create new tickets offline with photos stored locally
+- [x] **OFFLINE-04**: Update ticket status offline (queued locally)
+- [x] **OFFLINE-05**: Log labor hours and costs offline
+- [x] **OFFLINE-06**: Complete PM checklists offline
 - [x] **OFFLINE-07**: Scan QR codes offline (loads cached asset data)
-- [ ] **OFFLINE-08**: Background sync with conflict resolution (last-write-wins for status, merge for comments)
-- [ ] **OFFLINE-09**: Connectivity indicator always visible
+- [x] **OFFLINE-08**: Background sync with conflict resolution (last-write-wins for status, merge for comments)
+- [x] **OFFLINE-09**: Connectivity indicator always visible
 
 ## v2 Requirements
 
@@ -375,13 +375,13 @@ Updated during roadmap creation — 2026-03-05.
 | KB-06 | Phase 7 | Complete |
 | OFFLINE-01 | Phase 7 | Complete |
 | OFFLINE-02 | Phase 7 | Complete |
-| OFFLINE-03 | Phase 7 | Pending |
-| OFFLINE-04 | Phase 7 | Pending |
-| OFFLINE-05 | Phase 7 | Pending |
-| OFFLINE-06 | Phase 7 | Pending |
+| OFFLINE-03 | Phase 7 | Complete |
+| OFFLINE-04 | Phase 7 | Complete |
+| OFFLINE-05 | Phase 7 | Complete |
+| OFFLINE-06 | Phase 7 | Complete |
 | OFFLINE-07 | Phase 7 | Complete |
-| OFFLINE-08 | Phase 7 | Pending |
-| OFFLINE-09 | Phase 7 | Pending |
+| OFFLINE-08 | Phase 7 | Complete |
+| OFFLINE-09 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 101 total
