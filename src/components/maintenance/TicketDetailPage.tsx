@@ -34,6 +34,8 @@ import QACompletionModal from './QACompletionModal'
 import QAReviewPanel from './QAReviewPanel'
 import AIDiagnosticPanel from './AIDiagnosticPanel'
 import PPESafetyPanel from './PPESafetyPanel'
+import LaborTimerButton from './LaborTimerButton'
+import LaborCostPanel from './LaborCostPanel'
 import type { AiAnalysisCache } from '@/lib/types/maintenance-ai'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -392,6 +394,18 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
               </h1>
             </div>
           </div>
+
+          {/* Labor timer button — visible for privileged users on in-progress tickets */}
+          {isPrivileged && !isSubmitter && ticket.status === 'IN_PROGRESS' && (
+            <LaborTimerButton
+              ticketId={ticket.id}
+              currentUserId={currentUserId}
+              onEntryCreated={() => {
+                queryClient.invalidateQueries({ queryKey: ['labor-entries', ticket.id] })
+                queryClient.invalidateQueries({ queryKey: ['cost-summary', ticket.id] })
+              }}
+            />
+          )}
         </motion.div>
 
         {/* Two-column layout */}
@@ -788,6 +802,16 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                 aiAnalysis={ticket.aiAnalysis as AiAnalysisCache | null}
               />
             </motion.div>
+
+            {/* Labor & Cost tracking panel (visible to privileged users on all ticket statuses) */}
+            {isPrivileged && (
+              <motion.div variants={fadeInUp}>
+                <LaborCostPanel
+                  ticketId={ticket.id}
+                  currentUserId={currentUserId}
+                />
+              </motion.div>
+            )}
 
             {/* Activity feed */}
             <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
