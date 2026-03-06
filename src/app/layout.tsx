@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Oswald, Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 
 const headingFont = Oswald({
   weight: ['400', '500', '600', '700'],
@@ -22,6 +23,14 @@ export const metadata: Metadata = {
   description: 'Single-app, strict multi-tenant school operations platform',
   icons: {
     icon: '/favicon.svg',
+    apple: '/icons/apple-touch-icon.svg',
+  },
+  manifest: '/manifest.json',
+  themeColor: '#6366f1',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Maintenance',
   },
 }
 
@@ -30,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
       <body className="min-h-screen antialiased bg-white font-body">
         <Providers>{children}</Providers>
+        <ServiceWorkerRegistration />
       </body>
     </html>
   )
