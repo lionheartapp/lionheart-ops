@@ -33,6 +33,7 @@ interface AssetCreateDrawerProps {
   isOpen: boolean
   onClose: () => void
   onCreated?: (asset: MaintenanceAsset & { assetNumber: string }) => void
+  editAsset?: MaintenanceAsset & { assetNumber: string }
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -91,11 +92,34 @@ export default function AssetCreateDrawer({
   isOpen,
   onClose,
   onCreated,
+  editAsset,
 }: AssetCreateDrawerProps) {
   const queryClient = useQueryClient()
   const { data: locationOptions = [] } = useCampusLocations()
+  const isEditMode = !!editAsset
   const [form, setForm] = useState(getInitialForm())
   const [error, setError] = useState('')
+
+  // Populate form when editAsset changes
+  useState(() => {
+    if (editAsset && isOpen) {
+      setForm({
+        name: editAsset.name || '',
+        category: (editAsset as any).category || '',
+        make: (editAsset as any).make || '',
+        model: (editAsset as any).model || '',
+        serialNumber: (editAsset as any).serialNumber || '',
+        purchaseDate: (editAsset as any).purchaseDate ? new Date((editAsset as any).purchaseDate).toISOString().split('T')[0] : '',
+        warrantyExpiry: (editAsset as any).warrantyExpiry ? new Date((editAsset as any).warrantyExpiry).toISOString().split('T')[0] : '',
+        replacementCost: (editAsset as any).replacementCost != null ? String((editAsset as any).replacementCost) : '',
+        expectedLifespanYears: (editAsset as any).expectedLifespanYears != null ? String((editAsset as any).expectedLifespanYears) : '',
+        repairThresholdPct: String(Math.round(((editAsset as any).repairThresholdPct ?? 0.5) * 100)),
+        notes: (editAsset as any).notes || '',
+        status: (editAsset as any).status || 'ACTIVE',
+        locationKey: '',
+      })
+    }
+  })
 
   function updateField(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -126,21 +150,30 @@ export default function AssetCreateDrawer({
   }
 
   const mutation = useMutation<MaintenanceAsset, Error, CreateAssetPayload>({
-    mutationFn: (payload) =>
-      fetchApi<MaintenanceAsset>('/api/maintenance/assets', {
+    mutationFn: (payload) => {
+      if (isEditMode && editAsset) {
+        return fetchApi<MaintenanceAsset>(`/api/maintenance/assets/${editAsset.id}`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload),
+        })
+      }
+      return fetchApi<MaintenanceAsset>('/api/maintenance/assets', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
-      }),
+      })
+    },
     onSuccess: (asset) => {
       queryClient.invalidateQueries({ queryKey: ['maintenance-assets'] })
+      queryClient.invalidateQueries({ queryKey: ['maintenance-asset', editAsset?.id] })
       onCreated?.(asset as MaintenanceAsset & { assetNumber: string })
-      setForm(getInitialForm())
+      if (!isEditMode) setForm(getInitialForm())
       setError('')
       onClose()
     },
     onError: (err) => {
-      setError(err.message || 'Failed to create asset')
+      setError(err.message || (isEditMode ? 'Failed to update asset' : 'Failed to create asset'))
     },
   })
 
@@ -226,8 +259,8 @@ export default function AssetCreateDrawer({
                   <Package className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Add Asset</h2>
-                  <p className="text-xs text-gray-500">Asset number auto-assigned on creation</p>
+                  <h2 className="text-base font-semibold text-gray-900">{isEditMode ? 'Edit Asset' : 'Add Asset'}</h2>
+                  <p className="text-xs text-gray-500">{isEditMode ? `Editing ${editAsset?.assetNumber}` : 'Asset number auto-assigned on creation'}</p>
                 </div>
               </div>
               <button
@@ -458,7 +491,7 @@ export default function AssetCreateDrawer({
                       Saving...
                     </>
                   ) : (
-                    'Create Asset'
+                    isEditMode ? 'Save Changes' : 'Create Asset'
                   )}
                 </button>
               </div>

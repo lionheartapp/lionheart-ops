@@ -10,7 +10,7 @@ import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
-import { getAssetById, updateAsset, deleteAsset } from '@/lib/services/maintenanceAssetService'
+import { getAssetById, getAssetWithDetails, updateAsset, deleteAsset } from '@/lib/services/maintenanceAssetService'
 
 export async function GET(
   req: NextRequest,
@@ -22,7 +22,7 @@ export async function GET(
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.ASSETS_READ)
 
-    const asset = await runWithOrgContext(orgId, () => getAssetById(orgId, id))
+    const asset = await runWithOrgContext(orgId, () => getAssetWithDetails(orgId, id))
     if (!asset) {
       return NextResponse.json(fail('NOT_FOUND', 'Asset not found'), { status: 404 })
     }

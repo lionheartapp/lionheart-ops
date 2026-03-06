@@ -2009,6 +2009,7 @@ model MaintenanceTicket {
   pmScheduledDueDate      DateTime?               // The scheduled due date for PM completion
   pmChecklistItems        String[]                @default([])  // Checklist item labels from the PM schedule
   pmChecklistDone         Boolean[]               @default([])  // Parallel array: true = item checked off
+  assetId                 String?                               // Optional link to a MaintenanceAsset
   submittedById           String
   assignedToId            String?
   buildingId              String?
@@ -2026,6 +2027,7 @@ model MaintenanceTicket {
   area          Area?                     @relation(fields: [areaId], references: [id], onDelete: SetNull)
   room          Room?                     @relation(fields: [roomId], references: [id], onDelete: SetNull)
   school        School?                   @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  asset         MaintenanceAsset?         @relation(fields: [assetId], references: [id], onDelete: SetNull)
   activities    MaintenanceTicketActivity[]
   laborEntries  MaintenanceLaborEntry[]
   costEntries   MaintenanceCostEntry[]
@@ -2039,6 +2041,7 @@ model MaintenanceTicket {
   @@index([organizationId, schoolId])
   @@index([organizationId, deletedAt])
   @@index([pmScheduleId])
+  @@index([assetId])
 }
 
 model MaintenanceCounter {
@@ -2160,6 +2163,7 @@ model MaintenanceAsset {
   room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
   school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   pmSchedules  PmSchedule[]
+  tickets      MaintenanceTicket[]
 
   @@unique([organizationId, assetNumber])
   @@index([organizationId])

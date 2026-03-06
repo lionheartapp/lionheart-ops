@@ -9,6 +9,7 @@
 
 import { z } from 'zod'
 import { rawPrisma, prisma } from '@/lib/db'
+import type { MaintenanceTicketStatus } from '@prisma/client'
 
 // ─── Asset Status Constants ───────────────────────────────────────────────────
 
@@ -282,6 +283,93 @@ export async function updateAsset(orgId: string, id: string, input: unknown) {
 
   return asset
 }
+
+// ─── Get Asset With Full Details (for detail page) ────────────────────────────
+
+export async function getAssetWithDetails(orgId: string, id: string) {
+  const asset = await prisma.maintenanceAsset.findFirst({
+    where: { id },
+    include: {
+      ...ASSET_INCLUDES,
+      pmSchedules: {
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          recurrenceType: true,
+          nextDueDate: true,
+          isActive: true,
+          defaultTechnicianId: true,
+          defaultTechnician: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+        },
+        orderBy: { nextDueDate: 'asc' },
+      },
+      tickets: {
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          ticketNumber: true,
+          title: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          costEntries: {
+            select: { amount: true },
+          },
+          laborEntries: {
+            select: {
+              durationMinutes: true,
+              technician: {
+                select: {
+                  technicianProfile: {
+                    select: { loadedHourlyRate: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: [
+          { createdAt: 'desc' },
+        ],
+      },
+    },
+  })
+
+  if (!asset) return null
+
+  // Compute cumulative repair cost across all tickets
+  let cumulativeRepairCost = 0
+  for (const ticket of asset.tickets) {
+    // Material / vendor costs
+    for (const entry of ticket.costEntries) {
+      cumulativeRepairCost += entry.amount
+    }
+    // Labor costs
+    for (const labor of ticket.laborEntries) {
+      if (labor.durationMinutes && labor.technician?.technicianProfile?.loadedHourlyRate) {
+        cumulativeRepairCost += (labor.durationMinutes / 60) * labor.technician.technicianProfile.loadedHourlyRate
+      }
+    }
+  }
+
+  // Sort tickets: open first, then done/cancelled
+  const closedStatuses: MaintenanceTicketStatus[] = ['DONE', 'CANCELLED']
+  const openTickets = asset.tickets.filter(t => !closedStatuses.includes(t.status))
+  const closedTickets = asset.tickets.filter(t => closedStatuses.includes(t.status))
+  const ticketHistory = [...openTickets, ...closedTickets]
+
+  return {
+    ...asset,
+    ticketHistory,
+    pmSchedules: asset.pmSchedules,
+    cumulativeRepairCost,
+  }
+}
+
+export type AssetWithDetails = NonNullable<Awaited<ReturnType<typeof getAssetWithDetails>>>
 
 // ─── Delete Asset (Soft-Delete) ───────────────────────────────────────────────
 
