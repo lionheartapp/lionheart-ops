@@ -29,12 +29,6 @@ import {
   Trash2,
   HelpCircle,
   Wrench,
-  ClipboardList,
-  Package,
-  CalendarCheck,
-  BarChart2,
-  FileText,
-  BookOpen,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -614,7 +608,7 @@ export default function Sidebar({
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
                         <motion.ul
-                          className="space-y-0.5 pl-4 mt-0.5 overflow-hidden"
+                          className="space-y-0.5 ml-8 pl-4 mt-1 border-l-2 border-primary-500/50 overflow-hidden"
                           role="list"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -631,13 +625,12 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/work-orders'
-                                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                               >
-                                <ClipboardList className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">Work Orders</span>
                               </PrefetchLink>
                             </li>
@@ -652,9 +645,8 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className="flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 text-gray-400 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827]"
+                                className="flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 text-gray-400 hover:text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827]"
                               >
-                                <ClipboardList className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">My Requests</span>
                               </PrefetchLink>
                             </li>
@@ -669,14 +661,13 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/assets'
-                                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                               >
-                                <Package className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">Assets</span>
                               </PrefetchLink>
                             </li>
@@ -691,14 +682,13 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/pm-calendar'
-                                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
                               >
-                                <CalendarCheck className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">PM Calendar</span>
                               </PrefetchLink>
                             </li>
@@ -713,14 +703,13 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/analytics'
-                                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/analytics' ? 'page' : undefined}
                               >
-                                <BarChart2 className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">Analytics</span>
                               </PrefetchLink>
                             </li>
@@ -735,14 +724,13 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/compliance'
-                                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
                               >
-                                <Shield className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">Compliance</span>
                               </PrefetchLink>
                             </li>
@@ -757,14 +745,13 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/board-report'
-                                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
                               >
-                                <FileText className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">Board Report</span>
                               </PrefetchLink>
                             </li>
@@ -779,14 +766,13 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname.startsWith('/maintenance/knowledge-base')
-                                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                               >
-                                <BookOpen className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm">Knowledge Base</span>
                               </PrefetchLink>
                             </li>
