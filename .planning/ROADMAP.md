@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Kanban & AI** - Drag-and-drop Kanban board with all views, AI photo diagnosis, and activity feed (completed 2026-03-06)
 - [ ] **Phase 4: Assets, QR & PM** - Asset register, QR codes, preventive maintenance scheduling, and labor/cost tracking
 - [x] **Phase 5: Analytics & Repair Intelligence** - Operational analytics dashboard and repeat repair detection (completed 2026-03-06)
-- [ ] **Phase 6: Compliance & Board Reporting** - 10-domain compliance calendar and FCI board reports with AI narrative
+- [x] **Phase 6: Compliance & Board Reporting** - 10-domain compliance calendar and FCI board reports with AI narrative (completed 2026-03-06)
 - [ ] **Phase 7: Knowledge Base & Offline PWA** - Knowledge base with calculators and true offline PWA with sync
 
 ## Phase Details
@@ -156,5 +156,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Kanban & AI | 2/2 | Complete   | 2026-03-06 |
 | 4. Assets, QR & PM | 4/5 | In Progress|  |
 | 5. Analytics & Repair Intelligence | 2/2 | Complete   | 2026-03-06 |
-| 6. Compliance & Board Reporting | 1/3 | In Progress|  |
+| 6. Compliance & Board Reporting | 3/3 | Complete   | 2026-03-06 |
 | 7. Knowledge Base & Offline PWA | 0/3 | Not started | - |

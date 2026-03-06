@@ -170,16 +170,16 @@
 
 ### Board Reporting (REPORT)
 
-- [ ] **REPORT-01**: Facility Condition Index (FCI) calculation: deferred maintenance ÷ total replacement value
-- [ ] **REPORT-02**: Board report metrics: FCI, cost per student, PM vs reactive ratio, deferred maintenance backlog
-- [ ] **REPORT-03**: Response time and resolution time metrics by campus and category
-- [ ] **REPORT-04**: Compliance status: % current vs overdue by domain
-- [ ] **REPORT-05**: Asset end-of-life forecast (next 1/3/5 years)
-- [ ] **REPORT-06**: Top repair cost assets (replacement candidates)
-- [ ] **REPORT-07**: Year-over-year trend comparisons
-- [ ] **REPORT-08**: Scheduled automated delivery: weekly to Head, monthly to Admin
-- [ ] **REPORT-09**: On-demand PDF generation for any time period and campus
-- [ ] **REPORT-10**: AI-generated executive narrative summary via Claude Sonnet
+- [x] **REPORT-01**: Facility Condition Index (FCI) calculation: deferred maintenance ÷ total replacement value
+- [x] **REPORT-02**: Board report metrics: FCI, cost per student, PM vs reactive ratio, deferred maintenance backlog
+- [x] **REPORT-03**: Response time and resolution time metrics by campus and category
+- [x] **REPORT-04**: Compliance status: % current vs overdue by domain
+- [x] **REPORT-05**: Asset end-of-life forecast (next 1/3/5 years)
+- [x] **REPORT-06**: Top repair cost assets (replacement candidates)
+- [x] **REPORT-07**: Year-over-year trend comparisons
+- [x] **REPORT-08**: Scheduled automated delivery: weekly to Head, monthly to Admin
+- [x] **REPORT-09**: On-demand PDF generation for any time period and campus
+- [x] **REPORT-10**: AI-generated executive narrative summary via Claude Sonnet
 
 ### Knowledge Base (KB)
 
@@ -357,16 +357,16 @@ Updated during roadmap creation — 2026-03-05.
 | COMPLY-06 | Phase 6 | Complete |
 | COMPLY-07 | Phase 6 | Complete |
 | COMPLY-08 | Phase 6 | Complete |
-| REPORT-01 | Phase 6 | Pending |
-| REPORT-02 | Phase 6 | Pending |
-| REPORT-03 | Phase 6 | Pending |
-| REPORT-04 | Phase 6 | Pending |
-| REPORT-05 | Phase 6 | Pending |
-| REPORT-06 | Phase 6 | Pending |
-| REPORT-07 | Phase 6 | Pending |
-| REPORT-08 | Phase 6 | Pending |
-| REPORT-09 | Phase 6 | Pending |
-| REPORT-10 | Phase 6 | Pending |
+| REPORT-01 | Phase 6 | Complete |
+| REPORT-02 | Phase 6 | Complete |
+| REPORT-03 | Phase 6 | Complete |
+| REPORT-04 | Phase 6 | Complete |
+| REPORT-05 | Phase 6 | Complete |
+| REPORT-06 | Phase 6 | Complete |
+| REPORT-07 | Phase 6 | Complete |
+| REPORT-08 | Phase 6 | Complete |
+| REPORT-09 | Phase 6 | Complete |
+| REPORT-10 | Phase 6 | Complete |
 | KB-01 | Phase 7 | Pending |
 | KB-02 | Phase 7 | Pending |
 | KB-03 | Phase 7 | Pending |
