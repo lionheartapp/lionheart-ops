@@ -84,12 +84,14 @@ Plans:
   3. A technician can complete all checklist items on a PM ticket before moving to QA; attempting to move to QA with incomplete checklist items is blocked
   4. A technician can log multiple labor entries (start/end time) and cost entries (vendor, amount, receipt photo) on a ticket; the running cost summary shows total labor hours, labor cost, materials cost, and combined total
   5. An asset detail page shows cumulative repair cost vs. replacement cost and flags a repair threshold alert when the configurable percentage is exceeded
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 04-01: Asset model, CRUD API, asset detail page, and QR generation/scanning
-- [ ] 04-02: PM schedule model, PM engine (cron), PM ticket generation, and PM calendar view
-- [ ] 04-03: Labor and cost tracking (entries, loaded rate, running totals, receipt upload)
+- [ ] 04-01-PLAN.md — Schema updates, asset service with CRUD API, asset register table with filters, create drawer, QR code generation endpoint
+- [ ] 04-02-PLAN.md — Asset detail page with repair gauge, QR scanning (native + in-app), label printing, manual asset search on ticket wizard
+- [ ] 04-03-PLAN.md — PM schedule service, CRUD API, creation wizard, calendar view (react-big-calendar), and list view
+- [ ] 04-04-PLAN.md — PM cron engine for auto-ticket generation, PM checklist UI, QA gate enforcement, next-due-date recalculation
+- [ ] 04-05-PLAN.md — Labor timer + manual entry, cost/receipt tracking, vendor autocomplete, running cost summary panel on ticket detail
 
 ### Phase 5: Analytics & Repair Intelligence
 **Goal**: The Head of Maintenance has a real-time operational dashboard and the system automatically flags assets with problematic repair histories
@@ -152,7 +154,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Foundation | 2/2 | Complete   | 2026-03-06 |
 | 2. Core Tickets | 4/4 | Complete   | 2026-03-06 |
 | 3. Kanban & AI | 2/2 | Complete   | 2026-03-06 |
-| 4. Assets, QR & PM | 0/3 | Not started | - |
+| 4. Assets, QR & PM | 0/5 | Not started | - |
 | 5. Analytics & Repair Intelligence | 0/2 | Not started | - |
 | 6. Compliance & Board Reporting | 0/3 | Not started | - |
 | 7. Knowledge Base & Offline PWA | 0/3 | Not started | - |
