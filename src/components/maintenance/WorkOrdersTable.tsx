@@ -146,8 +146,8 @@ function formatCategory(cat: string): string {
 function SortIcon({ field, sort }: { field: SortField; sort: SortState }) {
   if (sort.field !== field) return <ChevronsUpDown className="w-3.5 h-3.5 text-gray-300" />
   return sort.dir === 'asc'
-    ? <ChevronUp className="w-3.5 h-3.5 text-emerald-500" />
-    : <ChevronDown className="w-3.5 h-3.5 text-emerald-500" />
+    ? <ChevronUp className="w-3.5 h-3.5 text-gray-900" />
+    : <ChevronDown className="w-3.5 h-3.5 text-gray-900" />
 }
 
 // ─── Row action menu ─────────────────────────────────────────────────────────
@@ -292,7 +292,7 @@ function RowActionMenu({
                 <select
                   value={selectedTech}
                   onChange={(e) => setSelectedTech(e.target.value)}
-                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  className="ui-select cursor-pointer"
                   autoFocus
                 >
                   <option value="">Select technician...</option>
@@ -306,7 +306,7 @@ function RowActionMenu({
                   <button
                     onClick={handleAssignSubmit}
                     disabled={!selectedTech}
-                    className="flex-1 px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-40 cursor-pointer transition-colors"
+                    className="ui-btn-sm ui-btn-primary flex-1"
                   >
                     Assign
                   </button>
@@ -326,7 +326,7 @@ function RowActionMenu({
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  className="ui-select cursor-pointer"
                   autoFocus
                 >
                   <option value="">Select status...</option>
@@ -342,14 +342,14 @@ function RowActionMenu({
                     placeholder="Completion note (optional)"
                     value={completionNote}
                     onChange={(e) => setCompletionNote(e.target.value)}
-                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="ui-input"
                   />
                 )}
                 {selectedStatus === 'ON_HOLD' && (
                   <select
                     value={holdReason}
                     onChange={(e) => setHoldReason(e.target.value)}
-                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="ui-select cursor-pointer"
                   >
                     <option value="">Hold reason (optional)</option>
                     <option value="AWAITING_PARTS">Awaiting Parts</option>
@@ -363,7 +363,7 @@ function RowActionMenu({
                   <button
                     onClick={handleStatusSubmit}
                     disabled={!selectedStatus}
-                    className="flex-1 px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-40 cursor-pointer transition-colors"
+                    className="ui-btn-sm ui-btn-primary flex-1"
                   >
                     Update
                   </button>
@@ -490,7 +490,7 @@ export default function WorkOrdersTable({
               <tr>
                 <td colSpan={9} className="px-3 py-10 text-center text-sm text-gray-400">
                   No work orders match your filters.{' '}
-                  <span className="text-emerald-600 cursor-pointer hover:underline">
+                  <span className="text-primary-600 cursor-pointer hover:underline">
                     Clear filters
                   </span>{' '}
                   to see all tickets.

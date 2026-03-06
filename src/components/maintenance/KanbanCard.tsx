@@ -119,7 +119,7 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
 
       {/* Category tag */}
       <div className="mb-1.5">
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-100">
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[10px] font-medium border border-gray-200">
           {CATEGORY_LABEL[ticket.category] ?? ticket.category}
         </span>
       </div>
@@ -134,7 +134,7 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
         {/* Tech assignment */}
         {ticket.assignedTo ? (
           <div className="flex items-center gap-1.5 min-w-0">
-            <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
+            <div className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
               {getInitials(ticket.assignedTo.firstName, ticket.assignedTo.lastName)}
             </div>
             <span className="text-[10px] text-gray-500 truncate">

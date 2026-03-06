@@ -156,8 +156,8 @@ export default function MyRequestsGrid({ onSubmitRequest }: MyRequestsGridProps)
         className="ui-glass rounded-2xl p-12"
       >
         <div className="flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
-            <Wrench className="w-8 h-8 text-emerald-400" />
+          <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
+            <Wrench className="w-8 h-8 text-primary-400" />
           </div>
           <h3 className="text-base font-semibold text-gray-900 mb-2">
             No maintenance requests yet
@@ -168,7 +168,7 @@ export default function MyRequestsGrid({ onSubmitRequest }: MyRequestsGridProps)
           <button
             type="button"
             onClick={onSubmitRequest}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 active:scale-[0.97] transition-all cursor-pointer"
+            className="ui-btn-md ui-btn-primary"
           >
             <Wrench className="w-4 h-4" />
             Submit Your First Request

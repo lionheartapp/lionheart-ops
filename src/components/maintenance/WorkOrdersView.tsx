@@ -267,7 +267,7 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
                 type="checkbox"
                 checked={showAll}
                 onChange={(e) => setShowAll(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-400 cursor-pointer"
+                className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 cursor-pointer"
               />
               Show all (including other specialties)
             </label>
@@ -280,7 +280,7 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
               title="Board view"
               className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                 viewMode === 'board'
-                  ? 'bg-white shadow-sm text-emerald-600'
+                  ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
@@ -291,7 +291,7 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
               title="Table view"
               className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                 viewMode === 'table'
-                  ? 'bg-white shadow-sm text-emerald-600'
+                  ? 'bg-white shadow-sm text-gray-900'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >

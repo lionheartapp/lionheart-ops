@@ -161,7 +161,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
         <p className="text-xs text-gray-400 mb-4">Check your connection and try again.</p>
         <button
           onClick={() => refetch()}
-          className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl hover:bg-emerald-700 transition-colors cursor-pointer"
+          className="ui-btn-sm ui-btn-primary"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Retry

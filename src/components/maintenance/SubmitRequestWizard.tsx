@@ -381,7 +381,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
         <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
           <a
             href={`/maintenance/tickets/${success.ticketId}`}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer"
+            className="ui-btn-md ui-btn-primary"
           >
             View Ticket
             <ExternalLink className="w-3.5 h-3.5" />
@@ -416,7 +416,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
             })
             setCurrentStep(0)
           }}
-          className="mt-3 text-sm text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+          className="mt-3 text-sm text-primary-600 hover:text-primary-700 transition-colors cursor-pointer"
         >
           Submit Another Request
         </button>
@@ -439,8 +439,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
                   <div
                     className={`
                       w-8 h-8 rounded-full flex items-center justify-center transition-all
-                      ${isCompleted ? 'bg-emerald-500 text-white' :
-                        isCurrent ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' :
+                      ${isCompleted ? 'bg-gray-900 text-white' :
+                        isCurrent ? 'bg-gray-900 text-white ring-4 ring-gray-200' :
                         'bg-gray-100 text-gray-400'
                       }
                     `}
@@ -451,12 +451,12 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
                       <StepIcon className="w-4 h-4" />
                     )}
                   </div>
-                  <span className={`text-xs mt-1 font-medium ${isCurrent ? 'text-emerald-700' : isCompleted ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  <span className={`text-xs mt-1 font-medium ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
                     {step.label}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-1 mb-4 rounded-full transition-colors ${i < currentStep ? 'bg-emerald-400' : 'bg-gray-100'}`} />
+                  <div className={`flex-1 h-0.5 mx-1 mb-4 rounded-full transition-colors ${i < currentStep ? 'bg-gray-900' : 'bg-gray-100'}`} />
                 )}
               </div>
             )
@@ -563,7 +563,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
             type="button"
             onClick={goNext}
             disabled={!canAdvance}
-            className="ml-auto px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-200"
+            className="ui-btn-md ui-btn-primary ml-auto"
           >
             {currentStep === 2 ? (formData.photos.length > 0 ? 'Next' : 'Skip') : 'Next'}
           </button>

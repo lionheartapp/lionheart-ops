@@ -138,7 +138,7 @@ function WorkOrdersContent() {
                     onClick={() => setSelectedCampusId(campus.id)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${
                       activeCampusId === campus.id
-                        ? 'bg-emerald-50 text-emerald-700 font-medium border border-emerald-200'
+                        ? 'bg-gray-900 text-white font-medium border border-gray-900'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 border border-transparent'
                     }`}
                   >

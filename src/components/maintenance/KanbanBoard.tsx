@@ -313,7 +313,7 @@ export default function KanbanBoard({
             onClick={() => setBoardView(key)}
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
               boardView === key
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                ? 'bg-gray-900 text-white border border-gray-900'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >

@@ -187,7 +187,7 @@ export default function QACompletionModal({
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100/50">
                 <div className="flex items-center gap-2">
-                  <CheckSquare className="w-5 h-5 text-emerald-600" />
+                  <CheckSquare className="w-5 h-5 text-gray-900" />
                   <h2 className="text-base font-semibold text-gray-900">Submit for QA Review</h2>
                 </div>
                 <button
@@ -215,7 +215,7 @@ export default function QACompletionModal({
                   {photos.length < 5 && (
                     <div
                       onClick={() => inputRef.current?.click()}
-                      className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/30 transition-all"
+                      className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400 hover:bg-gray-50/30 transition-all"
                     >
                       <Camera className="w-6 h-6 text-gray-400 mx-auto mb-1" />
                       <p className="text-sm text-gray-600 font-medium">Add Completion Photo</p>
@@ -286,7 +286,7 @@ export default function QACompletionModal({
                     onChange={(e) => setCompletionNote(e.target.value)}
                     placeholder="Describe the work completed, materials used, and any follow-up notes..."
                     rows={4}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 placeholder:text-gray-400 transition-colors"
+                    className="ui-input resize-none"
                   />
                   <div className="flex items-center justify-between mt-1">
                     {!hasNote && completionNote.trim().length > 0 ? (
@@ -296,7 +296,7 @@ export default function QACompletionModal({
                     ) : !hasNote ? (
                       <p className="text-xs text-gray-400">Describe what was done in at least 10 characters</p>
                     ) : (
-                      <p className="text-xs text-emerald-600 flex items-center gap-1">
+                      <p className="text-xs text-green-600 flex items-center gap-1">
                         <Check className="w-3 h-3" /> Note looks good
                       </p>
                     )}
@@ -320,7 +320,7 @@ export default function QACompletionModal({
                 <button
                   onClick={handleSubmit}
                   disabled={!canSubmit}
-                  className="flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  className="ui-btn-md ui-btn-primary"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

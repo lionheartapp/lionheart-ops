@@ -146,7 +146,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
         <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${PRIORITY_COLORS[ticket.priority] || 'bg-gray-100 text-gray-600'}`}>
           {ticket.priority.charAt(0) + ticket.priority.slice(1).toLowerCase()}
         </span>
-        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700">
+        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 text-primary-700">
           {CATEGORY_LABELS[ticket.category] || ticket.category}
         </span>
       </div>

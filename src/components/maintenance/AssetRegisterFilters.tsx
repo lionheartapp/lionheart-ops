@@ -85,7 +85,7 @@ const SORT_OPTIONS: { value: AssetSortField; label: string }[] = [
 ]
 
 const inputClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors'
+  'ui-input'
 
 function hasActiveFilters(filters: AssetFilterState): boolean {
   return (

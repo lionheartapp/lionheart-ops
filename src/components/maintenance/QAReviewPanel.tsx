@@ -124,11 +124,11 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
         <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
       )}
 
-      <div className="ui-glass p-5 rounded-2xl space-y-5 border-l-4 border-l-emerald-400">
+      <div className="ui-glass p-5 rounded-2xl space-y-5 border-l-4 border-l-gray-900">
         {/* Header */}
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
-            <Check className="w-4 h-4 text-emerald-600" />
+          <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center">
+            <Check className="w-4 h-4 text-primary-600" />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900">QA Review</h3>
@@ -233,7 +233,7 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
             <button
               onClick={handleApprove}
               disabled={isApproving || isSendingBack}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="ui-btn-md ui-btn-primary flex-1"
             >
               {isApproving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -332,7 +332,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
         <p className="text-sm text-gray-500 mt-1">This ticket may have been deleted or you may not have permission to view it.</p>
         <button
           onClick={() => router.push('/maintenance')}
-          className="mt-4 text-sm text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+          className="mt-4 text-sm text-primary-600 hover:text-primary-700 transition-colors cursor-pointer"
         >
           Back to Maintenance
         </button>
@@ -442,7 +442,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-sm font-semibold text-emerald-700 flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-sm font-semibold text-primary-700 flex-shrink-0">
                   {ticket.submittedBy.firstName[0]}{ticket.submittedBy.lastName[0]}
                 </div>
                 <div className="min-w-0">
@@ -454,7 +454,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                   )}
                   <a
                     href={`mailto:${ticket.submittedBy.email}`}
-                    className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 transition-colors mt-0.5"
+                    className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 transition-colors mt-0.5"
                   >
                     <Mail className="w-3 h-3" />
                     {ticket.submittedBy.email}
@@ -495,7 +495,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                 <div className="space-y-1">
                   {ticket.school && (
                     <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary-400 flex-shrink-0" />
                       <span className="font-medium">{ticket.school.name}</span>
                       <span className="text-gray-400">Campus</span>
                     </div>
@@ -529,7 +529,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                   href={`https://maps.google.com/?q=${encodeURIComponent(ticket.building.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
                   View on Google Maps
@@ -679,7 +679,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                             }
                           }}
                           disabled={statusMutation.isPending}
-                          className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          className="ui-btn-md ui-btn-primary"
                         >
                           {statusMutation.isPending ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />

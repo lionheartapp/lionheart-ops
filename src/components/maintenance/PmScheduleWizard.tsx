@@ -299,7 +299,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 value={formData.name}
                 onChange={(e) => update({ name: e.target.value })}
                 placeholder="e.g. HVAC Filter Replacement"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
               />
             </div>
             <div>
@@ -311,7 +311,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 onChange={(e) => update({ description: e.target.value })}
                 placeholder="Optional — describe what this PM task involves"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
               />
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                   min="1"
                   value={formData.intervalDays}
                   onChange={(e) => update({ intervalDays: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
                 />
               </div>
             )}
@@ -359,7 +359,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                       onClick={() => toggleMonth(m.value)}
                       className={`py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                         formData.months.includes(m.value)
-                          ? 'bg-emerald-600 text-white'
+                          ? 'bg-gray-900 text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -379,7 +379,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 min="0"
                 value={formData.advanceNoticeDays}
                 onChange={(e) => update({ advanceNoticeDays: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
               />
               <p className="text-xs text-gray-500 mt-1">
                 How many days before the due date to show this task as upcoming
@@ -391,7 +391,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 type="checkbox"
                 checked={formData.avoidSchoolYear}
                 onChange={(e) => update({ avoidSchoolYear: e.target.checked })}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400"
               />
               <div>
                 <span className="text-sm font-medium text-gray-700">Avoid School Year</span>
@@ -424,13 +424,13 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                   }
                 }}
                 placeholder="e.g. Replace air filter, Check belt tension"
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-colors"
               />
               <button
                 type="button"
                 onClick={addChecklistItem}
                 disabled={!newChecklistItem.trim()}
-                className="flex items-center gap-1 px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                className="ui-btn-sm ui-btn-primary"
               >
                 <Plus className="w-4 h-4" />
                 Add
@@ -451,7 +451,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2"
                   >
-                    <CheckSquare className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <CheckSquare className="w-4 h-4 text-primary-500 flex-shrink-0" />
                     <span className="flex-1 text-sm text-gray-700">{item}</span>
                     <div className="flex items-center gap-1">
                       <button
@@ -656,9 +656,9 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                     isCompleted
-                      ? 'bg-emerald-600 text-white'
+                      ? 'bg-gray-900 text-white'
                       : isActive
-                      ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-600'
+                      ? 'bg-primary-100 text-primary-700 border-2 border-gray-900'
                       : 'bg-gray-100 text-gray-400'
                   }`}
                 >
@@ -670,7 +670,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 </div>
                 <span
                   className={`text-xs font-medium ${
-                    isActive ? 'text-emerald-700' : 'text-gray-400'
+                    isActive ? 'text-gray-700' : 'text-gray-400'
                   }`}
                 >
                   {step.label}
@@ -679,7 +679,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
               {idx < STEPS.length - 1 && (
                 <div
                   className={`h-px flex-1 mx-2 mb-5 transition-colors ${
-                    idx < currentStep ? 'bg-emerald-400' : 'bg-gray-200'
+                    idx < currentStep ? 'bg-gray-900' : 'bg-gray-200'
                   }`}
                   style={{ minWidth: '20px' }}
                 />
@@ -753,7 +753,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
             type="button"
             onClick={goNext}
             disabled={!canAdvance}
-            className="flex items-center gap-1.5 px-5 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="ui-btn-md ui-btn-primary"
           >
             Next
             <ChevronRight className="w-4 h-4" />
@@ -763,7 +763,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 px-5 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="ui-btn-md ui-btn-primary"
           >
             {isSubmitting ? 'Creating...' : 'Create Schedule'}
             {!isSubmitting && <Check className="w-4 h-4" />}

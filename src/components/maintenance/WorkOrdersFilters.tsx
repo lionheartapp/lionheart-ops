@@ -92,11 +92,9 @@ const CATEGORY_OPTIONS: { value: MaintenanceCategory; label: string }[] = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-const selectClass =
-  'px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer transition-colors'
+const selectClass = 'ui-select cursor-pointer'
 
-const inputClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400 transition-colors'
+const inputClass = 'ui-input'
 
 function hasActiveFilters(filters: WorkOrdersFilterState): boolean {
   return (
@@ -249,7 +247,7 @@ export default function WorkOrdersFilters({
           type="checkbox"
           checked={filters.unassigned}
           onChange={(e) => update({ unassigned: e.target.checked })}
-          className="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-400 cursor-pointer"
+          className="w-3.5 h-3.5 rounded border-gray-300 text-gray-900 focus:ring-gray-400 cursor-pointer"
         />
         Unassigned only
       </label>

@@ -118,7 +118,7 @@ function AssetRegisterContent() {
               <motion.div variants={fadeInUp} className="flex items-center gap-2">
                 <button
                   onClick={() => setQrScannerOpen(true)}
-                  className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="ui-btn-md ui-btn-outline"
                   title="Scan QR code to navigate to asset"
                 >
                   <QrCode className="w-4 h-4" />
@@ -126,7 +126,7 @@ function AssetRegisterContent() {
                 </button>
                 <button
                   onClick={() => setDrawerOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer"
+                  className="ui-btn-md ui-btn-primary"
                 >
                   <Plus className="w-4 h-4" />
                   Add Asset

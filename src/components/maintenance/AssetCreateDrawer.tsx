@@ -75,10 +75,10 @@ function getInitialForm() {
 
 const labelClass = 'block text-xs font-medium text-gray-600 mb-1'
 const inputClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors'
+  'ui-input'
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-3 mt-6 first:mt-0">
+    <div className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3 mt-6 first:mt-0">
       {title}
     </div>
   )
@@ -253,8 +253,8 @@ export default function AssetCreateDrawer({
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/60 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <Package className="w-4 h-4 text-emerald-600" />
+                <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                  <Package className="w-4 h-4 text-primary-600" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-gray-900">{isEditMode ? 'Edit Asset' : 'Add Asset'}</h2>
@@ -458,7 +458,7 @@ export default function AssetCreateDrawer({
                   type="button"
                   onClick={handleClose}
                   disabled={mutation.isPending}
-                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+                  className="ui-btn-md ui-btn-outline flex-1"
                 >
                   Cancel
                 </button>
@@ -466,7 +466,7 @@ export default function AssetCreateDrawer({
                   type="submit"
                   form="asset-create-form"
                   disabled={mutation.isPending}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-70"
+                  className="ui-btn-md ui-btn-primary flex-1"
                 >
                   {mutation.isPending ? (
                     <>

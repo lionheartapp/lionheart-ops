@@ -46,9 +46,9 @@ export default function KanbanColumn({
       className={[
         'flex flex-col min-w-[280px] max-w-[320px] flex-shrink-0 rounded-2xl transition-all duration-150',
         'bg-gray-50/60 border border-gray-200/60',
-        highlightValid ? 'ring-2 ring-emerald-400 bg-emerald-50/40' : '',
+        highlightValid ? 'ring-2 ring-primary-400 bg-primary-50/40' : '',
         highlightInvalid ? 'ring-2 ring-red-400 opacity-70 bg-red-50/20' : '',
-        isDragInProgress && !isOver && isValidTarget ? 'ring-1 ring-emerald-200' : '',
+        isDragInProgress && !isOver && isValidTarget ? 'ring-1 ring-primary-200' : '',
       ]
         .filter(Boolean)
         .join(' ')}
