@@ -61,14 +61,14 @@
 
 ### AI Diagnostics (AI)
 
-- [ ] **AI-01**: AI diagnostic panel triggered lazily when technician first opens ticket with photos
-- [ ] **AI-02**: AI returns: likely diagnosis, suggested tools, suggested parts/supplies, step-by-step fix
-- [ ] **AI-03**: Confidence indicator displayed (Low / Medium / High) based on photo clarity
-- [ ] **AI-04**: "Ask AI" button for free-form troubleshooting questions on any ticket
-- [ ] **AI-05**: PPE / Safety panel auto-shown for Custodial/Biohazard category tickets
-- [ ] **AI-06**: AI results cached in MaintenanceTicket.aiAnalysis — does not re-run unless new photos added
-- [ ] **AI-07**: Panel labeled "AI Suggestion — always verify on-site"
-- [ ] **AI-08**: Uses Anthropic Claude API (not Gemini) for photo analysis
+- [x] **AI-01**: AI diagnostic panel triggered lazily when technician first opens ticket with photos
+- [x] **AI-02**: AI returns: likely diagnosis, suggested tools, suggested parts/supplies, step-by-step fix
+- [x] **AI-03**: Confidence indicator displayed (Low / Medium / High) based on photo clarity
+- [x] **AI-04**: "Ask AI" button for free-form troubleshooting questions on any ticket
+- [x] **AI-05**: PPE / Safety panel auto-shown for Custodial/Biohazard category tickets
+- [x] **AI-06**: AI results cached in MaintenanceTicket.aiAnalysis — does not re-run unless new photos added
+- [x] **AI-07**: Panel labeled "AI Suggestion — always verify on-site"
+- [x] **AI-08**: Uses Anthropic Claude API (not Gemini) for photo analysis
 
 ### Specialty Routing (ROUTE)
 
@@ -301,14 +301,14 @@ Updated during roadmap creation — 2026-03-05.
 | BOARD-06 | Phase 3 | Pending |
 | BOARD-07 | Phase 3 | Pending |
 | BOARD-08 | Phase 3 | Pending |
-| AI-01 | Phase 3 | Pending |
-| AI-02 | Phase 3 | Pending |
-| AI-03 | Phase 3 | Pending |
-| AI-04 | Phase 3 | Pending |
-| AI-05 | Phase 3 | Pending |
-| AI-06 | Phase 3 | Pending |
-| AI-07 | Phase 3 | Pending |
-| AI-08 | Phase 3 | Pending |
+| AI-01 | Phase 3 | Complete |
+| AI-02 | Phase 3 | Complete |
+| AI-03 | Phase 3 | Complete |
+| AI-04 | Phase 3 | Complete |
+| AI-05 | Phase 3 | Complete |
+| AI-06 | Phase 3 | Complete |
+| AI-07 | Phase 3 | Complete |
+| AI-08 | Phase 3 | Complete |
 | ASSET-01 | Phase 4 | Pending |
 | ASSET-02 | Phase 4 | Pending |
 | ASSET-03 | Phase 4 | Pending |
