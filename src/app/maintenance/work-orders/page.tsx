@@ -1,21 +1,15 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
-import MaintenanceSkeleton from '@/components/maintenance/MaintenanceSkeleton'
-import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
-import MyRequestsView from '@/components/maintenance/MyRequestsView'
-import { LayoutDashboard, FileText } from 'lucide-react'
-import type { MaintenanceTab } from '@/components/Sidebar'
-import { cacheAssignedTickets } from '@/lib/offline/sync'
+import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
 
 interface Campus {
   id: string
@@ -23,22 +17,8 @@ interface Campus {
   isActive: boolean
 }
 
-const SUB_TABS: {
-  key: MaintenanceTab
-  label: string
-  icon: typeof LayoutDashboard
-  requiresManage?: boolean
-}[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresManage: true },
-  { key: 'my-requests', label: 'My Requests', icon: FileText },
-]
-
-/**
- * Inner content component — uses useSearchParams, must be inside a Suspense boundary.
- */
-function MaintenanceContent() {
+function WorkOrdersContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
@@ -55,7 +35,6 @@ function MaintenanceContent() {
   )
   const [isClient, setIsClient] = useState(false)
 
-  // Hydration guard + auth redirect
   useEffect(() => {
     setIsClient(true)
     if (!token || !orgId) {
@@ -63,16 +42,6 @@ function MaintenanceContent() {
     }
   }, [token, orgId, router])
 
-  // Cache assigned tickets for offline access on mount (when online)
-  useEffect(() => {
-    if (!token || !orgId || typeof navigator === 'undefined' || !navigator.onLine) return
-    const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') ?? '' : ''
-    cacheAssignedTickets(token, orgId, userId).catch(() => {
-      // Non-fatal — silently ignore cache failures
-    })
-  }, [token, orgId])
-
-  // Fetch org logo from API if not in localStorage
   useEffect(() => {
     if (orgLogoUrl || !token) return
     const fetchLogo = async () => {
@@ -88,22 +57,16 @@ function MaintenanceContent() {
           }
         }
       } catch {
-        // Silently fail — logo is non-critical
+        // Silently fail
       }
     }
     fetchLogo()
   }, [orgLogoUrl, token])
 
-  const { data: modules = [], isLoading: modulesLoading } = useModules()
-  const { data: perms } = usePermissions()
-  const canManageMaintenance = perms?.canManageMaintenance ?? false
-
-  const { data: rawCampuses, isLoading: campusesLoading } = useQuery(queryOptions.campuses())
+  const { data: modules = [] } = useModules()
+  const { data: rawCampuses } = useQuery(queryOptions.campuses())
   const campuses = (rawCampuses as Campus[] | undefined) ?? []
 
-  const dataLoading = modulesLoading || campusesLoading
-
-  // Derive enabled campuses for maintenance
   const enabledCampusIds = modules
     .filter((m) => m.moduleId === 'maintenance' && m.campusId)
     .map((m) => m.campusId as string)
@@ -113,31 +76,6 @@ function MaintenanceContent() {
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
   const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
   const activeCampusName = enabledCampuses.find((c) => c.id === activeCampusId)?.name
-
-  // Determine default tab based on URL param then permissions
-  const getDefaultTab = (): MaintenanceTab => {
-    const paramTab = searchParams?.get('tab') as MaintenanceTab | null
-    if (paramTab && ['dashboard', 'my-requests'].includes(paramTab)) {
-      return paramTab
-    }
-    if (canManageMaintenance) return 'dashboard'
-    return 'my-requests'
-  }
-
-  const [activeTab, setActiveTab] = useState<MaintenanceTab>('my-requests')
-
-  // Set default tab once permissions load
-  useEffect(() => {
-    if (perms) {
-      setActiveTab(getDefaultTab())
-    }
-  }, [perms]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Visible tabs based on permissions
-  const visibleTabs = SUB_TABS.filter((tab) => {
-    if (tab.requiresManage) return canManageMaintenance
-    return true
-  })
 
   const handleLogout = () => {
     localStorage.removeItem('auth-token')
@@ -154,7 +92,6 @@ function MaintenanceContent() {
     router.push('/login')
   }
 
-  // Loading screen during hydration
   if (!isClient || !token || !orgId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -185,10 +122,10 @@ function MaintenanceContent() {
               variants={staggerContainer(0.08, 0.05)}
             >
               <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">
-                Facilities Management
+                Work Orders
               </motion.h1>
               <motion.p variants={fadeInUp} className="text-sm text-gray-500">
-                {activeCampusName || 'Maintenance requests and facility operations'}
+                {activeCampusName || 'Manage and track maintenance work orders'}
               </motion.p>
             </motion.div>
 
@@ -211,44 +148,11 @@ function MaintenanceContent() {
               </div>
             )}
 
-            {/* Sub-navigation tabs */}
-            <div className="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
-              {visibleTabs.map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  onClick={() => setActiveTab(key)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === key
-                      ? 'border-emerald-500 text-emerald-700'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab content */}
-            {dataLoading ? (
-              <MaintenanceSkeleton />
-            ) : (
-              <>
-                <div
-                  className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-                  aria-hidden={activeTab !== 'dashboard'}
-                >
-                  <MaintenanceDashboard activeCampusId={activeCampusId} />
-                </div>
-
-                <div
-                  className={activeTab === 'my-requests' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-                  aria-hidden={activeTab !== 'my-requests'}
-                >
-                  <MyRequestsView />
-                </div>
-              </>
-            )}
+            {/* Work Orders content */}
+            <WorkOrdersView
+              activeCampusId={activeCampusId}
+              campuses={enabledCampuses}
+            />
           </div>
         </MotionConfig>
       </ModuleGate>
@@ -256,18 +160,14 @@ function MaintenanceContent() {
   )
 }
 
-/**
- * Page wrapper — wraps MaintenanceContent in Suspense to satisfy
- * Next.js requirement for useSearchParams() at static generation time.
- */
-export default function MaintenancePage() {
+export default function WorkOrdersPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
       </div>
     }>
-      <MaintenanceContent />
+      <WorkOrdersContent />
     </Suspense>
   )
 }

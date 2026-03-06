@@ -78,7 +78,7 @@ export interface CalendarSidebarData {
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons'
 export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
-export type MaintenanceTab = 'dashboard' | 'work-orders' | 'my-requests'
+export type MaintenanceTab = 'dashboard' | 'my-requests'
 
 interface AthleticsCampus {
   id: string
@@ -625,14 +625,14 @@ export default function Sidebar({
                           {canManageMaintenance && (
                             <li>
                               <PrefetchLink
-                                href="/maintenance?tab=work-orders"
+                                href="/maintenance/work-orders"
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
                                 className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                                  pathname === '/maintenance' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'work-orders'
+                                  pathname === '/maintenance/work-orders'
                                     ? 'bg-white/10 text-white font-medium border border-white/20'
                                     : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
                                 }`}
