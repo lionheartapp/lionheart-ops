@@ -99,6 +99,9 @@ model Organization {
   maintenanceAssets   MaintenanceAsset[]
   maintenanceAssetCounter MaintenanceAssetCounter?
   pmSchedules         PmSchedule[]
+  // Compliance module relations
+  complianceDomainConfigs ComplianceDomainConfig[]
+  complianceRecords       ComplianceRecord[]
 
   @@index([onboardingStatus])
 }
@@ -414,6 +417,9 @@ model School {
   // Maintenance module relations
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
+  // Compliance module relations
+  complianceDomainConfigs ComplianceDomainConfig[]
+  complianceRecords       ComplianceRecord[]
   // Calendar module relations
   calendars      Calendar[]
   calendarEvents CalendarEvent[]
@@ -2031,6 +2037,7 @@ model MaintenanceTicket {
   activities    MaintenanceTicketActivity[]
   laborEntries  MaintenanceLaborEntry[]
   costEntries   MaintenanceCostEntry[]
+  complianceRecord ComplianceRecord?      @relation("ComplianceTicket")
 
   @@unique([organizationId, ticketNumber])
   @@unique([pmScheduleId, pmScheduledDueDate])  // Idempotency: one ticket per PM schedule per due date
@@ -2220,4 +2227,90 @@ model MaintenanceAssetCounter {
   lastAssetNumber Int          @default(0)
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// COMPLIANCE MODULE
+// ═══════════════════════════════════════════════════════════════════════
+
+enum ComplianceDomain {
+  AHERA          // Asbestos — annual inspection + 3-year re-inspection
+  FIRE_SAFETY    // Annual fire inspection + monthly extinguisher checks
+  PLAYGROUND     // Annual playground safety inspection
+  LEAD_WATER     // Lead in water testing — every 3 years
+  BOILER         // Annual boiler inspection
+  ELEVATOR       // Annual elevator inspection (if applicable)
+  KITCHEN        // Annual health/sanitation inspection
+  ADA            // ADA self-evaluation — every 3 years
+  RADON          // Radon testing — every 5 years
+  IPM            // Integrated Pest Management annual review
+}
+
+enum ComplianceStatus {
+  CURRENT        // Inspection complete, within valid period
+  DUE_SOON       // Within 30 days of deadline
+  OVERDUE        // Past deadline with no passing record
+  NOT_APPLICABLE // Domain disabled for this school
+  PENDING        // Deadline exists but not yet inspected
+}
+
+enum ComplianceOutcome {
+  PASSED
+  FAILED
+  CONDITIONAL_PASS
+  PENDING
+}
+
+model ComplianceDomainConfig {
+  id             String          @id @default(cuid())
+  organizationId String
+  schoolId       String?         // null = org-wide config
+  domain         ComplianceDomain
+  isEnabled      Boolean         @default(true)
+  customDeadlineMonth Int?       // Override: 1-12, null uses domain default
+  customDeadlineDay   Int?       // Override: 1-31, null uses domain default
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  records      ComplianceRecord[]
+
+  @@unique([organizationId, schoolId, domain])
+  @@index([organizationId])
+  @@index([schoolId])
+}
+
+model ComplianceRecord {
+  id                    String           @id @default(cuid())
+  organizationId        String
+  domainConfigId        String
+  schoolId              String?
+  domain                ComplianceDomain
+  title                 String           // e.g. "Annual Fire Safety Inspection 2026"
+  dueDate               DateTime
+  inspectionDate        DateTime?
+  outcome               ComplianceOutcome @default(PENDING)
+  status                ComplianceStatus  @default(PENDING)
+  inspector             String?          // Inspector name/company
+  notes                 String?
+  attachments           String[]         @default([])  // Supabase signed URLs
+  generatedTicketId     String?          @unique // FK to MaintenanceTicket auto-created for this
+  remindedAt30Days      Boolean          @default(false)
+  remindedAt7Days       Boolean          @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domainConfig    ComplianceDomainConfig @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
+  school          School?               @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  generatedTicket MaintenanceTicket?    @relation("ComplianceTicket", fields: [generatedTicketId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, domain])
+  @@index([organizationId, dueDate])
+  @@index([organizationId, status])
+  @@index([domainConfigId])
+  @@index([organizationId, deletedAt])
 }

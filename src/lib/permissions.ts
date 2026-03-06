@@ -134,6 +134,11 @@ export const PERMISSIONS = {
   ASSETS_UPDATE: 'assets:update',                                   // Edit existing assets
   ASSETS_DELETE: 'assets:delete',                                   // Soft-delete assets
 
+  // Compliance
+  COMPLIANCE_READ: 'compliance:read',                               // View compliance calendar and records
+  COMPLIANCE_MANAGE: 'compliance:manage',                           // Configure domains, update records, attach docs
+  COMPLIANCE_EXPORT: 'compliance:export',                           // Generate audit PDF export
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -231,6 +236,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ASSETS_CREATE,
       PERMISSIONS.ASSETS_UPDATE,
       PERMISSIONS.ASSETS_DELETE,
+      // Compliance
+      PERMISSIONS.COMPLIANCE_READ,
+      PERMISSIONS.COMPLIANCE_MANAGE,
+      PERMISSIONS.COMPLIANCE_EXPORT,
     ],
     isSystem: true,
   },
@@ -264,6 +273,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_UPDATE_OWN,
       // Asset register
       PERMISSIONS.ASSETS_READ,
+      // Compliance
+      PERMISSIONS.COMPLIANCE_READ,
     ],
     isSystem: true,
   },
@@ -397,6 +408,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ASSETS_CREATE,
       PERMISSIONS.ASSETS_UPDATE,
       PERMISSIONS.ASSETS_DELETE,
+      // Compliance
+      PERMISSIONS.COMPLIANCE_READ,
+      PERMISSIONS.COMPLIANCE_MANAGE,
+      PERMISSIONS.COMPLIANCE_EXPORT,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.USERS_READ,
@@ -418,6 +433,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_UPDATE_OWN,
       // Asset register
       PERMISSIONS.ASSETS_READ,
+      // Compliance
+      PERMISSIONS.COMPLIANCE_READ,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.CALENDARS_READ,

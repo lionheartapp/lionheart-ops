@@ -49,6 +49,9 @@ const orgScopedModels = new Set([
 	'MaintenanceCostEntry',
 	'MaintenanceAsset',
 	'PmSchedule',
+	// Compliance module
+	'ComplianceDomainConfig',
+	'ComplianceRecord',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -69,6 +72,8 @@ const softDeleteModels = new Set([
 	// Maintenance module
 	'MaintenanceTicket',
 	'MaintenanceAsset',
+	// Compliance module
+	'ComplianceRecord',
 ])
 
 /**

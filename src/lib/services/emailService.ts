@@ -510,3 +510,86 @@ export async function sendEndOfLifeAlertEmail(
     appUrl: getAppUrl(),
   })
 }
+
+// ─── Compliance Reminder Email ─────────────────────────────────────────────────
+
+type ComplianceReminderEmailInput = {
+  to: string
+  recipientName: string
+  domain: string
+  recordTitle: string
+  dueDate: string
+  daysUntilDue: number
+  orgName: string
+  complianceLink: string
+}
+
+export async function sendComplianceReminderEmail(
+  input: ComplianceReminderEmailInput
+): Promise<SendEmailResult> {
+  const isUrgent = input.daysUntilDue <= 7
+  const urgencyColor = isUrgent ? '#ef4444' : '#f59e0b'
+  const urgencyLabel = isUrgent ? `URGENT: ${input.daysUntilDue} days remaining` : `${input.daysUntilDue} days remaining`
+
+  const subject = isUrgent
+    ? `URGENT: ${input.domain} compliance due in ${input.daysUntilDue} days — ${input.orgName}`
+    : `Compliance Reminder: ${input.domain} due in ${input.daysUntilDue} days — ${input.orgName}`
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px;">
+  <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background: #059669; padding: 24px 32px;">
+      <p style="color: #d1fae5; margin: 0 0 4px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Lionheart Compliance</p>
+      <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700;">${input.orgName}</h1>
+    </div>
+    <div style="padding: 32px;">
+      <div style="background: ${urgencyColor}10; border: 1px solid ${urgencyColor}30; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px;">
+        <p style="color: ${urgencyColor}; margin: 0; font-size: 14px; font-weight: 600;">${urgencyLabel}</p>
+      </div>
+
+      <p style="color: #374151; margin: 0 0 8px; font-size: 15px;">Hi ${input.recipientName || 'there'},</p>
+      <p style="color: #6b7280; margin: 0 0 24px; font-size: 14px; line-height: 1.6;">
+        This is a reminder that a compliance deadline is approaching for <strong>${input.orgName}</strong>.
+      </p>
+
+      <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; width: 120px;">Domain</td>
+            <td style="padding: 6px 0; color: #111827; font-size: 14px; font-weight: 600;">${input.domain}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Inspection</td>
+            <td style="padding: 6px 0; color: #111827; font-size: 14px;">${input.recordTitle}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Due Date</td>
+            <td style="padding: 6px 0; color: ${urgencyColor}; font-size: 14px; font-weight: 700;">${input.dueDate}</td>
+          </tr>
+        </table>
+      </div>
+
+      <a href="${input.complianceLink}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-bottom: 24px;">View Compliance Calendar</a>
+
+      <p style="color: #9ca3af; font-size: 12px; margin: 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 16px;">
+        You are receiving this because you are listed as a Maintenance Head or Administrator for ${input.orgName}.
+        Manage notifications in your account settings.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`
+
+  const text = `Compliance Reminder — ${input.orgName}\n\nDomain: ${input.domain}\nInspection: ${input.recordTitle}\nDue Date: ${input.dueDate}\nDays Remaining: ${input.daysUntilDue}\n\nView your compliance calendar: ${input.complianceLink}`
+
+  const from = getResendConfig()?.from || getSmtpConfig()?.from || 'Lionheart <no-reply@lionheartapp.com>'
+
+  const resendResult = await sendViaResend(input.to, subject, html, text, from)
+  if (resendResult.sent) return resendResult
+  const smtpResult = await sendViaSmtp(input.to, subject, html, text, from)
+  if (smtpResult.sent) return smtpResult
+  return { sent: false, reason: 'NO_EMAIL_PROVIDER_CONFIGURED' }
+}

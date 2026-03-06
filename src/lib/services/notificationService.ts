@@ -24,6 +24,8 @@ export type NotificationType =
   | 'maintenance_repeat_repair'
   | 'maintenance_cost_threshold'
   | 'maintenance_end_of_life'
+  // Compliance reminders
+  | 'compliance_reminder'
 
 export interface CreateNotificationInput {
   userId: string
