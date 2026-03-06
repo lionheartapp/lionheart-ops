@@ -183,12 +183,12 @@
 
 ### Knowledge Base (KB)
 
-- [ ] **KB-01**: KnowledgeArticle model with types: Equipment Guide, Procedure SOP, Calculation Tool, Safety Protocol, Vendor Contact, Asset Note
-- [ ] **KB-02**: Articles creatable by Tech and Head roles
-- [ ] **KB-03**: Embedded calculation tools (e.g., pond care dosage calculator)
-- [ ] **KB-04**: AI diagnostic panel can surface relevant knowledge base articles
-- [ ] **KB-05**: PM checklists can link to knowledge base articles
-- [ ] **KB-06**: Compliance records can link to knowledge base SOPs
+- [x] **KB-01**: KnowledgeArticle model with types: Equipment Guide, Procedure SOP, Calculation Tool, Safety Protocol, Vendor Contact, Asset Note
+- [x] **KB-02**: Articles creatable by Tech and Head roles
+- [x] **KB-03**: Embedded calculation tools (e.g., pond care dosage calculator)
+- [x] **KB-04**: AI diagnostic panel can surface relevant knowledge base articles
+- [x] **KB-05**: PM checklists can link to knowledge base articles
+- [x] **KB-06**: Compliance records can link to knowledge base SOPs
 
 ### Offline PWA (OFFLINE)
 
@@ -367,12 +367,12 @@ Updated during roadmap creation — 2026-03-05.
 | REPORT-08 | Phase 6 | Complete |
 | REPORT-09 | Phase 6 | Complete |
 | REPORT-10 | Phase 6 | Complete |
-| KB-01 | Phase 7 | Pending |
-| KB-02 | Phase 7 | Pending |
-| KB-03 | Phase 7 | Pending |
-| KB-04 | Phase 7 | Pending |
-| KB-05 | Phase 7 | Pending |
-| KB-06 | Phase 7 | Pending |
+| KB-01 | Phase 7 | Complete |
+| KB-02 | Phase 7 | Complete |
+| KB-03 | Phase 7 | Complete |
+| KB-04 | Phase 7 | Complete |
+| KB-05 | Phase 7 | Complete |
+| KB-06 | Phase 7 | Complete |
 | OFFLINE-01 | Phase 7 | Pending |
 | OFFLINE-02 | Phase 7 | Pending |
 | OFFLINE-03 | Phase 7 | Pending |
