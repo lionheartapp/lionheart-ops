@@ -55,7 +55,7 @@ Plans:
 - [x] 02-01-PLAN.md — Complete backend: ticket service layer with state machine, all CRUD/lifecycle API routes, signed URL photo upload, AI category/multi-issue endpoints, notification dispatch, email templates, dashboard aggregation, and cron job
 - [x] 02-02-PLAN.md — Mobile-first 4-step submission wizard (Location > Photos > Details > Review) with AI category suggest, AI multi-issue detection, and My Requests card grid
 - [x] 02-03-PLAN.md — Work Orders filtered sortable table with inline actions, specialty highlighting, self-claim with optimistic UI, scheduled tickets section, and live dashboard stats
-- [ ] 02-04-PLAN.md — Ticket detail page with status tracker, activity feed, comment system, ON_HOLD inline form, QA completion modal, and QA review/sign-off panel
+- [x] 02-04-PLAN.md — Ticket detail page with status tracker, activity feed, comment system, ON_HOLD inline form, QA completion modal, and QA review/sign-off panel
 
 ### Phase 3: Kanban & AI
 **Goal**: The maintenance team can manage all tickets visually on a Kanban board with drag-and-drop, and technicians get AI-generated diagnostic help on photo tickets
@@ -68,11 +68,11 @@ Plans:
   4. When a technician first opens a ticket with photos, the AI diagnostic panel loads lazily, displays likely diagnosis, suggested tools, suggested parts, step-by-step fix, and a confidence indicator — all labeled "AI Suggestion — always verify on-site"
   5. Custodial/Biohazard tickets automatically display the PPE/safety panel in the detail view
   6. AI results are cached in `MaintenanceTicket.aiAnalysis`; reopening the same ticket does not trigger a second Anthropic API call unless new photos were added
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Kanban board service, API routes, and board UI with dnd-kit
-- [ ] 03-02: AI diagnostic service (Anthropic SDK), panel UI, and Ask AI
+- [ ] 03-01-PLAN.md — Kanban board with dnd-kit drag-and-drop, 6 columns, gate modals, 3 view tabs, technician assign panel, board/table toggle
+- [ ] 03-02-PLAN.md — AI diagnostic service (Anthropic Claude SDK), diagnosis + ask-ai API routes, AIDiagnosticPanel, PPESafetyPanel, wired into ticket detail
 
 ### Phase 4: Assets, QR & PM
 **Goal**: Every major piece of equipment has an asset record with QR tag, preventive maintenance runs on a schedule, and all labor and costs are tracked per ticket
