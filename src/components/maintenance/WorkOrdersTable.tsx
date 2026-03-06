@@ -40,6 +40,8 @@ export interface WorkOrderTicket {
   room?: { id: string; roomNumber: string; displayName?: string | null } | null
   school?: { id: string; name: string } | null
   matchesSpecialty?: boolean
+  photos?: string[]
+  aiAnalysis?: unknown
 }
 
 interface WorkOrdersTableProps {

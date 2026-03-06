@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, LayoutGrid, List } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { staggerContainer, fadeInUp, expandCollapse } from '@/lib/animations'
 import { usePermissions } from '@/lib/hooks/usePermissions'
@@ -17,6 +17,7 @@ import WorkOrdersTable, {
   type SortField,
   type SortState,
 } from './WorkOrdersTable'
+import KanbanBoard from './KanbanBoard'
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -90,6 +91,9 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
   const canAssign = canManage
   const canChangeStatus = canManage || canClaim
 
+  // View mode: board (Kanban) or table
+  const [viewMode, setViewMode] = useState<'board' | 'table'>('board')
+
   // Filter state
   const [filters, setFilters] = useState<WorkOrdersFilterState>({
     ...DEFAULT_FILTERS,
@@ -107,6 +111,10 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
 
   // Track which ticket is being claimed (for optimistic UI)
   const [claimingId, setClaimingId] = useState<string | null>(null)
+
+  // Current user ID from localStorage (for "My Board" filtering)
+  const currentUserId =
+    typeof window !== 'undefined' ? (localStorage.getItem('user-id') ?? '') : ''
 
   // Main tickets query (exclude SCHEDULED)
   const mainQueryKey = ['maintenance-tickets', filters, 'exclude-scheduled']
@@ -251,103 +259,154 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
           </p>
         </div>
 
-        {/* Specialty toggle — shown only for technicians (canClaim but not canManage) */}
-        {canClaim && !canManage && (
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={showAll}
-              onChange={(e) => setShowAll(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-400 cursor-pointer"
-            />
-            Show all (including other specialties)
-          </label>
-        )}
+        <div className="flex items-center gap-3">
+          {/* Specialty toggle — shown only for technicians (canClaim but not canManage) */}
+          {canClaim && !canManage && (
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showAll}
+                onChange={(e) => setShowAll(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-400 cursor-pointer"
+              />
+              Show all (including other specialties)
+            </label>
+          )}
+
+          {/* Board / Table toggle */}
+          <div className="flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-lg">
+            <button
+              onClick={() => setViewMode('board')}
+              title="Board view"
+              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                viewMode === 'board'
+                  ? 'bg-white shadow-sm text-emerald-600'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              title="Table view"
+              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                viewMode === 'table'
+                  ? 'bg-white shadow-sm text-emerald-600'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Filters */}
-      <motion.div variants={fadeInUp}>
-        <WorkOrdersFilters
-          filters={filters}
-          onChange={setFilters}
-          campuses={campuses}
-          technicians={technicians}
-        />
-      </motion.div>
-
-      {/* Main table */}
-      <motion.div variants={fadeInUp}>
-        <WorkOrdersTable
-          tickets={displayedTickets}
-          isLoading={mainLoading}
-          sort={sort}
-          onSort={handleSort}
-          canClaim={canClaim}
-          canAssign={canAssign}
-          canChangeStatus={canChangeStatus}
-          showSpecialtyHighlight={canClaim && !canManage && showAll}
-          technicians={technicians}
-          onClaim={(ticketId) => claimMutation.mutate(ticketId)}
-          onAssign={(ticketId, techId) => assignMutation.mutate({ ticketId, techId })}
-          onStatusChange={(ticketId, status, extra) =>
-            statusMutation.mutate({ ticketId, status, extra })
-          }
-          claimingId={claimingId}
-        />
-      </motion.div>
-
-      {/* Scheduled tickets collapsible section */}
-      {scheduledTickets.length > 0 && (
-        <motion.div variants={fadeInUp} className="ui-glass rounded-2xl overflow-hidden">
-          <button
-            className="w-full flex items-center justify-between px-5 py-4 text-left cursor-pointer hover:bg-gray-50/50 transition-colors"
-            onClick={() => setScheduledOpen((o) => !o)}
-            aria-expanded={scheduledOpen}
-          >
-            <div className="flex items-center gap-2">
-              {scheduledOpen ? (
-                <ChevronDown className="w-4 h-4 text-gray-400" />
-              ) : (
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              )}
-              <span className="text-sm font-semibold text-gray-700">
-                Scheduled ({scheduledTickets.length})
-              </span>
-              <span className="text-xs text-gray-400">— sorted by scheduled date</span>
-            </div>
-          </button>
-
-          <AnimatePresence initial={false}>
-            {scheduledOpen && (
-              <motion.div
-                key="scheduled-section"
-                variants={expandCollapse}
-                initial="collapsed"
-                animate="expanded"
-                exit="collapsed"
-                className="overflow-hidden border-t border-gray-100"
-              >
-                <div className="p-1">
-                  <ScheduledTicketsTable tickets={scheduledTickets} />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+      {/* Board view */}
+      {viewMode === 'board' && (
+        <motion.div variants={fadeInUp}>
+          <KanbanBoard
+            tickets={displayedTickets}
+            isLoading={mainLoading}
+            filters={filters}
+            onFilterChange={setFilters}
+            campuses={campuses}
+            technicians={technicians}
+            currentUserId={currentUserId}
+            activeCampusId={activeCampusId}
+            canManage={canManage}
+            queryKeys={[['maintenance-tickets'], scheduledQueryKey]}
+          />
         </motion.div>
       )}
 
-      {/* Empty scheduled section placeholder when no scheduled tickets */}
-      {!mainLoading && scheduledTickets.length === 0 && (
-        <motion.div variants={fadeInUp}>
-          <button
-            className="w-full flex items-center gap-2 px-5 py-3 ui-glass rounded-2xl text-left cursor-pointer hover:bg-gray-50/50 transition-colors opacity-50"
-            onClick={() => setScheduledOpen((o) => !o)}
-            aria-expanded={scheduledOpen}
-          >
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-400">Scheduled (0)</span>
-          </button>
-        </motion.div>
+      {/* Table view */}
+      {viewMode === 'table' && (
+        <>
+          {/* Filters */}
+          <motion.div variants={fadeInUp}>
+            <WorkOrdersFilters
+              filters={filters}
+              onChange={setFilters}
+              campuses={campuses}
+              technicians={technicians}
+            />
+          </motion.div>
+
+          {/* Main table */}
+          <motion.div variants={fadeInUp}>
+            <WorkOrdersTable
+              tickets={displayedTickets}
+              isLoading={mainLoading}
+              sort={sort}
+              onSort={handleSort}
+              canClaim={canClaim}
+              canAssign={canAssign}
+              canChangeStatus={canChangeStatus}
+              showSpecialtyHighlight={canClaim && !canManage && showAll}
+              technicians={technicians}
+              onClaim={(ticketId) => claimMutation.mutate(ticketId)}
+              onAssign={(ticketId, techId) => assignMutation.mutate({ ticketId, techId })}
+              onStatusChange={(ticketId, status, extra) =>
+                statusMutation.mutate({ ticketId, status, extra })
+              }
+              claimingId={claimingId}
+            />
+          </motion.div>
+
+          {/* Scheduled tickets collapsible section */}
+          {scheduledTickets.length > 0 && (
+            <motion.div variants={fadeInUp} className="ui-glass rounded-2xl overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between px-5 py-4 text-left cursor-pointer hover:bg-gray-50/50 transition-colors"
+                onClick={() => setScheduledOpen((o) => !o)}
+                aria-expanded={scheduledOpen}
+              >
+                <div className="flex items-center gap-2">
+                  {scheduledOpen ? (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  )}
+                  <span className="text-sm font-semibold text-gray-700">
+                    Scheduled ({scheduledTickets.length})
+                  </span>
+                  <span className="text-xs text-gray-400">— sorted by scheduled date</span>
+                </div>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {scheduledOpen && (
+                  <motion.div
+                    key="scheduled-section"
+                    variants={expandCollapse}
+                    initial="collapsed"
+                    animate="expanded"
+                    exit="collapsed"
+                    className="overflow-hidden border-t border-gray-100"
+                  >
+                    <div className="p-1">
+                      <ScheduledTicketsTable tickets={scheduledTickets} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* Empty scheduled section placeholder when no scheduled tickets */}
+          {!mainLoading && scheduledTickets.length === 0 && (
+            <motion.div variants={fadeInUp}>
+              <button
+                className="w-full flex items-center gap-2 px-5 py-3 ui-glass rounded-2xl text-left cursor-pointer hover:bg-gray-50/50 transition-colors opacity-50"
+                onClick={() => setScheduledOpen((o) => !o)}
+                aria-expanded={scheduledOpen}
+              >
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-400">Scheduled (0)</span>
+              </button>
+            </motion.div>
+          )}
+        </>
       )}
     </motion.div>
   )
