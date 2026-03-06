@@ -38,15 +38,16 @@ created: 2026-03-05
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 02-01-01 | 01 | 1 | SUBMIT-01 thru SUBMIT-07 | smoke | `node scripts/smoke-maintenance-submit.mjs` | ❌ W0 | ⬜ pending |
-| 02-02-01 | 02 | 1 | LIFE-01 thru LIFE-08 | smoke | `node scripts/smoke-maintenance-lifecycle.mjs` | ❌ W0 | ⬜ pending |
-| 02-03-01 | 03 | 2 | ROUTE-01 thru ROUTE-05 | smoke | `node scripts/smoke-maintenance-routing.mjs` | ❌ W0 | ⬜ pending |
-| 02-04-01 | 04 | 2 | NOTIF-01 thru NOTIF-11 | smoke | included in lifecycle + routing scripts | ❌ W0 | ⬜ pending |
-| 02-01-02 | 01 | 1 | SUBMIT-08, SUBMIT-09 | manual | N/A — AI features require API key + visual verification | N/A | ⬜ pending |
-| 02-04-02 | 04 | 2 | DETAIL-01 thru DETAIL-05 | manual | N/A — visual inspection required | N/A | ⬜ pending |
-| 02-04-03 | 04 | 2 | LIFE-07, NOTIF-09 | manual | N/A — cron requires time passage or manual trigger | N/A | ⬜ pending |
+| 02-01-01 | 01 | 1 | SUBMIT-01 thru SUBMIT-11, LIFE-01 thru LIFE-08, ROUTE-01 thru ROUTE-04, NOTIF-01 thru NOTIF-11 (service layer) | smoke | `node scripts/smoke-maintenance-submit.mjs` | W0 | pending |
+| 02-01-02 | 01 | 1 | Same as 02-01-01 (API routes) | smoke | `node scripts/smoke-maintenance-lifecycle.mjs` | W0 | pending |
+| 02-02-01 | 02 | 2 | SUBMIT-01 thru SUBMIT-06, SUBMIT-08, SUBMIT-09 (wizard UI) | manual | N/A — visual wizard flow verification | N/A | pending |
+| 02-02-02 | 02 | 2 | SUBMIT-01 (My Requests card grid) | build | `npx next build --no-lint` | N/A | pending |
+| 02-03-01 | 03 | 2 | ROUTE-05, LIFE-01, LIFE-07 (Work Orders table + dashboard) | smoke | `node scripts/smoke-maintenance-routing.mjs` | W0 | pending |
+| 02-03-02 | 03 | 2 | ROUTE-05 (Work Orders UI verification) | manual | N/A — visual table/filter verification | N/A | pending |
+| 02-04-01 | 04 | 3 | DETAIL-01 thru DETAIL-05, LIFE-08 (ticket detail page + gates) | manual | N/A — visual inspection required | N/A | pending |
+| 02-04-02 | 04 | 3 | LIFE-08 (cron verification) | manual | N/A — cron requires time passage or manual trigger | N/A | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
@@ -68,7 +69,12 @@ created: 2026-03-05
 |----------|-------------|------------|-------------------|
 | AI category auto-suggest | SUBMIT-08 | Requires Gemini API key + visual check of auto-filled category | Upload photo in wizard, verify category dropdown is auto-filled with "AI suggested" label |
 | AI multi-issue detection | SUBMIT-09 | Requires Gemini API key + visual check of split suggestion | Submit ticket with multiple issues described, verify "Split into 2 tickets" banner appears on Review step |
-| Ticket detail page rendering | DETAIL-01 thru DETAIL-05 | UI layout verification | Open ticket detail, confirm two-column layout, status progress bar, activity feed, submitter info |
+| Ticket detail page rendering | DETAIL-01 thru DETAIL-05 | UI layout verification | Open ticket detail, confirm two-column layout, status progress tracker, activity feed, submitter info |
+| UI gate: QA completion | LIFE-04 (UI gate) | Visual verification of disabled state | Open QA modal without photo/note — verify "Submit for QA" button stays disabled |
+| UI gate: Hold reason | LIFE-03 (UI gate) | Visual verification of disabled state | Expand hold form without selecting reason — verify "Confirm Hold" button stays disabled |
+| UI gate: QA sign-off | LIFE-05 (UI gate) | Visual verification of panel visibility | As non-Head user, verify QA review panel is not rendered; as Head, verify it is rendered |
+| UI gate: Rejection note | LIFE-06 (UI gate) | Visual verification of disabled state | Click "Send Back" without typing note — verify confirm button stays disabled |
+| UI gate: Cancellation reason | LIFE-02 (UI gate) | Visual verification of disabled state | Click "Cancel" without typing reason — verify confirm button stays disabled |
 | Cron: 48h stale alerts | NOTIF-09 | Requires time passage or manual cron trigger | Create BACKLOG ticket, wait 48h (or manually invoke cron), verify alert email + in-app notification |
 | Cron: scheduled ticket activation | LIFE-07 | Requires scheduled date to pass | Create SCHEDULED ticket with past date, invoke cron, verify status moves to BACKLOG |
 
