@@ -2316,6 +2316,8 @@ model ComplianceRecord {
   school          School?               @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   generatedTicket     MaintenanceTicket?    @relation("ComplianceTicket", fields: [generatedTicketId], references: [id], onDelete: SetNull)
   remediationTicket   MaintenanceTicket?    @relation("RemediationTicket", fields: [remediationTicketId], references: [id], onDelete: SetNull)
+  knowledgeArticleId  String?
+  knowledgeArticle    KnowledgeArticle?     @relation(fields: [knowledgeArticleId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, domain])
   @@index([organizationId, dueDate])
@@ -2356,6 +2358,7 @@ model KnowledgeArticle {
   createdBy      User                 @relation("KBArticleCreator", fields: [createdById], references: [id], onDelete: Restrict)
   asset          MaintenanceAsset?    @relation(fields: [assetId], references: [id], onDelete: SetNull)
   pmSchedules    PmSchedule[]
+  complianceRecords ComplianceRecord[]
 
   @@index([organizationId, type])
   @@index([organizationId, deletedAt])
