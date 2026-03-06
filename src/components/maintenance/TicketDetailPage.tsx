@@ -23,6 +23,7 @@ import {
   CheckSquare,
   XCircle,
   ChevronRight,
+  Wrench,
 } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { usePermissions } from '@/lib/hooks/usePermissions'
@@ -36,6 +37,7 @@ import AIDiagnosticPanel from './AIDiagnosticPanel'
 import PPESafetyPanel from './PPESafetyPanel'
 import LaborTimerButton from './LaborTimerButton'
 import LaborCostPanel from './LaborCostPanel'
+import PmChecklistSection from './PmChecklistSection'
 import type { AiAnalysisCache } from '@/lib/types/maintenance-ai'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -70,6 +72,11 @@ interface MaintenanceTicket {
   availabilityNote?: string | null
   createdAt: string
   submittedById: string
+  // PM fields
+  pmScheduleId?: string | null
+  pmScheduledDueDate?: string | null
+  pmChecklistItems?: string[]
+  pmChecklistDone?: boolean[]
   submittedBy: {
     id: string
     firstName: string
@@ -227,6 +234,9 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
   const [cancellationReason, setCancellationReason] = useState('')
   const [isCancelling, setIsCancelling] = useState(false)
   const [cancelError, setCancelError] = useState('')
+  const [checklistError, setChecklistError] = useState('')
+  // Local checklist done state — updated optimistically from PmChecklistSection
+  const [localChecklistDone, setLocalChecklistDone] = useState<boolean[] | null>(null)
 
   // Ticket query
   const {
@@ -388,6 +398,16 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[ticket.status] ?? 'bg-gray-100 text-gray-600'}`}>
                   {STATUS_LABELS[ticket.status] ?? ticket.status}
                 </span>
+                {ticket.pmScheduleId && (
+                  <a
+                    href="/maintenance/pm-calendar"
+                    className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors font-medium cursor-pointer"
+                    title="View PM schedule"
+                  >
+                    <Wrench className="w-3 h-3" />
+                    PM Schedule
+                  </a>
+                )}
               </div>
               <h1 className="text-xl font-semibold text-gray-900 mt-1 leading-tight">
                 {ticket.title}
@@ -567,6 +587,26 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
               )}
             </motion.div>
 
+            {/* PM Checklist — only for PM-generated tickets */}
+            {ticket.pmScheduleId && (ticket.pmChecklistItems ?? []).length > 0 && (
+              <motion.div variants={fadeInUp}>
+                <PmChecklistSection
+                  ticketId={ticket.id}
+                  checklistItems={ticket.pmChecklistItems ?? []}
+                  checklistDone={localChecklistDone ?? ticket.pmChecklistDone ?? []}
+                  canEdit={isPrivileged && !isSubmitter}
+                  onUpdate={(updatedDone) => {
+                    setLocalChecklistDone(updatedDone)
+                    // Clear QA gate error if all done now
+                    const items = ticket.pmChecklistItems ?? []
+                    if (items.length === 0 || updatedDone.slice(0, items.length).every(Boolean)) {
+                      setChecklistError('')
+                    }
+                  }}
+                />
+              </motion.div>
+            )}
+
             {/* Card 4: Assignment */}
             <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl space-y-3">
               <div className="flex items-center gap-2">
@@ -622,6 +662,17 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                           key={to}
                           onClick={() => {
                             if (isQATransition) {
+                              // Client-side PM checklist pre-check
+                              if (ticket.pmScheduleId) {
+                                const items = ticket.pmChecklistItems ?? []
+                                const done = localChecklistDone ?? ticket.pmChecklistDone ?? []
+                                const allDone = items.length === 0 || done.slice(0, items.length).every(Boolean)
+                                if (!allDone) {
+                                  setChecklistError('Complete all PM checklist items before moving to QA')
+                                  return
+                                }
+                              }
+                              setChecklistError('')
                               setShowQAModal(true)
                             } else {
                               statusMutation.mutate(to)
@@ -744,6 +795,14 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                   <p className="text-xs text-red-600">
                     {statusMutation.error instanceof Error ? statusMutation.error.message : 'Failed to update status'}
                   </p>
+                )}
+
+                {/* PM checklist gate error */}
+                {checklistError && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl">
+                    <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                    <p className="text-xs text-red-700">{checklistError}</p>
+                  </div>
                 )}
               </motion.div>
             )}
