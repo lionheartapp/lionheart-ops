@@ -32,11 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. All maintenance-specific permissions are seeded and assignable to roles via the existing roles settings UI
   4. The Maintenance landing page loads without error when the module is enabled and shows a Head of Maintenance overview shell (even if data sections are empty)
   5. All maintenance views are mobile-responsive with correct Tailwind breakpoints and glassmorphism styling
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Schema, org-scope registration, and permissions
-- [ ] 01-02: Module gate, navigation, and landing page shell
+- [ ] 01-01-PLAN.md — 9 Prisma models, enums, org-scope registration, 13 maintenance permissions, and maintenance-head/technician roles
+- [ ] 01-02-PLAN.md — MODULE_REGISTRY entry, sidebar "Support" section with role-adaptive nav, /maintenance page with dashboard shell and My Requests view
 
 ### Phase 2: Core Tickets
 **Goal**: Teachers can submit a maintenance ticket in under 60 seconds on mobile, and the maintenance team receives routed tickets with full lifecycle transitions enforced server-side
@@ -145,7 +145,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
