@@ -114,6 +114,7 @@ export default function Sidebar({
 
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
+  const [facilitiesOpen, setFacilitiesOpen] = useState(false)
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
 
@@ -239,6 +240,13 @@ export default function Sidebar({
       setCalendarOpen(false)
     } else {
       setAthleticsOpen(false)
+    }
+  }, [pathname])
+
+  // Auto-expand facilities section when on a maintenance route
+  useIsomorphicLayoutEffect(() => {
+    if (pathname.startsWith('/maintenance')) {
+      setFacilitiesOpen(true)
     }
   }, [pathname])
 
@@ -558,196 +566,235 @@ export default function Sidebar({
               <span className="text-[11px] font-semibold tracking-wider text-gray-500 uppercase">Support</span>
             </div>
             <ul className="space-y-1" role="list">
-              {/* Facilities link — shown to all users with maintenance access */}
+              {/* Facilities — collapsible parent */}
               {(canManageMaintenance || canClaimMaintenance || canSubmitMaintenance) && (
                 <li>
-                  <PrefetchLink
-                    href="/maintenance"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname === '/maintenance' && !settingsOpen && !athleticsOpen
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname === '/maintenance' && !settingsOpen && !athleticsOpen ? 'page' : undefined}
-                  >
-                    <Wrench className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">Facilities</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* Work Orders — for Head/Admin */}
-              {canManageMaintenance && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance?tab=work-orders"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname === '/maintenance' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'work-orders'
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                  >
-                    <ClipboardList className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">Work Orders</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* My Requests — for Technicians (alongside Facilities) */}
-              {canClaimMaintenance && !canManageMaintenance && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance?tab=my-requests"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827]"
-                  >
-                    <ClipboardList className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">My Requests</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* Asset Register — for Head/Admin/Technicians */}
-              {canManageMaintenance && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance/assets"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname === '/maintenance/assets'
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
-                  >
-                    <Package className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">Assets</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* PM Calendar — placeholder for Plan 03 */}
-              {canManageMaintenance && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance/pm-calendar"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname === '/maintenance/pm-calendar'
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
-                  >
-                    <CalendarCheck className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">PM Calendar</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* Analytics */}
-              {canManageMaintenance && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance/analytics"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname === '/maintenance/analytics'
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname === '/maintenance/analytics' ? 'page' : undefined}
-                  >
-                    <BarChart2 className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">Analytics</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* Compliance */}
-              {canManageMaintenance && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance/compliance"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname === '/maintenance/compliance'
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
-                  >
-                    <Shield className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">Compliance</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* Board Report */}
-              {canManageMaintenance && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance/board-report"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname === '/maintenance/board-report'
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
-                  >
-                    <FileText className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">Board Report</span>
-                  </PrefetchLink>
-                </li>
-              )}
-              {/* Knowledge Base — visible to head, technicians, and anyone with read access */}
-              {(canManageMaintenance || canClaimMaintenance) && (
-                <li>
-                  <PrefetchLink
-                    href="/maintenance/knowledge-base"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
-                      pathname.startsWith('/maintenance/knowledge-base')
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
-                  >
-                    <BookOpen className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">Knowledge Base</span>
-                  </PrefetchLink>
+                  <div className="flex items-center">
+                    <PrefetchLink
+                      href="/maintenance"
+                      onClick={() => {
+                        setSettingsOpen(false)
+                        setAthleticsOpen(false)
+                        setIsOpen(false)
+                      }}
+                      className={`flex-1 flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                        pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen
+                          ? 'bg-white/10 text-white font-medium border border-white/20'
+                          : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                      }`}
+                      aria-current={pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen ? 'page' : undefined}
+                    >
+                      <Wrench className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                      <span className="text-sm">Facilities</span>
+                      {(canManageMaintenance || canClaimMaintenance) && (
+                        <motion.button
+                          type="button"
+                          className="ml-auto p-1 rounded hover:bg-white/10 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setFacilitiesOpen((prev) => !prev)
+                          }}
+                          aria-expanded={facilitiesOpen}
+                          aria-label={facilitiesOpen ? 'Collapse facilities menu' : 'Expand facilities menu'}
+                        >
+                          <motion.span
+                            className="block"
+                            animate={{ rotate: facilitiesOpen ? 180 : 0 }}
+                            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                          >
+                            <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                          </motion.span>
+                        </motion.button>
+                      )}
+                    </PrefetchLink>
+                  </div>
+                  {/* Child links — collapsible */}
+                  {(canManageMaintenance || canClaimMaintenance) && (
+                    <AnimatePresence initial={false}>
+                      {facilitiesOpen && (
+                        <motion.ul
+                          className="space-y-0.5 pl-4 mt-0.5 overflow-hidden"
+                          role="list"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                        >
+                          {/* Work Orders — for Head/Admin */}
+                          {canManageMaintenance && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance?tab=work-orders"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                  pathname === '/maintenance' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'work-orders'
+                                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                }`}
+                              >
+                                <ClipboardList className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">Work Orders</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                          {/* My Requests — for Technicians */}
+                          {canClaimMaintenance && !canManageMaintenance && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance?tab=my-requests"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className="flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 text-gray-400 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827]"
+                              >
+                                <ClipboardList className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">My Requests</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                          {/* Assets */}
+                          {canManageMaintenance && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance/assets"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                  pathname === '/maintenance/assets'
+                                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                }`}
+                                aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
+                              >
+                                <Package className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">Assets</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                          {/* PM Calendar */}
+                          {canManageMaintenance && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance/pm-calendar"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                  pathname === '/maintenance/pm-calendar'
+                                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                }`}
+                                aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
+                              >
+                                <CalendarCheck className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">PM Calendar</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                          {/* Analytics */}
+                          {canManageMaintenance && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance/analytics"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                  pathname === '/maintenance/analytics'
+                                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                }`}
+                                aria-current={pathname === '/maintenance/analytics' ? 'page' : undefined}
+                              >
+                                <BarChart2 className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">Analytics</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                          {/* Compliance */}
+                          {canManageMaintenance && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance/compliance"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                  pathname === '/maintenance/compliance'
+                                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                }`}
+                                aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
+                              >
+                                <Shield className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">Compliance</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                          {/* Board Report */}
+                          {canManageMaintenance && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance/board-report"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                  pathname === '/maintenance/board-report'
+                                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                }`}
+                                aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
+                              >
+                                <FileText className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">Board Report</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                          {/* Knowledge Base */}
+                          {(canManageMaintenance || canClaimMaintenance) && (
+                            <li>
+                              <PrefetchLink
+                                href="/maintenance/knowledge-base"
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                                  pathname.startsWith('/maintenance/knowledge-base')
+                                    ? 'bg-white/10 text-white font-medium border border-white/20'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white border border-transparent'
+                                }`}
+                                aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
+                              >
+                                <BookOpen className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span className="text-sm">Knowledge Base</span>
+                              </PrefetchLink>
+                            </li>
+                          )}
+                        </motion.ul>
+                      )}
+                    </AnimatePresence>
+                  )}
                 </li>
               )}
             </ul>
