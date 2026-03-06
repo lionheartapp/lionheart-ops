@@ -408,11 +408,11 @@ export function computeDateRange(date: Date, view: CalendarViewType): { start: D
 
 // ─── Calendar navigation state ─────────────────────────────────────────
 
-export function useCalendarNavigation() {
+export function useCalendarNavigation(storageKey = 'calendar-view') {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarViewType>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('calendar-view') as CalendarViewType) || 'month'
+      return (localStorage.getItem(storageKey) as CalendarViewType) || 'month'
     }
     return 'month'
   })
@@ -420,9 +420,9 @@ export function useCalendarNavigation() {
   const changeView = useCallback((newView: CalendarViewType) => {
     setView(newView)
     if (typeof window !== 'undefined') {
-      localStorage.setItem('calendar-view', newView)
+      localStorage.setItem(storageKey, newView)
     }
-  }, [])
+  }, [storageKey])
 
   const goToToday = useCallback(() => setCurrentDate(new Date()), [])
 

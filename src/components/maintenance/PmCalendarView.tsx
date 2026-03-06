@@ -1,27 +1,16 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar'
-import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns'
-import { enUS } from 'date-fns/locale/en-US'
+import { useMemo, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, CalendarDays, LayoutList } from 'lucide-react'
-import PmCalendarEvent from './PmCalendarEvent'
-import type { PmCalendarEvent as PmCalendarEventType } from '@/lib/types/pm-schedule'
-import 'react-big-calendar/lib/css/react-big-calendar.css'
-
-// ─── date-fns Localizer ───────────────────────────────────────────────────────
-
-const locales = { 'en-US': enUS }
-
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 0 }),
-  getDay,
-  locales,
-})
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useCalendarNavigation, computeDateRange } from '@/lib/hooks/useCalendar'
+import type { CalendarViewType, CalendarEventData } from '@/lib/hooks/useCalendar'
+import MonthView from '@/components/calendar/MonthView'
+import WeekView from '@/components/calendar/WeekView'
+import DayView from '@/components/calendar/DayView'
+import AgendaView from '@/components/calendar/AgendaView'
+import type { PmCalendarEvent } from '@/lib/types/pm-schedule'
 
 // ─── Auth Headers ─────────────────────────────────────────────────────────────
 
@@ -31,41 +20,96 @@ function getAuthHeaders(): Record<string, string> {
   return {}
 }
 
-// ─── PmCalendarView ───────────────────────────────────────────────────────────
+// ─── Adapter: PM event → CalendarEventData ────────────────────────────────────
 
-interface PmCalendarViewProps {
-  onEventClick?: (event: PmCalendarEventType) => void
+const STATUS_COLORS: Record<string, string> = {
+  blue: '#3b82f6',
+  red: '#ef4444',
+  green: '#22c55e',
 }
 
-// react-big-calendar expects event objects with `start` and `end` as Date
-interface CalendarEventWithDates extends Omit<PmCalendarEventType, 'start' | 'end'> {
-  start: Date
-  end: Date
-  resource?: PmCalendarEventType
+function pmEventToCalendarEvent(pm: PmCalendarEvent): CalendarEventData {
+  return {
+    id: pm.id,
+    calendarId: 'pm-calendar',
+    title: pm.title,
+    description: pm.assetName || null,
+    startTime: pm.start,
+    endTime: pm.end,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    isAllDay: true,
+    calendarStatus: 'PUBLISHED',
+    locationText: pm.locationName || null,
+    calendar: {
+      id: 'pm-calendar',
+      name: 'PM Calendar',
+      color: STATUS_COLORS[pm.color] || STATUS_COLORS.blue,
+      calendarType: 'MAINTENANCE',
+    },
+  }
+}
+
+// ─── Title formatter (mirrors CalendarToolbar) ────────────────────────────────
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+function formatTitle(date: Date, view: CalendarViewType): string {
+  if (view === 'day') return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
+  if (view === 'week') return `${MONTHS[date.getMonth()]}, ${date.getFullYear()}`
+  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`
+}
+
+// ─── Day column headers (week/day views) ──────────────────────────────────────
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function isToday(date: Date): boolean {
+  const today = new Date()
+  return date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+}
+
+function getWeekDates(currentDate: Date): Date[] {
+  const start = new Date(currentDate)
+  start.setDate(start.getDate() - start.getDay())
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start)
+    d.setDate(d.getDate() + i)
+    return d
+  })
+}
+
+// ─── View labels ──────────────────────────────────────────────────────────────
+
+const VIEW_LABELS: Record<CalendarViewType, string> = {
+  month: 'Month',
+  week: 'Week',
+  day: 'Day',
+  agenda: 'Agenda',
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface PmCalendarViewProps {
+  onEventClick?: (event: PmCalendarEvent) => void
 }
 
 export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [currentView, setCurrentView] = useState<'month' | 'week'>('month')
+  const nav = useCalendarNavigation('pm-calendar-view')
+  const { currentDate, view, changeView, goToToday, goNext, goPrev } = nav
 
-  // Compute date range for the current calendar view
-  const dateRange = useMemo(() => {
-    const monthStart = startOfMonth(currentDate)
-    const monthEnd = endOfMonth(currentDate)
-    // Pad by one month on each side to cover calendar week overflows
-    return {
-      start: subMonths(monthStart, 0).toISOString(),
-      end: addMonths(monthEnd, 0).toISOString(),
-    }
-  }, [currentDate])
+  // Compute date range for fetching
+  const dateRange = useMemo(() => computeDateRange(currentDate, view), [currentDate, view])
 
-  const { data: events = [], isLoading } = useQuery<PmCalendarEventType[]>({
-    queryKey: ['pm-calendar-events', dateRange.start, dateRange.end],
+  // Fetch PM calendar events
+  const { data: pmEvents = [], isLoading } = useQuery<PmCalendarEvent[]>({
+    queryKey: ['pm-calendar-events', dateRange.start.toISOString(), dateRange.end.toISOString()],
     queryFn: async () => {
       const params = new URLSearchParams({
         view: 'calendar',
-        start: dateRange.start,
-        end: dateRange.end,
+        start: dateRange.start.toISOString(),
+        end: dateRange.end.toISOString(),
       })
       const res = await fetch(`/api/maintenance/pm-schedules?${params}`, {
         headers: getAuthHeaders(),
@@ -77,106 +121,155 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
     staleTime: 60_000,
   })
 
-  // Convert string dates to Date objects for react-big-calendar
-  const calendarEvents: CalendarEventWithDates[] = useMemo(() => {
-    return events.map((e) => ({
-      ...e,
-      start: new Date(e.start),
-      end: new Date(e.end),
-      resource: e,
-    }))
-  }, [events])
-
-  const handleSelectEvent = useCallback(
-    (event: CalendarEventWithDates) => {
-      if (onEventClick && event.resource) {
-        onEventClick(event.resource)
-      }
-    },
-    [onEventClick]
+  // Convert PM events to CalendarEventData
+  const calendarEvents = useMemo(
+    () => pmEvents.map(pmEventToCalendarEvent),
+    [pmEvents]
   )
 
-  const handleNavigate = (date: Date) => {
-    setCurrentDate(date)
-  }
+  // Build a lookup from calendar event ID → original PM event
+  const pmEventMap = useMemo(() => {
+    const map = new Map<string, PmCalendarEvent>()
+    for (const pm of pmEvents) map.set(pm.id, pm)
+    return map
+  }, [pmEvents])
 
-  // Custom event renderer
-  const eventPropGetter = useCallback((event: CalendarEventWithDates) => {
-    const colorMap: Record<string, string> = {
-      blue: '#3b82f6',
-      red: '#ef4444',
-      green: '#22c55e',
-    }
-    return {
-      style: {
-        backgroundColor: colorMap[event.color] || colorMap.blue,
-        border: 'none',
-        borderRadius: '4px',
-        color: 'white',
-        fontSize: '11px',
-      },
-    }
-  }, [])
-
-  const CustomEvent = useCallback(
-    ({ event }: { event: CalendarEventWithDates }) => {
-      return <PmCalendarEvent event={event.resource || (event as unknown as PmCalendarEventType)} />
+  // Handle click on a calendar event — map back to PM event
+  const handleEventClick = useCallback(
+    (event: CalendarEventData) => {
+      const pm = pmEventMap.get(event.id)
+      if (pm && onEventClick) onEventClick(pm)
     },
-    []
+    [pmEventMap, onEventClick]
   )
+
+  const emptyCampusMap = useMemo(() => new Map<string, number>(), [])
+  const weekDates = useMemo(() => getWeekDates(currentDate), [currentDate])
+
+  const noopDate = useCallback(() => {}, [])
+  const noopSlot = useCallback((_s: Date, _e: Date) => {}, [])
 
   return (
     <div className="space-y-4">
-      {/* Calendar toolbar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCurrentDate((d) => subMonths(d, 1))}
-            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
-          </button>
-          <button
-            onClick={() => setCurrentDate(new Date())}
-            className="px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => setCurrentDate((d) => addMonths(d, 1))}
-            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
-          </button>
-          <h2 className="text-base font-semibold text-gray-900 ml-2">
-            {format(currentDate, 'MMMM yyyy')}
+      {/* Toolbar — matches CalendarToolbar visual style */}
+      <div className="pb-2">
+        {/* Zone 1: Navigation bar */}
+        <div className="flex items-center justify-between gap-2 pb-4">
+          {/* Left: Title */}
+          <h2 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight min-w-0 truncate">
+            {formatTitle(currentDate, view)}
           </h2>
+
+          {/* Center: View switcher — desktop */}
+          <div className="hidden sm:flex border border-gray-200 rounded-full overflow-hidden flex-shrink-0" role="tablist" aria-label="PM Calendar view">
+            {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
+              <button
+                key={v}
+                role="tab"
+                aria-selected={view === v}
+                onClick={() => changeView(v)}
+                className={`w-20 text-center py-2 text-sm font-semibold transition-all cursor-pointer ${
+                  view === v
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                {VIEW_LABELS[v]}
+              </button>
+            ))}
+          </div>
+
+          {/* Right: Nav pill */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+              <button
+                onClick={goPrev}
+                className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors cursor-pointer"
+                aria-label="Previous"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
+              </button>
+              <button
+                onClick={goToToday}
+                className="px-3 sm:px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors border-l border-r border-gray-200 cursor-pointer"
+              >
+                <span className="hidden sm:inline">Today</span>
+                <span className="sm:hidden text-xs">Now</span>
+              </button>
+              <button
+                onClick={goNext}
+                className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors cursor-pointer"
+                aria-label="Next"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setCurrentView('month')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-              currentView === 'month'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <CalendarDays className="w-4 h-4" />
-            Month
-          </button>
-          <button
-            onClick={() => setCurrentView('week')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-              currentView === 'week'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <LayoutList className="w-4 h-4" />
-            Week
-          </button>
+        {/* Mobile view switcher */}
+        <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden" role="tablist" aria-label="PM Calendar view">
+          {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
+            <button
+              key={v}
+              role="tab"
+              aria-selected={view === v}
+              onClick={() => changeView(v)}
+              className={`flex-1 text-center py-2 text-xs font-semibold transition-all cursor-pointer ${
+                view === v
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {VIEW_LABELS[v]}
+            </button>
+          ))}
         </div>
+
+        {/* Day column headers (week/day views) */}
+        {(view === 'week' || view === 'day') && (
+          <div className="flex pt-4">
+            <div className="w-14 flex-shrink-0" />
+            {view === 'week' && (
+              <div className="flex-1 grid grid-cols-7">
+                {weekDates.map((date, i) => {
+                  const today = isToday(date)
+                  return (
+                    <div key={i} className="flex flex-col items-center gap-0.5">
+                      <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-gray-400'}`}>
+                        {DAY_NAMES[date.getDay()]}
+                      </span>
+                      <span
+                        className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-full ${
+                          today ? 'bg-primary-600 text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        {date.getDate()}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {view === 'day' && (() => {
+              const today = isToday(currentDate)
+              return (
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-gray-400'}`}>
+                    {DAY_NAMES[currentDate.getDay()]}
+                  </span>
+                  <span
+                    className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-full ${
+                      today ? 'bg-primary-600 text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    {currentDate.getDate()}
+                  </span>
+                </div>
+              )
+            })()}
+          </div>
+        )}
       </div>
 
       {/* Legend */}
@@ -195,7 +288,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
         </div>
       </div>
 
-      {/* Calendar */}
+      {/* Calendar view */}
       {isLoading ? (
         <div className="ui-glass p-8 animate-pulse">
           <div className="h-96 bg-gray-100 rounded-xl" />
@@ -204,70 +297,47 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="ui-glass overflow-hidden pm-calendar-wrapper"
+          className="ui-glass overflow-hidden"
         >
-          <style>{`
-            .pm-calendar-wrapper .rbc-calendar {
-              font-family: inherit;
-              background: transparent;
-            }
-            .pm-calendar-wrapper .rbc-header {
-              padding: 8px 4px;
-              font-size: 12px;
-              font-weight: 600;
-              color: #6b7280;
-              border-color: #f3f4f6;
-            }
-            .pm-calendar-wrapper .rbc-month-view {
-              border-color: #f3f4f6;
-              border-radius: 0;
-            }
-            .pm-calendar-wrapper .rbc-day-bg {
-              border-color: #f3f4f6;
-            }
-            .pm-calendar-wrapper .rbc-today {
-              background-color: #ecfdf5;
-            }
-            .pm-calendar-wrapper .rbc-off-range-bg {
-              background-color: #fafafa;
-            }
-            .pm-calendar-wrapper .rbc-toolbar {
-              display: none;
-            }
-            .pm-calendar-wrapper .rbc-event {
-              border-radius: 4px;
-              font-size: 11px;
-              padding: 0;
-            }
-            .pm-calendar-wrapper .rbc-event:focus {
-              outline: none;
-            }
-            .pm-calendar-wrapper .rbc-date-cell {
-              font-size: 12px;
-              color: #374151;
-              padding: 4px 8px;
-            }
-            .pm-calendar-wrapper .rbc-date-cell.rbc-now {
-              font-weight: 700;
-              color: #059669;
-            }
-          `}</style>
-          <Calendar
-            localizer={localizer}
-            events={calendarEvents}
-            startAccessor="start"
-            endAccessor="end"
-            view={currentView}
-            onView={(v) => setCurrentView(v as 'month' | 'week')}
-            date={currentDate}
-            onNavigate={handleNavigate}
-            onSelectEvent={handleSelectEvent}
-            eventPropGetter={eventPropGetter}
-            components={{ event: CustomEvent as any }}
-            style={{ height: 560 }}
-            views={[Views.MONTH, Views.WEEK]}
-            popup
-          />
+          {view === 'month' && (
+            <MonthView
+              currentDate={currentDate}
+              events={calendarEvents}
+              onEventClick={handleEventClick}
+              onDateClick={noopDate}
+              campusShapeMap={emptyCampusMap}
+              isLoading={isLoading}
+            />
+          )}
+          {view === 'week' && (
+            <WeekView
+              currentDate={currentDate}
+              events={calendarEvents}
+              onEventClick={handleEventClick}
+              onSlotClick={noopSlot}
+              campusShapeMap={emptyCampusMap}
+              isLoading={isLoading}
+            />
+          )}
+          {view === 'day' && (
+            <DayView
+              currentDate={currentDate}
+              events={calendarEvents}
+              onEventClick={handleEventClick}
+              onSlotClick={noopSlot}
+              campusShapeMap={emptyCampusMap}
+              isLoading={isLoading}
+            />
+          )}
+          {view === 'agenda' && (
+            <AgendaView
+              currentDate={currentDate}
+              events={calendarEvents}
+              onEventClick={handleEventClick}
+              campusShapeMap={emptyCampusMap}
+              isLoading={isLoading}
+            />
+          )}
         </motion.div>
       )}
     </div>
