@@ -123,11 +123,11 @@
 - [x] **PM-03**: Default technician assignment per PM schedule
 - [x] **PM-04**: School-year-aware scheduling (avoidSchoolYear flag)
 - [x] **PM-05**: Configurable advance notice days (default 7) for ticket generation
-- [ ] **PM-06**: Auto-generated PM tickets enter TODO status with checklist items
-- [ ] **PM-07**: Checklist items must be completed before tech can move to QA
-- [ ] **PM-08**: On completion, nextDueDate recalculated from completion date (not scheduled date)
+- [x] **PM-06**: Auto-generated PM tickets enter TODO status with checklist items
+- [x] **PM-07**: Checklist items must be completed before tech can move to QA
+- [x] **PM-08**: On completion, nextDueDate recalculated from completion date (not scheduled date)
 - [x] **PM-09**: PM Calendar view showing all upcoming scheduled maintenance
-- [ ] **PM-10**: Cron job for PM ticket generation with idempotency via unique constraint (pmScheduleId + scheduledDueDate)
+- [x] **PM-10**: Cron job for PM ticket generation with idempotency via unique constraint (pmScheduleId + scheduledDueDate)
 
 ### Labor & Cost Tracking (LABOR)
 
@@ -325,11 +325,11 @@ Updated during roadmap creation — 2026-03-05.
 | PM-03 | Phase 4 | Complete |
 | PM-04 | Phase 4 | Complete |
 | PM-05 | Phase 4 | Complete |
-| PM-06 | Phase 4 | Pending |
-| PM-07 | Phase 4 | Pending |
-| PM-08 | Phase 4 | Pending |
+| PM-06 | Phase 4 | Complete |
+| PM-07 | Phase 4 | Complete |
+| PM-08 | Phase 4 | Complete |
 | PM-09 | Phase 4 | Complete |
-| PM-10 | Phase 4 | Pending |
+| PM-10 | Phase 4 | Complete |
 | LABOR-01 | Phase 4 | Complete |
 | LABOR-02 | Phase 4 | Complete |
 | LABOR-03 | Phase 4 | Complete |
