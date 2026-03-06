@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-06T01:47:22.021Z"
+stopped_at: Completed 02-core-tickets/02-01-PLAN.md
+last_updated: "2026-03-06T02:45:12.296Z"
 last_activity: 2026-03-05 — Roadmap created; all 101 v1 requirements mapped across 7 phases
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 6
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 3 | 2 tasks | 3 files |
 | Phase 01-foundation P02 | 6 | 2 tasks | 9 files |
+| Phase 02-core-tickets P01 | 11min | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Maintenance nav uses simple links (no secondary sidebar panel) — permissions gate which links appear
 - [Phase 01-foundation]: Extended /api/auth/permissions endpoint with 3 maintenance permission checks rather than a separate endpoint
 - [Phase 01-foundation]: Emerald color theme for maintenance (#059669) to distinguish from amber (athletics) and primary-blue (core nav)
+- [Phase 02-core-tickets]: Room fields are roomNumber/displayName not name/code — corrected in all route includes and service layer
+- [Phase 02-core-tickets]: assignTicket has no specialty check (ROUTE-03) — head can assign any ticket to any tech regardless of specialty
+- [Phase 02-core-tickets]: Cron uses rawPrisma (no org context) to iterate all orgs — cross-platform maintenance tasks
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:47:22.018Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-core-tickets/02-CONTEXT.md
+Last session: 2026-03-06T02:45:12.294Z
+Stopped at: Completed 02-core-tickets/02-01-PLAN.md
+Resume file: None

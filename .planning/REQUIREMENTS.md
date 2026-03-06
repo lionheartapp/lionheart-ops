@@ -17,17 +17,17 @@
 
 ### Ticket Submission (SUBMIT)
 
-- [ ] **SUBMIT-01**: User can select location via Building → Area → Room picker pre-populated from campus
-- [ ] **SUBMIT-02**: User can enter short title (required) and optional description
-- [ ] **SUBMIT-03**: User can upload 1–5 photos via signed URL direct-to-Supabase pattern
-- [ ] **SUBMIT-04**: User can select category from 8 options (Electrical, Plumbing, HVAC, Structural, Custodial/Biohazard, IT/AV, Grounds, Other)
-- [ ] **SUBMIT-05**: User can set priority (Low / Medium / High / Urgent)
-- [ ] **SUBMIT-06**: User can add optional availability note for room access
-- [ ] **SUBMIT-07**: Submitted ticket enters BACKLOG status with auto-assigned specialty tag
-- [ ] **SUBMIT-08**: AI auto-suggests category when photos are uploaded
-- [ ] **SUBMIT-09**: AI detects multi-issue submissions and suggests splitting before final submit
-- [ ] **SUBMIT-10**: Confirmation email sent to submitter with ticket number (MT-XXXX)
-- [ ] **SUBMIT-11**: Urgent tickets immediately alert Head of Maintenance via email + in-app notification
+- [x] **SUBMIT-01**: User can select location via Building → Area → Room picker pre-populated from campus
+- [x] **SUBMIT-02**: User can enter short title (required) and optional description
+- [x] **SUBMIT-03**: User can upload 1–5 photos via signed URL direct-to-Supabase pattern
+- [x] **SUBMIT-04**: User can select category from 8 options (Electrical, Plumbing, HVAC, Structural, Custodial/Biohazard, IT/AV, Grounds, Other)
+- [x] **SUBMIT-05**: User can set priority (Low / Medium / High / Urgent)
+- [x] **SUBMIT-06**: User can add optional availability note for room access
+- [x] **SUBMIT-07**: Submitted ticket enters BACKLOG status with auto-assigned specialty tag
+- [x] **SUBMIT-08**: AI auto-suggests category when photos are uploaded
+- [x] **SUBMIT-09**: AI detects multi-issue submissions and suggests splitting before final submit
+- [x] **SUBMIT-10**: Confirmation email sent to submitter with ticket number (MT-XXXX)
+- [x] **SUBMIT-11**: Urgent tickets immediately alert Head of Maintenance via email + in-app notification
 
 ### Kanban Board (BOARD)
 
@@ -42,22 +42,22 @@
 
 ### Ticket Lifecycle (LIFE)
 
-- [ ] **LIFE-01**: Status transitions enforced server-side with role validation (BACKLOG→TODO, TODO→IN_PROGRESS, etc.)
-- [ ] **LIFE-02**: ON_HOLD requires hold reason (PARTS / VENDOR / ACCESS / OTHER) and optional note
-- [ ] **LIFE-03**: Moving to QA requires completion photo and completion note
-- [ ] **LIFE-04**: QA→DONE requires Head/Admin sign-off with labor hours and cost confirmed
-- [ ] **LIFE-05**: QA→IN_PROGRESS (rejection) requires reason note, sent back to tech
-- [ ] **LIFE-06**: Any→CANCELLED requires cancellation reason, restricted to Head/Admin
-- [ ] **LIFE-07**: SCHEDULED→BACKLOG transitions automatically on scheduled date
-- [ ] **LIFE-08**: Full activity feed showing all status changes, comments, assignments with timestamps and actors
+- [x] **LIFE-01**: Status transitions enforced server-side with role validation (BACKLOG→TODO, TODO→IN_PROGRESS, etc.)
+- [x] **LIFE-02**: ON_HOLD requires hold reason (PARTS / VENDOR / ACCESS / OTHER) and optional note
+- [x] **LIFE-03**: Moving to QA requires completion photo and completion note
+- [x] **LIFE-04**: QA→DONE requires Head/Admin sign-off with labor hours and cost confirmed
+- [x] **LIFE-05**: QA→IN_PROGRESS (rejection) requires reason note, sent back to tech
+- [x] **LIFE-06**: Any→CANCELLED requires cancellation reason, restricted to Head/Admin
+- [x] **LIFE-07**: SCHEDULED→BACKLOG transitions automatically on scheduled date
+- [x] **LIFE-08**: Full activity feed showing all status changes, comments, assignments with timestamps and actors
 
 ### Ticket Detail (DETAIL)
 
 - [ ] **DETAIL-01**: Submitter section: name, role, contact info, submitted timestamp, availability note
 - [ ] **DETAIL-02**: Location section: full hierarchy (Campus → Building → Area → Room), room photo, Google Maps link
 - [ ] **DETAIL-03**: Issue section: title, description, category, priority, photos (full-size on click)
-- [ ] **DETAIL-04**: Activity feed with internal comments (tech/head only, not visible to submitter)
-- [ ] **DETAIL-05**: Assignment and reassignment history logged in activity feed
+- [x] **DETAIL-04**: Activity feed with internal comments (tech/head only, not visible to submitter)
+- [x] **DETAIL-05**: Assignment and reassignment history logged in activity feed
 
 ### AI Diagnostics (AI)
 
@@ -72,25 +72,25 @@
 
 ### Specialty Routing (ROUTE)
 
-- [ ] **ROUTE-01**: Category auto-maps to specialty tag on ticket creation
-- [ ] **ROUTE-02**: Technicians can self-claim tickets matching their specialty or GENERAL
-- [ ] **ROUTE-03**: Head of Maintenance can assign any ticket to any technician regardless of specialty
-- [ ] **ROUTE-04**: Self-claim guard enforced: techs cannot claim tickets outside their specialty
+- [x] **ROUTE-01**: Category auto-maps to specialty tag on ticket creation
+- [x] **ROUTE-02**: Technicians can self-claim tickets matching their specialty or GENERAL
+- [x] **ROUTE-03**: Head of Maintenance can assign any ticket to any technician regardless of specialty
+- [x] **ROUTE-04**: Self-claim guard enforced: techs cannot claim tickets outside their specialty
 - [ ] **ROUTE-05**: Matching-specialty tickets highlighted in technician's backlog view
 
 ### Notifications (NOTIF)
 
-- [ ] **NOTIF-01**: Email on ticket submission (to submitter)
-- [ ] **NOTIF-02**: Email on ticket assignment (to assigned technician)
-- [ ] **NOTIF-03**: Email when tech self-claims (to Head of Maintenance)
-- [ ] **NOTIF-04**: Email on status → IN_PROGRESS (to submitter)
-- [ ] **NOTIF-05**: Email on status → ON_HOLD with hold reason (to submitter + Head)
-- [ ] **NOTIF-06**: Email on status → QA (to Head of Maintenance)
-- [ ] **NOTIF-07**: Email on status → DONE (to submitter)
-- [ ] **NOTIF-08**: Email on urgent ticket submission (to Head of Maintenance)
-- [ ] **NOTIF-09**: Email when ticket unactioned > 48h (to Head of Maintenance)
-- [ ] **NOTIF-10**: Email on QA → IN_PROGRESS rejection (to assigned technician)
-- [ ] **NOTIF-11**: In-app notifications for all email triggers using existing Notification model
+- [x] **NOTIF-01**: Email on ticket submission (to submitter)
+- [x] **NOTIF-02**: Email on ticket assignment (to assigned technician)
+- [x] **NOTIF-03**: Email when tech self-claims (to Head of Maintenance)
+- [x] **NOTIF-04**: Email on status → IN_PROGRESS (to submitter)
+- [x] **NOTIF-05**: Email on status → ON_HOLD with hold reason (to submitter + Head)
+- [x] **NOTIF-06**: Email on status → QA (to Head of Maintenance)
+- [x] **NOTIF-07**: Email on status → DONE (to submitter)
+- [x] **NOTIF-08**: Email on urgent ticket submission (to Head of Maintenance)
+- [x] **NOTIF-09**: Email when ticket unactioned > 48h (to Head of Maintenance)
+- [x] **NOTIF-10**: Email on QA → IN_PROGRESS rejection (to assigned technician)
+- [x] **NOTIF-11**: In-app notifications for all email triggers using existing Notification model
 
 ### Module & Navigation (NAV)
 
@@ -253,46 +253,46 @@ Updated during roadmap creation — 2026-03-05.
 | NAV-02 | Phase 1 | Complete |
 | NAV-03 | Phase 1 | Complete |
 | NAV-04 | Phase 1 | Complete |
-| SUBMIT-01 | Phase 2 | Pending |
-| SUBMIT-02 | Phase 2 | Pending |
-| SUBMIT-03 | Phase 2 | Pending |
-| SUBMIT-04 | Phase 2 | Pending |
-| SUBMIT-05 | Phase 2 | Pending |
-| SUBMIT-06 | Phase 2 | Pending |
-| SUBMIT-07 | Phase 2 | Pending |
-| SUBMIT-08 | Phase 2 | Pending |
-| SUBMIT-09 | Phase 2 | Pending |
-| SUBMIT-10 | Phase 2 | Pending |
-| SUBMIT-11 | Phase 2 | Pending |
-| LIFE-01 | Phase 2 | Pending |
-| LIFE-02 | Phase 2 | Pending |
-| LIFE-03 | Phase 2 | Pending |
-| LIFE-04 | Phase 2 | Pending |
-| LIFE-05 | Phase 2 | Pending |
-| LIFE-06 | Phase 2 | Pending |
-| LIFE-07 | Phase 2 | Pending |
-| LIFE-08 | Phase 2 | Pending |
+| SUBMIT-01 | Phase 2 | Complete |
+| SUBMIT-02 | Phase 2 | Complete |
+| SUBMIT-03 | Phase 2 | Complete |
+| SUBMIT-04 | Phase 2 | Complete |
+| SUBMIT-05 | Phase 2 | Complete |
+| SUBMIT-06 | Phase 2 | Complete |
+| SUBMIT-07 | Phase 2 | Complete |
+| SUBMIT-08 | Phase 2 | Complete |
+| SUBMIT-09 | Phase 2 | Complete |
+| SUBMIT-10 | Phase 2 | Complete |
+| SUBMIT-11 | Phase 2 | Complete |
+| LIFE-01 | Phase 2 | Complete |
+| LIFE-02 | Phase 2 | Complete |
+| LIFE-03 | Phase 2 | Complete |
+| LIFE-04 | Phase 2 | Complete |
+| LIFE-05 | Phase 2 | Complete |
+| LIFE-06 | Phase 2 | Complete |
+| LIFE-07 | Phase 2 | Complete |
+| LIFE-08 | Phase 2 | Complete |
 | DETAIL-01 | Phase 2 | Pending |
 | DETAIL-02 | Phase 2 | Pending |
 | DETAIL-03 | Phase 2 | Pending |
-| DETAIL-04 | Phase 2 | Pending |
-| DETAIL-05 | Phase 2 | Pending |
-| ROUTE-01 | Phase 2 | Pending |
-| ROUTE-02 | Phase 2 | Pending |
-| ROUTE-03 | Phase 2 | Pending |
-| ROUTE-04 | Phase 2 | Pending |
+| DETAIL-04 | Phase 2 | Complete |
+| DETAIL-05 | Phase 2 | Complete |
+| ROUTE-01 | Phase 2 | Complete |
+| ROUTE-02 | Phase 2 | Complete |
+| ROUTE-03 | Phase 2 | Complete |
+| ROUTE-04 | Phase 2 | Complete |
 | ROUTE-05 | Phase 2 | Pending |
-| NOTIF-01 | Phase 2 | Pending |
-| NOTIF-02 | Phase 2 | Pending |
-| NOTIF-03 | Phase 2 | Pending |
-| NOTIF-04 | Phase 2 | Pending |
-| NOTIF-05 | Phase 2 | Pending |
-| NOTIF-06 | Phase 2 | Pending |
-| NOTIF-07 | Phase 2 | Pending |
-| NOTIF-08 | Phase 2 | Pending |
-| NOTIF-09 | Phase 2 | Pending |
-| NOTIF-10 | Phase 2 | Pending |
-| NOTIF-11 | Phase 2 | Pending |
+| NOTIF-01 | Phase 2 | Complete |
+| NOTIF-02 | Phase 2 | Complete |
+| NOTIF-03 | Phase 2 | Complete |
+| NOTIF-04 | Phase 2 | Complete |
+| NOTIF-05 | Phase 2 | Complete |
+| NOTIF-06 | Phase 2 | Complete |
+| NOTIF-07 | Phase 2 | Complete |
+| NOTIF-08 | Phase 2 | Complete |
+| NOTIF-09 | Phase 2 | Complete |
+| NOTIF-10 | Phase 2 | Complete |
+| NOTIF-11 | Phase 2 | Complete |
 | BOARD-01 | Phase 3 | Pending |
 | BOARD-02 | Phase 3 | Pending |
 | BOARD-03 | Phase 3 | Pending |
