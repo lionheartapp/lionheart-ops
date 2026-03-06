@@ -35,8 +35,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — 9 Prisma models, enums, org-scope registration, 13 maintenance permissions, and maintenance-head/technician roles
-- [ ] 01-02-PLAN.md — MODULE_REGISTRY entry, sidebar "Support" section with role-adaptive nav, /maintenance page with dashboard shell and My Requests view
+- [x] 01-01-PLAN.md — 9 Prisma models, enums, org-scope registration, 13 maintenance permissions, and maintenance-head/technician roles
+- [x] 01-02-PLAN.md — MODULE_REGISTRY entry, sidebar "Support" section with role-adaptive nav, /maintenance page with dashboard shell and My Requests view
 
 ### Phase 2: Core Tickets
 **Goal**: Teachers can submit a maintenance ticket in under 60 seconds on mobile, and the maintenance team receives routed tickets with full lifecycle transitions enforced server-side
@@ -49,13 +49,13 @@ Plans:
   4. ON_HOLD requires a hold reason, QA requires a completion photo and note, and QA-to-DONE requires Head/Admin sign-off — all enforced server-side
   5. A technician can only self-claim tickets matching their specialty or GENERAL; the self-claim guard returns 403 for out-of-specialty attempts
   6. The ticket detail page shows full submitter info, location hierarchy, issue details, and an activity feed with all status changes and internal comments
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: Ticket submission API and mobile form (signed URL photo upload)
-- [ ] 02-02: 8-status lifecycle service, state machine validation, and lifecycle API routes
-- [ ] 02-03: Specialty routing, self-claim guard, and ticket detail view
-- [ ] 02-04: Notifications (email + in-app) for all lifecycle events
+- [ ] 02-01-PLAN.md — Complete backend: ticket service layer with state machine, all CRUD/lifecycle API routes, signed URL photo upload, AI category/multi-issue endpoints, notification dispatch, email templates, dashboard aggregation, and cron job
+- [ ] 02-02-PLAN.md — Mobile-first 4-step submission wizard (Location > Photos > Details > Review) with AI category suggest, AI multi-issue detection, and My Requests card grid
+- [ ] 02-03-PLAN.md — Work Orders filtered sortable table with inline actions, specialty highlighting, self-claim with optimistic UI, scheduled tickets section, and live dashboard stats
+- [ ] 02-04-PLAN.md — Ticket detail page with status tracker, activity feed, comment system, ON_HOLD inline form, QA completion modal, and QA review/sign-off panel
 
 ### Phase 3: Kanban & AI
 **Goal**: The maintenance team can manage all tickets visually on a Kanban board with drag-and-drop, and technicians get AI-generated diagnostic help on photo tickets
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete   | 2026-03-06 |
-| 2. Core Tickets | 0/4 | Not started | - |
+| 2. Core Tickets | 0/4 | Planned | - |
 | 3. Kanban & AI | 0/2 | Not started | - |
 | 4. Assets, QR & PM | 0/3 | Not started | - |
 | 5. Analytics & Repair Intelligence | 0/2 | Not started | - |
