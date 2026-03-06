@@ -38,6 +38,7 @@ model Organization {
   // Platform admin fields
   stripeCustomerId  String?       // Stripe Customer ID for billing
   onboardingStatus  OnboardingStatus @default(SIGNED_UP)
+  timezone      String            @default("America/Los_Angeles") // IANA timezone for compliance date arithmetic
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   users         User[]
@@ -88,6 +89,16 @@ model Organization {
   athleticRosters     AthleticRoster[]
   playerGameStats     PlayerGameStat[]
   sportStatConfigs    SportStatConfig[]
+  // Maintenance module relations
+  maintenanceTickets  MaintenanceTicket[]
+  maintenanceCounter  MaintenanceCounter?
+  technicianProfiles  TechnicianProfile[]
+  maintenanceActivities MaintenanceTicketActivity[]
+  maintenanceLaborEntries MaintenanceLaborEntry[]
+  maintenanceCostEntries  MaintenanceCostEntry[]
+  maintenanceAssets   MaintenanceAsset[]
+  maintenanceAssetCounter MaintenanceAssetCounter?
+  pmSchedules         PmSchedule[]
 
   @@index([onboardingStatus])
 }
@@ -141,6 +152,15 @@ model User {
   ownedCalendars        Calendar[]           @relation("CalendarOwner")
   notifications         Notification[]
   athleticRosters       AthleticRoster[]
+  // Maintenance module relations
+  technicianProfile     TechnicianProfile?
+  maintenanceTicketsSubmitted MaintenanceTicket[] @relation("SubmittedBy")
+  maintenanceTicketsAssigned  MaintenanceTicket[] @relation("AssignedTo")
+  maintenanceActivitiesPerformed MaintenanceTicketActivity[] @relation("ActivityActor")
+  maintenanceActivitiesAssignedTo MaintenanceTicketActivity[] @relation("ActivityAssignedTo")
+  maintenanceLaborEntries MaintenanceLaborEntry[]
+  maintenanceCostEntries  MaintenanceCostEntry[]
+  pmScheduleDefaults      PmSchedule[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -224,6 +244,9 @@ model Building {
   areas          Area[]
   rooms          Room[]
   calendarEvents CalendarEvent[]
+  maintenanceTickets MaintenanceTicket[]
+  maintenanceAssets  MaintenanceAsset[]
+  pmSchedules        PmSchedule[]
 
   @@unique([organizationId, campusId, schoolDivision, name])
   @@unique([organizationId, code])
@@ -255,6 +278,9 @@ model Area {
   building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   rooms          Room[]
   calendarEvents CalendarEvent[]
+  maintenanceTickets MaintenanceTicket[]
+  maintenanceAssets  MaintenanceAsset[]
+  pmSchedules        PmSchedule[]
 
   @@unique([organizationId, buildingId, name])
   @@index([organizationId, isActive])
@@ -282,6 +308,9 @@ model Room {
   building       Building     @relation(fields: [buildingId], references: [id], onDelete: Restrict)
   area           Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
   assignments    UserRoomAssignment[]
+  maintenanceTickets MaintenanceTicket[]
+  maintenanceAssets  MaintenanceAsset[]
+  pmSchedules        PmSchedule[]
 
   @@unique([organizationId, buildingId, roomNumber])
   @@index([organizationId, isActive])
@@ -382,6 +411,9 @@ model School {
   users          User[]
   buildings      Building[]
   tickets        Ticket[]
+  // Maintenance module relations
+  maintenanceTickets MaintenanceTicket[]
+  maintenanceAssets  MaintenanceAsset[]
   // Calendar module relations
   calendars      Calendar[]
   calendarEvents CalendarEvent[]
@@ -1888,4 +1920,285 @@ enum TournamentFormat {
   DOUBLE_ELIMINATION
   ROUND_ROBIN
   POOL_PLAY
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MAINTENANCE MODULE
+// ═══════════════════════════════════════════════════════════════════════
+
+enum MaintenanceTicketStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  ON_HOLD
+  SCHEDULED
+  QA
+  DONE
+  CANCELLED
+}
+
+enum MaintenanceCategory {
+  ELECTRICAL
+  PLUMBING
+  HVAC
+  STRUCTURAL
+  CUSTODIAL_BIOHAZARD
+  IT_AV
+  GROUNDS
+  OTHER
+}
+
+enum MaintenanceSpecialty {
+  ELECTRICAL
+  PLUMBING
+  HVAC
+  STRUCTURAL
+  CUSTODIAL_BIOHAZARD
+  IT_AV
+  GROUNDS
+  OTHER
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum HoldReason {
+  PARTS
+  VENDOR
+  ACCESS
+  OTHER
+}
+
+enum MaintenanceActivityType {
+  STATUS_CHANGE
+  COMMENT
+  ASSIGNMENT
+  REASSIGNMENT
+  INTERNAL_NOTE
+  PHOTO_ADDED
+}
+
+model MaintenanceTicket {
+  id                      String                  @id @default(cuid())
+  organizationId          String
+  ticketNumber            String
+  title                   String
+  description             String?
+  status                  MaintenanceTicketStatus @default(BACKLOG)
+  category                MaintenanceCategory
+  specialty               MaintenanceSpecialty
+  priority                MaintenancePriority     @default(MEDIUM)
+  holdReason              HoldReason?
+  holdNote                String?
+  completionNote          String?
+  cancellationReason      String?
+  scheduledDate           DateTime?
+  availabilityNote        String?
+  photos                  String[]                @default([])
+  completionPhotos        String[]                @default([])
+  aiAnalysis              Json?
+  version                 Int                     @default(1)
+  estimatedRepairCostUSD  Float?
+  submittedById           String
+  assignedToId            String?
+  buildingId              String?
+  areaId                  String?
+  roomId                  String?
+  schoolId                String?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+  deletedAt               DateTime?
+
+  organization  Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submittedBy   User                      @relation("SubmittedBy", fields: [submittedById], references: [id], onDelete: Restrict)
+  assignedTo    User?                     @relation("AssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  building      Building?                 @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  area          Area?                     @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  room          Room?                     @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  school        School?                   @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  activities    MaintenanceTicketActivity[]
+  laborEntries  MaintenanceLaborEntry[]
+  costEntries   MaintenanceCostEntry[]
+
+  @@unique([organizationId, ticketNumber])
+  @@index([organizationId, status])
+  @@index([organizationId, assignedToId])
+  @@index([organizationId, submittedById])
+  @@index([organizationId, category])
+  @@index([organizationId, schoolId])
+  @@index([organizationId, deletedAt])
+}
+
+model MaintenanceCounter {
+  id               String       @id @default(cuid())
+  organizationId   String       @unique
+  lastTicketNumber Int          @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model TechnicianProfile {
+  id               String                 @id @default(cuid())
+  organizationId   String
+  userId           String                 @unique
+  specialties      MaintenanceSpecialty[]
+  maxActiveTickets Int                    @default(10)
+  loadedHourlyRate Float?
+  isActive         Boolean                @default(true)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model MaintenanceTicketActivity {
+  id             String                  @id @default(cuid())
+  organizationId String
+  ticketId       String
+  actorId        String
+  type           MaintenanceActivityType
+  fromStatus     MaintenanceTicketStatus?
+  toStatus       MaintenanceTicketStatus?
+  assignedToId   String?
+  content        String?
+  isInternal     Boolean                 @default(false)
+  metadata       Json?
+  createdAt      DateTime                @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket       MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor        User              @relation("ActivityActor", fields: [actorId], references: [id], onDelete: Restrict)
+  assignedTo   User?             @relation("ActivityAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId, createdAt])
+  @@index([organizationId])
+}
+
+model MaintenanceLaborEntry {
+  id              String    @id @default(cuid())
+  organizationId  String
+  ticketId        String
+  technicianId    String
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket       MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  technician   User              @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId])
+  @@index([organizationId])
+}
+
+model MaintenanceCostEntry {
+  id             String    @id @default(cuid())
+  organizationId String
+  ticketId       String
+  vendor         String?
+  description    String
+  amount         Float
+  receiptUrl     String?
+  createdById    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket       MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  createdBy    User              @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([ticketId])
+  @@index([organizationId])
+}
+
+model MaintenanceAsset {
+  id                    String    @id @default(cuid())
+  organizationId        String
+  assetNumber           String
+  name                  String
+  category              String?
+  make                  String?
+  model                 String?
+  serialNumber          String?
+  purchaseDate          DateTime?
+  warrantyExpiry        DateTime?
+  replacementCost       Float?
+  expectedLifespanYears Int?
+  repairThresholdPct    Float     @default(0.5)
+  photos                String[]  @default([])
+  notes                 String?
+  status                String    @default("ACTIVE")
+  buildingId            String?
+  areaId                String?
+  roomId                String?
+  schoolId              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  area         Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  pmSchedules  PmSchedule[]
+
+  @@unique([organizationId, assetNumber])
+  @@index([organizationId])
+  @@index([organizationId, buildingId])
+  @@index([organizationId, deletedAt])
+}
+
+model PmSchedule {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  name                String
+  description         String?
+  recurrenceType      String
+  intervalDays        Int?
+  dayOfWeek           Int?
+  dayOfMonth          Int?
+  months              Int[]     @default([])
+  advanceNoticeDays   Int       @default(7)
+  avoidSchoolYear     Boolean   @default(false)
+  checklistItems      String[]  @default([])
+  nextDueDate         DateTime?
+  lastCompletedDate   DateTime?
+  defaultTechnicianId String?
+  assetId             String?
+  buildingId          String?
+  areaId              String?
+  roomId              String?
+  schoolId            String?
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  defaultTechnician User?             @relation(fields: [defaultTechnicianId], references: [id], onDelete: SetNull)
+  asset             MaintenanceAsset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  building          Building?         @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  area              Area?             @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  room              Room?             @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, nextDueDate])
+}
+
+model MaintenanceAssetCounter {
+  id              String       @id @default(cuid())
+  organizationId  String       @unique
+  lastAssetNumber Int          @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
