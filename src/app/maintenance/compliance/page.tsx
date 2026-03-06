@@ -4,17 +4,38 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Shield, RefreshCw, Loader2 } from 'lucide-react'
+import { Shield, RefreshCw, Loader2, Download } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { ComplianceDomainCard } from '@/components/maintenance/compliance/ComplianceDomainCard'
 import { ComplianceSetupWizard } from '@/components/maintenance/compliance/ComplianceSetupWizard'
 import { ComplianceCalendar } from '@/components/maintenance/compliance/ComplianceCalendar'
-import { fadeInUp, staggerContainer, cardEntrance } from '@/lib/animations'
+import { ComplianceRecordDrawer } from '@/components/maintenance/compliance/ComplianceRecordDrawer'
+import { AuditExportDialog } from '@/components/maintenance/compliance/AuditExportDialog'
+import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { fetchApi } from '@/lib/api-client'
 import type { ComplianceDomainCardData } from '@/components/maintenance/compliance/ComplianceDomainCard'
 import type { ComplianceDomain } from '@prisma/client'
 import type { ComplianceDomainMeta } from '@/lib/types/compliance'
+
+// ─── Compliance record type (shared between Calendar and Drawer) ──────────────
+interface ComplianceRecord {
+  id: string
+  domain: ComplianceDomain
+  title: string
+  dueDate: string
+  inspectionDate?: string | null
+  outcome: 'PASSED' | 'FAILED' | 'CONDITIONAL_PASS' | 'PENDING'
+  status: 'CURRENT' | 'DUE_SOON' | 'OVERDUE' | 'NOT_APPLICABLE' | 'PENDING'
+  inspector?: string | null
+  notes?: string | null
+  attachments?: string[]
+  generatedTicketId?: string | null
+  remediationTicketId?: string | null
+  school?: { id: string; name: string } | null
+  generatedTicket?: { id: string; ticketNumber: string; status: string } | null
+  remediationTicket?: { id: string; ticketNumber: string; status: string } | null
+}
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -149,6 +170,25 @@ function ComplianceContent() {
     setWizardOpen(true)
   }
 
+  // ─── Record drawer state ────────────────────────────────────────────────────
+
+  const [drawerRecord, setDrawerRecord] = useState<ComplianceRecord | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const openDrawer = (record: ComplianceRecord) => {
+    setDrawerRecord(record)
+    setDrawerOpen(true)
+  }
+
+  const closeDrawer = () => {
+    setDrawerOpen(false)
+    setTimeout(() => setDrawerRecord(null), 300) // clear after animation
+  }
+
+  // ─── Export dialog state ────────────────────────────────────────────────────
+
+  const [exportOpen, setExportOpen] = useState(false)
+
   // ─── Render ────────────────────────────────────────────────────────────────
 
   if (!isClient || !token || !orgId) {
@@ -205,18 +245,27 @@ function ComplianceContent() {
                     Configure which regulations apply to your school
                   </p>
                 </div>
-                <button
-                  onClick={() => populateMutation.mutate()}
-                  disabled={populateMutation.isPending}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-60"
-                >
-                  {populateMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                  Populate Calendar for This Year
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setExportOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-200 bg-white text-emerald-700 text-sm font-medium hover:bg-emerald-50 transition-colors cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export Audit PDF
+                  </button>
+                  <button
+                    onClick={() => populateMutation.mutate()}
+                    disabled={populateMutation.isPending}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    {populateMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    Populate Calendar for This Year
+                  </button>
+                </div>
               </motion.div>
 
               {/* Domain cards grid */}
@@ -269,7 +318,7 @@ function ComplianceContent() {
                 </div>
               </div>
 
-              <ComplianceCalendar />
+              <ComplianceCalendar onEditRecord={openDrawer} />
             </motion.section>
           </div>
         </MotionConfig>
@@ -280,6 +329,23 @@ function ComplianceContent() {
         domainData={selectedDomain}
         isOpen={wizardOpen}
         onClose={() => setWizardOpen(false)}
+      />
+
+      {/* Record Drawer */}
+      {drawerOpen && drawerRecord && (
+        <ComplianceRecordDrawer
+          record={drawerRecord}
+          onClose={closeDrawer}
+          onUpdated={() => {
+            queryClient.invalidateQueries({ queryKey: ['compliance-records'] })
+          }}
+        />
+      )}
+
+      {/* Export Dialog */}
+      <AuditExportDialog
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
       />
     </DashboardLayout>
   )

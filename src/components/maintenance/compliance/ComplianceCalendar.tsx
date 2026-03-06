@@ -19,7 +19,12 @@ interface ComplianceRecord {
   status: ComplianceStatus
   inspector?: string | null
   notes?: string | null
+  attachments?: string[]
+  generatedTicketId?: string | null
+  remediationTicketId?: string | null
   school?: { id: string; name: string } | null
+  generatedTicket?: { id: string; ticketNumber: string; status: string } | null
+  remediationTicket?: { id: string; ticketNumber: string; status: string } | null
 }
 
 interface ComplianceCalendarProps {
