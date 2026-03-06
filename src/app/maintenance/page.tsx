@@ -16,6 +16,7 @@ import MyRequestsView from '@/components/maintenance/MyRequestsView'
 import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
 import { LayoutDashboard, ClipboardList, FileText } from 'lucide-react'
 import type { MaintenanceTab } from '@/components/Sidebar'
+import { cacheAssignedTickets } from '@/lib/offline/sync'
 
 interface Campus {
   id: string
@@ -64,6 +65,15 @@ function MaintenanceContent() {
       router.push('/login')
     }
   }, [token, orgId, router])
+
+  // Cache assigned tickets for offline access on mount (when online)
+  useEffect(() => {
+    if (!token || !orgId || typeof navigator === 'undefined' || !navigator.onLine) return
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') ?? '' : ''
+    cacheAssignedTickets(token, orgId, userId).catch(() => {
+      // Non-fatal — silently ignore cache failures
+    })
+  }, [token, orgId])
 
   // Fetch org logo from API if not in localStorage
   useEffect(() => {

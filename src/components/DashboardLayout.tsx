@@ -5,10 +5,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Search } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { dropdownVariants } from '@/lib/animations'
 import Sidebar, { type SidebarProps } from './Sidebar'
 import NotificationBell from './NotificationBell'
 import SearchCommand from './SearchCommand'
+import ConnectivityIndicator from './maintenance/ConnectivityIndicator'
+import { syncOfflineData } from '@/lib/offline/sync'
+import { useConnectivity } from '@/hooks/useConnectivity'
 
 interface DashboardLayoutProps extends SidebarProps {
   children: ReactNode
@@ -30,10 +34,13 @@ export default function DashboardLayout({
   onLogout,
 }: DashboardLayoutProps) {
   const pathname = usePathname()
+  const queryClient = useQueryClient()
+  const isOnline = useConnectivity()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar || null)
+  const prevOnlineRef = useRef(isOnline)
 
   // Cmd+K / Ctrl+K shortcut for search
   useEffect(() => {
@@ -83,6 +90,21 @@ export default function DashboardLayout({
     window.addEventListener('avatar-updated', handleAvatarUpdate)
     return () => window.removeEventListener('avatar-updated', handleAvatarUpdate)
   }, [])
+
+  // Trigger background sync when transitioning from offline → online
+  useEffect(() => {
+    const wasOffline = !prevOnlineRef.current
+    prevOnlineRef.current = isOnline
+
+    if (isOnline && wasOffline) {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+      if (token) {
+        syncOfflineData(queryClient, token).catch(() => {
+          // Sync failures are surfaced in ConnectivityIndicator; no unhandled rejection
+        })
+      }
+    }
+  }, [isOnline, queryClient])
 
   const formattedSchoolLabel = (schoolLabel || organizationName || 'School')
     .toString()
@@ -139,6 +161,7 @@ export default function DashboardLayout({
           >
             <Search className="w-5 h-5" />
           </button>
+          <ConnectivityIndicator />
           <NotificationBell />
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-white">{userName || 'User'}</p>

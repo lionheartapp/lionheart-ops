@@ -3,13 +3,16 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, MapPin, Camera, ClipboardList, ClipboardCheck, Check, ExternalLink, Package } from 'lucide-react'
+import { CheckCircle2, MapPin, Camera, ClipboardList, ClipboardCheck, Check, ExternalLink, Package, WifiOff } from 'lucide-react'
 import StepLocation from './SubmitRequestWizard/StepLocation'
 import StepAsset from './SubmitRequestWizard/StepAsset'
 import StepPhotos, { type UploadedPhoto } from './SubmitRequestWizard/StepPhotos'
 import StepDetails from './SubmitRequestWizard/StepDetails'
 import StepReview from './SubmitRequestWizard/StepReview'
 import type { CampusLocationOption } from '@/lib/hooks/useCampusLocations'
+import { useConnectivity } from '@/hooks/useConnectivity'
+import { enqueueOfflineMutation } from '@/lib/offline/queue'
+import { db } from '@/lib/offline/db'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,11 +78,13 @@ function getAuthHeaders(): Record<string, string> {
 
 export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequestWizardProps) {
   const searchParams = useSearchParams()
+  const isOnline = useConnectivity()
   const [currentStep, setCurrentStep] = useState<WizardStep>(0)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [success, setSuccess] = useState<SuccessData | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [isQueued, setIsQueued] = useState(false)
 
   const [formData, setFormData] = useState<WizardFormData>({
     buildingId: null,
@@ -199,6 +204,43 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
         assetId: formData.assetId || undefined,
       }
 
+      // Offline path: queue the mutation and store a local-only ticket
+      if (!isOnline) {
+        const tempId = `temp-${Date.now()}`
+        const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : ''
+        const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') : ''
+
+        await enqueueOfflineMutation({
+          type: 'TICKET_CREATE',
+          ticketId: tempId,
+          payload: body,
+          createdAt: new Date(),
+        })
+
+        // Store a local-only ticket so it appears in the offline list
+        await db.offlineTickets.add({
+          ticketId: tempId,
+          organizationId: orgId ?? '',
+          assignedToId: userId ?? '',
+          ticketNumber: `OFFLINE-${Date.now()}`,
+          title: formData.title,
+          status: 'OPEN',
+          category: formData.category,
+          priority: formData.priority,
+          buildingId: formData.buildingId ?? undefined,
+          areaId: formData.areaId ?? undefined,
+          roomId: formData.roomId ?? undefined,
+          assetId: formData.assetId ?? undefined,
+          photos: formData.photos.map((p) => p.url),
+          cachedAt: new Date(),
+          isLocalOnly: true,
+        })
+
+        setIsQueued(true)
+        return
+      }
+
+      // Online path: submit directly
       const res = await fetch('/api/maintenance/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
@@ -291,6 +333,33 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
   }
 
   const transition = { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] }
+
+  // ─── Offline queued state
+  if (isQueued) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={transition}
+        className="flex flex-col items-center justify-center py-12 text-center"
+      >
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
+          <WifiOff className="w-8 h-8 text-amber-500" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 mb-1">Ticket Queued for Sync</h3>
+        <p className="text-sm text-gray-500 mb-6 max-w-xs">
+          You&apos;re offline. Your request has been saved and will be submitted automatically when you reconnect.
+        </p>
+        <button
+          type="button"
+          onClick={onComplete}
+          className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+        >
+          Back to My Requests
+        </button>
+      </motion.div>
+    )
+  }
 
   // ─── Success state
   if (success) {

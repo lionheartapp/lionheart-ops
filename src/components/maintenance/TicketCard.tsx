@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { cardEntrance } from '@/lib/animations'
+import { WifiOff } from 'lucide-react'
 
 const STATUS_COLORS: Record<string, string> = {
   BACKLOG: 'bg-gray-100 text-gray-600',
@@ -77,6 +78,8 @@ interface MaintenanceTicketLite {
     costAlertSentAt?: string | Date | null
     eolAlertSentAt?: string | Date | null
   } | null
+  /** Set to true for tickets created offline that haven't been synced yet */
+  _isLocalOnly?: boolean
 }
 
 interface TicketCardProps {
@@ -130,9 +133,16 @@ export default function TicketCard({ ticket }: TicketCardProps) {
 
       {/* Badges row */}
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
-        <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_COLORS[ticket.status] || 'bg-gray-100 text-gray-600'}`}>
-          {STATUS_LABELS[ticket.status] || ticket.status}
-        </span>
+        {ticket._isLocalOnly ? (
+          <span className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-700">
+            <WifiOff className="w-3 h-3" />
+            Pending Sync
+          </span>
+        ) : (
+          <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_COLORS[ticket.status] || 'bg-gray-100 text-gray-600'}`}>
+            {STATUS_LABELS[ticket.status] || ticket.status}
+          </span>
+        )}
         <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${PRIORITY_COLORS[ticket.priority] || 'bg-gray-100 text-gray-600'}`}>
           {ticket.priority.charAt(0) + ticket.priority.slice(1).toLowerCase()}
         </span>
