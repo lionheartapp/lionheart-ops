@@ -609,11 +609,11 @@ export default function Sidebar({
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
                         <motion.ul
-                          className="relative space-y-0.5 ml-8 pl-4 mt-1 border-l border-gray-600/30 overflow-hidden"
+                          className="relative space-y-0.5 ml-8 pl-4 mt-1 border-l border-gray-600/30"
                           role="list"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
+                          initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
+                          animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+                          exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
                           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                         >
                           {/* Work Orders — for Head/Admin */}
@@ -635,8 +635,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/work-orders'
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                               >
                                 <span className="text-sm">Work Orders</span>
@@ -662,8 +662,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname.includes('my-requests')
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                               >
                                 <span className="text-sm">My Requests</span>
@@ -689,8 +689,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/assets'
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                               >
@@ -717,8 +717,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/pm-calendar'
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
                               >
@@ -745,8 +745,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/analytics'
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/analytics' ? 'page' : undefined}
                               >
@@ -773,8 +773,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/compliance'
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
                               >
@@ -801,8 +801,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname === '/maintenance/board-report'
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
                               >
@@ -829,8 +829,8 @@ export default function Sidebar({
                                 }}
                                 className={`flex items-center px-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
                                   pathname.startsWith('/maintenance/knowledge-base')
-                                    ? 'text-primary-400 font-medium bg-primary-400/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'text-primary-400 font-medium'
+                                    : 'text-gray-400 hover:text-white'
                                 }`}
                                 aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                               >
