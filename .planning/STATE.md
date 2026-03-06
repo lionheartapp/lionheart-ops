@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-core-tickets/02-01-PLAN.md
-last_updated: "2026-03-06T02:45:12.296Z"
+stopped_at: Completed 02-core-tickets/02-02-PLAN.md
+last_updated: "2026-03-06T02:54:02.325Z"
 last_activity: 2026-03-05 — Roadmap created; all 101 v1 requirements mapped across 7 phases
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 5
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-foundation P01 | 3 | 2 tasks | 3 files |
 | Phase 01-foundation P02 | 6 | 2 tasks | 9 files |
 | Phase 02-core-tickets P01 | 11min | 2 tasks | 16 files |
+| Phase 02-core-tickets P02 | 6min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 02-core-tickets]: Room fields are roomNumber/displayName not name/code — corrected in all route includes and service layer
 - [Phase 02-core-tickets]: assignTicket has no specialty check (ROUTE-03) — head can assign any ticket to any tech regardless of specialty
 - [Phase 02-core-tickets]: Cron uses rawPrisma (no org context) to iterate all orgs — cross-platform maintenance tasks
+- [Phase 02-core-tickets]: Room-level entries in useCampusLocations use roomId field with hierarchy array for Building > Area > Room display
+- [Phase 02-core-tickets]: Wizard renders inline as full-area panel (not modal) for mobile usability — avoids scroll lock and z-index issues
+- [Phase 02-core-tickets]: AI suggested category auto-applies on first photo upload; user can override freely — reduces friction
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T02:45:12.294Z
-Stopped at: Completed 02-core-tickets/02-01-PLAN.md
+Last session: 2026-03-06T02:54:02.323Z
+Stopped at: Completed 02-core-tickets/02-02-PLAN.md
 Resume file: None
