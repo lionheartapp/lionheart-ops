@@ -14,9 +14,13 @@ import {
   ImageOff,
   Clock,
   Sparkles,
+  BookOpen,
+  ExternalLink,
 } from 'lucide-react'
-import { getAuthHeaders } from '@/lib/api-client'
+import { useQuery } from '@tanstack/react-query'
+import { getAuthHeaders, fetchApi } from '@/lib/api-client'
 import { expandCollapse, fadeInUp, staggerContainer } from '@/lib/animations'
+import { KBArticleTypeBadge } from '@/components/maintenance/KnowledgeBaseList'
 import type { AiDiagnosis, AiConversationTurn, AiAnalysisCache } from '@/lib/types/maintenance-ai'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -137,6 +141,29 @@ export default function AIDiagnosticPanel({
   })()
 
   const hasCachedDiagnosis = !!aiAnalysis?.diagnosis && !photosChanged
+
+  // ─── KB articles query (fires only when diagnosis is loaded) ──────────────
+
+  interface KBArticleResult {
+    id: string
+    title: string
+    type: string
+  }
+
+  const { data: kbArticles } = useQuery<KBArticleResult[]>({
+    queryKey: ['kb-articles-for-ticket', ticketId, category],
+    queryFn: () => {
+      const params = new URLSearchParams()
+      params.set('q', category)
+      params.set('category', category)
+      params.set('limit', '3')
+      return fetchApi<KBArticleResult[]>(`/api/maintenance/knowledge-base/search?${params.toString()}`)
+    },
+    enabled: !!diagnosis && isExpanded,
+    staleTime: 60_000,
+  })
+
+  const relevantArticles = kbArticles?.slice(0, 3) ?? []
 
   // ─── Expand handler ─────────────────────────────────────────────────────
 
@@ -396,6 +423,42 @@ export default function AIDiagnosticPanel({
                       </ol>
                     </motion.div>
                   )}
+                </motion.div>
+              )}
+
+              {/* ── Relevant KB articles ── */}
+              {relevantArticles.length > 0 && (
+                <motion.div
+                  variants={expandCollapse}
+                  initial="collapsed"
+                  animate="expanded"
+                  className="overflow-hidden"
+                >
+                  <div className="pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+                      <p className="text-xs font-semibold text-gray-600">Relevant Knowledge Base Articles</p>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {relevantArticles.map((article) => (
+                        <li key={article.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50/80 hover:bg-gray-100/80 transition-colors">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <KBArticleTypeBadge type={article.type} />
+                            <span className="text-xs text-gray-700 truncate">{article.title}</span>
+                          </div>
+                          <a
+                            href={`/maintenance/knowledge-base/${article.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0 flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 transition-colors"
+                          >
+                            View
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </motion.div>
               )}
 
