@@ -41,7 +41,7 @@ type TicketSnapshot = {
   assignedToId?: string | null
   building?: { name: string } | null
   area?: { name: string } | null
-  room?: { name: string; code?: string | null } | null
+  room?: { roomNumber: string; displayName?: string | null } | null
   submittedBy?: { email: string; firstName: string; lastName: string } | null
   assignedTo?: { id: string; email?: string; firstName: string; lastName: string } | null
 }
@@ -60,7 +60,7 @@ function locationString(ticket: TicketSnapshot): string {
   const parts = [
     ticket.building?.name,
     ticket.area?.name,
-    ticket.room ? `${ticket.room.name}${ticket.room.code ? ` (${ticket.room.code})` : ''}` : null,
+    ticket.room ? (ticket.room.displayName || ticket.room.roomNumber) : null,
   ].filter(Boolean)
   return parts.join(' > ') || 'Location not specified'
 }

@@ -153,6 +153,7 @@ const CreateTicketSchema = z.object({
   schoolId: z.string().optional(),
   scheduledDate: z.string().datetime().optional(),
   availabilityNote: z.string().optional(),
+  assetId: z.string().optional(),  // Optional link to a MaintenanceAsset
 })
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>
@@ -166,7 +167,7 @@ const TICKET_INCLUDES = {
   assignedTo: { select: { id: true, firstName: true, lastName: true } },
   building: { select: { id: true, name: true } },
   area: { select: { id: true, name: true } },
-  room: { select: { id: true, name: true, code: true } },
+  room: { select: { id: true, roomNumber: true, displayName: true } },
   school: { select: { id: true, name: true } },
 } as const
 
@@ -212,6 +213,7 @@ export async function createMaintenanceTicket(
       schoolId: data.schoolId,
       scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : undefined,
       availabilityNote: data.availabilityNote,
+      assetId: data.assetId ?? null,
       status: initialStatus,
       submittedById: userId,
     },

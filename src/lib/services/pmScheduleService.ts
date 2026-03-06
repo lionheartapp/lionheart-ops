@@ -48,7 +48,8 @@ export const PM_RECURRENCE_LABELS: Record<PmRecurrenceType, string> = {
 
 // ─── Zod Schemas ──────────────────────────────────────────────────────────────
 
-export const CreatePmScheduleSchema = z.object({
+// Base schema without refinement so .partial() can be used for updates
+const PmScheduleBaseSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().optional(),
   recurrenceType: z.enum(PM_RECURRENCE_TYPES),
@@ -63,12 +64,16 @@ export const CreatePmScheduleSchema = z.object({
   schoolId: z.string().optional().nullable(),
   defaultTechnicianId: z.string().optional().nullable(),
   avoidSchoolYear: z.boolean().default(false),
-}).refine(
+})
+
+// Creation schema adds refinement: CUSTOM requires intervalDays
+export const CreatePmScheduleSchema = PmScheduleBaseSchema.refine(
   (data) => data.recurrenceType !== 'CUSTOM' || (data.intervalDays != null && data.intervalDays > 0),
   { message: 'intervalDays is required for CUSTOM recurrence type', path: ['intervalDays'] }
 )
 
-export const UpdatePmScheduleSchema = CreatePmScheduleSchema.partial().extend({
+// Update schema uses base (no refinement) so .partial() works
+export const UpdatePmScheduleSchema = PmScheduleBaseSchema.partial().extend({
   isActive: z.boolean().optional(),
 })
 
