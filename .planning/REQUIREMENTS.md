@@ -118,15 +118,15 @@
 
 ### Preventive Maintenance (PM)
 
-- [ ] **PM-01**: PmSchedule model with recurrence types (DAILY through CUSTOM), interval, month selection
-- [ ] **PM-02**: PM schedules linked to assets or locations
-- [ ] **PM-03**: Default technician assignment per PM schedule
-- [ ] **PM-04**: School-year-aware scheduling (avoidSchoolYear flag)
-- [ ] **PM-05**: Configurable advance notice days (default 7) for ticket generation
+- [x] **PM-01**: PmSchedule model with recurrence types (DAILY through CUSTOM), interval, month selection
+- [x] **PM-02**: PM schedules linked to assets or locations
+- [x] **PM-03**: Default technician assignment per PM schedule
+- [x] **PM-04**: School-year-aware scheduling (avoidSchoolYear flag)
+- [x] **PM-05**: Configurable advance notice days (default 7) for ticket generation
 - [ ] **PM-06**: Auto-generated PM tickets enter TODO status with checklist items
 - [ ] **PM-07**: Checklist items must be completed before tech can move to QA
 - [ ] **PM-08**: On completion, nextDueDate recalculated from completion date (not scheduled date)
-- [ ] **PM-09**: PM Calendar view showing all upcoming scheduled maintenance
+- [x] **PM-09**: PM Calendar view showing all upcoming scheduled maintenance
 - [ ] **PM-10**: Cron job for PM ticket generation with idempotency via unique constraint (pmScheduleId + scheduledDueDate)
 
 ### Labor & Cost Tracking (LABOR)
@@ -320,15 +320,15 @@ Updated during roadmap creation — 2026-03-05.
 | QR-03 | Phase 4 | Pending |
 | QR-04 | Phase 4 | Pending |
 | QR-05 | Phase 4 | Pending |
-| PM-01 | Phase 4 | Pending |
-| PM-02 | Phase 4 | Pending |
-| PM-03 | Phase 4 | Pending |
-| PM-04 | Phase 4 | Pending |
-| PM-05 | Phase 4 | Pending |
+| PM-01 | Phase 4 | Complete |
+| PM-02 | Phase 4 | Complete |
+| PM-03 | Phase 4 | Complete |
+| PM-04 | Phase 4 | Complete |
+| PM-05 | Phase 4 | Complete |
 | PM-06 | Phase 4 | Pending |
 | PM-07 | Phase 4 | Pending |
 | PM-08 | Phase 4 | Pending |
-| PM-09 | Phase 4 | Pending |
+| PM-09 | Phase 4 | Complete |
 | PM-10 | Phase 4 | Pending |
 | LABOR-01 | Phase 4 | Complete |
 | LABOR-02 | Phase 4 | Complete |

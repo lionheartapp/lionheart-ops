@@ -154,7 +154,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Foundation | 2/2 | Complete   | 2026-03-06 |
 | 2. Core Tickets | 4/4 | Complete   | 2026-03-06 |
 | 3. Kanban & AI | 2/2 | Complete   | 2026-03-06 |
-| 4. Assets, QR & PM | 1/5 | In Progress|  |
+| 4. Assets, QR & PM | 4/5 | In Progress|  |
 | 5. Analytics & Repair Intelligence | 0/2 | Not started | - |
 | 6. Compliance & Board Reporting | 0/3 | Not started | - |
 | 7. Knowledge Base & Offline PWA | 0/3 | Not started | - |
