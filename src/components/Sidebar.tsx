@@ -334,7 +334,9 @@ export default function Sidebar({
         walker = walker.offsetParent as HTMLElement | null
       }
 
-      if (!animate) {
+      const prev = facilityPosRef.current
+
+      if (!animate || !prev) {
         // Snap into position without animation
         indicator.style.transition = 'none'
         indicator.style.top = `${top}px`
@@ -351,10 +353,25 @@ export default function Sidebar({
           })
         })
       } else {
+        // The indicator element may have been destroyed and recreated by
+        // AnimatePresence during navigation. A new DOM element has no
+        // prior CSS values, so transitions won't fire. Fix: snap to the
+        // OLD position first (no transition), force reflow, then set the
+        // NEW position with transitions enabled — giving CSS a "from" → "to".
+        indicator.style.transition = 'none'
+        indicator.style.top = `${prev.top}px`
+        indicator.style.height = `${prev.height}px`
+        indicator.style.opacity = '1'
+        indicator.offsetHeight // force reflow — commits the "from" position
+
+        // Now enable transitions and set the "to" position — this triggers the glide
+        indicator.style.transition = 'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease'
+        indicator.style.top = `${top}px`
+        indicator.style.height = `${height}px`
+
         // ── Glow trail: spans from old position to new, then fades out ──
         const trail = facilityTrailRef.current
-        const prev = facilityPosRef.current
-        if (trail && prev) {
+        if (trail) {
           const movingDown = top > prev.top
           const trailTop = Math.min(prev.top, top)
           const trailBottom = Math.max(prev.top + prev.height, top + height)
@@ -372,10 +389,6 @@ export default function Sidebar({
           trail.style.opacity = '0'
         }
 
-        // Slide main indicator to new position
-        indicator.style.top = `${top}px`
-        indicator.style.height = `${height}px`
-        indicator.style.opacity = '1'
         facilityPosRef.current = { top, height }
       }
 
