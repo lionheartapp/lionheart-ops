@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { rawPrisma, prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { assertCan, canAny } from '@/lib/auth/permissions'
+import { startOfDay } from 'date-fns'
 import type {
   MaintenanceTicketStatus,
   MaintenanceCategory,
@@ -279,6 +280,13 @@ export async function transitionTicketStatus(
 
   if (!ticket) throw new Error('TICKET_NOT_FOUND')
 
+  // Cast PM fields for type safety (Prisma returns Json/unknown for scalar arrays in extended client)
+  const pmChecklistItems = (ticket.pmChecklistItems ?? []) as string[]
+  const pmChecklistDone = (ticket.pmChecklistDone ?? []) as boolean[]
+
+  // Override ticket with typed PM fields for gate checks below
+  Object.assign(ticket, { pmChecklistItems, pmChecklistDone })
+
   const currentStatus = ticket.status as MaintenanceTicketStatus
   const transitionConfig = ALLOWED_TRANSITIONS[currentStatus]?.[newStatus]
 
@@ -301,6 +309,15 @@ export async function transitionTicketStatus(
       if (missing) {
         throw new Error(`MISSING_FIELD: ${field} is required for this transition`)
       }
+    }
+  }
+
+  // ── PM Checklist Gate: block QA transition if checklist incomplete ──────────
+  if (newStatus === 'QA' && ticket.pmScheduleId) {
+    const checklistItems = ticket.pmChecklistItems as string[]
+    const checklistDone = ticket.pmChecklistDone as boolean[]
+    if (checklistItems.length > 0 && !checklistDone.every(Boolean)) {
+      throw new Error('CHECKLIST_INCOMPLETE: Complete all PM checklist items before moving to QA')
     }
   }
 
@@ -329,6 +346,38 @@ export async function transitionTicketStatus(
     data: updateData as any,
     include: TICKET_INCLUDES,
   })
+
+  // ── PM Next-Due-Date Recalculation on DONE ───────────────────────────────
+  if (newStatus === 'DONE' && ticket.pmScheduleId) {
+    try {
+      // Lazy import to avoid circular dep — pmScheduleService imports maintenanceTicketService
+      const { computeNextDueDate } = await import('@/lib/services/pmScheduleService')
+      const pmSchedule = await rawPrisma.pmSchedule.findUnique({
+        where: { id: ticket.pmScheduleId },
+      })
+      if (pmSchedule) {
+        const completionDate = startOfDay(new Date())
+        const nextDueDate = computeNextDueDate(
+          completionDate,
+          pmSchedule.recurrenceType as any,
+          pmSchedule.intervalDays,
+          pmSchedule.months as number[]
+        )
+        await rawPrisma.pmSchedule.update({
+          where: { id: pmSchedule.id },
+          data: {
+            nextDueDate,
+            lastCompletedDate: completionDate,
+          },
+        })
+        console.log(
+          `[maintenanceTicketService] PM schedule ${pmSchedule.id} next due date updated to ${nextDueDate.toISOString()}`
+        )
+      }
+    } catch (pmErr) {
+      console.error('[maintenanceTicketService] Failed to update PM schedule next-due-date:', pmErr)
+    }
+  }
 
   // Log activity
   const activityContent =

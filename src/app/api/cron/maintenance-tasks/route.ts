@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import { notifyStaleTicket, notifyStatusChange } from '@/lib/services/maintenanceNotificationService'
+import { generatePmTickets } from '@/lib/services/pmScheduleService'
 
 export async function GET(req: NextRequest) {
   // Verify CRON_SECRET
@@ -30,8 +31,18 @@ export async function GET(req: NextRequest) {
   const now = new Date()
   let releasedCount = 0
   let alertedCount = 0
+  let pmCreatedCount = 0
 
   try {
+    // ── Task 0: Generate PM tickets for due schedules ───────────────────────
+    try {
+      pmCreatedCount = await generatePmTickets()
+      console.log(`[cron/maintenance-tasks] PM tickets generated: ${pmCreatedCount}`)
+    } catch (pmErr) {
+      console.error('[cron/maintenance-tasks] PM ticket generation failed:', pmErr)
+      // Non-fatal — continue with other tasks
+    }
+
     // ── Task 1: Release SCHEDULED tickets ──────────────────────────────────
     const scheduledTickets = await rawPrisma.maintenanceTicket.findMany({
       where: {
@@ -158,8 +169,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    console.log(`[cron/maintenance-tasks] Released: ${releasedCount}, Alerted: ${alertedCount}`)
-    return NextResponse.json(ok({ released: releasedCount, alerted: alertedCount }))
+    console.log(`[cron/maintenance-tasks] Released: ${releasedCount}, Alerted: ${alertedCount}, PM tickets: ${pmCreatedCount}`)
+    return NextResponse.json(ok({ released: releasedCount, alerted: alertedCount, pmCreated: pmCreatedCount }))
   } catch (error) {
     console.error('[cron/maintenance-tasks] Fatal error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Cron job failed'), { status: 500 })

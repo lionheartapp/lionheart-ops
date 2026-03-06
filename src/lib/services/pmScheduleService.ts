@@ -9,7 +9,8 @@
 
 import { z } from 'zod'
 import { addDays, addWeeks, addMonths, addYears, startOfDay, isBefore } from 'date-fns'
-import { prisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
+import { generateTicketNumber } from '@/lib/services/maintenanceTicketService'
 
 // ─── PM Status Constants ───────────────────────────────────────────────────────
 
@@ -375,4 +376,126 @@ export async function deletePmSchedule(orgId: string, id: string) {
   await prisma.pmSchedule.delete({
     where: { id },
   })
+}
+
+// ─── Generate PM Tickets (Cron) ───────────────────────────────────────────────
+
+/**
+ * generatePmTickets — called by the hourly cron job.
+ *
+ * Scans ALL active PmSchedules across all organizations where:
+ *   nextDueDate <= today + advanceNoticeDays
+ *
+ * For each qualifying schedule, creates a MaintenanceTicket with TODO status
+ * and the schedule's checklistItems pre-populated as pmChecklistItems.
+ *
+ * Idempotent: duplicate cron runs skip silently via @@unique([pmScheduleId, pmScheduledDueDate]).
+ *
+ * Uses rawPrisma (no org context) — cron iterates all orgs like other cron tasks.
+ */
+export async function generatePmTickets(): Promise<number> {
+  const today = startOfDay(new Date())
+  let created = 0
+
+  // Fetch all active schedules where the advance-notice window has been reached
+  const schedules = await rawPrisma.pmSchedule.findMany({
+    where: {
+      isActive: true,
+      nextDueDate: { not: null },
+    },
+    include: {
+      asset: { select: { id: true, name: true, category: true } },
+    },
+  })
+
+  const qualifying = schedules.filter((s) => {
+    if (!s.nextDueDate) return false
+    const advanceCutoff = addDays(today, s.advanceNoticeDays)
+    return !isBefore(advanceCutoff, s.nextDueDate) // nextDueDate <= today + advanceNoticeDays
+  })
+
+  for (const schedule of qualifying) {
+    try {
+      const ticketNumber = await generateTicketNumber(schedule.organizationId)
+
+      // Determine category from linked asset, or fall back to OTHER
+      const category = (schedule.asset?.category as string) || 'OTHER'
+
+      await rawPrisma.maintenanceTicket.create({
+        data: {
+          organizationId: schedule.organizationId,
+          ticketNumber,
+          title: schedule.name,
+          description: schedule.description ?? null,
+          category: category as any,
+          specialty: assetCategoryToSpecialty(category) as any,
+          priority: 'MEDIUM',
+          status: 'TODO',
+          // PM-specific fields
+          pmScheduleId: schedule.id,
+          pmScheduledDueDate: schedule.nextDueDate!,
+          pmChecklistItems: schedule.checklistItems,
+          pmChecklistDone: schedule.checklistItems.map(() => false),
+          // Location from schedule
+          assetId: schedule.assetId ?? null,
+          buildingId: schedule.buildingId ?? null,
+          areaId: schedule.areaId ?? null,
+          roomId: schedule.roomId ?? null,
+          schoolId: schedule.schoolId ?? null,
+          // Default technician from schedule
+          assignedToId: schedule.defaultTechnicianId ?? null,
+          // System-generated: submittedById needs a system user; use any org user or skip
+          // We cannot leave submittedById null (NOT NULL in schema) — use assignee or a fallback
+          submittedById: schedule.defaultTechnicianId ?? await getOrgFirstUserId(schedule.organizationId),
+        },
+      })
+
+      created++
+      console.log(`[generatePmTickets] Created ticket ${ticketNumber} for schedule ${schedule.id} (${schedule.name})`)
+    } catch (err: unknown) {
+      // Unique constraint violation = duplicate run for same schedule+date — skip silently
+      const isUniqueError =
+        err instanceof Error &&
+        (err.message.includes('Unique constraint') || (err as any).code === 'P2002')
+      if (isUniqueError) {
+        console.log(`[generatePmTickets] Skipping duplicate PM ticket for schedule ${schedule.id} due ${schedule.nextDueDate?.toISOString()}`)
+      } else {
+        console.error(`[generatePmTickets] Failed to create PM ticket for schedule ${schedule.id}:`, err)
+      }
+    }
+  }
+
+  return created
+}
+
+/**
+ * Map asset category string to maintenance specialty.
+ * Falls back to OTHER for unrecognized values.
+ */
+function assetCategoryToSpecialty(category: string): string {
+  const map: Record<string, string> = {
+    ELECTRICAL: 'ELECTRICAL',
+    PLUMBING: 'PLUMBING',
+    HVAC: 'HVAC',
+    STRUCTURAL: 'STRUCTURAL',
+    CUSTODIAL_BIOHAZARD: 'CUSTODIAL_BIOHAZARD',
+    IT_AV: 'IT_AV',
+    GROUNDS: 'GROUNDS',
+    OTHER: 'OTHER',
+  }
+  return map[category] ?? 'OTHER'
+}
+
+/**
+ * Get the ID of any non-deleted user in an organization.
+ * Used as a fallback submittedById when no default technician is set.
+ */
+async function getOrgFirstUserId(orgId: string): Promise<string> {
+  const user = await rawPrisma.user.findFirst({
+    where: { organizationId: orgId, deletedAt: null },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+  })
+  if (!user) throw new Error(`No users found in org ${orgId} for PM ticket generation`)
+  return user.id
 }
