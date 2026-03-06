@@ -139,6 +139,12 @@ export const PERMISSIONS = {
   COMPLIANCE_MANAGE: 'compliance:manage',                           // Configure domains, update records, attach docs
   COMPLIANCE_EXPORT: 'compliance:export',                           // Generate audit PDF export
 
+  // Knowledge Base
+  KB_READ: 'knowledge-base:read',                                   // View knowledge base articles
+  KB_CREATE: 'knowledge-base:create',                               // Create new articles (head, tech, admin)
+  KB_UPDATE: 'knowledge-base:update',                               // Edit existing articles
+  KB_DELETE: 'knowledge-base:delete',                               // Soft-delete articles (head, admin)
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -240,6 +246,11 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.COMPLIANCE_READ,
       PERMISSIONS.COMPLIANCE_MANAGE,
       PERMISSIONS.COMPLIANCE_EXPORT,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
+      PERMISSIONS.KB_CREATE,
+      PERMISSIONS.KB_UPDATE,
+      PERMISSIONS.KB_DELETE,
     ],
     isSystem: true,
   },
@@ -275,6 +286,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ASSETS_READ,
       // Compliance
       PERMISSIONS.COMPLIANCE_READ,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
     ],
     isSystem: true,
   },
@@ -306,6 +319,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_UPDATE_OWN,
       // Asset register
       PERMISSIONS.ASSETS_READ,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
     ],
     isSystem: true,
   },
@@ -326,6 +341,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_READ_OWN,
       // Asset register
       PERMISSIONS.ASSETS_READ,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
     ],
     isSystem: true,
   },
@@ -412,6 +429,11 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.COMPLIANCE_READ,
       PERMISSIONS.COMPLIANCE_MANAGE,
       PERMISSIONS.COMPLIANCE_EXPORT,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
+      PERMISSIONS.KB_CREATE,
+      PERMISSIONS.KB_UPDATE,
+      PERMISSIONS.KB_DELETE,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.USERS_READ,
@@ -435,6 +457,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ASSETS_READ,
       // Compliance
       PERMISSIONS.COMPLIANCE_READ,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
+      PERMISSIONS.KB_CREATE,
+      PERMISSIONS.KB_UPDATE,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.CALENDARS_READ,

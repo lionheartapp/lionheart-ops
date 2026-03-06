@@ -102,6 +102,8 @@ model Organization {
   // Compliance module relations
   complianceDomainConfigs ComplianceDomainConfig[]
   complianceRecords       ComplianceRecord[]
+  // Knowledge base module relations
+  knowledgeArticles       KnowledgeArticle[]
 
   @@index([onboardingStatus])
 }
@@ -164,6 +166,7 @@ model User {
   maintenanceLaborEntries MaintenanceLaborEntry[]
   maintenanceCostEntries  MaintenanceCostEntry[]
   pmScheduleDefaults      PmSchedule[]
+  createdArticles         KnowledgeArticle[] @relation("KBArticleCreator")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -2177,8 +2180,9 @@ model MaintenanceAsset {
   area         Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
   room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
   school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  pmSchedules  PmSchedule[]
-  tickets      MaintenanceTicket[]
+  pmSchedules       PmSchedule[]
+  tickets           MaintenanceTicket[]
+  knowledgeArticles KnowledgeArticle[]
 
   @@unique([organizationId, assetNumber])
   @@index([organizationId])
@@ -2207,16 +2211,18 @@ model PmSchedule {
   areaId              String?
   roomId              String?
   schoolId            String?
+  knowledgeArticleId  String?   // KB-05: Optional link to a knowledge base article (e.g. SOP)
   isActive            Boolean   @default(true)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  defaultTechnician User?             @relation(fields: [defaultTechnicianId], references: [id], onDelete: SetNull)
-  asset             MaintenanceAsset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
-  building          Building?         @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  area              Area?             @relation(fields: [areaId], references: [id], onDelete: SetNull)
-  room              Room?             @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  defaultTechnician User?              @relation(fields: [defaultTechnicianId], references: [id], onDelete: SetNull)
+  asset             MaintenanceAsset?  @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  building          Building?          @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  area              Area?              @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  room              Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  knowledgeArticle  KnowledgeArticle?  @relation(fields: [knowledgeArticleId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([organizationId, nextDueDate])
@@ -2316,4 +2322,42 @@ model ComplianceRecord {
   @@index([organizationId, status])
   @@index([domainConfigId])
   @@index([organizationId, deletedAt])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// KNOWLEDGE BASE MODULE
+// ═══════════════════════════════════════════════════════════════════════
+
+enum KnowledgeArticleType {
+  EQUIPMENT_GUIDE
+  PROCEDURE_SOP
+  CALCULATION_TOOL
+  SAFETY_PROTOCOL
+  VENDOR_CONTACT
+  ASSET_NOTE
+}
+
+model KnowledgeArticle {
+  id             String               @id @default(cuid())
+  organizationId String
+  title          String
+  type           KnowledgeArticleType
+  content        String               // Markdown content
+  tags           String[]             @default([])
+  assetId        String?              // Optional link to MaintenanceAsset
+  calculatorType String?              // e.g. "POND_CARE_DOSAGE" — identifies which embedded calc to render
+  isPublished    Boolean              @default(true)
+  createdById    String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User                 @relation("KBArticleCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  asset          MaintenanceAsset?    @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  pmSchedules    PmSchedule[]
+
+  @@index([organizationId, type])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, isPublished])
 }
