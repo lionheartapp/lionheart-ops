@@ -2004,6 +2004,11 @@ model MaintenanceTicket {
   version                 Int                     @default(1)
   estimatedRepairCostUSD  Float?
   staleAlertSent          Boolean                 @default(false)
+  // PM-generated ticket fields
+  pmScheduleId            String?                 // FK to PmSchedule that generated this ticket
+  pmScheduledDueDate      DateTime?               // The scheduled due date for PM completion
+  pmChecklistItems        String[]                @default([])  // Checklist item labels from the PM schedule
+  pmChecklistDone         Boolean[]               @default([])  // Parallel array: true = item checked off
   submittedById           String
   assignedToId            String?
   buildingId              String?
@@ -2026,12 +2031,14 @@ model MaintenanceTicket {
   costEntries   MaintenanceCostEntry[]
 
   @@unique([organizationId, ticketNumber])
+  @@unique([pmScheduleId, pmScheduledDueDate])  // Idempotency: one ticket per PM schedule per due date
   @@index([organizationId, status])
   @@index([organizationId, assignedToId])
   @@index([organizationId, submittedById])
   @@index([organizationId, category])
   @@index([organizationId, schoolId])
   @@index([organizationId, deletedAt])
+  @@index([pmScheduleId])
 }
 
 model MaintenanceCounter {

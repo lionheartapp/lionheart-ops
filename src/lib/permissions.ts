@@ -123,10 +123,16 @@ export const PERMISSIONS = {
   MAINTENANCE_CLAIM: 'maintenance:claim',                           // Self-claim tickets (technicians)
   MAINTENANCE_APPROVE_QA: 'maintenance:approve:qa',                 // Sign off QA to DONE (head, admin)
   MAINTENANCE_CANCEL: 'maintenance:cancel',                         // Cancel any ticket (head, admin)
-  MAINTENANCE_MANAGE_ASSETS: 'maintenance:assets:manage',           // CRUD on assets
+  MAINTENANCE_MANAGE_ASSETS: 'maintenance:assets:manage',           // CRUD on assets (legacy alias)
   MAINTENANCE_MANAGE_PM: 'maintenance:pm:manage',                   // CRUD on PM schedules
   MAINTENANCE_VIEW_ANALYTICS: 'maintenance:analytics:view',         // View analytics dashboard
   MAINTENANCE_MANAGE_TECHNICIANS: 'maintenance:technicians:manage', // Manage technician profiles
+
+  // Asset register (fine-grained)
+  ASSETS_READ: 'assets:read',                                       // View asset list and details
+  ASSETS_CREATE: 'assets:create',                                   // Create new assets
+  ASSETS_UPDATE: 'assets:update',                                   // Edit existing assets
+  ASSETS_DELETE: 'assets:delete',                                   // Soft-delete assets
 
   // Wildcard (Super Admin)
   ALL: '*:*',
@@ -220,6 +226,11 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_MANAGE_PM,
       PERMISSIONS.MAINTENANCE_VIEW_ANALYTICS,
       PERMISSIONS.MAINTENANCE_MANAGE_TECHNICIANS,
+      // Asset register
+      PERMISSIONS.ASSETS_READ,
+      PERMISSIONS.ASSETS_CREATE,
+      PERMISSIONS.ASSETS_UPDATE,
+      PERMISSIONS.ASSETS_DELETE,
     ],
     isSystem: true,
   },
@@ -251,6 +262,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_SUBMIT,
       PERMISSIONS.MAINTENANCE_READ_OWN,
       PERMISSIONS.MAINTENANCE_UPDATE_OWN,
+      // Asset register
+      PERMISSIONS.ASSETS_READ,
     ],
     isSystem: true,
   },
@@ -280,6 +293,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_SUBMIT,
       PERMISSIONS.MAINTENANCE_READ_OWN,
       PERMISSIONS.MAINTENANCE_UPDATE_OWN,
+      // Asset register
+      PERMISSIONS.ASSETS_READ,
     ],
     isSystem: true,
   },
@@ -298,6 +313,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ATHLETICS_READ,
       // Maintenance permissions
       PERMISSIONS.MAINTENANCE_READ_OWN,
+      // Asset register
+      PERMISSIONS.ASSETS_READ,
     ],
     isSystem: true,
   },
@@ -375,6 +392,11 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_MANAGE_PM,
       PERMISSIONS.MAINTENANCE_VIEW_ANALYTICS,
       PERMISSIONS.MAINTENANCE_MANAGE_TECHNICIANS,
+      // Asset register
+      PERMISSIONS.ASSETS_READ,
+      PERMISSIONS.ASSETS_CREATE,
+      PERMISSIONS.ASSETS_UPDATE,
+      PERMISSIONS.ASSETS_DELETE,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.USERS_READ,
@@ -394,6 +416,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_READ_OWN,
       PERMISSIONS.MAINTENANCE_CLAIM,
       PERMISSIONS.MAINTENANCE_UPDATE_OWN,
+      // Asset register
+      PERMISSIONS.ASSETS_READ,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.CALENDARS_READ,
