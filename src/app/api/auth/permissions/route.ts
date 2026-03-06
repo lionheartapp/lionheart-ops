@@ -30,10 +30,20 @@ export async function GET(req: NextRequest) {
   try {
     const userContext = await getUserContext(req)
 
-    const [canManageWorkspace, canWriteAthletics, canManageUsers] = await Promise.all([
+    const [
+      canManageWorkspace,
+      canWriteAthletics,
+      canManageUsers,
+      canManageMaintenance,
+      canClaimMaintenance,
+      canSubmitMaintenance,
+    ] = await Promise.all([
       canAny(userContext.userId, WORKSPACE_MANAGE_PERMISSIONS),
       canAny(userContext.userId, ATHLETICS_WRITE_PERMISSIONS),
       can(userContext.userId, PERMISSIONS.USERS_READ),
+      can(userContext.userId, PERMISSIONS.MAINTENANCE_READ_ALL),
+      can(userContext.userId, PERMISSIONS.MAINTENANCE_CLAIM),
+      can(userContext.userId, PERMISSIONS.MAINTENANCE_SUBMIT),
     ])
 
     const legacyRole = await getLegacyRole(userContext.userId)
@@ -43,6 +53,9 @@ export async function GET(req: NextRequest) {
         canManageWorkspace,
         canWriteAthletics,
         canManageUsers,
+        canManageMaintenance,
+        canClaimMaintenance,
+        canSubmitMaintenance,
         legacyRole,
       })
     )

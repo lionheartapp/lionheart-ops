@@ -7,6 +7,9 @@ interface Permissions {
   canManageWorkspace: boolean
   canWriteAthletics: boolean
   canManageUsers: boolean
+  canManageMaintenance: boolean
+  canClaimMaintenance: boolean
+  canSubmitMaintenance: boolean
   legacyRole: string | null
 }
 

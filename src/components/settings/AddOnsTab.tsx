@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { Trophy, Building2, X, Check, Plus, Settings2, Loader2 } from 'lucide-react'
+import { Trophy, Wrench, Building2, X, Check, Plus, Settings2, Loader2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface ModuleDefinition {
@@ -30,6 +30,15 @@ const MODULE_REGISTRY: ModuleDefinition[] = [
     icon: Trophy,
     color: '#f59e0b',
     gradient: 'from-amber-400 to-orange-500',
+    scope: 'campus',
+  },
+  {
+    id: 'maintenance',
+    name: 'Facilities Management',
+    description: 'Maintenance request system with ticket tracking, technician assignments, and preventive maintenance scheduling.',
+    icon: Wrench,
+    color: '#059669',
+    gradient: 'from-emerald-500 to-teal-600',
     scope: 'campus',
   },
 ]

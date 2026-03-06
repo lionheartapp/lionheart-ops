@@ -28,6 +28,8 @@ import {
   Palette,
   Trash2,
   HelpCircle,
+  Wrench,
+  ClipboardList,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -71,6 +73,7 @@ export interface CalendarSidebarData {
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons'
 export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
+export type MaintenanceTab = 'dashboard' | 'work-orders' | 'my-requests'
 
 interface AthleticsCampus {
   id: string
@@ -403,6 +406,7 @@ export default function Sidebar({
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
   const { enabled: athleticsEnabled, loading: athleticsModuleLoading } = useModuleEnabled('athletics')
+  const { enabled: maintenanceEnabled, loading: maintenanceModuleLoading } = useModuleEnabled('maintenance')
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
@@ -456,6 +460,9 @@ export default function Sidebar({
   // Check workspace permissions from server-confirmed permissions
   const { data: perms } = usePermissions()
   const canManageWorkspace = perms?.canManageWorkspace ?? false
+  const canManageMaintenance = perms?.canManageMaintenance ?? false
+  const canClaimMaintenance = perms?.canClaimMaintenance ?? false
+  const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
 
   const generalTabs = [
     { id: 'profile' as SettingsTab, label: 'My Profile', icon: User },
@@ -538,6 +545,77 @@ export default function Sidebar({
             </li>
           ) : null}
         </ul>
+
+        {/* Support section — shown when maintenance module is enabled */}
+        {!maintenanceModuleLoading && maintenanceEnabled && (
+          <>
+            <div className="px-1 mt-4 mb-1">
+              <span className="text-[11px] font-semibold tracking-wider text-gray-500 uppercase">Support</span>
+            </div>
+            <ul className="space-y-1" role="list">
+              {/* Facilities link — shown to all users with maintenance access */}
+              {(canManageMaintenance || canClaimMaintenance || canSubmitMaintenance) && (
+                <li>
+                  <PrefetchLink
+                    href="/maintenance"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                      pathname === '/maintenance' && !settingsOpen && !athleticsOpen
+                        ? 'bg-white/10 text-white font-medium border border-white/20'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                    }`}
+                    aria-current={pathname === '/maintenance' && !settingsOpen && !athleticsOpen ? 'page' : undefined}
+                  >
+                    <Wrench className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                    <span className="text-sm">Facilities</span>
+                  </PrefetchLink>
+                </li>
+              )}
+              {/* Work Orders — for Head/Admin */}
+              {canManageMaintenance && (
+                <li>
+                  <PrefetchLink
+                    href="/maintenance?tab=work-orders"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                      pathname === '/maintenance' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'work-orders'
+                        ? 'bg-white/10 text-white font-medium border border-white/20'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                    }`}
+                  >
+                    <ClipboardList className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                    <span className="text-sm">Work Orders</span>
+                  </PrefetchLink>
+                </li>
+              )}
+              {/* My Requests — for Technicians (alongside Facilities) */}
+              {canClaimMaintenance && !canManageMaintenance && (
+                <li>
+                  <PrefetchLink
+                    href="/maintenance?tab=my-requests"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827]"
+                  >
+                    <ClipboardList className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                    <span className="text-sm">My Requests</span>
+                  </PrefetchLink>
+                </li>
+              )}
+            </ul>
+          </>
+        )}
       </nav>
 
       {/* Help & Support — pinned to bottom */}
