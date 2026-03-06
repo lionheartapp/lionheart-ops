@@ -55,6 +55,7 @@
     "canvas-confetti": "^1.9.3",
     "date-fns": "^4.1.0",
     "dexie": "^4.3.0",
+    "dexie-react-hooks": "^4.2.0",
     "framer-motion": "^12.34.3",
     "html5-qrcode": "^2.3.8",
     "jose": "^6.1.3",
