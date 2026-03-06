@@ -152,10 +152,10 @@
 
 ### Repeat Repair Detection (REPAIR)
 
-- [ ] **REPAIR-01**: Auto-detect same asset repaired 3+ times in 12 months, flag with badge
-- [ ] **REPAIR-02**: Auto-detect cumulative repair cost exceeding repairThresholdPct, generate AI replace-vs-repair recommendation
-- [ ] **REPAIR-03**: Auto-detect asset age exceeding expectedLifespanYears, flag as "End of Life"
-- [ ] **REPAIR-04**: Email alerts to Head of Maintenance for all repeat repair detections
+- [x] **REPAIR-01**: Auto-detect same asset repaired 3+ times in 12 months, flag with badge
+- [x] **REPAIR-02**: Auto-detect cumulative repair cost exceeding repairThresholdPct, generate AI replace-vs-repair recommendation
+- [x] **REPAIR-03**: Auto-detect asset age exceeding expectedLifespanYears, flag as "End of Life"
+- [x] **REPAIR-04**: Email alerts to Head of Maintenance for all repeat repair detections
 
 ### Compliance Calendar (COMPLY)
 
@@ -345,10 +345,10 @@ Updated during roadmap creation — 2026-03-05.
 | ANALYTICS-06 | Phase 5 | Complete |
 | ANALYTICS-07 | Phase 5 | Complete |
 | ANALYTICS-08 | Phase 5 | Complete |
-| REPAIR-01 | Phase 5 | Pending |
-| REPAIR-02 | Phase 5 | Pending |
-| REPAIR-03 | Phase 5 | Pending |
-| REPAIR-04 | Phase 5 | Pending |
+| REPAIR-01 | Phase 5 | Complete |
+| REPAIR-02 | Phase 5 | Complete |
+| REPAIR-03 | Phase 5 | Complete |
+| REPAIR-04 | Phase 5 | Complete |
 | COMPLY-01 | Phase 6 | Pending |
 | COMPLY-02 | Phase 6 | Pending |
 | COMPLY-03 | Phase 6 | Pending |
