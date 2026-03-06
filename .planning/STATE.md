@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-06T16:11:18.744Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-06T16:24:44.524Z"
 last_activity: "2026-03-06 — Completed 02-03: Work Orders table, filters, specialty highlighting, and live dashboard stats"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 21
-  completed_plans: 14
+  completed_plans: 15
   percent: 83
 ---
 
@@ -64,6 +64,7 @@ Progress: [████████░░] 83%
 | Phase 04-assets-qr-pm P02 | 45min | 2 tasks | 20 files |
 | Phase 04-assets-qr-pm P04 | 5min | 2 tasks | 6 files |
 | Phase 05-analytics-repair-intelligence P01 | 8min | 2 tasks | 12 files |
+| Phase 05-analytics-repair-intelligence P02 | 9min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,9 @@ Recent decisions affecting current work:
 - [Phase 04-assets-qr-pm]: Lazy import for pmScheduleService in maintenanceTicketService DONE handler avoids circular dependency; generatePmTickets uses rawPrisma (no org context in cron); submittedById fallback to any active org user when no default tech set
 - [Phase 04-assets-qr-pm]: PM cron idempotency via P2002 unique constraint catch; QA gate dual-enforced client+server; nextDueDate cycles from completion date not scheduled date
 - [Phase 05-analytics-repair-intelligence]: rawPrisma in analytics service for cross-entity aggregations; campus filter resolves via school.campusId join; PM Compliance inline stat cards rather than chart
+- [Phase 05-analytics-repair-intelligence]: TenantModule uses moduleId not moduleKey; existence = enabled (no isEnabled flag)
+- [Phase 05-analytics-repair-intelligence]: Idempotency via 30-day cooldown on asset alert sentinel fields (repeatAlertSentAt, costAlertSentAt, eolAlertSentAt)
+- [Phase 05-analytics-repair-intelligence]: AI recommendation freshness check prevents redundant Anthropic API calls on cron re-runs; stored as Json? on MaintenanceAsset
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T16:11:18.742Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-06T16:24:44.521Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
