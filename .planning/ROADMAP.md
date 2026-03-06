@@ -120,12 +120,12 @@ Plans:
   4. A one-click audit export produces a PDF of all compliance records for a selected period
   5. The board report page shows live FCI score, cost per student, PM vs reactive ratio, deferred maintenance backlog, compliance status by domain, asset end-of-life forecast, and top repair cost assets
   6. Clicking "Generate Report" produces a downloadable PDF with all board metrics plus an AI-written executive narrative summary
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: Compliance record model, domain configuration, calendar population, and reminders
-- [ ] 06-02: Compliance ticket auto-generation, document attachments, and audit PDF export
-- [ ] 06-03: FCI calculation, board report page, PDF generation with AI narrative
+- [ ] 06-01-PLAN.md — Compliance record model, domain configuration, calendar population, and reminders
+- [ ] 06-02-PLAN.md — Compliance ticket auto-generation, document attachments, and audit PDF export
+- [ ] 06-03-PLAN.md — FCI calculation, board report page, PDF generation with AI narrative
 
 ### Phase 7: Knowledge Base & Offline PWA
 **Goal**: Institutional knowledge is captured and searchable in-app, and technicians can work through poor Wi-Fi with full ticket functionality offline
@@ -137,12 +137,12 @@ Plans:
   3. When a technician opens a ticket, the AI diagnostic panel surfaces relevant knowledge base articles alongside the AI diagnosis
   4. With no network connection, a technician can view their assigned tickets, create new tickets with photos stored locally, update ticket status, log labor hours, complete PM checklists, and scan QR codes against cached asset data — all queued for sync
   5. When connectivity is restored, the background sync resolves conflicts using last-write-wins for status and merge for comments, and displays a connectivity indicator in the UI at all times
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 07-01: Knowledge base model, CRUD, article types, embedded calculators, and AI panel integration
-- [ ] 07-02: PWA service worker setup (serwist/next) and offline caching strategy
-- [ ] 07-03: IndexedDB mutation queue (dexie), background sync, conflict resolution, and connectivity indicator
+- [ ] 07-01-PLAN.md — KnowledgeArticle model with 6 type enum, CRUD service + API routes, article list/editor/viewer UI, pond care dosage calculator, and AI panel KB surfacing
+- [ ] 07-02-PLAN.md — @serwist/next PWA setup, service worker with NetworkFirst/CacheFirst/StaleWhileRevalidate strategies, PWA manifest + icons, offline fallback page
+- [ ] 07-03-PLAN.md — Dexie IndexedDB mutation queue (TICKET_CREATE, STATUS_UPDATE, LABOR_LOG, COST_LOG, CHECKLIST_TOGGLE, COMMENT_ADD), background sync, last-write-wins conflict resolution, and ConnectivityIndicator in DashboardLayout header
 
 ## Progress
 
