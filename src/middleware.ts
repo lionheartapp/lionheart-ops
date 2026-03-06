@@ -56,6 +56,10 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/organizations/slug-check')) return true
   if (pathname.startsWith('/api/organizations/signup')) return true
   if (pathname.startsWith('/api/public/')) return true
+  if (pathname === '/sw.js') return true
+  if (pathname === '/manifest.json') return true
+  if (pathname === '/offline') return true
+  if (pathname.startsWith('/icons/')) return true
   return false
 }
 
