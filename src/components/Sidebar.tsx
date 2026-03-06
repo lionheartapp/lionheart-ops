@@ -682,6 +682,28 @@ export default function Sidebar({
                   </PrefetchLink>
                 </li>
               )}
+              {/* Compliance */}
+              {canManageMaintenance && (
+                <li>
+                  <PrefetchLink
+                    href="/maintenance/compliance"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-[#111827] ${
+                      pathname === '/maintenance/compliance'
+                        ? 'bg-white/10 text-white font-medium border border-white/20'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                    }`}
+                    aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
+                  >
+                    <Shield className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                    <span className="text-sm">Compliance</span>
+                  </PrefetchLink>
+                </li>
+              )}
             </ul>
           </>
         )}
