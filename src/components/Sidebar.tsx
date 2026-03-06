@@ -620,7 +620,11 @@ export default function Sidebar({
                           {canManageMaintenance && (
                             <li className="relative">
                               {pathname === '/maintenance/work-orders' && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance/work-orders"
@@ -643,7 +647,11 @@ export default function Sidebar({
                           {canClaimMaintenance && !canManageMaintenance && (
                             <li className="relative">
                               {pathname.includes('my-requests') && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance?tab=my-requests"
@@ -666,7 +674,11 @@ export default function Sidebar({
                           {canManageMaintenance && (
                             <li className="relative">
                               {pathname === '/maintenance/assets' && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance/assets"
@@ -690,7 +702,11 @@ export default function Sidebar({
                           {canManageMaintenance && (
                             <li className="relative">
                               {pathname === '/maintenance/pm-calendar' && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance/pm-calendar"
@@ -714,7 +730,11 @@ export default function Sidebar({
                           {canManageMaintenance && (
                             <li className="relative">
                               {pathname === '/maintenance/analytics' && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance/analytics"
@@ -738,7 +758,11 @@ export default function Sidebar({
                           {canManageMaintenance && (
                             <li className="relative">
                               {pathname === '/maintenance/compliance' && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance/compliance"
@@ -762,7 +786,11 @@ export default function Sidebar({
                           {canManageMaintenance && (
                             <li className="relative">
                               {pathname === '/maintenance/board-report' && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance/board-report"
@@ -786,7 +814,11 @@ export default function Sidebar({
                           {(canManageMaintenance || canClaimMaintenance) && (
                             <li className="relative">
                               {pathname.startsWith('/maintenance/knowledge-base') && (
-                                <div className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400" />
+                                <motion.div
+                                  layoutId="facilities-nav-indicator"
+                                  className="absolute left-[-1rem] top-1 bottom-1 w-[3px] rounded-full bg-primary-400"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
                               )}
                               <PrefetchLink
                                 href="/maintenance/knowledge-base"
