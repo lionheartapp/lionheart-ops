@@ -41,6 +41,14 @@ const orgScopedModels = new Set([
 	'AthleticRoster',
 	'PlayerGameStat',
 	'SportStatConfig',
+	// Maintenance module
+	'MaintenanceTicket',
+	'TechnicianProfile',
+	'MaintenanceTicketActivity',
+	'MaintenanceLaborEntry',
+	'MaintenanceCostEntry',
+	'MaintenanceAsset',
+	'PmSchedule',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -58,6 +66,9 @@ const softDeleteModels = new Set([
 	// Calendar module
 	'Calendar',
 	'CalendarEvent',
+	// Maintenance module
+	'MaintenanceTicket',
+	'MaintenanceAsset',
 ])
 
 /**

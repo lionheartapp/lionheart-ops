@@ -113,6 +113,21 @@ export const PERMISSIONS = {
   RESOURCE_REQUESTS_RESPOND: 'resource-requests:respond',
   RESOURCE_REQUESTS_MANAGE: 'resource-requests:manage',
 
+  // Maintenance
+  MAINTENANCE_SUBMIT: 'maintenance:submit',                         // Submit a maintenance request (any authenticated user)
+  MAINTENANCE_READ_OWN: 'maintenance:read:own',                     // View own submitted tickets
+  MAINTENANCE_READ_ALL: 'maintenance:read:all',                     // View all tickets (head, admin)
+  MAINTENANCE_UPDATE_OWN: 'maintenance:update:own',                 // Update own ticket (add comment, cancel own)
+  MAINTENANCE_UPDATE_ALL: 'maintenance:update:all',                 // Update any ticket
+  MAINTENANCE_ASSIGN: 'maintenance:assign',                         // Assign/reassign tickets to technicians
+  MAINTENANCE_CLAIM: 'maintenance:claim',                           // Self-claim tickets (technicians)
+  MAINTENANCE_APPROVE_QA: 'maintenance:approve:qa',                 // Sign off QA to DONE (head, admin)
+  MAINTENANCE_CANCEL: 'maintenance:cancel',                         // Cancel any ticket (head, admin)
+  MAINTENANCE_MANAGE_ASSETS: 'maintenance:assets:manage',           // CRUD on assets
+  MAINTENANCE_MANAGE_PM: 'maintenance:pm:manage',                   // CRUD on PM schedules
+  MAINTENANCE_VIEW_ANALYTICS: 'maintenance:analytics:view',         // View analytics dashboard
+  MAINTENANCE_MANAGE_TECHNICIANS: 'maintenance:technicians:manage', // Manage technician profiles
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -194,6 +209,17 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ATHLETICS_GAMES_APPROVE,
       PERMISSIONS.ATHLETICS_GAMES_SCORE,
       PERMISSIONS.ATHLETICS_READ,
+      // Maintenance permissions
+      PERMISSIONS.MAINTENANCE_SUBMIT,
+      PERMISSIONS.MAINTENANCE_READ_ALL,
+      PERMISSIONS.MAINTENANCE_UPDATE_ALL,
+      PERMISSIONS.MAINTENANCE_ASSIGN,
+      PERMISSIONS.MAINTENANCE_APPROVE_QA,
+      PERMISSIONS.MAINTENANCE_CANCEL,
+      PERMISSIONS.MAINTENANCE_MANAGE_ASSETS,
+      PERMISSIONS.MAINTENANCE_MANAGE_PM,
+      PERMISSIONS.MAINTENANCE_VIEW_ANALYTICS,
+      PERMISSIONS.MAINTENANCE_MANAGE_TECHNICIANS,
     ],
     isSystem: true,
   },
@@ -221,6 +247,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.RESOURCE_REQUESTS_CREATE,
       PERMISSIONS.RESOURCE_REQUESTS_READ_OWN,
       PERMISSIONS.ATHLETICS_READ,
+      // Maintenance permissions
+      PERMISSIONS.MAINTENANCE_SUBMIT,
+      PERMISSIONS.MAINTENANCE_READ_OWN,
+      PERMISSIONS.MAINTENANCE_UPDATE_OWN,
     ],
     isSystem: true,
   },
@@ -246,6 +276,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.RESOURCE_REQUESTS_CREATE,
       PERMISSIONS.RESOURCE_REQUESTS_READ_OWN,
       PERMISSIONS.ATHLETICS_READ,
+      // Maintenance permissions
+      PERMISSIONS.MAINTENANCE_SUBMIT,
+      PERMISSIONS.MAINTENANCE_READ_OWN,
+      PERMISSIONS.MAINTENANCE_UPDATE_OWN,
     ],
     isSystem: true,
   },
@@ -262,6 +296,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.CALENDAR_EVENTS_READ,
       PERMISSIONS.ACADEMIC_READ,
       PERMISSIONS.ATHLETICS_READ,
+      // Maintenance permissions
+      PERMISSIONS.MAINTENANCE_READ_OWN,
     ],
     isSystem: true,
   },
@@ -320,6 +356,49 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.RESOURCE_REQUESTS_CREATE,
       PERMISSIONS.RESOURCE_REQUESTS_READ_OWN,
       PERMISSIONS.SETTINGS_READ,
+    ],
+    isSystem: true,
+  },
+  MAINTENANCE_HEAD: {
+    slug: 'maintenance-head',
+    name: 'Head of Maintenance',
+    description: 'Manages the maintenance team, assigns work, approves QA, views analytics',
+    permissions: [
+      PERMISSIONS.MAINTENANCE_SUBMIT,
+      PERMISSIONS.MAINTENANCE_READ_ALL,
+      PERMISSIONS.MAINTENANCE_UPDATE_ALL,
+      PERMISSIONS.MAINTENANCE_ASSIGN,
+      PERMISSIONS.MAINTENANCE_CLAIM,
+      PERMISSIONS.MAINTENANCE_APPROVE_QA,
+      PERMISSIONS.MAINTENANCE_CANCEL,
+      PERMISSIONS.MAINTENANCE_MANAGE_ASSETS,
+      PERMISSIONS.MAINTENANCE_MANAGE_PM,
+      PERMISSIONS.MAINTENANCE_VIEW_ANALYTICS,
+      PERMISSIONS.MAINTENANCE_MANAGE_TECHNICIANS,
+      // Platform basics
+      PERMISSIONS.SETTINGS_READ,
+      PERMISSIONS.USERS_READ,
+      PERMISSIONS.TEAMS_READ,
+      PERMISSIONS.CALENDARS_READ,
+      PERMISSIONS.CALENDAR_EVENTS_READ,
+      PERMISSIONS.ACADEMIC_READ,
+    ],
+    isSystem: true,
+  },
+  MAINTENANCE_TECHNICIAN: {
+    slug: 'maintenance-technician',
+    name: 'Maintenance Technician',
+    description: 'Works on assigned tickets, self-claims matching specialty, logs labor',
+    permissions: [
+      PERMISSIONS.MAINTENANCE_SUBMIT,
+      PERMISSIONS.MAINTENANCE_READ_OWN,
+      PERMISSIONS.MAINTENANCE_CLAIM,
+      PERMISSIONS.MAINTENANCE_UPDATE_OWN,
+      // Platform basics
+      PERMISSIONS.SETTINGS_READ,
+      PERMISSIONS.CALENDARS_READ,
+      PERMISSIONS.CALENDAR_EVENTS_READ,
+      PERMISSIONS.ACADEMIC_READ,
     ],
     isSystem: true,
   },
