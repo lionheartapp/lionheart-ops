@@ -150,9 +150,9 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
   const noopSlot = useCallback((_s: Date, _e: Date) => {}, [])
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-[calc(100vh-12rem)]">
       {/* Toolbar — matches CalendarToolbar visual style */}
-      <div className="pb-2">
+      <div className="flex-shrink-0 pb-2">
         {/* Zone 1: Navigation bar */}
         <div className="flex items-center justify-between gap-2 pb-4">
           {/* Left: Title */}
@@ -273,7 +273,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-gray-500">
+      <div className="flex-shrink-0 flex items-center gap-4 text-xs text-gray-500 py-3">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
           Upcoming
@@ -288,16 +288,16 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
         </div>
       </div>
 
-      {/* Calendar view */}
+      {/* Calendar view — fills remaining height */}
       {isLoading ? (
-        <div className="ui-glass p-8 animate-pulse">
-          <div className="h-96 bg-gray-100 rounded-xl" />
+        <div className="flex-1 min-h-0 ui-glass p-8 animate-pulse">
+          <div className="h-full bg-gray-100 rounded-xl" />
         </div>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="ui-glass overflow-hidden"
+          className="flex-1 min-h-0 flex flex-col ui-glass overflow-hidden"
         >
           {view === 'month' && (
             <MonthView

@@ -109,6 +109,8 @@ export default function Sidebar({
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
   const [facilitiesOpen, setFacilitiesOpen] = useState(false)
+  const facilitiesListRef = useRef<HTMLUListElement>(null)
+  const [facilityIndicator, setFacilityIndicator] = useState<{ top: number; height: number } | null>(null)
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
 
@@ -243,6 +245,26 @@ export default function Sidebar({
       setFacilitiesOpen(true)
     }
   }, [pathname])
+
+  // Measure active facility child link position for animated indicator
+  useEffect(() => {
+    if (!facilitiesOpen || !facilitiesListRef.current) {
+      setFacilityIndicator(null)
+      return
+    }
+    // Small delay to let expand animation settle
+    const timer = setTimeout(() => {
+      const list = facilitiesListRef.current
+      if (!list) return
+      const activeEl = list.querySelector('[data-facility-active="true"]') as HTMLElement | null
+      if (activeEl) {
+        setFacilityIndicator({ top: activeEl.offsetTop, height: activeEl.offsetHeight })
+      } else {
+        setFacilityIndicator(null)
+      }
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [facilitiesOpen, pathname])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
@@ -608,16 +630,27 @@ export default function Sidebar({
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
                         <motion.ul
-                          className="space-y-0.5 ml-8 pl-4 mt-1 border-l-2 border-primary-500/50 overflow-hidden"
+                          ref={facilitiesListRef}
+                          className="relative space-y-0.5 ml-8 pl-4 mt-1 border-l border-gray-600/30 overflow-hidden"
                           role="list"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                         >
+                          {/* Animated gradient indicator bar */}
+                          {facilityIndicator && (
+                            <motion.div
+                              className="absolute left-0 w-[2px] -ml-px rounded-full bg-gradient-to-b from-primary-300 to-primary-600"
+                              initial={false}
+                              animate={{ top: facilityIndicator.top, height: facilityIndicator.height }}
+                              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                              style={{ zIndex: 1 }}
+                            />
+                          )}
                           {/* Work Orders — for Head/Admin */}
                           {canManageMaintenance && (
-                            <li>
+                            <li data-facility-active={pathname === '/maintenance/work-orders' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/work-orders"
                                 onClick={() => {
@@ -637,7 +670,7 @@ export default function Sidebar({
                           )}
                           {/* My Requests — for Technicians */}
                           {canClaimMaintenance && !canManageMaintenance && (
-                            <li>
+                            <li data-facility-active={pathname.includes('my-requests') || undefined}>
                               <PrefetchLink
                                 href="/maintenance?tab=my-requests"
                                 onClick={() => {
@@ -653,7 +686,7 @@ export default function Sidebar({
                           )}
                           {/* Assets */}
                           {canManageMaintenance && (
-                            <li>
+                            <li data-facility-active={pathname === '/maintenance/assets' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/assets"
                                 onClick={() => {
@@ -674,7 +707,7 @@ export default function Sidebar({
                           )}
                           {/* PM Calendar */}
                           {canManageMaintenance && (
-                            <li>
+                            <li data-facility-active={pathname === '/maintenance/pm-calendar' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/pm-calendar"
                                 onClick={() => {
@@ -695,7 +728,7 @@ export default function Sidebar({
                           )}
                           {/* Analytics */}
                           {canManageMaintenance && (
-                            <li>
+                            <li data-facility-active={pathname === '/maintenance/analytics' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/analytics"
                                 onClick={() => {
@@ -716,7 +749,7 @@ export default function Sidebar({
                           )}
                           {/* Compliance */}
                           {canManageMaintenance && (
-                            <li>
+                            <li data-facility-active={pathname === '/maintenance/compliance' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/compliance"
                                 onClick={() => {
@@ -737,7 +770,7 @@ export default function Sidebar({
                           )}
                           {/* Board Report */}
                           {canManageMaintenance && (
-                            <li>
+                            <li data-facility-active={pathname === '/maintenance/board-report' || undefined}>
                               <PrefetchLink
                                 href="/maintenance/board-report"
                                 onClick={() => {
@@ -758,7 +791,7 @@ export default function Sidebar({
                           )}
                           {/* Knowledge Base */}
                           {(canManageMaintenance || canClaimMaintenance) && (
-                            <li>
+                            <li data-facility-active={pathname.startsWith('/maintenance/knowledge-base') || undefined}>
                               <PrefetchLink
                                 href="/maintenance/knowledge-base"
                                 onClick={() => {
