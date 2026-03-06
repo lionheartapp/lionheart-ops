@@ -32,6 +32,9 @@ import TicketActivityFeed from './TicketActivityFeed'
 import HoldReasonInlineForm from './HoldReasonInlineForm'
 import QACompletionModal from './QACompletionModal'
 import QAReviewPanel from './QAReviewPanel'
+import AIDiagnosticPanel from './AIDiagnosticPanel'
+import PPESafetyPanel from './PPESafetyPanel'
+import type { AiAnalysisCache } from '@/lib/types/maintenance-ai'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,6 +59,7 @@ interface MaintenanceTicket {
   priority: string
   category: string
   photos: string[]
+  aiAnalysis?: unknown | null
   completionPhotos?: string[]
   completionNote?: string | null
   holdReason?: HoldReason | null
@@ -767,6 +771,23 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                 />
               </motion.div>
             )}
+
+            {/* PPE & Safety Panel (Custodial/Biohazard tickets only) */}
+            {ticket.category === 'CUSTODIAL_BIOHAZARD' && (
+              <motion.div variants={fadeInUp}>
+                <PPESafetyPanel category={ticket.category} />
+              </motion.div>
+            )}
+
+            {/* AI Diagnostics Panel (lazy-loads on expand) */}
+            <motion.div variants={fadeInUp}>
+              <AIDiagnosticPanel
+                ticketId={ticket.id}
+                photos={ticket.photos}
+                category={ticket.category}
+                aiAnalysis={ticket.aiAnalysis as AiAnalysisCache | null}
+              />
+            </motion.div>
 
             {/* Activity feed */}
             <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
