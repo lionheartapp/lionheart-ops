@@ -103,11 +103,11 @@ Plans:
   3. When cumulative repair costs on an asset exceed the configured threshold percentage of replacement cost, the system generates an AI replace-vs-repair recommendation via Claude
   4. An asset whose age exceeds its expected lifespan is flagged as "End of Life" on the asset record
   5. The Head of Maintenance receives an email alert for each of the three repeat repair detection triggers
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Analytics service, API routes, and dashboard with Recharts charts
-- [ ] 05-02: Repeat repair detection service, AI replace-vs-repair recommendation, and email alerts
+- [ ] 05-01-PLAN.md — Analytics service with 8 aggregation queries, single API route, and dashboard page with Recharts charts
+- [ ] 05-02-PLAN.md — Repeat repair detection service, AI replace-vs-repair recommendation (Anthropic Claude), email alerts, and badge display on asset detail and ticket cards
 
 ### Phase 6: Compliance & Board Reporting
 **Goal**: The school is never caught off-guard by a compliance deadline, and the Head can hand a board-ready FCI report to the superintendent in one click
