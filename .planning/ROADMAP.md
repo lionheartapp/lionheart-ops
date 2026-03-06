@@ -12,7 +12,7 @@ This roadmap delivers a complete K-12 CMMS on top of the existing Lionheart plat
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Schema, permissions, org-scope registration, module gate, and navigation shell
+- [x] **Phase 1: Foundation** - Schema, permissions, org-scope registration, module gate, and navigation shell (completed 2026-03-06)
 - [ ] **Phase 2: Core Tickets** - Mobile-first ticket submission, 8-status lifecycle, specialty routing, and all notifications
 - [ ] **Phase 3: Kanban & AI** - Drag-and-drop Kanban board with all views, AI photo diagnosis, and activity feed
 - [ ] **Phase 4: Assets, QR & PM** - Asset register, QR codes, preventive maintenance scheduling, and labor/cost tracking
@@ -149,7 +149,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/2 | In Progress|  |
+| 1. Foundation | 2/2 | Complete   | 2026-03-06 |
 | 2. Core Tickets | 0/4 | Not started | - |
 | 3. Kanban & AI | 0/2 | Not started | - |
 | 4. Assets, QR & PM | 0/3 | Not started | - |

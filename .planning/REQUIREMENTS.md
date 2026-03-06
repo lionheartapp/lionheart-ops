@@ -94,10 +94,10 @@
 
 ### Module & Navigation (NAV)
 
-- [ ] **NAV-01**: Maintenance module gated behind AddOns toggle
-- [ ] **NAV-02**: Sidebar navigation shows Maintenance section when module enabled
-- [ ] **NAV-03**: Maintenance landing page with Head dashboard overview
-- [ ] **NAV-04**: Mobile-responsive layout for all maintenance views
+- [x] **NAV-01**: Maintenance module gated behind AddOns toggle
+- [x] **NAV-02**: Sidebar navigation shows Maintenance section when module enabled
+- [x] **NAV-03**: Maintenance landing page with Head dashboard overview
+- [x] **NAV-04**: Mobile-responsive layout for all maintenance views
 
 ### Asset Register (ASSET)
 
@@ -249,10 +249,10 @@ Updated during roadmap creation — 2026-03-05.
 | SCHEMA-05 | Phase 1 | Complete |
 | SCHEMA-06 | Phase 1 | Complete |
 | SCHEMA-07 | Phase 1 | Complete |
-| NAV-01 | Phase 1 | Pending |
-| NAV-02 | Phase 1 | Pending |
-| NAV-03 | Phase 1 | Pending |
-| NAV-04 | Phase 1 | Pending |
+| NAV-01 | Phase 1 | Complete |
+| NAV-02 | Phase 1 | Complete |
+| NAV-03 | Phase 1 | Complete |
+| NAV-04 | Phase 1 | Complete |
 | SUBMIT-01 | Phase 2 | Pending |
 | SUBMIT-02 | Phase 2 | Pending |
 | SUBMIT-03 | Phase 2 | Pending |
