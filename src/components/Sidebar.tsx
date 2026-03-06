@@ -138,7 +138,7 @@ export default function Sidebar({
   }, [])
 
   // Ref callback: detects when the facilities container mounts/unmounts in the DOM
-  // (it only renders after async module + permission checks resolve)
+  // Also measures the scroll height for CSS max-height collapse animation.
   const facilitiesContainerRefCb: RefCallback<HTMLDivElement> = useCallback((node) => {
     if (node && node.offsetParent === null) return // skip display:none (mobile on desktop)
     facilitiesContainerRef.current = node
@@ -293,13 +293,17 @@ export default function Sidebar({
   // rendered by canManageMaintenance/canClaimMaintenance. Without permissions in deps,
   // the effect would not re-run when the async permission query resolves and the active
   // nav item appears in the DOM for the first time.
+  //
+  // KEY DESIGN: The Facilities section uses CSS max-height for collapse instead of
+  // AnimatePresence. This keeps the indicator DOM element alive across navigations,
+  // allowing CSS transitions to work naturally (just like the standalone HTML prototype).
   useEffect(() => {
-    if (!facilitiesOpen || !facilityContainerMounted) {
-      // Don't reset facilityMeasuredRef here — the section briefly closes
-      // and re-opens during Next.js page transitions. Resetting it causes
-      // the indicator to snap instead of animating on every navigation.
-      // facilityPosRef is also preserved so the glow trail knows where
-      // the indicator was before the transition.
+    if (!facilityContainerMounted) return
+
+    // Hide indicator when section is collapsed
+    if (!facilitiesOpen) {
+      const indicator = facilityIndicatorRef.current
+      if (indicator) indicator.style.opacity = '0'
       return
     }
 
@@ -322,11 +326,7 @@ export default function Sidebar({
       const height = activeEl.offsetHeight
       if (height < 1) return false // element not laid out yet
 
-      // Use offsetTop walk instead of getBoundingClientRect.
-      // Framer Motion's AnimatePresence can leave the container's reported
-      // height at 0 (via getBoundingClientRect) even when children are
-      // fully visible. offsetTop is immune to this because it's relative
-      // to the offsetParent, not the viewport.
+      // Walk offsetTop chain to get position relative to container
       let top = 0
       let walker: HTMLElement | null = activeEl
       while (walker && walker !== container) {
@@ -337,37 +337,37 @@ export default function Sidebar({
       const prev = facilityPosRef.current
 
       if (!animate || !prev) {
-        // Snap into position without animation
+        // First time: snap into position without animation
         indicator.style.transition = 'none'
         indicator.style.top = `${top}px`
         indicator.style.height = `${height}px`
         indicator.style.opacity = '1'
         facilityPosRef.current = { top, height }
 
-        // Restore transitions after browser paints the position
+        // Restore transitions after browser paints the snapped position.
+        // Double-rAF ensures the browser has painted before re-enabling transitions.
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             if (facilityIndicatorRef.current) {
-              facilityIndicatorRef.current.style.transition = ''
+              facilityIndicatorRef.current.style.transition =
+                'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+                'height 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+                'opacity 0.2s ease'
             }
           })
         })
       } else {
-        // The indicator element may have been destroyed and recreated by
-        // AnimatePresence during navigation. A new DOM element has no
-        // prior CSS values, so transitions won't fire. Fix: snap to the
-        // OLD position first (no transition), force reflow, then set the
-        // NEW position with transitions enabled — giving CSS a "from" → "to".
-        indicator.style.transition = 'none'
-        indicator.style.top = `${prev.top}px`
-        indicator.style.height = `${prev.height}px`
-        indicator.style.opacity = '1'
-        indicator.offsetHeight // force reflow — commits the "from" position
-
-        // Now enable transitions and set the "to" position — this triggers the glide
-        indicator.style.transition = 'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease'
+        // Subsequent navigations: the DOM element persists (no AnimatePresence
+        // destruction), so it already has its current CSS top/height values.
+        // Simply setting new values with the transition property active will
+        // trigger a smooth glide — exactly like the standalone HTML prototype.
+        indicator.style.transition =
+          'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+          'height 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+          'opacity 0.2s ease'
         indicator.style.top = `${top}px`
         indicator.style.height = `${height}px`
+        indicator.style.opacity = '1'
 
         // ── Glow trail: spans from old position to new, then fades out ──
         const trail = facilityTrailRef.current
@@ -395,17 +395,10 @@ export default function Sidebar({
       return true
     }
 
-    // Try at two points:
-    //   t1 (50ms)  — catches the common case where the container is already full height
-    //   t2 (300ms) — fallback for when AnimatePresence is animating open (200ms duration)
-    //
-    // When alreadyMeasured=true (pathname changed, user navigated between items):
-    //   - use animate=true in t1 for a smooth slide transition
-    //
-    // When alreadyMeasured=false (first render OR permissions just loaded):
-    //   - use animate=false so the indicator snaps in place instead of flying from top:0
-    //
-    // t2 always uses animate=false as a snap fallback (covers open-animation timing).
+    // Try at three points to handle timing edge cases:
+    //   t1 (50ms)  — catches the common case where the container is fully laid out
+    //   t2 (300ms) — fallback for CSS max-height transition (200ms duration)
+    //   t3 (600ms) — last resort safety net
     let t1Succeeded = false
     const t1 = setTimeout(() => {
       t1Succeeded = positionIndicator(alreadyMeasured)
@@ -762,17 +755,19 @@ export default function Sidebar({
                       <ChevronDown className="w-4 h-4 text-gray-600" aria-hidden="true" />
                     </motion.span>
                   </button>
-                  {/* Child links — collapsible with animated gradient indicator */}
-                    <AnimatePresence initial={false}>
-                      {facilitiesOpen && (
-                        <motion.div
-                          ref={facilitiesContainerRefCb}
-                          className="relative ml-8 mt-1 overflow-hidden"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                        >
+                  {/* Child links — collapsible with animated gradient indicator.
+                      Uses CSS max-height instead of AnimatePresence so the indicator
+                      DOM element persists across navigations, enabling smooth CSS
+                      transitions (exactly like the standalone HTML prototype). */}
+                    <div
+                      ref={facilitiesContainerRefCb}
+                      className="relative ml-8 mt-1 overflow-hidden"
+                      style={{
+                        maxHeight: facilitiesOpen ? '600px' : '0px',
+                        opacity: facilitiesOpen ? 1 : 0,
+                        transition: 'max-height 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.2s ease',
+                      }}
+                    >
                           {/* Track line */}
                           <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
 
@@ -787,16 +782,15 @@ export default function Sidebar({
                           />
 
                           {/* Animated gradient indicator.
-                              NOTE: opacity, top, and height are set imperatively via ref.
-                              Do NOT put opacity in this style prop — React re-renders will
-                              reset it to 0 and kill the indicator. */}
+                              NOTE: opacity, top, height, and transition are ALL set
+                              imperatively via ref. Do NOT put them in the style prop —
+                              React re-renders will override the imperative values. */}
                           <div
                             ref={facilityIndicatorRefCb}
                             className="absolute left-0 w-0.5 rounded-full pointer-events-none"
                             style={{
                               background: 'linear-gradient(180deg, #A78BFA 0%, #EC4899 100%)',
                               boxShadow: '0 0 8px rgba(167, 139, 250, 0.5), 0 0 16px rgba(236, 72, 153, 0.25)',
-                              transition: 'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease',
                             }}
                           />
 
@@ -978,9 +972,7 @@ export default function Sidebar({
                               </PrefetchLink>
                           )}
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    </div>
                   </>
                   ) : (
                     /* Submit-only users — simple link to maintenance */
