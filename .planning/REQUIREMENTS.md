@@ -159,10 +159,10 @@
 
 ### Compliance Calendar (COMPLY)
 
-- [ ] **COMPLY-01**: ComplianceRecord model with 10 regulatory domains (AHERA, Fire Safety, Playground, Lead Water, Boiler, Elevator, Kitchen, ADA, Radon, IPM)
-- [ ] **COMPLY-02**: Admin configures which compliance domains apply to their school
-- [ ] **COMPLY-03**: System auto-populates compliance calendar with deadlines for the school year
-- [ ] **COMPLY-04**: 30-day and 7-day email reminders to Head and Admin
+- [x] **COMPLY-01**: ComplianceRecord model with 10 regulatory domains (AHERA, Fire Safety, Playground, Lead Water, Boiler, Elevator, Kitchen, ADA, Radon, IPM)
+- [x] **COMPLY-02**: Admin configures which compliance domains apply to their school
+- [x] **COMPLY-03**: System auto-populates compliance calendar with deadlines for the school year
+- [x] **COMPLY-04**: 30-day and 7-day email reminders to Head and Admin
 - [ ] **COMPLY-05**: Each compliance event generates a ticket or PM work order automatically
 - [ ] **COMPLY-06**: Failed inspection auto-generates follow-up remediation ticket
 - [ ] **COMPLY-07**: Documentation attachment to compliance records (photos, lab results, certificates)
@@ -349,10 +349,10 @@ Updated during roadmap creation — 2026-03-05.
 | REPAIR-02 | Phase 5 | Complete |
 | REPAIR-03 | Phase 5 | Complete |
 | REPAIR-04 | Phase 5 | Complete |
-| COMPLY-01 | Phase 6 | Pending |
-| COMPLY-02 | Phase 6 | Pending |
-| COMPLY-03 | Phase 6 | Pending |
-| COMPLY-04 | Phase 6 | Pending |
+| COMPLY-01 | Phase 6 | Complete |
+| COMPLY-02 | Phase 6 | Complete |
+| COMPLY-03 | Phase 6 | Complete |
+| COMPLY-04 | Phase 6 | Complete |
 | COMPLY-05 | Phase 6 | Pending |
 | COMPLY-06 | Phase 6 | Pending |
 | COMPLY-07 | Phase 6 | Pending |

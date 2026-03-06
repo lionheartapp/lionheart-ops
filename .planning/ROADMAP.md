@@ -156,5 +156,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Kanban & AI | 2/2 | Complete   | 2026-03-06 |
 | 4. Assets, QR & PM | 4/5 | In Progress|  |
 | 5. Analytics & Repair Intelligence | 2/2 | Complete   | 2026-03-06 |
-| 6. Compliance & Board Reporting | 0/3 | Not started | - |
+| 6. Compliance & Board Reporting | 1/3 | In Progress|  |
 | 7. Knowledge Base & Offline PWA | 0/3 | Not started | - |
