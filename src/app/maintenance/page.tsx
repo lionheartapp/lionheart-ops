@@ -13,6 +13,7 @@ import ModuleGate from '@/components/ModuleGate'
 import MaintenanceSkeleton from '@/components/maintenance/MaintenanceSkeleton'
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
 import MyRequestsView from '@/components/maintenance/MyRequestsView'
+import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
 import { LayoutDashboard, ClipboardList, FileText } from 'lucide-react'
 import type { MaintenanceTab } from '@/components/Sidebar'
 
@@ -240,11 +241,10 @@ function MaintenanceContent() {
                   className={activeTab === 'work-orders' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
                   aria-hidden={activeTab !== 'work-orders'}
                 >
-                  <div className="ui-glass rounded-2xl p-8 text-center">
-                    <ClipboardList className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Work Orders</h3>
-                    <p className="text-sm text-gray-500">Ticket management coming in Phase 2</p>
-                  </div>
+                  <WorkOrdersView
+                    activeCampusId={activeCampusId}
+                    campuses={enabledCampuses}
+                  />
                 </div>
 
                 <div
