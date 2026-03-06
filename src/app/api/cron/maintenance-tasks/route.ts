@@ -13,6 +13,7 @@ import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import { notifyStaleTicket, notifyStatusChange } from '@/lib/services/maintenanceNotificationService'
 import { generatePmTickets } from '@/lib/services/pmScheduleService'
+import { runRepeatRepairDetection } from '@/lib/services/repeatRepairService'
 
 export async function GET(req: NextRequest) {
   // Verify CRON_SECRET
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest) {
   let releasedCount = 0
   let alertedCount = 0
   let pmCreatedCount = 0
+  let repairDetectedCount = 0
 
   try {
     // ── Task 0: Generate PM tickets for due schedules ───────────────────────
@@ -169,8 +171,29 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    console.log(`[cron/maintenance-tasks] Released: ${releasedCount}, Alerted: ${alertedCount}, PM tickets: ${pmCreatedCount}`)
-    return NextResponse.json(ok({ released: releasedCount, alerted: alertedCount, pmCreated: pmCreatedCount }))
+    // ── Task 3: Repeat repair detection ────────────────────────────────────────
+    try {
+      // Get distinct org IDs that have the maintenance module enabled
+      // TenantModule existence = enabled; uses moduleId field
+      const orgsWithMaintenance = await rawPrisma.tenantModule.findMany({
+        where: { moduleId: 'maintenance' },
+        select: { organizationId: true },
+      })
+      for (const { organizationId } of orgsWithMaintenance) {
+        try {
+          const result = await runRepeatRepairDetection(organizationId)
+          repairDetectedCount += result.repeatRepair + result.costThreshold + result.endOfLife
+        } catch (orgErr) {
+          console.error(`[cron] Repair detection failed for org ${organizationId}:`, orgErr)
+        }
+      }
+      console.log(`[cron/maintenance-tasks] Repair detections triggered: ${repairDetectedCount}`)
+    } catch (repairErr) {
+      console.error('[cron/maintenance-tasks] Repair detection task failed:', repairErr)
+    }
+
+    console.log(`[cron/maintenance-tasks] Released: ${releasedCount}, Alerted: ${alertedCount}, PM tickets: ${pmCreatedCount}, Repair detections: ${repairDetectedCount}`)
+    return NextResponse.json(ok({ released: releasedCount, alerted: alertedCount, pmCreated: pmCreatedCount, repairDetected: repairDetectedCount }))
   } catch (error) {
     console.error('[cron/maintenance-tasks] Fatal error:', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Cron job failed'), { status: 500 })

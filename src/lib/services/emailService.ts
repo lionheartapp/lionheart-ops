@@ -440,3 +440,73 @@ export async function sendMaintenanceQARejectedEmail(
     appUrl: getAppUrl(),
   })
 }
+
+// ─── Maintenance Asset Intelligence Alert Emails ───────────────────────────────
+
+type RepeatRepairAlertInput = {
+  to: string
+  assetName: string
+  assetNumber: string
+  repairCount: number
+  assetUrl: string
+}
+
+type CostThresholdAlertInput = {
+  to: string
+  assetName: string
+  assetNumber: string
+  cumulativeCost: number
+  replacementCost: number
+  pct: number
+  recommendation: string
+  assetUrl: string
+}
+
+type EndOfLifeAlertInput = {
+  to: string
+  assetName: string
+  assetNumber: string
+  purchaseYear: string
+  expectedLifespan: number
+  assetUrl: string
+}
+
+export async function sendRepeatRepairAlertEmail(
+  input: RepeatRepairAlertInput
+): Promise<SendEmailResult> {
+  return sendBrandedEmail('maintenance_repeat_repair', input.to, {
+    assetName: input.assetName,
+    assetNumber: input.assetNumber,
+    repairCount: String(input.repairCount),
+    assetUrl: input.assetUrl,
+    appUrl: getAppUrl(),
+  })
+}
+
+export async function sendCostThresholdAlertEmail(
+  input: CostThresholdAlertInput
+): Promise<SendEmailResult> {
+  return sendBrandedEmail('maintenance_cost_threshold', input.to, {
+    assetName: input.assetName,
+    assetNumber: input.assetNumber,
+    cumulativeCost: input.cumulativeCost.toFixed(2),
+    replacementCost: input.replacementCost.toFixed(2),
+    pct: Math.round(input.pct * 100).toString(),
+    recommendation: input.recommendation,
+    assetUrl: input.assetUrl,
+    appUrl: getAppUrl(),
+  })
+}
+
+export async function sendEndOfLifeAlertEmail(
+  input: EndOfLifeAlertInput
+): Promise<SendEmailResult> {
+  return sendBrandedEmail('maintenance_end_of_life', input.to, {
+    assetName: input.assetName,
+    assetNumber: input.assetNumber,
+    purchaseYear: input.purchaseYear,
+    expectedLifespan: String(input.expectedLifespan),
+    assetUrl: input.assetUrl,
+    appUrl: getAppUrl(),
+  })
+}

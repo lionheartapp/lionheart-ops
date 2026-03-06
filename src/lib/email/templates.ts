@@ -224,6 +224,10 @@ export type EmailTemplate =
   | 'maintenance_urgent'
   | 'maintenance_stale'
   | 'maintenance_qa_rejected'
+  // Maintenance asset intelligence alerts (3 triggers)
+  | 'maintenance_repeat_repair'
+  | 'maintenance_cost_threshold'
+  | 'maintenance_end_of_life'
 
 type TemplateVars = Record<string, string | undefined>
 
@@ -591,6 +595,69 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         ].join('\n'),
       })
 
+    // ── Maintenance: Repeat Repair Alert ──
+    case 'maintenance_repeat_repair':
+      return wrapLayout({
+        previewText: 'Asset {{assetName}} has had {{repairCount}} repairs in the last 12 months',
+        content: [
+          heroHeading('- Asset Alert -', 'Repeat Repair<br />Detected'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Asset <strong>{{assetName}}</strong> ({{assetNumber}}) has required <strong>{{repairCount}} repairs</strong> in the past 12 months, indicating a pattern of recurring failures.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>Asset:</strong> {{assetName}} ({{assetNumber}})<br /><br /><strong>Repairs in Last 12 Months:</strong> {{repairCount}}<br /><br />Consider scheduling a full inspection or evaluating replacement to prevent ongoing maintenance costs.`,
+            B.redLight,
+            B.red
+          ),
+          centeredCta('View Asset', '{{assetUrl}}', B.green),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: Cost Threshold Alert ──
+    case 'maintenance_cost_threshold':
+      return wrapLayout({
+        previewText: 'Repair costs for {{assetName}} have exceeded the replacement threshold',
+        content: [
+          heroHeading('- Cost Alert -', 'Repair Cost<br />Threshold Exceeded'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Cumulative repair costs for <strong>{{assetName}}</strong> have exceeded <strong>{{pct}}%</strong> of its replacement cost, triggering a replace-vs-repair review.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            '<strong>Asset:</strong> {{assetName}} ({{assetNumber}})<br /><br /><strong>Cumulative Repair Cost:</strong> ${{cumulativeCost}}<br /><strong>Replacement Cost:</strong> ${{replacementCost}}<br /><strong>Threshold:</strong> {{pct}}%<br /><br /><strong>AI Recommendation:</strong><br />{{recommendation}}',
+            B.redLight,
+            B.red
+          ),
+          centeredCta('View Asset', '{{assetUrl}}', B.green),
+        ].join('\n'),
+      })
+
+    // ── Maintenance: End of Life Alert ──
+    case 'maintenance_end_of_life':
+      return wrapLayout({
+        previewText: 'Asset {{assetName}} has reached its expected end of life',
+        content: [
+          heroHeading('- Lifecycle Alert -', 'Asset End<br />of Life Reached'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Asset <strong>{{assetName}}</strong> has exceeded its expected lifespan of <strong>{{expectedLifespan}} years</strong> and may require replacement evaluation.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>Asset:</strong> {{assetName}} ({{assetNumber}})<br /><br /><strong>Purchase Year:</strong> {{purchaseYear}}<br /><strong>Expected Lifespan:</strong> {{expectedLifespan}} years<br /><br />Please evaluate whether to continue operating, schedule a major overhaul, or initiate the replacement process.`,
+            B.gray100,
+            B.gray500
+          ),
+          centeredCta('View Asset', '{{assetUrl}}', B.green),
+        ].join('\n'),
+      })
+
     default:
       throw new Error(`Unknown email template: ${template}`)
   }
@@ -627,6 +694,10 @@ const SUBJECTS: Record<EmailTemplate, string> = {
   maintenance_urgent: 'URGENT maintenance request: {{ticketNumber}}',
   maintenance_stale: 'Action required: Unassigned ticket {{ticketNumber}}',
   maintenance_qa_rejected: 'QA not approved for {{ticketNumber}}',
+  // Maintenance asset intelligence alerts
+  maintenance_repeat_repair: 'Repeat Repair Alert: {{assetName}}',
+  maintenance_cost_threshold: 'Repair Cost Threshold Exceeded: {{assetName}}',
+  maintenance_end_of_life: 'Asset End of Life: {{assetName}}',
 }
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
@@ -648,6 +719,10 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
   maintenance_urgent: 'URGENT: Maintenance request {{ticketNumber}} "{{ticketTitle}}" requires immediate attention. Category: {{category}}. View: {{ticketLink}}',
   maintenance_stale: 'Ticket {{ticketNumber}} "{{ticketTitle}}" has been unassigned for 48+ hours. Priority: {{priority}}. View: {{ticketLink}}',
   maintenance_qa_rejected: 'QA review for {{ticketNumber}} "{{ticketTitle}}" was not approved. Feedback: {{rejectionNote}}. View: {{ticketLink}}',
+  // Maintenance asset intelligence alerts
+  maintenance_repeat_repair: 'Asset {{assetName}} ({{assetNumber}}) has had {{repairCount}} repairs in the last 12 months. View: {{assetUrl}}',
+  maintenance_cost_threshold: 'Cumulative repair cost (${{cumulativeCost}}) for {{assetName}} has exceeded {{pct}}% of replacement cost (${{replacementCost}}). AI Recommendation: {{recommendation}}. View: {{assetUrl}}',
+  maintenance_end_of_life: 'Asset {{assetName}} ({{assetNumber}}) purchased in {{purchaseYear}} has exceeded its expected lifespan of {{expectedLifespan}} years. View: {{assetUrl}}',
 }
 
 /**

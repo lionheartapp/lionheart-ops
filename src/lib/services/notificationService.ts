@@ -20,6 +20,10 @@ export type NotificationType =
   | 'maintenance_stale'
   | 'maintenance_qa_rejected'
   | 'maintenance_scheduled_released'
+  // Maintenance asset intelligence alerts (3 triggers)
+  | 'maintenance_repeat_repair'
+  | 'maintenance_cost_threshold'
+  | 'maintenance_end_of_life'
 
 export interface CreateNotificationInput {
   userId: string
