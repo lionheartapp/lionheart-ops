@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
       canManageMaintenance,
       canClaimMaintenance,
       canSubmitMaintenance,
+      canApproveQA,
     ] = await Promise.all([
       canAny(userContext.userId, WORKSPACE_MANAGE_PERMISSIONS),
       canAny(userContext.userId, ATHLETICS_WRITE_PERMISSIONS),
@@ -44,6 +45,7 @@ export async function GET(req: NextRequest) {
       can(userContext.userId, PERMISSIONS.MAINTENANCE_READ_ALL),
       can(userContext.userId, PERMISSIONS.MAINTENANCE_CLAIM),
       can(userContext.userId, PERMISSIONS.MAINTENANCE_SUBMIT),
+      can(userContext.userId, PERMISSIONS.MAINTENANCE_APPROVE_QA),
     ])
 
     const legacyRole = await getLegacyRole(userContext.userId)
@@ -56,6 +58,7 @@ export async function GET(req: NextRequest) {
         canManageMaintenance,
         canClaimMaintenance,
         canSubmitMaintenance,
+        canApproveQA,
         legacyRole,
       })
     )

@@ -135,6 +135,7 @@ export const queryOptions = {
         canManageMaintenance: boolean
         canClaimMaintenance: boolean
         canSubmitMaintenance: boolean
+        canApproveQA: boolean
         legacyRole: string | null
       }>('/api/auth/permissions'),
     staleTime: 10 * 60 * 1000, // 10 minutes — permissions rarely change mid-session
