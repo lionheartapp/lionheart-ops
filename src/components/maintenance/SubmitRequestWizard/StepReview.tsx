@@ -45,6 +45,8 @@ export interface StepReviewFormData {
   buildingId: string | null
   areaId: string | null
   roomId: string | null
+  assetId?: string | null
+  assetLabel?: string
   photos: UploadedPhoto[]
   title: string
   description: string

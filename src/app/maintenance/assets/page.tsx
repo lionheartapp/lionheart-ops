@@ -12,6 +12,7 @@ import AssetRegisterFilters, {
 } from '@/components/maintenance/AssetRegisterFilters'
 import AssetRegisterTable from '@/components/maintenance/AssetRegisterTable'
 import AssetCreateDrawer from '@/components/maintenance/AssetCreateDrawer'
+import QRScannerModal from '@/components/maintenance/QRScannerModal'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import type { MaintenanceAsset } from '@/components/maintenance/AssetRegisterTable'
 
@@ -68,6 +69,7 @@ function AssetRegisterContent() {
 
   const [filters, setFilters] = useState<AssetFilterState>(DEFAULT_ASSET_FILTERS)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [qrScannerOpen, setQrScannerOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 
   function handleAssetCreated(asset: MaintenanceAsset & { assetNumber: string }) {
@@ -115,9 +117,9 @@ function AssetRegisterContent() {
 
               <motion.div variants={fadeInUp} className="flex items-center gap-2">
                 <button
-                  onClick={() => {/* QR scan placeholder for Plan 02 */}}
+                  onClick={() => setQrScannerOpen(true)}
                   className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                  title="Scan QR code (coming soon)"
+                  title="Scan QR code to navigate to asset"
                 >
                   <QrCode className="w-4 h-4" />
                   Scan QR
@@ -169,6 +171,12 @@ function AssetRegisterContent() {
             isOpen={drawerOpen}
             onClose={() => setDrawerOpen(false)}
             onCreated={handleAssetCreated}
+          />
+
+          {/* QR Scanner modal */}
+          <QRScannerModal
+            isOpen={qrScannerOpen}
+            onClose={() => setQrScannerOpen(false)}
           />
         </MotionConfig>
       </ModuleGate>

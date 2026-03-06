@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, MapPin, Camera, ClipboardList, ClipboardCheck, Check, ExternalLink } from 'lucide-react'
+import { CheckCircle2, MapPin, Camera, ClipboardList, ClipboardCheck, Check, ExternalLink, Package } from 'lucide-react'
 import StepLocation from './SubmitRequestWizard/StepLocation'
+import StepAsset from './SubmitRequestWizard/StepAsset'
 import StepPhotos, { type UploadedPhoto } from './SubmitRequestWizard/StepPhotos'
 import StepDetails from './SubmitRequestWizard/StepDetails'
 import StepReview from './SubmitRequestWizard/StepReview'
@@ -11,13 +13,28 @@ import type { CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type WizardStep = 0 | 1 | 2 | 3
+// Step indices: 0=Location, 1=Asset, 2=Photos, 3=Details, 4=Review
+type WizardStep = 0 | 1 | 2 | 3 | 4
+
+interface AssetInfo {
+  id: string
+  assetNumber: string
+  name: string
+  buildingId: string | null
+  areaId: string | null
+  roomId: string | null
+  building: { id: string; name: string } | null
+  area: { id: string; name: string } | null
+  room: { id: string; roomNumber: string; displayName: string | null } | null
+}
 
 interface WizardFormData {
   buildingId: string | null
   areaId: string | null
   roomId: string | null
   locationLabel: string
+  assetId: string | null
+  assetLabel: string
   photos: UploadedPhoto[]
   title: string
   description: string
@@ -42,6 +59,7 @@ interface SubmitRequestWizardProps {
 
 const STEPS = [
   { label: 'Location', icon: MapPin },
+  { label: 'Asset', icon: Package },
   { label: 'Photos', icon: Camera },
   { label: 'Details', icon: ClipboardList },
   { label: 'Review', icon: ClipboardCheck },
@@ -56,6 +74,7 @@ function getAuthHeaders(): Record<string, string> {
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
 export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequestWizardProps) {
+  const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState<WizardStep>(0)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [success, setSuccess] = useState<SuccessData | null>(null)
@@ -67,6 +86,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
     areaId: null,
     roomId: null,
     locationLabel: '',
+    assetId: null,
+    assetLabel: '',
     photos: [],
     title: '',
     description: '',
@@ -77,25 +98,31 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
     aiSuggestedCategory: null,
   })
 
+  // Read query params for pre-fill from asset detail "Report Issue"
+  const initialAssetId = searchParams?.get('assetId') ?? null
+
   // ─── Validation per step
   const stepValid = [
     // Step 0 (Location): roomId required OR buildingId/areaId as fallback
     !!(formData.buildingId || formData.areaId || formData.roomId),
-    // Step 1 (Photos): always valid (optional)
+    // Step 1 (Asset): always valid (optional — can skip)
     true,
-    // Step 2 (Details): title + category required
+    // Step 2 (Photos): always valid (optional)
+    true,
+    // Step 3 (Details): title + category required
     !!(formData.title.trim() && formData.category),
-    // Step 3 (Review): always valid
+    // Step 4 (Review): always valid
     true,
   ]
 
   const canAdvance = stepValid[currentStep]
+  const lastStep = STEPS.length - 1
 
   // ─── Navigation
   const goNext = () => {
     if (!canAdvance) return
     setDirection('forward')
-    setCurrentStep((s) => Math.min(s + 1, 3) as WizardStep)
+    setCurrentStep((s) => Math.min(s + 1, lastStep) as WizardStep)
   }
 
   const goBack = () => {
@@ -121,6 +148,38 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
     update({ buildingId: null, areaId: null, roomId: null, locationLabel: '' })
   }
 
+  const handleAssetSelect = (asset: AssetInfo) => {
+    const label = `${asset.assetNumber} — ${asset.name}`
+    const locationPatch: Partial<WizardFormData> = {
+      assetId: asset.id,
+      assetLabel: label,
+    }
+    // Auto-fill location from asset if not already set
+    if (!formData.buildingId && !formData.areaId && !formData.roomId) {
+      if (asset.buildingId || asset.areaId || asset.roomId) {
+        const locationParts: string[] = []
+        if (asset.building?.name) locationParts.push(asset.building.name)
+        if (asset.area?.name) locationParts.push(asset.area.name)
+        if (asset.room?.displayName || asset.room?.roomNumber) {
+          locationParts.push(asset.room.displayName || asset.room.roomNumber)
+        }
+        locationPatch.buildingId = asset.buildingId
+        locationPatch.areaId = asset.areaId
+        locationPatch.roomId = asset.roomId
+        locationPatch.locationLabel = locationParts.join(' › ')
+      }
+    }
+    update(locationPatch)
+  }
+
+  const handleAssetClear = () => {
+    update({ assetId: null, assetLabel: '' })
+  }
+
+  const handleAssetSkip = () => {
+    goNext()
+  }
+
   // ─── Submit
   const handleSubmit = async () => {
     setSubmitError('')
@@ -137,6 +196,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
         roomId: formData.roomId || undefined,
         availabilityNote: formData.availabilityNote || undefined,
         scheduledDate: formData.scheduledDate || undefined,
+        assetId: formData.assetId || undefined,
       }
 
       const res = await fetch('/api/maintenance/tickets', {
@@ -171,6 +231,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       roomId: formData.roomId || undefined,
       availabilityNote: formData.availabilityNote || undefined,
       scheduledDate: formData.scheduledDate || undefined,
+      assetId: formData.assetId || undefined,
     }
 
     const res = await fetch('/api/maintenance/tickets', {
@@ -201,6 +262,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       areaId: prev.areaId,
       roomId: prev.roomId,
       locationLabel: prev.locationLabel,
+      assetId: null,
+      assetLabel: '',
       photos: [],
       title: pending?.title || '',
       description: '',
@@ -210,7 +273,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       scheduledDate: '',
       aiSuggestedCategory: pending?.category || null,
     }))
-    setCurrentStep(2) // Go to Details step
+    setCurrentStep(3) // Go to Details step (step 3 with asset step added)
+    void ticketNumber
   }
 
   // ─── Slide variants
@@ -270,6 +334,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
               areaId: null,
               roomId: null,
               locationLabel: '',
+              assetId: null,
+              assetLabel: '',
               photos: [],
               title: '',
               description: '',
@@ -352,6 +418,16 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
               />
             )}
             {currentStep === 1 && (
+              <StepAsset
+                assetId={formData.assetId}
+                assetLabel={formData.assetLabel}
+                onSelect={handleAssetSelect}
+                onClear={handleAssetClear}
+                onSkip={handleAssetSkip}
+                initialAssetId={initialAssetId}
+              />
+            )}
+            {currentStep === 2 && (
               <StepPhotos
                 photos={formData.photos}
                 onPhotosChange={(photos) => update({ photos })}
@@ -362,7 +438,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
                 }}
               />
             )}
-            {currentStep === 2 && (
+            {currentStep === 3 && (
               <StepDetails
                 title={formData.title}
                 description={formData.description}
@@ -379,7 +455,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
                 onScheduledDateChange={(v) => update({ scheduledDate: v })}
               />
             )}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <StepReview
                 formData={formData}
                 onSubmit={handleSubmit}
@@ -394,7 +470,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       </div>
 
       {/* Navigation buttons */}
-      {currentStep < 3 && (
+      {currentStep < lastStep && (
         <div className="mt-6 pt-4 border-t border-gray-100/50 flex items-center gap-3">
           <button
             type="button"
@@ -420,12 +496,12 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
             disabled={!canAdvance}
             className="ml-auto px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-emerald-200"
           >
-            {currentStep === 1 ? (formData.photos.length > 0 ? 'Next' : 'Skip') : 'Next'}
+            {currentStep === 2 ? (formData.photos.length > 0 ? 'Next' : 'Skip') : 'Next'}
           </button>
         </div>
       )}
 
-      {currentStep === 3 && (
+      {currentStep === lastStep && (
         <div className="mt-4 pt-4 border-t border-gray-100/50 flex items-center gap-3">
           <button
             type="button"
