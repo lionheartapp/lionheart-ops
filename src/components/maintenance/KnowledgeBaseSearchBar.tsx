@@ -46,9 +46,9 @@ export default function KnowledgeBaseSearchBar({
   }, [])
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <Search className="w-4 h-4 text-gray-400" aria-hidden="true" />
+    <div className="group relative">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
+        <Search className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
       </div>
       <input
         type="search"
@@ -56,17 +56,17 @@ export default function KnowledgeBaseSearchBar({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="ui-glass w-full pl-9 pr-9 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition-shadow"
+        className="w-full h-[60px] pl-13 pr-12 text-base text-gray-800 placeholder:text-gray-400 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
         aria-label="Search knowledge base"
       />
       {value && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+          className="absolute inset-y-0 right-0 flex items-center pr-5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           aria-label="Clear search"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-4 h-4" />
         </button>
       )}
     </div>
