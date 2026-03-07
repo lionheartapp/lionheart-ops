@@ -46,7 +46,7 @@ export default function KnowledgeBaseSearchBar({
   }, [])
 
   return (
-    <div className="group relative">
+    <div className="group relative max-w-[768px]">
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
         <Search className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
       </div>

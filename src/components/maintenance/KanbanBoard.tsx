@@ -327,6 +327,7 @@ export default function KanbanBoard({
         filters={filters}
         onChange={onFilterChange}
         technicians={technicians}
+        boardView={boardView}
       />
 
       {/* Board-level empty state */}
