@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronRight, LayoutGrid, List } from 'lucide-react'
@@ -21,11 +21,6 @@ import KanbanBoard from './KanbanBoard'
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
-interface Campus {
-  id: string
-  name: string
-}
-
 interface Technician {
   id: string
   firstName: string
@@ -33,8 +28,7 @@ interface Technician {
 }
 
 interface WorkOrdersViewProps {
-  activeCampusId: string | null
-  campuses: Campus[]
+  schoolIdFilter: string  // '' = all campuses
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -82,7 +76,7 @@ async function changeStatusApi(
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersViewProps) {
+export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) {
   const queryClient = useQueryClient()
   const { data: perms } = usePermissions()
 
@@ -97,8 +91,13 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
   // Filter state
   const [filters, setFilters] = useState<WorkOrdersFilterState>({
     ...DEFAULT_FILTERS,
-    schoolId: activeCampusId ?? '',
+    schoolId: schoolIdFilter,
   })
+
+  // Sync schoolId filter when campus chip changes
+  useEffect(() => {
+    setFilters((prev) => ({ ...prev, schoolId: schoolIdFilter }))
+  }, [schoolIdFilter])
 
   // Sort state (default: priority desc, then age asc handled inside table)
   const [sort, setSort] = useState<SortState>({ field: 'priority', dir: 'desc' })
@@ -309,10 +308,8 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
             isLoading={mainLoading}
             filters={filters}
             onFilterChange={setFilters}
-            campuses={campuses}
             technicians={technicians}
             currentUserId={currentUserId}
-            activeCampusId={activeCampusId}
             canManage={canManage}
             queryKeys={[['maintenance-tickets'], scheduledQueryKey]}
           />
@@ -327,7 +324,6 @@ export default function WorkOrdersView({ activeCampusId, campuses }: WorkOrdersV
             <WorkOrdersFilters
               filters={filters}
               onChange={setFilters}
-              campuses={campuses}
               technicians={technicians}
             />
           </motion.div>

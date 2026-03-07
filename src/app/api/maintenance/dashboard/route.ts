@@ -94,6 +94,42 @@ export async function GET(req: NextRequest) {
             }, 0) / doneTickets.length
           : null
 
+      // Campus comparison data — only when viewing all campuses (no schoolId filter)
+      let byCampus: { schoolId: string; schoolName: string; count: number }[] = []
+      if (!schoolId) {
+        const campusCounts = await prisma.maintenanceTicket.groupBy({
+          by: ['schoolId'],
+          where: {
+            status: { notIn: ['DONE', 'CANCELLED'] },
+            schoolId: { not: null },
+          } as any,
+          _count: { id: true },
+        })
+
+        if (campusCounts.length > 0) {
+          // Fetch school names for the campus IDs
+          const schoolIds = campusCounts
+            .map((c) => c.schoolId)
+            .filter((id): id is string => id !== null)
+
+          const schools = await prisma.school.findMany({
+            where: { id: { in: schoolIds } },
+            select: { id: true, name: true },
+          })
+
+          const schoolMap = new Map(schools.map((s) => [s.id, s.name]))
+
+          byCampus = campusCounts
+            .filter((c) => c.schoolId !== null)
+            .map((c) => ({
+              schoolId: c.schoolId as string,
+              schoolName: schoolMap.get(c.schoolId as string) ?? 'Unknown',
+              count: c._count.id,
+            }))
+            .sort((a, b) => b.count - a.count)
+        }
+      }
+
       return {
         byStatus: Object.fromEntries(
           statusCounts.map((s) => [s.status, s._count.id])
@@ -109,6 +145,7 @@ export async function GET(req: NextRequest) {
         avgResolutionHours: avgResolutionHours !== null
           ? Math.round(avgResolutionHours * 10) / 10
           : null,
+        byCampus,
       }
     })
 

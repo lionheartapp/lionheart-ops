@@ -3,25 +3,18 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
-import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { usePermissions } from '@/lib/hooks/usePermissions'
-import { useQuery } from '@tanstack/react-query'
-import { queryOptions } from '@/lib/queries'
+import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
+import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import MaintenanceSkeleton from '@/components/maintenance/MaintenanceSkeleton'
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
 import MyRequestsView from '@/components/maintenance/MyRequestsView'
 import { LayoutDashboard, FileText } from 'lucide-react'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
-
-interface Campus {
-  id: string
-  name: string
-  isActive: boolean
-}
 
 const SUB_TABS: {
   key: MaintenanceTab
@@ -94,25 +87,10 @@ function MaintenanceContent() {
     fetchLogo()
   }, [orgLogoUrl, token])
 
-  const { data: modules = [], isLoading: modulesLoading } = useModules()
   const { data: perms } = usePermissions()
   const canManageMaintenance = perms?.canManageMaintenance ?? false
-
-  const { data: rawCampuses, isLoading: campusesLoading } = useQuery(queryOptions.campuses())
-  const campuses = (rawCampuses as Campus[] | undefined) ?? []
-
-  const dataLoading = modulesLoading || campusesLoading
-
-  // Derive enabled campuses for maintenance
-  const enabledCampusIds = modules
-    .filter((m) => m.moduleId === 'maintenance' && m.campusId)
-    .map((m) => m.campusId as string)
-
-  const enabledCampuses = campuses.filter((c) => enabledCampusIds.includes(c.id))
-
-  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
-  const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
-  const activeCampusName = enabledCampuses.find((c) => c.id === activeCampusId)?.name
+  const campusFilter = useCampusFilter()
+  const dataLoading = campusFilter.isLoading
 
   // Determine default tab based on URL param then permissions
   const getDefaultTab = (): MaintenanceTab => {
@@ -184,32 +162,18 @@ function MaintenanceContent() {
               animate="visible"
               variants={staggerContainer(0.08, 0.05)}
             >
-              <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">
-                Facilities Management
-              </motion.h1>
-              <motion.p variants={fadeInUp} className="text-sm text-gray-500">
-                {activeCampusName || 'Maintenance requests and facility operations'}
+              <motion.div variants={fadeInUp} className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  Facilities Management
+                </h1>
+                <CampusFilterChip campusFilter={campusFilter} />
+              </motion.div>
+              <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
+                {campusFilter.selectedCampusName === 'All Campuses'
+                  ? 'Maintenance requests and facility operations'
+                  : campusFilter.selectedCampusName}
               </motion.p>
             </motion.div>
-
-            {/* Campus selector — shown when multiple campuses have maintenance enabled */}
-            {enabledCampuses.length > 1 && (
-              <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-                {enabledCampuses.map((campus) => (
-                  <button
-                    key={campus.id}
-                    onClick={() => setSelectedCampusId(campus.id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${
-                      activeCampusId === campus.id
-                        ? 'bg-gray-900 text-white font-medium border border-gray-900'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 border border-transparent'
-                    }`}
-                  >
-                    {campus.name}
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Sub-navigation tabs */}
             <div className="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
@@ -238,7 +202,7 @@ function MaintenanceContent() {
                   className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
                   aria-hidden={activeTab !== 'dashboard'}
                 >
-                  <MaintenanceDashboard activeCampusId={activeCampusId} />
+                  <MaintenanceDashboard activeCampusId={campusFilter.selectedCampusId || null} />
                 </div>
 
                 <div

@@ -15,9 +15,16 @@ import {
 } from 'lucide-react'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import CampusComparisonWidget from './CampusComparisonWidget'
 import { fetchApi } from '@/lib/api-client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface CampusCount {
+  schoolId: string
+  schoolName: string
+  count: number
+}
 
 interface DashboardStats {
   byStatus: Record<string, number>
@@ -26,6 +33,7 @@ interface DashboardStats {
   unassignedCount: number
   overdueCount: number
   avgResolutionHours: number | null
+  byCampus?: CampusCount[]
 }
 
 interface MaintenanceDashboardProps {
@@ -283,11 +291,10 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
             )}
           </motion.div>
 
-          {/* Campus Breakdown */}
-          <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="Campus Breakdown" />
-            <div className="text-xs text-gray-400 text-center py-4">No campus data available</div>
-          </motion.div>
+          {/* Campus Comparison — only shown when viewing all campuses */}
+          {!activeCampusId && (
+            <CampusComparisonWidget data={stats?.byCampus ?? []} />
+          )}
         </div>
 
         {/* Right column */}

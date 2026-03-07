@@ -31,12 +31,7 @@ import { fetchApi } from '@/lib/api-client'
 export const BOARD_COLUMNS = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'ON_HOLD', 'QA', 'DONE'] as const
 type BoardColumn = (typeof BOARD_COLUMNS)[number]
 
-type BoardViewTab = 'my-board' | 'campus' | 'all'
-
-interface Campus {
-  id: string
-  name: string
-}
+type BoardViewTab = 'my-board' | 'team-board'
 
 interface Technician {
   id: string
@@ -49,10 +44,8 @@ interface KanbanBoardProps {
   isLoading: boolean
   filters: WorkOrdersFilterState
   onFilterChange: (f: WorkOrdersFilterState) => void
-  campuses: Campus[]
   technicians: Technician[]
   currentUserId: string
-  activeCampusId: string | null
   canManage: boolean
   /** Called after a successful optimistic status change so parent can invalidate */
   queryKeys: unknown[][]
@@ -84,10 +77,8 @@ export default function KanbanBoard({
   isLoading,
   filters,
   onFilterChange,
-  campuses,
   technicians,
   currentUserId,
-  activeCampusId,
   canManage,
   queryKeys,
 }: KanbanBoardProps) {
@@ -95,8 +86,8 @@ export default function KanbanBoard({
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
-  // Board view tab state
-  const [boardView, setBoardView] = useState<BoardViewTab>('campus')
+  // Board view tab state — default to team-board for managers, my-board for technicians
+  const [boardView, setBoardView] = useState<BoardViewTab>(canManage ? 'team-board' : 'my-board')
 
   // DnD state
   const [activeTicket, setActiveTicket] = useState<WorkOrderTicket | null>(null)
@@ -117,11 +108,9 @@ export default function KanbanBoard({
     if (boardView === 'my-board') {
       return displayTickets.filter((t) => t.assignedTo?.id === currentUserId)
     }
-    if (boardView === 'campus' && activeCampusId) {
-      return displayTickets.filter((t) => !t.school || t.school.id === activeCampusId)
-    }
+    // 'team-board' shows all tickets (already filtered by campus via parent)
     return displayTickets
-  }, [displayTickets, boardView, currentUserId, activeCampusId])
+  }, [displayTickets, boardView, currentUserId])
 
   const grouped = useMemo(() => groupByStatus(filteredByView), [filteredByView])
 
@@ -305,7 +294,7 @@ export default function KanbanBoard({
         {(
           [
             { key: 'my-board', label: 'My Board' },
-            ...(canManage ? [{ key: 'campus', label: 'Campus Board' }, { key: 'all', label: 'All Campuses' }] : []),
+            ...(canManage ? [{ key: 'team-board', label: 'Team Board' }] : []),
           ] as { key: BoardViewTab; label: string }[]
         ).map(({ key, label }) => (
           <button
@@ -326,7 +315,6 @@ export default function KanbanBoard({
       <WorkOrdersFilters
         filters={filters}
         onChange={onFilterChange}
-        campuses={campuses}
         technicians={technicians}
       />
 

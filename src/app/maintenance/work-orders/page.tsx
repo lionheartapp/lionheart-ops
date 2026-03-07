@@ -3,19 +3,12 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
-import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { useQuery } from '@tanstack/react-query'
-import { queryOptions } from '@/lib/queries'
+import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
+import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
-
-interface Campus {
-  id: string
-  name: string
-  isActive: boolean
-}
 
 function WorkOrdersContent() {
   const router = useRouter()
@@ -63,19 +56,7 @@ function WorkOrdersContent() {
     fetchLogo()
   }, [orgLogoUrl, token])
 
-  const { data: modules = [] } = useModules()
-  const { data: rawCampuses } = useQuery(queryOptions.campuses())
-  const campuses = (rawCampuses as Campus[] | undefined) ?? []
-
-  const enabledCampusIds = modules
-    .filter((m) => m.moduleId === 'maintenance' && m.campusId)
-    .map((m) => m.campusId as string)
-
-  const enabledCampuses = campuses.filter((c) => enabledCampusIds.includes(c.id))
-
-  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
-  const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
-  const activeCampusName = enabledCampuses.find((c) => c.id === activeCampusId)?.name
+  const campusFilter = useCampusFilter()
 
   const handleLogout = () => {
     localStorage.removeItem('auth-token')
@@ -121,37 +102,22 @@ function WorkOrdersContent() {
               animate="visible"
               variants={staggerContainer(0.08, 0.05)}
             >
-              <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">
-                Work Orders
-              </motion.h1>
-              <motion.p variants={fadeInUp} className="text-sm text-gray-500">
-                {activeCampusName || 'Manage and track maintenance work orders'}
+              <motion.div variants={fadeInUp} className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  Work Orders
+                </h1>
+                <CampusFilterChip campusFilter={campusFilter} />
+              </motion.div>
+              <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
+                {campusFilter.selectedCampusName === 'All Campuses'
+                  ? 'Manage and track maintenance work orders'
+                  : campusFilter.selectedCampusName}
               </motion.p>
             </motion.div>
 
-            {/* Campus selector — shown when multiple campuses have maintenance enabled */}
-            {enabledCampuses.length > 1 && (
-              <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-                {enabledCampuses.map((campus) => (
-                  <button
-                    key={campus.id}
-                    onClick={() => setSelectedCampusId(campus.id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${
-                      activeCampusId === campus.id
-                        ? 'bg-gray-900 text-white font-medium border border-gray-900'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 border border-transparent'
-                    }`}
-                  >
-                    {campus.name}
-                  </button>
-                ))}
-              </div>
-            )}
-
             {/* Work Orders content */}
             <WorkOrdersView
-              activeCampusId={activeCampusId}
-              campuses={enabledCampuses}
+              schoolIdFilter={campusFilter.selectedCampusId}
             />
           </div>
         </MotionConfig>

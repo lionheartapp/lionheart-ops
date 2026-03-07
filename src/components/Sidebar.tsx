@@ -109,6 +109,11 @@ export default function Sidebar({
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
   const [facilitiesOpen, setFacilitiesOpen] = useState(false)
+
+  // Facilities nav indicator refs
+  const facilitiesContainerRef = useRef<HTMLDivElement>(null)
+  const facilityIndicatorRef = useRef<HTMLDivElement>(null)
+  const facilityIndicatorInitRef = useRef(true)
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
 
@@ -244,6 +249,43 @@ export default function Sidebar({
     }
   }, [pathname])
 
+  // Measure and animate facilities nav indicator
+  useEffect(() => {
+    if (!facilitiesOpen) {
+      facilityIndicatorInitRef.current = true
+      return
+    }
+    const container = facilitiesContainerRef.current
+    const indicator = facilityIndicatorRef.current
+    if (!container || !indicator) return
+
+    const measure = () => {
+      const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
+      if (!activeEl) {
+        indicator.style.opacity = '0'
+        return
+      }
+      const containerRect = container.getBoundingClientRect()
+      const activeRect = activeEl.getBoundingClientRect()
+      const top = activeRect.top - containerRect.top
+      const height = activeRect.height
+
+      if (facilityIndicatorInitRef.current) {
+        indicator.style.transition = 'none'
+        facilityIndicatorInitRef.current = false
+      }
+
+      indicator.style.top = `${top}px`
+      indicator.style.height = `${height}px`
+      indicator.style.opacity = '1'
+
+      requestAnimationFrame(() => {
+        indicator.style.transition = ''
+      })
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(measure))
+  }, [pathname, facilitiesOpen])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
@@ -604,185 +646,194 @@ export default function Sidebar({
                       )}
                     </PrefetchLink>
                   </div>
-                  {/* Child links — collapsible */}
+                  {/* Child links — collapsible with animated gradient indicator */}
                   {(canManageMaintenance || canClaimMaintenance) && (
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
-                        <motion.ul
-                          className="space-y-0.5 ml-8 mt-1 overflow-hidden"
-                          role="list"
+                        <motion.div
+                          ref={facilitiesContainerRef}
+                          className="relative ml-8 mt-1 overflow-hidden"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                         >
+                          {/* Track line */}
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
+
+                          {/* Animated gradient indicator */}
+                          <div
+                            ref={facilityIndicatorRef}
+                            className="absolute left-0 w-0.5 rounded-full pointer-events-none"
+                            style={{
+                              background: 'linear-gradient(180deg, #A78BFA 0%, #EC4899 100%)',
+                              boxShadow: '0 0 10px rgba(167, 139, 250, 0.6), 0 0 20px rgba(236, 72, 153, 0.3)',
+                              transition: 'top 0.35s cubic-bezier(0.34, 1.1, 0.64, 1), height 0.35s cubic-bezier(0.34, 1.1, 0.64, 1), opacity 0.2s ease',
+                              opacity: 0,
+                            }}
+                          />
+
+                          <div className="space-y-0.5">
                           {/* Work Orders — for Head/Admin */}
                           {canManageMaintenance && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance/work-orders"
+                                data-facility-active={pathname === '/maintenance/work-orders' ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/work-orders'
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                               >
                                 <span className="text-sm">Work Orders</span>
                               </PrefetchLink>
-                            </li>
                           )}
                           {/* My Requests — for Technicians */}
                           {canClaimMaintenance && !canManageMaintenance && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance?tab=my-requests"
+                                data-facility-active={pathname.includes('my-requests') ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname.includes('my-requests')
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                               >
                                 <span className="text-sm">My Requests</span>
                               </PrefetchLink>
-                            </li>
                           )}
                           {/* Assets */}
                           {canManageMaintenance && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance/assets"
+                                data-facility-active={pathname === '/maintenance/assets' ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/assets'
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                                 aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                               >
                                 <span className="text-sm">Assets</span>
                               </PrefetchLink>
-                            </li>
                           )}
                           {/* PM Calendar */}
                           {canManageMaintenance && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance/pm-calendar"
+                                data-facility-active={pathname === '/maintenance/pm-calendar' ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/pm-calendar'
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                                 aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
                               >
                                 <span className="text-sm">PM Calendar</span>
                               </PrefetchLink>
-                            </li>
                           )}
                           {/* Analytics */}
                           {canManageMaintenance && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance/analytics"
+                                data-facility-active={pathname === '/maintenance/analytics' ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/analytics'
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                                 aria-current={pathname === '/maintenance/analytics' ? 'page' : undefined}
                               >
                                 <span className="text-sm">Analytics</span>
                               </PrefetchLink>
-                            </li>
                           )}
                           {/* Compliance */}
                           {canManageMaintenance && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance/compliance"
+                                data-facility-active={pathname === '/maintenance/compliance' ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/compliance'
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                                 aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
                               >
                                 <span className="text-sm">Compliance</span>
                               </PrefetchLink>
-                            </li>
                           )}
                           {/* Board Report */}
                           {canManageMaintenance && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance/board-report"
+                                data-facility-active={pathname === '/maintenance/board-report' ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname === '/maintenance/board-report'
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                                 aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
                               >
                                 <span className="text-sm">Board Report</span>
                               </PrefetchLink>
-                            </li>
                           )}
                           {/* Knowledge Base */}
                           {(canManageMaintenance || canClaimMaintenance) && (
-                            <li>
                               <PrefetchLink
                                 href="/maintenance/knowledge-base"
+                                data-facility-active={pathname.startsWith('/maintenance/knowledge-base') ? 'true' : undefined}
                                 onClick={() => {
                                   setSettingsOpen(false)
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-200 cursor-pointer border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
                                   pathname.startsWith('/maintenance/knowledge-base')
-                                    ? 'text-primary-400 font-medium border-primary-400'
-                                    : 'text-gray-400 hover:text-white border-transparent'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
                                 }`}
                                 aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                               >
                                 <span className="text-sm">Knowledge Base</span>
                               </PrefetchLink>
-                            </li>
                           )}
-                        </motion.ul>
+                          </div>
+                        </motion.div>
                       )}
                     </AnimatePresence>
                   )}
