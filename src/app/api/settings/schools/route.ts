@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { getCached, invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
 
 const GRADE_DEFAULTS: Record<string, string> = {
   ELEMENTARY: '#a855f7',
@@ -44,27 +45,30 @@ export async function GET(req: NextRequest) {
       const { searchParams } = new URL(req.url)
       const campusId = searchParams.get('campusId') || undefined
 
-      const schools = await prisma.school.findMany({
-        where: {
-          organizationId: orgId,
-          ...(campusId ? { campusId } : {}),
-        },
-        orderBy: { createdAt: 'asc' },
-        select: {
-          id: true,
-          campusId: true,
-          name: true,
-          gradeLevel: true,
-          color: true,
-          principalName: true,
-          principalEmail: true,
-          principalPhone: true,
-          principalPhoneExt: true,
-          campus: { select: { id: true, name: true, campusType: true } },
-          createdAt: true,
-          updatedAt: true,
-        },
-      })
+      const cacheKey = settingsCacheKey(orgId, `schools:${campusId || 'all'}`)
+      const schools = await getCached(cacheKey, () =>
+        prisma.school.findMany({
+          where: {
+            organizationId: orgId,
+            ...(campusId ? { campusId } : {}),
+          },
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            campusId: true,
+            name: true,
+            gradeLevel: true,
+            color: true,
+            principalName: true,
+            principalEmail: true,
+            principalPhone: true,
+            principalPhoneExt: true,
+            campus: { select: { id: true, name: true, campusType: true } },
+            createdAt: true,
+            updatedAt: true,
+          },
+        })
+      )
 
       return NextResponse.json(ok(schools))
     })
@@ -168,6 +172,10 @@ export async function POST(req: NextRequest) {
           updatedAt: true,
         },
       })
+
+      // Invalidate schools cache for this org (all campus variants)
+      invalidateSettingsCache(settingsCacheKey(orgId, `schools:${input.campusId}`))
+      invalidateSettingsCache(settingsCacheKey(orgId, 'schools:all'))
 
       return NextResponse.json(ok(school), { status: 201 })
     })

@@ -10,11 +10,12 @@
  *   node scripts/perf/run-perf.mjs [test-type] [options]
  *
  * Test types:
- *   load        Standard load test (default)
- *   stress      Stress test — find breaking points
- *   spike       Spike test — sudden traffic surge
- *   soak        Soak test — sustained load for memory leaks
- *   benchmark   Per-endpoint latency benchmarks
+ *   load            Standard load test (default)
+ *   stress          Stress test — find breaking points
+ *   spike           Spike test — sudden traffic surge
+ *   soak            Soak test — sustained load for memory leaks
+ *   benchmark       Per-endpoint latency benchmarks
+ *   comprehensive   All 55+ endpoints across every module
  *
  * Options:
  *   --json          Output results as JSON to scripts/perf/results/
@@ -53,11 +54,12 @@ const flagValue = (flag) => {
 };
 
 const testFiles = {
-  load:      'load-test.js',
-  stress:    'stress-test.js',
-  spike:     'spike-test.js',
-  soak:      'soak-test.js',
-  benchmark: 'endpoint-benchmark.js',
+  load:          'load-test.js',
+  stress:        'stress-test.js',
+  spike:         'spike-test.js',
+  soak:          'soak-test.js',
+  benchmark:     'endpoint-benchmark.js',
+  comprehensive: 'comprehensive-test.js',
 };
 
 if (!testFiles[testType]) {

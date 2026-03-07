@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { getCached, settingsCacheKey } from '@/lib/cache/settings-cache'
 
 /**
  * GET /api/settings/campus
@@ -48,40 +49,43 @@ export async function GET(req: NextRequest) {
         where.campusId = selectedCampusId
       }
 
-      const [buildings, areas, rooms] = await Promise.all([
-        db.building.findMany({
-          where,
-          include: {
-            school: { select: { id: true, name: true, gradeLevel: true, color: true } },
-            campus: { select: { id: true, name: true, campusType: true } },
-          },
-          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-        }),
-        db.area.findMany({
-          where,
-          include: {
-            building: { select: { id: true, name: true, code: true } },
-            campus: { select: { id: true, name: true, campusType: true } },
-          },
-          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-        }),
-        db.room.findMany({
-          where: {
-            organizationId: orgId,
-            deletedAt: null,
-            ...(includeInactive ? {} : { isActive: true }),
-            // Rooms don't have campusId directly — filter via building
-            ...(selectedCampusId ? { building: { campusId: selectedCampusId } } : {}),
-          },
-          include: {
-            building: { select: { id: true, name: true, code: true } },
-            area: { select: { id: true, name: true, areaType: true } },
-          },
-          orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
-        }),
-      ])
+      const cacheKey = settingsCacheKey(orgId, `campus:${selectedCampusId || 'all'}:${includeInactive}`)
+      const data = await getCached(cacheKey, async () => {
+        const [buildings, areas, rooms] = await Promise.all([
+          db.building.findMany({
+            where,
+            include: {
+              school: { select: { id: true, name: true, gradeLevel: true, color: true } },
+              campus: { select: { id: true, name: true, campusType: true } },
+            },
+            orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+          }),
+          db.area.findMany({
+            where,
+            include: {
+              building: { select: { id: true, name: true, code: true } },
+              campus: { select: { id: true, name: true, campusType: true } },
+            },
+            orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+          }),
+          db.room.findMany({
+            where: {
+              organizationId: orgId,
+              deletedAt: null,
+              ...(includeInactive ? {} : { isActive: true }),
+              ...(selectedCampusId ? { building: { campusId: selectedCampusId } } : {}),
+            },
+            include: {
+              building: { select: { id: true, name: true, code: true } },
+              area: { select: { id: true, name: true, areaType: true } },
+            },
+            orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
+          }),
+        ])
+        return { buildings, areas, rooms, campusId: selectedCampusId }
+      })
 
-      return NextResponse.json(ok({ buildings, areas, rooms, campusId: selectedCampusId }))
+      return NextResponse.json(ok(data))
     })
   } catch (error) {
     if (isAuthError(error)) {

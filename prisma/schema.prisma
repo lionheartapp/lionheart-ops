@@ -420,6 +420,7 @@ model School {
   // Maintenance module relations
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
+  pmSchedules        PmSchedule[]
   // Compliance module relations
   complianceDomainConfigs ComplianceDomainConfig[]
   complianceRecords       ComplianceRecord[]
@@ -2053,6 +2054,13 @@ model MaintenanceTicket {
   @@index([organizationId, deletedAt])
   @@index([pmScheduleId])
   @@index([assetId])
+  // Dashboard/analytics composite indexes
+  @@index([organizationId, deletedAt, status])
+  @@index([organizationId, deletedAt, status, assignedToId])
+  @@index([organizationId, deletedAt, status, schoolId])
+  @@index([organizationId, deletedAt, createdAt])
+  @@index([organizationId, deletedAt, buildingId, areaId, roomId])
+  @@index([organizationId, priority])
 }
 
 model MaintenanceCounter {
@@ -2121,6 +2129,9 @@ model MaintenanceLaborEntry {
 
   @@index([ticketId])
   @@index([organizationId])
+  @@index([organizationId, startTime])
+  @@index([organizationId, technicianId])
+  @@index([technicianId, startTime])
 }
 
 model MaintenanceCostEntry {
@@ -2141,6 +2152,7 @@ model MaintenanceCostEntry {
 
   @@index([ticketId])
   @@index([organizationId])
+  @@index([organizationId, createdAt])
 }
 
 model MaintenanceAsset {
@@ -2222,10 +2234,13 @@ model PmSchedule {
   building          Building?          @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   area              Area?              @relation(fields: [areaId], references: [id], onDelete: SetNull)
   room              Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  school            School?            @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   knowledgeArticle  KnowledgeArticle?  @relation(fields: [knowledgeArticleId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([organizationId, nextDueDate])
+  @@index([schoolId])
+  @@index([isActive])
 }
 
 model MaintenanceAssetCounter {

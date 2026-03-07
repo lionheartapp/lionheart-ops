@@ -17,6 +17,10 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getAllAnalytics } from '@/lib/services/maintenanceAnalyticsService'
+import { getCached, settingsCacheKey } from '@/lib/cache/settings-cache'
+
+// Analytics data TTL: 2 minutes (heavy queries, data doesn't need real-time freshness)
+const ANALYTICS_CACHE_TTL = 2 * 60 * 1000
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,10 +33,13 @@ export async function GET(req: NextRequest) {
     const schoolId = url.searchParams.get('schoolId') || undefined
     const months = parseInt(url.searchParams.get('months') || '6', 10)
 
-    // Analytics service uses rawPrisma directly — we still wrap in runWithOrgContext
-    // to satisfy the request lifecycle, but pass orgId explicitly to service calls.
+    const effectiveMonths = isNaN(months) ? 6 : months
+    const cacheKey = settingsCacheKey(orgId, `maint-analytics:${campusId || ''}:${schoolId || ''}:${effectiveMonths}`)
     const data = await runWithOrgContext(orgId, () =>
-      getAllAnalytics(orgId, { campusId, schoolId, months: isNaN(months) ? 6 : months })
+      getCached(cacheKey, () =>
+        getAllAnalytics(orgId, { campusId, schoolId, months: effectiveMonths }),
+        ANALYTICS_CACHE_TTL
+      )
     )
 
     return NextResponse.json(ok(data), {

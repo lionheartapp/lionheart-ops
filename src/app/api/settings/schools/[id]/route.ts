@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
 const isValidPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -114,6 +115,8 @@ export async function PATCH(
         },
       })
 
+      invalidateOrgCache(orgId)
+
       return NextResponse.json(ok(updated))
     })
   } catch (error) {
@@ -169,6 +172,8 @@ export async function DELETE(
       await prisma.school.delete({
         where: { id },
       })
+
+      invalidateOrgCache(orgId)
 
       return NextResponse.json(ok({ message: 'School deleted successfully' }))
     })

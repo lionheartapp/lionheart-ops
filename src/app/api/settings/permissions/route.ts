@@ -5,6 +5,10 @@ import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { getCached, globalCacheKey } from '@/lib/cache/settings-cache'
+
+// Permissions are global (not org-scoped) and never change at runtime — use 10 min TTL
+const PERMISSIONS_CACHE_TTL = 10 * 60 * 1000
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,20 +19,25 @@ export async function GET(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.ROLES_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      const permissions = await prisma.permission.findMany({
-        select: {
-          id: true,
-          resource: true,
-          action: true,
-          scope: true,
-          description: true,
-        },
-        orderBy: [
-          { resource: 'asc' },
-          { action: 'asc' },
-          { scope: 'asc' },
-        ],
-      })
+      const cacheKey = globalCacheKey('permissions')
+      const permissions = await getCached(
+        cacheKey,
+        () => prisma.permission.findMany({
+          select: {
+            id: true,
+            resource: true,
+            action: true,
+            scope: true,
+            description: true,
+          },
+          orderBy: [
+            { resource: 'asc' },
+            { action: 'asc' },
+            { scope: 'asc' },
+          ],
+        }),
+        PERMISSIONS_CACHE_TTL
+      )
 
       return NextResponse.json(ok(permissions))
     })

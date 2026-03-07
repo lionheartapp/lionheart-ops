@@ -14,6 +14,10 @@ import { runWithOrgContext } from '@/lib/org-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
+import { getCached, settingsCacheKey } from '@/lib/cache/settings-cache'
+
+// Dashboard data TTL: 60 seconds (frequent enough to feel live, reduces DB load)
+const DASHBOARD_CACHE_TTL = 60 * 1000
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,66 +29,53 @@ export async function GET(req: NextRequest) {
     const schoolId = url.searchParams.get('schoolId') || undefined
 
     const stats = await runWithOrgContext(orgId, async () => {
+      const cacheKey = settingsCacheKey(orgId, `maint-dashboard:${schoolId || 'all'}`)
+      return getCached(cacheKey, async () => {
       const baseWhere: Record<string, unknown> = {}
       if (schoolId) baseWhere.schoolId = schoolId
-
-      // Count by status
-      const statusCounts = await prisma.maintenanceTicket.groupBy({
-        by: ['status'],
-        where: baseWhere as any,
-        _count: { id: true },
-      })
-
-      // Count by priority
-      const priorityCounts = await prisma.maintenanceTicket.groupBy({
-        by: ['priority'],
-        where: {
-          ...baseWhere,
-          status: { notIn: ['DONE', 'CANCELLED'] },
-        } as any,
-        _count: { id: true },
-      })
-
-      // Count by category (active tickets only)
-      const categoryCounts = await prisma.maintenanceTicket.groupBy({
-        by: ['category'],
-        where: {
-          ...baseWhere,
-          status: { notIn: ['DONE', 'CANCELLED'] },
-        } as any,
-        _count: { id: true },
-      })
-
-      // Unassigned count (active)
-      const unassignedCount = await prisma.maintenanceTicket.count({
-        where: {
-          ...baseWhere,
-          assignedToId: null,
-          status: { notIn: ['DONE', 'CANCELLED', 'SCHEDULED'] },
-        } as any,
-      })
-
-      // Overdue: BACKLOG tickets older than 48h with no assignment
+      const activeWhere = { ...baseWhere, status: { notIn: ['DONE', 'CANCELLED'] } } as any
       const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
-      const overdueCount = await prisma.maintenanceTicket.count({
-        where: {
-          ...baseWhere,
-          status: 'BACKLOG',
-          assignedToId: null,
-          createdAt: { lt: fortyEightHoursAgo },
-        } as any,
-      })
 
-      // Average resolution time for DONE tickets (updatedAt - createdAt in hours)
-      const doneTickets = await prisma.maintenanceTicket.findMany({
-        where: {
-          ...baseWhere,
-          status: 'DONE',
-        } as any,
-        select: { createdAt: true, updatedAt: true },
-        take: 100, // Cap to last 100 for performance
-        orderBy: { updatedAt: 'desc' },
-      })
+      // Run all independent queries in parallel
+      const [statusCounts, priorityCounts, categoryCounts, unassignedCount, overdueCount, doneTickets] =
+        await Promise.all([
+          prisma.maintenanceTicket.groupBy({
+            by: ['status'],
+            where: baseWhere as any,
+            _count: { id: true },
+          }),
+          prisma.maintenanceTicket.groupBy({
+            by: ['priority'],
+            where: activeWhere,
+            _count: { id: true },
+          }),
+          prisma.maintenanceTicket.groupBy({
+            by: ['category'],
+            where: activeWhere,
+            _count: { id: true },
+          }),
+          prisma.maintenanceTicket.count({
+            where: {
+              ...baseWhere,
+              assignedToId: null,
+              status: { notIn: ['DONE', 'CANCELLED', 'SCHEDULED'] },
+            } as any,
+          }),
+          prisma.maintenanceTicket.count({
+            where: {
+              ...baseWhere,
+              status: 'BACKLOG',
+              assignedToId: null,
+              createdAt: { lt: fortyEightHoursAgo },
+            } as any,
+          }),
+          prisma.maintenanceTicket.findMany({
+            where: { ...baseWhere, status: 'DONE' } as any,
+            select: { createdAt: true, updatedAt: true },
+            take: 100,
+            orderBy: { updatedAt: 'desc' },
+          }),
+        ])
 
       const avgResolutionHours =
         doneTickets.length > 0
@@ -94,7 +85,7 @@ export async function GET(req: NextRequest) {
             }, 0) / doneTickets.length
           : null
 
-      // Campus comparison data — only when viewing all campuses (no schoolId filter)
+      // Campus comparison — only when viewing all campuses
       let byCampus: { schoolId: string; schoolName: string; count: number }[] = []
       if (!schoolId) {
         const campusCounts = await prisma.maintenanceTicket.groupBy({
@@ -107,7 +98,6 @@ export async function GET(req: NextRequest) {
         })
 
         if (campusCounts.length > 0) {
-          // Fetch school names for the campus IDs
           const schoolIds = campusCounts
             .map((c) => c.schoolId)
             .filter((id): id is string => id !== null)
@@ -147,6 +137,7 @@ export async function GET(req: NextRequest) {
           : null,
         byCampus,
       }
+      }, DASHBOARD_CACHE_TTL)
     })
 
     return NextResponse.json(ok(stats))

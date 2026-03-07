@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
+import { getCached, invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
 
 const CreateRoleSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -33,21 +34,24 @@ export async function GET(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.ROLES_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      const roles = await prisma.role.findMany({
-        where: { organizationId: orgId },
-        include: {
-          _count: {
-            select: {
-              permissions: true,
-              users: true,
+      const cacheKey = settingsCacheKey(orgId, 'roles')
+      const roles = await getCached(cacheKey, () =>
+        prisma.role.findMany({
+          where: { organizationId: orgId },
+          include: {
+            _count: {
+              select: {
+                permissions: true,
+                users: true,
+              },
             },
           },
-        },
-        orderBy: [
-          { isSystem: 'desc' },
-          { name: 'asc' },
-        ],
-      })
+          orderBy: [
+            { isSystem: 'desc' },
+            { name: 'asc' },
+          ],
+        })
+      )
 
       return NextResponse.json(ok(roles))
     })
@@ -124,6 +128,8 @@ export async function POST(req: NextRequest) {
           skipDuplicates: true,
         })
       }
+
+      invalidateSettingsCache(settingsCacheKey(orgId, 'roles'))
 
       await audit({
         organizationId: orgId,

@@ -7,6 +7,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { audit, getIp } from '@/lib/services/auditService'
+import { invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
 
 type RouteParams = {
   params: Promise<{ id: string }>
@@ -159,6 +160,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           }
         }
       })
+
+      invalidateSettingsCache(settingsCacheKey(orgId, 'roles'))
 
       await audit({
         organizationId: orgId,
@@ -355,6 +358,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       }
 
       await prisma.role.delete({ where: { id } })
+
+      invalidateSettingsCache(settingsCacheKey(orgId, 'roles'))
 
       await audit({
         organizationId: orgId,
