@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react'
+import { useState, useEffect, useCallback, useRef, useLayoutEffect, type FormEvent } from 'react'
+import { motion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield, ChevronDown, X, Search } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
@@ -77,6 +78,49 @@ function StatusBadge({ status }: { status: string }) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+// ─── Sliding Pill Indicator for Status Tabs ──────────────────────────────────
+
+function StatusTabPill({ statusTab }: { statusTab: string }) {
+  const [rect, setRect] = useState<{ left: number; width: number } | null>(null)
+  const measured = useRef(false)
+
+  useLayoutEffect(() => {
+    // Find the active tab button inside the container
+    const activeBtn = document.querySelector(
+      `[data-status-tab="${statusTab}"]`
+    ) as HTMLElement | null
+    if (!activeBtn) return
+
+    const container = activeBtn.parentElement
+    if (!container) return
+
+    const containerRect = container.getBoundingClientRect()
+    const btnRect = activeBtn.getBoundingClientRect()
+
+    setRect({
+      left: btnRect.left - containerRect.left,
+      width: btnRect.width,
+    })
+    measured.current = true
+  }, [statusTab])
+
+  if (!rect) return null
+
+  return (
+    <motion.div
+      className="absolute top-1 bottom-1 rounded-full bg-gray-900 pointer-events-none"
+      initial={false}
+      animate={{ left: rect.left, width: rect.width }}
+      transition={{
+        type: 'spring',
+        stiffness: 400,
+        damping: 30,
+        mass: 0.8,
+      }}
+    />
+  )
 }
 
 // ─── Searchable Team Multi-Select Dropdown ───────────────────────────────────
@@ -558,26 +602,31 @@ const MembersTab = (_props: MembersTabProps) => {
         </div>
       )}
 
-      {/* Status Tabs */}
-      <div className="mb-4 flex gap-2 flex-wrap">
+      {/* Status Tabs — sliding pill indicator */}
+      <div className="mb-4 relative inline-flex gap-1 rounded-full bg-gray-100 p-1">
         {STATUS_TABS.map((t) => (
           <button
             key={t.value}
             onClick={() => setStatusTab(t.value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            data-status-tab={t.value}
+            className={`relative z-10 px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
               statusTab === t.value
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'text-white'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             {t.label}
             {t.value !== 'all' && (
-              <span className="ml-1.5 text-xs text-gray-400">
+              <span className={`ml-1.5 text-xs transition-colors duration-200 ${
+                statusTab === t.value ? 'text-gray-300' : 'text-gray-400'
+              }`}>
                 ({users.filter((u) => u.status === t.value).length})
               </span>
             )}
           </button>
         ))}
+        {/* Sliding dark pill — uses layoutId for automatic Framer Motion animation */}
+        <StatusTabPill statusTab={statusTab} />
       </div>
 
       {/* Table */}
