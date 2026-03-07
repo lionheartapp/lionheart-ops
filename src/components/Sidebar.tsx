@@ -372,8 +372,8 @@ export default function Sidebar({
           trail.style.height = `${trailHeight}px`
           trail.style.opacity = '0.7'
           trail.style.background = movingDown
-            ? 'linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 40%, rgba(236,72,153,0.6) 100%)'
-            : 'linear-gradient(0deg, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 40%, rgba(236,72,153,0.6) 100%)'
+            ? 'linear-gradient(180deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.5) 40%, rgba(99,102,241,0.6) 100%)'
+            : 'linear-gradient(0deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.5) 40%, rgba(99,102,241,0.6) 100%)'
           trail.offsetHeight // force reflow
           trail.style.transition = 'opacity 0.55s ease-out'
           trail.style.opacity = '0'
@@ -776,8 +776,8 @@ export default function Sidebar({
                               top: indicatorTop,
                               height: indicatorHeight,
                               opacity: indicatorOpacity,
-                              background: 'linear-gradient(180deg, #A78BFA 0%, #EC4899 100%)',
-                              boxShadow: '0 0 8px rgba(167, 139, 250, 0.5), 0 0 16px rgba(236, 72, 153, 0.25)',
+                              background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)',
+                              boxShadow: '0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(99, 102, 241, 0.25)',
                             }}
                           />
 
