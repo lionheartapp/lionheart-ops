@@ -319,6 +319,7 @@ export default function Sidebar({
       const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
       if (!activeEl) {
         indicatorOpacity.jump(0)
+        _facilityLastPos = null
         return true
       }
 
@@ -729,10 +730,10 @@ export default function Sidebar({
                     onClick={() => setFacilitiesOpen((prev) => !prev)}
                     className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
                     aria-expanded={facilitiesOpen}
-                    aria-label={facilitiesOpen ? 'Collapse facilities' : 'Expand facilities'}
+                    aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
                   >
                     <Wrench className="w-5 h-5 flex-shrink-0 text-gray-500" aria-hidden="true" />
-                    <span className="text-sm font-semibold text-gray-200">Facilities</span>
+                    <span className="text-sm font-semibold text-gray-200">Maintenance</span>
                     <motion.span
                       className="ml-auto block"
                       animate={{ rotate: facilitiesOpen ? 180 : 0 }}
@@ -798,7 +799,7 @@ export default function Sidebar({
                             }`}
                             aria-current={pathname === '/maintenance' ? 'page' : undefined}
                           >
-                            <span className="text-sm">Dashboard</span>
+                            <span className="text-sm">Maintenance Hub</span>
                           </PrefetchLink>
                           {/* Work Orders — for Head/Admin */}
                           {canManageMaintenance && (

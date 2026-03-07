@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Shield, RefreshCw, Loader2, Download } from 'lucide-react'
+import { RefreshCw, Loader2, Download } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
 import { ComplianceDomainCard } from '@/components/maintenance/compliance/ComplianceDomainCard'
@@ -221,11 +221,8 @@ function ComplianceContent() {
               variants={staggerContainer(0.08, 0.05)}
             >
               <motion.div variants={fadeInUp} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-primary-600" />
-                </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-semibold text-gray-900">Regulatory Compliance</h1>
+                  <h1 className="text-2xl font-semibold text-gray-900">Compliance</h1>
                   <p className="text-sm text-gray-500">
                     Configure compliance domains and track regulatory deadlines for your school
                   </p>

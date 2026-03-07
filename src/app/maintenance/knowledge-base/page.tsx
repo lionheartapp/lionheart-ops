@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, BookOpen } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { motion } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
@@ -28,16 +28,11 @@ export default function KnowledgeBasePage() {
             variants={fadeInUp}
             className="flex items-start justify-between gap-4 flex-wrap"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <BookOpen className="w-5 h-5 text-primary-700" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Knowledge Base</h1>
-                <p className="text-sm text-gray-500">
-                  Equipment guides, SOPs, calculators, and reference articles
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">Knowledge Base</h1>
+              <p className="text-sm text-gray-500">
+                Equipment guides, SOPs, calculators, and reference articles
+              </p>
             </div>
             <button
               type="button"

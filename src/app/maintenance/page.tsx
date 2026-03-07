@@ -25,7 +25,7 @@ const SUB_TABS: {
   icon: typeof LayoutDashboard
   requiresManage?: boolean
 }[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresManage: true },
+  { key: 'dashboard', label: 'Maintenance Hub', icon: LayoutDashboard, requiresManage: true },
   { key: 'my-requests', label: 'My Requests', icon: FileText },
 ]
 
@@ -169,7 +169,7 @@ function MaintenanceContent() {
             >
               <motion.div variants={fadeInUp} className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl font-semibold text-gray-900">
-                  Facilities Management
+                  Maintenance
                 </h1>
                 <CampusFilterChip campusFilter={campusFilter} />
                 {canManageMaintenance && (
@@ -184,7 +184,7 @@ function MaintenanceContent() {
               </motion.div>
               <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
                 {campusFilter.selectedCampusName === 'All Campuses'
-                  ? 'Maintenance requests and facility operations'
+                  ? 'Work orders, assets, and facility operations'
                   : campusFilter.selectedCampusName}
               </motion.p>
             </motion.div>
