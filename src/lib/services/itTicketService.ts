@@ -142,7 +142,7 @@ export async function createITTicket(
 ) {
   const ticketNumber = await generateITTicketNumber(orgId)
 
-  const ticket = await prisma.iTTicket.create({
+  const ticket = await (prisma.iTTicket.create as Function)({
     data: {
       ticketNumber,
       title: input.title,
@@ -168,7 +168,7 @@ export async function createITTicket(
   })
 
   // Log creation activity
-  await prisma.iTTicketActivity.create({
+  await (prisma.iTTicketActivity.create as Function)({
     data: {
       ticketId: ticket.id,
       actorId: userId,
@@ -190,7 +190,7 @@ export async function createSubTicket(
 ) {
   const ticketNumber = await generateITTicketNumber(orgId)
 
-  const ticket = await prisma.iTTicket.create({
+  const ticket = await (prisma.iTTicket.create as Function)({
     data: {
       ticketNumber,
       title: `${input.issueType.replace(/_/g, ' ')} Issue — ${input.roomText}`,
@@ -206,7 +206,7 @@ export async function createSubTicket(
   })
 
   // Log creation activity (no actor — system generated)
-  await prisma.iTTicketActivity.create({
+  await (prisma.iTTicketActivity.create as Function)({
     data: {
       ticketId: ticket.id,
       type: 'STATUS_CHANGE',
@@ -285,7 +285,7 @@ export async function transitionITTicketStatus(
   })
 
   // Log activity
-  await prisma.iTTicketActivity.create({
+  await (prisma.iTTicketActivity.create as Function)({
     data: {
       ticketId,
       actorId: ctx.userId,
@@ -327,7 +327,7 @@ export async function assignITTicket(
   })
 
   // Log assignment
-  await prisma.iTTicketActivity.create({
+  await (prisma.iTTicketActivity.create as Function)({
     data: {
       ticketId,
       actorId: ctx.userId,
@@ -391,8 +391,8 @@ export async function listITTickets(
     prisma.iTTicket.findMany({
       where,
       include: {
-        submittedBy: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
-        assignedTo: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
+        submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+        assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
         building: { select: { id: true, name: true } },
         area: { select: { id: true, name: true } },
         room: { select: { id: true, roomNumber: true, displayName: true } },
@@ -425,7 +425,7 @@ export async function getITTicketDetail(ticketId: string) {
       school: { select: { id: true, name: true } },
       activities: {
         include: {
-          actor: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+          actor: { select: { id: true, firstName: true, lastName: true } },
           assignedTo: { select: { id: true, firstName: true, lastName: true } },
         },
         orderBy: { createdAt: 'asc' },
@@ -456,8 +456,8 @@ export async function getITBoardData(ctx: { userId: string; orgId: string }, sch
   const tickets = await prisma.iTTicket.findMany({
     where,
     include: {
-      submittedBy: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
-      assignedTo: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
+      submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+      assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
       building: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },
       school: { select: { id: true, name: true } },
@@ -516,7 +516,7 @@ export async function addITTicketComment(
   isInternal: boolean,
   ctx: { userId: string }
 ) {
-  const activity = await prisma.iTTicketActivity.create({
+  const activity = await (prisma.iTTicketActivity.create as Function)({
     data: {
       ticketId,
       actorId: ctx.userId,

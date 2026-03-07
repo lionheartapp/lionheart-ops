@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
-import { Trophy, Wrench, Building2, X, Check, Plus, Settings2, Loader2 } from 'lucide-react'
+import { useToast } from '@/components/Toast'
+import { Trophy, Wrench, Monitor, Building2, X, Check, Plus, Settings2, Loader2, Info, Users, Shield, MessageSquare } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface ModuleDefinition {
@@ -40,6 +41,15 @@ const MODULE_REGISTRY: ModuleDefinition[] = [
     color: '#059669',
     gradient: 'from-emerald-500 to-teal-600',
     scope: 'campus',
+  },
+  {
+    id: 'it-helpdesk',
+    name: 'IT Help Desk',
+    description: 'IT support ticketing with Kanban board, technician assignment, magic links for substitute teachers, and activity tracking.',
+    icon: Monitor,
+    color: '#3B82F6',
+    gradient: 'from-blue-500 to-indigo-600',
+    scope: 'org',
   },
 ]
 
@@ -184,14 +194,20 @@ export default function AddOnsTab() {
     staleTime: 5 * 60 * 1000,
   })
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [togglingKey, setTogglingKey] = useState<string | null>(null)
   const [configModuleId, setConfigModuleId] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: ({ moduleId, enabled, campusId }: { moduleId: string; enabled: boolean; campusId?: string }) =>
       toggleModule(moduleId, enabled, campusId),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tenant-modules'] })
+      queryClient.invalidateQueries({ queryKey: ['permissions'] })
+      if (variables.enabled) {
+        const mod = MODULE_REGISTRY.find((m) => m.id === variables.moduleId)
+        toast(`${mod?.name ?? 'Module'} enabled! Roles have been updated with new permissions.`, 'success')
+      }
     },
     onSettled: () => {
       setTogglingKey(null)
@@ -292,14 +308,13 @@ export default function AddOnsTab() {
                   ) : (
                     /* Org-scoped: simple toggle button */
                     isOrgEnabled ? (
-                      <button
-                        onClick={() => handleToggle(mod.id, true)}
-                        disabled={togglingKey === mod.id}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
+                      <a
+                        href="/settings?tab=members"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer"
                       >
-                        <Settings2 className="w-4 h-4" />
-                        Configuration
-                      </button>
+                        <Users className="w-4 h-4" />
+                        Configure Roles
+                      </a>
                     ) : (
                       <button
                         onClick={() => handleToggle(mod.id, false)}
@@ -321,6 +336,41 @@ export default function AddOnsTab() {
       {mutation.isError && (
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {mutation.error instanceof Error ? mutation.error.message : 'Failed to update module'}
+        </div>
+      )}
+
+      {/* IT Help Desk guidance callout */}
+      {modules.some((m) => m.moduleId === 'it-helpdesk' && !m.campusId) && (
+        <div className="mt-6 rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm p-5">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <Info className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900">IT Help Desk — Next Steps</h4>
+              <p className="text-xs text-gray-500 mt-0.5">Roles have been automatically updated with IT permissions.</p>
+            </div>
+          </div>
+          <div className="space-y-2 ml-11">
+            <div className="flex items-start gap-2">
+              <Shield className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-700">Assign the IT Coordinator role</span> to your IT staff via Settings &gt; Members
+              </p>
+            </div>
+            <div className="flex items-start gap-2">
+              <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-700">Members and teachers</span> can already submit IT tickets
+              </p>
+            </div>
+            <div className="flex items-start gap-2">
+              <Users className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-700">Secretary / Front Office role</span> can submit tickets and generate magic links for substitutes
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

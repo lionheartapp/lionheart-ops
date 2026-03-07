@@ -261,6 +261,94 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
 }
 
 /**
+ * Sync role permissions for an existing organization.
+ *
+ * Called when a new module is enabled so that existing orgs get
+ * any permissions / roles that were added after they signed up.
+ *
+ * 1. Upsert all permission rows from DEFAULT_ROLES (idempotent)
+ * 2. For any DEFAULT_ROLES slug that doesn't have a matching org role → create it
+ * 3. For existing org roles → add any missing RolePermission links
+ * 4. Clear the server-side permission cache
+ */
+export async function syncRolePermissions(orgId: string): Promise<void> {
+  const { clearAllPermissionCaches } = await import('@/lib/auth/permissions')
+
+  // ── Step 1: Collect every permission string across all default roles ──
+  const allPermStrings = new Set<string>()
+  for (const roleDef of Object.values(DEFAULT_ROLES)) {
+    for (const perm of roleDef.permissions) {
+      allPermStrings.add(perm)
+    }
+  }
+
+  // ── Step 2: Upsert global Permission rows ──
+  const permissionMap = new Map<string, string>() // permString → db id
+
+  await Promise.all(
+    Array.from(allPermStrings).map(async (permString) => {
+      const { resource, action, scope } = parsePermissionString(permString)
+      const row = await rawPrisma.permission.upsert({
+        where: { resource_action_scope: { resource, action, scope } },
+        create: { resource, action, scope },
+        update: {},
+        select: { id: true },
+      })
+      permissionMap.set(permString, row.id)
+    })
+  )
+
+  // ── Step 3: Fetch existing system roles for this org ──
+  const existingRoles = await rawPrisma.role.findMany({
+    where: { organizationId: orgId, isSystem: true },
+    include: { permissions: { select: { permissionId: true } } },
+  })
+  const existingBySlug = new Map(existingRoles.map((r) => [r.slug, r]))
+
+  // ── Step 4: Create missing roles, add missing RolePermission links ──
+  for (const roleDef of Object.values(DEFAULT_ROLES)) {
+    const existing = existingBySlug.get(roleDef.slug)
+
+    if (!existing) {
+      // Role doesn't exist in this org yet → create it with full permissions
+      await rawPrisma.role.create({
+        data: {
+          organizationId: orgId,
+          name: roleDef.name,
+          slug: roleDef.slug,
+          description: roleDef.description,
+          isSystem: roleDef.isSystem,
+          permissions: {
+            create: roleDef.permissions.map((permString) => ({
+              permissionId: permissionMap.get(permString)!,
+            })),
+          },
+        },
+      })
+    } else {
+      // Role exists → find which permission links are missing
+      const existingPermIds = new Set(existing.permissions.map((p) => p.permissionId))
+      const missingLinks = roleDef.permissions
+        .map((permString) => permissionMap.get(permString)!)
+        .filter((permId) => !existingPermIds.has(permId))
+
+      if (missingLinks.length > 0) {
+        await rawPrisma.rolePermission.createMany({
+          data: missingLinks.map((permissionId) => ({
+            roleId: existing.id,
+            permissionId,
+          })),
+          skipDuplicates: true,
+        })
+      }
+    }
+  }
+
+  // ── Step 5: Clear all permission caches so changes take effect immediately ──
+  clearAllPermissionCaches()
+}
+
+/**
  * Create a new organization (used in signup/onboarding).
  * Validates all inputs including slug uniqueness before creating.
  * After creation, seeds default roles/permissions/teams and assigns

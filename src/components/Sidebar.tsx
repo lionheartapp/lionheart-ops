@@ -29,6 +29,7 @@ import {
   Trash2,
   HelpCircle,
   Wrench,
+  Monitor,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -287,6 +288,8 @@ export default function Sidebar({
   const canManageMaintenance = perms?.canManageMaintenance ?? false
   const canClaimMaintenance = perms?.canClaimMaintenance ?? false
   const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
+  const canManageIT = perms?.canManageIT ?? false
+  const canSubmitIT = perms?.canSubmitIT ?? false
 
   // Measure and position the facilities indicator.
   //
@@ -581,6 +584,7 @@ export default function Sidebar({
 
   const { enabled: athleticsEnabled, loading: athleticsModuleLoading } = useModuleEnabled('athletics')
   const { enabled: maintenanceEnabled, loading: maintenanceModuleLoading } = useModuleEnabled('maintenance')
+  const { enabled: itHelpdeskEnabled, loading: itHelpdeskModuleLoading } = useModuleEnabled('it-helpdesk')
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
@@ -713,8 +717,8 @@ export default function Sidebar({
           ) : null}
         </ul>
 
-        {/* Support section — shown when maintenance module is enabled */}
-        {!maintenanceModuleLoading && maintenanceEnabled && (
+        {/* Support section — shown when maintenance or IT help desk module is enabled */}
+        {((!maintenanceModuleLoading && maintenanceEnabled) || (!itHelpdeskModuleLoading && itHelpdeskEnabled)) && (
           <>
             <div className="px-1 mt-4 mb-1">
               <span className="text-[11px] font-semibold tracking-wider text-gray-500 uppercase">Support</span>
@@ -942,6 +946,30 @@ export default function Sidebar({
                       <span className="text-sm">Facilities</span>
                     </PrefetchLink>
                   )}
+                </li>
+              )}
+
+              {/* IT Help Desk — shown when it-helpdesk module is enabled */}
+              {!itHelpdeskModuleLoading && itHelpdeskEnabled && (canManageIT || canSubmitIT) && (
+                <li>
+                  <PrefetchLink
+                    href="/it"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setFacilitiesOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                      pathname.startsWith('/it')
+                        ? 'bg-white/10 text-white font-medium border border-white/20'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                    }`}
+                    aria-current={pathname.startsWith('/it') ? 'page' : undefined}
+                  >
+                    <Monitor className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                    <span className="text-sm">IT Help Desk</span>
+                  </PrefetchLink>
                 </li>
               )}
             </ul>

@@ -105,6 +105,32 @@ export const queryKeys = {
     byTeam: (teamId?: string) =>
       ['athletics-roster', { teamId: teamId ?? '' }] as const,
   },
+
+  // IT Help Desk
+  itTickets: {
+    all: ['it-tickets'] as const,
+    filtered: (filters?: Record<string, string>) =>
+      ['it-tickets', filters ?? {}] as const,
+  },
+  itBoard: {
+    all: ['it-board'] as const,
+    filtered: (schoolId?: string) =>
+      ['it-board', { schoolId: schoolId ?? '' }] as const,
+  },
+  itDashboard: {
+    all: ['it-dashboard'] as const,
+    filtered: (schoolId?: string) =>
+      ['it-dashboard', { schoolId: schoolId ?? '' }] as const,
+  },
+  itTicketDetail: {
+    byId: (id: string) => ['it-ticket', id] as const,
+  },
+  itTicketComments: {
+    byTicket: (id: string) => ['it-ticket-comments', id] as const,
+  },
+  itMagicLinks: {
+    all: ['it-magic-links'] as const,
+  },
 } as const
 
 // ─── Query Option Factories ────────────────────────────────────────────
@@ -136,6 +162,8 @@ export const queryOptions = {
         canClaimMaintenance: boolean
         canSubmitMaintenance: boolean
         canApproveQA: boolean
+        canManageIT: boolean
+        canSubmitIT: boolean
         legacyRole: string | null
       }>('/api/auth/permissions'),
     staleTime: 10 * 60 * 1000, // 10 minutes — permissions rarely change mid-session
@@ -268,5 +296,49 @@ export const queryOptions = {
       return fetchApi<unknown[]>(`/api/athletics/roster${param}`)
     },
     staleTime: 5 * 60_000,
+  }),
+
+  // IT Help Desk
+  itTickets: (filters?: Record<string, string>) => ({
+    queryKey: queryKeys.itTickets.filtered(filters),
+    queryFn: () => {
+      const params = new URLSearchParams()
+      if (filters) {
+        Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v) })
+      }
+      const qs = params.toString()
+      return fetchApi<{ tickets: unknown[]; total: number }>(`/api/it/tickets${qs ? `?${qs}` : ''}`)
+    },
+    staleTime: 30_000,
+  }),
+
+  itBoard: (schoolId?: string) => ({
+    queryKey: queryKeys.itBoard.filtered(schoolId),
+    queryFn: () => {
+      const param = schoolId ? `?schoolId=${schoolId}` : ''
+      return fetchApi<Record<string, unknown[]>>(`/api/it/board${param}`)
+    },
+    staleTime: 30_000,
+  }),
+
+  itDashboard: (schoolId?: string) => ({
+    queryKey: queryKeys.itDashboard.filtered(schoolId),
+    queryFn: () => {
+      const param = schoolId ? `?schoolId=${schoolId}` : ''
+      return fetchApi<{ total: number; open: number; inProgress: number; urgent: number; recentDone: number }>(`/api/it/dashboard${param}`)
+    },
+    staleTime: 60_000,
+  }),
+
+  itTicketDetail: (id: string) => ({
+    queryKey: queryKeys.itTicketDetail.byId(id),
+    queryFn: () => fetchApi<unknown>(`/api/it/tickets/${id}`),
+    staleTime: 30_000,
+  }),
+
+  itTicketComments: (ticketId: string) => ({
+    queryKey: queryKeys.itTicketComments.byTicket(ticketId),
+    queryFn: () => fetchApi<unknown[]>(`/api/it/tickets/${ticketId}/comments`),
+    staleTime: 15_000,
   }),
 } as const

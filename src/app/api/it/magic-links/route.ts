@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     await runWithOrgContext(orgId, () =>
       prisma.iTMagicLink.create({
         data: {
+          organizationId: orgId,
           tokenHash,
           campusId: campusId || null,
           schoolId: schoolId || null,

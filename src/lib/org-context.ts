@@ -6,7 +6,15 @@ type OrgStore = { organizationId: string }
 const orgStorage = new AsyncLocalStorage<OrgStore>()
 
 export function runWithOrgContext<T>(organizationId: string, callback: () => Promise<T>): Promise<T> {
-  return orgStorage.run({ organizationId }, callback)
+  return new Promise<T>((resolve, reject) => {
+    orgStorage.run({ organizationId }, async () => {
+      try {
+        resolve(await callback())
+      } catch (error) {
+        reject(error)
+      }
+    })
+  })
 }
 
 export function getOrgContextId(): string {

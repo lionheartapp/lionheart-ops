@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { syncRolePermissions } from '@/lib/services/organizationRegistrationService'
 
 export async function GET(req: NextRequest) {
   try {
@@ -63,6 +64,11 @@ export async function POST(req: NextRequest) {
             campusId: input.campusId ?? null,
           },
         })
+
+        // Sync role permissions so existing orgs get any new permissions/roles
+        // that were added as part of this module (e.g., IT Coordinator, Secretary)
+        await syncRolePermissions(orgId)
+
         return NextResponse.json(ok(mod), { status: 200 })
       } else {
         await db.tenantModule.deleteMany({ where: whereFilter })

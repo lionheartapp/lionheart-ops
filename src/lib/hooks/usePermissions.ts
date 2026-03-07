@@ -11,6 +11,8 @@ interface Permissions {
   canClaimMaintenance: boolean
   canSubmitMaintenance: boolean
   canApproveQA: boolean
+  canManageIT: boolean
+  canSubmitIT: boolean
   legacyRole: string | null
 }
 

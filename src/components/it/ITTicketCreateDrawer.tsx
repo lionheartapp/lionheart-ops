@@ -1,0 +1,364 @@
+'use client'
+
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/queries'
+import { getAuthHeaders } from '@/lib/api-client'
+import DetailDrawer from '@/components/DetailDrawer'
+import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
+import { useToast } from '@/components/Toast'
+import { Loader2 } from 'lucide-react'
+
+interface ITTicketCreateDrawerProps {
+  isOpen: boolean
+  onClose: () => void
+  canManage: boolean
+}
+
+interface Building {
+  id: string
+  name: string
+  areas?: Area[]
+  rooms?: Room[]
+}
+
+interface Area {
+  id: string
+  name: string
+  rooms?: Room[]
+}
+
+interface Room {
+  id: string
+  roomNumber?: string
+  displayName?: string | null
+}
+
+interface School {
+  id: string
+  name: string
+}
+
+const ISSUE_TYPES = [
+  { value: 'HARDWARE', label: 'Hardware' },
+  { value: 'SOFTWARE', label: 'Software' },
+  { value: 'ACCOUNT_PASSWORD', label: 'Account / Password' },
+  { value: 'NETWORK', label: 'Network' },
+  { value: 'DISPLAY_AV', label: 'Display / A/V' },
+  { value: 'OTHER', label: 'Other' },
+]
+
+const PRIORITIES = [
+  { value: 'LOW', label: 'Low' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'URGENT', label: 'Urgent' },
+]
+
+const PASSWORD_SUB_TYPES = [
+  { value: 'RESET', label: 'Password Reset' },
+  { value: 'LOCKED', label: 'Account Locked' },
+  { value: 'NEW_ACCOUNT', label: 'New Account' },
+  { value: 'PERMISSION_CHANGE', label: 'Permission Change' },
+]
+
+const AV_SUB_TYPES = [
+  { value: 'PROJECTOR', label: 'Projector' },
+  { value: 'SOUNDBOARD', label: 'Soundboard' },
+  { value: 'DISPLAY', label: 'Display / Monitor' },
+  { value: 'APPLE_TV', label: 'Apple TV' },
+  { value: 'OTHER_AV', label: 'Other A/V' },
+]
+
+export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITTicketCreateDrawerProps) {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [issueType, setIssueType] = useState('')
+  const [priority, setPriority] = useState('MEDIUM')
+  const [passwordSubType, setPasswordSubType] = useState('')
+  const [avSubType, setAvSubType] = useState('')
+  const [buildingId, setBuildingId] = useState('')
+  const [areaId, setAreaId] = useState('')
+  const [roomId, setRoomId] = useState('')
+  const [schoolId, setSchoolId] = useState('')
+  const [error, setError] = useState('')
+
+  // Fetch buildings for location picker
+  const { data: buildings = [] } = useQuery<Building[]>({
+    queryKey: ['campus-buildings-for-it'],
+    queryFn: async () => {
+      const res = await fetch('/api/settings/campus/buildings', { headers: getAuthHeaders() })
+      if (!res.ok) return []
+      const data = await res.json()
+      return data.ok ? data.data : []
+    },
+    staleTime: 5 * 60_000,
+  })
+
+  // Fetch schools
+  const { data: schools = [] } = useQuery<School[]>({
+    queryKey: ['schools-for-it'],
+    queryFn: async () => {
+      const res = await fetch('/api/settings/schools', { headers: getAuthHeaders() })
+      if (!res.ok) return []
+      const data = await res.json()
+      return data.ok ? data.data : []
+    },
+    staleTime: 5 * 60_000,
+  })
+
+  const selectedBuilding = buildings.find((b) => b.id === buildingId)
+  const areas = selectedBuilding?.areas ?? []
+  const selectedArea = areas.find((a) => a.id === areaId)
+  const rooms = selectedArea?.rooms ?? selectedBuilding?.rooms ?? []
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const body: Record<string, unknown> = {
+        title: title.trim(),
+        issueType,
+        priority,
+      }
+      if (description.trim()) body.description = description.trim()
+      if (passwordSubType) body.passwordSubType = passwordSubType
+      if (avSubType) body.avSubType = avSubType
+      if (buildingId) body.buildingId = buildingId
+      if (areaId) body.areaId = areaId
+      if (roomId) body.roomId = roomId
+      if (schoolId) body.schoolId = schoolId
+
+      const res = await fetch('/api/it/tickets', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error?.message || 'Failed to create ticket')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itTickets.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itBoard.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDashboard.all })
+      toast('IT ticket submitted successfully', 'success')
+      resetForm()
+      onClose()
+    },
+    onError: (err: Error) => {
+      const msg = err.message.includes('Insufficient permissions')
+        ? "You don't have permission to submit IT tickets. Ask your administrator to update your role in Settings > Members."
+        : err.message
+      setError(msg)
+    },
+  })
+
+  const resetForm = () => {
+    setTitle('')
+    setDescription('')
+    setIssueType('')
+    setPriority('MEDIUM')
+    setPasswordSubType('')
+    setAvSubType('')
+    setBuildingId('')
+    setAreaId('')
+    setRoomId('')
+    setSchoolId('')
+    setError('')
+  }
+
+  const handleClose = () => {
+    resetForm()
+    onClose()
+  }
+
+  const canSubmit = title.trim().length > 0 && issueType !== ''
+
+  return (
+    <DetailDrawer isOpen={isOpen} onClose={handleClose} title="New IT Request" width="md">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (canSubmit) createMutation.mutate()
+        }}
+        className="px-6 py-4 space-y-4"
+      >
+        <FloatingInput
+          label="Title *"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={120}
+          required
+        />
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Issue Type *</label>
+          <select
+            value={issueType}
+            onChange={(e) => {
+              setIssueType(e.target.value)
+              setPasswordSubType('')
+              setAvSubType('')
+            }}
+            required
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+          >
+            <option value="">Select type...</option>
+            {ISSUE_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Password sub-type */}
+        {issueType === 'ACCOUNT_PASSWORD' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password Issue Type</label>
+            <select
+              value={passwordSubType}
+              onChange={(e) => setPasswordSubType(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            >
+              <option value="">Select...</option>
+              {PASSWORD_SUB_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* A/V sub-type */}
+        {issueType === 'DISPLAY_AV' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">A/V Equipment</label>
+            <select
+              value={avSubType}
+              onChange={(e) => setAvSubType(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            >
+              <option value="">Select...</option>
+              {AV_SUB_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <FloatingTextarea
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+        />
+
+        {/* Priority — visible to coordinators */}
+        {canManage && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            >
+              {PRIORITIES.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Location: Building → Area → Room */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700">Location (optional)</label>
+          <select
+            value={buildingId}
+            onChange={(e) => {
+              setBuildingId(e.target.value)
+              setAreaId('')
+              setRoomId('')
+            }}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+          >
+            <option value="">Select building...</option>
+            {buildings.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+
+          {areas.length > 0 && (
+            <select
+              value={areaId}
+              onChange={(e) => { setAreaId(e.target.value); setRoomId('') }}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            >
+              <option value="">Select area...</option>
+              {areas.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          )}
+
+          {rooms.length > 0 && (
+            <select
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            >
+              <option value="">Select room...</option>
+              {rooms.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.displayName || r.roomNumber || r.id}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {/* Campus */}
+        {schools.length > 1 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Campus</label>
+            <select
+              value={schoolId}
+              onChange={(e) => setSchoolId(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            >
+              <option value="">Select campus...</option>
+              {schools.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={!canSubmit || createMutation.isPending}
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            Submit Request
+          </button>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </DetailDrawer>
+  )
+}

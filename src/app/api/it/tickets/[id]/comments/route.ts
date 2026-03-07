@@ -31,7 +31,7 @@ export async function GET(
           ...(canSeeInternal ? {} : { isInternal: false }),
         },
         include: {
-          actor: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+          actor: { select: { id: true, firstName: true, lastName: true } },
           assignedTo: { select: { id: true, firstName: true, lastName: true } },
         },
         orderBy: { createdAt: 'asc' },
