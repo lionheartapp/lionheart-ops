@@ -21,7 +21,7 @@ export default function KnowledgeBasePage() {
           variants={staggerContainer(0.08, 0)}
           initial="hidden"
           animate="visible"
-          className="p-6 space-y-6"
+          className="space-y-6"
         >
           {/* Page header */}
           <motion.div
@@ -37,7 +37,7 @@ export default function KnowledgeBasePage() {
             <button
               type="button"
               onClick={() => setEditorOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer active:scale-[0.97]"
             >
               <Plus className="w-4 h-4" />
               New Article

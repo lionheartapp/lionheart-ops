@@ -30,26 +30,43 @@ export function useAnimatedTabIndicator(activeKey: string, deps: unknown[] = [])
   }
 
   useLayoutEffect(() => {
-    const container = containerRef.current
-    const activeEl = tabRefs.current.get(activeKey)
-    if (!container || !activeEl) return
+    const measure = () => {
+      const container = containerRef.current
+      const activeEl = tabRefs.current.get(activeKey)
+      if (!container || !activeEl) return false
 
-    const containerRect = container.getBoundingClientRect()
-    const elRect = activeEl.getBoundingClientRect()
-    const left = elRect.left - containerRect.left
-    const width = elRect.width
-    const easing = [0.22, 1, 0.36, 1] as [number, number, number, number]
+      const containerRect = container.getBoundingClientRect()
+      const elRect = activeEl.getBoundingClientRect()
+      const left = elRect.left - containerRect.left
+      const width = elRect.width
 
-    if (!hasAnimated.current) {
-      // First render — snap into place
-      indicatorLeft.jump(left)
-      indicatorWidth.jump(width)
-      indicatorOpacity.jump(1)
-      hasAnimated.current = true
-    } else {
-      // Animate to new position
-      fmAnimate(indicatorLeft, left, { duration: 0.35, ease: easing })
-      fmAnimate(indicatorWidth, width, { duration: 0.35, ease: easing })
+      // Element not laid out yet — retry later
+      if (width < 1) return false
+
+      const easing = [0.22, 1, 0.36, 1] as [number, number, number, number]
+
+      if (!hasAnimated.current) {
+        // First render — snap into place
+        indicatorLeft.jump(left)
+        indicatorWidth.jump(width)
+        indicatorOpacity.jump(1)
+        hasAnimated.current = true
+      } else {
+        // Animate to new position
+        fmAnimate(indicatorLeft, left, { duration: 0.35, ease: easing })
+        fmAnimate(indicatorWidth, width, { duration: 0.35, ease: easing })
+      }
+      return true
+    }
+
+    if (measure()) return
+
+    // Fallback: element may not be laid out yet (async data, CSS transitions)
+    const t1 = setTimeout(measure, 50)
+    const t2 = setTimeout(measure, 150)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
     }
   }, [activeKey, ...deps]) // eslint-disable-line react-hooks/exhaustive-deps
 
