@@ -4,6 +4,7 @@ import { useMemo, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import { useCalendarNavigation, computeDateRange } from '@/lib/hooks/useCalendar'
 import type { CalendarViewType, CalendarEventData } from '@/lib/hooks/useCalendar'
 import MonthView from '@/components/calendar/MonthView'
@@ -98,6 +99,8 @@ interface PmCalendarViewProps {
 export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
   const nav = useCalendarNavigation('pm-calendar-view')
   const { currentDate, view, changeView, goToToday, goNext, goPrev } = nav
+  const { containerRef: viewTabsRef, setTabRef: setViewTabRef, indicatorStyle: viewIndicatorStyle } = useAnimatedTabIndicator(view)
+  const { containerRef: mobileTabsRef, setTabRef: setMobileTabRef, indicatorStyle: mobileIndicatorStyle } = useAnimatedTabIndicator(view)
 
   // Compute date range for fetching
   const dateRange = useMemo(() => computeDateRange(currentDate, view), [currentDate, view])
@@ -154,29 +157,45 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
       {/* Toolbar — matches CalendarToolbar visual style */}
       <div className="flex-shrink-0 pb-2">
         {/* Zone 1: Navigation bar */}
-        <div className="flex items-center justify-between gap-2 pb-4">
+        <div className="flex items-center justify-between gap-2 pb-4 relative">
           {/* Left: Title */}
           <h2 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight min-w-0 truncate">
             {formatTitle(currentDate, view)}
           </h2>
 
-          {/* Center: View switcher — desktop */}
-          <div className="hidden sm:flex border border-gray-200 rounded-full overflow-hidden flex-shrink-0" role="tablist" aria-label="PM Calendar view">
-            {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
-              <button
-                key={v}
-                role="tab"
-                aria-selected={view === v}
-                onClick={() => changeView(v)}
-                className={`w-20 text-center py-2 text-sm font-semibold transition-all cursor-pointer ${
-                  view === v
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                {VIEW_LABELS[v]}
-              </button>
-            ))}
+          {/* Center: View switcher — desktop, absolutely centered */}
+          <div className="absolute left-1/2 -translate-x-1/2 hidden sm:block">
+            <div
+              ref={viewTabsRef}
+              className="relative flex bg-gray-100 rounded-full p-1"
+              role="tablist"
+              aria-label="PM Calendar view"
+            >
+              <motion.div
+                className="absolute top-1 bottom-1 rounded-full bg-gray-900 shadow-sm pointer-events-none"
+                style={{
+                  left: viewIndicatorStyle.left,
+                  width: viewIndicatorStyle.width,
+                  opacity: viewIndicatorStyle.opacity,
+                }}
+              />
+              {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
+                <button
+                  key={v}
+                  ref={(el) => setViewTabRef(v, el)}
+                  role="tab"
+                  aria-selected={view === v}
+                  onClick={() => changeView(v)}
+                  className={`relative z-10 px-5 py-1.5 text-sm font-semibold transition-colors duration-200 rounded-full cursor-pointer ${
+                    view === v
+                      ? 'text-white'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  {VIEW_LABELS[v]}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Right: Nav pill */}
@@ -208,16 +227,30 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
         </div>
 
         {/* Mobile view switcher */}
-        <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden" role="tablist" aria-label="PM Calendar view">
+        <div
+          ref={mobileTabsRef}
+          className="relative flex sm:hidden bg-gray-100 rounded-full p-1"
+          role="tablist"
+          aria-label="PM Calendar view"
+        >
+          <motion.div
+            className="absolute top-1 bottom-1 rounded-full bg-gray-900 shadow-sm pointer-events-none"
+            style={{
+              left: mobileIndicatorStyle.left,
+              width: mobileIndicatorStyle.width,
+              opacity: mobileIndicatorStyle.opacity,
+            }}
+          />
           {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
             <button
               key={v}
+              ref={(el) => setMobileTabRef(v, el)}
               role="tab"
               aria-selected={view === v}
               onClick={() => changeView(v)}
-              className={`flex-1 text-center py-2 text-xs font-semibold transition-all cursor-pointer ${
+              className={`relative z-10 flex-1 text-center py-2 text-xs font-semibold transition-colors duration-200 rounded-full cursor-pointer ${
                 view === v
-                  ? 'bg-gray-100 text-gray-900'
+                  ? 'text-white'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >

@@ -1,7 +1,9 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Plus, Search, X, SlidersHorizontal } from 'lucide-react'
+import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
 import CalendarFilterPopover, { type CalendarFilter } from './CalendarFilterPopover'
 
@@ -101,6 +103,8 @@ export default function CalendarToolbar({
   const weekDates = getWeekDates(currentDate)
   const [filterOpen, setFilterOpen] = useState(false)
   const filterBtnRef = useRef<HTMLButtonElement>(null)
+  const { containerRef: viewTabsRef, setTabRef: setViewTabRef, indicatorStyle: viewIndicatorStyle } = useAnimatedTabIndicator(view)
+  const { containerRef: mobileTabsRef, setTabRef: setMobileTabRef, indicatorStyle: mobileIndicatorStyle } = useAnimatedTabIndicator(view)
 
   const activeFilterCount =
     calendarFilter.categoryIds.size +
@@ -112,30 +116,45 @@ export default function CalendarToolbar({
   return (
     <div className="pb-2">
       {/* Zone 1: Navigation bar */}
-      <div className="flex items-center justify-between gap-2 pb-4">
+      <div className="flex items-center justify-between gap-2 pb-4 relative">
         {/* Left: Title */}
         <h2 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight min-w-0 truncate">
           {formatTitle(currentDate, view)}
         </h2>
 
-        {/* Center: View switcher — desktop only */}
-        <div className="hidden sm:flex border border-gray-200 rounded-full overflow-hidden flex-shrink-0" role="tablist" aria-label="Calendar view">
-          {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
-            <button
-              key={v}
-              role="tab"
-              aria-selected={view === v}
-              aria-current={view === v ? 'true' : undefined}
-              onClick={() => onViewChange(v)}
-              className={`w-20 text-center py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                view === v
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              {viewLabels[v]}
-            </button>
-          ))}
+        {/* Center: View switcher — desktop only, absolutely centered */}
+        <div className="absolute left-1/2 -translate-x-1/2 hidden sm:block">
+          <div
+            ref={viewTabsRef}
+            className="relative flex bg-gray-100 rounded-full p-1"
+            role="tablist"
+            aria-label="Calendar view"
+          >
+            <motion.div
+              className="absolute top-1 bottom-1 rounded-full bg-gray-900 shadow-sm pointer-events-none"
+              style={{
+                left: viewIndicatorStyle.left,
+                width: viewIndicatorStyle.width,
+                opacity: viewIndicatorStyle.opacity,
+              }}
+            />
+            {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
+              <button
+                key={v}
+                ref={(el) => setViewTabRef(v, el)}
+                role="tab"
+                aria-selected={view === v}
+                onClick={() => onViewChange(v)}
+                className={`relative z-10 px-5 py-1.5 text-sm font-semibold transition-colors duration-200 rounded-full cursor-pointer ${
+                  view === v
+                    ? 'text-white'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                {viewLabels[v]}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Right: Nav pill + Create button */}
@@ -230,17 +249,30 @@ export default function CalendarToolbar({
       </div>
 
       {/* Mobile view switcher */}
-      <div className="flex sm:hidden border border-gray-200 rounded-full overflow-hidden mt-4" role="tablist" aria-label="Calendar view">
+      <div
+        ref={mobileTabsRef}
+        className="relative flex sm:hidden bg-gray-100 rounded-full p-1 mt-4"
+        role="tablist"
+        aria-label="Calendar view"
+      >
+        <motion.div
+          className="absolute top-1 bottom-1 rounded-full bg-gray-900 shadow-sm pointer-events-none"
+          style={{
+            left: mobileIndicatorStyle.left,
+            width: mobileIndicatorStyle.width,
+            opacity: mobileIndicatorStyle.opacity,
+          }}
+        />
         {(Object.keys(viewLabels) as CalendarViewType[]).map((v) => (
           <button
             key={v}
+            ref={(el) => setMobileTabRef(v, el)}
             role="tab"
             aria-selected={view === v}
-            aria-current={view === v ? 'true' : undefined}
             onClick={() => onViewChange(v)}
-            className={`flex-1 text-center py-2 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+            className={`relative z-10 flex-1 text-center py-2 text-xs font-semibold transition-colors duration-200 rounded-full cursor-pointer ${
               view === v
-                ? 'bg-gray-100 text-gray-900'
+                ? 'text-white'
                 : 'text-gray-400 hover:text-gray-600'
             }`}
           >
