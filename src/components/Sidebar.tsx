@@ -257,14 +257,29 @@ export default function Sidebar({
     }
   }, [pathname])
 
+  // Permissions — declared here (before the indicator effect) so the effect
+  // can include them in its dependency array without a temporal dead zone error.
+  const { data: perms } = usePermissions()
+  const canManageWorkspace = perms?.canManageWorkspace ?? false
+  const canManageMaintenance = perms?.canManageMaintenance ?? false
+  const canClaimMaintenance = perms?.canClaimMaintenance ?? false
+  const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
+
   // Measure and position the facilities indicator.
-  // Uses facilityContainerMounted (set by ref callback) so the effect re-runs
-  // when the container actually appears in the DOM (after async module/permission loads).
+  // Depends on facilitiesOpen, facilityContainerMounted, pathname, AND permissions
+  // because most nav items (Work Orders, Assets, Analytics, etc.) are conditionally
+  // rendered by canManageMaintenance/canClaimMaintenance. Without permissions in deps,
+  // the effect would not re-run when the async permission query resolves and the active
+  // nav item appears in the DOM for the first time.
   useEffect(() => {
     if (!facilitiesOpen || !facilityContainerMounted) {
       facilityMeasuredRef.current = false
       return
     }
+
+    // Whether the indicator has been positioned at least once this session.
+    // Used to decide snap (false) vs slide (true) animation.
+    const alreadyMeasured = facilityMeasuredRef.current
 
     const positionIndicator = (animate: boolean): boolean => {
       const container = facilitiesContainerRef.current
@@ -284,7 +299,7 @@ export default function Sidebar({
       const top = eRect.top - cRect.top + container.scrollTop
 
       if (!animate) {
-        // Position without animation on first render
+        // Snap into position without animation (initial placement or after DOM changes)
         indicator.style.transition = 'none'
         indicator.style.top = `${top}px`
         indicator.style.height = `${eRect.height}px`
@@ -299,7 +314,7 @@ export default function Sidebar({
           })
         })
       } else {
-        // Slide to new position with transitions
+        // Slide to new position with CSS transitions
         indicator.style.top = `${top}px`
         indicator.style.height = `${eRect.height}px`
         indicator.style.opacity = '1'
@@ -308,18 +323,25 @@ export default function Sidebar({
       return true
     }
 
-    const shouldAnimate = facilityMeasuredRef.current
-
-    // Try at two points: quickly (AnimatePresence initial={false} renders immediately)
-    // and after animation completes (subsequent open/close toggles animate 200ms)
+    // Try at two points:
+    //   t1 (50ms)  — catches the common case where the container is already full height
+    //   t2 (300ms) — fallback for when AnimatePresence is animating open (200ms duration)
+    //
+    // When alreadyMeasured=true (pathname changed, user navigated between items):
+    //   - use animate=true in t1 for a smooth slide transition
+    //
+    // When alreadyMeasured=false (first render OR permissions just loaded):
+    //   - use animate=false so the indicator snaps in place instead of flying from top:0
+    //
+    // t2 always uses animate=false as a snap fallback (covers open-animation timing).
+    let t1Succeeded = false
     const t1 = setTimeout(() => {
-      if (!facilityMeasuredRef.current && positionIndicator(shouldAnimate)) {
-        facilityMeasuredRef.current = true
-      }
+      t1Succeeded = positionIndicator(alreadyMeasured)
+      if (t1Succeeded) facilityMeasuredRef.current = true
     }, 50)
     const t2 = setTimeout(() => {
-      if (!facilityMeasuredRef.current && positionIndicator(shouldAnimate)) {
-        facilityMeasuredRef.current = true
+      if (!t1Succeeded) {
+        if (positionIndicator(false)) facilityMeasuredRef.current = true
       }
     }, 300)
 
@@ -327,7 +349,7 @@ export default function Sidebar({
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [facilitiesOpen, facilityContainerMounted, pathname])
+  }, [facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
@@ -548,13 +570,6 @@ export default function Sidebar({
       new CustomEvent('settings-tab-change', { detail: { tab } })
     )
   }
-
-  // Check workspace permissions from server-confirmed permissions
-  const { data: perms } = usePermissions()
-  const canManageWorkspace = perms?.canManageWorkspace ?? false
-  const canManageMaintenance = perms?.canManageMaintenance ?? false
-  const canClaimMaintenance = perms?.canClaimMaintenance ?? false
-  const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
 
   const generalTabs = [
     { id: 'profile' as SettingsTab, label: 'My Profile', icon: User },
