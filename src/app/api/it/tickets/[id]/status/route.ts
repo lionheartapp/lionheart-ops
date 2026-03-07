@@ -7,6 +7,7 @@ import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { transitionITTicketStatus } from '@/lib/services/itTicketService'
+import { notifyITStatusChange } from '@/lib/services/itNotificationService'
 
 export async function PATCH(
   req: NextRequest,
@@ -33,6 +34,9 @@ export async function PATCH(
         comment,
       }, { userId: ctx.userId, orgId })
     )
+
+    // Fire-and-forget notification
+    notifyITStatusChange(ticket, status, orgId)
 
     return NextResponse.json(ok(ticket))
   } catch (error) {

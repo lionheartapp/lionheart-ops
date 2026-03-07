@@ -325,7 +325,31 @@ export const queryOptions = {
     queryKey: queryKeys.itDashboard.filtered(schoolId),
     queryFn: () => {
       const param = schoolId ? `?schoolId=${schoolId}` : ''
-      return fetchApi<{ total: number; open: number; inProgress: number; urgent: number; recentDone: number }>(`/api/it/dashboard${param}`)
+      return fetchApi<{
+        total: number
+        open: number
+        inProgress: number
+        onHold: number
+        urgent: number
+        recentDone: number
+        unassignedCount: number
+        avgResolutionHours: number | null
+        byStatus: Record<string, number>
+        byIssueType: Record<string, number>
+        byPriority: Record<string, number>
+        bySource: Record<string, number>
+        onHoldByReason: Record<string, number>
+        recentActivity: Array<{
+          id: string
+          ticketId: string
+          type: string
+          content: string | null
+          createdAt: string
+          ticketNumber: string
+          ticketTitle: string
+          actorName: string | null
+        }>
+      }>(`/api/it/dashboard${param}`)
     },
     staleTime: 60_000,
   }),

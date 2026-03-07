@@ -491,10 +491,19 @@ export async function getITDashboardStats(ctx: { userId: string; orgId: string }
   const where: Record<string, unknown> = {}
   if (schoolId) where.schoolId = schoolId
 
-  const [total, open, inProgress, urgent, recentDone] = await Promise.all([
+  const activeWhere = { ...where, status: { notIn: ['DONE', 'CANCELLED'] as ITTicketStatus[] } }
+
+  const [
+    total, open, inProgress, onHold, urgent, recentDone,
+    unassignedCount,
+    byStatusRaw, byIssueTypeRaw, byPriorityRaw, bySourceRaw, onHoldByReasonRaw,
+    recentActivityRaw,
+    doneTickets,
+  ] = await Promise.all([
     prisma.iTTicket.count({ where }),
     prisma.iTTicket.count({ where: { ...where, status: { in: ['BACKLOG', 'TODO'] } } }),
     prisma.iTTicket.count({ where: { ...where, status: 'IN_PROGRESS' } }),
+    prisma.iTTicket.count({ where: { ...where, status: 'ON_HOLD' } }),
     prisma.iTTicket.count({ where: { ...where, priority: 'URGENT', status: { notIn: ['DONE', 'CANCELLED'] } } }),
     prisma.iTTicket.count({
       where: {
@@ -503,9 +512,84 @@ export async function getITDashboardStats(ctx: { userId: string; orgId: string }
         updatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
       },
     }),
+    prisma.iTTicket.count({ where: { ...activeWhere, assignedToId: null } }),
+    // groupBy queries
+    prisma.iTTicket.groupBy({ by: ['status'], _count: true, where }),
+    prisma.iTTicket.groupBy({ by: ['issueType'], _count: true, where: activeWhere }),
+    prisma.iTTicket.groupBy({ by: ['priority'], _count: true, where: activeWhere }),
+    prisma.iTTicket.groupBy({ by: ['source'], _count: true, where }),
+    prisma.iTTicket.groupBy({ by: ['holdReason'], _count: true, where: { ...where, status: 'ON_HOLD' } }),
+    // Recent activity (last 8)
+    prisma.iTTicketActivity.findMany({
+      where: schoolId ? { ticket: { schoolId } } : {},
+      include: {
+        actor: { select: { firstName: true, lastName: true } },
+        ticket: { select: { ticketNumber: true, title: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+    }),
+    // For avg resolution time — get DONE tickets' created/updated timestamps
+    prisma.iTTicket.findMany({
+      where: { ...where, status: 'DONE' },
+      select: { createdAt: true, updatedAt: true },
+      take: 500, // Cap for performance
+    }),
   ])
 
-  return { total, open, inProgress, urgent, recentDone }
+  // Build record maps from groupBy results
+  const byStatus: Record<string, number> = {}
+  for (const row of byStatusRaw) byStatus[row.status] = row._count
+
+  const byIssueType: Record<string, number> = {}
+  for (const row of byIssueTypeRaw) byIssueType[row.issueType] = row._count
+
+  const byPriority: Record<string, number> = {}
+  for (const row of byPriorityRaw) byPriority[row.priority] = row._count
+
+  const bySource: Record<string, number> = {}
+  for (const row of bySourceRaw) bySource[row.source] = row._count
+
+  const onHoldByReason: Record<string, number> = {}
+  for (const row of onHoldByReasonRaw) {
+    if (row.holdReason) onHoldByReason[row.holdReason] = row._count
+  }
+
+  // Compute average resolution time in hours
+  let avgResolutionHours: number | null = null
+  if (doneTickets.length > 0) {
+    const totalHours = doneTickets.reduce((sum, t) => {
+      const ms = new Date(t.updatedAt).getTime() - new Date(t.createdAt).getTime()
+      return sum + ms / (1000 * 60 * 60)
+    }, 0)
+    avgResolutionHours = totalHours / doneTickets.length
+  }
+
+  // Format recent activity
+  const recentActivity = recentActivityRaw.map((a) => ({
+    id: a.id,
+    ticketId: a.ticketId,
+    type: a.type,
+    content: a.content,
+    createdAt: a.createdAt,
+    ticketNumber: a.ticket.ticketNumber,
+    ticketTitle: a.ticket.title,
+    actorName: a.actor
+      ? `${a.actor.firstName} ${a.actor.lastName}`.trim()
+      : null,
+  }))
+
+  return {
+    total, open, inProgress, onHold, urgent, recentDone,
+    unassignedCount,
+    avgResolutionHours,
+    byStatus,
+    byIssueType,
+    byPriority,
+    bySource,
+    onHoldByReason,
+    recentActivity,
+  }
 }
 
 // ─── Add Comment ─────────────────────────────────────────────────────────────

@@ -14,6 +14,7 @@ import {
   listITTickets,
   CreateITTicketSchema,
 } from '@/lib/services/itTicketService'
+import { notifyITTicketSubmitted, notifyITUrgentTicket } from '@/lib/services/itNotificationService'
 import type { ITTicketStatus, ITIssueType, ITPriority } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
@@ -28,6 +29,12 @@ export async function POST(req: NextRequest) {
     const ticket = await runWithOrgContext(orgId, () =>
       createITTicket(validated, ctx.userId, orgId)
     )
+
+    // Fire-and-forget notifications
+    notifyITTicketSubmitted(ticket, orgId)
+    if (validated.priority === 'URGENT') {
+      notifyITUrgentTicket(ticket, orgId)
+    }
 
     return NextResponse.json(ok(ticket), { status: 201 })
   } catch (error) {

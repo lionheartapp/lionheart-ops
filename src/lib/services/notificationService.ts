@@ -24,6 +24,15 @@ export type NotificationType =
   | 'maintenance_repeat_repair'
   | 'maintenance_cost_threshold'
   | 'maintenance_end_of_life'
+  // IT Help Desk ticket notifications (8 triggers)
+  | 'it_ticket_submitted'
+  | 'it_ticket_assigned'
+  | 'it_ticket_in_progress'
+  | 'it_ticket_on_hold'
+  | 'it_ticket_done'
+  | 'it_ticket_cancelled'
+  | 'it_ticket_urgent'
+  | 'it_ticket_comment'
   // Compliance reminders
   | 'compliance_reminder'
 

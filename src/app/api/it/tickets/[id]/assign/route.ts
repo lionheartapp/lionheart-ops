@@ -9,6 +9,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { assignITTicket } from '@/lib/services/itTicketService'
+import { notifyITTicketAssigned } from '@/lib/services/itNotificationService'
 
 export async function PATCH(
   req: NextRequest,
@@ -28,6 +29,9 @@ export async function PATCH(
     const ticket = await runWithOrgContext(orgId, () =>
       assignITTicket(id, body.assignedToId, { userId: ctx.userId, orgId })
     )
+
+    // Fire-and-forget notification
+    notifyITTicketAssigned(ticket, body.assignedToId, orgId)
 
     return NextResponse.json(ok(ticket))
   } catch (error) {

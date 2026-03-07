@@ -2,28 +2,33 @@
 
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="ui-glass p-4 animate-pulse">
-            <div className="h-3 w-16 bg-gray-200 rounded mb-3" />
-            <div className="h-8 w-12 bg-gray-200 rounded" />
+    <div className="space-y-6 animate-pulse">
+      {/* Stats row — 6 cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="ui-glass p-5 rounded-2xl">
+            <div className="w-9 h-9 rounded-xl bg-gray-100 mb-3" />
+            <div className="h-8 bg-gray-100 rounded w-16 mb-2" />
+            <div className="h-3 bg-gray-100 rounded w-20" />
           </div>
         ))}
       </div>
-      {/* Recent tickets */}
-      <div className="ui-glass p-6 animate-pulse">
-        <div className="h-5 w-32 bg-gray-200 rounded mb-4" />
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center gap-4">
-              <div className="h-4 w-16 bg-gray-100 rounded" />
-              <div className="h-4 w-48 bg-gray-100 rounded flex-1" />
-              <div className="h-5 w-16 bg-gray-100 rounded-md" />
-            </div>
-          ))}
+      {/* Two-column panels */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div className="ui-glass p-5 rounded-2xl h-52" />
+          <div className="ui-glass p-5 rounded-2xl h-52" />
         </div>
+        <div className="space-y-4">
+          <div className="ui-glass p-5 rounded-2xl h-44" />
+          <div className="ui-glass p-5 rounded-2xl h-28" />
+          <div className="ui-glass p-5 rounded-2xl h-28" />
+        </div>
+      </div>
+      {/* Bottom row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="ui-glass p-5 rounded-2xl h-48" />
+        <div className="ui-glass p-5 rounded-2xl h-48" />
       </div>
     </div>
   )

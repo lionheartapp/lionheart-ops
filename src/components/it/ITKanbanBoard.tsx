@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   DndContext,
@@ -21,6 +21,7 @@ import ITKanbanColumn from './ITKanbanColumn'
 import ITKanbanCard, { type KanbanTicket } from './ITKanbanCard'
 import { BoardSkeleton } from './ITSkeleton'
 import HoldReasonDialog from './HoldReasonDialog'
+import { AlertTriangle } from 'lucide-react'
 
 interface ITKanbanBoardProps {
   onTicketClick: (id: string) => void
@@ -28,11 +29,34 @@ interface ITKanbanBoardProps {
 
 const BOARD_COLUMNS = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'ON_HOLD'] as const
 
+const ISSUE_TYPE_OPTIONS = [
+  { value: '', label: 'All Types' },
+  { value: 'HARDWARE', label: 'Hardware' },
+  { value: 'SOFTWARE', label: 'Software' },
+  { value: 'ACCOUNT_PASSWORD', label: 'Account / Password' },
+  { value: 'NETWORK', label: 'Network' },
+  { value: 'DISPLAY_AV', label: 'Display / A/V' },
+  { value: 'OTHER', label: 'Other' },
+]
+
+const PRIORITY_OPTIONS = [
+  { value: '', label: 'All Priorities' },
+  { value: 'LOW', label: 'Low' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'URGENT', label: 'Urgent' },
+]
+
 export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [activeTicket, setActiveTicket] = useState<KanbanTicket | null>(null)
   const [holdPending, setHoldPending] = useState<{ ticketId: string; title: string } | null>(null)
+
+  // Filter state
+  const [filterIssueType, setFilterIssueType] = useState('')
+  const [filterPriority, setFilterPriority] = useState('')
+  const [filterUnassigned, setFilterUnassigned] = useState(false)
 
   const { data: boardData, isLoading } = useQuery(queryOptions.itBoard())
 
@@ -40,6 +64,31 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
+
+  // Apply client-side filters
+  const filteredBoardData = useMemo(() => {
+    const raw = (boardData ?? {}) as Record<string, KanbanTicket[]>
+    const hasFilters = filterIssueType || filterPriority || filterUnassigned
+
+    if (!hasFilters) return raw
+
+    const filtered: Record<string, KanbanTicket[]> = {}
+    for (const [col, tickets] of Object.entries(raw)) {
+      filtered[col] = (tickets as KanbanTicket[]).filter((t) => {
+        if (filterIssueType && t.issueType !== filterIssueType) return false
+        if (filterPriority && t.priority !== filterPriority) return false
+        if (filterUnassigned && t.assignedTo) return false
+        return true
+      })
+    }
+    return filtered
+  }, [boardData, filterIssueType, filterPriority, filterUnassigned])
+
+  // Count urgent tickets across all columns (from raw data, not filtered)
+  const urgentCount = useMemo(() => {
+    const raw = (boardData ?? {}) as Record<string, KanbanTicket[]>
+    return Object.values(raw).flat().filter((t) => t.priority === 'URGENT').length
+  }, [boardData])
 
   const statusMutation = useMutation({
     mutationFn: ({ ticketId, status, holdReason }: { ticketId: string; status: string; holdReason?: string }) =>
@@ -130,9 +179,13 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
     setHoldPending(null)
   }, [holdPending, statusMutation])
 
+  const handleUrgentClick = useCallback(() => {
+    setFilterPriority('URGENT')
+  }, [])
+
   if (isLoading) return <BoardSkeleton />
 
-  const columns = (boardData ?? {}) as Record<string, KanbanTicket[]>
+  const hasActiveFilters = filterIssueType || filterPriority || filterUnassigned
 
   return (
     <DndContext
@@ -141,12 +194,71 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
+      {/* Urgent banner */}
+      {urgentCount > 0 && (
+        <button
+          onClick={handleUrgentClick}
+          className="w-full mb-4 flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl cursor-pointer hover:from-red-600 hover:to-red-700 transition-all active:scale-[0.99]"
+        >
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">
+            {urgentCount} urgent ticket{urgentCount !== 1 ? 's' : ''} require{urgentCount === 1 ? 's' : ''} attention
+          </span>
+        </button>
+      )}
+
+      {/* Filter toolbar */}
+      <div className="flex flex-wrap items-center gap-3 mb-4 p-3 ui-glass rounded-xl">
+        <select
+          value={filterIssueType}
+          onChange={(e) => setFilterIssueType(e.target.value)}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+        >
+          {ISSUE_TYPE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterPriority}
+          onChange={(e) => setFilterPriority(e.target.value)}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+        >
+          {PRIORITY_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+
+        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={filterUnassigned}
+            onChange={(e) => setFilterUnassigned(e.target.checked)}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          />
+          Unassigned only
+        </label>
+
+        {hasActiveFilters && (
+          <button
+            onClick={() => {
+              setFilterIssueType('')
+              setFilterPriority('')
+              setFilterUnassigned(false)
+            }}
+            className="ml-auto text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {BOARD_COLUMNS.map((status) => (
           <ITKanbanColumn
             key={status}
             status={status}
-            tickets={columns[status] ?? []}
+            tickets={filteredBoardData[status] ?? []}
             onTicketClick={onTicketClick}
           />
         ))}

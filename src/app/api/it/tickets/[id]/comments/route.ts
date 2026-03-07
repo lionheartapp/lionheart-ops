@@ -10,6 +10,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan, can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { addITTicketComment } from '@/lib/services/itTicketService'
+import { notifyITTicketComment } from '@/lib/services/itNotificationService'
 import { prisma } from '@/lib/db'
 
 export async function GET(
@@ -74,6 +75,22 @@ export async function POST(
     const activity = await runWithOrgContext(orgId, () =>
       addITTicketComment(id, content.trim(), !!isInternal, { userId: ctx.userId })
     )
+
+    // Fire-and-forget comment notification (public comments only)
+    if (!isInternal) {
+      const ticket = await runWithOrgContext(orgId, () =>
+        prisma.iTTicket.findUnique({
+          where: { id },
+          include: {
+            submittedBy: { select: { id: true, email: true, firstName: true, lastName: true } },
+            assignedTo: { select: { id: true, email: true, firstName: true, lastName: true } },
+          },
+        })
+      )
+      if (ticket) {
+        notifyITTicketComment(ticket, ctx.userId, content.trim(), orgId)
+      }
+    }
 
     return NextResponse.json(ok(activity), { status: 201 })
   } catch (error) {

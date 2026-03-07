@@ -228,6 +228,13 @@ export type EmailTemplate =
   | 'maintenance_repeat_repair'
   | 'maintenance_cost_threshold'
   | 'maintenance_end_of_life'
+  // IT Help Desk email templates (6 triggers)
+  | 'it_ticket_submitted'
+  | 'it_ticket_assigned'
+  | 'it_ticket_in_progress'
+  | 'it_ticket_on_hold'
+  | 'it_ticket_done'
+  | 'it_ticket_urgent'
 
 type TemplateVars = Record<string, string | undefined>
 
@@ -658,6 +665,144 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         ].join('\n'),
       })
 
+    // ── IT Help Desk: Ticket Submitted (to submitter) ──
+    case 'it_ticket_submitted':
+      return wrapLayout({
+        previewText: 'Your IT request {{ticketNumber}} has been submitted',
+        content: [
+          heroHeading('- IT Help Desk -', 'Request<br />Submitted'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Your IT request has been received and is now in our queue.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Category:</strong> {{category}}`,
+            B.blueLight,
+            B.blue
+          ),
+          centeredCta('View Request', '{{ticketLink}}'),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll keep you updated as your request is processed.</mj-text>`,
+            '8px 40px 24px 40px'
+          ),
+        ].join('\n'),
+      })
+
+    // ── IT Help Desk: Ticket Assigned (to assignee) ──
+    case 'it_ticket_assigned':
+      return wrapLayout({
+        previewText: 'IT ticket {{ticketNumber}} has been assigned to you',
+        content: [
+          heroHeading('- IT Help Desk -', 'Ticket<br />Assigned to You'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              An IT ticket has been assigned to you for action.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}<br /><strong>Category:</strong> {{category}}`,
+            B.blueLight,
+            B.blue
+          ),
+          centeredCta('View Ticket', '{{ticketLink}}'),
+        ].join('\n'),
+      })
+
+    // ── IT Help Desk: In Progress (to submitter) ──
+    case 'it_ticket_in_progress':
+      return wrapLayout({
+        previewText: 'Work has begun on your IT request {{ticketNumber}}',
+        content: [
+          heroHeading('- IT Help Desk -', 'Work<br />In Progress'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Good news — work has started on your IT request.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
+            B.greenLight,
+            B.green
+          ),
+          centeredCta('View Request', '{{ticketLink}}', B.green),
+        ].join('\n'),
+      })
+
+    // ── IT Help Desk: On Hold (to submitter) ──
+    case 'it_ticket_on_hold':
+      return wrapLayout({
+        previewText: 'IT request {{ticketNumber}} is temporarily on hold',
+        content: [
+          heroHeading('- IT Help Desk -', 'Request<br />On Hold'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Your IT request has been temporarily placed on hold.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
+            B.gray100,
+            B.gray500
+          ),
+          centeredCta('View Request', '{{ticketLink}}'),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll update you when work resumes.</mj-text>`,
+            '8px 40px 24px 40px'
+          ),
+        ].join('\n'),
+      })
+
+    // ── IT Help Desk: Done (to submitter) ──
+    case 'it_ticket_done':
+      return wrapLayout({
+        previewText: 'Your IT request {{ticketNumber}} has been resolved',
+        content: [
+          heroHeading('- All Done -', 'Request<br />Resolved'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Your IT request has been resolved and closed.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
+            B.greenLight,
+            B.green
+          ),
+          centeredCta('View Details', '{{ticketLink}}', B.green),
+          contentSection(
+            `<mj-text align="center" font-size="12px" color="${B.gray400}">Thank you for using IT Help Desk.</mj-text>`,
+            '8px 40px 24px 40px'
+          ),
+        ].join('\n'),
+      })
+
+    // ── IT Help Desk: Urgent Alert (to IT coordinators) ──
+    case 'it_ticket_urgent':
+      return wrapLayout({
+        previewText: 'URGENT: IT request {{ticketNumber}} requires immediate attention',
+        content: [
+          heroHeading('- Urgent Alert -', 'Urgent<br />IT Request'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              An <strong>URGENT</strong> IT request has been submitted and requires immediate attention.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          detailCard(
+            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Category:</strong> {{category}}<br /><strong>Location:</strong> {{location}}`,
+            B.redLight,
+            B.red
+          ),
+          centeredCta('View Urgent Ticket', '{{ticketLink}}'),
+        ].join('\n'),
+      })
+
     default:
       throw new Error(`Unknown email template: ${template}`)
   }
@@ -698,6 +843,13 @@ const SUBJECTS: Record<EmailTemplate, string> = {
   maintenance_repeat_repair: 'Repeat Repair Alert: {{assetName}}',
   maintenance_cost_threshold: 'Repair Cost Threshold Exceeded: {{assetName}}',
   maintenance_end_of_life: 'Asset End of Life: {{assetName}}',
+  // IT Help Desk
+  it_ticket_submitted: 'IT request {{ticketNumber}} received',
+  it_ticket_assigned: 'IT ticket assigned: {{ticketNumber}}',
+  it_ticket_in_progress: 'Work started on your IT request {{ticketNumber}}',
+  it_ticket_on_hold: 'IT request {{ticketNumber}} is on hold',
+  it_ticket_done: 'IT request {{ticketNumber}} resolved',
+  it_ticket_urgent: 'URGENT IT request: {{ticketNumber}}',
 }
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
@@ -723,6 +875,13 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
   maintenance_repeat_repair: 'Asset {{assetName}} ({{assetNumber}}) has had {{repairCount}} repairs in the last 12 months. View: {{assetUrl}}',
   maintenance_cost_threshold: 'Cumulative repair cost (${{cumulativeCost}}) for {{assetName}} has exceeded {{pct}}% of replacement cost (${{replacementCost}}). AI Recommendation: {{recommendation}}. View: {{assetUrl}}',
   maintenance_end_of_life: 'Asset {{assetName}} ({{assetNumber}}) purchased in {{purchaseYear}} has exceeded its expected lifespan of {{expectedLifespan}} years. View: {{assetUrl}}',
+  // IT Help Desk
+  it_ticket_submitted: 'Your IT request {{ticketNumber}} "{{ticketTitle}}" has been received. Category: {{category}}. View: {{ticketLink}}',
+  it_ticket_assigned: 'IT ticket {{ticketNumber}} "{{ticketTitle}}" has been assigned to you. Priority: {{priority}}. View: {{ticketLink}}',
+  it_ticket_in_progress: 'Work has started on your IT request {{ticketNumber}} "{{ticketTitle}}". View: {{ticketLink}}',
+  it_ticket_on_hold: 'IT request {{ticketNumber}} "{{ticketTitle}}" is on hold. View: {{ticketLink}}',
+  it_ticket_done: 'IT request {{ticketNumber}} "{{ticketTitle}}" has been resolved and closed. View: {{ticketLink}}',
+  it_ticket_urgent: 'URGENT: IT request {{ticketNumber}} "{{ticketTitle}}" requires immediate attention. Category: {{category}}. View: {{ticketLink}}',
 }
 
 /**

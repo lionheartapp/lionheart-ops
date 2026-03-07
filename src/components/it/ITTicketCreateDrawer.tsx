@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
@@ -69,6 +69,28 @@ const AV_SUB_TYPES = [
   { value: 'APPLE_TV', label: 'Apple TV' },
   { value: 'OTHER_AV', label: 'Other A/V' },
 ]
+
+const TITLE_SUGGESTIONS: Record<string, string[] | Record<string, string[]>> = {
+  HARDWARE: ["Computer won't turn on", "Keyboard/mouse not working", "Printer issue", "Monitor not displaying"],
+  SOFTWARE: ["Application won't open", "Software update needed", "Software installation request", "Application running slowly"],
+  ACCOUNT_PASSWORD: {
+    '': ["Password reset needed", "Account locked out", "New account request", "Permission/access change needed"],
+    RESET: ["Password reset needed"],
+    LOCKED: ["Account locked out"],
+    NEW_ACCOUNT: ["New account request"],
+    PERMISSION_CHANGE: ["Permission/access change needed"],
+  },
+  NETWORK: ["No internet connection", "Wi-Fi not working", "Network drive not accessible", "Slow internet"],
+  DISPLAY_AV: {
+    '': ["Projector not working", "Sound system issue", "Classroom display not working", "Apple TV not connecting", "A/V equipment issue"],
+    PROJECTOR: ["Projector not working"],
+    SOUNDBOARD: ["Sound system issue"],
+    DISPLAY: ["Classroom display not working"],
+    APPLE_TV: ["Apple TV not connecting"],
+    OTHER_AV: ["A/V equipment issue"],
+  },
+  OTHER: ["General IT help needed"],
+}
 
 export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITTicketCreateDrawerProps) {
   const queryClient = useQueryClient()
@@ -175,6 +197,19 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     onClose()
   }
 
+  // Compute title suggestions based on issue type + sub-type
+  const titleSuggestions = useMemo<string[]>(() => {
+    if (!issueType) return []
+    const map = TITLE_SUGGESTIONS[issueType]
+    if (!map) return []
+    if (Array.isArray(map)) return map
+    // It's a sub-type map
+    const subType = issueType === 'ACCOUNT_PASSWORD' ? passwordSubType : avSubType
+    return map[subType || ''] ?? []
+  }, [issueType, passwordSubType, avSubType])
+
+  const showSuggestions = issueType && titleSuggestions.length > 0 && title.trim().length < 10
+
   const canSubmit = title.trim().length > 0 && issueType !== ''
 
   return (
@@ -193,6 +228,23 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
           maxLength={120}
           required
         />
+
+        {/* Title suggestions */}
+        {showSuggestions && (
+          <div className="flex flex-wrap gap-1.5 -mt-2 animate-[fadeIn_200ms_ease-out]">
+            <span className="text-[11px] text-gray-400 mr-1 self-center">Suggestions:</span>
+            {titleSuggestions.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setTitle(s)}
+                className="px-2.5 py-1 text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-full hover:bg-blue-100 active:scale-[0.97] transition-all cursor-pointer"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Issue Type *</label>
