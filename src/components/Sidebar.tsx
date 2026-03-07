@@ -249,49 +249,70 @@ export default function Sidebar({
     }
   }, [pathname])
 
-  // Reset indicator measurement flag when facilities close
+  // Measure and position the facilities indicator (matches the HTML mockup pattern exactly)
+  // Two cases: (1) initial open — position without animation, (2) route change — animate slide
   useEffect(() => {
     if (!facilitiesOpen) {
       facilityMeasuredRef.current = false
-    }
-  }, [facilitiesOpen])
-
-  // Called when the facilities expand animation completes — measure without animation
-  const handleFacilitiesExpanded = useCallback(() => {
-    if (!facilitiesOpen) return
-    const container = facilitiesContainerRef.current
-    const indicator = facilityIndicatorRef.current
-    if (!container || !indicator) return
-
-    const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
-    if (!activeEl) {
-      indicator.style.opacity = '0'
-      facilityMeasuredRef.current = true
       return
     }
 
-    const cRect = container.getBoundingClientRect()
-    const eRect = activeEl.getBoundingClientRect()
-    const top = eRect.top - cRect.top + container.scrollTop
+    const measure = (): boolean => {
+      const container = facilitiesContainerRef.current
+      const indicator = facilityIndicatorRef.current
+      if (!container || !indicator) return false
 
-    // Position without animation on first render (matches the mockup's init pattern)
-    indicator.style.transition = 'none'
-    indicator.style.top = `${top}px`
-    indicator.style.height = `${eRect.height}px`
-    indicator.style.opacity = '1'
+      // Wait until container has settled to full height
+      const cRect = container.getBoundingClientRect()
+      if (cRect.height < 10) return false
 
-    // Restore transitions after browser paints the position
-    requestAnimationFrame(() => {
+      const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
+      if (!activeEl) {
+        indicator.style.opacity = '0'
+        return true
+      }
+
+      const eRect = activeEl.getBoundingClientRect()
+      const top = eRect.top - cRect.top + container.scrollTop
+
+      // Position without animation on first render
+      indicator.style.transition = 'none'
+      indicator.style.top = `${top}px`
+      indicator.style.height = `${eRect.height}px`
+      indicator.style.opacity = '1'
+
+      // Restore transitions after browser paints the position
       requestAnimationFrame(() => {
-        if (facilityIndicatorRef.current) {
-          facilityIndicatorRef.current.style.transition = ''
-        }
-        facilityMeasuredRef.current = true
+        requestAnimationFrame(() => {
+          if (facilityIndicatorRef.current) {
+            facilityIndicatorRef.current.style.transition = ''
+          }
+        })
       })
-    })
+
+      return true
+    }
+
+    // Try at two points: quickly (AnimatePresence initial={false} renders immediately)
+    // and after animation completes (subsequent open/close toggles animate 200ms)
+    const t1 = setTimeout(() => {
+      if (!facilityMeasuredRef.current && measure()) {
+        facilityMeasuredRef.current = true
+      }
+    }, 50)
+    const t2 = setTimeout(() => {
+      if (!facilityMeasuredRef.current && measure()) {
+        facilityMeasuredRef.current = true
+      }
+    }, 300)
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
   }, [facilitiesOpen])
 
-  // Animate indicator on route change when facilities are already open and measured
+  // Animate indicator slide on route change when facilities already open
   useEffect(() => {
     if (!facilitiesOpen || !facilityMeasuredRef.current) return
     const container = facilitiesContainerRef.current
@@ -309,6 +330,7 @@ export default function Sidebar({
       const eRect = activeEl.getBoundingClientRect()
       const top = eRect.top - cRect.top + container.scrollTop
 
+      // This time WITH transitions — the indicator slides to the new position
       indicator.style.top = `${top}px`
       indicator.style.height = `${eRect.height}px`
       indicator.style.opacity = '1'
@@ -663,9 +685,6 @@ export default function Sidebar({
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                          onAnimationComplete={() => {
-                            if (facilitiesOpen) handleFacilitiesExpanded()
-                          }}
                         >
                           {/* Track line */}
                           <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
