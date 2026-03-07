@@ -263,11 +263,13 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
             </label>
           )}
 
-          <span className="text-sm text-gray-500">
-            {mainLoading
-              ? 'Loading tickets...'
-              : `${displayedTickets.length} ticket${displayedTickets.length !== 1 ? 's' : ''}`}
-          </span>
+          {viewMode === 'table' && (
+            <span className="text-sm text-gray-500">
+              {mainLoading
+                ? 'Loading tickets...'
+                : `${displayedTickets.length} ticket${displayedTickets.length !== 1 ? 's' : ''}`}
+            </span>
+          )}
         </div>
 
         {/* Board / Table toggle */}

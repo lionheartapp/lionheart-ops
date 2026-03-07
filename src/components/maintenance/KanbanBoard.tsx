@@ -110,6 +110,13 @@ export default function KanbanBoard({
   // Use localTickets if set (optimistic), otherwise use prop tickets
   const displayTickets = localTickets ?? tickets
 
+  // Ticket counts for tab badges
+  const teamTicketCount = displayTickets.length
+  const myTicketCount = useMemo(
+    () => displayTickets.filter((t) => t.assignedTo?.id === currentUserId).length,
+    [displayTickets, currentUserId]
+  )
+
   // Filter tickets by board view tab
   const filteredByView = useMemo(() => {
     if (boardView === 'my-board') {
@@ -300,10 +307,10 @@ export default function KanbanBoard({
       <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200">
         {(
           [
-            ...(canManage ? [{ key: 'team-board', label: 'Team Board', icon: Users }] : []),
-            { key: 'my-board', label: 'My Board', icon: User },
-          ] as { key: BoardViewTab; label: string; icon: typeof User }[]
-        ).map(({ key, label, icon: Icon }) => (
+            ...(canManage ? [{ key: 'team-board' as BoardViewTab, label: 'Team Board', icon: Users, count: teamTicketCount }] : []),
+            { key: 'my-board' as BoardViewTab, label: 'My Board', icon: User, count: myTicketCount },
+          ]
+        ).map(({ key, label, icon: Icon, count }) => (
           <button
             key={key}
             ref={(el) => setTabRef(key, el)}
@@ -316,6 +323,13 @@ export default function KanbanBoard({
           >
             <Icon className="w-4 h-4" />
             {label}
+            <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full ${
+              boardView === key
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-500'
+            }`}>
+              {count}
+            </span>
           </button>
         ))}
 
