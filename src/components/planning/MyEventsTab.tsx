@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useSubmissions } from '@/lib/hooks/usePlanningSeason'
 import { CheckCircle, Clock, XCircle, AlertCircle, Calendar, Edit, Eye } from 'lucide-react'
+import { IllustrationCalendar } from '@/components/illustrations'
 
 interface MyEventsTabProps {
   seasonId: string
@@ -66,9 +67,10 @@ export default function MyEventsTab({ seasonId }: MyEventsTabProps) {
 
       {/* Submission list */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <Calendar className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-          <p className="text-sm">No submissions yet</p>
+        <div className="text-center py-12">
+          <IllustrationCalendar className="w-48 h-40 mx-auto mb-2" />
+          <p className="text-base font-semibold text-gray-700 mb-1">No submissions yet</p>
+          <p className="text-sm text-gray-500">Your event submissions will appear here.</p>
         </div>
       ) : (
         <div className="space-y-2">

@@ -11,6 +11,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
 import SportIcon, { GlassSportTile } from '@/components/athletics/SportIcon'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 interface Team {
   id: string
@@ -396,21 +397,24 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filteredRoster.length === 0 ? (
         <div className="ui-glass p-8 text-center">
-          <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h2 className="text-lg font-medium text-gray-700 mb-1">
-            {roster.length === 0 ? 'No players on this roster' : 'No matching players'}
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            {roster.length === 0 ? 'Get started by adding a player' : 'Try a different search'}
-          </p>
-          {roster.length === 0 && (
-            <button
-              type="button"
-              onClick={openCreate}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Add a player
-            </button>
+          {roster.length === 0 ? (
+            <>
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
+              <p className="text-base font-semibold text-gray-700 mb-1">No players on this roster</p>
+              <p className="text-sm text-gray-500 mb-4">Get started by adding a player</p>
+              <button
+                type="button"
+                onClick={openCreate}
+                className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+              >
+                Add First Player
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-base font-semibold text-gray-700 mb-1">No matching players</p>
+              <p className="text-sm text-gray-500">Try a different search</p>
+            </>
           )}
         </div>
       ) : (

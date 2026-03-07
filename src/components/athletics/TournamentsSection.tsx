@@ -12,6 +12,7 @@ import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import TournamentDetail from '@/components/athletics/TournamentDetail'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 interface Sport {
   id: string
@@ -237,10 +238,18 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
         <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <Trophy className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            {tournaments.length === 0 ? 'No tournaments yet. Create one to get started.' : 'No tournaments match your search.'}
-          </p>
+          {tournaments.length === 0 ? (
+            <>
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
+              <p className="text-base font-semibold text-gray-700 mb-1">No tournaments yet</p>
+              <p className="text-sm text-gray-500">Create one to get started.</p>
+            </>
+          ) : (
+            <>
+              <p className="text-base font-semibold text-gray-700 mb-1">No tournaments match your search</p>
+              <p className="text-sm text-gray-500">Try a different search term</p>
+            </>
+          )}
         </div>
       ) : (
         <>

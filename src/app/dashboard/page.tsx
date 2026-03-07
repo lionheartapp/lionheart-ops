@@ -10,6 +10,7 @@ import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2 } from 'lucide-react'
+import { IllustrationTickets } from '@/components/illustrations'
 
 interface TicketData {
   id: string
@@ -375,14 +376,15 @@ export default function DashboardPage() {
               <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
             </div>
           ) : tickets.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <CheckCircle className="w-10 h-10 mx-auto mb-3 text-gray-300" aria-hidden="true" />
-              <p className="text-sm mb-2">No tasks yet.</p>
+            <div className="text-center py-16">
+              <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
+              <p className="text-base font-semibold text-gray-700 mb-1">No tasks yet</p>
+              <p className="text-sm text-gray-500 mb-4">Submit a maintenance request or create a task to get started.</p>
               <button
                 onClick={() => openCreateDrawer('MAINTENANCE')}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
               >
-                Create your first task
+                Create First Task
               </button>
             </div>
           ) : (

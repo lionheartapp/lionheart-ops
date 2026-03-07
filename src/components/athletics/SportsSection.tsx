@@ -11,6 +11,7 @@ import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import SeasonsPanel from '@/components/athletics/SeasonsPanel'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 type Sport = {
   id: string
@@ -172,17 +173,24 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
         <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
       ) : filtered.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-sm text-gray-500">
-            {search ? 'No sports match your search' : 'No sports created yet'}
-          </p>
-          {!search && (
-            <button
-              type="button"
-              onClick={() => openCreate()}
-              className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Create your first sport
-            </button>
+          {search ? (
+            <>
+              <p className="text-base font-semibold text-gray-700 mb-1">No sports match your search</p>
+              <p className="text-sm text-gray-500">Try a different search term</p>
+            </>
+          ) : (
+            <>
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
+              <p className="text-base font-semibold text-gray-700 mb-1">No sports created yet</p>
+              <p className="text-sm text-gray-500 mb-4">Add your first sport to start building teams and schedules.</p>
+              <button
+                type="button"
+                onClick={() => openCreate()}
+                className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+              >
+                Create First Sport
+              </button>
+            </>
           )}
         </div>
       ) : (

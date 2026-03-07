@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
 import PermissionToggleList from '@/components/settings/PermissionToggleList'
+import { IllustrationTeam } from '@/components/illustrations'
 
 interface Role {
   id: string
@@ -427,10 +428,14 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
           </div>
         ) : roles.length === 0 ? (
           <div className="text-center py-16">
-            <Shield className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm mb-3">No roles found</p>
-            <button onClick={openCreateDrawer} className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-              Create your first role
+            <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
+            <p className="text-base font-semibold text-gray-700 mb-1">No roles found</p>
+            <p className="text-sm text-gray-500 mb-4">Define roles to control what your team members can access.</p>
+            <button
+              onClick={openCreateDrawer}
+              className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+            >
+              Create First Role
             </button>
           </div>
         ) : (

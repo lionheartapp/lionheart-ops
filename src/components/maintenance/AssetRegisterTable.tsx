@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Plus, Package, AlertTriangle, TrendingUp, Clock } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { listItem, staggerContainer } from '@/lib/animations'
+import { IllustrationMaintenance } from '@/components/illustrations'
 import type { AssetFilterState } from './AssetRegisterFilters'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -174,9 +175,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
   if (assets.length === 0) {
     return (
       <div className="ui-glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-        <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mb-4">
-          <Package className="w-7 h-7 text-primary-600" />
-        </div>
+        <IllustrationMaintenance className="w-48 h-40 mb-2" />
         <h3 className="text-base font-semibold text-gray-900 mb-1">No assets found</h3>
         <p className="text-sm text-gray-500 mb-4">
           {filters.search || filters.category || filters.status
@@ -186,7 +185,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
         {!filters.search && !filters.category && !filters.status && (
           <button
             onClick={onAddAsset}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors cursor-pointer active:scale-[0.97]"
           >
             <Plus className="w-4 h-4" />
             Add your first asset

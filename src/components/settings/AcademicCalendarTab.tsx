@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { IllustrationCalendar } from '@/components/illustrations'
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -284,7 +285,10 @@ export default function AcademicCalendarTab() {
               </div>
             </div>
           ) : years.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 text-sm">No academic years configured</div>
+            <div className="text-center py-12">
+              <IllustrationCalendar className="w-40 h-32 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600">No academic years configured</p>
+            </div>
           ) : (
             <div className="space-y-4">
               {years.map((year) => (
@@ -393,7 +397,10 @@ export default function AcademicCalendarTab() {
           {schedulesLoading ? (
             <div className="space-y-3">{[1, 2].map((i) => <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />)}</div>
           ) : schedules.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 text-sm">No bell schedules configured</div>
+            <div className="text-center py-12">
+              <IllustrationCalendar className="w-40 h-32 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600">No bell schedules configured</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {schedules.map((schedule) => (
@@ -465,7 +472,10 @@ export default function AcademicCalendarTab() {
           {specialDaysLoading ? (
             <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />)}</div>
           ) : specialDays.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 text-sm">No special days configured</div>
+            <div className="text-center py-12">
+              <IllustrationCalendar className="w-40 h-32 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600">No special days configured</p>
+            </div>
           ) : (
             <div className="divide-y divide-gray-100 ui-glass-table">
               {specialDays.map((day) => {

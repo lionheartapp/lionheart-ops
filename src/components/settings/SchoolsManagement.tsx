@@ -6,6 +6,7 @@ import { Plus, Edit2, Trash2, ChevronDown, GraduationCap, Check } from 'lucide-r
 import type { School } from '@prisma/client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
+import { IllustrationCampus } from '@/components/illustrations'
 
 type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
@@ -616,12 +617,15 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
       <div className="ui-glass-table">
         {schools.length === 0 ? (
-          <div className="text-center py-14 text-gray-400">
-            <GraduationCap className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm mb-1">No schools yet.</p>
-            <p className="text-xs text-gray-400 mb-3 max-w-xs mx-auto">Add your schools first so buildings can be associated with the right division.</p>
-            <button onClick={handleOpenNew} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-              Add your first school
+          <div className="text-center py-14">
+            <IllustrationCampus className="w-48 h-40 mx-auto mb-2" />
+            <p className="text-base font-semibold text-gray-700 mb-1">No schools yet</p>
+            <p className="text-sm text-gray-500 mb-4 max-w-xs mx-auto">Add your schools first so buildings can be associated with the right division.</p>
+            <button
+              onClick={handleOpenNew}
+              className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+            >
+              Add First School
             </button>
           </div>
         ) : (

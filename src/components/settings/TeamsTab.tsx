@@ -9,6 +9,7 @@ import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
+import { IllustrationTeam } from '@/components/illustrations'
 
 interface Team {
   id: string
@@ -372,14 +373,15 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             ))}
           </div>
         ) : teams.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <Users className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm mb-2">No teams found.</p>
+          <div className="text-center py-16">
+            <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
+            <p className="text-base font-semibold text-gray-700 mb-1">No teams found</p>
+            <p className="text-sm text-gray-500 mb-4">Organize your staff into teams for better task routing.</p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
             >
-              Create your first team
+              Create First Team
             </button>
           </div>
         ) : (
