@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   DndContext,
@@ -25,7 +25,8 @@ import WorkOrdersFilters, { type WorkOrdersFilterState } from './WorkOrdersFilte
 import { isBoardTransitionAllowed } from '@/lib/maintenance-transitions'
 import type { WorkOrderTicket } from './WorkOrdersTable'
 import { User, Users } from 'lucide-react'
-import { motion, useMotionValue, animate as fmAnimate } from 'framer-motion'
+import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
+import TabIndicator from '@/components/ui/TabIndicator'
 import { fetchApi } from '@/lib/api-client'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -92,36 +93,7 @@ export default function KanbanBoard({
   const [boardView, setBoardView] = useState<BoardViewTab>(canManage ? 'team-board' : 'my-board')
 
   // Animated tab indicator
-  const tabContainerRef = useRef<HTMLDivElement>(null)
-  const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const indicatorLeft = useMotionValue(0)
-  const indicatorWidth = useMotionValue(0)
-  const indicatorOpacity = useMotionValue(0)
-  const hasAnimated = useRef(false)
-
-  useLayoutEffect(() => {
-    const container = tabContainerRef.current
-    const activeEl = tabRefs.current.get(boardView)
-    if (!container || !activeEl) return
-
-    const containerRect = container.getBoundingClientRect()
-    const elRect = activeEl.getBoundingClientRect()
-    const left = elRect.left - containerRect.left
-    const width = elRect.width
-    const easing = [0.22, 1, 0.36, 1] as [number, number, number, number]
-
-    if (!hasAnimated.current) {
-      // First render — snap into place
-      indicatorLeft.jump(left)
-      indicatorWidth.jump(width)
-      indicatorOpacity.jump(1)
-      hasAnimated.current = true
-    } else {
-      // Animate to new position
-      fmAnimate(indicatorLeft, left, { duration: 0.35, ease: easing })
-      fmAnimate(indicatorWidth, width, { duration: 0.35, ease: easing })
-    }
-  }, [boardView, canManage]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(boardView, [canManage])
 
   // DnD state
   const [activeTicket, setActiveTicket] = useState<WorkOrderTicket | null>(null)
@@ -333,7 +305,7 @@ export default function KanbanBoard({
         ).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
-            ref={(el) => { if (el) tabRefs.current.set(key, el) }}
+            ref={(el) => setTabRef(key, el)}
             onClick={() => setBoardView(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
               boardView === key
@@ -346,17 +318,7 @@ export default function KanbanBoard({
           </button>
         ))}
 
-        {/* Animated indicator */}
-        <motion.div
-          className="absolute bottom-0 h-0.5 rounded-full pointer-events-none"
-          style={{
-            left: indicatorLeft,
-            width: indicatorWidth,
-            opacity: indicatorOpacity,
-            background: 'linear-gradient(90deg, #3B82F6 0%, #6366F1 100%)',
-            boxShadow: '0 0 8px rgba(59, 130, 246, 0.4), 0 0 16px rgba(99, 102, 241, 0.2)',
-          }}
-        />
+        <TabIndicator style={indicatorStyle} />
       </div>
 
       {/* Filters */}

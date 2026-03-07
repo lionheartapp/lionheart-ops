@@ -20,6 +20,8 @@ import RosterSection from '@/components/athletics/RosterSection'
 import StatsSection from '@/components/athletics/StatsSection'
 import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
 import type { AthleticsTab } from '@/components/Sidebar'
+import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
+import TabIndicator from '@/components/ui/TabIndicator'
 
 const SUB_TABS: { key: AthleticsTab; label: string; icon: typeof Dribbble }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -124,6 +126,7 @@ export default function AthleticsPage() {
   const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
 
   const [activeTab, setActiveTab] = useState<AthleticsTab>('overview')
+  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab)
 
   // Track whether we've dispatched sidebar data so we re-dispatch when data changes
   const lastDispatchRef = useRef<string>('')
@@ -232,21 +235,23 @@ export default function AthleticsPage() {
           </motion.div>
 
           {/* Sub-navigation tabs */}
-          <div className="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+          <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
             {SUB_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
+                ref={(el) => setTabRef(key, el)}
                 onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === key
-                    ? 'border-primary-500 text-primary-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'text-gray-900'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {label}
               </button>
             ))}
+            <TabIndicator style={indicatorStyle} />
           </div>
 
           {/* Loading skeleton while campuses/modules load */}

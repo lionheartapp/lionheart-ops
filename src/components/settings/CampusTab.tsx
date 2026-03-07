@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera, MoreVertical } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
@@ -13,6 +13,8 @@ import ImageUpload from '@/components/settings/ImageUpload'
 import PhotoLightbox from '@/components/settings/PhotoLightbox'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import SchoolsManagement from '@/components/settings/SchoolsManagement'
+import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
+import TabIndicator from '@/components/ui/TabIndicator'
 
 type Building = {
   id: string
@@ -106,6 +108,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // ─── Campus Selection ────────────────────────────────────────────────────
   const [campuses, setCampuses] = useState<Campus[]>([])
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
+  const { containerRef: campusTabContainerRef, setTabRef: setCampusTabRef, indicatorStyle: campusIndicatorStyle } = useAnimatedTabIndicator(selectedCampusId ?? '', [campuses.length])
   const [campusesLoading, setCampusesLoading] = useState(true)
   const [showAddCampusModal, setShowAddCampusModal] = useState(false)
   const [addCampusForm, setAddCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
@@ -839,15 +842,16 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       )}
 
       {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
+      <div ref={campusTabContainerRef} className="relative flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
         {campuses.length >= 1 && campuses.map((campus) => (
           <div key={campus.id} className="relative flex items-center">
             <button
+              ref={(el) => setCampusTabRef(campus.id, el)}
               onClick={() => setSelectedCampusId(campus.id)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+              className={`px-4 py-3 text-sm font-medium transition whitespace-nowrap ${
                 selectedCampusId === campus.id
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  ? 'text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               {campus.name}
@@ -899,6 +903,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             )}
           </div>
         ))}
+        <TabIndicator style={campusIndicatorStyle} />
       </div>
 
       {/* ── Campus Map ────────────────────────────────────────────────────── */}
