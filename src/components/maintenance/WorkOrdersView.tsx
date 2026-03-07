@@ -247,17 +247,8 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
       animate="visible"
       variants={staggerContainer(0.06, 0.04)}
     >
-      {/* Header row */}
+      {/* Controls row */}
       <motion.div variants={fadeInUp} className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Work Orders</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {mainLoading
-              ? 'Loading tickets...'
-              : `${displayedTickets.length} ticket${displayedTickets.length !== 1 ? 's' : ''}`}
-          </p>
-        </div>
-
         <div className="flex items-center gap-3">
           {/* Specialty toggle — shown only for technicians (canClaim but not canManage) */}
           {canClaim && !canManage && (
@@ -272,31 +263,37 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
             </label>
           )}
 
-          {/* Board / Table toggle */}
-          <div className="flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-lg">
-            <button
-              onClick={() => setViewMode('board')}
-              title="Board view"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                viewMode === 'board'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              title="Table view"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                viewMode === 'table'
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
+          <span className="text-sm text-gray-500">
+            {mainLoading
+              ? 'Loading tickets...'
+              : `${displayedTickets.length} ticket${displayedTickets.length !== 1 ? 's' : ''}`}
+          </span>
+        </div>
+
+        {/* Board / Table toggle */}
+        <div className="flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-lg">
+          <button
+            onClick={() => setViewMode('board')}
+            title="Board view"
+            className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              viewMode === 'board'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            title="Table view"
+            className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              viewMode === 'table'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <List className="w-4 h-4" />
+          </button>
         </div>
       </motion.div>
 

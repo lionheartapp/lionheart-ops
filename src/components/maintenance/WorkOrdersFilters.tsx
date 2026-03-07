@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { X, Search, SlidersHorizontal } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { X, Search, SlidersHorizontal, ChevronDown, Check } from 'lucide-react'
 import FilterBottomSheet from './FilterBottomSheet'
 
 export type MaintenanceStatus =
@@ -87,9 +87,92 @@ const CATEGORY_OPTIONS: { value: MaintenanceCategory; label: string }[] = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-const selectClass = 'ui-select !w-auto !py-2 cursor-pointer'
-
 const inputClass = 'ui-input !w-full !py-2'
+
+// ─── Custom filter dropdown ─────────────────────────────────────────────────
+
+interface FilterDropdownProps {
+  label: string
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+  allLabel: string
+  ariaLabel: string
+}
+
+function FilterDropdown({ label, value, options, onChange, allLabel, ariaLabel }: FilterDropdownProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const selectedLabel = value
+    ? options.find((o) => o.value === value)?.label ?? value
+    : allLabel
+
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) {
+      setOpen(false)
+    }
+  }, [])
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen(false)
+  }, [])
+
+  useEffect(() => {
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, handleClickOutside, handleKeyDown])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label={ariaLabel}
+        className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors cursor-pointer whitespace-nowrap ${
+          value
+            ? 'bg-gray-900 text-white border-gray-900'
+            : 'bg-white/60 backdrop-blur-sm text-gray-700 border-gray-200/60 hover:bg-white/80 hover:border-gray-300'
+        }`}
+      >
+        {value ? selectedLabel : label}
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 min-w-[180px] ui-glass-dropdown p-1 animate-[fadeIn_100ms_ease-out]">
+          {/* All / reset option */}
+          <button
+            onClick={() => { onChange(''); setOpen(false) }}
+            className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
+              !value ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {allLabel}
+            {!value && <Check className="w-3.5 h-3.5 text-gray-900" />}
+          </button>
+          {options.map((o) => (
+            <button
+              key={o.value}
+              onClick={() => { onChange(o.value); setOpen(false) }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
+                value === o.value ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {o.label}
+              {value === o.value && <Check className="w-3.5 h-3.5 text-gray-900" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function hasActiveFilters(filters: WorkOrdersFilterState): boolean {
   return (
@@ -164,65 +247,45 @@ export default function WorkOrdersFilters({
       {/* ─── Desktop: inline filters (hidden on mobile) ─── */}
       <div className="hidden lg:flex flex-wrap items-center gap-2 pb-3">
         {/* Status */}
-        <select
+        <FilterDropdown
+          label="Status"
           value={filters.status}
-          onChange={(e) => update({ status: e.target.value as MaintenanceStatus | '' })}
-          className={selectClass}
-          aria-label="Filter by status"
-        >
-          <option value="">All Statuses</option>
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          options={STATUS_OPTIONS}
+          onChange={(v) => update({ status: v as MaintenanceStatus | '' })}
+          allLabel="All Statuses"
+          ariaLabel="Filter by status"
+        />
 
         {/* Priority */}
-        <select
+        <FilterDropdown
+          label="Priority"
           value={filters.priority}
-          onChange={(e) => update({ priority: e.target.value as MaintenancePriority | '' })}
-          className={selectClass}
-          aria-label="Filter by priority"
-        >
-          <option value="">All Priorities</option>
-          {PRIORITY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          options={PRIORITY_OPTIONS}
+          onChange={(v) => update({ priority: v as MaintenancePriority | '' })}
+          allLabel="All Priorities"
+          ariaLabel="Filter by priority"
+        />
 
         {/* Category */}
-        <select
+        <FilterDropdown
+          label="Category"
           value={filters.category}
-          onChange={(e) => update({ category: e.target.value as MaintenanceCategory | '' })}
-          className={selectClass}
-          aria-label="Filter by category"
-        >
-          <option value="">All Categories</option>
-          {CATEGORY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          options={CATEGORY_OPTIONS}
+          onChange={(v) => update({ category: v as MaintenanceCategory | '' })}
+          allLabel="All Categories"
+          ariaLabel="Filter by category"
+        />
 
         {/* Technician */}
         {technicians.length > 0 && (
-          <select
+          <FilterDropdown
+            label="Technician"
             value={filters.assignedToId}
-            onChange={(e) => update({ assignedToId: e.target.value })}
-            className={selectClass}
-            aria-label="Filter by technician"
-          >
-            <option value="">All Technicians</option>
-            {technicians.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.firstName} {t.lastName}
-              </option>
-            ))}
-          </select>
+            options={technicians.map((t) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` }))}
+            onChange={(v) => update({ assignedToId: v })}
+            allLabel="All Technicians"
+            ariaLabel="Filter by technician"
+          />
         )}
 
         {/* Keyword search */}

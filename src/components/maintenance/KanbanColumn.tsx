@@ -52,7 +52,7 @@ export default function KanbanColumn({
       ]
         .filter(Boolean)
         .join(' ')}
-      style={{ minHeight: 'calc(100vh - 320px)' }}
+      style={{ minHeight: 'calc(100vh - 340px)' }}
     >
       {/* Column header */}
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200">
