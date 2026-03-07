@@ -118,15 +118,21 @@ export default function Sidebar({
   const facilityPosRef = useRef<{ top: number; height: number } | null>(null)
   const [facilityContainerMounted, setFacilityContainerMounted] = useState(false)
 
-  // Callback refs: set initial opacity=0 at DOM creation time (before paint).
-  // This prevents a brief flash of the gradient glow. All subsequent opacity
-  // changes are done imperatively via the .current ref — never through JSX
-  // style props, because React re-renders would reset them.
+  // Callback refs for the facilities indicator system.
+  //
+  // IMPORTANT: mainNavContent renders in BOTH desktop and mobile sidebars,
+  // creating TWO DOM trees that share these refs. The mobile sidebar has
+  // display:none on desktop (lg:hidden), so its elements report 0 for all
+  // measurements. We MUST only accept refs from the VISIBLE instance.
+  // Strategy: check node.offsetParent — null means display:none ancestor.
+
   const facilityIndicatorRefCb = useCallback((node: HTMLDivElement | null) => {
+    if (node && node.offsetParent === null) return // skip display:none (mobile on desktop)
     facilityIndicatorRef.current = node
     if (node) node.style.opacity = '0'
   }, [])
   const facilityTrailRefCb = useCallback((node: HTMLDivElement | null) => {
+    if (node && node.offsetParent === null) return // skip display:none (mobile on desktop)
     facilityTrailRef.current = node
     if (node) node.style.opacity = '0'
   }, [])
@@ -134,6 +140,7 @@ export default function Sidebar({
   // Ref callback: detects when the facilities container mounts/unmounts in the DOM
   // (it only renders after async module + permission checks resolve)
   const facilitiesContainerRefCb: RefCallback<HTMLDivElement> = useCallback((node) => {
+    if (node && node.offsetParent === null) return // skip display:none (mobile on desktop)
     facilitiesContainerRef.current = node
     setFacilityContainerMounted(!!node)
   }, [])
