@@ -112,11 +112,24 @@ export default function Sidebar({
 
   // Facilities nav indicator refs
   const facilitiesContainerRef = useRef<HTMLDivElement | null>(null)
-  const facilityIndicatorRef = useRef<HTMLDivElement>(null)
-  const facilityTrailRef = useRef<HTMLDivElement>(null)
+  const facilityIndicatorRef = useRef<HTMLDivElement | null>(null)
+  const facilityTrailRef = useRef<HTMLDivElement | null>(null)
   const facilityMeasuredRef = useRef(false)
   const facilityPosRef = useRef<{ top: number; height: number } | null>(null)
   const [facilityContainerMounted, setFacilityContainerMounted] = useState(false)
+
+  // Callback refs: set initial opacity=0 at DOM creation time (before paint).
+  // This prevents a brief flash of the gradient glow. All subsequent opacity
+  // changes are done imperatively via the .current ref — never through JSX
+  // style props, because React re-renders would reset them.
+  const facilityIndicatorRefCb = useCallback((node: HTMLDivElement | null) => {
+    facilityIndicatorRef.current = node
+    if (node) node.style.opacity = '0'
+  }, [])
+  const facilityTrailRefCb = useCallback((node: HTMLDivElement | null) => {
+    facilityTrailRef.current = node
+    if (node) node.style.opacity = '0'
+  }, [])
 
   // Ref callback: detects when the facilities container mounts/unmounts in the DOM
   // (it only renders after async module + permission checks resolve)
@@ -726,25 +739,27 @@ export default function Sidebar({
                           {/* Track line */}
                           <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
 
-                          {/* Glow trail — fading afterimage that spans the travel path */}
+                          {/* Glow trail — fading afterimage that spans the travel path.
+                              NOTE: All mutable styles (opacity, top, height, background) are
+                              managed imperatively via ref. Do NOT add them to the style prop
+                              or React will reset them on every re-render. */}
                           <div
-                            ref={facilityTrailRef}
+                            ref={facilityTrailRefCb}
                             className="absolute left-0 w-0.5 rounded-full pointer-events-none"
-                            style={{
-                              opacity: 0,
-                              filter: 'blur(1.5px)',
-                            }}
+                            style={{ filter: 'blur(1.5px)' }}
                           />
 
-                          {/* Animated gradient indicator */}
+                          {/* Animated gradient indicator.
+                              NOTE: opacity, top, and height are set imperatively via ref.
+                              Do NOT put opacity in this style prop — React re-renders will
+                              reset it to 0 and kill the indicator. */}
                           <div
-                            ref={facilityIndicatorRef}
+                            ref={facilityIndicatorRefCb}
                             className="absolute left-0 w-0.5 rounded-full pointer-events-none"
                             style={{
                               background: 'linear-gradient(180deg, #A78BFA 0%, #EC4899 100%)',
                               boxShadow: '0 0 8px rgba(167, 139, 250, 0.5), 0 0 16px rgba(236, 72, 153, 0.25)',
                               transition: 'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease',
-                              opacity: 0,
                             }}
                           />
 
