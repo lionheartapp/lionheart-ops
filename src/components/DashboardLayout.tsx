@@ -49,6 +49,7 @@ export default function DashboardLayout({
   const userName = userNameProp || ls('user-name') || undefined
   const userEmail = userEmailProp || ls('user-email') || undefined
   const organizationName = orgNameProp || ls('org-name') || undefined
+  const orgLogoUrl = organizationLogoUrl || ls('org-logo-url') || undefined
   const initialUserAvatar = userAvatarProp || ls('user-avatar') || null
   const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar)
 
@@ -143,10 +144,10 @@ export default function DashboardLayout({
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-navbar">
         {/* Logo and Organization Name */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0 pl-14 lg:pl-0">
-          {organizationLogoUrl ? (
+          {orgLogoUrl ? (
             <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center p-1.5 flex-shrink-0">
               <img
-                src={organizationLogoUrl}
+                src={orgLogoUrl}
                 alt={`${organizationName || 'School'} logo`}
                 className="max-h-full max-w-full object-contain"
               />
