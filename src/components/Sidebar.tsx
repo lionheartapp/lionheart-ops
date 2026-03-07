@@ -878,26 +878,6 @@ export default function Sidebar({
                                 <span className="text-sm">PM Calendar</span>
                               </PrefetchLink>
                           )}
-                          {/* Analytics */}
-                          {canManageMaintenance && (
-                              <PrefetchLink
-                                href="/maintenance/analytics"
-                                data-facility-active={pathname === '/maintenance/analytics' ? 'true' : undefined}
-                                onClick={() => {
-                                  setSettingsOpen(false)
-                                  setAthleticsOpen(false)
-                                  setIsOpen(false)
-                                }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
-                                  pathname === '/maintenance/analytics'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
-                                }`}
-                                aria-current={pathname === '/maintenance/analytics' ? 'page' : undefined}
-                              >
-                                <span className="text-sm">Analytics</span>
-                              </PrefetchLink>
-                          )}
                           {/* Compliance */}
                           {canManageMaintenance && (
                               <PrefetchLink
@@ -916,26 +896,6 @@ export default function Sidebar({
                                 aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
                               >
                                 <span className="text-sm">Compliance</span>
-                              </PrefetchLink>
-                          )}
-                          {/* Board Report */}
-                          {canManageMaintenance && (
-                              <PrefetchLink
-                                href="/maintenance/board-report"
-                                data-facility-active={pathname === '/maintenance/board-report' ? 'true' : undefined}
-                                onClick={() => {
-                                  setSettingsOpen(false)
-                                  setAthleticsOpen(false)
-                                  setIsOpen(false)
-                                }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
-                                  pathname === '/maintenance/board-report'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
-                                }`}
-                                aria-current={pathname === '/maintenance/board-report' ? 'page' : undefined}
-                              >
-                                <span className="text-sm">Board Report</span>
                               </PrefetchLink>
                           )}
                           {/* Knowledge Base */}

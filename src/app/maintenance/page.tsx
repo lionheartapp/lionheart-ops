@@ -12,7 +12,8 @@ import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import MaintenanceSkeleton from '@/components/maintenance/MaintenanceSkeleton'
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
 import MyRequestsView from '@/components/maintenance/MyRequestsView'
-import { LayoutDashboard, FileText } from 'lucide-react'
+import { LayoutDashboard, FileText, FileBarChart } from 'lucide-react'
+import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
@@ -171,6 +172,15 @@ function MaintenanceContent() {
                   Facilities Management
                 </h1>
                 <CampusFilterChip campusFilter={campusFilter} />
+                {canManageMaintenance && (
+                  <Link
+                    href="/maintenance/board-report"
+                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 cursor-pointer"
+                  >
+                    <FileBarChart className="w-4 h-4" />
+                    Board Report
+                  </Link>
+                )}
               </motion.div>
               <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
                 {campusFilter.selectedCampusName === 'All Campuses'
