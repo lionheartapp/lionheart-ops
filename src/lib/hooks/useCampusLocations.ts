@@ -138,7 +138,10 @@ export function flattenCampusLocations(data: CampusLookupResponse['data']): Camp
 }
 
 async function fetchCampusLocations(): Promise<CampusLocationOption[]> {
-  const res = await fetch('/api/campus/lookup')
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+  const res = await fetch('/api/campus/lookup', {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
   if (!res.ok) return []
   const json: CampusLookupResponse = await res.json()
   if (!json.ok) return []
