@@ -27,7 +27,7 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
         @keyframes cal-slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes cal-bounceIn { from { opacity: 0; transform: scaleY(0.3); } to { opacity: 1; transform: scaleY(1); } }
         @keyframes cal-fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes cal-pencilIn { from { opacity: 0; transform: translate(8px, -8px) rotate(25deg); } to { opacity: 1; transform: translate(0, 0) rotate(25deg); } }
+        @keyframes cal-pencilIn { from { opacity: 0; transform: translate(8px, -8px); } to { opacity: 1; transform: translate(0, 0); } }
         @keyframes cal-dotFade { to { opacity: 0.25; } }
         @keyframes cal-sparklePop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
       `}</style>
@@ -64,7 +64,7 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
       </g>
 
       {/* Calendar ring holes */}
-      <g className="cal-rings" style={{ transformOrigin: '120px 54px' }}>
+      <g className="cal-rings">
         <rect x="88" y="46" width="4" height="16" rx="2" fill="url(#cal-aurora)" />
         <rect x="118" y="46" width="4" height="16" rx="2" fill="url(#cal-aurora)" />
         <rect x="148" y="46" width="4" height="16" rx="2" fill="url(#cal-aurora)" />
@@ -81,7 +81,7 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
         <text x="166" y="72" fontSize="6" fill="white" fontWeight="600" opacity="0.9">S</text>
       </g>
 
-      {/* Date grid — row 1 */}
+      {/* Date grid rows */}
       <g className="cal-grid1">
         <text x="82" y="94" fontSize="7" fill="#9CA3AF">1</text>
         <text x="96" y="94" fontSize="7" fill="#6B7280">2</text>
@@ -90,9 +90,9 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
         <text x="138" y="94" fontSize="7" fill="#6B7280">5</text>
         <text x="152" y="94" fontSize="7" fill="#6B7280">6</text>
         <text x="166" y="94" fontSize="7" fill="#9CA3AF">7</text>
+        <circle cx="99" cy="97" r="1.5" fill="#3B82F6" opacity="0.5" />
       </g>
 
-      {/* Date grid — row 2 */}
       <g className="cal-grid2">
         <text x="82" y="110" fontSize="7" fill="#9CA3AF">8</text>
         <text x="96" y="110" fontSize="7" fill="#6B7280">9</text>
@@ -102,9 +102,9 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
         <text x="138" y="110" fontSize="7" fill="#4F46E5" fontWeight="700">12</text>
         <text x="152" y="110" fontSize="7" fill="#6B7280">13</text>
         <text x="165" y="110" fontSize="7" fill="#9CA3AF">14</text>
+        <circle cx="155" cy="113" r="1.5" fill="#3B82F6" opacity="0.4" />
       </g>
 
-      {/* Date grid — row 3 */}
       <g className="cal-grid3">
         <text x="81" y="126" fontSize="7" fill="#9CA3AF">15</text>
         <text x="95" y="126" fontSize="7" fill="#6B7280">16</text>
@@ -113,9 +113,9 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
         <text x="137" y="126" fontSize="7" fill="#6B7280">19</text>
         <text x="151" y="126" fontSize="7" fill="#6B7280">20</text>
         <text x="165" y="126" fontSize="7" fill="#9CA3AF">21</text>
+        <circle cx="127" cy="129" r="1.5" fill="#6366F1" opacity="0.5" />
       </g>
 
-      {/* Date grid — row 4 */}
       <g className="cal-grid4">
         <text x="81" y="142" fontSize="7" fill="#9CA3AF">22</text>
         <text x="95" y="142" fontSize="7" fill="#6B7280">23</text>
@@ -126,20 +126,9 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
         <text x="165" y="142" fontSize="7" fill="#9CA3AF">28</text>
       </g>
 
-      {/* Small event indicators */}
-      <g className="cal-grid2">
-        <circle cx="99" cy="97" r="1.5" fill="#3B82F6" opacity="0.5" />
-      </g>
-      <g className="cal-grid3">
-        <circle cx="127" cy="129" r="1.5" fill="#6366F1" opacity="0.5" />
-      </g>
-      <g className="cal-grid2">
-        <circle cx="155" cy="113" r="1.5" fill="#3B82F6" opacity="0.4" />
-      </g>
-
       {/* Pencil */}
-      <g className="cal-pencil" transform="translate(170, 38)">
-        <g transform="rotate(25)">
+      <g className="cal-pencil">
+        <g transform="translate(170, 38) rotate(25)">
           <rect x="0" y="0" width="5" height="36" rx="1" fill="#FCD34D" />
           <rect x="0" y="0" width="5" height="6" rx="1" fill="#F59E0B" />
           <polygon points="0,36 5,36 2.5,42" fill="#374151" />
@@ -148,11 +137,15 @@ export function IllustrationCalendar({ className = '' }: { className?: string })
       </g>
 
       {/* Sparkles */}
-      <g className="cal-sparkle" transform="translate(50, 88)" style={{ transformOrigin: '54px 92px' }}>
-        <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#6366F1" opacity="0.35" />
+      <g className="cal-sparkle" style={{ transformOrigin: '54px 92px' }}>
+        <g transform="translate(50, 88)">
+          <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#6366F1" opacity="0.35" />
+        </g>
       </g>
-      <g className="cal-sparkle" transform="translate(192, 130)" style={{ transformOrigin: '195px 133px' }}>
-        <path d="M3 0 L3.75 2.25 L6 3 L3.75 3.75 L3 6 L2.25 3.75 L0 3 L2.25 2.25 Z" fill="#3B82F6" opacity="0.25" />
+      <g className="cal-sparkle" style={{ transformOrigin: '195px 133px' }}>
+        <g transform="translate(192, 130)">
+          <path d="M3 0 L3.75 2.25 L6 3 L3.75 3.75 L3 6 L2.25 3.75 L0 3 L2.25 2.25 Z" fill="#3B82F6" opacity="0.25" />
+        </g>
       </g>
     </svg>
   )
