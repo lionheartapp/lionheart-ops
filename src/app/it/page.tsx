@@ -147,7 +147,7 @@ function ITContent() {
           <motion.div
             variants={staggerContainer()}
             initial="hidden"
-            animate="show"
+            animate="visible"
             className="max-w-[1400px] mx-auto"
           >
             {/* Header */}
