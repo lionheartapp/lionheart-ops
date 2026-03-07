@@ -240,18 +240,9 @@ export default function DashboardLayout({
             <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[120px] bg-violet-200/[0.06]" />
             <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[100px] bg-amber-100/[0.06]" />
           </div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname.startsWith('/maintenance') ? '/maintenance' : pathname.startsWith('/settings') ? '/settings' : pathname.startsWith('/athletics') ? '/athletics' : pathname}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="relative py-4 sm:py-6 lg:py-8 px-4 sm:px-10"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <div className="relative py-4 sm:py-6 lg:py-8 px-4 sm:px-10">
+            {children}
+          </div>
         </main>
       </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fragment } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fragment, type RefCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -111,9 +111,17 @@ export default function Sidebar({
   const [facilitiesOpen, setFacilitiesOpen] = useState(false)
 
   // Facilities nav indicator refs
-  const facilitiesContainerRef = useRef<HTMLDivElement>(null)
+  const facilitiesContainerRef = useRef<HTMLDivElement | null>(null)
   const facilityIndicatorRef = useRef<HTMLDivElement>(null)
   const facilityMeasuredRef = useRef(false)
+  const [facilityContainerMounted, setFacilityContainerMounted] = useState(false)
+
+  // Ref callback: detects when the facilities container mounts/unmounts in the DOM
+  // (it only renders after async module + permission checks resolve)
+  const facilitiesContainerRefCb: RefCallback<HTMLDivElement> = useCallback((node) => {
+    facilitiesContainerRef.current = node
+    setFacilityContainerMounted(!!node)
+  }, [])
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
 
@@ -249,20 +257,20 @@ export default function Sidebar({
     }
   }, [pathname])
 
-  // Measure and position the facilities indicator (matches the HTML mockup pattern exactly)
-  // Two cases: (1) initial open — position without animation, (2) route change — animate slide
+  // Measure and position the facilities indicator.
+  // Uses facilityContainerMounted (set by ref callback) so the effect re-runs
+  // when the container actually appears in the DOM (after async module/permission loads).
   useEffect(() => {
-    if (!facilitiesOpen) {
+    if (!facilitiesOpen || !facilityContainerMounted) {
       facilityMeasuredRef.current = false
       return
     }
 
-    const measure = (): boolean => {
+    const positionIndicator = (animate: boolean): boolean => {
       const container = facilitiesContainerRef.current
       const indicator = facilityIndicatorRef.current
       if (!container || !indicator) return false
 
-      // Wait until container has settled to full height
       const cRect = container.getBoundingClientRect()
       if (cRect.height < 10) return false
 
@@ -275,33 +283,42 @@ export default function Sidebar({
       const eRect = activeEl.getBoundingClientRect()
       const top = eRect.top - cRect.top + container.scrollTop
 
-      // Position without animation on first render
-      indicator.style.transition = 'none'
-      indicator.style.top = `${top}px`
-      indicator.style.height = `${eRect.height}px`
-      indicator.style.opacity = '1'
+      if (!animate) {
+        // Position without animation on first render
+        indicator.style.transition = 'none'
+        indicator.style.top = `${top}px`
+        indicator.style.height = `${eRect.height}px`
+        indicator.style.opacity = '1'
 
-      // Restore transitions after browser paints the position
-      requestAnimationFrame(() => {
+        // Restore transitions after browser paints the position
         requestAnimationFrame(() => {
-          if (facilityIndicatorRef.current) {
-            facilityIndicatorRef.current.style.transition = ''
-          }
+          requestAnimationFrame(() => {
+            if (facilityIndicatorRef.current) {
+              facilityIndicatorRef.current.style.transition = ''
+            }
+          })
         })
-      })
+      } else {
+        // Slide to new position with transitions
+        indicator.style.top = `${top}px`
+        indicator.style.height = `${eRect.height}px`
+        indicator.style.opacity = '1'
+      }
 
       return true
     }
 
+    const shouldAnimate = facilityMeasuredRef.current
+
     // Try at two points: quickly (AnimatePresence initial={false} renders immediately)
     // and after animation completes (subsequent open/close toggles animate 200ms)
     const t1 = setTimeout(() => {
-      if (!facilityMeasuredRef.current && measure()) {
+      if (!facilityMeasuredRef.current && positionIndicator(shouldAnimate)) {
         facilityMeasuredRef.current = true
       }
     }, 50)
     const t2 = setTimeout(() => {
-      if (!facilityMeasuredRef.current && measure()) {
+      if (!facilityMeasuredRef.current && positionIndicator(shouldAnimate)) {
         facilityMeasuredRef.current = true
       }
     }, 300)
@@ -310,32 +327,7 @@ export default function Sidebar({
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [facilitiesOpen])
-
-  // Animate indicator slide on route change when facilities already open
-  useEffect(() => {
-    if (!facilitiesOpen || !facilityMeasuredRef.current) return
-    const container = facilitiesContainerRef.current
-    const indicator = facilityIndicatorRef.current
-    if (!container || !indicator) return
-
-    requestAnimationFrame(() => {
-      const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
-      if (!activeEl) {
-        indicator.style.opacity = '0'
-        return
-      }
-
-      const cRect = container.getBoundingClientRect()
-      const eRect = activeEl.getBoundingClientRect()
-      const top = eRect.top - cRect.top + container.scrollTop
-
-      // This time WITH transitions — the indicator slides to the new position
-      indicator.style.top = `${top}px`
-      indicator.style.height = `${eRect.height}px`
-      indicator.style.opacity = '1'
-    })
-  }, [pathname, facilitiesOpen])
+  }, [facilitiesOpen, facilityContainerMounted, pathname])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
@@ -679,7 +671,7 @@ export default function Sidebar({
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
                         <motion.div
-                          ref={facilitiesContainerRef}
+                          ref={facilitiesContainerRefCb}
                           className="relative ml-8 mt-1 overflow-hidden"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
