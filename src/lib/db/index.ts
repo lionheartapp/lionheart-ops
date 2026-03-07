@@ -54,6 +54,10 @@ const orgScopedModels = new Set([
 	'ComplianceRecord',
 	// Knowledge base module
 	'KnowledgeArticle',
+	// IT Help Desk module
+	'ITTicket',
+	'ITTicketActivity',
+	'ITMagicLink',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -78,6 +82,8 @@ const softDeleteModels = new Set([
 	'ComplianceRecord',
 	// Knowledge base module
 	'KnowledgeArticle',
+	// IT Help Desk module
+	'ITTicket',
 ])
 
 /**

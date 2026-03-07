@@ -104,6 +104,11 @@ model Organization {
   complianceRecords       ComplianceRecord[]
   // Knowledge base module relations
   knowledgeArticles       KnowledgeArticle[]
+  // IT Help Desk module relations
+  itTickets               ITTicket[]
+  itTicketCounter         ITTicketCounter?
+  itTicketActivities      ITTicketActivity[]
+  itMagicLinks            ITMagicLink[]
 
   @@index([onboardingStatus])
 }
@@ -167,6 +172,12 @@ model User {
   maintenanceCostEntries  MaintenanceCostEntry[]
   pmScheduleDefaults      PmSchedule[]
   createdArticles         KnowledgeArticle[] @relation("KBArticleCreator")
+  // IT Help Desk module relations
+  itTicketsSubmitted      ITTicket[]         @relation("ITTicketSubmittedBy")
+  itTicketsAssigned       ITTicket[]         @relation("ITTicketAssignedTo")
+  itActivitiesPerformed   ITTicketActivity[] @relation("ITActivityActor")
+  itActivitiesAssignedTo  ITTicketActivity[] @relation("ITActivityAssignedTo")
+  itMagicLinksCreated     ITMagicLink[]      @relation("ITMagicLinkCreator")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -253,6 +264,7 @@ model Building {
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
   pmSchedules        PmSchedule[]
+  itTickets          ITTicket[]
 
   @@unique([organizationId, campusId, schoolDivision, name])
   @@unique([organizationId, code])
@@ -287,6 +299,7 @@ model Area {
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
   pmSchedules        PmSchedule[]
+  itTickets          ITTicket[]
 
   @@unique([organizationId, buildingId, name])
   @@index([organizationId, isActive])
@@ -317,6 +330,7 @@ model Room {
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
   pmSchedules        PmSchedule[]
+  itTickets          ITTicket[]
 
   @@unique([organizationId, buildingId, roomNumber])
   @@index([organizationId, isActive])
@@ -372,6 +386,7 @@ model Campus {
   planningSeasons PlanningSeason[]
   approvalChannelConfigs ApprovalChannelConfig[]
   tenantModules  TenantModule[]
+  itMagicLinks   ITMagicLink[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isActive])
@@ -431,6 +446,9 @@ model School {
   bellSchedules  BellSchedule[]
   specialDays    SpecialDay[]
   planningSeasons PlanningSeason[]
+  // IT Help Desk module relations
+  itTickets      ITTicket[]
+  itMagicLinks   ITMagicLink[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -2378,4 +2396,177 @@ model KnowledgeArticle {
   @@index([organizationId, type])
   @@index([organizationId, deletedAt])
   @@index([organizationId, isPublished])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// IT HELP DESK MODULE
+// ═══════════════════════════════════════════════════════════════════════
+
+enum ITIssueType {
+  HARDWARE
+  SOFTWARE
+  ACCOUNT_PASSWORD
+  NETWORK
+  DISPLAY_AV
+  OTHER
+}
+
+enum ITPasswordSubType {
+  RESET
+  LOCKED
+  NEW_ACCOUNT
+  PERMISSION_CHANGE
+}
+
+enum ITAVSubType {
+  PROJECTOR
+  SOUNDBOARD
+  DISPLAY
+  APPLE_TV
+  OTHER_AV
+}
+
+enum ITTicketStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  ON_HOLD
+  DONE
+  CANCELLED
+}
+
+enum ITPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ITHoldReason {
+  PARTS
+  VENDOR
+  USER_AVAILABILITY
+  THIRD_PARTY
+  OTHER
+}
+
+enum ITActivityType {
+  STATUS_CHANGE
+  COMMENT
+  ASSIGNMENT
+  INTERNAL_NOTE
+  PHOTO_ADDED
+}
+
+enum ITTicketSource {
+  AUTHENTICATED
+  MAGIC_LINK
+  SUB_SUBMITTED
+}
+
+model ITTicket {
+  id                 String          @id @default(cuid())
+  organizationId     String
+  ticketNumber       String          // IT-XXXX
+  title              String
+  description        String?
+  status             ITTicketStatus  @default(BACKLOG)
+  issueType          ITIssueType
+  passwordSubType    ITPasswordSubType?
+  avSubType          ITAVSubType?
+  priority           ITPriority      @default(MEDIUM)
+  holdReason         ITHoldReason?
+  holdNote           String?
+  resolutionNote     String?
+  cancellationReason String?
+  photos             String[]        @default([])
+  source             ITTicketSource  @default(AUTHENTICATED)
+  // Magic link submission metadata
+  subRoomText        String?         // Room text from sub submission
+  subDate            DateTime?       // Date of sub submission
+  // Location hierarchy
+  buildingId         String?
+  areaId             String?
+  roomId             String?
+  schoolId           String?
+  // People
+  submittedById      String?         // Nullable for magic link / sub submissions
+  assignedToId       String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  deletedAt          DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submittedBy  User?        @relation("ITTicketSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+  assignedTo   User?        @relation("ITTicketAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  building     Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  area         Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  activities   ITTicketActivity[]
+
+  @@unique([organizationId, ticketNumber])
+  @@index([organizationId, status])
+  @@index([organizationId, assignedToId])
+  @@index([organizationId, submittedById])
+  @@index([organizationId, issueType])
+  @@index([organizationId, schoolId])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, deletedAt, status])
+  @@index([organizationId, deletedAt, status, assignedToId])
+  @@index([organizationId, deletedAt, status, schoolId])
+  @@index([organizationId, deletedAt, createdAt])
+  @@index([organizationId, priority])
+}
+
+model ITTicketCounter {
+  id               String       @id @default(cuid())
+  organizationId   String       @unique
+  lastTicketNumber Int          @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ITTicketActivity {
+  id             String          @id @default(cuid())
+  organizationId String
+  ticketId       String
+  actorId        String?         // Nullable for system-generated activities
+  type           ITActivityType
+  fromStatus     ITTicketStatus?
+  toStatus       ITTicketStatus?
+  assignedToId   String?
+  content        String?
+  isInternal     Boolean         @default(false)
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket       ITTicket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("ITActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+  assignedTo   User?        @relation("ITActivityAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId, createdAt])
+  @@index([organizationId])
+}
+
+model ITMagicLink {
+  id             String    @id @default(cuid())
+  organizationId String
+  tokenHash      String    @unique  // SHA-256 hash of the raw token
+  campusId       String?            // Scoped to a specific campus
+  schoolId       String?            // Scoped to a specific school
+  createdById    String             // Secretary or IT coordinator who generated it
+  expiresAt      DateTime
+  usedAt         DateTime?          // Set on first use — invalidates token
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("ITMagicLinkCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([expiresAt])
+  @@index([tokenHash])
 }

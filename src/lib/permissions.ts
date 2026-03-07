@@ -145,6 +145,17 @@ export const PERMISSIONS = {
   KB_UPDATE: 'knowledge-base:update',                               // Edit existing articles
   KB_DELETE: 'knowledge-base:delete',                               // Soft-delete articles (head, admin)
 
+  // IT Help Desk
+  IT_TICKET_SUBMIT: 'it:ticket:submit',                     // Submit IT ticket (any authenticated user)
+  IT_TICKET_READ_OWN: 'it:ticket:read:own',                 // View own submitted IT tickets
+  IT_TICKET_READ_ASSIGNED: 'it:ticket:read:assigned',        // View assigned IT tickets
+  IT_TICKET_READ_ALL: 'it:ticket:read:all',                  // View all IT tickets (IT coordinator, admin)
+  IT_TICKET_UPDATE_STATUS: 'it:ticket:update:status',        // Update IT ticket status
+  IT_TICKET_ASSIGN: 'it:ticket:assign',                      // Assign IT tickets to coordinators
+  IT_TICKET_COMMENT_INTERNAL: 'it:ticket:comment:internal',  // Add internal comments (hidden from submitter)
+  IT_TICKET_COMMENT_SUBMITTER: 'it:ticket:comment:submitter', // Add submitter-visible comments
+  IT_MAGICLINK_GENERATE: 'it:magiclink:generate',            // Generate magic links for sub submissions
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -251,6 +262,14 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.KB_CREATE,
       PERMISSIONS.KB_UPDATE,
       PERMISSIONS.KB_DELETE,
+      // IT Help Desk
+      PERMISSIONS.IT_TICKET_SUBMIT,
+      PERMISSIONS.IT_TICKET_READ_ALL,
+      PERMISSIONS.IT_TICKET_UPDATE_STATUS,
+      PERMISSIONS.IT_TICKET_ASSIGN,
+      PERMISSIONS.IT_TICKET_COMMENT_INTERNAL,
+      PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
+      PERMISSIONS.IT_MAGICLINK_GENERATE,
     ],
     isSystem: true,
   },
@@ -288,6 +307,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.COMPLIANCE_READ,
       // Knowledge Base
       PERMISSIONS.KB_READ,
+      // IT Help Desk
+      PERMISSIONS.IT_TICKET_SUBMIT,
+      PERMISSIONS.IT_TICKET_READ_OWN,
+      PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
     ],
     isSystem: true,
   },
@@ -321,6 +344,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ASSETS_READ,
       // Knowledge Base
       PERMISSIONS.KB_READ,
+      // IT Help Desk
+      PERMISSIONS.IT_TICKET_SUBMIT,
+      PERMISSIONS.IT_TICKET_READ_OWN,
+      PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
     ],
     isSystem: true,
   },
@@ -343,6 +370,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ASSETS_READ,
       // Knowledge Base
       PERMISSIONS.KB_READ,
+      // IT Help Desk
+      PERMISSIONS.IT_TICKET_READ_OWN,
     ],
     isSystem: true,
   },
@@ -466,6 +495,55 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.CALENDARS_READ,
       PERMISSIONS.CALENDAR_EVENTS_READ,
       PERMISSIONS.ACADEMIC_READ,
+    ],
+    isSystem: true,
+  },
+  IT_COORDINATOR: {
+    slug: 'it-coordinator',
+    name: 'IT Coordinator',
+    description: 'Campus IT staff — manages IT tickets, assigns work, generates magic links',
+    permissions: [
+      PERMISSIONS.IT_TICKET_SUBMIT,
+      PERMISSIONS.IT_TICKET_READ_ALL,
+      PERMISSIONS.IT_TICKET_UPDATE_STATUS,
+      PERMISSIONS.IT_TICKET_ASSIGN,
+      PERMISSIONS.IT_TICKET_COMMENT_INTERNAL,
+      PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
+      PERMISSIONS.IT_MAGICLINK_GENERATE,
+      // Platform basics
+      PERMISSIONS.SETTINGS_READ,
+      PERMISSIONS.USERS_READ,
+      PERMISSIONS.TEAMS_READ,
+      PERMISSIONS.CALENDARS_READ,
+      PERMISSIONS.CALENDAR_EVENTS_READ,
+      PERMISSIONS.ACADEMIC_READ,
+      // Maintenance — can submit requests
+      PERMISSIONS.MAINTENANCE_SUBMIT,
+      PERMISSIONS.MAINTENANCE_READ_OWN,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
+    ],
+    isSystem: true,
+  },
+  SECRETARY: {
+    slug: 'secretary',
+    name: 'Secretary / Front Office',
+    description: 'Front office staff — can submit IT tickets and generate magic links for substitutes',
+    permissions: [
+      PERMISSIONS.IT_TICKET_SUBMIT,
+      PERMISSIONS.IT_TICKET_READ_OWN,
+      PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
+      PERMISSIONS.IT_MAGICLINK_GENERATE,
+      // Platform basics
+      PERMISSIONS.SETTINGS_READ,
+      PERMISSIONS.CALENDARS_READ,
+      PERMISSIONS.CALENDAR_EVENTS_READ,
+      PERMISSIONS.ACADEMIC_READ,
+      // Maintenance — can submit requests
+      PERMISSIONS.MAINTENANCE_SUBMIT,
+      PERMISSIONS.MAINTENANCE_READ_OWN,
+      // Knowledge Base
+      PERMISSIONS.KB_READ,
     ],
     isSystem: true,
   },
