@@ -336,6 +336,15 @@ export default function Sidebar({
       const prev = _facilityLastPos
       const easing = [0.22, 1, 0.36, 1] as [number, number, number, number]
 
+      // If already at the target position, just ensure visibility and bail.
+      // This prevents a duplicate layout effect run (triggered by
+      // facilityContainerMounted state change) from calling jump() and
+      // killing an in-progress animation.
+      if (prev && prev.top === top && prev.height === height) {
+        indicatorOpacity.jump(1)
+        return true
+      }
+
       if (!shouldAnimate || !prev) {
         // First time ever: snap into position (no animation)
         indicatorTop.jump(top)
