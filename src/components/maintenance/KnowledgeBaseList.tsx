@@ -141,8 +141,40 @@ function ArticleSkeleton() {
 function EmptyState({ onCreateNew }: { onCreateNew?: () => void }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-16 text-center gap-4">
-      <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center">
-        <BookOpen className="w-8 h-8 text-primary-400" />
+      {/* Apple Intelligence–style animated icon */}
+      <div className="relative w-20 h-20">
+        {/* Spinning conic gradient ring — blurred for glow */}
+        <div
+          className="absolute inset-0 rounded-full animate-[spin_4s_linear_infinite] blur-[6px] opacity-60"
+          style={{
+            background: 'conic-gradient(from 0deg, #3B82F6, #6366F1, #8B5CF6, #6366F1, #3B82F6)',
+            WebkitMaskImage: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px))',
+            maskImage: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px))',
+          }}
+        />
+        {/* Sharp ring on top */}
+        <div
+          className="absolute inset-0 rounded-full animate-[spin_4s_linear_infinite]"
+          style={{
+            background: 'conic-gradient(from 0deg, #3B82F6, #6366F1, #8B5CF6, #6366F1, #3B82F6)',
+            WebkitMaskImage: 'radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px))',
+            maskImage: 'radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px))',
+          }}
+        />
+        {/* Dark circle background */}
+        <div className="absolute inset-[3px] rounded-full bg-gray-900 flex items-center justify-center">
+          {/* Gradient book icon */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#kb-icon-grad)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <defs>
+              <linearGradient id="kb-icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3B82F6" />
+                <stop offset="100%" stopColor="#6366F1" />
+              </linearGradient>
+            </defs>
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+        </div>
       </div>
       <div>
         <p className="text-base font-semibold text-gray-700">No articles yet</p>
@@ -152,7 +184,7 @@ function EmptyState({ onCreateNew }: { onCreateNew?: () => void }) {
         <button
           type="button"
           onClick={onCreateNew}
-          className="ui-btn-md ui-btn-primary"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer active:scale-[0.97]"
         >
           <Plus className="w-4 h-4" />
           Create Article
