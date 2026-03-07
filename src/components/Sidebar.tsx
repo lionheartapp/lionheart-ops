@@ -290,19 +290,22 @@ export default function Sidebar({
 
   // Measure and position the facilities indicator.
   //
-  // Uses Framer Motion's animate() + useMotionValue for the indicator, and
-  // MODULE-LEVEL variables (_facilityLastPos, _facilityMeasured) to remember
-  // position across component remounts.
+  // Uses useLayoutEffect so positioning happens BEFORE the browser paints,
+  // eliminating the flash caused by the indicator being invisible for a frame.
   //
-  // WHY: DashboardLayout lives in page.tsx files (not layout.tsx), so the
-  // entire Sidebar component remounts on every Next.js navigation. Without
-  // module-level persistence, the indicator has no "from" position and
-  // always snaps. With it, Framer Motion can smoothly animate from the
-  // old position to the new one — even on a fresh DOM element.
-  useEffect(() => {
-    if (!facilityContainerMounted) return
+  // Position memory is stored in module-level variables (_facilityLastPos,
+  // _facilityMeasured) which survive component remounts (DashboardLayout
+  // lives in page.tsx, so Sidebar remounts on every navigation).
+  //
+  // Framer Motion's animate() handles the glide animation independently
+  // of React's render cycle.
+  useLayoutEffect(() => {
+    // Check the ref directly instead of facilityContainerMounted state,
+    // because the callback ref fires before useLayoutEffect but the
+    // setState from it hasn't triggered a re-render yet.
+    const container = facilitiesContainerRef.current
+    if (!container) return
 
-    // Hide indicator when section is collapsed
     if (!facilitiesOpen) {
       indicatorOpacity.jump(0)
       return
@@ -311,10 +314,8 @@ export default function Sidebar({
     const alreadyMeasured = _facilityMeasured
 
     const positionIndicator = (shouldAnimate: boolean): boolean => {
-      const container = facilitiesContainerRef.current
       if (!container) return false
 
-      // Find the active nav item
       const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
       if (!activeEl) {
         indicatorOpacity.jump(0)
@@ -341,10 +342,8 @@ export default function Sidebar({
         indicatorHeight.jump(height)
         indicatorOpacity.jump(1)
       } else {
-        // Subsequent navigation: animate from old position to new.
-        // Framer Motion's animate() runs independently of React renders
-        // and handles interruption gracefully.
-        indicatorTop.jump(prev.top)       // start at old position
+        // Subsequent navigation: jump to old position, then animate to new.
+        indicatorTop.jump(prev.top)
         indicatorHeight.jump(prev.height)
         indicatorOpacity.jump(1)
 
@@ -376,31 +375,29 @@ export default function Sidebar({
       return true
     }
 
-    // Try at three points to handle timing edge cases:
-    //   t1 (50ms)  — catches the common case where the container is fully laid out
-    //   t2 (300ms) — fallback for CSS max-height transition (250ms duration)
-    //   t3 (600ms) — last resort safety net
-    let t1Succeeded = false
+    // Try immediately (useLayoutEffect runs before paint, so no flash).
+    // Fallback timeouts catch edge cases where DOM isn't ready yet
+    // (e.g., async permission checks haven't rendered nav items).
+    const immediateSuccess = positionIndicator(alreadyMeasured)
+    if (immediateSuccess) {
+      _facilityMeasured = true
+      return
+    }
+
+    // Fallback: try again after the CSS max-height transition completes
     const t1 = setTimeout(() => {
-      t1Succeeded = positionIndicator(alreadyMeasured)
-      if (t1Succeeded) _facilityMeasured = true
-    }, 50)
+      if (positionIndicator(alreadyMeasured)) _facilityMeasured = true
+    }, 80)
     const t2 = setTimeout(() => {
-      if (!t1Succeeded) {
-        if (positionIndicator(false)) _facilityMeasured = true
-      }
-    }, 300)
-    const t3 = setTimeout(() => {
       if (indicatorOpacity.get() < 0.5) {
         positionIndicator(false)
         _facilityMeasured = true
       }
-    }, 600)
+    }, 350)
 
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
-      clearTimeout(t3)
     }
   }, [facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance, indicatorTop, indicatorHeight, indicatorOpacity])
 
