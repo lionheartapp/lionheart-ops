@@ -116,7 +116,7 @@ export default function Sidebar({
 
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
-  const [facilitiesOpen, setFacilitiesOpen] = useState(false)
+  const [facilitiesOpen, setFacilitiesOpen] = useState(() => pathname.startsWith('/maintenance'))
 
   // ── Facilities nav indicator ──
   // Uses Framer Motion's useMotionValue + animate() for the indicator position.
