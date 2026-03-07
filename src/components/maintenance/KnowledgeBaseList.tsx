@@ -239,13 +239,13 @@ export default function KnowledgeBaseList({
   return (
     <div className="space-y-5">
       {/* Type filter tabs — sliding pill via Framer Motion layoutId */}
-      <div className="inline-flex gap-1 rounded-lg bg-gray-100 p-1">
+      <div className="mb-4 inline-flex gap-1 rounded-full bg-gray-100 p-1">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
             onClick={() => setActiveType(tab.value)}
-            className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 cursor-pointer ${
+            className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
               activeType === tab.value
                 ? 'text-white'
                 : 'text-gray-600 hover:text-gray-900'
@@ -254,7 +254,7 @@ export default function KnowledgeBaseList({
             {activeType === tab.value && (
               <motion.div
                 layoutId="kbFilterPill"
-                className="absolute inset-0 rounded-md bg-gray-900"
+                className="absolute inset-0 rounded-full bg-gray-900"
                 transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
               />
             )}
