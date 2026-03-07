@@ -220,35 +220,20 @@ function ComplianceContent() {
               animate="visible"
               variants={staggerContainer(0.08, 0.05)}
             >
-              <motion.div variants={fadeInUp} className="flex items-center gap-3 mb-1">
+              <motion.div variants={fadeInUp} className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
                   <Shield className="w-5 h-5 text-primary-600" />
                 </div>
-                <h1 className="text-2xl font-semibold text-gray-900">Regulatory Compliance</h1>
-              </motion.div>
-              <motion.p variants={fadeInUp} className="text-sm text-gray-500 ml-12">
-                Configure compliance domains and track regulatory deadlines for your school
-              </motion.p>
-            </motion.div>
-
-            {/* ── Section 1: Regulatory Domains ── */}
-            <motion.section
-              className="mb-10"
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer(0.04, 0.1)}
-            >
-              <motion.div variants={fadeInUp} className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-base font-semibold text-gray-800">Regulatory Domains</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Configure which regulations apply to your school
+                <div className="flex-1">
+                  <h1 className="text-2xl font-semibold text-gray-900">Regulatory Compliance</h1>
+                  <p className="text-sm text-gray-500">
+                    Configure compliance domains and track regulatory deadlines for your school
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setExportOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary-200 bg-white text-primary-700 text-sm font-medium hover:bg-primary-50 transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer active:scale-[0.97]"
                   >
                     <Download className="w-4 h-4" />
                     Export Audit PDF
@@ -256,7 +241,7 @@ function ComplianceContent() {
                   <button
                     onClick={() => populateMutation.mutate()}
                     disabled={populateMutation.isPending}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-60"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-60 active:scale-[0.97]"
                   >
                     {populateMutation.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -267,6 +252,15 @@ function ComplianceContent() {
                   </button>
                 </div>
               </motion.div>
+            </motion.div>
+
+            {/* ── Section 1: Regulatory Domains ── */}
+            <motion.section
+              className="mb-10"
+              initial="hidden"
+              animate="visible"
+              variants={staggerContainer(0.04, 0.1)}
+            >
 
               {/* Domain cards grid */}
               {domainsLoading ? (

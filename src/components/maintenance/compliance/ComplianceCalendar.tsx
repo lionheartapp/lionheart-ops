@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LayoutList, CalendarDays, Filter } from 'lucide-react'
+import { LayoutList, CalendarDays } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { COMPLIANCE_DOMAIN_DEFAULTS, COMPLIANCE_DOMAINS } from '@/lib/types/compliance'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 import type { ComplianceDomain, ComplianceStatus, ComplianceOutcome } from '@prisma/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -257,31 +258,34 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
   return (
     <div>
       {/* Filter bar */}
-      <div className="ui-glass p-3 rounded-xl mb-4 flex flex-wrap items-center gap-3">
-        <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
-
-        <select
+      <div className="flex flex-wrap items-end gap-x-2 gap-y-4 pb-3 pt-2 mb-4">
+        <FloatingDropdown
+          label="Domain"
           value={filterDomain}
-          onChange={(e) => setFilterDomain(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
-        >
-          <option value="">All Domains</option>
-          {COMPLIANCE_DOMAINS.map((d) => (
-            <option key={d} value={d}>{COMPLIANCE_DOMAIN_DEFAULTS[d].label}</option>
-          ))}
-        </select>
+          onChange={setFilterDomain}
+          options={[
+            { value: '', label: 'All Domains' },
+            ...COMPLIANCE_DOMAINS.map((d) => ({
+              value: d,
+              label: COMPLIANCE_DOMAIN_DEFAULTS[d].label,
+            })),
+          ]}
+          className="min-w-[160px]"
+        />
 
-        <select
+        <FloatingDropdown
+          label="Status"
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
-        >
-          <option value="">All Statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="DUE_SOON">Due Soon</option>
-          <option value="OVERDUE">Overdue</option>
-          <option value="CURRENT">Current</option>
-        </select>
+          onChange={setFilterStatus}
+          options={[
+            { value: '', label: 'All Statuses' },
+            { value: 'PENDING', label: 'Pending' },
+            { value: 'DUE_SOON', label: 'Due Soon' },
+            { value: 'OVERDUE', label: 'Overdue' },
+            { value: 'CURRENT', label: 'Current' },
+          ]}
+          className="min-w-[140px]"
+        />
 
         <div className="ml-auto flex items-center gap-1">
           <button
