@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fragment, type RefCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, animate as fmAnimate } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { usePathname, useRouter } from 'next/navigation'
@@ -80,6 +80,14 @@ interface AthleticsCampus {
   color: string
 }
 
+// ── Module-level state for the facilities indicator ──
+// These survive component remounts (which happen on every Next.js page
+// navigation because DashboardLayout is inside page.tsx, not layout.tsx).
+// Without module-level persistence, the indicator always "snaps" because
+// the component has no memory of where it was before navigation.
+let _facilityLastPos: { top: number; height: number } | null = null
+let _facilityMeasured = false
+
 export default function Sidebar({
   userName = 'User',
   userEmail = 'user@school.edu',
@@ -110,37 +118,30 @@ export default function Sidebar({
   const [athleticsOpen, setAthleticsOpen] = useState(false)
   const [facilitiesOpen, setFacilitiesOpen] = useState(false)
 
-  // Facilities nav indicator refs
+  // ── Facilities nav indicator ──
+  // Uses Framer Motion's useMotionValue + animate() for the indicator position.
+  // This is immune to React re-render interference and works even when the
+  // component remounts (because position memory is module-level).
   const facilitiesContainerRef = useRef<HTMLDivElement | null>(null)
-  const facilityIndicatorRef = useRef<HTMLDivElement | null>(null)
   const facilityTrailRef = useRef<HTMLDivElement | null>(null)
-  const facilityMeasuredRef = useRef(false)
-  const facilityPosRef = useRef<{ top: number; height: number } | null>(null)
   const [facilityContainerMounted, setFacilityContainerMounted] = useState(false)
 
-  // Callback refs for the facilities indicator system.
-  //
-  // IMPORTANT: mainNavContent renders in BOTH desktop and mobile sidebars,
-  // creating TWO DOM trees that share these refs. The mobile sidebar has
-  // display:none on desktop (lg:hidden), so its elements report 0 for all
-  // measurements. We MUST only accept refs from the VISIBLE instance.
-  // Strategy: check node.offsetParent — null means display:none ancestor.
+  // Framer Motion values for the indicator — animated independently of React renders
+  const indicatorTop = useMotionValue(0)
+  const indicatorHeight = useMotionValue(0)
+  const indicatorOpacity = useMotionValue(0)
 
-  const facilityIndicatorRefCb = useCallback((node: HTMLDivElement | null) => {
-    if (node && node.offsetParent === null) return // skip display:none (mobile on desktop)
-    facilityIndicatorRef.current = node
-    if (node) node.style.opacity = '0'
-  }, [])
+  // Callback refs: skip display:none (mobile on desktop) via offsetParent check.
+  // mainNavContent renders in BOTH desktop and mobile sidebars — we only want
+  // refs from the VISIBLE instance.
   const facilityTrailRefCb = useCallback((node: HTMLDivElement | null) => {
-    if (node && node.offsetParent === null) return // skip display:none (mobile on desktop)
+    if (node && node.offsetParent === null) return
     facilityTrailRef.current = node
     if (node) node.style.opacity = '0'
   }, [])
 
-  // Ref callback: detects when the facilities container mounts/unmounts in the DOM
-  // Also measures the scroll height for CSS max-height collapse animation.
   const facilitiesContainerRefCb: RefCallback<HTMLDivElement> = useCallback((node) => {
-    if (node && node.offsetParent === null) return // skip display:none (mobile on desktop)
+    if (node && node.offsetParent === null) return
     facilitiesContainerRef.current = node
     setFacilityContainerMounted(!!node)
   }, [])
@@ -288,38 +289,35 @@ export default function Sidebar({
   const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
 
   // Measure and position the facilities indicator.
-  // Depends on facilitiesOpen, facilityContainerMounted, pathname, AND permissions
-  // because most nav items (Work Orders, Assets, Analytics, etc.) are conditionally
-  // rendered by canManageMaintenance/canClaimMaintenance. Without permissions in deps,
-  // the effect would not re-run when the async permission query resolves and the active
-  // nav item appears in the DOM for the first time.
   //
-  // KEY DESIGN: The Facilities section uses CSS max-height for collapse instead of
-  // AnimatePresence. This keeps the indicator DOM element alive across navigations,
-  // allowing CSS transitions to work naturally (just like the standalone HTML prototype).
+  // Uses Framer Motion's animate() + useMotionValue for the indicator, and
+  // MODULE-LEVEL variables (_facilityLastPos, _facilityMeasured) to remember
+  // position across component remounts.
+  //
+  // WHY: DashboardLayout lives in page.tsx files (not layout.tsx), so the
+  // entire Sidebar component remounts on every Next.js navigation. Without
+  // module-level persistence, the indicator has no "from" position and
+  // always snaps. With it, Framer Motion can smoothly animate from the
+  // old position to the new one — even on a fresh DOM element.
   useEffect(() => {
     if (!facilityContainerMounted) return
 
     // Hide indicator when section is collapsed
     if (!facilitiesOpen) {
-      const indicator = facilityIndicatorRef.current
-      if (indicator) indicator.style.opacity = '0'
+      indicatorOpacity.jump(0)
       return
     }
 
-    // Whether the indicator has been positioned at least once this session.
-    // Used to decide snap (false) vs slide (true) animation.
-    const alreadyMeasured = facilityMeasuredRef.current
+    const alreadyMeasured = _facilityMeasured
 
-    const positionIndicator = (animate: boolean): boolean => {
+    const positionIndicator = (shouldAnimate: boolean): boolean => {
       const container = facilitiesContainerRef.current
-      const indicator = facilityIndicatorRef.current
-      if (!container || !indicator) return false
+      if (!container) return false
 
       // Find the active nav item
       const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
       if (!activeEl) {
-        indicator.style.opacity = '0'
+        indicatorOpacity.jump(0)
         return true
       }
 
@@ -334,40 +332,24 @@ export default function Sidebar({
         walker = walker.offsetParent as HTMLElement | null
       }
 
-      const prev = facilityPosRef.current
+      const prev = _facilityLastPos
+      const easing = [0.22, 1, 0.36, 1] as [number, number, number, number]
 
-      if (!animate || !prev) {
-        // First time: snap into position without animation
-        indicator.style.transition = 'none'
-        indicator.style.top = `${top}px`
-        indicator.style.height = `${height}px`
-        indicator.style.opacity = '1'
-        facilityPosRef.current = { top, height }
-
-        // Restore transitions after browser paints the snapped position.
-        // Double-rAF ensures the browser has painted before re-enabling transitions.
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (facilityIndicatorRef.current) {
-              facilityIndicatorRef.current.style.transition =
-                'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
-                'height 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
-                'opacity 0.2s ease'
-            }
-          })
-        })
+      if (!shouldAnimate || !prev) {
+        // First time ever: snap into position (no animation)
+        indicatorTop.jump(top)
+        indicatorHeight.jump(height)
+        indicatorOpacity.jump(1)
       } else {
-        // Subsequent navigations: the DOM element persists (no AnimatePresence
-        // destruction), so it already has its current CSS top/height values.
-        // Simply setting new values with the transition property active will
-        // trigger a smooth glide — exactly like the standalone HTML prototype.
-        indicator.style.transition =
-          'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
-          'height 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
-          'opacity 0.2s ease'
-        indicator.style.top = `${top}px`
-        indicator.style.height = `${height}px`
-        indicator.style.opacity = '1'
+        // Subsequent navigation: animate from old position to new.
+        // Framer Motion's animate() runs independently of React renders
+        // and handles interruption gracefully.
+        indicatorTop.jump(prev.top)       // start at old position
+        indicatorHeight.jump(prev.height)
+        indicatorOpacity.jump(1)
+
+        fmAnimate(indicatorTop, top, { duration: 0.4, ease: easing })
+        fmAnimate(indicatorHeight, height, { duration: 0.4, ease: easing })
 
         // ── Glow trail: spans from old position to new, then fades out ──
         const trail = facilityTrailRef.current
@@ -388,32 +370,30 @@ export default function Sidebar({
           trail.style.transition = 'opacity 0.55s ease-out'
           trail.style.opacity = '0'
         }
-
-        facilityPosRef.current = { top, height }
       }
 
+      _facilityLastPos = { top, height }
       return true
     }
 
     // Try at three points to handle timing edge cases:
     //   t1 (50ms)  — catches the common case where the container is fully laid out
-    //   t2 (300ms) — fallback for CSS max-height transition (200ms duration)
+    //   t2 (300ms) — fallback for CSS max-height transition (250ms duration)
     //   t3 (600ms) — last resort safety net
     let t1Succeeded = false
     const t1 = setTimeout(() => {
       t1Succeeded = positionIndicator(alreadyMeasured)
-      if (t1Succeeded) facilityMeasuredRef.current = true
+      if (t1Succeeded) _facilityMeasured = true
     }, 50)
     const t2 = setTimeout(() => {
       if (!t1Succeeded) {
-        if (positionIndicator(false)) facilityMeasuredRef.current = true
+        if (positionIndicator(false)) _facilityMeasured = true
       }
     }, 300)
     const t3 = setTimeout(() => {
-      const indicator = facilityIndicatorRef.current
-      if (indicator && indicator.style.opacity !== '1') {
+      if (indicatorOpacity.get() < 0.5) {
         positionIndicator(false)
-        facilityMeasuredRef.current = true
+        _facilityMeasured = true
       }
     }, 600)
 
@@ -422,7 +402,7 @@ export default function Sidebar({
       clearTimeout(t2)
       clearTimeout(t3)
     }
-  }, [facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance])
+  }, [facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance, indicatorTop, indicatorHeight, indicatorOpacity])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
@@ -781,14 +761,15 @@ export default function Sidebar({
                             style={{ filter: 'blur(1.5px)' }}
                           />
 
-                          {/* Animated gradient indicator.
-                              NOTE: opacity, top, height, and transition are ALL set
-                              imperatively via ref. Do NOT put them in the style prop —
-                              React re-renders will override the imperative values. */}
-                          <div
-                            ref={facilityIndicatorRefCb}
+                          {/* Animated gradient indicator — driven by Framer Motion values.
+                              Uses useMotionValue + animate() so the animation runs
+                              independently of React re-renders and component remounts. */}
+                          <motion.div
                             className="absolute left-0 w-0.5 rounded-full pointer-events-none"
                             style={{
+                              top: indicatorTop,
+                              height: indicatorHeight,
+                              opacity: indicatorOpacity,
                               background: 'linear-gradient(180deg, #A78BFA 0%, #EC4899 100%)',
                               boxShadow: '0 0 8px rgba(167, 139, 250, 0.5), 0 0 16px rgba(236, 72, 153, 0.25)',
                             }}
