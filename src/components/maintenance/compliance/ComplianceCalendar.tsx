@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { LayoutList, CalendarDays } from 'lucide-react'
+import { IllustrationCompliance } from '@/components/illustrations'
 import { fetchApi } from '@/lib/api-client'
 import { COMPLIANCE_DOMAIN_DEFAULTS, COMPLIANCE_DOMAINS } from '@/lib/types/compliance'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -117,9 +118,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
     if (records.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
-            <CalendarDays className="w-6 h-6 text-gray-300" />
-          </div>
+          <IllustrationCompliance className="w-48 h-40 mb-2" />
           <p className="text-sm font-medium text-gray-500 mb-1">No compliance deadlines found</p>
           <p className="text-xs text-gray-400 max-w-xs leading-relaxed">
             Configure your domains above, then click &quot;Populate Calendar for This Year&quot; to generate deadlines.
@@ -205,9 +204,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
     if (Object.keys(byMonth).length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
-            <CalendarDays className="w-6 h-6 text-gray-300" />
-          </div>
+          <IllustrationCompliance className="w-48 h-40 mb-2" />
           <p className="text-sm font-medium text-gray-500 mb-1">No compliance deadlines found</p>
           <p className="text-xs text-gray-400 max-w-xs">Configure domains and populate the calendar to see deadlines here.</p>
         </div>
