@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Search, SlidersHorizontal, ChevronDown, Check } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, Search, SlidersHorizontal } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 import FilterBottomSheet from './FilterBottomSheet'
 
 export type MaintenanceStatus =
@@ -87,92 +88,7 @@ const CATEGORY_OPTIONS: { value: MaintenanceCategory; label: string }[] = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-const inputClass = 'ui-input !w-full !py-2'
-
-// ─── Custom filter dropdown ─────────────────────────────────────────────────
-
-interface FilterDropdownProps {
-  label: string
-  value: string
-  options: { value: string; label: string }[]
-  onChange: (value: string) => void
-  allLabel: string
-  ariaLabel: string
-}
-
-function FilterDropdown({ label, value, options, onChange, allLabel, ariaLabel }: FilterDropdownProps) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  const selectedLabel = value
-    ? options.find((o) => o.value === value)?.label ?? value
-    : allLabel
-
-  const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (ref.current && !ref.current.contains(e.target as Node)) {
-      setOpen(false)
-    }
-  }, [])
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') setOpen(false)
-  }, [])
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('keydown', handleKeyDown)
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open, handleClickOutside, handleKeyDown])
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        aria-label={ariaLabel}
-        className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors cursor-pointer whitespace-nowrap ${
-          value
-            ? 'bg-gray-900 text-white border-gray-900'
-            : 'bg-white/60 backdrop-blur-sm text-gray-700 border-gray-200/60 hover:bg-white/80 hover:border-gray-300'
-        }`}
-      >
-        {value ? selectedLabel : label}
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 min-w-[180px] ui-glass-dropdown p-1 animate-[fadeIn_100ms_ease-out]">
-          {/* All / reset option */}
-          <button
-            onClick={() => { onChange(''); setOpen(false) }}
-            className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
-              !value ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {allLabel}
-            {!value && <Check className="w-3.5 h-3.5 text-gray-900" />}
-          </button>
-          {options.map((o) => (
-            <button
-              key={o.value}
-              onClick={() => { onChange(o.value); setOpen(false) }}
-              className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
-                value === o.value ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {o.label}
-              {value === o.value && <Check className="w-3.5 h-3.5 text-gray-900" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+const inputClass = 'ui-input'
 
 export function hasActiveFilters(filters: WorkOrdersFilterState): boolean {
   return (
@@ -245,46 +161,54 @@ export default function WorkOrdersFilters({
   return (
     <>
       {/* ─── Desktop: inline filters (hidden on mobile) ─── */}
-      <div className="hidden lg:flex flex-wrap items-center gap-2 pb-3">
+      <div className="hidden lg:flex flex-wrap items-end gap-x-2 gap-y-4 pb-3 pt-2">
         {/* Status */}
-        <FilterDropdown
+        <FloatingDropdown
           label="Status"
           value={filters.status}
-          options={STATUS_OPTIONS}
           onChange={(v) => update({ status: v as MaintenanceStatus | '' })}
-          allLabel="All Statuses"
-          ariaLabel="Filter by status"
+          options={[
+            { value: '', label: 'All Statuses' },
+            ...STATUS_OPTIONS,
+          ]}
+          className="min-w-[140px]"
         />
 
         {/* Priority */}
-        <FilterDropdown
+        <FloatingDropdown
           label="Priority"
           value={filters.priority}
-          options={PRIORITY_OPTIONS}
           onChange={(v) => update({ priority: v as MaintenancePriority | '' })}
-          allLabel="All Priorities"
-          ariaLabel="Filter by priority"
+          options={[
+            { value: '', label: 'All Priorities' },
+            ...PRIORITY_OPTIONS,
+          ]}
+          className="min-w-[140px]"
         />
 
         {/* Category */}
-        <FilterDropdown
+        <FloatingDropdown
           label="Category"
           value={filters.category}
-          options={CATEGORY_OPTIONS}
           onChange={(v) => update({ category: v as MaintenanceCategory | '' })}
-          allLabel="All Categories"
-          ariaLabel="Filter by category"
+          options={[
+            { value: '', label: 'All Categories' },
+            ...CATEGORY_OPTIONS,
+          ]}
+          className="min-w-[150px]"
         />
 
         {/* Technician */}
         {technicians.length > 0 && (
-          <FilterDropdown
+          <FloatingDropdown
             label="Technician"
             value={filters.assignedToId}
-            options={technicians.map((t) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` }))}
             onChange={(v) => update({ assignedToId: v })}
-            allLabel="All Technicians"
-            ariaLabel="Filter by technician"
+            options={[
+              { value: '', label: 'All Technicians' },
+              ...technicians.map((t) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` })),
+            ]}
+            className="min-w-[150px]"
           />
         )}
 
@@ -303,7 +227,7 @@ export default function WorkOrdersFilters({
         </div>
 
         {/* Unassigned toggle */}
-        <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer select-none whitespace-nowrap">
+        <label className="flex items-center gap-1.5 pb-2.5 text-sm text-gray-600 cursor-pointer select-none whitespace-nowrap">
           <input
             type="checkbox"
             checked={filters.unassigned}
@@ -317,7 +241,7 @@ export default function WorkOrdersFilters({
         {active && (
           <button
             onClick={clearFilters}
-            className="flex items-center gap-1 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-3 py-2 mb-0.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
             aria-label="Clear all filters"
           >
             <X className="w-3.5 h-3.5" />
