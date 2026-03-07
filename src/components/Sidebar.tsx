@@ -113,7 +113,7 @@ export default function Sidebar({
   // Facilities nav indicator refs
   const facilitiesContainerRef = useRef<HTMLDivElement>(null)
   const facilityIndicatorRef = useRef<HTMLDivElement>(null)
-  const facilityIndicatorInitRef = useRef(true)
+  const facilityMeasuredRef = useRef(false)
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
 
@@ -249,42 +249,70 @@ export default function Sidebar({
     }
   }, [pathname])
 
-  // Measure and animate facilities nav indicator
+  // Reset indicator measurement flag when facilities close
   useEffect(() => {
     if (!facilitiesOpen) {
-      facilityIndicatorInitRef.current = true
-      return
+      facilityMeasuredRef.current = false
     }
+  }, [facilitiesOpen])
+
+  // Called when the facilities expand animation completes — measure without animation
+  const handleFacilitiesExpanded = useCallback(() => {
+    if (!facilitiesOpen) return
     const container = facilitiesContainerRef.current
     const indicator = facilityIndicatorRef.current
     if (!container || !indicator) return
 
-    const measure = () => {
+    const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
+    if (!activeEl) {
+      indicator.style.opacity = '0'
+      facilityMeasuredRef.current = true
+      return
+    }
+
+    const cRect = container.getBoundingClientRect()
+    const eRect = activeEl.getBoundingClientRect()
+    const top = eRect.top - cRect.top + container.scrollTop
+
+    // Position without animation on first render (matches the mockup's init pattern)
+    indicator.style.transition = 'none'
+    indicator.style.top = `${top}px`
+    indicator.style.height = `${eRect.height}px`
+    indicator.style.opacity = '1'
+
+    // Restore transitions after browser paints the position
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (facilityIndicatorRef.current) {
+          facilityIndicatorRef.current.style.transition = ''
+        }
+        facilityMeasuredRef.current = true
+      })
+    })
+  }, [facilitiesOpen])
+
+  // Animate indicator on route change when facilities are already open and measured
+  useEffect(() => {
+    if (!facilitiesOpen || !facilityMeasuredRef.current) return
+    const container = facilitiesContainerRef.current
+    const indicator = facilityIndicatorRef.current
+    if (!container || !indicator) return
+
+    requestAnimationFrame(() => {
       const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
       if (!activeEl) {
         indicator.style.opacity = '0'
         return
       }
-      const containerRect = container.getBoundingClientRect()
-      const activeRect = activeEl.getBoundingClientRect()
-      const top = activeRect.top - containerRect.top
-      const height = activeRect.height
 
-      if (facilityIndicatorInitRef.current) {
-        indicator.style.transition = 'none'
-        facilityIndicatorInitRef.current = false
-      }
+      const cRect = container.getBoundingClientRect()
+      const eRect = activeEl.getBoundingClientRect()
+      const top = eRect.top - cRect.top + container.scrollTop
 
       indicator.style.top = `${top}px`
-      indicator.style.height = `${height}px`
+      indicator.style.height = `${eRect.height}px`
       indicator.style.opacity = '1'
-
-      requestAnimationFrame(() => {
-        indicator.style.transition = ''
-      })
-    }
-
-    requestAnimationFrame(() => requestAnimationFrame(measure))
+    })
   }, [pathname, facilitiesOpen])
 
   // Listen for calendar data from the calendar page
@@ -603,51 +631,29 @@ export default function Sidebar({
               <span className="text-[11px] font-semibold tracking-wider text-gray-500 uppercase">Support</span>
             </div>
             <ul className="space-y-1" role="list">
-              {/* Facilities — collapsible parent */}
+              {/* Facilities — collapsible section (no landing page; child links have content) */}
               {(canManageMaintenance || canClaimMaintenance || canSubmitMaintenance) && (
                 <li>
-                  <div className="flex items-center">
-                    <PrefetchLink
-                      href="/maintenance"
-                      onClick={() => {
-                        setSettingsOpen(false)
-                        setAthleticsOpen(false)
-                        setIsOpen(false)
-                      }}
-                      className={`flex-1 flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
-                        pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen
-                          ? 'bg-white/10 text-white font-medium border border-white/20'
-                          : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                      }`}
-                      aria-current={pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen ? 'page' : undefined}
+                  {(canManageMaintenance || canClaimMaintenance) ? (
+                  <>
+                  {/* Section header — toggle only, no navigation */}
+                  <button
+                    onClick={() => setFacilitiesOpen((prev) => !prev)}
+                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                    aria-expanded={facilitiesOpen}
+                    aria-label={facilitiesOpen ? 'Collapse facilities' : 'Expand facilities'}
+                  >
+                    <Wrench className="w-5 h-5 flex-shrink-0 text-gray-500" aria-hidden="true" />
+                    <span className="text-sm font-semibold text-gray-200">Facilities</span>
+                    <motion.span
+                      className="ml-auto block"
+                      animate={{ rotate: facilitiesOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                     >
-                      <Wrench className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                      <span className="text-sm">Facilities</span>
-                      {(canManageMaintenance || canClaimMaintenance) && (
-                        <motion.button
-                          type="button"
-                          className="ml-auto p-1 rounded hover:bg-white/10 transition-colors"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setFacilitiesOpen((prev) => !prev)
-                          }}
-                          aria-expanded={facilitiesOpen}
-                          aria-label={facilitiesOpen ? 'Collapse facilities menu' : 'Expand facilities menu'}
-                        >
-                          <motion.span
-                            className="block"
-                            animate={{ rotate: facilitiesOpen ? 180 : 0 }}
-                            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                          >
-                            <ChevronDown className="w-4 h-4" aria-hidden="true" />
-                          </motion.span>
-                        </motion.button>
-                      )}
-                    </PrefetchLink>
-                  </div>
+                      <ChevronDown className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                    </motion.span>
+                  </button>
                   {/* Child links — collapsible with animated gradient indicator */}
-                  {(canManageMaintenance || canClaimMaintenance) && (
                     <AnimatePresence initial={false}>
                       {facilitiesOpen && (
                         <motion.div
@@ -657,6 +663,9 @@ export default function Sidebar({
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                          onAnimationComplete={() => {
+                            if (facilitiesOpen) handleFacilitiesExpanded()
+                          }}
                         >
                           {/* Track line */}
                           <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
@@ -674,6 +683,24 @@ export default function Sidebar({
                           />
 
                           <div className="space-y-0.5">
+                          {/* Dashboard */}
+                          <PrefetchLink
+                            href="/maintenance"
+                            data-facility-active={pathname === '/maintenance' ? 'true' : undefined}
+                            onClick={() => {
+                              setSettingsOpen(false)
+                              setAthleticsOpen(false)
+                              setIsOpen(false)
+                            }}
+                            className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                              pathname === '/maintenance'
+                                ? 'text-white font-medium'
+                                : 'text-gray-500 hover:text-gray-200'
+                            }`}
+                            aria-current={pathname === '/maintenance' ? 'page' : undefined}
+                          >
+                            <span className="text-sm">Dashboard</span>
+                          </PrefetchLink>
                           {/* Work Orders — for Head/Admin */}
                           {canManageMaintenance && (
                               <PrefetchLink
@@ -836,6 +863,26 @@ export default function Sidebar({
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </>
+                  ) : (
+                    /* Submit-only users — simple link to maintenance */
+                    <PrefetchLink
+                      href="/maintenance"
+                      onClick={() => {
+                        setSettingsOpen(false)
+                        setAthleticsOpen(false)
+                        setIsOpen(false)
+                      }}
+                      className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                        pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen
+                          ? 'bg-white/10 text-white font-medium border border-white/20'
+                          : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                      }`}
+                      aria-current={pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen ? 'page' : undefined}
+                    >
+                      <Wrench className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                      <span className="text-sm">Facilities</span>
+                    </PrefetchLink>
                   )}
                 </li>
               )}
