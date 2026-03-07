@@ -14,6 +14,7 @@ import {
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { queryOptions } from '@/lib/queries'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
+import { IllustrationMaintenance } from '@/components/illustrations'
 import TicketsByStatusChart from './charts/TicketsByStatusChart'
 import ResolutionTimeChart from './charts/ResolutionTimeChart'
 import TechnicianWorkloadChart from './charts/TechnicianWorkloadChart'
@@ -143,8 +144,9 @@ function PmComplianceSection({ data }: { data: PmComplianceResult }) {
 function TopLocationsSection({ data }: { data: TopLocationResult[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
-        No location data for this period
+      <div className="flex flex-col items-center justify-center h-32 text-center">
+        <IllustrationMaintenance className="w-28 h-20 mb-1" />
+        <p className="text-sm text-gray-400">No location data for this period</p>
       </div>
     )
   }

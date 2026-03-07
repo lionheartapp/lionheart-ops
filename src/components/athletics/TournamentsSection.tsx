@@ -246,6 +246,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
             </>
           ) : (
             <>
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               <p className="text-base font-semibold text-gray-700 mb-1">No tournaments match your search</p>
               <p className="text-sm text-gray-500">Try a different search term</p>
             </>

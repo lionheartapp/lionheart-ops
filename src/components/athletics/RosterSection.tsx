@@ -11,7 +11,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
 import SportIcon, { GlassSportTile } from '@/components/athletics/SportIcon'
-import { IllustrationAthletics } from '@/components/illustrations'
+import { IllustrationAthletics, IllustrationTeam } from '@/components/illustrations'
 
 interface Team {
   id: string
@@ -314,7 +314,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           <AthleticsTableSkeleton columns={3} rows={4} showToolbar={false} />
         ) : teamDirectory.length === 0 ? (
           <div className="ui-glass p-8 text-center">
-            <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
             <h2 className="text-lg font-medium text-gray-700 mb-1">No teams available</h2>
             <p className="text-sm text-gray-500">Create teams in the Teams tab first</p>
           </div>
@@ -349,7 +349,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           <AthleticsTableSkeleton columns={5} rows={4} showToolbar={false} />
         ) : filteredRoster.length === 0 ? (
           <div className="ui-glass p-8 text-center">
-            <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
             <h2 className="text-lg font-medium text-gray-700 mb-1">No matching players</h2>
             <p className="text-sm text-gray-500">Try a different search</p>
           </div>

@@ -4,6 +4,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import KanbanCard from './KanbanCard'
 import type { WorkOrderTicket } from './WorkOrdersTable'
+import { IllustrationTickets } from '@/components/illustrations'
 
 // ─── Column status config ─────────────────────────────────────────────────────
 
@@ -80,8 +81,9 @@ export default function KanbanColumn({
         </SortableContext>
 
         {tickets.length === 0 && (
-          <div className="flex items-center justify-center py-8 text-xs text-gray-400">
-            No tickets
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <IllustrationTickets className="w-28 h-20 mb-1" />
+            <p className="text-xs text-gray-400">No tickets</p>
           </div>
         )}
       </div>

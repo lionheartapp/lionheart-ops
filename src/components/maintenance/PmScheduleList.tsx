@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { format, isPast, isBefore, addDays } from 'date-fns'
 import { ChevronUp, ChevronDown, AlertCircle, RepeatIcon, User, MapPin } from 'lucide-react'
 import { PM_RECURRENCE_LABELS } from '@/lib/types/pm-schedule'
+import { IllustrationMaintenance } from '@/components/illustrations'
 import type { PmRecurrenceType } from '@/lib/types/pm-schedule'
 import { listItem, staggerContainer } from '@/lib/animations'
 
@@ -156,9 +157,7 @@ export default function PmScheduleList({ onRowClick }: PmScheduleListProps) {
   if (schedules.length === 0) {
     return (
       <div className="ui-glass p-12 text-center">
-        <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-          <RepeatIcon className="w-6 h-6 text-primary-500" />
-        </div>
+        <IllustrationMaintenance className="w-48 h-40 mx-auto mb-2" />
         <p className="text-sm font-medium text-gray-700">No PM schedules yet</p>
         <p className="text-sm text-gray-500 mt-1">Create a schedule to get started</p>
       </div>

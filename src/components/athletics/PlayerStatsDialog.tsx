@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { X } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 interface Game {
   id: string
@@ -237,6 +238,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
               </div>
             ) : statConfigs.length === 0 ? (
               <div className="text-center py-8">
+                <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
                 <p className="text-sm text-gray-500 mb-1">No stat categories configured for this sport.</p>
                 <p className="text-xs text-gray-400">
                   Go to the Stats tab and set up stat categories first.
@@ -244,6 +246,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
               </div>
             ) : roster.length === 0 ? (
               <div className="text-center py-8">
+                <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
                 <p className="text-sm text-gray-500">No players on this team&apos;s roster.</p>
                 <p className="text-xs text-gray-400">Add players in the Roster tab first.</p>
               </div>

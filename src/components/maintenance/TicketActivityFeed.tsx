@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { listItem, staggerContainer } from '@/lib/animations'
+import { IllustrationMaintenance } from '@/components/illustrations'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -264,8 +265,9 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
       {/* Feed */}
       <div ref={feedRef} className="max-h-[480px] overflow-y-auto pr-1">
         {activities.length === 0 ? (
-          <div className="text-center py-8 text-sm text-gray-400">
-            No activity yet — actions and comments will appear here.
+          <div className="text-center py-8">
+            <IllustrationMaintenance className="w-32 h-24 mx-auto mb-1" />
+            <p className="text-sm text-gray-400">No activity yet — actions and comments will appear here.</p>
           </div>
         ) : (
           <motion.div

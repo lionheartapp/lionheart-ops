@@ -8,6 +8,7 @@ import MatchResultDialog from '@/components/athletics/MatchResultDialog'
 import SingleEliminationBracket from '@/components/athletics/SingleEliminationBracket'
 import RoundRobinGrid from '@/components/athletics/RoundRobinGrid'
 import SportIcon from '@/components/athletics/SportIcon'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 interface BracketTeam {
   id: string
@@ -255,6 +256,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
 
           {teams.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
+              <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
               <p className="text-sm text-gray-500 mb-1">No teams found for this sport</p>
               <p className="text-xs text-gray-400">
                 Create teams in the <span className="font-medium text-gray-600">Teams</span> tab first, then come back to set up the bracket.

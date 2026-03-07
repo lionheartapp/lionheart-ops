@@ -8,6 +8,7 @@ import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 interface Sport {
   id: string
@@ -311,7 +312,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
             <AthleticsTableSkeleton columns={6} rows={4} showToolbar={false} />
           ) : standings.length === 0 ? (
             <div className="ui-glass p-8 text-center">
-              <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">No standings data</h2>
               <p className="text-sm text-gray-500 mb-3">
                 Standings update when games are marked as final with scores recorded.
@@ -380,13 +381,13 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
 
           {!selectedSportId ? (
             <div className="ui-glass p-8 text-center">
-              <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">Select a sport</h2>
               <p className="text-sm text-gray-500">Choose a sport to see available stat categories</p>
             </div>
           ) : !selectedStatKey ? (
             <div className="ui-glass p-8 text-center">
-              <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               {statConfigs.length === 0 ? (
                 <>
                   <h2 className="text-lg font-medium text-gray-700 mb-1">No stat categories configured</h2>
@@ -413,7 +414,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
             <AthleticsTableSkeleton columns={4} rows={4} showToolbar={false} />
           ) : leaders.length === 0 ? (
             <div className="ui-glass p-8 text-center">
-              <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">No stats recorded yet</h2>
               <p className="text-sm text-gray-500 mb-3">
                 Enter player stats after games to see leaders here.
@@ -473,7 +474,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
 
           {!configSportId ? (
             <div className="ui-glass p-8 text-center">
-              <Settings className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               <h2 className="text-lg font-medium text-gray-700 mb-1">Select a sport</h2>
               <p className="text-sm text-gray-500">Choose a sport to configure its stat categories</p>
             </div>
@@ -527,7 +528,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
 
               {configs.length === 0 && (
                 <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
-                  <Settings className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
                   <p className="text-sm text-gray-500 mb-1">No stat categories yet</p>
                   <p className="text-xs text-gray-400">
                     Add categories above (e.g. Points, Assists, Rebounds for basketball) to start tracking player stats per game.

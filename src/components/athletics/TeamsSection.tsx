@@ -11,6 +11,7 @@ import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } 
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
+import { IllustrationTeam } from '@/components/illustrations'
 
 type Sport = {
   id: string
@@ -380,16 +381,20 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
         <AthleticsTableSkeleton columns={7} rows={4} showToolbar={false} />
       ) : displayTeams.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-sm text-gray-500">
+          <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
+          <p className="text-base font-semibold text-gray-700 mb-1">
             {search || filterSportId || filterSeasonId ? 'No teams match your filters' : 'No teams created yet'}
+          </p>
+          <p className="text-sm text-gray-500 mb-4">
+            {search || filterSportId || filterSeasonId ? 'Try adjusting your search or filters.' : 'Get started by creating your first team.'}
           </p>
           {!search && !filterSportId && !filterSeasonId && (
             <button
               type="button"
               onClick={openCreate}
-              className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
             >
-              Create your first team
+              Create First Team
             </button>
           )}
         </div>

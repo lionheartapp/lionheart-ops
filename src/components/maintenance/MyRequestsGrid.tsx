@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion } from 'framer-motion'
 import { Wrench, WifiOff } from 'lucide-react'
+import { IllustrationMaintenance } from '@/components/illustrations'
 import StaggerList, { StaggerItem } from '@/components/motion/StaggerList'
 import TicketCard from './TicketCard'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
@@ -156,9 +157,7 @@ export default function MyRequestsGrid({ onSubmitRequest }: MyRequestsGridProps)
         className="ui-glass rounded-2xl p-12"
       >
         <div className="flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
-            <Wrench className="w-8 h-8 text-primary-400" />
-          </div>
+          <IllustrationMaintenance className="w-48 h-40 mb-2" />
           <h3 className="text-base font-semibold text-gray-900 mb-2">
             No maintenance requests yet
           </h3>

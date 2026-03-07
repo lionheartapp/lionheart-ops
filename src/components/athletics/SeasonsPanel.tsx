@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Calendar, Trophy } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 type Season = {
   id: string
@@ -183,9 +184,9 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
 
       {/* Seasons list */}
       {seasons.length === 0 ? (
-        <div className="text-center py-6 text-sm text-gray-400">
-          <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-          No seasons yet
+        <div className="text-center py-6">
+          <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
+          <p className="text-sm text-gray-400">No seasons yet</p>
         </div>
       ) : (
         <div className="space-y-2">

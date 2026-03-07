@@ -204,8 +204,8 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
               </div>
               {upcomingGames.length === 0 ? (
                 <div className="px-6 pb-6">
-                  <div className="rounded-xl bg-gray-50/50 border border-dashed border-gray-200/60 py-8 text-center">
-                    <CalendarDays className="w-7 h-7 text-gray-300 mx-auto mb-2" />
+                  <div className="rounded-xl bg-gray-50/50 border border-dashed border-gray-200/60 py-6 text-center">
+                    <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
                     <p className="text-sm text-gray-400">No upcoming games scheduled</p>
                   </div>
                 </div>
@@ -254,8 +254,8 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
               </div>
               {recentResults.length === 0 ? (
                 <div className="px-6 pb-6">
-                  <div className="rounded-xl bg-gray-50/50 border border-dashed border-gray-200/60 py-8 text-center">
-                    <Trophy className="w-7 h-7 text-gray-300 mx-auto mb-2" />
+                  <div className="rounded-xl bg-gray-50/50 border border-dashed border-gray-200/60 py-6 text-center">
+                    <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
                     <p className="text-sm text-gray-400">No completed games yet</p>
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
               {standings.length === 0 ? (
                 <div className="px-6 pb-6">
                   <div className="rounded-xl bg-gray-50/50 border border-dashed border-gray-200/60 py-6 text-center">
-                    <Trophy className="w-7 h-7 text-gray-300 mx-auto mb-2" />
+                    <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
                     <p className="text-sm text-gray-400">No standings data yet</p>
                   </div>
                 </div>
