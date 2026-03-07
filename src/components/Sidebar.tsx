@@ -124,7 +124,10 @@ export default function Sidebar({
   // style props, because React re-renders would reset them.
   const facilityIndicatorRefCb = useCallback((node: HTMLDivElement | null) => {
     facilityIndicatorRef.current = node
-    if (node) node.style.opacity = '0'
+    if (node) {
+      node.style.opacity = '0'
+      console.log('[indicator] indicator element mounted, initial opacity set to 0')
+    }
   }, [])
   const facilityTrailRefCb = useCallback((node: HTMLDivElement | null) => {
     facilityTrailRef.current = node
@@ -287,6 +290,7 @@ export default function Sidebar({
   // the effect would not re-run when the async permission query resolves and the active
   // nav item appears in the DOM for the first time.
   useEffect(() => {
+    console.log('[indicator] effect running', { facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance })
     if (!facilitiesOpen || !facilityContainerMounted) {
       facilityMeasuredRef.current = false
       facilityPosRef.current = null
@@ -300,19 +304,32 @@ export default function Sidebar({
     const positionIndicator = (animate: boolean): boolean => {
       const container = facilitiesContainerRef.current
       const indicator = facilityIndicatorRef.current
-      if (!container || !indicator) return false
+      if (!container || !indicator) {
+        console.log('[indicator] missing refs', { container: !!container, indicator: !!indicator })
+        return false
+      }
 
       const cRect = container.getBoundingClientRect()
-      if (cRect.height < 10) return false
+      if (cRect.height < 10) {
+        console.log('[indicator] container too small', cRect.height)
+        return false
+      }
 
       const activeEl = container.querySelector('[data-facility-active="true"]') as HTMLElement | null
       if (!activeEl) {
+        console.log('[indicator] no active element found. All data-facility-active attrs:',
+          [...container.querySelectorAll('[data-facility-active]')].map(el => ({
+            text: el.textContent?.trim(),
+            value: el.getAttribute('data-facility-active'),
+          }))
+        )
         indicator.style.opacity = '0'
         return true
       }
 
       const eRect = activeEl.getBoundingClientRect()
       const top = eRect.top - cRect.top + container.scrollTop
+      console.log('[indicator] positioning', { animate, activeText: activeEl.textContent?.trim(), top, height: eRect.height, containerHeight: cRect.height })
 
       if (!animate) {
         // Snap into position without animation (initial placement or after DOM changes)
@@ -379,18 +396,31 @@ export default function Sidebar({
     // t2 always uses animate=false as a snap fallback (covers open-animation timing).
     let t1Succeeded = false
     const t1 = setTimeout(() => {
+      console.log('[indicator] t1 (50ms) firing, animate=', alreadyMeasured)
       t1Succeeded = positionIndicator(alreadyMeasured)
+      console.log('[indicator] t1 result:', t1Succeeded)
       if (t1Succeeded) facilityMeasuredRef.current = true
     }, 50)
     const t2 = setTimeout(() => {
       if (!t1Succeeded) {
+        console.log('[indicator] t2 (300ms) firing as fallback')
         if (positionIndicator(false)) facilityMeasuredRef.current = true
       }
     }, 300)
+    // t3: extra fallback at 600ms for slow animations / permission loads
+    const t3 = setTimeout(() => {
+      const indicator = facilityIndicatorRef.current
+      if (indicator && indicator.style.opacity !== '1') {
+        console.log('[indicator] t3 (600ms) — indicator still not visible, retrying')
+        positionIndicator(false)
+        facilityMeasuredRef.current = true
+      }
+    }, 600)
 
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
+      clearTimeout(t3)
     }
   }, [facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance])
 
