@@ -238,20 +238,27 @@ export default function KnowledgeBaseList({
 
   return (
     <div className="space-y-5">
-      {/* Type filter tabs */}
-      <div className="flex gap-1.5 flex-wrap">
+      {/* Type filter tabs — sliding pill via Framer Motion layoutId */}
+      <div className="inline-flex gap-1 rounded-lg bg-gray-100 p-1">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
             onClick={() => setActiveType(tab.value)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+            className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 cursor-pointer ${
               activeType === tab.value
-                ? 'bg-gray-900 text-white'
-                : 'bg-white/60 text-gray-600 hover:bg-white/80 border border-gray-200'
+                ? 'text-white'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            {tab.label}
+            {activeType === tab.value && (
+              <motion.div
+                layoutId="kbFilterPill"
+                className="absolute inset-0 rounded-md bg-gray-900"
+                transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+              />
+            )}
+            <span className="relative z-10">{tab.label}</span>
           </button>
         ))}
       </div>
