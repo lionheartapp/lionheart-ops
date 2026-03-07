@@ -299,8 +299,8 @@ export default function KanbanBoard({
       <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200">
         {(
           [
-            { key: 'my-board', label: 'My Board', icon: User },
             ...(canManage ? [{ key: 'team-board', label: 'Team Board', icon: Users }] : []),
+            { key: 'my-board', label: 'My Board', icon: User },
           ] as { key: BoardViewTab; label: string; icon: typeof User }[]
         ).map(({ key, label, icon: Icon }) => (
           <button
