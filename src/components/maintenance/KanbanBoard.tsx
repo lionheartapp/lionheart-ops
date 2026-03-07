@@ -28,6 +28,7 @@ import { User, Users } from 'lucide-react'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import TabIndicator from '@/components/ui/TabIndicator'
 import { fetchApi } from '@/lib/api-client'
+import { IllustrationTickets } from '@/components/illustrations'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -328,6 +329,19 @@ export default function KanbanBoard({
         technicians={technicians}
       />
 
+      {/* Board-level empty state */}
+      {filteredByView.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <IllustrationTickets className="w-48 h-40 mb-2" />
+          <p className="text-base font-semibold text-gray-700 mb-1">No tickets yet</p>
+          <p className="text-sm text-gray-500 max-w-sm">
+            {boardView === 'my-board'
+              ? 'No tickets are assigned to you right now. Check the Team Board for unassigned work.'
+              : 'Create a work order from the maintenance hub or submit a ticket to get started.'}
+          </p>
+        </div>
+      ) : (
+      <>
       {/* Mobile notice */}
       <p className="lg:hidden text-xs text-gray-400 text-center py-1">
         Swipe between columns. Tap a ticket to manage it.
@@ -401,6 +415,8 @@ export default function KanbanBoard({
         onClose={handleQAClose}
         onComplete={handleQAComplete}
       />
+      </>
+      )}
     </div>
   )
 }

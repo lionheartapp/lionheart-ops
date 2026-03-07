@@ -11,6 +11,7 @@ import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { staggerContainer, cardEntrance, listItem } from '@/lib/animations'
 import { GlassSportTile } from './SportIcon'
 import type { AthleticsTab } from '@/components/Sidebar'
+import { IllustrationAthletics } from '@/components/illustrations'
 
 // Glass card classes — now using global CSS utilities from globals.css
 // .ui-glass and .ui-glass-hover
@@ -481,23 +482,14 @@ function QuickAction({ icon: Icon, label, onClick }: {
 function EmptyState({ onTabChange }: { onTabChange: (tab: AthleticsTab) => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <div
-        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border"
-        style={{
-          background: 'linear-gradient(145deg, rgba(59,130,246,0.1), rgba(59,130,246,0.03))',
-          borderColor: 'rgba(59,130,246,0.15)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
-        }}
-      >
-        <Trophy className="w-8 h-8 text-primary-500" />
-      </div>
+      <IllustrationAthletics className="w-52 h-44 mb-2" />
       <h2 className="text-lg font-semibold text-gray-900 mb-1">Welcome to Athletics</h2>
       <p className="text-sm text-gray-500 mb-6 text-center max-w-sm">
         Get started by adding your first sport, then create teams and schedules.
       </p>
       <button
         onClick={() => onTabChange('sports')}
-        className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors"
+        className="px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors active:scale-[0.97]"
       >
         Add First Sport
       </button>

@@ -37,6 +37,7 @@ import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
+import { IllustrationCalendar } from '@/components/illustrations'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
 import { useUserSchedule, type MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -647,7 +648,7 @@ export default function CalendarView() {
     return (
       <div className="flex items-center justify-center h-96 text-center">
         <div>
-          <CalendarIcon className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+          <IllustrationCalendar className="w-52 h-44 mx-auto mb-2" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">No calendars yet</h2>
           <p className="text-gray-500 mb-6 max-w-sm">
             Create your first calendar to start organizing events for your school.

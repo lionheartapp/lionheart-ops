@@ -17,6 +17,7 @@ import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import CampusComparisonWidget from './CampusComparisonWidget'
 import { fetchApi } from '@/lib/api-client'
+import { IllustrationMaintenance } from '@/components/illustrations'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,10 +66,8 @@ function EmptyState({
   description: string
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
-        <Icon className="w-6 h-6 text-gray-300" />
-      </div>
+    <div className="flex flex-col items-center justify-center py-6 text-center">
+      <IllustrationMaintenance className="w-40 h-32 mb-2" />
       <p className="text-sm font-medium text-gray-500 mb-1">{heading}</p>
       <p className="text-xs text-gray-400 max-w-[200px] leading-relaxed">{description}</p>
     </div>
