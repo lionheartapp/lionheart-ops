@@ -1,8 +1,8 @@
 'use client'
 
-import { ReactNode, useState, useEffect, useRef, useCallback } from 'react'
+import { ReactNode, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Search } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -12,6 +12,10 @@ import NotificationBell from './NotificationBell'
 import SearchCommand from './SearchCommand'
 import { syncOfflineData } from '@/lib/offline/sync'
 import { useConnectivity } from '@/hooks/useConnectivity'
+
+/** Read a localStorage key, returning null during SSR. */
+const ls = (key: string) =>
+  typeof window !== 'undefined' ? localStorage.getItem(key) : null
 
 interface DashboardLayoutProps extends SidebarProps {
   children: ReactNode
@@ -23,23 +27,43 @@ interface DashboardLayoutProps extends SidebarProps {
 
 export default function DashboardLayout({
   children,
-  userName,
-  userEmail,
-  userAvatar: initialUserAvatar,
-  organizationName,
+  userName: userNameProp,
+  userEmail: userEmailProp,
+  userAvatar: userAvatarProp,
+  organizationName: orgNameProp,
   organizationLogoUrl,
   schoolLabel,
   teamLabel,
-  onLogout,
+  onLogout: onLogoutProp,
 }: DashboardLayoutProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const queryClient = useQueryClient()
   const isOnline = useConnectivity()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar || null)
   const prevOnlineRef = useRef(isOnline)
+
+  // Resolve user/org data: prefer explicit props, fall back to localStorage
+  const userName = userNameProp || ls('user-name') || undefined
+  const userEmail = userEmailProp || ls('user-email') || undefined
+  const organizationName = orgNameProp || ls('org-name') || undefined
+  const initialUserAvatar = userAvatarProp || ls('user-avatar') || null
+  const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar)
+
+  // Default logout clears localStorage and redirects to login
+  const onLogout = useMemo(() => {
+    if (onLogoutProp) return onLogoutProp
+    return () => {
+      ;[
+        'auth-token', 'org-id', 'user-name', 'user-email', 'user-avatar',
+        'user-team', 'user-school-scope', 'user-role', 'org-name',
+        'org-school-type', 'org-logo-url',
+      ].forEach((key) => localStorage.removeItem(key))
+      router.push('/login')
+    }
+  }, [onLogoutProp, router])
 
   // Cmd+K / Ctrl+K shortcut for search
   useEffect(() => {
@@ -204,18 +228,16 @@ export default function DashboardLayout({
                 >
                   Settings
                 </Link>
-                {onLogout && (
-                  <button
-                    onClick={() => {
-                      onLogout()
-                      setIsDropdownOpen(false)
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
-                    aria-label="Log out"
-                  >
-                    Log Out
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    onLogout()
+                    setIsDropdownOpen(false)
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
+                  aria-label="Log out"
+                >
+                  Log Out
+                </button>
               </motion.div>
             )}
             </AnimatePresence>
