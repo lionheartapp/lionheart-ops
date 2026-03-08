@@ -61,8 +61,22 @@ function isPublicPath(pathname: string) {
   if (pathname === '/offline') return true
   if (pathname.startsWith('/icons/')) return true
   if (pathname === '/it/sub') return true
+  if (pathname === '/it/password-reset') return true
   if (pathname.startsWith('/api/it/magic-links/') && pathname.includes('/validate')) return true
   if (pathname === '/api/it/tickets/sub') return true
+  if (pathname.startsWith('/api/webhooks/clever')) return true
+  if (pathname.startsWith('/api/webhooks/classlink')) return true
+  if (pathname.startsWith('/api/it/content-filters/webhook/')) return true
+  if (pathname.startsWith('/api/cron/')) return true
+  // Public ticket status check
+  if (pathname === '/it/ticket-status') return true
+  if (pathname.match(/^\/api\/it\/tickets\/[^/]+\/status-public$/)) return true
+  // Device lookup via QR scan
+  if (pathname === '/api/it/devices/lookup') return true
+  // Student password self-service (public, no auth)
+  if (pathname.startsWith('/api/it/student-password/lookup')) return true
+  if (pathname.startsWith('/api/it/student-password/request')) return true
+  if (pathname.startsWith('/api/it/student-password/reset')) return true
   return false
 }
 

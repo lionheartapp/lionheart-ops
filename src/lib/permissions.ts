@@ -156,6 +156,67 @@ export const PERMISSIONS = {
   IT_TICKET_COMMENT_SUBMITTER: 'it:ticket:comment:submitter', // Add submitter-visible comments
   IT_MAGICLINK_GENERATE: 'it:magiclink:generate',            // Generate magic links for sub submissions
 
+  // IT Device Management (MDM)
+  IT_DEVICE_READ: 'it:device:read',                         // View device inventory
+  IT_DEVICE_CREATE: 'it:device:create',                     // Create new devices
+  IT_DEVICE_UPDATE: 'it:device:update',                     // Update device info
+  IT_DEVICE_DELETE: 'it:device:delete',                     // Soft-delete devices
+  IT_DEVICE_ASSIGN: 'it:device:assign',                     // Assign/unassign devices to students/users
+  IT_DEVICE_SYNC: 'it:device:sync',                         // Trigger device sync (Google Admin)
+  IT_DEVICE_INTELLIGENCE: 'it:device:intelligence',         // View AI recommendations / lemon reports
+  IT_DEVICE_CONFIGURE: 'it:device:configure',               // Configure thresholds (lemon, replace, loaner)
+
+  // Student Records
+  STUDENTS_READ: 'students:read',                           // View all students (FERPA full access)
+  STUDENTS_READ_OWN_SCHOOL: 'students:read:own-school',     // View students in own school only
+  STUDENTS_MANAGE: 'students:manage',                       // Create/update/delete students
+  STUDENTS_AUDIT: 'students:audit',                         // View student data access audit log
+
+  // Loaner Pool
+  IT_LOANER_CHECKOUT: 'it:loaner:checkout',                 // Checkout a loaner device
+  IT_LOANER_CHECKIN: 'it:loaner:checkin',                   // Checkin a loaner device
+  IT_LOANER_MANAGE: 'it:loaner:manage',                     // Manage loaner pool (overdue, config)
+
+  // Roster Sync
+  IT_ROSTER_SYNC: 'it:roster:sync',                         // Trigger roster sync
+  IT_ROSTER_CONFIGURE: 'it:roster:configure',               // Configure Clever/ClassLink connections
+
+  // Device Lifecycle
+  IT_DEPLOYMENT_MANAGE: 'it:deployment:manage',              // Create/edit deployment & collection batches
+  IT_DEPLOYMENT_PROCESS: 'it:deployment:process',            // Process individual batch items (assign/collect)
+  IT_SUMMER_MANAGE: 'it:summer:manage',                      // Manage summer mode, reimaging, staging
+  IT_REPAIR_QUEUE_MANAGE: 'it:repair-queue:manage',          // Manage repair queue workflow
+  IT_DAMAGE_ASSESS: 'it:damage:assess',                      // Assess device condition during collection
+  IT_DAMAGE_EXPORT: 'it:damage:export',                      // Export damage reports for finance
+  IT_MDM_CONFIGURE: 'it:mdm:configure',                      // Configure MDM provider (Jamf/Mosyle)
+  IT_MDM_SYNC: 'it:mdm:sync',                                // Trigger MDM sync
+  IT_STUDENT_PASSWORD: 'it:student:password',                 // Admin-generate student password reset tokens
+  IT_AI_DIAGNOSTIC: 'it:ai:diagnostic',                       // Run AI diagnostics on tickets/devices
+
+  // Account Provisioning
+  IT_PROVISIONING_MANAGE: 'it:provisioning:manage',            // Manage account provisioning automation
+  IT_PROVISIONING_VIEW: 'it:provisioning:view',                // View provisioning events and orphaned accounts
+  IT_QR_GENERATE: 'it:qr:generate',                           // Generate QR codes for devices
+
+  // IT Analytics & Reports (District Tier)
+  IT_ANALYTICS_READ: 'it:analytics:read',                      // View IT analytics dashboard
+  IT_REPORTS_BOARD: 'it:reports:board',                        // View/generate IT board reports
+
+  // E-Rate Compliance
+  IT_ERATE_MANAGE: 'it:erate:manage',                          // Manage E-Rate calendar, tasks, docs
+  IT_ERATE_VIEW: 'it:erate:view',                              // View E-Rate calendar and status
+
+  // CIPA / Content Filter
+  IT_CIPA_AUDIT_VIEW: 'it:cipa:audit:view',                    // View CIPA audit trail
+  IT_CIPA_AUDIT_MANAGE: 'it:cipa:audit:manage',                // Manage CIPA evidence retention
+  IT_FILTERS_CONFIGURE: 'it:filters:configure',                // Connect/disconnect filter platforms
+  IT_FILTERS_MANAGE: 'it:filters:manage',                      // Approve/deny filter exceptions
+
+  // Security Incidents
+  IT_INCIDENT_READ: 'it:incident:read',                        // View security incident log
+  IT_INCIDENT_CREATE: 'it:incident:create',                    // Report new security incidents
+  IT_INCIDENT_MANAGE: 'it:incident:manage',                    // Manage incidents (severity, responders, close)
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -270,6 +331,53 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_TICKET_COMMENT_INTERNAL,
       PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
       PERMISSIONS.IT_MAGICLINK_GENERATE,
+      // MDM + Roster (admin gets all 18)
+      PERMISSIONS.IT_DEVICE_READ,
+      PERMISSIONS.IT_DEVICE_CREATE,
+      PERMISSIONS.IT_DEVICE_UPDATE,
+      PERMISSIONS.IT_DEVICE_DELETE,
+      PERMISSIONS.IT_DEVICE_ASSIGN,
+      PERMISSIONS.IT_DEVICE_SYNC,
+      PERMISSIONS.IT_DEVICE_INTELLIGENCE,
+      PERMISSIONS.IT_DEVICE_CONFIGURE,
+      PERMISSIONS.STUDENTS_READ,
+      PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
+      PERMISSIONS.STUDENTS_MANAGE,
+      PERMISSIONS.STUDENTS_AUDIT,
+      PERMISSIONS.IT_LOANER_CHECKOUT,
+      PERMISSIONS.IT_LOANER_CHECKIN,
+      PERMISSIONS.IT_LOANER_MANAGE,
+      PERMISSIONS.IT_ROSTER_SYNC,
+      PERMISSIONS.IT_ROSTER_CONFIGURE,
+      // Device Lifecycle (admin gets all 10)
+      PERMISSIONS.IT_DEPLOYMENT_MANAGE,
+      PERMISSIONS.IT_DEPLOYMENT_PROCESS,
+      PERMISSIONS.IT_SUMMER_MANAGE,
+      PERMISSIONS.IT_REPAIR_QUEUE_MANAGE,
+      PERMISSIONS.IT_DAMAGE_ASSESS,
+      PERMISSIONS.IT_DAMAGE_EXPORT,
+      PERMISSIONS.IT_MDM_CONFIGURE,
+      PERMISSIONS.IT_MDM_SYNC,
+      PERMISSIONS.IT_STUDENT_PASSWORD,
+      PERMISSIONS.IT_AI_DIAGNOSTIC,
+      // Account Provisioning
+      PERMISSIONS.IT_PROVISIONING_MANAGE,
+      PERMISSIONS.IT_PROVISIONING_VIEW,
+      PERMISSIONS.IT_QR_GENERATE,
+      // IT Analytics & Reports (District Tier)
+      PERMISSIONS.IT_ANALYTICS_READ,
+      PERMISSIONS.IT_REPORTS_BOARD,
+      // E-Rate + Content Filter
+      PERMISSIONS.IT_ERATE_MANAGE,
+      PERMISSIONS.IT_ERATE_VIEW,
+      PERMISSIONS.IT_CIPA_AUDIT_VIEW,
+      PERMISSIONS.IT_CIPA_AUDIT_MANAGE,
+      PERMISSIONS.IT_FILTERS_CONFIGURE,
+      PERMISSIONS.IT_FILTERS_MANAGE,
+      // Security Incidents
+      PERMISSIONS.IT_INCIDENT_READ,
+      PERMISSIONS.IT_INCIDENT_CREATE,
+      PERMISSIONS.IT_INCIDENT_MANAGE,
     ],
     isSystem: true,
   },
@@ -311,6 +419,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_TICKET_SUBMIT,
       PERMISSIONS.IT_TICKET_READ_OWN,
       PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
+      // MDM
+      PERMISSIONS.IT_DEVICE_READ,
     ],
     isSystem: true,
   },
@@ -348,6 +458,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_TICKET_SUBMIT,
       PERMISSIONS.IT_TICKET_READ_OWN,
       PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
+      // MDM + Students
+      PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
+      PERMISSIONS.IT_DEVICE_READ,
     ],
     isSystem: true,
   },
@@ -372,6 +485,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.KB_READ,
       // IT Help Desk
       PERMISSIONS.IT_TICKET_READ_OWN,
+      // MDM
+      PERMISSIONS.IT_DEVICE_READ,
     ],
     isSystem: true,
   },
@@ -501,7 +616,7 @@ export const DEFAULT_ROLES = {
   IT_COORDINATOR: {
     slug: 'it-coordinator',
     name: 'IT Coordinator',
-    description: 'Campus IT staff — manages IT tickets, assigns work, generates magic links',
+    description: 'Campus IT staff — manages IT tickets, devices, students, and sync',
     permissions: [
       PERMISSIONS.IT_TICKET_SUBMIT,
       PERMISSIONS.IT_TICKET_READ_ALL,
@@ -510,6 +625,47 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_TICKET_COMMENT_INTERNAL,
       PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
       PERMISSIONS.IT_MAGICLINK_GENERATE,
+      // MDM + Roster
+      PERMISSIONS.IT_DEVICE_READ,
+      PERMISSIONS.IT_DEVICE_CREATE,
+      PERMISSIONS.IT_DEVICE_UPDATE,
+      PERMISSIONS.IT_DEVICE_DELETE,
+      PERMISSIONS.IT_DEVICE_ASSIGN,
+      PERMISSIONS.IT_DEVICE_SYNC,
+      PERMISSIONS.IT_DEVICE_INTELLIGENCE,
+      PERMISSIONS.IT_DEVICE_CONFIGURE,
+      PERMISSIONS.STUDENTS_READ,
+      PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
+      PERMISSIONS.STUDENTS_MANAGE,
+      PERMISSIONS.IT_LOANER_CHECKOUT,
+      PERMISSIONS.IT_LOANER_CHECKIN,
+      PERMISSIONS.IT_LOANER_MANAGE,
+      PERMISSIONS.IT_ROSTER_SYNC,
+      PERMISSIONS.IT_ROSTER_CONFIGURE,
+      // Device Lifecycle
+      PERMISSIONS.IT_DEPLOYMENT_MANAGE,
+      PERMISSIONS.IT_DEPLOYMENT_PROCESS,
+      PERMISSIONS.IT_SUMMER_MANAGE,
+      PERMISSIONS.IT_REPAIR_QUEUE_MANAGE,
+      PERMISSIONS.IT_DAMAGE_ASSESS,
+      PERMISSIONS.IT_DAMAGE_EXPORT,
+      PERMISSIONS.IT_MDM_CONFIGURE,
+      PERMISSIONS.IT_MDM_SYNC,
+      PERMISSIONS.IT_STUDENT_PASSWORD,
+      PERMISSIONS.IT_AI_DIAGNOSTIC,
+      // Account Provisioning
+      PERMISSIONS.IT_PROVISIONING_MANAGE,
+      PERMISSIONS.IT_PROVISIONING_VIEW,
+      PERMISSIONS.IT_QR_GENERATE,
+      // IT Analytics (campus-scoped, no board reports)
+      PERMISSIONS.IT_ANALYTICS_READ,
+      // E-Rate + Content Filter (view + manage filters)
+      PERMISSIONS.IT_ERATE_VIEW,
+      PERMISSIONS.IT_CIPA_AUDIT_VIEW,
+      PERMISSIONS.IT_FILTERS_MANAGE,
+      // Security Incidents
+      PERMISSIONS.IT_INCIDENT_READ,
+      PERMISSIONS.IT_INCIDENT_CREATE,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.USERS_READ,
@@ -525,15 +681,38 @@ export const DEFAULT_ROLES = {
     ],
     isSystem: true,
   },
+  STUDENT_TECHNICIAN: {
+    slug: 'student-technician',
+    name: 'Student Technician',
+    description: 'Student IT helper — limited device access, processes deployments, manages loaners',
+    permissions: [
+      PERMISSIONS.IT_DEVICE_READ,
+      PERMISSIONS.IT_DEPLOYMENT_PROCESS,
+      PERMISSIONS.IT_LOANER_CHECKIN,
+      PERMISSIONS.IT_LOANER_CHECKOUT,
+      PERMISSIONS.IT_TICKET_SUBMIT,
+      PERMISSIONS.IT_TICKET_READ_OWN,
+      PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
+      PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
+      PERMISSIONS.SETTINGS_READ,
+      PERMISSIONS.KB_READ,
+    ],
+    isSystem: true,
+  },
   SECRETARY: {
     slug: 'secretary',
     name: 'Secretary / Front Office',
-    description: 'Front office staff — can submit IT tickets and generate magic links for substitutes',
+    description: 'Front office staff — can submit IT tickets, manage loaner checkouts, and generate magic links',
     permissions: [
       PERMISSIONS.IT_TICKET_SUBMIT,
       PERMISSIONS.IT_TICKET_READ_OWN,
       PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
       PERMISSIONS.IT_MAGICLINK_GENERATE,
+      // MDM + Students
+      PERMISSIONS.IT_DEVICE_READ,
+      PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
+      PERMISSIONS.IT_LOANER_CHECKOUT,
+      PERMISSIONS.IT_LOANER_CHECKIN,
       // Platform basics
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.CALENDARS_READ,

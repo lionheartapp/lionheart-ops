@@ -109,6 +109,32 @@ model Organization {
   itTicketCounter         ITTicketCounter?
   itTicketActivities      ITTicketActivity[]
   itMagicLinks            ITMagicLink[]
+  // MDM + Roster module relations
+  students                Student[]
+  itDevices               ITDevice[]
+  itDeviceCounter         ITDeviceCounter?
+  itDeviceAssignments     ITDeviceAssignment[]
+  itDeviceRepairs         ITDeviceRepair[]
+  itLoanerCheckouts       ITLoanerCheckout[]
+  itSyncConfigs           ITSyncConfig[]
+  itSyncJobs              ITSyncJob[]
+  itDeviceConfig          ITDeviceConfig?
+  // Device Lifecycle module relations
+  itDeploymentBatches     ITDeploymentBatch[]
+  itSummerBatches         ITSummerBatch[]
+  // Account Provisioning module relations
+  itProvisioningEvents    ITProvisioningEvent[]
+  itProvisioningConfig    ITProvisioningConfig?
+  itOrphanedAccounts      ITOrphanedAccount[]
+  // E-Rate + Content Filter module relations
+  itERateTasks            ITERateTask[]
+  itERateDocuments        ITERateDocument[]
+  itContentFilterConfigs  ITContentFilterConfig[]
+  itContentFilterEvents   ITContentFilterEvent[]
+  // Security Incident module relations
+  securityIncidents           SecurityIncident[]
+  securityIncidentCounter     SecurityIncidentCounter?
+  securityIncidentActivities  SecurityIncidentActivity[]
 
   @@index([onboardingStatus])
 }
@@ -178,6 +204,19 @@ model User {
   itActivitiesPerformed   ITTicketActivity[] @relation("ITActivityActor")
   itActivitiesAssignedTo  ITTicketActivity[] @relation("ITActivityAssignedTo")
   itMagicLinksCreated     ITMagicLink[]      @relation("ITMagicLinkCreator")
+  // MDM + Roster module relations
+  itDeviceAssignments     ITDeviceAssignment[] @relation("ITDeviceAssignmentUser")
+  itDeviceAssignmentsPerformed ITDeviceAssignment[] @relation("ITDeviceAssignmentBy")
+  itLoanerBorrows         ITLoanerCheckout[] @relation("ITLoanerBorrower")
+  itLoanerCheckoutsPerformed ITLoanerCheckout[] @relation("ITLoanerCheckedOutBy")
+  itLoanerCheckinsPerformed  ITLoanerCheckout[] @relation("ITLoanerCheckedInBy")
+  // E-Rate + Content Filter
+  itERateTasksCompleted   ITERateTask[]      @relation("ERateTaskCompletedBy")
+  itERateDocsUploaded     ITERateDocument[]   @relation("ERateDocUploadedBy")
+  itFilterEventActions    ITContentFilterEvent[] @relation("FilterEventActor")
+  // Security Incident module relations
+  securityIncidentsReported SecurityIncident[]           @relation("IncidentReportedBy")
+  securityIncidentActions   SecurityIncidentActivity[]   @relation("IncidentActivityActor")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -265,6 +304,7 @@ model Building {
   maintenanceAssets  MaintenanceAsset[]
   pmSchedules        PmSchedule[]
   itTickets          ITTicket[]
+  itDevices          ITDevice[]
 
   @@unique([organizationId, campusId, schoolDivision, name])
   @@unique([organizationId, code])
@@ -331,6 +371,7 @@ model Room {
   maintenanceAssets  MaintenanceAsset[]
   pmSchedules        PmSchedule[]
   itTickets          ITTicket[]
+  itDevices          ITDevice[]
 
   @@unique([organizationId, buildingId, roomNumber])
   @@index([organizationId, isActive])
@@ -449,6 +490,13 @@ model School {
   // IT Help Desk module relations
   itTickets      ITTicket[]
   itMagicLinks   ITMagicLink[]
+  // MDM + Roster module relations
+  students       Student[]
+  itDevices      ITDevice[]
+  // Device Lifecycle module relations
+  deploymentBatches ITDeploymentBatch[]
+  // Security Incident module relations
+  securityIncidents SecurityIncident[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -2402,6 +2450,23 @@ model KnowledgeArticle {
 // IT HELP DESK MODULE
 // ═══════════════════════════════════════════════════════════════════════
 
+enum ITProvisioningEventType {
+  NEW_ENROLLMENT
+  TRANSFER_IN
+  TRANSFER_OUT
+  GRADUATION
+  ORPHANED_DETECTED
+  STAFF_ONBOARDING
+}
+
+enum ITProvisioningStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
 enum ITIssueType {
   HARDWARE
   SOFTWARE
@@ -2462,6 +2527,164 @@ enum ITTicketSource {
   AUTHENTICATED
   MAGIC_LINK
   SUB_SUBMITTED
+  WEBHOOK
+}
+
+// ─── E-Rate + Content Filter Enums ────────────────────────────────────────────
+
+enum ITERateTaskType {
+  TECH_PLAN_REVIEW
+  FORM_470
+  VENDOR_SELECTION
+  FORM_471
+  FORM_486_CIPA
+  INVOICE_RECONCILE
+  DOC_RETENTION_AUDIT
+}
+
+enum ITContentFilterProvider {
+  GOGUARDIAN
+  SECURLY
+  LIGHTSPEED
+  BARK
+}
+
+enum ITFilterEventType {
+  UNBLOCK_REQUEST
+  SAFETY_ALERT
+  FILTER_EXCEPTION
+  BLOCK_EVENT
+}
+
+enum ITFilterDisposition {
+  PENDING
+  APPROVED
+  DENIED
+  ESCALATED
+}
+
+// ─── Security Incident Enums ──────────────────────────────────────────────────
+
+enum SecurityIncidentType {
+  PHISHING
+  DEVICE_LOST_STOLEN
+  UNAUTHORIZED_ACCESS
+  MALWARE
+  DATA_BREACH
+  ACCOUNT_COMPROMISE
+  RANSOMWARE
+  POLICY_VIOLATION
+  OTHER
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  CONTAINED
+  REMEDIATING
+  CLOSED
+}
+
+enum IncidentActivityType {
+  CREATED
+  VIEWED
+  STATUS_CHANGE
+  SEVERITY_CHANGE
+  RESPONDER_ADDED
+  RESPONDER_REMOVED
+  EXTERNAL_NOTIFICATION
+  EVIDENCE_ATTACHED
+  COMMENT
+  CLOSED
+}
+
+// ─── MDM + Roster Enums ────────────────────────────────────────────────────────
+
+enum ITDeviceType {
+  CHROMEBOOK
+  LAPTOP
+  TABLET
+  DESKTOP
+  MONITOR
+  PRINTER
+  OTHER
+}
+
+enum ITDeviceStatus {
+  ACTIVE
+  REPAIR
+  LOANER
+  RETIRED
+  LOST
+  DECOMMISSIONED
+  STAGED
+}
+
+enum ITRepairQueueStatus {
+  PENDING
+  SENT_TO_VENDOR
+  IN_REPAIR
+  REPAIRED
+  RETIRED
+}
+
+enum ITDeviceCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  BROKEN
+}
+
+enum ITBatchStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ITSummerBatchType {
+  REIMAGING
+  STAGING
+}
+
+enum ITDeploymentBatchType {
+  DEPLOYMENT
+  COLLECTION
+}
+
+enum ITEnrollmentStatus {
+  ENROLLED
+  NOT_ENROLLED
+  PENDING
+  DISABLED
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  TRANSFERRED
+  GRADUATED
+}
+
+enum RosterSyncProvider {
+  CLEVER
+  CLASSLINK
+  MANUAL
+}
+
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
 }
 
 model ITTicket {
@@ -2492,6 +2715,15 @@ model ITTicket {
   // People
   submittedById      String?         // Nullable for magic link / sub submissions
   assignedToId       String?
+  // Device link (MDM)
+  deviceId           String?         // Linked IT device (optional)
+  // Public status check
+  statusToken        String?         @unique // SHA-256 hash for public ticket status check
+  lastStaleNotifiedAt DateTime?      // Track stale ticket notification timing
+  // Content filter link
+  filterPlatform     String?         // Which content filter created this ticket
+  filterEventId      String?         // Reference to ITContentFilterEvent
+  filterDisposition  String?         // PENDING/APPROVED/DENIED
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   deletedAt          DateTime?
@@ -2503,7 +2735,9 @@ model ITTicket {
   area         Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
   room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
   school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  device       ITDevice?    @relation(fields: [deviceId], references: [id], onDelete: SetNull)
   activities   ITTicketActivity[]
+  filterEvents ITContentFilterEvent[]
 
   @@unique([organizationId, ticketNumber])
   @@index([organizationId, status])
@@ -2569,4 +2803,605 @@ model ITMagicLink {
   @@index([organizationId])
   @@index([expiresAt])
   @@index([tokenHash])
+}
+
+// ─── MDM + Roster Models ───────────────────────────────────────────────────────
+
+model Student {
+  id             String            @id @default(cuid())
+  organizationId String
+  firstName      String
+  lastName       String
+  email          String?
+  studentId      String?           // School-assigned student ID
+  externalId     String?           // ID from roster sync provider (Clever/ClassLink)
+  grade          String?           // e.g., "6th", "9th", "K"
+  gradeNumeric   Int?              // Numeric grade level (0=K, 1-12)
+  schoolId       String?
+  status         StudentStatus     @default(ACTIVE)
+  rosterSource   RosterSyncProvider @default(MANUAL)
+  lastSyncedAt   DateTime?
+  metadata       Json?             // Extra fields from roster provider
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school             School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  deviceAssignments  ITDeviceAssignment[] @relation("StudentDeviceAssignment")
+  loanerCheckouts    ITLoanerCheckout[]   @relation("StudentLoanerCheckout")
+  deploymentBatchItems ITDeploymentBatchItem[] @relation("DeploymentItemStudent")
+  passwordTokens     ITStudentPasswordToken[]
+
+  @@unique([organizationId, externalId])
+  @@unique([organizationId, studentId])
+  @@index([organizationId, status])
+  @@index([organizationId, schoolId])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, lastName, firstName])
+}
+
+model ITDevice {
+  id               String            @id @default(cuid())
+  organizationId   String
+  assetTag         String            // Auto-generated DEV-XXXX
+  serialNumber     String?
+  deviceType       ITDeviceType      @default(CHROMEBOOK)
+  make             String?           // e.g., "Lenovo", "HP", "Dell"
+  model            String?           // e.g., "Chromebook 300e"
+  manufacturer     String?
+  osVersion        String?
+  status           ITDeviceStatus    @default(ACTIVE)
+  enrollmentStatus ITEnrollmentStatus @default(NOT_ENROLLED)
+  googleDeviceId   String?           // Google Admin SDK device ID
+  purchaseDate     DateTime?
+  purchasePrice    Float?
+  warrantyExpiry   DateTime?
+  schoolId         String?
+  buildingId       String?
+  roomId           String?
+  notes            String?
+  photos           String[]          @default([])
+  isLemon          Boolean           @default(false)
+  lemonFlaggedAt   DateTime?
+  aiRecommendation Json?             // { action: "repair"|"replace", reasoning: string, confidence: number }
+  aiRecommendationAt DateTime?
+  isStagedForDeployment Boolean      @default(false)
+  lastReimageDate  DateTime?
+  qrCodeUrl        String?           // Cached QR code image URL
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school           School?            @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  building         Building?          @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  room             Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  assignments      ITDeviceAssignment[]
+  repairs          ITDeviceRepair[]
+  loanerCheckouts  ITLoanerCheckout[]
+  tickets          ITTicket[]
+  deploymentBatchItems ITDeploymentBatchItem[]
+  summerBatchItems     ITSummerBatchItem[]
+
+  @@unique([organizationId, assetTag])
+  @@unique([organizationId, serialNumber])
+  @@index([organizationId, status])
+  @@index([organizationId, deviceType])
+  @@index([organizationId, schoolId])
+  @@index([organizationId, isLemon])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, deletedAt, status])
+  @@index([googleDeviceId])
+}
+
+model ITDeviceCounter {
+  id               String       @id @default(cuid())
+  organizationId   String       @unique
+  lastDeviceNumber Int          @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ITDeviceAssignment {
+  id             String    @id @default(cuid())
+  organizationId String
+  deviceId       String
+  studentId      String?
+  userId         String?
+  assignedAt     DateTime  @default(now())
+  returnedAt     DateTime?
+  assignedById   String
+  notes          String?
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  device         ITDevice     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  student        Student?     @relation("StudentDeviceAssignment", fields: [studentId], references: [id], onDelete: SetNull)
+  user           User?        @relation("ITDeviceAssignmentUser", fields: [userId], references: [id], onDelete: SetNull)
+  assignedBy     User         @relation("ITDeviceAssignmentBy", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, deviceId])
+  @@index([organizationId, studentId])
+  @@index([organizationId, userId])
+  @@index([deviceId, returnedAt])
+}
+
+model ITDeviceRepair {
+  id             String    @id @default(cuid())
+  organizationId String
+  deviceId       String
+  ticketId       String?
+  repairDate     DateTime  @default(now())
+  repairCost     Float     @default(0)
+  description    String?
+  partsUsed      String?
+  repairType     String?   // e.g., "screen", "keyboard", "battery", "motherboard"
+  vendor         String?
+  queueStatus    ITRepairQueueStatus @default(PENDING)
+  queueUpdatedAt DateTime?
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  device         ITDevice     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  vendorRepairLog ITVendorRepairLog?
+
+  @@index([organizationId, deviceId])
+  @@index([deviceId, repairDate])
+  @@index([organizationId, queueStatus])
+}
+
+model ITLoanerCheckout {
+  id               String    @id @default(cuid())
+  organizationId   String
+  deviceId         String
+  borrowerStudentId String?
+  borrowerUserId   String?
+  checkedOutAt     DateTime  @default(now())
+  dueDate          DateTime
+  checkedInAt      DateTime?
+  checkedOutById   String
+  checkedInById    String?
+  notes            String?
+  overdueNotifiedAt DateTime?
+
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  device           ITDevice     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  borrowerStudent  Student?     @relation("StudentLoanerCheckout", fields: [borrowerStudentId], references: [id], onDelete: SetNull)
+  borrowerUser     User?        @relation("ITLoanerBorrower", fields: [borrowerUserId], references: [id], onDelete: SetNull)
+  checkedOutBy     User         @relation("ITLoanerCheckedOutBy", fields: [checkedOutById], references: [id], onDelete: Restrict)
+  checkedInBy      User?        @relation("ITLoanerCheckedInBy", fields: [checkedInById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, deviceId])
+  @@index([organizationId, checkedInAt])
+  @@index([organizationId, dueDate])
+}
+
+model ITSyncConfig {
+  id             String    @id @default(cuid())
+  organizationId String
+  provider       String    // "google_admin", "clever", "classlink"
+  isEnabled      Boolean   @default(false)
+  credentials    Json?     // Encrypted credentials / API keys
+  syncSchedule   String?   // Cron expression for auto-sync
+  lastSyncAt     DateTime?
+  lastSyncStatus String?   // "success", "error"
+  lastSyncError  String?
+  schoolMappings Json?     // { externalSchoolId: internalSchoolId }
+  settings       Json?     // Provider-specific settings
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  syncJobs       ITSyncJob[]
+
+  @@unique([organizationId, provider])
+  @@index([organizationId])
+}
+
+model ITSyncJob {
+  id             String        @id @default(cuid())
+  organizationId String
+  configId       String
+  provider       String
+  jobType        String        // "device_sync", "roster_sync"
+  status         SyncJobStatus @default(PENDING)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  recordsCreated Int           @default(0)
+  recordsUpdated Int           @default(0)
+  recordsSkipped Int           @default(0)
+  errors         Json?         // Array of error messages
+  createdAt      DateTime      @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  config         ITSyncConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([configId, createdAt])
+}
+
+model ITDeviceConfig {
+  id                 String @id @default(cuid())
+  organizationId     String @unique
+  lemonRepairCount   Int    @default(3)     // Repairs to flag as lemon
+  lemonPeriodMonths  Int    @default(6)     // Time window for lemon count
+  replaceThresholdPct Float @default(0.60)  // Repair cost / purchase price threshold
+  defaultLoanDays    Int    @default(5)     // Default loaner checkout period
+  overdueGraceDays   Int    @default(1)     // Grace period before overdue notifications
+  summerModeActive   Boolean @default(false)
+  summerModeStartDate DateTime?
+  summerModeEndDate  DateTime?
+  defaultDamageFees  Json?                  // { EXCELLENT: 0, GOOD: 0, FAIR: 25, POOR: 50, BROKEN: 100 }
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ---- Device Lifecycle Models ----
+
+model ITDeploymentBatch {
+  id             String              @id @default(cuid())
+  organizationId String
+  name           String
+  batchType      ITDeploymentBatchType
+  status         ITBatchStatus       @default(DRAFT)
+  schoolId       String?
+  grade          String?
+  schoolYear     String?
+  notes          String?
+  createdById    String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school         School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  items          ITDeploymentBatchItem[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, batchType])
+  @@index([organizationId, deletedAt])
+}
+
+model ITDeploymentBatchItem {
+  id             String            @id @default(cuid())
+  organizationId String
+  batchId        String
+  deviceId       String
+  studentId      String?
+  processed      Boolean           @default(false)
+  processedAt    DateTime?
+  processedById  String?
+  condition      ITDeviceCondition?
+  damageNotes    String?
+  damagePhotos   String[]          @default([])
+  damageFee      Float?
+  // AUP acknowledgment
+  aupAcknowledged   Boolean        @default(false)
+  aupAcknowledgedAt DateTime?
+  aupSignature      String?        // Optional digital signature data
+  // Fee tracking (for damage fee collection reporting)
+  feeStatus        String?        @default("PENDING")  // PENDING | PAID | WAIVED
+  feePaidAt        DateTime?
+  feePaidAmount    Float?
+  feeInvoiceNumber String?
+  createdAt      DateTime          @default(now())
+
+  batch          ITDeploymentBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  device         ITDevice          @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  student        Student?          @relation("DeploymentItemStudent", fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@unique([batchId, deviceId])
+  @@index([organizationId, batchId])
+  @@index([batchId, processed])
+}
+
+model ITSummerBatch {
+  id             String            @id @default(cuid())
+  organizationId String
+  name           String
+  batchType      ITSummerBatchType
+  status         ITBatchStatus     @default(DRAFT)
+  notes          String?
+  createdById    String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  items          ITSummerBatchItem[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, batchType])
+  @@index([organizationId, deletedAt])
+}
+
+model ITSummerBatchItem {
+  id             String          @id @default(cuid())
+  organizationId String
+  batchId        String
+  deviceId       String
+  completed      Boolean         @default(false)
+  completedAt    DateTime?
+  completedById  String?
+  notes          String?
+  createdAt      DateTime        @default(now())
+
+  batch          ITSummerBatch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  device         ITDevice        @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, deviceId])
+  @@index([organizationId, batchId])
+  @@index([batchId, completed])
+}
+
+model ITVendorRepairLog {
+  id             String        @id @default(cuid())
+  organizationId String
+  repairId       String        @unique
+  vendorName     String
+  sentDate       DateTime?
+  receivedDate   DateTime?
+  estimatedCost  Float?
+  actualCost     Float?
+  invoiceNumber  String?
+  receiptUrl     String?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  repair         ITDeviceRepair @relation(fields: [repairId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model ITStudentPasswordToken {
+  id             String   @id @default(cuid())
+  organizationId String
+  studentId      String
+  tokenHash      String   @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([studentId])
+  @@index([expiresAt])
+}
+
+// ─── Account Provisioning Models ──────────────────────────────────────────────
+
+model ITProvisioningEvent {
+  id             String                   @id @default(cuid())
+  organizationId String
+  eventType      ITProvisioningEventType
+  status         ITProvisioningStatus     @default(PENDING)
+  studentId      String?
+  userId         String?                  // For staff onboarding events
+  fromSchoolId   String?                  // Transfer source
+  toSchoolId     String?                  // Transfer destination
+  details        Json?                    // Extra context (ticket ID, account info, etc.)
+  errorMessage   String?
+  processedAt    DateTime?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, eventType])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+}
+
+model ITProvisioningConfig {
+  id                    String   @id @default(cuid())
+  organizationId        String   @unique
+  autoEnrollEnabled     Boolean  @default(false)   // Auto-provision on new enrollment
+  autoSuspendEnabled    Boolean  @default(false)   // Auto-suspend on transfer out
+  orphanDetectionEnabled Boolean @default(false)   // Weekly orphan scan
+  graduationArchiveEnabled Boolean @default(false) // Batch archive on graduation
+  staffOnboardingEnabled Boolean @default(false)   // Auto-create setup ticket for new staff
+  defaultOuPath         String?                    // Default Google OU for new students
+  suspendedOuPath       String?                    // OU for suspended accounts
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ITOrphanedAccount {
+  id             String    @id @default(cuid())
+  organizationId String
+  email          String                             // The orphaned email
+  accountType    String    @default("student")      // "student" | "staff"
+  source         String    @default("google")       // "google" | "m365"
+  detectedAt     DateTime  @default(now())
+  resolvedAt     DateTime?
+  resolution     String?                            // "kept" | "suspended" | "deleted"
+  resolvedById   String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, resolvedAt])
+  @@index([organizationId, email])
+}
+
+// ─── E-Rate Compliance ────────────────────────────────────────────────────────
+
+model ITERateTask {
+  id                    String          @id @default(cuid())
+  organizationId        String
+  taskType              ITERateTaskType
+  title                 String
+  description           String?
+  dueDate               DateTime
+  completedAt           DateTime?
+  completedById         String?
+  documentUrls          String[]        @default([])
+  documentRetentionUntil DateTime?
+  notes                 String?
+  schoolYear            String          // e.g. "2025-2026"
+  remindedAt60Days      Boolean         @default(false)
+  remindedAt30Days      Boolean         @default(false)
+  remindedAt14Days      Boolean         @default(false)
+  remindedAt7Days       Boolean         @default(false)
+  remindedAt3Days       Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  deletedAt             DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  completedBy  User?        @relation("ERateTaskCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
+  documents    ITERateDocument[]
+
+  @@unique([organizationId, taskType, schoolYear])
+  @@index([organizationId, schoolYear])
+  @@index([organizationId, dueDate])
+  @@index([organizationId, deletedAt])
+}
+
+model ITERateDocument {
+  id             String    @id @default(cuid())
+  organizationId String
+  taskId         String?
+  title          String
+  fileUrl        String
+  fileType       String?
+  retentionUntil DateTime
+  uploadedById   String?
+  schoolYear     String
+  tags           String[]  @default([])
+  createdAt      DateTime  @default(now())
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task         ITERateTask?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  uploadedBy   User?          @relation("ERateDocUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, schoolYear])
+  @@index([organizationId, retentionUntil])
+  @@index([taskId])
+}
+
+// ─── Content Filter Integration ───────────────────────────────────────────────
+
+model ITContentFilterConfig {
+  id             String                @id @default(cuid())
+  organizationId String
+  provider       ITContentFilterProvider
+  isEnabled      Boolean               @default(false)
+  webhookSecret  String?
+  apiKey         String?
+  settings       Json?
+  lastSyncAt     DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+}
+
+model ITContentFilterEvent {
+  id               String               @id @default(cuid())
+  organizationId   String
+  platform         ITContentFilterProvider
+  eventType        ITFilterEventType
+  externalEventId  String?
+  studentName      String?
+  studentEmail     String?
+  url              String?
+  category         String?
+  teacherName      String?
+  teacherEmail     String?
+  actorId          String?              // User who took disposition action
+  disposition      ITFilterDisposition  @default(PENDING)
+  dispositionAt    DateTime?
+  dispositionNotes String?
+  ticketId         String?              // Linked IT ticket (auto-created for unblock requests)
+  isAdminOnly      Boolean              @default(false)
+  metadata         Json?
+  createdAt        DateTime             @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("FilterEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+  ticket       ITTicket?    @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, platform])
+  @@index([organizationId, eventType])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, disposition])
+  @@index([organizationId, isAdminOnly])
+  @@index([externalEventId])
+}
+
+// ─── Security Incident Models ─────────────────────────────────────────────────
+
+model SecurityIncident {
+  id                    String                @id @default(cuid())
+  incidentNumber        String                @unique
+  organizationId        String
+  schoolId              String?
+  type                  SecurityIncidentType
+  severity              IncidentSeverity
+  status                IncidentStatus        @default(OPEN)
+  title                 String
+  description           String
+  affectedSystems       String[]              @default([])
+  affectedDeviceIds     String[]              @default([])
+  affectedUserIds       String[]              @default([])
+  piiInvolved           Boolean               @default(false)
+  reportedById          String
+  responderIds          String[]              @default([])
+  evidenceFiles         Json[]                @default([])
+  externalNotifications Json[]                @default([])
+  resolutionSummary     String?
+  lessonsLearned        String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  closedAt              DateTime?
+  retainUntil           DateTime
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  reportedBy   User         @relation("IncidentReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
+  activities   SecurityIncidentActivity[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, severity])
+  @@index([organizationId, createdAt])
+}
+
+model SecurityIncidentCounter {
+  id                  String       @id @default(cuid())
+  organizationId      String       @unique
+  lastIncidentNumber  Int          @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model SecurityIncidentActivity {
+  id             String               @id @default(cuid())
+  organizationId String
+  incidentId     String
+  actorId        String?
+  type           IncidentActivityType
+  fromStatus     String?
+  toStatus       String?
+  fromSeverity   String?
+  toSeverity     String?
+  content        String?
+  metadata       Json?
+  createdAt      DateTime             @default(now())
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  incident     SecurityIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  actor        User?            @relation("IncidentActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([incidentId, createdAt])
+  @@index([organizationId])
 }

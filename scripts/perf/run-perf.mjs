@@ -16,6 +16,8 @@
  *   soak            Soak test — sustained load for memory leaks
  *   benchmark       Per-endpoint latency benchmarks
  *   comprehensive   All 55+ endpoints across every module
+ *   incidents-load  Security Incidents API load test
+ *   incidents-stress Security Incidents API stress test
  *
  * Options:
  *   --json          Output results as JSON to scripts/perf/results/
@@ -54,12 +56,14 @@ const flagValue = (flag) => {
 };
 
 const testFiles = {
-  load:          'load-test.js',
-  stress:        'stress-test.js',
-  spike:         'spike-test.js',
-  soak:          'soak-test.js',
-  benchmark:     'endpoint-benchmark.js',
-  comprehensive: 'comprehensive-test.js',
+  load:             'load-test.js',
+  stress:           'stress-test.js',
+  spike:            'spike-test.js',
+  soak:             'soak-test.js',
+  benchmark:        'endpoint-benchmark.js',
+  comprehensive:    'comprehensive-test.js',
+  'incidents-load':   'incidents-load-test.js',
+  'incidents-stress': 'incidents-stress-test.js',
 };
 
 if (!testFiles[testType]) {

@@ -33,8 +33,14 @@ export type NotificationType =
   | 'it_ticket_cancelled'
   | 'it_ticket_urgent'
   | 'it_ticket_comment'
+  | 'it_stale_ticket'
   // Compliance reminders
   | 'compliance_reminder'
+  // Security incidents
+  | 'security_incident_created'
+  | 'security_incident_escalated'
+  | 'security_incident_status'
+  | 'security_incident_closed'
 
 export interface CreateNotificationInput {
   userId: string

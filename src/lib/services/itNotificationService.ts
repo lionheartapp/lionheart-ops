@@ -329,6 +329,30 @@ export async function notifyITUrgentTicket(ticket: ITTicketSnapshot, orgId: stri
 }
 
 /**
+ * Stale ticket — notify all IT coordinators about tickets in BACKLOG for 48+ hours with no assignment
+ */
+export async function notifyITStaleTicket(ticket: ITTicketSnapshot, orgId: string): Promise<void> {
+  try {
+    const coordinators = await getUsersWithPermission(orgId, PERMISSIONS.IT_TICKET_READ_ALL)
+    if (coordinators.length === 0) return
+
+    const link = `${getAppUrl()}/it?tab=board`
+
+    await createBulkNotifications(
+      coordinators.map((u) => ({
+        userId: u.id,
+        type: 'it_stale_ticket' as const,
+        title: `Stale Ticket: ${ticket.ticketNumber}`,
+        body: `"${ticket.title}" has been in the backlog for 48+ hours with no assignment.`,
+        linkUrl: link,
+      }))
+    )
+  } catch (e) {
+    console.error('[notifyITStaleTicket]', e)
+  }
+}
+
+/**
  * Comment added — notify the other party (submitter or assignee)
  */
 export async function notifyITTicketComment(

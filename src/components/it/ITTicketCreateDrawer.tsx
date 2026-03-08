@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
 import { useToast } from '@/components/Toast'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mic } from 'lucide-react'
 
 interface ITTicketCreateDrawerProps {
   isOpen: boolean
@@ -106,6 +106,53 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   const [roomId, setRoomId] = useState('')
   const [schoolId, setSchoolId] = useState('')
   const [error, setError] = useState('')
+  const [isRecording, setIsRecording] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    setSpeechSupported(!!SpeechRecognition)
+  }, [])
+
+  const toggleVoiceInput = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) return
+
+    if (isRecording) {
+      if ((window as any).__speechRecognition) {
+        (window as any).__speechRecognition.stop()
+        ;(window as any).__speechRecognition = null
+      }
+      setIsRecording(false)
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.continuous = true
+    recognition.interimResults = false
+    recognition.lang = 'en-US'
+
+    recognition.onresult = (event: any) => {
+      let transcript = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          transcript += event.results[i][0].transcript
+        }
+      }
+      if (transcript) {
+        setDescription((prev) => prev ? `${prev} ${transcript}` : transcript)
+      }
+    }
+
+    recognition.onerror = () => setIsRecording(false)
+    recognition.onend = () => setIsRecording(false)
+
+    recognition.start()
+    setIsRecording(true)
+
+    // Store reference to stop later
+    ;(window as any).__speechRecognition = recognition
+  }
 
   // Fetch buildings for location picker
   const { data: buildings = [] } = useQuery<Building[]>({
@@ -299,12 +346,35 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
           </div>
         )}
 
-        <FloatingTextarea
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-        />
+        <div className="relative">
+          <FloatingTextarea
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+          />
+          {speechSupported && (
+            <button
+              type="button"
+              onClick={toggleVoiceInput}
+              className={`absolute right-3 top-3 p-1.5 rounded-lg transition-colors ${
+                isRecording
+                  ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }`}
+              title={isRecording ? 'Stop recording' : 'Voice input'}
+            >
+              {isRecording ? (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <Mic className="w-4 h-4" />
+                </span>
+              ) : (
+                <Mic className="w-4 h-4" />
+              )}
+            </button>
+          )}
+        </div>
 
         {/* Priority — visible to coordinators */}
         {canManage && (

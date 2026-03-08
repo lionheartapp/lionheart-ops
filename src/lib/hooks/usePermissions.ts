@@ -13,6 +13,44 @@ interface Permissions {
   canApproveQA: boolean
   canManageIT: boolean
   canSubmitIT: boolean
+  canManageDevices: boolean
+  canReadDevices: boolean
+  canManageStudents: boolean
+  canReadStudents: boolean
+  canManageLoaners: boolean
+  canCheckoutLoaner: boolean
+  canCheckinLoaner: boolean
+  canManageSync: boolean
+  canViewIntelligence: boolean
+  canConfigureDevices: boolean
+  // Device Lifecycle
+  canManageDeployment: boolean
+  canProcessDeployment: boolean
+  canManageSummer: boolean
+  canManageRepairQueue: boolean
+  canAssessDamage: boolean
+  canExportDamage: boolean
+  canConfigureMdm: boolean
+  canSyncMdm: boolean
+  canManageStudentPassword: boolean
+  canRunAIDiagnostic: boolean
+  // Account Provisioning
+  canManageProvisioning: boolean
+  canViewProvisioning: boolean
+  canGenerateQR: boolean
+  // IT Analytics & Reports
+  canViewITAnalytics: boolean
+  canViewITBoardReports: boolean
+  // E-Rate + Content Filter
+  canManageERate: boolean
+  canViewERate: boolean
+  canViewCIPAAudit: boolean
+  canManageCIPAAudit: boolean
+  canConfigureFilters: boolean
+  canManageFilters: boolean
+  canViewSecurityIncidents: boolean
+  canCreateSecurityIncident: boolean
+  canManageSecurityIncidents: boolean
   legacyRole: string | null
 }
 

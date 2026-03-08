@@ -15,21 +15,57 @@ import ITDashboard from '@/components/it/ITDashboard'
 import ITTicketsList from '@/components/it/ITTicketsList'
 import ITKanbanBoard from '@/components/it/ITKanbanBoard'
 import ITMagicLinksTab from '@/components/it/ITMagicLinksTab'
+import ITDevicesTab from '@/components/it/ITDevicesTab'
+import ITDeviceDetailDrawer from '@/components/it/ITDeviceDetailDrawer'
+import ITDeviceCreateDrawer from '@/components/it/ITDeviceCreateDrawer'
+import ITStudentsTab from '@/components/it/ITStudentsTab'
+import ITStudentDetailDrawer from '@/components/it/ITStudentDetailDrawer'
+import ITStudentCreateDrawer from '@/components/it/ITStudentCreateDrawer'
+import ITLoanersTab from '@/components/it/ITLoanersTab'
+import ITSyncTab from '@/components/it/ITSyncTab'
+import ITIntelligenceTab from '@/components/it/ITIntelligenceTab'
+import ITSummerTab from '@/components/it/ITSummerTab'
+import ITDeploymentTab from '@/components/it/ITDeploymentTab'
+import ITDeploymentBatchDetail from '@/components/it/ITDeploymentBatchDetail'
+import ITDeploymentCreateDrawer from '@/components/it/ITDeploymentCreateDrawer'
+import ITDamageReportDrawer from '@/components/it/ITDamageReportDrawer'
 import ITTicketDetail from '@/components/it/ITTicketDetail'
 import ITTicketCreateDrawer from '@/components/it/ITTicketCreateDrawer'
-import { LayoutDashboard, List, Kanban, Link2, ShieldAlert } from 'lucide-react'
+import ITProvisioningTab from '@/components/it/ITProvisioningTab'
+import ITAnalyticsTab from '@/components/it/ITAnalyticsTab'
+import ITReportsTab from '@/components/it/ITReportsTab'
+import ITERateTab from '@/components/it/ITERateTab'
+import ITContentFiltersTab from '@/components/it/ITContentFiltersTab'
+import ITSecurityIncidentsTab from '@/components/it/ITSecurityIncidentsTab'
+import { LayoutDashboard, List, Kanban, Link2, HardDrive, GraduationCap, Package, RefreshCw, Brain, Sun, Rocket, UserCog, ShieldAlert, BarChart3, FileText, FileCheck, Shield, ShieldBan } from 'lucide-react'
 
-type ITTab = 'dashboard' | 'tickets' | 'board' | 'magic-links'
+type ITTab = 'dashboard' | 'tickets' | 'board' | 'magic-links' | 'devices' | 'students' | 'loaners' | 'sync' | 'intelligence' | 'summer' | 'deployment' | 'provisioning' | 'analytics' | 'reports' | 'erate' | 'content-filters' | 'security-incidents'
+
+type PermKey = 'canReadDevices' | 'canReadStudents' | 'canAccessLoaners' | 'canManageSync' | 'canViewIntelligence' | 'canAccessDeployment' | 'canAccessProvisioning' | 'canViewITAnalytics' | 'canViewITBoardReports' | 'canViewERate' | 'canViewContentFilters' | 'canViewSecurityIncidents'
 
 const TABS: {
   key: ITTab
   label: string
   icon: typeof LayoutDashboard
   requiresManage?: boolean
+  permKey?: PermKey
 }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresManage: true },
   { key: 'board', label: 'Board', icon: Kanban, requiresManage: true },
   { key: 'tickets', label: 'Tickets', icon: List },
+  { key: 'devices', label: 'Devices', icon: HardDrive, permKey: 'canReadDevices' },
+  { key: 'students', label: 'Students', icon: GraduationCap, permKey: 'canReadStudents' },
+  { key: 'loaners', label: 'Loaners', icon: Package, permKey: 'canAccessLoaners' },
+  { key: 'sync', label: 'Sync', icon: RefreshCw, permKey: 'canManageSync' },
+  { key: 'intelligence', label: 'Intelligence', icon: Brain, permKey: 'canViewIntelligence' },
+  { key: 'deployment', label: 'Deployment', icon: Rocket, permKey: 'canAccessDeployment' },
+  { key: 'summer', label: 'Summer', icon: Sun, requiresManage: true },
+  { key: 'provisioning', label: 'Provisioning', icon: UserCog, permKey: 'canAccessProvisioning' },
+  { key: 'analytics', label: 'Analytics', icon: BarChart3, permKey: 'canViewITAnalytics' },
+  { key: 'reports', label: 'Reports', icon: FileText, permKey: 'canViewITBoardReports' },
+  { key: 'erate', label: 'E-Rate', icon: FileCheck, permKey: 'canViewERate' },
+  { key: 'content-filters', label: 'Content Filters', icon: Shield, permKey: 'canViewContentFilters' },
+  { key: 'security-incidents', label: 'Security', icon: ShieldBan, permKey: 'canViewSecurityIncidents' },
   { key: 'magic-links', label: 'Magic Links', icon: Link2, requiresManage: true },
 ]
 
@@ -83,11 +119,40 @@ function ITContent() {
   const { data: perms } = usePermissions()
   const canManage = perms?.canManageIT ?? false
   const canSubmit = perms?.canSubmitIT ?? false
+  const canReadDevices = perms?.canReadDevices ?? false
+  const canManageDevices = perms?.canManageDevices ?? false
+  const canReadStudents = perms?.canReadStudents ?? false
+  const canManageStudents = perms?.canManageStudents ?? false
+  const canManageLoaners = perms?.canManageLoaners ?? false
+  const canCheckoutLoaner = perms?.canCheckoutLoaner ?? false
+  const canCheckinLoaner = perms?.canCheckinLoaner ?? false
+  const canAccessLoaners = canManageLoaners || canCheckoutLoaner || canCheckinLoaner
+  const canManageSync = perms?.canManageSync ?? false
+  const canViewIntelligence = perms?.canViewIntelligence ?? false
+  const canConfigureDevices = perms?.canConfigureDevices ?? false
+  const canManageDeployment = perms?.canManageDeployment ?? false
+  const canProcessDeployment = perms?.canProcessDeployment ?? false
+  const canAccessDeployment = canManageDeployment || canProcessDeployment
+  const canManageProvisioning = perms?.canManageProvisioning ?? false
+  const canViewProvisioning = perms?.canViewProvisioning ?? false
+  const canAccessProvisioning = canManageProvisioning || canViewProvisioning
+  const canViewITAnalytics = perms?.canViewITAnalytics ?? false
+  const canViewITBoardReports = perms?.canViewITBoardReports ?? false
+  const canManageERate = perms?.canManageERate ?? false
+  const canViewERate = canManageERate || (perms?.canViewERate ?? false)
+  const canViewCIPAAudit = perms?.canViewCIPAAudit ?? false
+  const canConfigureFilters = perms?.canConfigureFilters ?? false
+  const canManageFilters = perms?.canManageFilters ?? false
+  const canViewContentFilters = canViewCIPAAudit || canConfigureFilters || canManageFilters
+  const canViewSecurityIncidents = perms?.canViewSecurityIncidents ?? false
+  const canCreateSecurityIncident = perms?.canCreateSecurityIncident ?? false
+  const canManageSecurityIncidents = perms?.canManageSecurityIncidents ?? false
 
   // Determine default tab based on URL param then permissions
+  const validTabs: ITTab[] = ['dashboard', 'board', 'tickets', 'magic-links', 'devices', 'students', 'loaners', 'sync', 'intelligence', 'deployment', 'summer', 'provisioning', 'analytics', 'reports', 'erate', 'content-filters', 'security-incidents']
   const getDefaultTab = (): ITTab => {
     const paramTab = searchParams?.get('tab') as ITTab | null
-    if (paramTab && ['dashboard', 'board', 'tickets', 'magic-links'].includes(paramTab)) {
+    if (paramTab && validTabs.includes(paramTab)) {
       return paramTab
     }
     if (canManage) return 'dashboard'
@@ -106,6 +171,13 @@ function ITContent() {
   // Drawer state
   const [detailTicketId, setDetailTicketId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [detailDeviceId, setDetailDeviceId] = useState<string | null>(null)
+  const [showDeviceCreate, setShowDeviceCreate] = useState(false)
+  const [detailStudentId, setDetailStudentId] = useState<string | null>(null)
+  const [showStudentCreate, setShowStudentCreate] = useState(false)
+  const [deploymentBatchId, setDeploymentBatchId] = useState<string | null>(null)
+  const [showDeploymentCreate, setShowDeploymentCreate] = useState(false)
+  const [damageReportBatchId, setDamageReportBatchId] = useState<string | null>(null)
 
   // Check for ?new=1 URL param
   useEffect(() => {
@@ -115,8 +187,23 @@ function ITContent() {
   }, [searchParams])
 
   // Visible tabs based on permissions
+  const permMap: Record<PermKey, boolean> = {
+    canReadDevices,
+    canReadStudents,
+    canAccessLoaners,
+    canManageSync,
+    canViewIntelligence,
+    canAccessDeployment,
+    canAccessProvisioning,
+    canViewITAnalytics,
+    canViewITBoardReports,
+    canViewERate,
+    canViewContentFilters,
+    canViewSecurityIncidents,
+  }
   const visibleTabs = TABS.filter((tab) => {
     if (tab.requiresManage) return canManage
+    if (tab.permKey) return permMap[tab.permKey]
     return true
   })
 
@@ -270,6 +357,111 @@ function ITContent() {
               />
             </div>
 
+            {canReadDevices && (
+              <div
+                className={activeTab === 'devices' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
+                aria-hidden={activeTab !== 'devices'}
+              >
+                <ITDevicesTab
+                  onViewDevice={setDetailDeviceId}
+                  onCreateDevice={() => setShowDeviceCreate(true)}
+                  canManage={canManageDevices}
+                />
+              </div>
+            )}
+
+            {canReadStudents && (
+              <div
+                className={activeTab === 'students' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
+                aria-hidden={activeTab !== 'students'}
+              >
+                <ITStudentsTab
+                  onViewStudent={setDetailStudentId}
+                  onCreateStudent={() => setShowStudentCreate(true)}
+                  canManage={canManageStudents}
+                />
+              </div>
+            )}
+
+            {canAccessLoaners && (
+              <div className={activeTab === 'loaners' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'loaners'}>
+                <ITLoanersTab canManage={canManageLoaners} canCheckout={canCheckoutLoaner} canCheckin={canCheckinLoaner} />
+              </div>
+            )}
+
+            {canManageSync && (
+              <div className={activeTab === 'sync' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'sync'}>
+                <ITSyncTab canManage={canManageSync} />
+              </div>
+            )}
+
+            {canViewIntelligence && (
+              <div className={activeTab === 'intelligence' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'intelligence'}>
+                <ITIntelligenceTab canManage={canViewIntelligence} canConfigure={canConfigureDevices} onViewDevice={setDetailDeviceId} />
+              </div>
+            )}
+
+            {canAccessDeployment && (
+              <div className={activeTab === 'deployment' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'deployment'}>
+                {deploymentBatchId ? (
+                  <ITDeploymentBatchDetail
+                    batchId={deploymentBatchId}
+                    onBack={() => setDeploymentBatchId(null)}
+                    canManage={canManageDeployment}
+                    canProcess={canProcessDeployment}
+                  />
+                ) : (
+                  <ITDeploymentTab
+                    canManage={canManageDeployment}
+                    onViewBatch={setDeploymentBatchId}
+                    onCreateBatch={() => setShowDeploymentCreate(true)}
+                  />
+                )}
+              </div>
+            )}
+
+            {canManage && (
+              <div className={activeTab === 'summer' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'summer'}>
+                <ITSummerTab canManage={canManage} />
+              </div>
+            )}
+
+            {canAccessProvisioning && (
+              <div className={activeTab === 'provisioning' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'provisioning'}>
+                <ITProvisioningTab canManage={canManageProvisioning} canView={canViewProvisioning} />
+              </div>
+            )}
+
+            {canViewITAnalytics && (
+              <div className={activeTab === 'analytics' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'analytics'}>
+                <ITAnalyticsTab canViewBoardReports={canViewITBoardReports} />
+              </div>
+            )}
+
+            {canViewITBoardReports && (
+              <div className={activeTab === 'reports' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'reports'}>
+                <ITReportsTab />
+              </div>
+            )}
+
+            {canViewERate && (
+              <div className={activeTab === 'erate' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'erate'}>
+                <ITERateTab canManage={canManageERate} />
+              </div>
+            )}
+
+            {canViewContentFilters && (
+              <div className={activeTab === 'content-filters' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'content-filters'}>
+                <ITContentFiltersTab canManage={canManageFilters} canConfigure={canConfigureFilters} canViewAdminOnly={canViewCIPAAudit} />
+              </div>
+            )}
+
+            {canViewSecurityIncidents && (
+              <div className={activeTab === 'security-incidents' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'security-incidents'}>
+                <ITSecurityIncidentsTab canCreate={canCreateSecurityIncident} canManage={canManageSecurityIncidents} />
+              </div>
+            )}
+
             {canManage && (
               <div
                 className={activeTab === 'magic-links' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
@@ -295,6 +487,41 @@ function ITContent() {
           isOpen={showCreate}
           onClose={() => setShowCreate(false)}
           canManage={canManage}
+        />
+
+        {/* Device drawers */}
+        <ITDeviceDetailDrawer
+          deviceId={detailDeviceId}
+          isOpen={!!detailDeviceId}
+          onClose={() => setDetailDeviceId(null)}
+          canManage={canManageDevices}
+        />
+        <ITDeviceCreateDrawer
+          isOpen={showDeviceCreate}
+          onClose={() => setShowDeviceCreate(false)}
+        />
+
+        {/* Student drawers */}
+        <ITStudentDetailDrawer
+          studentId={detailStudentId}
+          isOpen={!!detailStudentId}
+          onClose={() => setDetailStudentId(null)}
+          canManage={canManageStudents}
+        />
+        <ITStudentCreateDrawer
+          isOpen={showStudentCreate}
+          onClose={() => setShowStudentCreate(false)}
+        />
+
+        {/* Deployment drawers */}
+        <ITDeploymentCreateDrawer
+          isOpen={showDeploymentCreate}
+          onClose={() => setShowDeploymentCreate(false)}
+        />
+        <ITDamageReportDrawer
+          batchId={damageReportBatchId}
+          isOpen={!!damageReportBatchId}
+          onClose={() => setDamageReportBatchId(null)}
         />
       </ModuleGate>
     </DashboardLayout>

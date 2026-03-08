@@ -58,6 +58,33 @@ const orgScopedModels = new Set([
 	'ITTicket',
 	'ITTicketActivity',
 	'ITMagicLink',
+	// MDM + Roster module
+	'Student',
+	'ITDevice',
+	'ITDeviceAssignment',
+	'ITDeviceRepair',
+	'ITLoanerCheckout',
+	'ITSyncConfig',
+	'ITSyncJob',
+	// Device Lifecycle module
+	'ITDeploymentBatch',
+	'ITDeploymentBatchItem',
+	'ITSummerBatch',
+	'ITSummerBatchItem',
+	'ITVendorRepairLog',
+	'ITStudentPasswordToken',
+	// Account Provisioning module
+	'ITProvisioningEvent',
+	'ITProvisioningConfig',
+	'ITOrphanedAccount',
+	// E-Rate + Content Filter module
+	'ITERateTask',
+	'ITERateDocument',
+	'ITContentFilterConfig',
+	'ITContentFilterEvent',
+	// Security Incident module
+	'SecurityIncident',
+	'SecurityIncidentActivity',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -84,6 +111,14 @@ const softDeleteModels = new Set([
 	'KnowledgeArticle',
 	// IT Help Desk module
 	'ITTicket',
+	// MDM + Roster module
+	'Student',
+	'ITDevice',
+	// Device Lifecycle module
+	'ITDeploymentBatch',
+	'ITSummerBatch',
+	// E-Rate module
+	'ITERateTask',
 ])
 
 /**

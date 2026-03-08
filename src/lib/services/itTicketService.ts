@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod'
+import { randomBytes, createHash } from 'crypto'
 import { rawPrisma, prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { canAny } from '@/lib/auth/permissions'
@@ -142,6 +143,10 @@ export async function createITTicket(
 ) {
   const ticketNumber = await generateITTicketNumber(orgId)
 
+  // Generate a status token for public ticket status lookup
+  const rawStatusToken = randomBytes(32).toString('hex')
+  const statusTokenHash = createHash('sha256').update(rawStatusToken).digest('hex')
+
   const ticket = await (prisma.iTTicket.create as Function)({
     data: {
       ticketNumber,
@@ -159,6 +164,7 @@ export async function createITTicket(
       schoolId: input.schoolId,
       submittedById: userId,
       status: 'BACKLOG',
+      statusToken: statusTokenHash,
     },
     include: {
       submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -178,7 +184,8 @@ export async function createITTicket(
     },
   })
 
-  return ticket
+  // Attach raw status token (unhashed) for inclusion in confirmation emails
+  return { ...ticket, rawStatusToken }
 }
 
 // ─── Create Sub Ticket (Magic Link) ─────────────────────────────────────────
