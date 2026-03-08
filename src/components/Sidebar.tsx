@@ -89,6 +89,10 @@ interface AthleticsCampus {
 let _facilityLastPos: { top: number; height: number } | null = null
 let _facilityMeasured = false
 
+// ── Module-level state for the IT indicator ──
+let _itLastPos: { top: number; height: number } | null = null
+let _itMeasured = false
+
 export default function Sidebar({
   userName = 'User',
   userEmail = 'user@school.edu',
@@ -118,6 +122,7 @@ export default function Sidebar({
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
   const [facilitiesOpen, setFacilitiesOpen] = useState(() => pathname.startsWith('/maintenance'))
+  const [itOpen, setItOpen] = useState(() => pathname.startsWith('/it'))
 
   // ── Facilities nav indicator ──
   // Uses Framer Motion's useMotionValue + animate() for the indicator position.
@@ -145,6 +150,27 @@ export default function Sidebar({
     if (node && node.offsetParent === null) return
     facilitiesContainerRef.current = node
     setFacilityContainerMounted(!!node)
+  }, [])
+
+  // ── IT nav indicator (mirrors facilities indicator pattern) ──
+  const itContainerRef = useRef<HTMLDivElement | null>(null)
+  const itTrailRef = useRef<HTMLDivElement | null>(null)
+  const [itContainerMounted, setItContainerMounted] = useState(false)
+
+  const itIndicatorTop = useMotionValue(0)
+  const itIndicatorHeight = useMotionValue(0)
+  const itIndicatorOpacity = useMotionValue(0)
+
+  const itTrailRefCb = useCallback((node: HTMLDivElement | null) => {
+    if (node && node.offsetParent === null) return
+    itTrailRef.current = node
+    if (node) node.style.opacity = '0'
+  }, [])
+
+  const itContainerRefCb: RefCallback<HTMLDivElement> = useCallback((node) => {
+    if (node && node.offsetParent === null) return
+    itContainerRef.current = node
+    setItContainerMounted(!!node)
   }, [])
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
@@ -278,6 +304,15 @@ export default function Sidebar({
   useIsomorphicLayoutEffect(() => {
     if (pathname.startsWith('/maintenance')) {
       setFacilitiesOpen(true)
+      setItOpen(false)
+    }
+  }, [pathname])
+
+  // Auto-expand IT section when on an IT route
+  useIsomorphicLayoutEffect(() => {
+    if (pathname.startsWith('/it')) {
+      setItOpen(true)
+      setFacilitiesOpen(false)
     }
   }, [pathname])
 
@@ -290,6 +325,23 @@ export default function Sidebar({
   const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
   const canManageIT = perms?.canManageIT ?? false
   const canSubmitIT = perms?.canSubmitIT ?? false
+  // IT sub-section permissions
+  const canReadDevices = perms?.canReadDevices ?? false
+  const canReadStudents = perms?.canReadStudents ?? false
+  const canAccessLoaners = (perms?.canManageLoaners ?? false) || (perms?.canCheckoutLoaner ?? false) || (perms?.canCheckinLoaner ?? false)
+  const canAccessDeployment = (perms?.canManageDeployment ?? false) || (perms?.canProcessDeployment ?? false)
+  const canAccessProvisioning = (perms?.canManageProvisioning ?? false) || (perms?.canViewProvisioning ?? false)
+  const canViewContentFilters = (perms?.canViewCIPAAudit ?? false) || (perms?.canConfigureFilters ?? false) || (perms?.canManageFilters ?? false)
+  const canViewSecurityIncidents = perms?.canViewSecurityIncidents ?? false
+  const canViewIntelligence = perms?.canViewIntelligence ?? false
+  const canViewITAnalytics = perms?.canViewITAnalytics ?? false
+  const canViewITBoardReports = perms?.canViewITBoardReports ?? false
+  const canViewERate = (perms?.canManageERate ?? false) || (perms?.canViewERate ?? false)
+  const canManageSync = perms?.canManageSync ?? false
+  const canSeeITDevices = canReadDevices || canReadStudents || canAccessLoaners
+  const canSeeITLifecycle = canAccessDeployment || canAccessProvisioning || canManageIT
+  const canSeeITSecurity = canViewContentFilters || canViewSecurityIncidents || canViewIntelligence
+  const canSeeITAdmin = canViewITAnalytics || canViewITBoardReports || canViewERate || canManageSync
 
   // Measure and position the facilities indicator.
   //
@@ -413,6 +465,104 @@ export default function Sidebar({
       clearTimeout(t2)
     }
   }, [facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance, indicatorTop, indicatorHeight, indicatorOpacity])
+
+  // ── IT indicator positioning (mirrors facilities indicator) ──
+  useLayoutEffect(() => {
+    const container = itContainerRef.current
+    if (!container) return
+
+    if (!itOpen) {
+      itIndicatorOpacity.jump(0)
+      return
+    }
+
+    const alreadyMeasured = _itMeasured
+
+    const positionIndicator = (shouldAnimate: boolean): boolean => {
+      if (!container) return false
+
+      const activeEl = container.querySelector('[data-it-active="true"]') as HTMLElement | null
+      if (!activeEl) {
+        itIndicatorOpacity.jump(0)
+        _itLastPos = null
+        return true
+      }
+
+      const height = activeEl.offsetHeight
+      if (height < 1) return false
+
+      let top = 0
+      let walker: HTMLElement | null = activeEl
+      while (walker && walker !== container) {
+        top += walker.offsetTop
+        walker = walker.offsetParent as HTMLElement | null
+      }
+
+      const prev = _itLastPos
+      const easing = [0.22, 1, 0.36, 1] as [number, number, number, number]
+
+      if (prev && prev.top === top && prev.height === height) {
+        itIndicatorOpacity.jump(1)
+        return true
+      }
+
+      if (!shouldAnimate || !prev) {
+        itIndicatorTop.jump(top)
+        itIndicatorHeight.jump(height)
+        itIndicatorOpacity.jump(1)
+      } else {
+        itIndicatorTop.jump(prev.top)
+        itIndicatorHeight.jump(prev.height)
+        itIndicatorOpacity.jump(1)
+
+        fmAnimate(itIndicatorTop, top, { duration: 0.4, ease: easing })
+        fmAnimate(itIndicatorHeight, height, { duration: 0.4, ease: easing })
+
+        const trail = itTrailRef.current
+        if (trail) {
+          const movingDown = top > prev.top
+          const trailTop = Math.min(prev.top, top)
+          const trailBottom = Math.max(prev.top + prev.height, top + height)
+          const trailHeight = trailBottom - trailTop
+
+          trail.style.transition = 'none'
+          trail.style.top = `${trailTop}px`
+          trail.style.height = `${trailHeight}px`
+          trail.style.opacity = '0.7'
+          trail.style.background = movingDown
+            ? 'linear-gradient(180deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.5) 40%, rgba(99,102,241,0.6) 100%)'
+            : 'linear-gradient(0deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.5) 40%, rgba(99,102,241,0.6) 100%)'
+          trail.offsetHeight // force reflow
+          trail.style.transition = 'opacity 0.55s ease-out'
+          trail.style.opacity = '0'
+        }
+      }
+
+      _itLastPos = { top, height }
+      return true
+    }
+
+    const immediateSuccess = positionIndicator(alreadyMeasured)
+    if (immediateSuccess) {
+      _itMeasured = true
+      return
+    }
+
+    const t1 = setTimeout(() => {
+      if (positionIndicator(alreadyMeasured)) _itMeasured = true
+    }, 80)
+    const t2 = setTimeout(() => {
+      if (itIndicatorOpacity.get() < 0.5) {
+        positionIndicator(false)
+        _itMeasured = true
+      }
+    }, 350)
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [itOpen, itContainerMounted, pathname, canManageIT, canSubmitIT, itIndicatorTop, itIndicatorHeight, itIndicatorOpacity])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
@@ -731,7 +881,12 @@ export default function Sidebar({
                   <>
                   {/* Section header — toggle only, no navigation */}
                   <button
-                    onClick={() => setFacilitiesOpen((prev) => !prev)}
+                    onClick={() => {
+                      setFacilitiesOpen((prev) => {
+                        if (!prev) setItOpen(false)
+                        return !prev
+                      })
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
                     aria-expanded={facilitiesOpen}
                     aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
@@ -949,27 +1104,189 @@ export default function Sidebar({
                 </li>
               )}
 
-              {/* IT Help Desk — shown when it-helpdesk module is enabled */}
+              {/* IT Help Desk — collapsible section (mirrors Maintenance pattern) */}
               {!itHelpdeskModuleLoading && itHelpdeskEnabled && (canManageIT || canSubmitIT) && (
                 <li>
-                  <PrefetchLink
-                    href="/it"
+                  {canManageIT ? (
+                  <>
+                  {/* Section header — toggle only, no navigation */}
+                  <button
                     onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setFacilitiesOpen(false)
-                      setIsOpen(false)
+                      setItOpen((prev) => {
+                        if (!prev) setFacilitiesOpen(false)
+                        return !prev
+                      })
                     }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
-                      pathname.startsWith('/it')
-                        ? 'bg-white/10 text-white font-medium border border-white/20'
-                        : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
-                    }`}
-                    aria-current={pathname.startsWith('/it') ? 'page' : undefined}
+                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                    aria-expanded={itOpen}
+                    aria-label={itOpen ? 'Collapse IT Help Desk' : 'Expand IT Help Desk'}
                   >
-                    <Monitor className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm">IT Help Desk</span>
-                  </PrefetchLink>
+                    <Monitor className="w-5 h-5 flex-shrink-0 text-gray-500" aria-hidden="true" />
+                    <span className="text-sm font-semibold text-gray-200">IT Help Desk</span>
+                    <motion.span
+                      className="ml-auto block"
+                      animate={{ rotate: itOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                    >
+                      <ChevronDown className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                    </motion.span>
+                  </button>
+                  {/* Child links with animated gradient indicator */}
+                    <div
+                      ref={itContainerRefCb}
+                      className="relative ml-8 mt-1 overflow-hidden"
+                      style={{
+                        maxHeight: itOpen ? '600px' : '0px',
+                        opacity: itOpen ? 1 : 0,
+                        transition: 'max-height 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.2s ease',
+                      }}
+                    >
+                          {/* Track line */}
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
+
+                          {/* Glow trail */}
+                          <div
+                            ref={itTrailRefCb}
+                            className="absolute left-0 w-0.5 rounded-full pointer-events-none"
+                            style={{ filter: 'blur(1.5px)' }}
+                          />
+
+                          {/* Animated gradient indicator */}
+                          <motion.div
+                            className="absolute left-0 w-0.5 rounded-full pointer-events-none"
+                            style={{
+                              top: itIndicatorTop,
+                              height: itIndicatorHeight,
+                              opacity: itIndicatorOpacity,
+                              background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)',
+                              boxShadow: '0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(99, 102, 241, 0.25)',
+                            }}
+                          />
+
+                          <div className="space-y-0.5">
+                          {/* Help Desk */}
+                          <PrefetchLink
+                            href="/it"
+                            data-it-active={pathname === '/it' ? 'true' : undefined}
+                            onClick={() => {
+                              setSettingsOpen(false)
+                              setAthleticsOpen(false)
+                              setFacilitiesOpen(false)
+                              setIsOpen(false)
+                            }}
+                            className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                              pathname === '/it'
+                                ? 'text-white font-medium'
+                                : 'text-gray-500 hover:text-gray-200'
+                            }`}
+                            aria-current={pathname === '/it' ? 'page' : undefined}
+                          >
+                            <span className="text-sm">Help Desk</span>
+                          </PrefetchLink>
+                          {/* Devices */}
+                          {canSeeITDevices && (
+                              <PrefetchLink
+                                href="/it/devices"
+                                data-it-active={pathname === '/it/devices' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setFacilitiesOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                  pathname === '/it/devices'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
+                                }`}
+                              >
+                                <span className="text-sm">Devices</span>
+                              </PrefetchLink>
+                          )}
+                          {/* Lifecycle */}
+                          {canSeeITLifecycle && (
+                              <PrefetchLink
+                                href="/it/lifecycle"
+                                data-it-active={pathname === '/it/lifecycle' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setFacilitiesOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                  pathname === '/it/lifecycle'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
+                                }`}
+                              >
+                                <span className="text-sm">Lifecycle</span>
+                              </PrefetchLink>
+                          )}
+                          {/* Security */}
+                          {canSeeITSecurity && (
+                              <PrefetchLink
+                                href="/it/security"
+                                data-it-active={pathname === '/it/security' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setFacilitiesOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                  pathname === '/it/security'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
+                                }`}
+                              >
+                                <span className="text-sm">Security</span>
+                              </PrefetchLink>
+                          )}
+                          {/* Reports & Admin */}
+                          {canSeeITAdmin && (
+                              <PrefetchLink
+                                href="/it/admin"
+                                data-it-active={pathname === '/it/admin' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setFacilitiesOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                  pathname === '/it/admin'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
+                                }`}
+                              >
+                                <span className="text-sm">Reports & Admin</span>
+                              </PrefetchLink>
+                          )}
+                          </div>
+                    </div>
+                  </>
+                  ) : (
+                    /* Submit-only users — simple link to IT Help Desk (tickets view) */
+                    <PrefetchLink
+                      href="/it"
+                      onClick={() => {
+                        setSettingsOpen(false)
+                        setAthleticsOpen(false)
+                        setFacilitiesOpen(false)
+                        setIsOpen(false)
+                      }}
+                      className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                        pathname.startsWith('/it')
+                          ? 'bg-white/10 text-white font-medium border border-white/20'
+                          : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                      }`}
+                      aria-current={pathname.startsWith('/it') ? 'page' : undefined}
+                    >
+                      <Monitor className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                      <span className="text-sm">IT Help Desk</span>
+                    </PrefetchLink>
+                  )}
                 </li>
               )}
             </ul>

@@ -30,6 +30,21 @@ const ROUTE_PREFETCH_MAP: Record<string, () => { queryKey: readonly unknown[]; q
     queryOptions.modules(),
     queryOptions.calendars(),
   ],
+  '/it': () => [
+    queryOptions.permissions(),
+  ],
+  '/it/devices': () => [
+    queryOptions.permissions(),
+  ],
+  '/it/lifecycle': () => [
+    queryOptions.permissions(),
+  ],
+  '/it/security': () => [
+    queryOptions.permissions(),
+  ],
+  '/it/admin': () => [
+    queryOptions.permissions(),
+  ],
 }
 
 interface PrefetchLinkProps extends LinkProps {
