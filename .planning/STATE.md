@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 08-auth-hardening-and-security/08-06-PLAN.md
-last_updated: "2026-03-09T22:21:54.221Z"
+stopped_at: Completed 08-auth-hardening-and-security/08-07-PLAN.md
+last_updated: "2026-03-09T22:23:13.439Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 28
-  completed_plans: 27
+  completed_plans: 28
   percent: 0
 ---
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 08-auth-hardening-and-security P03 | 5 | 2 tasks | 11 files |
 | Phase 08-auth-hardening-and-security P05 | 349 | 2 tasks | 14 files |
 | Phase 08-auth-hardening-and-security P06 | 3 | 1 tasks | 2 files |
+| Phase 08-auth-hardening-and-security P07 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 08-auth-hardening-and-security]: Login EMAIL_NOT_VERIFIED check occurs after credential validation to prevent enumeration of unverified accounts
 - [Phase 08-auth-hardening-and-security]: Resend rate limit uses PasswordSetupToken.createdAt count (3/hour) — no additional table needed
 - [Phase 08-auth-hardening-and-security]: Confirm password field stays as raw input — rule indicators only needed on the primary password field where user creates their new password
+- [Phase 08-auth-hardening-and-security]: CSRF validation reordered to before directOrgId shortcut in middleware — no shortcut path can skip CSRF, closing AUTH-05
+- [Phase 08-auth-hardening-and-security]: Client components use getAuthHeaders()/fetchApi() from api-client — no direct localStorage reads or manual x-org-id headers
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T22:21:54.219Z
-Stopped at: Completed 08-auth-hardening-and-security/08-06-PLAN.md
+Last session: 2026-03-09T22:23:13.437Z
+Stopped at: Completed 08-auth-hardening-and-security/08-07-PLAN.md
 Resume file: None

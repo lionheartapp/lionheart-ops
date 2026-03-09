@@ -146,7 +146,7 @@ Plans:
 
 **Milestone Goal:** Harden the platform for production launch — closing security gaps, completing unfinished features, building missing marketing pages, and establishing operational infrastructure.
 
-- [ ] **Phase 8: Auth Hardening and Security** - Production-grade auth: forgot password, rate limiting, httpOnly cookies, CSRF, email verification, input sanitization, and webhook signatures (gap closure in progress)
+- [x] **Phase 8: Auth Hardening and Security** - Production-grade auth: forgot password, rate limiting, httpOnly cookies, CSRF, email verification, input sanitization, and webhook signatures (gap closure in progress) (completed 2026-03-09)
 - [ ] **Phase 9: Marketing and Legal Pages** - Public pages visitors need before signing up: Privacy Policy, Terms of Service, Pricing, About/Contact, and wired footer
 - [ ] **Phase 10: Inventory System** - Full inventory CRUD, checkout/checkin workflow, transaction log, reorder alerts, and inventory UI page
 - [ ] **Phase 11: Calendar, Ticket, and Feature Gaps** - Draft events individual routes, room conflict detection, ticket drawer edit button, ticket comments/attachments, and ticket search
@@ -279,7 +279,7 @@ Plans:
 | 5. Analytics & Repair Intelligence | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 6. Compliance & Board Reporting | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 7. Knowledge Base & Offline PWA | v1.0 | 3/3 | Complete | 2026-03-06 |
-| 8. Auth Hardening and Security | 6/7 | In Progress|  | - |
+| 8. Auth Hardening and Security | 7/7 | Complete   | 2026-03-09 | - |
 | 9. Marketing and Legal Pages | v2.0 | 0/3 | Not started | - |
 | 10. Inventory System | v2.0 | 0/3 | Not started | - |
 | 11. Calendar, Ticket, Feature Gaps | v2.0 | 0/3 | Not started | - |
