@@ -3,7 +3,7 @@ import { verifyAuthToken } from '@/lib/auth'
 import { verifyPlatformAuthToken } from '@/lib/auth/platform-auth'
 import { publicApiRateLimiter, signupRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/signup', '/signin', '/app', '/dashboard', '/settings'])
+const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/signup', '/signin', '/app', '/dashboard', '/settings', '/verify-email'])
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
 const APEX_HOSTS = new Set(['lionheartapp.com', 'www.lionheartapp.com', 'localhost', '127.0.0.1'])
 
@@ -54,6 +54,8 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/auth/set-password')) return true
   if (pathname.startsWith('/api/auth/forgot-password')) return true
   if (pathname.startsWith('/api/auth/reset-password')) return true
+  if (pathname.startsWith('/api/auth/verify-email')) return true
+  if (pathname.startsWith('/api/auth/resend-verification')) return true
   // Auth.js (NextAuth) OAuth callback URLs — must remain public
   if (pathname.startsWith('/api/auth/callback/')) return true
   if (pathname.startsWith('/api/auth/signin')) return true

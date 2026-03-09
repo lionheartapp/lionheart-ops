@@ -207,6 +207,7 @@ function heroImage(src: string, alt: string): string {
 
 export type EmailTemplate =
   | 'welcome'
+  | 'email_verification'
   | 'event_updated'
   | 'event_approved'
   | 'event_rejected'
@@ -285,6 +286,25 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         ].join('\n'),
         blueBand: {
           text: `If you didn't request this, you can safely ignore this email. Your password will not change.`,
+        },
+      })
+
+    // ── Email Verification ──
+    case 'email_verification':
+      return wrapLayout({
+        previewText: 'Verify your email address to get started with {{orgName}}',
+        content: [
+          heroHeading('- Welcome to Lionheart -', 'Verify Your<br />Email Address'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Hi {{firstName}}, welcome to <strong>{{orgName}}</strong>! Please verify your email address to activate your account and get started.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          centeredCta('Verify Email', '{{verificationLink}}'),
+        ].join('\n'),
+        blueBand: {
+          text: 'This verification link expires in 24 hours. If you did not create an account on Lionheart, you can safely ignore this email.',
         },
       })
 
@@ -842,6 +862,7 @@ export interface RenderEmailResult {
 
 const SUBJECTS: Record<EmailTemplate, string> = {
   welcome: 'Welcome to Lionheart',
+  email_verification: 'Verify your email address',
   password_setup: "You're invited to Lionheart",
   password_reset: 'Reset your password',
   event_updated: 'Event rescheduled: {{eventTitle}}',
@@ -875,6 +896,7 @@ const SUBJECTS: Record<EmailTemplate, string> = {
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
   welcome: 'Welcome to Lionheart! Your account at {{orgName}} is ready. Set your password: {{setupLink}}',
+  email_verification: 'Hi {{firstName}}, welcome to {{orgName}}! Please verify your email address to get started: {{verificationLink}} (expires in 24 hours).',
   password_setup: "You've been invited to join {{orgName}} on Lionheart. Set your password: {{setupLink}}",
   password_reset: 'Hi {{firstName}}, reset your password for {{orgName}} on Lionheart: {{resetLink}} (expires in 1 hour). If you did not request this, ignore this email.',
   event_updated: '"{{eventTitle}}" was rescheduled by {{updatedByName}}. New time: {{eventDate}}, {{eventTime}}. View: {{eventLink}}',

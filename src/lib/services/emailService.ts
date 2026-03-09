@@ -169,6 +169,24 @@ async function sendBrandedEmail(
   return { sent: false, reason: smtpResult.reason || resendResult.reason || 'EMAIL_SEND_FAILED' }
 }
 
+// ─── Email Verification ───────────────────────────────────────────────
+
+type VerificationEmailInput = {
+  to: string
+  firstName: string
+  orgName: string
+  verificationLink: string
+}
+
+export async function sendVerificationEmail(input: VerificationEmailInput): Promise<SendEmailResult> {
+  return sendBrandedEmail('email_verification', input.to, {
+    firstName: input.firstName,
+    orgName: input.orgName,
+    verificationLink: input.verificationLink,
+    appUrl: getAppUrl(),
+  })
+}
+
 // ─── Password Reset ───────────────────────────────────────────────────
 
 type PasswordResetEmailInput = {

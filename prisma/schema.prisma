@@ -153,6 +153,7 @@ model User {
   jobTitle       String?          // Job title separate from role
   employmentType EmploymentType?
   passwordHash   String?          // Nullable for OAuth-only users
+  emailVerified  Boolean          @default(false)
   status         UserStatus       @default(PENDING)
   roleId         String?
   authMethod     AuthMethod       @default(EMAIL)
