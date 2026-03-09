@@ -2,24 +2,55 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { recordPayment } from '@/lib/services/paymentService'
+import { verifyHmacSha256 } from '@/lib/webhook-verify'
 
 /**
  * Stripe webhook handler
  * Processes subscription and payment events from Stripe.
- * 
+ *
  * This endpoint is public (no auth) — Stripe signs the webhook.
- * In production, verify the signature using STRIPE_WEBHOOK_SECRET.
+ * Verifies the stripe-signature header using STRIPE_WEBHOOK_SECRET before processing.
+ *
+ * Stripe signature format: t=<timestamp>,v1=<hmac-sha256>
+ * We verify the v1 component against HMAC-SHA256(<timestamp>.<body>, secret).
  */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.text()
-    const sig = req.headers.get('stripe-signature')
+    const rawBody = await req.text()
+    const signature = req.headers.get('stripe-signature')
 
-    // TODO: Verify Stripe signature when STRIPE_WEBHOOK_SECRET is configured
-    // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-    // const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    if (!signature) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Missing webhook signature'), { status: 401 })
+    }
 
-    const event = JSON.parse(body)
+    const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+    if (!stripeWebhookSecret) {
+      console.error('[Stripe webhook] STRIPE_WEBHOOK_SECRET not configured')
+      return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook not configured'), { status: 500 })
+    }
+
+    // Parse Stripe's signature header: t=<timestamp>,v1=<hex-signature>[,v0=<legacy>]
+    const parts = Object.fromEntries(
+      signature.split(',').map((part) => {
+        const idx = part.indexOf('=')
+        return [part.slice(0, idx), part.slice(idx + 1)]
+      })
+    )
+    const timestamp = parts['t']
+    const v1Signature = parts['v1']
+
+    if (!timestamp || !v1Signature) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Invalid webhook signature format'), { status: 401 })
+    }
+
+    // Stripe signs: <timestamp>.<rawBody>
+    const signedPayload = `${timestamp}.${rawBody}`
+    const isValid = verifyHmacSha256(signedPayload, v1Signature, stripeWebhookSecret)
+    if (!isValid) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Invalid webhook signature'), { status: 401 })
+    }
+
+    const event = JSON.parse(rawBody)
 
     switch (event.type) {
       case 'customer.subscription.created':
