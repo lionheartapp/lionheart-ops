@@ -16,6 +16,7 @@ import {
   BarChart3,
   TrendingUp,
 } from 'lucide-react'
+import { IllustrationSecurity } from '@/components/illustrations'
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -363,9 +364,7 @@ export default function ITIntelligenceTab({
 
         {lemons.length === 0 ? (
           <div className="text-center py-12">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-3">
-              <Brain className="w-6 h-6 text-green-600" />
-            </div>
+            <IllustrationSecurity className="w-40 h-32 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-900">No lemon devices</p>
             <p className="text-xs text-gray-500 mt-1">
               All devices are within normal repair thresholds.

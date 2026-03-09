@@ -7,6 +7,7 @@ import { DevicesTabSkeleton } from './ITSkeleton'
 import { DeviceStatusBadge, DeviceTypeBadge } from './ITDeviceStatusBadge'
 import { Plus, Laptop, Monitor, Tablet, Printer, HardDrive, Cpu } from 'lucide-react'
 import ITSearchFilterBar from './ITSearchFilterBar'
+import { IllustrationDevices } from '@/components/illustrations'
 
 interface ITDevicesTabProps {
   onViewDevice: (deviceId: string) => void
@@ -156,9 +157,10 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
 
       {/* Results */}
       {devices.length === 0 ? (
-        <div className="ui-glass p-12 text-center">
-          <p className="text-sm text-gray-500">No devices found</p>
-          <p className="text-xs text-gray-400 mt-1">Try adjusting your filters or add a new device</p>
+        <div className="ui-glass py-14 text-center">
+          <IllustrationDevices className="w-48 h-40 mx-auto mb-2" />
+          <p className="text-sm font-medium text-gray-600 mb-1">No devices found</p>
+          <p className="text-xs text-gray-400 mb-4">Try adjusting your filters or add a new device</p>
         </div>
       ) : (
         <>

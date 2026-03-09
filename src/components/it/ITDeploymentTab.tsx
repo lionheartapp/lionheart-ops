@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { Rocket, Plus, Truck, Package, Calendar, GraduationCap } from 'lucide-react'
+import { IllustrationDeployment } from '@/components/illustrations'
 import ITSearchFilterBar from './ITSearchFilterBar'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -208,10 +209,8 @@ export default function ITDeploymentTab({ canManage, onViewBatch, onCreateBatch 
       {/* Results */}
       {batches.length === 0 ? (
         <div className="ui-glass p-12 text-center">
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
-            <Rocket className="w-6 h-6 text-primary-500" />
-          </div>
-          <p className="text-sm font-medium text-gray-700 mb-1">No deployment batches yet</p>
+          <IllustrationDeployment className="w-48 h-40 mx-auto mb-2" />
+          <p className="text-sm font-medium text-gray-600 mb-1">No deployment batches yet</p>
           <p className="text-xs text-gray-400">
             Create a batch to start deploying or collecting devices
           </p>

@@ -7,6 +7,7 @@ import { fetchApi } from '@/lib/api-client'
 import { motion } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import { IllustrationAnalytics } from '@/components/illustrations'
 import {
   BarChart3,
   Clock,
@@ -121,6 +122,7 @@ function TicketVolumeSection({ data }: { data: AnalyticsData['ticketVolume'] }) 
   if (data.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400 text-sm">
+        <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No ticket volume data available
       </div>
     )
@@ -174,6 +176,7 @@ function ResolutionTimeSection({ data }: { data: AnalyticsData['resolutionTime']
   if (byCampus.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400 text-sm">
+        <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No resolution time data available
       </div>
     )
@@ -206,6 +209,7 @@ function DeviceHealthSection({ data }: { data: AnalyticsData['deviceHealth'] }) 
   if (data.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400 text-sm">
+        <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No device health data available
       </div>
     )
@@ -274,6 +278,7 @@ function TechWorkloadSection({ data }: { data: AnalyticsData['technicianWorkload
   if (data.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400 text-sm">
+        <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No technician workload data available
       </div>
     )
@@ -309,6 +314,7 @@ function SLASection({ data }: { data: AnalyticsData['slaCompliance'] }) {
   if (data.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400 text-sm">
+        <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No SLA compliance data available
       </div>
     )
@@ -624,6 +630,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
             <LoanerSection data={analytics.loanerUtilization} />
           ) : (
             <div className="text-center py-8 text-gray-400 text-sm">
+              <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
               No loaner data available
             </div>
           )}

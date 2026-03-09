@@ -13,6 +13,7 @@ import {
   Search,
   Loader2,
 } from 'lucide-react'
+import { IllustrationDevices } from '@/components/illustrations'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -292,9 +293,9 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
 
         {available.length === 0 ? (
           <div className="text-center py-8">
-            <Package className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No available loaners in the pool</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <IllustrationDevices className="w-40 h-32 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-600 mb-1">No available loaners in the pool</p>
+            <p className="text-xs text-gray-400">
               Mark devices as &quot;Loaner&quot; status in the Devices tab to add them here
             </p>
           </div>
@@ -565,8 +566,8 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
 
         {checkedOut.length === 0 ? (
           <div className="text-center py-8">
-            <ArrowDownToLine className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No devices currently checked out</p>
+            <IllustrationDevices className="w-40 h-32 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-600 mb-1">No devices currently checked out</p>
           </div>
         ) : (
           <>

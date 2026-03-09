@@ -9,6 +9,7 @@ import {
   UserCog, Settings, RefreshCw, AlertTriangle, CheckCircle2,
   XCircle, Clock, Loader2, ChevronDown, Search,
 } from 'lucide-react'
+import { IllustrationDeployment } from '@/components/illustrations'
 
 interface ITProvisioningTabProps {
   canManage: boolean
@@ -222,7 +223,7 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
             </div>
           ) : typedEvents.length === 0 ? (
             <div className="text-center py-8">
-              <Clock className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
               <p className="text-sm text-gray-500">No provisioning events yet</p>
               <p className="text-xs text-gray-400 mt-1">Events will appear here when provisioning actions are triggered</p>
             </div>
@@ -283,7 +284,7 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
             </div>
           ) : typedOrphaned.length === 0 ? (
             <div className="text-center py-8">
-              <CheckCircle2 className="w-8 h-8 text-green-300 mx-auto mb-2" />
+              <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
               <p className="text-sm text-gray-500">No orphaned accounts</p>
               <p className="text-xs text-gray-400 mt-1">All directory accounts have matching SIS records</p>
             </div>

@@ -7,6 +7,7 @@ import { fetchApi } from '@/lib/api-client'
 import { motion } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import { IllustrationSecurity } from '@/components/illustrations'
 import {
   Shield,
   ShieldAlert,
@@ -562,8 +563,8 @@ export default function ITContentFiltersTab({
               ) : events.length === 0 ? (
                 <tr>
                   <td colSpan={canManage ? 7 : 6} className="py-12 text-center text-sm text-gray-500">
-                    <Shield className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                    No filter events found
+                    <IllustrationSecurity className="w-32 h-24 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-600 mb-1">No filter events found</p>
                   </td>
                 </tr>
               ) : (

@@ -24,6 +24,7 @@ import {
   RotateCcw,
   Trash2,
 } from 'lucide-react'
+import { IllustrationDeployment } from '@/components/illustrations'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -399,9 +400,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
           </div>
         ) : batches.length === 0 ? (
           <div className="ui-glass p-8 text-center">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
-              <RotateCcw className="w-6 h-6 text-gray-300" />
-            </div>
+            <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-700">No reimaging batches</p>
             <p className="text-xs text-gray-400 mt-1">
               Create a batch to start tracking summer reimaging progress
@@ -473,9 +472,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
           </div>
         ) : repairs.length === 0 ? (
           <div className="ui-glass p-8 text-center">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-6 h-6 text-green-400" />
-            </div>
+            <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-700">No repairs in queue</p>
             <p className="text-xs text-gray-400 mt-1">
               All devices are in working order
@@ -622,6 +619,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
               </div>
             ) : (
               <div className="ui-glass p-6 text-center">
+                <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
                 <p className="text-sm text-gray-500">No devices currently staged</p>
                 <p className="text-xs text-gray-400 mt-1">
                   Devices will appear here once they are flagged for deployment staging

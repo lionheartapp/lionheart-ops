@@ -8,6 +8,7 @@ import {
   ShieldAlert, Plus, ChevronRight, Clock, Eye, Users,
   AlertTriangle, FileText, Send, X, CheckCircle, Lock, Activity,
 } from 'lucide-react'
+import { IllustrationSecurity } from '@/components/illustrations'
 import ITSearchFilterBar from './ITSearchFilterBar'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -267,11 +268,9 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
         </div>
       ) : incidents.length === 0 ? (
         <div className="ui-glass p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-500" />
-          </div>
-          <h3 className="text-base font-semibold text-gray-900 mb-1">No incidents found</h3>
-          <p className="text-sm text-gray-500">No security incidents match your current filters.</p>
+          <IllustrationSecurity className="w-48 h-40 mx-auto mb-2" />
+          <p className="text-sm font-medium text-gray-600 mb-1">No incidents found</p>
+          <p className="text-xs text-gray-400">No security incidents match your current filters.</p>
         </div>
       ) : (
         <div className="ui-glass-table overflow-hidden">

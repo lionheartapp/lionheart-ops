@@ -7,6 +7,7 @@ import { fetchApi } from '@/lib/api-client'
 import { motion } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import { IllustrationCompliance } from '@/components/illustrations'
 import {
   CheckCircle2,
   Circle,
@@ -341,8 +342,8 @@ export default function ITERateTab({ canManage }: ITERateTabProps) {
 
         {tasks.length === 0 && !calendarLoading && (
           <div className="ui-glass p-8 text-center">
-            <CalendarDays className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">No calendar tasks for {schoolYear}.</p>
+            <IllustrationCompliance className="w-40 h-32 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-600 mb-1">No calendar tasks for {schoolYear}.</p>
             {canManage && (
               <p className="text-xs text-gray-400 mt-1">
                 Use &quot;Seed Calendar&quot; to populate the E-Rate timeline.
@@ -480,8 +481,8 @@ export default function ITERateTab({ canManage }: ITERateTabProps) {
 
         {documents.length === 0 && !documentsLoading ? (
           <div className="ui-glass p-8 text-center">
-            <FileText className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">No documents for {schoolYear}.</p>
+            <IllustrationCompliance className="w-40 h-32 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-600 mb-1">No documents for {schoolYear}.</p>
           </div>
         ) : (
           <div className="ui-glass-table">

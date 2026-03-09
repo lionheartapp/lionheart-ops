@@ -8,6 +8,7 @@ import { TicketsListSkeleton } from './ITSkeleton'
 import { Plus } from 'lucide-react'
 import ITSearchFilterBar from './ITSearchFilterBar'
 import type { FilterField } from './ITSearchFilterBar'
+import { IllustrationTickets } from '@/components/illustrations'
 
 interface ITTicketsListProps {
   onViewTicket: (ticketId: string) => void
@@ -104,9 +105,10 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
 
       {/* Results */}
       {tickets.length === 0 ? (
-        <div className="ui-glass p-12 text-center">
-          <p className="text-sm text-gray-500">No tickets found</p>
-          <p className="text-xs text-gray-400 mt-1">Try adjusting your filters or create a new request</p>
+        <div className="ui-glass py-14 text-center">
+          <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
+          <p className="text-sm font-medium text-gray-600 mb-1">No tickets found</p>
+          <p className="text-xs text-gray-400 mb-4">Try adjusting your filters or create a new request</p>
         </div>
       ) : (
         <>

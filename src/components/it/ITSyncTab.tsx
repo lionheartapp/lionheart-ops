@@ -6,6 +6,7 @@ import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
 import ITMdmConfigSection from './ITMdmConfigSection'
+import { IllustrationSync } from '@/components/illustrations'
 import {
   RefreshCw,
   Cloud,
@@ -276,8 +277,8 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
 
         {configs.length === 0 ? (
           <div className="ui-glass p-8 text-center">
-            <Cloud className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No sync providers configured</p>
+            <IllustrationSync className="w-40 h-32 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-600 mb-1">No sync providers configured</p>
             <p className="text-xs text-gray-400 mt-1">
               Set up Google Admin, Clever, or ClassLink to sync data automatically
             </p>
@@ -407,8 +408,8 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
 
         {jobs.length === 0 ? (
           <div className="ui-glass p-8 text-center">
-            <RefreshCw className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No sync jobs found</p>
+            <IllustrationSync className="w-40 h-32 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-600 mb-1">No sync jobs found</p>
             <p className="text-xs text-gray-400 mt-1">
               Trigger a sync above to see job history here
             </p>
