@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-09T16:25:05.167Z"
+stopped_at: Completed 08-02-PLAN.md (rate limiting)
+last_updated: "2026-03-09T20:02:04.426Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 7
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 26
+  completed_plans: 22
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | 07-knowledge-base | 3 | ~24min | ~8min |
 
 **v2.0 velocity:** No data yet (0 plans completed)
+| Phase 08-auth-hardening-and-security P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - [v2.0]: httpOnly cookies to replace localStorage JWT — must not break existing sessions
 - [v2.0]: Vitest for unit tests, Pino for logging, Sentry for error tracking
 - [v2.0]: Phase 8 (auth) must complete before phases 9-13 extend API surface
+- [Phase 08-auth-hardening-and-security]: In-memory rate limiter for single-process Vercel deployments; Redis deferred to v2.1 for horizontal scaling
+- [Phase 08-auth-hardening-and-security]: Login rate limiter placed in route handler (not middleware) to enable reset-on-success behavior
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T16:25:05.163Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-auth-hardening-and-security/08-CONTEXT.md
+Last session: 2026-03-09T20:02:04.423Z
+Stopped at: Completed 08-02-PLAN.md (rate limiting)
+Resume file: None
