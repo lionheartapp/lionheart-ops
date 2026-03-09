@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
 import { verifyPlatformAuthToken } from '@/lib/auth/platform-auth'
+import { publicApiRateLimiter, signupRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 
 const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/signup', '/signin', '/app', '/dashboard', '/settings'])
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
@@ -133,6 +134,39 @@ export async function middleware(req: NextRequest) {
   }
 
   // ─── Org-Scoped Routes (existing logic) ────────────────────────────
+
+  // ─── Rate Limiting for Public API Paths ──────────────────────────
+  // Applied BEFORE isPublicPath so rate limits run even on public routes.
+  // The login endpoint has its own finer-grained limiter in the route handler.
+  // Static assets and non-API paths are excluded.
+  if (pathname.startsWith('/api/')) {
+    const clientIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      'unknown'
+
+    let limiter: typeof publicApiRateLimiter | null = null
+
+    if (pathname === '/api/organizations/signup') {
+      limiter = signupRateLimiter
+    } else if (
+      pathname.startsWith('/api/auth/forgot-password') ||
+      pathname.startsWith('/api/auth/set-password')
+    ) {
+      limiter = publicApiRateLimiter
+    }
+
+    if (limiter) {
+      limiter.increment(clientIp)
+      const limitResult = limiter.check(clientIp)
+      if (!limitResult.allowed) {
+        return NextResponse.json(
+          { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' } },
+          { status: 429, headers: getRateLimitHeaders(limitResult) }
+        )
+      }
+    }
+  }
 
   if (pathname === '/app/settings') {
     const url = req.nextUrl.clone()

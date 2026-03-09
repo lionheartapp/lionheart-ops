@@ -5,9 +5,21 @@ import { fail, ok } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { signAuthToken } from '@/lib/auth'
 import { audit, getIp } from '@/lib/services/auditService'
+import { loginRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   try {
+    // ─── Rate limit check (per IP, before any body parsing) ──────────
+    const ip = getIp(req) ?? 'unknown'
+    loginRateLimiter.increment(ip)
+    const limitResult = loginRateLimiter.check(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many login attempts. Please try again later.'),
+        { status: 429, headers: getRateLimitHeaders(limitResult) }
+      )
+    }
+
     const body = (await req.json()) as { email?: string; password?: string; organizationId?: string }
     const email = body.email?.trim().toLowerCase()
     const password = body.password
@@ -43,6 +55,9 @@ export async function POST(req: NextRequest) {
       if (!valid) {
         return NextResponse.json(fail('UNAUTHORIZED', 'Invalid credentials'), { status: 401 })
       }
+
+      // Successful credential check — reset the rate limit counter for this IP
+      loginRateLimiter.reset(ip)
 
       const token = await signAuthToken({
         userId: user.id,
