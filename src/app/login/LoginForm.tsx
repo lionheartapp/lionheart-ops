@@ -40,6 +40,15 @@ export default function LoginForm({ organizationId, organizationName, organizati
       const data = await res.json()
 
       if (!data.ok) {
+        // Handle unverified email — redirect to verify-email page with context
+        if (data.error?.code === 'EMAIL_NOT_VERIFIED') {
+          const details = data.error?.details?.[0] as { email?: string; organizationId?: string } | undefined
+          const params = new URLSearchParams()
+          if (details?.email) params.set('email', details.email)
+          if (details?.organizationId) params.set('organizationId', details.organizationId)
+          router.push(`/verify-email?${params.toString()}`)
+          return
+        }
         setError(data.error?.message || 'Login failed')
         return
       }

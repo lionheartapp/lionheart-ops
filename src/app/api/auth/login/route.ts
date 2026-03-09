@@ -32,7 +32,16 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(organizationId, async () => {
       const user = await prisma.user.findFirst({
         where: { email },
-        include: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          avatar: true,
+          schoolScope: true,
+          passwordHash: true,
+          status: true,
+          emailVerified: true,
+          organizationId: true,
           userRole: {
             select: {
               name: true,
@@ -54,6 +63,16 @@ export async function POST(req: NextRequest) {
       const valid = user.passwordHash ? await compare(password, user.passwordHash) : false
       if (!valid) {
         return NextResponse.json(fail('UNAUTHORIZED', 'Invalid credentials'), { status: 401 })
+      }
+
+      // Credentials valid — now check email verification (after credential check to avoid enumeration)
+      if (!user.emailVerified) {
+        return NextResponse.json(
+          fail('EMAIL_NOT_VERIFIED', 'Please verify your email address. Check your inbox or resend the verification email.', [
+            { email: user.email, organizationId },
+          ]),
+          { status: 403 }
+        )
       }
 
       // Successful credential check — reset the rate limit counter for this IP

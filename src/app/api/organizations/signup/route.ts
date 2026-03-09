@@ -32,6 +32,8 @@ import { ok, fail } from '@/lib/api-response'
 import { signAuthToken } from '@/lib/auth'
 import { rawPrisma } from '@/lib/db'
 import { ZodError } from 'zod'
+import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/auth/password-setup'
+import { sendVerificationEmail } from '@/lib/services/emailService'
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,6 +55,32 @@ export async function POST(req: NextRequest) {
       organizationId: result.id,
       email: adminUser.email,
     })
+
+    // Send verification email (fire-and-forget — don't block signup on email failure)
+    try {
+      const verificationToken = generateSetupToken()
+      const tokenHash = hashSetupToken(verificationToken)
+      await rawPrisma.passwordSetupToken.create({
+        data: {
+          userId: adminUser.id,
+          tokenHash,
+          type: 'email-verification',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      })
+      const verificationLink = getVerificationLink(verificationToken)
+      const firstName = (adminUser as any).firstName || (adminUser as any).name || adminUser.email
+      sendVerificationEmail({
+        to: adminUser.email,
+        firstName,
+        orgName: result.name,
+        verificationLink,
+      }).catch((err) => {
+        console.error('[signup] Verification email send failed:', err)
+      })
+    } catch (err) {
+      console.error('[signup] Failed to create verification token:', err)
+    }
 
     // Return created organization with admin user details + auth token
     return NextResponse.json(

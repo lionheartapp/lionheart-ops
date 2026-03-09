@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { fail, ok } from '@/lib/api-response'
 import { rawPrisma as prisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
+import { passwordSchema } from '@/lib/validation/password'
+import { ZodError } from 'zod'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,8 +17,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fail('BAD_REQUEST', 'token and password are required'), { status: 400 })
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(fail('BAD_REQUEST', 'Password must be at least 8 characters'), { status: 400 })
+    try {
+      passwordSchema.parse(password)
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const message = err.issues[0]?.message || 'Password does not meet complexity requirements'
+        return NextResponse.json(fail('BAD_REQUEST', message), { status: 400 })
+      }
+      throw err
     }
 
     const tokenHash = hashSetupToken(token)
@@ -58,6 +66,7 @@ export async function POST(req: NextRequest) {
         },
         data: {
           passwordHash,
+          emailVerified: true, // Invite link proves email ownership
         },
       }),
       passwordSetupTokenModel.update({

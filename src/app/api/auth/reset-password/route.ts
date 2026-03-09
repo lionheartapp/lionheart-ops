@@ -6,10 +6,11 @@ import { rawPrisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { signAuthToken } from '@/lib/auth'
 import { audit, getIp } from '@/lib/services/auditService'
+import { passwordSchema } from '@/lib/validation/password'
 
 const schema = z.object({
   token: z.string().min(1, 'token is required'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: passwordSchema,
 })
 
 export async function POST(req: NextRequest) {
@@ -85,7 +86,10 @@ export async function POST(req: NextRequest) {
             email: user.email,
           },
         },
-        data: { passwordHash },
+        data: {
+          passwordHash,
+          emailVerified: true, // Reset link proves email ownership
+        },
       }),
       rawPrisma.passwordSetupToken.update({
         where: { id: setupToken.id },
