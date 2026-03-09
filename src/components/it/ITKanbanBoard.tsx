@@ -22,6 +22,7 @@ import ITKanbanCard, { type KanbanTicket } from './ITKanbanCard'
 import { BoardSkeleton } from './ITSkeleton'
 import HoldReasonDialog from './HoldReasonDialog'
 import { AlertTriangle } from 'lucide-react'
+import ITSearchFilterBar from './ITSearchFilterBar'
 
 interface ITKanbanBoardProps {
   onTicketClick: (id: string) => void
@@ -208,49 +209,39 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
       )}
 
       {/* Filter toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-4 p-3 ui-glass rounded-xl">
-        <select
-          value={filterIssueType}
-          onChange={(e) => setFilterIssueType(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {ISSUE_TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-
-        <select
-          value={filterPriority}
-          onChange={(e) => setFilterPriority(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {PRIORITY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={filterUnassigned}
-            onChange={(e) => setFilterUnassigned(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-          />
-          Unassigned only
-        </label>
-
-        {hasActiveFilters && (
-          <button
-            onClick={() => {
-              setFilterIssueType('')
-              setFilterPriority('')
-              setFilterUnassigned(false)
-            }}
-            className="ml-auto text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-          >
-            Clear filters
-          </button>
-        )}
+      <div className="mb-4">
+        <ITSearchFilterBar
+          search=""
+          onSearchChange={() => {}}
+          searchPlaceholder="Search board..."
+          filters={[
+            { label: 'Issue Type', value: filterIssueType, onChange: setFilterIssueType, options: ISSUE_TYPE_OPTIONS },
+            { label: 'Priority', value: filterPriority, onChange: setFilterPriority, options: PRIORITY_OPTIONS },
+          ]}
+        />
+        <div className="flex items-center gap-3 mt-2 px-1">
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={filterUnassigned}
+              onChange={(e) => setFilterUnassigned(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+            Unassigned only
+          </label>
+          {hasActiveFilters && (
+            <button
+              onClick={() => {
+                setFilterIssueType('')
+                setFilterPriority('')
+                setFilterUnassigned(false)
+              }}
+              className="ml-auto text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

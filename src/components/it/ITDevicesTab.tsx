@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { DevicesTabSkeleton } from './ITSkeleton'
 import { DeviceStatusBadge, DeviceTypeBadge } from './ITDeviceStatusBadge'
-import { Search, Plus, Laptop, Monitor, Tablet, Printer, HardDrive, Cpu } from 'lucide-react'
+import { Plus, Laptop, Monitor, Tablet, Printer, HardDrive, Cpu } from 'lucide-react'
+import ITSearchFilterBar from './ITSearchFilterBar'
 
 interface ITDevicesTabProps {
   onViewDevice: (deviceId: string) => void
@@ -128,48 +129,21 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by asset tag, serial, make, model..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
-          />
-        </div>
-        <select
-          value={typeFilter}
-          onChange={(e) => { setTypeFilter(e.target.value); setPage(0) }}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {DEVICE_TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(0) }}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        {schools.length > 1 && (
-          <select
-            value={schoolFilter}
-            onChange={(e) => { setSchoolFilter(e.target.value); setPage(0) }}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-          >
-            <option value="">All Campuses</option>
-            {schools.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        )}
-        {canManage && (
+      <ITSearchFilterBar
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(0) }}
+        searchPlaceholder="Search by asset tag, serial, make, model..."
+        filters={[
+          { label: 'Device Type', value: typeFilter, onChange: (v) => { setTypeFilter(v); setPage(0) }, options: DEVICE_TYPE_OPTIONS },
+          { label: 'Status', value: statusFilter, onChange: (v) => { setStatusFilter(v); setPage(0) }, options: STATUS_OPTIONS },
+          ...(schools.length > 1 ? [{
+            label: 'Campus',
+            value: schoolFilter,
+            onChange: (v: string) => { setSchoolFilter(v); setPage(0) },
+            options: [{ value: '', label: 'All Campuses' }, ...schools.map((s) => ({ value: s.id, label: s.name }))],
+          }] : []),
+        ]}
+        trailing={canManage ? (
           <button
             onClick={onCreateDevice}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all whitespace-nowrap"
@@ -177,8 +151,8 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
             <Plus className="w-4 h-4" />
             Add Device
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Results */}
       {devices.length === 0 ? (

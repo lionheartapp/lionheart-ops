@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { Rocket, Plus, Truck, Package, Calendar, GraduationCap } from 'lucide-react'
+import ITSearchFilterBar from './ITSearchFilterBar'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -147,14 +148,16 @@ export default function ITDeploymentTab({ canManage, onViewBatch, onCreateBatch 
   const [typeFilter, setTypeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [schoolFilter, setSchoolFilter] = useState('')
+  const [search, setSearch] = useState('')
 
   const filters = useMemo(() => {
     const f: Record<string, string> = {}
     if (typeFilter) f.batchType = typeFilter
     if (statusFilter) f.status = statusFilter
     if (schoolFilter) f.schoolId = schoolFilter
+    if (search) f.search = search
     return f
-  }, [typeFilter, statusFilter, schoolFilter])
+  }, [typeFilter, statusFilter, schoolFilter, search])
 
   const { data, isLoading } = useQuery(queryOptions.itDeploymentBatches(filters))
 
@@ -177,47 +180,30 @@ export default function ITDeploymentTab({ canManage, onViewBatch, onCreateBatch 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {BATCH_TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        {schools.length > 1 && (
-          <select
-            value={schoolFilter}
-            onChange={(e) => setSchoolFilter(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-          >
-            <option value="">All Campuses</option>
-            {schools.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        )}
-        {canManage && (
+      <ITSearchFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search batches..."
+        filters={[
+          { label: 'Batch Type', value: typeFilter, onChange: setTypeFilter, options: BATCH_TYPE_OPTIONS },
+          { label: 'Status', value: statusFilter, onChange: setStatusFilter, options: STATUS_OPTIONS },
+          ...(schools.length > 1 ? [{
+            label: 'Campus',
+            value: schoolFilter,
+            onChange: (v: string) => setSchoolFilter(v),
+            options: [{ value: '', label: 'All Campuses' }, ...schools.map((s) => ({ value: s.id, label: s.name }))],
+          }] : []),
+        ]}
+        trailing={canManage ? (
           <button
             onClick={onCreateBatch}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all whitespace-nowrap ml-auto"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             Create Batch
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Results */}
       {batches.length === 0 ? (

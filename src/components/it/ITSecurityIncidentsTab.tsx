@@ -5,9 +5,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys, queryOptions } from '@/lib/queries'
 import { fetchApi } from '@/lib/api-client'
 import {
-  ShieldAlert, Plus, Search, ChevronRight, Clock, Eye, Users,
+  ShieldAlert, Plus, ChevronRight, Clock, Eye, Users,
   AlertTriangle, FileText, Send, X, CheckCircle, Lock, Activity,
 } from 'lucide-react'
+import ITSearchFilterBar from './ITSearchFilterBar'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -96,8 +97,8 @@ const STATUSES = ['OPEN', 'INVESTIGATING', 'CONTAINED', 'REMEDIATING', 'CLOSED']
 export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
-  const [severityFilter, setSeverityFilter] = useState<string | null>(null)
-  const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  const [severityFilter, setSeverityFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
 
@@ -194,47 +195,21 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search incidents..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2.5 w-64 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-            />
-          </div>
-          {/* Severity filter pills */}
-          <div className="hidden md:flex gap-1.5">
-            {SEVERITIES.map((s) => (
-              <button
-                key={s}
-                onClick={() => setSeverityFilter(severityFilter === s ? null : s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  severityFilter === s
-                    ? SEVERITY_COLORS[s]
-                    : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-                }`}
-              >
-                {SEVERITY_LABELS[s]}
-              </button>
-            ))}
-          </div>
-          {/* Status filter */}
-          <select
-            value={statusFilter || ''}
-            onChange={(e) => setStatusFilter(e.target.value || null)}
-            className="hidden md:block px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white cursor-pointer"
-          >
-            <option value="">All Statuses</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
-        </div>
-        {canCreate && (
+      <ITSearchFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search incidents..."
+        filters={[
+          { label: 'Severity', value: severityFilter, onChange: setSeverityFilter, options: [
+            { value: '', label: 'All Severities' },
+            ...SEVERITIES.map((s) => ({ value: s, label: SEVERITY_LABELS[s] })),
+          ]},
+          { label: 'Status', value: statusFilter, onChange: setStatusFilter, options: [
+            { value: '', label: 'All Statuses' },
+            ...STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] })),
+          ]},
+        ]}
+        trailing={canCreate ? (
           <button
             onClick={() => setShowCreate(true)}
             className="px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-medium hover:bg-red-700 active:scale-[0.97] transition-all flex items-center gap-2 cursor-pointer"
@@ -242,8 +217,8 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
             <ShieldAlert className="w-4 h-4" />
             Report Incident
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

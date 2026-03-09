@@ -5,7 +5,9 @@ import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { StatusBadge, PriorityBadge, TypeBadge } from './ITStatusBadge'
 import { TicketsListSkeleton } from './ITSkeleton'
-import { Search, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import ITSearchFilterBar from './ITSearchFilterBar'
+import type { FilterField } from './ITSearchFilterBar'
 
 interface ITTicketsListProps {
   onViewTicket: (ticketId: string) => void
@@ -80,52 +82,25 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search tickets..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        <select
-          value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {PRIORITY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-        >
-          {TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        <button
-          onClick={onCreateTicket}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4" />
-          New Request
-        </button>
-      </div>
+      <ITSearchFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search tickets..."
+        filters={[
+          { label: 'Status', value: statusFilter, onChange: setStatusFilter, options: STATUS_OPTIONS },
+          { label: 'Priority', value: priorityFilter, onChange: setPriorityFilter, options: PRIORITY_OPTIONS },
+          { label: 'Type', value: typeFilter, onChange: setTypeFilter, options: TYPE_OPTIONS },
+        ]}
+        trailing={
+          <button
+            onClick={onCreateTicket}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            New Request
+          </button>
+        }
+      />
 
       {/* Results */}
       {tickets.length === 0 ? (
