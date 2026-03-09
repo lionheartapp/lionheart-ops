@@ -1,76 +1,55 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-03-06T17:35:28.746Z"
-last_activity: "2026-03-06 — Completed 02-03: Work Orders table, filters, specialty highlighting, and live dashboard stats"
+milestone: v2.0
+milestone_name: Launch Readiness
+status: defining_requirements
+stopped_at: Milestone v2.0 initialized
+last_updated: "2026-03-08"
+last_activity: "2026-03-08 — Milestone v2.0 started from gap analysis"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 21
-  completed_plans: 21
-  percent: 83
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-05)
+See: .planning/PROJECT.md (updated 2026-03-08)
 
-**Core value:** Teachers can photograph a broken fixture and submit a maintenance request in under 60 seconds, while the maintenance team sees everything on a Kanban board with AI-assisted diagnostics — replacing SchoolDude for day-to-day ticket management.
-**Current focus:** Phase 1 — Foundation
+**Core value:** Schools can manage their entire operational workflow in one unified platform with role-based access, multi-campus support, and AI-assisted features.
+**Current focus:** Defining requirements for v2.0 Launch Readiness
 
 ## Current Position
 
-Phase: 2 of 7 (Core Tickets)
-Plan: 3 of 4 in current phase
-Status: In progress — ready for next plan (02-04)
-Last activity: 2026-03-06 — Completed 02-03: Work Orders table, filters, specialty highlighting, and live dashboard stats
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-08 — Milestone v2.0 started from gap analysis
 
-Progress: [████████░░] 83%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: -
+**Velocity (v1.0):**
+- Total plans completed: 21
+- Average duration: ~12min/plan
+- Total execution time: ~4.5 hours
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend:**
-- Last 5 plans: -
-- Trend: -
-
-*Updated after each plan completion*
-| Phase 01-foundation P01 | 3 | 2 tasks | 3 files |
-| Phase 01-foundation P02 | 6 | 2 tasks | 9 files |
-| Phase 02-core-tickets P01 | 11min | 2 tasks | 16 files |
-| Phase 02-core-tickets P02 | 6min | 2 tasks | 8 files |
-| Phase 02-core-tickets P03 | 6min | 2 tasks | 5 files |
-| Phase 02-core-tickets P04 | 25min | 2 tasks | 10 files |
-| Phase 03-kanban-ai P02 | 18min | 2 tasks | 8 files |
-| Phase 03-kanban-ai P01 | 25min | 2 tasks | 8 files |
-| Phase 04-assets-qr-pm P01 | 8min | 2 tasks | 14 files |
-| Phase 04-assets-qr-pm P05 | 30min | 2 tasks | 14 files |
-| Phase 04-assets-qr-pm P03 | 16min | 2 tasks | 11 files |
-| Phase 04-assets-qr-pm P02 | 45min | 2 tasks | 20 files |
-| Phase 04-assets-qr-pm P04 | 5min | 2 tasks | 6 files |
-| Phase 05-analytics-repair-intelligence P01 | 8min | 2 tasks | 12 files |
-| Phase 05-analytics-repair-intelligence P02 | 9min | 2 tasks | 9 files |
-| Phase 06-compliance-board-reporting P01 | 11min | 2 tasks | 17 files |
-| Phase 06-compliance-board-reporting P02 | 8min | 2 tasks | 10 files |
-| Phase 06-compliance-board-reporting P03 | 11min | 2 tasks | 13 files |
-| Phase 07-knowledge-base-offline-pwa P01 | 9min | 2 tasks | 18 files |
-| Phase 07-knowledge-base-offline-pwa P02 | 5min | 2 tasks | 12 files |
-| Phase 07-knowledge-base-offline-pwa P03 | 10min | 2 tasks | 15 files |
+| 01-foundation | 2 | ~9min | ~4.5min |
+| 02-core-tickets | 4 | ~48min | ~12min |
+| 03-kanban-ai | 2 | ~43min | ~21.5min |
+| 04-assets-qr-pm | 5 | ~104min | ~21min |
+| 05-analytics | 2 | ~17min | ~8.5min |
+| 06-compliance | 3 | ~30min | ~10min |
+| 07-knowledge-base | 3 | ~24min | ~8min |
 
 ## Accumulated Context
 
@@ -79,60 +58,9 @@ Progress: [████████░░] 83%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Roadmap]: Separate MaintenanceTicket model (not extending existing Ticket) — maintenance lifecycle is fundamentally different
-- [Roadmap]: Claude API (Anthropic) for AI diagnostics, not Gemini — pinned to claude-sonnet-4-5 via direct SDK
-- [Roadmap]: Supabase Storage for all file uploads; signed URL pattern to bypass Next.js 1MB body limit
-- [Roadmap]: 8-status Kanban from day one; SCHEDULED and QA statuses solve real Linfield pain points
-- [Roadmap]: Phase 3 must be preceded by Phase 2 — Kanban and AI layer on top of the ticket engine
-- [Phase 01-foundation]: MaintenanceTicket is separate from Ticket model — 8-status Kanban lifecycle, AI diagnostics, and labor tracking make it fundamentally different
-- [Phase 01-foundation]: Organization.timezone defaults to America/Los_Angeles (Linfield is California-based) for Phase 6 compliance date arithmetic
-- [Phase 01-foundation]: MaintenanceCounter and MaintenanceAssetCounter use rawPrisma — org-unique singletons for atomic increment, excluded from orgScopedModels
-- [Phase 01-foundation]: Maintenance nav uses simple links (no secondary sidebar panel) — permissions gate which links appear
-- [Phase 01-foundation]: Extended /api/auth/permissions endpoint with 3 maintenance permission checks rather than a separate endpoint
-- [Phase 01-foundation]: Emerald color theme for maintenance (#059669) to distinguish from amber (athletics) and primary-blue (core nav)
-- [Phase 02-core-tickets]: Room fields are roomNumber/displayName not name/code — corrected in all route includes and service layer
-- [Phase 02-core-tickets]: assignTicket has no specialty check (ROUTE-03) — head can assign any ticket to any tech regardless of specialty
-- [Phase 02-core-tickets]: Cron uses rawPrisma (no org context) to iterate all orgs — cross-platform maintenance tasks
-- [Phase 02-core-tickets]: Room-level entries in useCampusLocations use roomId field with hierarchy array for Building > Area > Room display
-- [Phase 02-core-tickets]: Wizard renders inline as full-area panel (not modal) for mobile usability — avoids scroll lock and z-index issues
-- [Phase 02-core-tickets]: AI suggested category auto-applies on first photo upload; user can override freely — reduces friction
-- [Phase 02-core-tickets]: Two-query split for Work Orders: main tickets (excludeStatus=SCHEDULED) + dedicated scheduled query keeps scheduled section independent of main filter state
-- [Phase 02-core-tickets]: Optimistic claim mutation: onMutate snapshots cache + patches with placeholder, onError rolls back, onSettled invalidates — user sees instant assignment feedback
-- [Phase 02-core-tickets]: TicketStatusTracker uses primary linear path with ON_HOLD/SCHEDULED/CANCELLED as branch state badges, not sequential steps
-- [Phase 02-core-tickets]: All gate UIs follow CONTEXT.md: inline expansion for hold, modal for QA transition, review panel for sign-off — consistent across phase
-- [Phase 03-kanban-ai]: Anthropic claude-sonnet-4-5 model used (not Gemini) per project decision — pinned model for maintenance AI diagnostics
-- [Phase 03-kanban-ai]: AI cache stored in existing MaintenanceTicket.aiAnalysis Json? field — no schema change needed for Phase 03
-- [Phase 03-kanban-ai]: MAINTENANCE_CLAIM permission guards both AI routes — technicians and heads can use AI, submitter-only users cannot
-- [Phase 03-kanban-ai]: Client-safe maintenance-transitions.ts: importing maintenanceTicketService pulls mjml/fs server deps into client bundle — created separate lightweight file
-- [Phase 03-kanban-ai]: Fixed WorkOrdersFilters enum mismatches: QA_REVIEW->QA, CARPENTRY->STRUCTURAL, PAINTING->CUSTODIAL_BIOHAZARD, CLEANING->IT_AV to match Prisma schema
-- [Phase 04-assets-qr-pm]: ASSETS_READ/CREATE/UPDATE/DELETE fine-grained permissions separate from legacy MAINTENANCE_MANAGE_ASSETS; QR endpoint returns immutable SVG; pmScheduleId nullable with @@unique constraint for PM-10 idempotency
-- [Phase 04-assets-qr-pm]: rawPrisma used in laborCostService (labor/cost models not in orgScopedModels); routes provide org scoping via runWithOrgContext
-- [Phase 04-assets-qr-pm]: Labor timer state in localStorage keyed by ticketId; resumes on navigation back across page refreshes
-- [Phase 04-assets-qr-pm]: getCostSummary computed server-side to avoid JS float precision errors for Phase 6 FCI calculations
-- [Phase 04-assets-qr-pm]: Client-safe type extraction into src/lib/types/pm-schedule.ts prevents node:async_hooks from leaking into client bundles via @/lib/db import chain
-- [Phase 04-assets-qr-pm]: Zod schema split: base schema without .refine() used for .partial() in UpdatePmScheduleSchema; create schema adds .refine() on top for CUSTOM validation
-- [Phase 04-assets-qr-pm]: html5-qrcode for browser QR scanning; jsPDF for client-side label PDFs; assetId nullable FK on MaintenanceTicket; StepAsset optional in wizard (Skip button)
-- [Phase 04-assets-qr-pm]: Lazy import for pmScheduleService in maintenanceTicketService DONE handler avoids circular dependency; generatePmTickets uses rawPrisma (no org context in cron); submittedById fallback to any active org user when no default tech set
-- [Phase 04-assets-qr-pm]: PM cron idempotency via P2002 unique constraint catch; QA gate dual-enforced client+server; nextDueDate cycles from completion date not scheduled date
-- [Phase 05-analytics-repair-intelligence]: rawPrisma in analytics service for cross-entity aggregations; campus filter resolves via school.campusId join; PM Compliance inline stat cards rather than chart
-- [Phase 05-analytics-repair-intelligence]: TenantModule uses moduleId not moduleKey; existence = enabled (no isEnabled flag)
-- [Phase 05-analytics-repair-intelligence]: Idempotency via 30-day cooldown on asset alert sentinel fields (repeatAlertSentAt, costAlertSentAt, eolAlertSentAt)
-- [Phase 05-analytics-repair-intelligence]: AI recommendation freshness check prevents redundant Anthropic API calls on cron re-runs; stored as Json? on MaintenanceAsset
-- [Phase 06-compliance-board-reporting]: Client-safe constants extracted: COMPLIANCE_DOMAIN_DEFAULTS/COMPLIANCE_DOMAINS moved to @/lib/types/compliance.ts to prevent mjml/fs server deps leaking into client bundles
-- [Phase 06-compliance-board-reporting]: Find-or-create replaces upsert for ComplianceDomainConfig: Prisma upsert on nullable composite unique fails with null schoolId — use findFirst + create/update
-- [Phase 06-compliance-board-reporting]: Compliance page at /maintenance/compliance (not /app/[tenant]/maintenance/compliance): matches existing maintenance module structure
-- [Phase 06-compliance-board-reporting]: jsPDF v4 named export { jsPDF } not default — import pattern differs from v3
-- [Phase 06-compliance-board-reporting]: Blob URL download for authenticated PDF GET: fetch with Authorization header, res.blob(), URL.createObjectURL avoids token in URL
-- [Phase 06-compliance-board-reporting]: Asset cost queries nest through tickets: MaintenanceAsset.tickets[].costEntries — no direct cost/labor relation on asset model
-- [Phase 06-compliance-board-reporting]: Anthropic SDK loaded via dynamic import in generateAINarrative — prevents bundle issues and supports graceful fallback when ANTHROPIC_API_KEY not set
-- [Phase 06-compliance-board-reporting]: FCI = deferred maintenance (open tickets with estimatedRepairCostUSD) / total replacement value (ACTIVE assets with replacementCost) — returns 0 when no assets
-- [Phase 07-knowledge-base-offline-pwa]: KnowledgeArticle.organizationId passed as placeholder to satisfy TypeScript; org-scoped Prisma client overwrites via AsyncLocalStorage
-- [Phase 07-knowledge-base-offline-pwa]: findRelevantArticles uses pure keyword matching (no AI API call) — fast, deterministic, zero cost
-- [Phase 07-knowledge-base-offline-pwa]: SVG icons instead of PNG in PWA manifest — avoids binary generation dependency, browsers accept SVG on modern platforms
-- [Phase 07-knowledge-base-offline-pwa]: Service worker disabled in development (disable: NODE_ENV===development) — prevents stale cache interference during coding
-- [Phase 07-knowledge-base-offline-pwa]: ExpirationPlugin class from serwist (not cacheExpiration object literal) — correct Serwist v9 plugin API
-- [Phase 07-knowledge-base-offline-pwa]: dexie-react-hooks separate package from dexie v4 core; useLiveQuery 3-arg form requires explicit TDefault generic
-- [Phase 07-knowledge-base-offline-pwa]: Offline mutation queue: temp-{timestamp} IDs for offline-created tickets replaced with real server ID via updateTempIdReferences after TICKET_CREATE sync
+- [v2.0]: Tier 1 + Tier 2 gaps in scope; Tier 3 deferred to v2.1
+- [v2.0]: httpOnly cookies to replace localStorage JWT
+- [v2.0]: Vitest for unit tests, Pino for logging, Sentry for error tracking
 
 ### Pending Todos
 
@@ -140,13 +68,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 1]: Verify whether `Organization` model already has a `timezone` field; if not, add it in Phase 1 settings (required for Phase 6 compliance date arithmetic — one-line schema addition, zero risk)
-- [Phase 4]: `avoidSchoolYear` flag on PM schedules requires a `SchoolCalendar` model with break date ranges; decide before Phase 4 planning whether to (a) add SchoolCalendar as Phase 4 prerequisite or (b) ship flag as display-only until calendar model exists
-- [Phase 6]: FCI calculation scope decision needed: use only closed ticket costs, or include `estimatedRepairCostUSD` on open tickets for deferred maintenance cost? Latter is more useful but requires the field to be added in Phase 2.
-- [Phase 7]: Offline PWA sync architecture (serwist/next + dexie + conflict resolution UX) is medium-confidence; recommend a focused research spike before Phase 7 planning begins
+- Auth migration (localStorage → httpOnly cookies) must not break existing sessions — needs graceful migration strategy
+- Privacy Policy / Terms of Service content needs legal review — placeholder text initially
+- Inventory system is 95% unfinished — largest single feature in this milestone
+- Pagination retrofit across 281 API routes requires careful prioritization
 
 ## Session Continuity
 
-Last session: 2026-03-06T17:28:13.372Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-03-08
+Stopped at: Milestone v2.0 initialized — defining requirements
 Resume file: None
