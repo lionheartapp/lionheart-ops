@@ -142,11 +142,11 @@ Plans:
 
 ---
 
-### 🚧 v2.0 Launch Readiness (In Progress)
+### v2.0 Launch Readiness (In Progress)
 
 **Milestone Goal:** Harden the platform for production launch — closing security gaps, completing unfinished features, building missing marketing pages, and establishing operational infrastructure.
 
-- [x] **Phase 8: Auth Hardening and Security** - Production-grade auth: forgot password, rate limiting, httpOnly cookies, CSRF, email verification, input sanitization, and webhook signatures (completed 2026-03-09)
+- [ ] **Phase 8: Auth Hardening and Security** - Production-grade auth: forgot password, rate limiting, httpOnly cookies, CSRF, email verification, input sanitization, and webhook signatures (gap closure in progress)
 - [ ] **Phase 9: Marketing and Legal Pages** - Public pages visitors need before signing up: Privacy Policy, Terms of Service, Pricing, About/Contact, and wired footer
 - [ ] **Phase 10: Inventory System** - Full inventory CRUD, checkout/checkin workflow, transaction log, reorder alerts, and inventory UI page
 - [ ] **Phase 11: Calendar, Ticket, and Feature Gaps** - Draft events individual routes, room conflict detection, ticket drawer edit button, ticket comments/attachments, and ticket search
@@ -165,14 +165,16 @@ Plans:
   3. JWT is stored in an httpOnly cookie — no token value is accessible from JavaScript via document.cookie or localStorage
   4. User who signs up receives a verification email and cannot access the authenticated dashboard until the email link is clicked
   5. Uploading a file with a disallowed MIME type or over the size limit is rejected with a descriptive error before any storage occurs
-**Plans**: 5 plans
+**Plans**: 7 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Forgot password flow: reset token endpoint, email template, reset UI (AUTH-01)
-- [ ] 08-02-PLAN.md — Rate limiting middleware on login and public endpoints (AUTH-02, AUTH-03)
-- [ ] 08-03-PLAN.md — httpOnly cookie JWT migration + CSRF protection (AUTH-04, AUTH-05)
-- [ ] 08-04-PLAN.md — Input sanitization, file upload validation, webhook signature verification (AUTH-06, AUTH-07, AUTH-08, AUTH-11)
-- [ ] 08-05-PLAN.md — Email verification on signup + password complexity rules (AUTH-09, AUTH-10)
+- [x] 08-01-PLAN.md — Forgot password flow: reset token endpoint, email template, reset UI (AUTH-01)
+- [x] 08-02-PLAN.md — Rate limiting middleware on login and public endpoints (AUTH-02, AUTH-03)
+- [x] 08-03-PLAN.md — httpOnly cookie JWT migration + CSRF protection (AUTH-04, AUTH-05)
+- [x] 08-04-PLAN.md — Input sanitization, file upload validation, webhook signature verification (AUTH-06, AUTH-07, AUTH-08, AUTH-11)
+- [x] 08-05-PLAN.md — Email verification on signup + password complexity rules (AUTH-09, AUTH-10)
+- [ ] 08-06-PLAN.md — Gap closure: Wire PasswordInput into reset-password and set-password pages (AUTH-10)
+- [ ] 08-07-PLAN.md — Gap closure: Fix CSRF bypass via directOrgId early-return + migrate client components from manual x-org-id (AUTH-05)
 
 ### Phase 9: Marketing and Legal Pages
 **Goal**: Visitors can evaluate, trust, and sign up for the platform through complete public pages — no dead links or placeholder text
@@ -277,7 +279,7 @@ Plans:
 | 5. Analytics & Repair Intelligence | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 6. Compliance & Board Reporting | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 7. Knowledge Base & Offline PWA | v1.0 | 3/3 | Complete | 2026-03-06 |
-| 8. Auth Hardening and Security | 5/5 | Complete   | 2026-03-09 | - |
+| 8. Auth Hardening and Security | v2.0 | 5/7 | Gap closure | - |
 | 9. Marketing and Legal Pages | v2.0 | 0/3 | Not started | - |
 | 10. Inventory System | v2.0 | 0/3 | Not started | - |
 | 11. Calendar, Ticket, Feature Gaps | v2.0 | 0/3 | Not started | - |
