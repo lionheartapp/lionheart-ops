@@ -32,6 +32,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
+        credentials: 'include', // Required so browser stores the Set-Cookie response
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, organizationId }),
       })
@@ -43,44 +44,8 @@ export default function LoginForm({ organizationId, organizationName, organizati
         return
       }
 
-      // Store auth token and org ID for 30 days (matching JWT expiration)
-      localStorage.setItem('auth-token', data.data.token)
-      localStorage.setItem('org-id', data.data.organizationId)
-      localStorage.setItem('user-name', data.data.user.name || 'User')
-      localStorage.setItem('user-email', data.data.user.email)
-      if (data.data.user.avatar) {
-        localStorage.setItem('user-avatar', data.data.user.avatar)
-      } else {
-        localStorage.removeItem('user-avatar')
-      }
-      if (data.data.user.team) {
-        localStorage.setItem('user-team', data.data.user.team)
-      } else {
-        localStorage.removeItem('user-team')
-      }
-      if (data.data.user.schoolScope) {
-        localStorage.setItem('user-school-scope', data.data.user.schoolScope)
-      } else {
-        localStorage.removeItem('user-school-scope')
-      }
-      if (data.data.user.role) {
-        localStorage.setItem('user-role', data.data.user.role)
-      } else {
-        localStorage.removeItem('user-role')
-      }
-      localStorage.setItem('org-name', data.data.organization?.name || organizationName)
-      if (data.data.organization?.schoolType) {
-        localStorage.setItem('org-school-type', data.data.organization.schoolType)
-      } else {
-        localStorage.removeItem('org-school-type')
-      }
-      const logo = data.data.organization?.logoUrl || organizationLogoUrl
-      if (logo) {
-        localStorage.setItem('org-logo-url', logo)
-      } else {
-        localStorage.removeItem('org-logo-url')
-      }
-
+      // Auth token is now stored in an httpOnly cookie by the server.
+      // No localStorage writes needed — redirect directly to dashboard.
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error')

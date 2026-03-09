@@ -1,49 +1,70 @@
 /**
  * Shared API fetch helper for TanStack Query hooks.
  *
- * Reads the auth token from localStorage, attaches it as a Bearer token,
- * and handles 401 → logout redirects automatically.
+ * Cookie-based auth: JWT is stored in an httpOnly cookie set by the server.
+ * The browser automatically sends the cookie with every fetch that includes
+ * `credentials: 'include'`. CSRF tokens are read from the non-httpOnly
+ * csrf-token cookie and sent as the X-CSRF-Token header on state-changing
+ * requests.
+ *
+ * Legacy compatibility: existing localStorage sessions still work because
+ * middleware falls back to the Authorization header during the migration period.
  */
 
+const LEGACY_KEYS = [
+  'auth-token',
+  'org-id',
+  'user-name',
+  'user-email',
+  'user-avatar',
+  'user-team',
+  'user-school-scope',
+  'user-role',
+  'org-name',
+  'org-school-type',
+  'org-logo-url',
+] as const
+
+/**
+ * Read the CSRF token from the non-httpOnly csrf-token cookie.
+ * Returns null when running server-side or when no CSRF cookie exists.
+ */
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.split(';').find((c) => c.trim().startsWith('csrf-token='))
+  return match ? match.trim().slice('csrf-token='.length) : null
+}
+
+/**
+ * Build request headers.
+ * Includes Content-Type and CSRF token when available.
+ * No longer reads localStorage for the auth token — cookie is sent automatically.
+ */
 export function getAuthHeaders(): HeadersInit {
-  const token =
-    typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+  const csrfToken = getCsrfToken()
   return {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
   }
 }
 
 /**
  * Generic API fetcher.
- * Throws on non-ok responses so TanStack Query treats them as errors.
- * On 401 it clears stale auth data and redirects to /login.
+ * Sends credentials (cookies) on every request.
+ * On 401: clears any legacy localStorage data and redirects to /login.
+ * Throws on non-ok JSON responses so TanStack Query treats them as errors.
  */
-export async function fetchApi<T>(
-  url: string,
-  options?: RequestInit
-): Promise<T> {
+export async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...options,
+    credentials: 'include',
     headers: { ...getAuthHeaders(), ...options?.headers },
   })
 
-  // Handle expired / invalid tokens globally
+  // Session expired or cookie missing — clean up and redirect
   if (res.status === 401 && typeof window !== 'undefined') {
-    const keysToRemove = [
-      'auth-token',
-      'org-id',
-      'user-name',
-      'user-email',
-      'user-avatar',
-      'user-team',
-      'user-school-scope',
-      'user-role',
-      'org-name',
-      'org-school-type',
-      'org-logo-url',
-    ]
-    keysToRemove.forEach((k) => localStorage.removeItem(k))
+    // Clean up any legacy localStorage data from the old auth pattern
+    LEGACY_KEYS.forEach((k) => localStorage.removeItem(k))
     window.location.href = '/login'
     throw new Error('Session expired')
   }

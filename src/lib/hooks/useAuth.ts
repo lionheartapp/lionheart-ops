@@ -6,11 +6,16 @@ import { useRouter } from 'next/navigation'
 /**
  * Centralized client-side auth hook.
  *
- * Reads auth / user / org data from localStorage once, provides a stable
- * reference, and handles logout + redirect logic in one place.
+ * Fetches user and org data from /api/auth/me on mount (server reads the
+ * httpOnly auth-token cookie automatically). Provides a stable reference and
+ * handles logout + redirect logic in one place.
  *
  * Usage:
  *   const { token, orgId, user, org, isReady, logout } = useAuth()
+ *
+ * Note: `token` is always null — the JWT is stored in an httpOnly cookie and
+ * is not accessible to JavaScript. Code that previously used `state.token` for
+ * API calls should use `credentials: 'include'` instead (handled by fetchApi).
  */
 
 export interface AuthUser {
@@ -34,14 +39,14 @@ export interface AuthState {
   orgId: string | null
   user: AuthUser
   org: AuthOrg
-  /** True once the first client-side read has completed */
+  /** True once the first /api/auth/me fetch has completed (success or failure) */
   isReady: boolean
-  /** True if the user has admin/super role (optimistic from localStorage) */
+  /** True if the user has admin/super role */
   isAdmin: boolean
-  logout: () => void
+  logout: () => Promise<void>
 }
 
-const AUTH_KEYS = [
+const LEGACY_KEYS = [
   'auth-token',
   'org-id',
   'user-name',
@@ -55,80 +60,69 @@ const AUTH_KEYS = [
   'org-logo-url',
 ] as const
 
-function readFromStorage(): {
-  token: string | null
-  orgId: string | null
-  user: AuthUser
-  org: AuthOrg
-} {
-  if (typeof window === 'undefined') {
-    return {
-      token: null,
-      orgId: null,
-      user: { name: 'User', email: '', avatar: null, team: null, schoolScope: null, role: null },
-      org: { id: '', name: 'School', schoolType: null, logoUrl: null },
-    }
-  }
+const DEFAULT_USER: AuthUser = {
+  name: 'User',
+  email: '',
+  avatar: null,
+  team: null,
+  schoolScope: null,
+  role: null,
+}
 
-  const token = localStorage.getItem('auth-token')
-  const orgId = localStorage.getItem('org-id')
-
-  return {
-    token,
-    orgId,
-    user: {
-      name: localStorage.getItem('user-name') || 'User',
-      email: localStorage.getItem('user-email') || '',
-      avatar: localStorage.getItem('user-avatar') || null,
-      team: localStorage.getItem('user-team') || null,
-      schoolScope: localStorage.getItem('user-school-scope') || null,
-      role: localStorage.getItem('user-role') || null,
-    },
-    org: {
-      id: orgId || '',
-      name: localStorage.getItem('org-name') || 'School',
-      schoolType: localStorage.getItem('org-school-type') || null,
-      logoUrl: localStorage.getItem('org-logo-url') || null,
-    },
-  }
+const DEFAULT_ORG: AuthOrg = {
+  id: '',
+  name: 'School',
+  schoolType: null,
+  logoUrl: null,
 }
 
 export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {}): AuthState {
   const router = useRouter()
   const [isReady, setIsReady] = useState(false)
-  const [state, setState] = useState(readFromStorage)
+  const [user, setUser] = useState<AuthUser>(DEFAULT_USER)
+  const [org, setOrg] = useState<AuthOrg>(DEFAULT_ORG)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Read from localStorage on client mount
+  // Fetch user data from server on mount (reads httpOnly cookie automatically)
   useEffect(() => {
-    setState(readFromStorage())
-    setIsReady(true)
-  }, [])
+    let cancelled = false
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (isReady && (!state.token || !state.orgId) && redirectTo) {
-      router.push(redirectTo)
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Not authenticated')
+        return res.json()
+      })
+      .then((json) => {
+        if (cancelled) return
+        if (!json.ok) throw new Error('Not authenticated')
+        setUser(json.data.user)
+        setOrg(json.data.org)
+        setIsAuthenticated(true)
+        setIsReady(true)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setIsReady(true)
+        if (redirectTo) router.push(redirectTo)
+      })
+
+    return () => {
+      cancelled = true
     }
-  }, [isReady, state.token, state.orgId, redirectTo, router])
+  }, [redirectTo, router])
 
-  // Listen for avatar & profile updates from other components
+  // Listen for avatar & profile updates dispatched by other components
   useEffect(() => {
     const handleAvatarUpdate = (e: Event) => {
       const event = e as CustomEvent
       if (event.detail?.avatar !== undefined) {
-        setState((prev) => ({
-          ...prev,
-          user: { ...prev.user, avatar: event.detail.avatar },
-        }))
+        setUser((prev) => ({ ...prev, avatar: event.detail.avatar }))
       }
     }
     const handleProfileUpdate = (e: Event) => {
       const event = e as CustomEvent
       if (event.detail?.name) {
-        setState((prev) => ({
-          ...prev,
-          user: { ...prev.user, name: event.detail.name },
-        }))
+        setUser((prev) => ({ ...prev, name: event.detail.name }))
       }
     }
 
@@ -140,17 +134,28 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
     }
   }, [])
 
-  const logout = useCallback(() => {
-    AUTH_KEYS.forEach((key) => localStorage.removeItem(key))
+  const logout = useCallback(async () => {
+    // Tell server to clear the httpOnly cookie
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    // Clean up any legacy localStorage data from the old auth pattern
+    LEGACY_KEYS.forEach((k) => localStorage.removeItem(k))
     router.push('/login')
   }, [router])
 
   const isAdmin = useMemo(() => {
-    const role = (state.user.role || '').toLowerCase()
+    const role = (user.role || '').toLowerCase()
     return role.includes('admin') || role.includes('super')
-  }, [state.user.role])
+  }, [user.role])
 
-  return { ...state, isReady, isAdmin, logout }
+  return {
+    token: null, // JWT is in httpOnly cookie — not accessible to JS
+    orgId: isAuthenticated ? org.id || null : null,
+    user,
+    org,
+    isReady,
+    isAdmin,
+    logout,
+  }
 }
 
 export default useAuth

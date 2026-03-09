@@ -52,6 +52,7 @@ function ResetPasswordContent() {
     try {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
+        credentials: 'include', // Required so browser stores the Set-Cookie response
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
       })
@@ -72,42 +73,8 @@ function ResetPasswordContent() {
         return
       }
 
-      // Auto-login: store auth data using the same pattern as LoginForm
-      const { token: authToken, organizationId, organization, user } = data.data
-
-      localStorage.setItem('auth-token', authToken)
-      localStorage.setItem('org-id', organizationId)
-      localStorage.setItem('user-name', user.name || 'User')
-      localStorage.setItem('user-email', user.email)
-      if (user.avatar) {
-        localStorage.setItem('user-avatar', user.avatar)
-      } else {
-        localStorage.removeItem('user-avatar')
-      }
-      if (user.team) {
-        localStorage.setItem('user-team', user.team)
-      } else {
-        localStorage.removeItem('user-team')
-      }
-      if (user.schoolScope) {
-        localStorage.setItem('user-school-scope', user.schoolScope)
-      } else {
-        localStorage.removeItem('user-school-scope')
-      }
-      if (user.role) {
-        localStorage.setItem('user-role', user.role)
-      } else {
-        localStorage.removeItem('user-role')
-      }
-      if (organization?.name) {
-        localStorage.setItem('org-name', organization.name)
-      }
-      if (organization?.logoUrl) {
-        localStorage.setItem('org-logo-url', organization.logoUrl)
-      } else {
-        localStorage.removeItem('org-logo-url')
-      }
-
+      // Auth token is now stored in an httpOnly cookie by the server.
+      // No localStorage writes needed — redirect directly to dashboard.
       setSuccess(true)
       setTimeout(() => router.push('/dashboard'), 1500)
     } catch {

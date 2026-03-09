@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Return same shape as login for client compatibility
-    return NextResponse.json(
+    const response = NextResponse.json(
       ok({
         token: authToken,
         organizationId: user.organizationId,
@@ -136,6 +136,27 @@ export async function POST(req: NextRequest) {
         },
       })
     )
+
+    // Set httpOnly auth cookie for auto-login after reset (same pattern as login endpoint)
+    response.cookies.set('auth-token', authToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    })
+
+    // Set CSRF token (non-httpOnly so JS can read it for X-CSRF-Token header)
+    const csrfToken = crypto.randomUUID()
+    response.cookies.set('csrf-token', csrfToken, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    })
+
+    return response
   } catch (error) {
     console.error('[POST /api/auth/reset-password]', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })

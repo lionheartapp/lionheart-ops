@@ -1,8 +1,27 @@
 /**
  * Client-side auth utilities
  *
- * Handles stale token detection and redirects to login.
+ * Handles stale session detection and redirects to login.
+ *
+ * With cookie-based auth, the server clears the auth-token cookie via
+ * POST /api/auth/logout. This module handles the client-side cleanup of
+ * any legacy localStorage data from the old auth pattern and triggers
+ * a redirect.
  */
+
+const LEGACY_KEYS = [
+  'auth-token',
+  'org-id',
+  'user-name',
+  'user-email',
+  'user-avatar',
+  'user-team',
+  'user-school-scope',
+  'user-role',
+  'org-name',
+  'org-school-type',
+  'org-logo-url',
+] as const
 
 /**
  * Check an API response for 401 status and redirect to login if needed.
@@ -12,19 +31,9 @@
  */
 export function handleAuthResponse(response: Response): boolean {
   if (response.status === 401) {
-    // Clear stale auth data
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth-token')
-      localStorage.removeItem('org-id')
-      localStorage.removeItem('user-name')
-      localStorage.removeItem('user-email')
-      localStorage.removeItem('user-avatar')
-      localStorage.removeItem('user-team')
-      localStorage.removeItem('user-school-scope')
-      localStorage.removeItem('user-role')
-      localStorage.removeItem('org-name')
-      localStorage.removeItem('org-school-type')
-      localStorage.removeItem('org-logo-url')
+      // Clean up any legacy localStorage data from the old auth pattern
+      LEGACY_KEYS.forEach((k) => localStorage.removeItem(k))
       window.location.href = '/login'
     }
     return true
