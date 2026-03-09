@@ -212,16 +212,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
-  const directOrgId = req.headers.get('x-org-id')?.trim()
-  const authHeader = req.headers.get('authorization')
-
-  if (directOrgId) {
-    requestHeaders.set('x-org-id', directOrgId)
-    return NextResponse.next({ request: { headers: requestHeaders } })
-  }
-
   // ─── CSRF Validation (state-changing API requests) ───────────────
-  // Only validate when csrf-token cookie is present (backward compat for old sessions)
+  // Runs BEFORE directOrgId early-return to prevent CSRF bypass via x-org-id header.
+  // Only validates when csrf-token cookie is present (backward compat for old sessions).
   if (
     pathname.startsWith('/api/') &&
     ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)
@@ -242,6 +235,15 @@ export async function middleware(req: NextRequest) {
         )
       }
     }
+  }
+
+  // ─── Direct org-id shortcut (for legacy/internal use) ───────────
+  const directOrgId = req.headers.get('x-org-id')?.trim()
+  const authHeader = req.headers.get('authorization')
+
+  if (directOrgId) {
+    requestHeaders.set('x-org-id', directOrgId)
+    return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
   // ─── Token extraction: cookie first, then Authorization header ──
