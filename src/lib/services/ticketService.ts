@@ -3,19 +3,20 @@ import { prisma } from '@/lib/db'
 import { Ticket, TicketStatus, TicketSource } from '@prisma/client'
 import { assertCan, can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { stripAllHtml } from '@/lib/sanitize'
 
 // ============= Validation Schemas =============
 
 export const CreateTicketSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200),
-  description: z.string().optional().nullable(),
+  title: z.string().min(1, 'Title is required').max(200).transform(stripAllHtml),
+  description: z.string().transform(stripAllHtml).optional().nullable(),
   category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).default('MAINTENANCE'),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).default('NORMAL'),
   source: z.enum(['MANUAL', 'SHADOW_EVENT_AUTOMATION']).default('MANUAL'),
   schoolId: z.string().optional().nullable(),
   locationRefType: z.enum(['ROOM', 'AREA', 'BUILDING', 'FREE_TEXT']).optional().nullable(),
   locationRefId: z.string().optional().nullable(),
-  locationText: z.string().trim().min(1).max(300).optional().nullable(),
+  locationText: z.string().trim().min(1).max(300).transform(stripAllHtml).optional().nullable(),
   assignedToId: z.string().optional().nullable(),
 }).superRefine((data, ctx) => {
   const hasRefType = !!data.locationRefType
@@ -40,15 +41,15 @@ export const CreateTicketSchema = z.object({
 })
 
 export const UpdateTicketSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().optional().nullable(),
+  title: z.string().min(1).max(200).transform(stripAllHtml).optional(),
+  description: z.string().transform(stripAllHtml).optional().nullable(),
   category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).optional(),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
   status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED']).optional(),
   schoolId: z.string().optional().nullable(),
   locationRefType: z.enum(['ROOM', 'AREA', 'BUILDING', 'FREE_TEXT']).optional().nullable(),
   locationRefId: z.string().optional().nullable(),
-  locationText: z.string().trim().min(1).max(300).optional().nullable(),
+  locationText: z.string().trim().min(1).max(300).transform(stripAllHtml).optional().nullable(),
   assignedToId: z.string().optional().nullable(),
 }).superRefine((data, ctx) => {
   const refTypeProvided = data.locationRefType !== undefined

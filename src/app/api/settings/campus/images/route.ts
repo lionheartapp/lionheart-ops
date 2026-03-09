@@ -7,9 +7,9 @@ import { rawPrisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { uploadCampusImage, deleteCampusImage } from '@/lib/services/storageService'
+import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 
 const MAX_IMAGES = 4
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 const UploadSchema = z.object({
   entityType: z.enum(['building', 'area', 'room']),
@@ -52,10 +52,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const input = UploadSchema.parse(body)
 
-    // Decode base64 and check size
+    // Decode base64 and validate MIME type + size using shared utility
     const fileBuffer = Buffer.from(input.fileBase64, 'base64')
-    if (fileBuffer.length > MAX_FILE_SIZE) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'File size exceeds 5MB limit'), { status: 400 })
+    const uploadCheck = validateFileUpload(
+      { type: input.contentType, size: fileBuffer.length, name: `${input.entityType}-image` },
+      { allowedTypes: ALLOWED_IMAGE_TYPES, maxSizeBytes: 5 * 1024 * 1024 }
+    )
+    if (!uploadCheck.valid) {
+      return NextResponse.json(fail('VALIDATION_ERROR', uploadCheck.error!), { status: 400 })
     }
 
     // Verify entity exists and belongs to org

@@ -6,8 +6,10 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { uploadBrandingImage, deleteBrandingImage } from '@/lib/services/storageService'
+import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+// Branding allows SVG in addition to standard image types
+const ALLOWED_BRANDING_TYPES = new Set([...ALLOWED_IMAGE_TYPES, 'image/svg+xml'])
 
 const UploadSchema = z.object({
   imageType: z.enum(['logo', 'hero']),
@@ -35,8 +37,12 @@ export async function POST(req: NextRequest) {
     const input = UploadSchema.parse(body)
 
     const fileBuffer = Buffer.from(input.fileBase64, 'base64')
-    if (fileBuffer.length > MAX_FILE_SIZE) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'File size exceeds 5MB limit'), { status: 400 })
+    const uploadCheck = validateFileUpload(
+      { type: input.contentType, size: fileBuffer.length, name: `${input.imageType}-branding` },
+      { allowedTypes: ALLOWED_BRANDING_TYPES, maxSizeBytes: 5 * 1024 * 1024 }
+    )
+    if (!uploadCheck.valid) {
+      return NextResponse.json(fail('VALIDATION_ERROR', uploadCheck.error!), { status: 400 })
     }
 
     const imageUrl = await uploadBrandingImage(

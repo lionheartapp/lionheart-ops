@@ -3,13 +3,14 @@ import { prisma } from '@/lib/db'
 import type { Event } from '@prisma/client'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { stripAllHtml } from '@/lib/sanitize'
 
 // ============= Validation Schemas =============
 
 export const CreateEventSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200),
-  description: z.string().optional().nullable(),
-  room: z.string().optional().nullable(),
+  title: z.string().min(1, 'Title is required').max(200).transform(stripAllHtml),
+  description: z.string().transform(stripAllHtml).optional().nullable(),
+  room: z.string().transform(stripAllHtml).optional().nullable(),
   startsAt: z.string().datetime().or(z.date()),
   endsAt: z.string().datetime().or(z.date()),
   submittedById: z.string().optional().nullable(),

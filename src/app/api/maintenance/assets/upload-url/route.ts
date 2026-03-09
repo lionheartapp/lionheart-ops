@@ -13,6 +13,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createClient } from '@supabase/supabase-js'
+import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 
 const UploadUrlSchema = z.object({
   fileName: z.string().min(1),
@@ -46,6 +47,16 @@ export async function POST(req: NextRequest) {
     }
 
     const { fileName, contentType } = parsed.data
+
+    // Validate MIME type before generating a signed URL
+    const uploadCheck = validateFileUpload(
+      { type: contentType, size: 0, name: fileName },
+      { allowedTypes: ALLOWED_IMAGE_TYPES }
+    )
+    if (!uploadCheck.valid) {
+      return NextResponse.json(fail('VALIDATION_ERROR', uploadCheck.error!), { status: 400 })
+    }
+
     const storagePath = `${orgId}/${Date.now()}-${fileName}`
 
     const supabase = getSupabaseClient()
