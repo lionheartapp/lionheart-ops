@@ -1,393 +1,194 @@
-# Requirements: Lionheart Maintenance & Facilities Module
+# Requirements: Lionheart Platform
 
-**Defined:** 2026-03-05
-**Core Value:** Teachers can photograph a broken fixture and submit a maintenance request in under 60 seconds, while the maintenance team sees everything on a Kanban board with AI-assisted diagnostics.
+**Defined:** 2026-03-05 (v1.0), 2026-03-08 (v2.0)
+**Core Value:** Schools can manage their entire operational workflow in one unified platform with role-based access, multi-campus support, and AI-assisted features.
 
-## v1 Requirements
+## v2.0 Requirements
 
-### Schema & Foundation (SCHEMA)
+Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 
-- [x] **SCHEMA-01**: MaintenanceTicket model with 8-status lifecycle, org-scoped, soft-delete
-- [x] **SCHEMA-02**: TechnicianProfile model with specialties array, workload cap, loaded hourly rate
-- [x] **SCHEMA-03**: TicketActivity model for full audit trail (status changes, comments, assignments)
-- [x] **SCHEMA-04**: Maintenance-specific permissions added to Permission table and DEFAULT_ROLES
-- [x] **SCHEMA-05**: MaintenanceTicket includes `version` field for future offline sync (Phase 3 prep)
-- [x] **SCHEMA-06**: Organization model extended with `timezone` field for compliance date arithmetic (Phase 3 prep)
-- [x] **SCHEMA-07**: Auto-incrementing ticket number generation (MT-0001 format)
+### Authentication & Security
 
-### Ticket Submission (SUBMIT)
+- [ ] **AUTH-01**: User can reset their password via a "Forgot Password" email link with secure token
+- [ ] **AUTH-02**: Login endpoint enforces rate limiting (max 5 attempts per 15 minutes per IP)
+- [ ] **AUTH-03**: All public endpoints enforce rate limiting (configurable per-route)
+- [ ] **AUTH-04**: JWT tokens are stored in httpOnly secure cookies instead of localStorage
+- [ ] **AUTH-05**: All state-changing API requests include CSRF protection
+- [ ] **AUTH-06**: All user-submitted text fields are sanitized against XSS before storage
+- [ ] **AUTH-07**: Stripe webhook endpoint verifies request signatures before processing
+- [ ] **AUTH-08**: Clever and ClassLink webhook endpoints verify request signatures
+- [ ] **AUTH-09**: User receives email verification link after signup and must verify before full access
+- [ ] **AUTH-10**: Password creation enforces complexity rules (uppercase, number, special character, 8+ chars)
+- [ ] **AUTH-11**: File uploads validate file size limits and MIME types before processing
 
-- [x] **SUBMIT-01**: User can select location via Building → Area → Room picker pre-populated from campus
-- [x] **SUBMIT-02**: User can enter short title (required) and optional description
-- [x] **SUBMIT-03**: User can upload 1–5 photos via signed URL direct-to-Supabase pattern
-- [x] **SUBMIT-04**: User can select category from 8 options (Electrical, Plumbing, HVAC, Structural, Custodial/Biohazard, IT/AV, Grounds, Other)
-- [x] **SUBMIT-05**: User can set priority (Low / Medium / High / Urgent)
-- [x] **SUBMIT-06**: User can add optional availability note for room access
-- [x] **SUBMIT-07**: Submitted ticket enters BACKLOG status with auto-assigned specialty tag
-- [x] **SUBMIT-08**: AI auto-suggests category when photos are uploaded
-- [x] **SUBMIT-09**: AI detects multi-issue submissions and suggests splitting before final submit
-- [x] **SUBMIT-10**: Confirmation email sent to submitter with ticket number (MT-XXXX)
-- [x] **SUBMIT-11**: Urgent tickets immediately alert Head of Maintenance via email + in-app notification
+### Landing & Marketing Pages
 
-### Kanban Board (BOARD)
+- [ ] **PAGE-01**: Visitors can view a Privacy Policy page compliant with COPPA/FERPA for K-12 schools
+- [ ] **PAGE-02**: Visitors can view a Terms of Service page governing platform usage
+- [ ] **PAGE-03**: Visitors can view a Pricing page showing plans and costs before signup
+- [ ] **PAGE-04**: Visitors can view an About page with company information and a Contact form
+- [ ] **PAGE-05**: All footer links navigate to real pages (Features, Pricing, About, Contact, Privacy, Terms)
+- [ ] **PAGE-06**: "Coming soon" OAuth buttons on signup are hidden or replaced with a clean non-OAuth flow
 
-- [x] **BOARD-01**: Kanban board displays columns mapping 1:1 to ticket statuses
-- [x] **BOARD-02**: Drag-and-drop moves tickets between columns with role-based validation
-- [x] **BOARD-03**: "My Board" view shows only tickets assigned to current technician
-- [x] **BOARD-04**: "Campus Board" view shows all tickets for one campus (Head/Admin only)
-- [x] **BOARD-05**: "All Campuses" view shows cross-campus tickets with filtering (Head/Admin only)
-- [x] **BOARD-06**: Ticket cards show: ID, title, location, priority badge, category tag, assigned tech, age, photo/AI indicators
-- [x] **BOARD-07**: Backlog filters: specialty, priority, campus, technician, date range, keyword search, unassigned toggle
-- [x] **BOARD-08**: SCHEDULED tickets shown in separate view, not in main backlog
+### Inventory System
 
-### Ticket Lifecycle (LIFE)
+- [ ] **INV-01**: Admin can create, update, and delete inventory items with name, category, SKU, and quantity
+- [ ] **INV-02**: Staff can check out an inventory item and the system records who, when, and expected return
+- [ ] **INV-03**: Staff can check in a returned inventory item and the system updates available quantity
+- [ ] **INV-04**: Admin can view full transaction history (checkout/checkin log) for any inventory item
+- [ ] **INV-05**: System alerts admin when item quantity falls below configured reorder threshold
+- [ ] **INV-06**: Admin can view and manage inventory through a dedicated UI page with search and filters
 
-- [x] **LIFE-01**: Status transitions enforced server-side with role validation (BACKLOG→TODO, TODO→IN_PROGRESS, etc.)
-- [x] **LIFE-02**: ON_HOLD requires hold reason (PARTS / VENDOR / ACCESS / OTHER) and optional note
-- [x] **LIFE-03**: Moving to QA requires completion photo and completion note
-- [x] **LIFE-04**: QA→DONE requires Head/Admin sign-off with labor hours and cost confirmed
-- [x] **LIFE-05**: QA→IN_PROGRESS (rejection) requires reason note, sent back to tech
-- [x] **LIFE-06**: Any→CANCELLED requires cancellation reason, restricted to Head/Admin
-- [x] **LIFE-07**: SCHEDULED→BACKLOG transitions automatically on scheduled date
-- [x] **LIFE-08**: Full activity feed showing all status changes, comments, assignments with timestamps and actors
+### Calendar & Events
 
-### Ticket Detail (DETAIL)
+- [ ] **CAL-01**: Admin can GET, PUT, and DELETE individual draft events via `/api/draft-events/[id]`
+- [ ] **CAL-02**: System prevents booking two events for the same room at the same time (conflict detection)
 
-- [x] **DETAIL-01**: Submitter section: name, role, contact info, submitted timestamp, availability note
-- [x] **DETAIL-02**: Location section: full hierarchy (Campus → Building → Area → Room), room photo, Google Maps link
-- [x] **DETAIL-03**: Issue section: title, description, category, priority, photos (full-size on click)
-- [x] **DETAIL-04**: Activity feed with internal comments (tech/head only, not visible to submitter)
-- [x] **DETAIL-05**: Assignment and reassignment history logged in activity feed
+### Tickets
 
-### AI Diagnostics (AI)
+- [ ] **TIX-01**: Dashboard ticket drawer edit button navigates to ticket edit view
+- [ ] **TIX-02**: Generic tickets support comments and file attachments
+- [ ] **TIX-03**: Users can search tickets by keyword across title and description
 
-- [x] **AI-01**: AI diagnostic panel triggered lazily when technician first opens ticket with photos
-- [x] **AI-02**: AI returns: likely diagnosis, suggested tools, suggested parts/supplies, step-by-step fix
-- [x] **AI-03**: Confidence indicator displayed (Low / Medium / High) based on photo clarity
-- [x] **AI-04**: "Ask AI" button for free-form troubleshooting questions on any ticket
-- [x] **AI-05**: PPE / Safety panel auto-shown for Custodial/Biohazard category tickets
-- [x] **AI-06**: AI results cached in MaintenanceTicket.aiAnalysis — does not re-run unless new photos added
-- [x] **AI-07**: Panel labeled "AI Suggestion — always verify on-site"
-- [x] **AI-08**: Uses Anthropic Claude API (not Gemini) for photo analysis
+### Settings & Admin
 
-### Specialty Routing (ROUTE)
+- [ ] **SET-01**: Admin can view audit log history through a dedicated UI in Settings
+- [ ] **SET-02**: Org admin can view and manage their billing/subscription plan
+- [ ] **SET-03**: Admin can export users, tickets, and events as CSV files
+- [ ] **SET-04**: Admin can edit organization name and subdomain slug after initial signup
+- [ ] **SET-05**: Users can configure which email/in-app notifications they receive
 
-- [x] **ROUTE-01**: Category auto-maps to specialty tag on ticket creation
-- [x] **ROUTE-02**: Technicians can self-claim tickets matching their specialty or GENERAL
-- [x] **ROUTE-03**: Head of Maintenance can assign any ticket to any technician regardless of specialty
-- [x] **ROUTE-04**: Self-claim guard enforced: techs cannot claim tickets outside their specialty
-- [x] **ROUTE-05**: Matching-specialty tickets highlighted in technician's backlog view
+### Infrastructure
 
-### Notifications (NOTIF)
+- [ ] **INFRA-01**: Critical API routes have Vitest unit tests covering happy path and error cases
+- [ ] **INFRA-02**: GitHub Actions CI pipeline runs tests, linting, and type-check on every PR
+- [ ] **INFRA-03**: Application uses structured JSON logging (Pino) with log levels instead of console.error
+- [ ] **INFRA-04**: Runtime errors are captured and reported to Sentry with context
+- [ ] **INFRA-05**: All list API endpoints support cursor-based or offset pagination with configurable page size
+- [ ] **INFRA-06**: Complex multi-model operations use database transactions instead of sequential awaits
 
-- [x] **NOTIF-01**: Email on ticket submission (to submitter)
-- [x] **NOTIF-02**: Email on ticket assignment (to assigned technician)
-- [x] **NOTIF-03**: Email when tech self-claims (to Head of Maintenance)
-- [x] **NOTIF-04**: Email on status → IN_PROGRESS (to submitter)
-- [x] **NOTIF-05**: Email on status → ON_HOLD with hold reason (to submitter + Head)
-- [x] **NOTIF-06**: Email on status → QA (to Head of Maintenance)
-- [x] **NOTIF-07**: Email on status → DONE (to submitter)
-- [x] **NOTIF-08**: Email on urgent ticket submission (to Head of Maintenance)
-- [x] **NOTIF-09**: Email when ticket unactioned > 48h (to Head of Maintenance)
-- [x] **NOTIF-10**: Email on QA → IN_PROGRESS rejection (to assigned technician)
-- [x] **NOTIF-11**: In-app notifications for all email triggers using existing Notification model
+## v1.0 Requirements (Complete)
 
-### Module & Navigation (NAV)
+All 101 requirements from v1.0 Maintenance & Facilities Module — completed 2026-03-06.
 
-- [x] **NAV-01**: Maintenance module gated behind AddOns toggle
-- [x] **NAV-02**: Sidebar navigation shows Maintenance section when module enabled
-- [x] **NAV-03**: Maintenance landing page with Head dashboard overview
-- [x] **NAV-04**: Mobile-responsive layout for all maintenance views
+<details>
+<summary>v1.0 requirement categories (all complete)</summary>
 
-### Asset Register (ASSET)
+- Schema & Foundation (SCHEMA-01 through SCHEMA-07) — Phase 1
+- Module & Navigation (NAV-01 through NAV-04) — Phase 1
+- Ticket Submission (SUBMIT-01 through SUBMIT-11) — Phase 2
+- Ticket Lifecycle (LIFE-01 through LIFE-08) — Phase 2
+- Ticket Detail (DETAIL-01 through DETAIL-05) — Phase 2
+- Specialty Routing (ROUTE-01 through ROUTE-05) — Phase 2
+- Notifications (NOTIF-01 through NOTIF-11) — Phase 2
+- Kanban Board (BOARD-01 through BOARD-08) — Phase 3
+- AI Diagnostics (AI-01 through AI-08) — Phase 3
+- Asset Register (ASSET-01 through ASSET-06) — Phase 4
+- QR Codes (QR-01 through QR-05) — Phase 4
+- Preventive Maintenance (PM-01 through PM-10) — Phase 4
+- Labor & Cost Tracking (LABOR-01 through LABOR-07) — Phase 4
+- Analytics Dashboard (ANALYTICS-01 through ANALYTICS-08) — Phase 5
+- Repeat Repair Detection (REPAIR-01 through REPAIR-04) — Phase 5
+- Compliance Calendar (COMPLY-01 through COMPLY-08) — Phase 6
+- Board Reporting (REPORT-01 through REPORT-10) — Phase 6
+- Knowledge Base (KB-01 through KB-06) — Phase 7
+- Offline PWA (OFFLINE-01 through OFFLINE-09) — Phase 7
 
-- [x] **ASSET-01**: Asset model with full fields: assetNumber, category, make/model/serial, purchase/warranty dates, replacement cost, photos, notes, status
-- [x] **ASSET-02**: Auto-generated asset numbers (AST-0001 format)
-- [x] **ASSET-03**: Assets linked to physical hierarchy (building/area/room)
-- [x] **ASSET-04**: Asset detail page showing full ticket history, open tickets, upcoming PM, warranty status
-- [x] **ASSET-05**: Cumulative repair cost tracked and displayed vs. replacement cost
-- [x] **ASSET-06**: Repair threshold alert when cumulative repairs exceed configurable % of replacement cost
+</details>
 
-### QR Codes (QR)
+## v2.1 Requirements
 
-- [x] **QR-01**: Every asset record generates a unique QR code
-- [x] **QR-02**: QR code resolves to asset detail page when scanned
-- [x] **QR-03**: Submitters can scan QR to auto-populate location and asset fields on new ticket
-- [x] **QR-04**: QR code printable for physical asset tagging
-- [x] **QR-05**: Manual asset number entry fallback for iOS camera limitations
+Deferred to next minor release. Tracked but not in current roadmap.
 
-### Preventive Maintenance (PM)
+### Authentication & Identity
 
-- [x] **PM-01**: PmSchedule model with recurrence types (DAILY through CUSTOM), interval, month selection
-- [x] **PM-02**: PM schedules linked to assets or locations
-- [x] **PM-03**: Default technician assignment per PM schedule
-- [x] **PM-04**: School-year-aware scheduling (avoidSchoolYear flag)
-- [x] **PM-05**: Configurable advance notice days (default 7) for ticket generation
-- [x] **PM-06**: Auto-generated PM tickets enter TODO status with checklist items
-- [x] **PM-07**: Checklist items must be completed before tech can move to QA
-- [x] **PM-08**: On completion, nextDueDate recalculated from completion date (not scheduled date)
-- [x] **PM-09**: PM Calendar view showing all upcoming scheduled maintenance
-- [x] **PM-10**: Cron job for PM ticket generation with idempotency via unique constraint (pmScheduleId + scheduledDueDate)
+- **AUTH-20**: User can enable 2FA/MFA via TOTP authenticator app
+- **AUTH-21**: User can sign in with Google OAuth
+- **AUTH-22**: User can sign in with Microsoft OAuth
+- **AUTH-23**: User can view active sessions and revoke any session
+- **AUTH-24**: User can choose "Remember Me" for extended session vs. shorter default
+- **AUTH-25**: User can request account deletion (GDPR compliance)
 
-### Labor & Cost Tracking (LABOR)
+### Scalability
 
-- [x] **LABOR-01**: Multiple labor entries per ticket (multi-tech, multi-session)
-- [x] **LABOR-02**: Labor entry: technician, start/end time, duration, notes
-- [x] **LABOR-03**: Labor cost auto-computed from hours × technician's loadedHourlyRate
-- [x] **LABOR-04**: Cost/receipt entries: vendor, description, amount, receipt photo upload
-- [x] **LABOR-05**: Pre-populated vendor list with autocomplete
-- [x] **LABOR-06**: Running cost summary on ticket detail: total labor hours, labor cost, materials cost, combined total
-- [x] **LABOR-07**: MaintenanceTicket includes `estimatedRepairCostUSD` field for FCI calculation
+- **SCALE-01**: Permission cache uses distributed store (Redis) instead of in-memory
+- **SCALE-02**: Email, AI, and sync operations run via async job queue (not synchronous)
+- **SCALE-03**: API documentation auto-generated via OpenAPI/Swagger spec
 
-### Analytics Dashboard (ANALYTICS)
+### Module Polish
 
-- [x] **ANALYTICS-01**: Tickets by status count per campus (real-time)
-- [x] **ANALYTICS-02**: Average resolution time by category and campus
-- [x] **ANALYTICS-03**: Technician workload: active tickets, hours logged per week/month
-- [x] **ANALYTICS-04**: PM compliance rate: % completed on time vs overdue
-- [x] **ANALYTICS-05**: Labor hours by month, broken down by building and category
-- [x] **ANALYTICS-06**: Cost by building per month (materials + labor)
-- [x] **ANALYTICS-07**: Top 10 ticket locations
-- [x] **ANALYTICS-08**: Category breakdown (ticket volume by specialty)
-
-### Repeat Repair Detection (REPAIR)
-
-- [x] **REPAIR-01**: Auto-detect same asset repaired 3+ times in 12 months, flag with badge
-- [x] **REPAIR-02**: Auto-detect cumulative repair cost exceeding repairThresholdPct, generate AI replace-vs-repair recommendation
-- [x] **REPAIR-03**: Auto-detect asset age exceeding expectedLifespanYears, flag as "End of Life"
-- [x] **REPAIR-04**: Email alerts to Head of Maintenance for all repeat repair detections
-
-### Compliance Calendar (COMPLY)
-
-- [x] **COMPLY-01**: ComplianceRecord model with 10 regulatory domains (AHERA, Fire Safety, Playground, Lead Water, Boiler, Elevator, Kitchen, ADA, Radon, IPM)
-- [x] **COMPLY-02**: Admin configures which compliance domains apply to their school
-- [x] **COMPLY-03**: System auto-populates compliance calendar with deadlines for the school year
-- [x] **COMPLY-04**: 30-day and 7-day email reminders to Head and Admin
-- [x] **COMPLY-05**: Each compliance event generates a ticket or PM work order automatically
-- [x] **COMPLY-06**: Failed inspection auto-generates follow-up remediation ticket
-- [x] **COMPLY-07**: Documentation attachment to compliance records (photos, lab results, certificates)
-- [x] **COMPLY-08**: Audit-ready export: one-click PDF of all compliance records for a period
-
-### Board Reporting (REPORT)
-
-- [x] **REPORT-01**: Facility Condition Index (FCI) calculation: deferred maintenance ÷ total replacement value
-- [x] **REPORT-02**: Board report metrics: FCI, cost per student, PM vs reactive ratio, deferred maintenance backlog
-- [x] **REPORT-03**: Response time and resolution time metrics by campus and category
-- [x] **REPORT-04**: Compliance status: % current vs overdue by domain
-- [x] **REPORT-05**: Asset end-of-life forecast (next 1/3/5 years)
-- [x] **REPORT-06**: Top repair cost assets (replacement candidates)
-- [x] **REPORT-07**: Year-over-year trend comparisons
-- [x] **REPORT-08**: Scheduled automated delivery: weekly to Head, monthly to Admin
-- [x] **REPORT-09**: On-demand PDF generation for any time period and campus
-- [x] **REPORT-10**: AI-generated executive narrative summary via Claude Sonnet
-
-### Knowledge Base (KB)
-
-- [x] **KB-01**: KnowledgeArticle model with types: Equipment Guide, Procedure SOP, Calculation Tool, Safety Protocol, Vendor Contact, Asset Note
-- [x] **KB-02**: Articles creatable by Tech and Head roles
-- [x] **KB-03**: Embedded calculation tools (e.g., pond care dosage calculator)
-- [x] **KB-04**: AI diagnostic panel can surface relevant knowledge base articles
-- [x] **KB-05**: PM checklists can link to knowledge base articles
-- [x] **KB-06**: Compliance records can link to knowledge base SOPs
-
-### Offline PWA (OFFLINE)
-
-- [x] **OFFLINE-01**: Progressive Web App with service workers for offline caching
-- [x] **OFFLINE-02**: View assigned tickets offline (cached on device at login)
-- [x] **OFFLINE-03**: Create new tickets offline with photos stored locally
-- [x] **OFFLINE-04**: Update ticket status offline (queued locally)
-- [x] **OFFLINE-05**: Log labor hours and costs offline
-- [x] **OFFLINE-06**: Complete PM checklists offline
-- [x] **OFFLINE-07**: Scan QR codes offline (loads cached asset data)
-- [x] **OFFLINE-08**: Background sync with conflict resolution (last-write-wins for status, merge for comments)
-- [x] **OFFLINE-09**: Connectivity indicator always visible
-
-## v2 Requirements
-
-### Vendor Portal
-- **VENDOR-01**: External contractors receive tickets via limited login
-- **VENDOR-02**: Contractors update ticket status and log hours
-
-### Parts / Inventory
-- **PARTS-01**: ON_HOLD tickets link to parts order with expected arrival date
-- **PARTS-02**: Parts order auto-reminder on expected arrival
-
-### Integrations
-- **INTEG-01**: SIS integration for auto-provisioning tech and teacher accounts
-- **INTEG-02**: Budget integration with financial systems (Munis/Tyler)
-- **INTEG-03**: Calendar module event conflict detection for maintenance work
-
-### State-Specific Compliance
-- **COMPLY-STATE-01**: CalOSHA and California-specific regulatory requirements
-- **COMPLY-STATE-02**: State-specific compliance domain additions
+- **MOD-01**: Athletics supports CSV roster import
+- **MOD-02**: Athletics has embeddable public schedule widget
+- **MOD-03**: Maintenance work orders have print-friendly view
+- **MOD-04**: Bulk user import via CSV upload
+- **MOD-05**: IT device lifecycle has formal state machine engine
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Vendor portal / contractor login | Deferred to post-v1; new role type needed |
-| Parts/inventory ordering system | Deferred to Phase 2 planning; complexity vs value |
-| SIS / roster auto-provisioning | Depends on platform SSO work not yet built |
-| Financial system integration (Munis/Tyler) | ERP integration is significant effort; future phase |
-| State-specific compliance (CalOSHA) | Deferred to Phase 3 planning; needs state research |
-| Submitter status portal | UX addition; Phase 1 decision — may add later |
-| Calendar event conflict detection | Lightweight; Phase 1 or 2 decision |
-| Real-time WebSocket board updates | Polling with `?since=` timestamp is sufficient for MVP |
+| Vendor portal / contractor login | Deferred to post-v2; new role type needed |
+| SIS integration / auto-provisioning | Depends on OAuth/SSO work in v2.1 |
+| Budget integration (Munis/Tyler) | ERP integration is significant effort; future milestone |
+| Dashboard widget customization | Low priority — fixed layout serves current needs |
+| Weather widget location fix | Low priority — cosmetic issue |
+| Custom fields per event category | Low complexity benefit |
+| SLA tracking for tickets | Requires baseline metrics first — defer to v2.1+ |
+| API documentation (OpenAPI) | Deferred to v2.1 with formal API versioning |
+| Smart Event AI feature | Deferred until core event model stabilized |
 | Native mobile app | PWA covers mobile needs |
-| Voice-to-text for ticket description | Browser native speech recognition; no custom implementation |
 
 ## Traceability
 
-Updated during roadmap creation — 2026-03-05.
+Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 1 | Complete |
-| SCHEMA-02 | Phase 1 | Complete |
-| SCHEMA-03 | Phase 1 | Complete |
-| SCHEMA-04 | Phase 1 | Complete |
-| SCHEMA-05 | Phase 1 | Complete |
-| SCHEMA-06 | Phase 1 | Complete |
-| SCHEMA-07 | Phase 1 | Complete |
-| NAV-01 | Phase 1 | Complete |
-| NAV-02 | Phase 1 | Complete |
-| NAV-03 | Phase 1 | Complete |
-| NAV-04 | Phase 1 | Complete |
-| SUBMIT-01 | Phase 2 | Complete |
-| SUBMIT-02 | Phase 2 | Complete |
-| SUBMIT-03 | Phase 2 | Complete |
-| SUBMIT-04 | Phase 2 | Complete |
-| SUBMIT-05 | Phase 2 | Complete |
-| SUBMIT-06 | Phase 2 | Complete |
-| SUBMIT-07 | Phase 2 | Complete |
-| SUBMIT-08 | Phase 2 | Complete |
-| SUBMIT-09 | Phase 2 | Complete |
-| SUBMIT-10 | Phase 2 | Complete |
-| SUBMIT-11 | Phase 2 | Complete |
-| LIFE-01 | Phase 2 | Complete |
-| LIFE-02 | Phase 2 | Complete |
-| LIFE-03 | Phase 2 | Complete |
-| LIFE-04 | Phase 2 | Complete |
-| LIFE-05 | Phase 2 | Complete |
-| LIFE-06 | Phase 2 | Complete |
-| LIFE-07 | Phase 2 | Complete |
-| LIFE-08 | Phase 2 | Complete |
-| DETAIL-01 | Phase 2 | Complete |
-| DETAIL-02 | Phase 2 | Complete |
-| DETAIL-03 | Phase 2 | Complete |
-| DETAIL-04 | Phase 2 | Complete |
-| DETAIL-05 | Phase 2 | Complete |
-| ROUTE-01 | Phase 2 | Complete |
-| ROUTE-02 | Phase 2 | Complete |
-| ROUTE-03 | Phase 2 | Complete |
-| ROUTE-04 | Phase 2 | Complete |
-| ROUTE-05 | Phase 2 | Complete |
-| NOTIF-01 | Phase 2 | Complete |
-| NOTIF-02 | Phase 2 | Complete |
-| NOTIF-03 | Phase 2 | Complete |
-| NOTIF-04 | Phase 2 | Complete |
-| NOTIF-05 | Phase 2 | Complete |
-| NOTIF-06 | Phase 2 | Complete |
-| NOTIF-07 | Phase 2 | Complete |
-| NOTIF-08 | Phase 2 | Complete |
-| NOTIF-09 | Phase 2 | Complete |
-| NOTIF-10 | Phase 2 | Complete |
-| NOTIF-11 | Phase 2 | Complete |
-| BOARD-01 | Phase 3 | Complete |
-| BOARD-02 | Phase 3 | Complete |
-| BOARD-03 | Phase 3 | Complete |
-| BOARD-04 | Phase 3 | Complete |
-| BOARD-05 | Phase 3 | Complete |
-| BOARD-06 | Phase 3 | Complete |
-| BOARD-07 | Phase 3 | Complete |
-| BOARD-08 | Phase 3 | Complete |
-| AI-01 | Phase 3 | Complete |
-| AI-02 | Phase 3 | Complete |
-| AI-03 | Phase 3 | Complete |
-| AI-04 | Phase 3 | Complete |
-| AI-05 | Phase 3 | Complete |
-| AI-06 | Phase 3 | Complete |
-| AI-07 | Phase 3 | Complete |
-| AI-08 | Phase 3 | Complete |
-| ASSET-01 | Phase 4 | Complete |
-| ASSET-02 | Phase 4 | Complete |
-| ASSET-03 | Phase 4 | Complete |
-| ASSET-04 | Phase 4 | Complete |
-| ASSET-05 | Phase 4 | Complete |
-| ASSET-06 | Phase 4 | Complete |
-| QR-01 | Phase 4 | Complete |
-| QR-02 | Phase 4 | Complete |
-| QR-03 | Phase 4 | Complete |
-| QR-04 | Phase 4 | Complete |
-| QR-05 | Phase 4 | Complete |
-| PM-01 | Phase 4 | Complete |
-| PM-02 | Phase 4 | Complete |
-| PM-03 | Phase 4 | Complete |
-| PM-04 | Phase 4 | Complete |
-| PM-05 | Phase 4 | Complete |
-| PM-06 | Phase 4 | Complete |
-| PM-07 | Phase 4 | Complete |
-| PM-08 | Phase 4 | Complete |
-| PM-09 | Phase 4 | Complete |
-| PM-10 | Phase 4 | Complete |
-| LABOR-01 | Phase 4 | Complete |
-| LABOR-02 | Phase 4 | Complete |
-| LABOR-03 | Phase 4 | Complete |
-| LABOR-04 | Phase 4 | Complete |
-| LABOR-05 | Phase 4 | Complete |
-| LABOR-06 | Phase 4 | Complete |
-| LABOR-07 | Phase 4 | Complete |
-| ANALYTICS-01 | Phase 5 | Complete |
-| ANALYTICS-02 | Phase 5 | Complete |
-| ANALYTICS-03 | Phase 5 | Complete |
-| ANALYTICS-04 | Phase 5 | Complete |
-| ANALYTICS-05 | Phase 5 | Complete |
-| ANALYTICS-06 | Phase 5 | Complete |
-| ANALYTICS-07 | Phase 5 | Complete |
-| ANALYTICS-08 | Phase 5 | Complete |
-| REPAIR-01 | Phase 5 | Complete |
-| REPAIR-02 | Phase 5 | Complete |
-| REPAIR-03 | Phase 5 | Complete |
-| REPAIR-04 | Phase 5 | Complete |
-| COMPLY-01 | Phase 6 | Complete |
-| COMPLY-02 | Phase 6 | Complete |
-| COMPLY-03 | Phase 6 | Complete |
-| COMPLY-04 | Phase 6 | Complete |
-| COMPLY-05 | Phase 6 | Complete |
-| COMPLY-06 | Phase 6 | Complete |
-| COMPLY-07 | Phase 6 | Complete |
-| COMPLY-08 | Phase 6 | Complete |
-| REPORT-01 | Phase 6 | Complete |
-| REPORT-02 | Phase 6 | Complete |
-| REPORT-03 | Phase 6 | Complete |
-| REPORT-04 | Phase 6 | Complete |
-| REPORT-05 | Phase 6 | Complete |
-| REPORT-06 | Phase 6 | Complete |
-| REPORT-07 | Phase 6 | Complete |
-| REPORT-08 | Phase 6 | Complete |
-| REPORT-09 | Phase 6 | Complete |
-| REPORT-10 | Phase 6 | Complete |
-| KB-01 | Phase 7 | Complete |
-| KB-02 | Phase 7 | Complete |
-| KB-03 | Phase 7 | Complete |
-| KB-04 | Phase 7 | Complete |
-| KB-05 | Phase 7 | Complete |
-| KB-06 | Phase 7 | Complete |
-| OFFLINE-01 | Phase 7 | Complete |
-| OFFLINE-02 | Phase 7 | Complete |
-| OFFLINE-03 | Phase 7 | Complete |
-| OFFLINE-04 | Phase 7 | Complete |
-| OFFLINE-05 | Phase 7 | Complete |
-| OFFLINE-06 | Phase 7 | Complete |
-| OFFLINE-07 | Phase 7 | Complete |
-| OFFLINE-08 | Phase 7 | Complete |
-| OFFLINE-09 | Phase 7 | Complete |
+| AUTH-01 | — | Pending |
+| AUTH-02 | — | Pending |
+| AUTH-03 | — | Pending |
+| AUTH-04 | — | Pending |
+| AUTH-05 | — | Pending |
+| AUTH-06 | — | Pending |
+| AUTH-07 | — | Pending |
+| AUTH-08 | — | Pending |
+| AUTH-09 | — | Pending |
+| AUTH-10 | — | Pending |
+| AUTH-11 | — | Pending |
+| PAGE-01 | — | Pending |
+| PAGE-02 | — | Pending |
+| PAGE-03 | — | Pending |
+| PAGE-04 | — | Pending |
+| PAGE-05 | — | Pending |
+| PAGE-06 | — | Pending |
+| INV-01 | — | Pending |
+| INV-02 | — | Pending |
+| INV-03 | — | Pending |
+| INV-04 | — | Pending |
+| INV-05 | — | Pending |
+| INV-06 | — | Pending |
+| CAL-01 | — | Pending |
+| CAL-02 | — | Pending |
+| TIX-01 | — | Pending |
+| TIX-02 | — | Pending |
+| TIX-03 | — | Pending |
+| SET-01 | — | Pending |
+| SET-02 | — | Pending |
+| SET-03 | — | Pending |
+| SET-04 | — | Pending |
+| SET-05 | — | Pending |
+| INFRA-01 | — | Pending |
+| INFRA-02 | — | Pending |
+| INFRA-03 | — | Pending |
+| INFRA-04 | — | Pending |
+| INFRA-05 | — | Pending |
+| INFRA-06 | — | Pending |
 
 **Coverage:**
-- v1 requirements: 101 total
-- Mapped to phases: 101
-- Unmapped: 0
+- v2.0 requirements: 33 total
+- Mapped to phases: 0
+- Unmapped: 33
 
 ---
-*Requirements defined: 2026-03-05*
-*Last updated: 2026-03-05 — traceability populated by roadmapper*
+*Requirements defined: 2026-03-05 (v1.0), 2026-03-08 (v2.0)*
+*Last updated: 2026-03-08 after v2.0 milestone definition*
