@@ -459,9 +459,24 @@ export default function InteractiveCampusMap({
       // Fix container size so tiles load at the correct dimensions.
       // Without this, Leaflet may see a 0×0 or partially-laid-out
       // container and request the wrong tiles (grey map).
+      // A single rAF isn't enough when the container starts hidden
+      // (e.g. inside a CSS `hidden` tab), so we also use a
+      // ResizeObserver to catch when the container actually gains size.
       requestAnimationFrame(() => {
         if (!cancelled && map) map.invalidateSize()
       })
+
+      const container = mapContainerRef.current
+      if (container) {
+        const ro = new ResizeObserver(() => {
+          if (!cancelled && map && container.clientWidth > 0) {
+            map.invalidateSize()
+          }
+        })
+        ro.observe(container)
+        // Store for cleanup
+        ;(map as any)._resizeObserver = ro
+      }
 
       // Org center marker — DRAGGABLE
       const orgMarker = L.marker([mapConfig.center.lat, mapConfig.center.lng], {
@@ -512,6 +527,8 @@ export default function InteractiveCampusMap({
     return () => {
       cancelled = true
       if (mapInstanceRef.current) {
+        const ro = (mapInstanceRef.current as any)._resizeObserver as ResizeObserver | undefined
+        if (ro) ro.disconnect()
         mapInstanceRef.current.remove()
         mapInstanceRef.current = null
       }
