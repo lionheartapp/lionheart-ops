@@ -140,55 +140,53 @@ Deferred to next minor release. Tracked but not in current roadmap.
 
 ## Traceability
 
-Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | — | Pending |
-| AUTH-02 | — | Pending |
-| AUTH-03 | — | Pending |
-| AUTH-04 | — | Pending |
-| AUTH-05 | — | Pending |
-| AUTH-06 | — | Pending |
-| AUTH-07 | — | Pending |
-| AUTH-08 | — | Pending |
-| AUTH-09 | — | Pending |
-| AUTH-10 | — | Pending |
-| AUTH-11 | — | Pending |
-| PAGE-01 | — | Pending |
-| PAGE-02 | — | Pending |
-| PAGE-03 | — | Pending |
-| PAGE-04 | — | Pending |
-| PAGE-05 | — | Pending |
-| PAGE-06 | — | Pending |
-| INV-01 | — | Pending |
-| INV-02 | — | Pending |
-| INV-03 | — | Pending |
-| INV-04 | — | Pending |
-| INV-05 | — | Pending |
-| INV-06 | — | Pending |
-| CAL-01 | — | Pending |
-| CAL-02 | — | Pending |
-| TIX-01 | — | Pending |
-| TIX-02 | — | Pending |
-| TIX-03 | — | Pending |
-| SET-01 | — | Pending |
-| SET-02 | — | Pending |
-| SET-03 | — | Pending |
-| SET-04 | — | Pending |
-| SET-05 | — | Pending |
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| INFRA-05 | — | Pending |
-| INFRA-06 | — | Pending |
+| AUTH-01 | Phase 8 | Pending |
+| AUTH-02 | Phase 8 | Pending |
+| AUTH-03 | Phase 8 | Pending |
+| AUTH-04 | Phase 8 | Pending |
+| AUTH-05 | Phase 8 | Pending |
+| AUTH-06 | Phase 8 | Pending |
+| AUTH-07 | Phase 8 | Pending |
+| AUTH-08 | Phase 8 | Pending |
+| AUTH-09 | Phase 8 | Pending |
+| AUTH-10 | Phase 8 | Pending |
+| AUTH-11 | Phase 8 | Pending |
+| PAGE-01 | Phase 9 | Pending |
+| PAGE-02 | Phase 9 | Pending |
+| PAGE-03 | Phase 9 | Pending |
+| PAGE-04 | Phase 9 | Pending |
+| PAGE-05 | Phase 9 | Pending |
+| PAGE-06 | Phase 9 | Pending |
+| INV-01 | Phase 10 | Pending |
+| INV-02 | Phase 10 | Pending |
+| INV-03 | Phase 10 | Pending |
+| INV-04 | Phase 10 | Pending |
+| INV-05 | Phase 10 | Pending |
+| INV-06 | Phase 10 | Pending |
+| CAL-01 | Phase 11 | Pending |
+| CAL-02 | Phase 11 | Pending |
+| TIX-01 | Phase 11 | Pending |
+| TIX-02 | Phase 11 | Pending |
+| TIX-03 | Phase 11 | Pending |
+| SET-01 | Phase 12 | Pending |
+| SET-02 | Phase 12 | Pending |
+| SET-03 | Phase 12 | Pending |
+| SET-04 | Phase 12 | Pending |
+| SET-05 | Phase 12 | Pending |
+| INFRA-01 | Phase 13 | Pending |
+| INFRA-02 | Phase 13 | Pending |
+| INFRA-03 | Phase 13 | Pending |
+| INFRA-04 | Phase 13 | Pending |
+| INFRA-05 | Phase 13 | Pending |
+| INFRA-06 | Phase 13 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 33 total
-- Mapped to phases: 0
-- Unmapped: 33
+- Mapped to phases: 33
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-05 (v1.0), 2026-03-08 (v2.0)*
-*Last updated: 2026-03-08 after v2.0 milestone definition*
+*Last updated: 2026-03-08 after v2.0 roadmap creation*
