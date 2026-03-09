@@ -17,8 +17,8 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 - [x] **AUTH-06**: All user-submitted text fields are sanitized against XSS before storage
 - [x] **AUTH-07**: Stripe webhook endpoint verifies request signatures before processing
 - [x] **AUTH-08**: Clever and ClassLink webhook endpoints verify request signatures
-- [ ] **AUTH-09**: User receives email verification link after signup and must verify before full access
-- [ ] **AUTH-10**: Password creation enforces complexity rules (uppercase, number, special character, 8+ chars)
+- [x] **AUTH-09**: User receives email verification link after signup and must verify before full access
+- [x] **AUTH-10**: Password creation enforces complexity rules (uppercase, number, special character, 8+ chars)
 - [x] **AUTH-11**: File uploads validate file size limits and MIME types before processing
 
 ### Landing & Marketing Pages
@@ -150,8 +150,8 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | AUTH-06 | Phase 8 | Complete |
 | AUTH-07 | Phase 8 | Complete |
 | AUTH-08 | Phase 8 | Complete |
-| AUTH-09 | Phase 8 | Pending |
-| AUTH-10 | Phase 8 | Pending |
+| AUTH-09 | Phase 8 | Complete |
+| AUTH-10 | Phase 8 | Complete |
 | AUTH-11 | Phase 8 | Complete |
 | PAGE-01 | Phase 9 | Pending |
 | PAGE-02 | Phase 9 | Pending |

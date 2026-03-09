@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 08-auth-hardening-and-security/08-03-PLAN.md
-last_updated: "2026-03-09T20:14:16.174Z"
+stopped_at: Completed 08-auth-hardening-and-security/08-05-PLAN.md
+last_updated: "2026-03-09T20:22:52.699Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 08 P04 | 214 | 3 tasks | 13 files |
 | Phase 08-auth-hardening-and-security P01 | 5 | 2 tasks | 9 files |
 | Phase 08-auth-hardening-and-security P03 | 5 | 2 tasks | 11 files |
+| Phase 08-auth-hardening-and-security P05 | 349 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Recent decisions affecting current work:
 - [Phase 08-auth-hardening-and-security]: isPublicPath now lists specific auth routes instead of blanket /api/auth/ — /api/auth/me and /api/auth/logout are protected; NextAuth OAuth callback URLs kept public explicitly
 - [Phase 08-auth-hardening-and-security]: CSRF validation skips when csrf-token cookie is absent — preserves backward compatibility for existing localStorage sessions during migration grace period
 - [Phase 08-auth-hardening-and-security]: useAuth.token returns null always — JWT in httpOnly cookie not accessible to JS; pages using direct localStorage reads continue working via Authorization header fallback in middleware
+- [Phase 08-auth-hardening-and-security]: Verification link points to /api/auth/verify-email (server redirect) so cookie is set server-side before redirecting to dashboard
+- [Phase 08-auth-hardening-and-security]: Login EMAIL_NOT_VERIFIED check occurs after credential validation to prevent enumeration of unverified accounts
+- [Phase 08-auth-hardening-and-security]: Resend rate limit uses PasswordSetupToken.createdAt count (3/hour) — no additional table needed
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T20:14:16.172Z
-Stopped at: Completed 08-auth-hardening-and-security/08-03-PLAN.md
+Last session: 2026-03-09T20:22:52.697Z
+Stopped at: Completed 08-auth-hardening-and-security/08-05-PLAN.md
 Resume file: None
