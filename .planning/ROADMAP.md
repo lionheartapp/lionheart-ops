@@ -186,12 +186,12 @@ Plans:
   3. Visitor can view a Pricing page showing plans and costs before creating an account — no signup required to see pricing
   4. Visitor can view an About page with company information and submit a message through a working Contact form
   5. Every link in the site footer navigates to a real, content-complete page — no 404s or "coming soon" placeholders
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: Privacy Policy + Terms of Service pages (PAGE-01, PAGE-02)
-- [ ] 09-02: Pricing page with plan comparison (PAGE-03)
-- [ ] 09-03: About + Contact page, footer wiring, OAuth button cleanup on signup (PAGE-04, PAGE-05, PAGE-06)
+- [ ] 09-01-PLAN.md — Privacy Policy + Terms of Service pages with COPPA/FERPA compliance, plus PublicNav/PublicFooter shared components (PAGE-01, PAGE-02)
+- [ ] 09-02-PLAN.md — Pricing page with three-tier comparison, monthly/annual toggle, feature table, and FAQ (PAGE-03)
+- [ ] 09-03-PLAN.md — About page with contact form, POST /api/public/contact endpoint, footer link wiring, signup OAuth cleanup + PasswordInput (PAGE-04, PAGE-05, PAGE-06)
 
 ### Phase 10: Inventory System
 **Goal**: Staff can manage physical inventory — track stock levels, check items in and out, and get alerted before stock runs out
@@ -280,7 +280,7 @@ Plans:
 | 6. Compliance & Board Reporting | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 7. Knowledge Base & Offline PWA | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 8. Auth Hardening and Security | 7/7 | Complete   | 2026-03-09 | - |
-| 9. Marketing and Legal Pages | v2.0 | 0/3 | Not started | - |
+| 9. Marketing and Legal Pages | v2.0 | 0/3 | Planning complete | - |
 | 10. Inventory System | v2.0 | 0/3 | Not started | - |
 | 11. Calendar, Ticket, Feature Gaps | v2.0 | 0/3 | Not started | - |
 | 12. Settings and Admin Tools | v2.0 | 0/4 | Not started | - |
