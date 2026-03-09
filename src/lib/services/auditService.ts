@@ -30,6 +30,8 @@ import { rawPrisma } from '@/lib/db'
 export type AuditAction =
   // Auth
   | 'user.login'
+  | 'user.password-reset-request'
+  | 'user.password-reset-complete'
   // Users
   | 'user.invite'
   | 'user.update'

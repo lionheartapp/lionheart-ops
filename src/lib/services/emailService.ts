@@ -169,6 +169,24 @@ async function sendBrandedEmail(
   return { sent: false, reason: smtpResult.reason || resendResult.reason || 'EMAIL_SEND_FAILED' }
 }
 
+// ─── Password Reset ───────────────────────────────────────────────────
+
+type PasswordResetEmailInput = {
+  to: string
+  firstName: string
+  orgName: string
+  resetLink: string
+}
+
+export async function sendPasswordResetEmail(input: PasswordResetEmailInput): Promise<SendEmailResult> {
+  return sendBrandedEmail('password_reset', input.to, {
+    firstName: input.firstName,
+    orgName: input.orgName,
+    resetLink: input.resetLink,
+    appUrl: getAppUrl(),
+  })
+}
+
 // ─── Welcome / Password Setup ─────────────────────────────────────────
 
 export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendEmailResult> {

@@ -213,6 +213,7 @@ export type EmailTemplate =
   | 'event_cancelled'
   | 'event_invite'
   | 'password_setup'
+  | 'password_reset'
   // Maintenance email templates (10 triggers)
   | 'maintenance_submitted'
   | 'maintenance_assigned'
@@ -265,6 +266,25 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
           text: `You've been invited to join <strong>{{orgName}}</strong> on Lionheart. Set your password to access calendars, events, facilities, and everything your team uses to stay organized.`,
           ctaLabel: 'Get Started',
           ctaUrl: '{{setupLink}}',
+        },
+      })
+
+    // ── Password reset ──
+    case 'password_reset':
+      return wrapLayout({
+        previewText: 'Reset your password for {{orgName}} on Lionheart',
+        content: [
+          heroHeading('- Password Reset -', 'Reset Your<br />Password'),
+          contentSection(
+            `<mj-text align="center" padding="0" font-size="16px">
+              Hi {{firstName}}, we received a request to reset your password for <strong>{{orgName}}</strong>. Click the button below to set a new password. This link expires in 1 hour.
+            </mj-text>`,
+            '8px 40px 0 40px'
+          ),
+          centeredCta('Reset Password', '{{resetLink}}'),
+        ].join('\n'),
+        blueBand: {
+          text: `If you didn't request this, you can safely ignore this email. Your password will not change.`,
         },
       })
 
@@ -823,6 +843,7 @@ export interface RenderEmailResult {
 const SUBJECTS: Record<EmailTemplate, string> = {
   welcome: 'Welcome to Lionheart',
   password_setup: "You're invited to Lionheart",
+  password_reset: 'Reset your password',
   event_updated: 'Event rescheduled: {{eventTitle}}',
   event_approved: 'Event approved: {{eventTitle}}',
   event_rejected: 'Event not approved: {{eventTitle}}',
@@ -855,6 +876,7 @@ const SUBJECTS: Record<EmailTemplate, string> = {
 const TEXT_BODIES: Record<EmailTemplate, string> = {
   welcome: 'Welcome to Lionheart! Your account at {{orgName}} is ready. Set your password: {{setupLink}}',
   password_setup: "You've been invited to join {{orgName}} on Lionheart. Set your password: {{setupLink}}",
+  password_reset: 'Hi {{firstName}}, reset your password for {{orgName}} on Lionheart: {{resetLink}} (expires in 1 hour). If you did not request this, ignore this email.',
   event_updated: '"{{eventTitle}}" was rescheduled by {{updatedByName}}. New time: {{eventDate}}, {{eventTime}}. View: {{eventLink}}',
   event_approved: 'Your event "{{eventTitle}}" was approved via {{channelName}} channel. View: {{eventLink}}',
   event_rejected: 'Your event "{{eventTitle}}" was not approved. {{reason}} View: {{eventLink}}',
