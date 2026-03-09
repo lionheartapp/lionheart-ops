@@ -52,7 +52,16 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/favicon')) return true
   if (pathname.startsWith('/api/auth/login')) return true
   if (pathname.startsWith('/api/auth/set-password')) return true
-  if (pathname.startsWith('/api/auth/')) return true // Auth.js callback URLs (OAuth)
+  if (pathname.startsWith('/api/auth/forgot-password')) return true
+  if (pathname.startsWith('/api/auth/reset-password')) return true
+  // Auth.js (NextAuth) OAuth callback URLs — must remain public
+  if (pathname.startsWith('/api/auth/callback/')) return true
+  if (pathname.startsWith('/api/auth/signin')) return true
+  if (pathname.startsWith('/api/auth/signout')) return true
+  if (pathname.startsWith('/api/auth/session')) return true
+  if (pathname.startsWith('/api/auth/csrf')) return true
+  if (pathname.startsWith('/api/auth/providers')) return true
+  // NOTE: /api/auth/me and /api/auth/logout are NOT public — they require auth cookie
   if (pathname.startsWith('/api/branding')) return true
   if (pathname.startsWith('/api/organizations/slug-check')) return true
   if (pathname.startsWith('/api/organizations/signup')) return true
@@ -209,11 +218,39 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
-  if (!authHeader?.startsWith('Bearer ')) {
+  // ─── CSRF Validation (state-changing API requests) ───────────────
+  // Only validate when csrf-token cookie is present (backward compat for old sessions)
+  if (
+    pathname.startsWith('/api/') &&
+    ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)
+  ) {
+    const csrfCookie = req.cookies.get('csrf-token')?.value
+    if (csrfCookie) {
+      const csrfHeader = req.headers.get('x-csrf-token')
+      if (!csrfHeader) {
+        return NextResponse.json(
+          { ok: false, error: { code: 'CSRF_INVALID', message: 'Missing CSRF token' } },
+          { status: 403 }
+        )
+      }
+      if (csrfCookie !== csrfHeader) {
+        return NextResponse.json(
+          { ok: false, error: { code: 'CSRF_INVALID', message: 'Invalid CSRF token' } },
+          { status: 403 }
+        )
+      }
+    }
+  }
+
+  // ─── Token extraction: cookie first, then Authorization header ──
+  const cookieToken = req.cookies.get('auth-token')?.value
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+  const token = cookieToken ?? bearerToken
+
+  if (!token) {
     return NextResponse.json({ ok: false, error: { code: 'UNAUTHORIZED', message: 'Missing tenant context' } }, { status: 401 })
   }
 
-  const token = authHeader.slice(7)
   const claims = await verifyAuthToken(token)
   if (!claims?.organizationId) {
     return NextResponse.json({ ok: false, error: { code: 'INVALID_TOKEN', message: 'Invalid bearer token' } }, { status: 401 })

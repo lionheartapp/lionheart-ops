@@ -10,17 +10,20 @@ export type RequestContext = {
 }
 
 /**
- * Extract and verify user context from request headers.
- * Expects Authorization: Bearer <token> header.
+ * Extract and verify user context from request headers or cookies.
+ * Reads JWT from httpOnly auth-token cookie first, falls back to Authorization: Bearer header.
  * Uses rawPrisma to bypass org-scoping when looking up user by JWT.
  */
 export async function getUserContext(req: NextRequest): Promise<RequestContext> {
+  // Try cookie first (httpOnly cookie set by login endpoint)
+  const cookieToken = req.cookies.get('auth-token')?.value
   const authHeader = req.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+  const token = cookieToken ?? bearerToken
+
+  if (!token) {
     throw new Error('Missing or invalid authorization header')
   }
-
-  const token = authHeader.slice(7)
   const claims = await verifyAuthToken(token)
 
   if (!claims) {

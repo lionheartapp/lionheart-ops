@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         ipAddress:     getIp(req),
       })
 
-      return NextResponse.json(
+      const response = NextResponse.json(
         ok({
           token,
           organizationId,
@@ -109,6 +109,27 @@ export async function POST(req: NextRequest) {
           },
         })
       )
+
+      // Set httpOnly auth cookie (not accessible via document.cookie)
+      response.cookies.set('auth-token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      })
+
+      // Set CSRF token (non-httpOnly so JS can read it for X-CSRF-Token header)
+      const csrfToken = crypto.randomUUID()
+      response.cookies.set('csrf-token', csrfToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      })
+
+      return response
     })
   } catch (error) {
     console.error('[POST /api/auth/login]', error)
