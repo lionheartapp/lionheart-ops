@@ -279,7 +279,7 @@ Plans:
 | 5. Analytics & Repair Intelligence | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 6. Compliance & Board Reporting | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 7. Knowledge Base & Offline PWA | v1.0 | 3/3 | Complete | 2026-03-06 |
-| 8. Auth Hardening and Security | v2.0 | 5/7 | Gap closure | - |
+| 8. Auth Hardening and Security | 6/7 | In Progress|  | - |
 | 9. Marketing and Legal Pages | v2.0 | 0/3 | Not started | - |
 | 10. Inventory System | v2.0 | 0/3 | Not started | - |
 | 11. Calendar, Ticket, Feature Gaps | v2.0 | 0/3 | Not started | - |
