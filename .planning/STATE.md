@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-03-09T20:04:00.236Z"
+stopped_at: Completed 08-auth-hardening-and-security/08-01-PLAN.md
+last_updated: "2026-03-09T20:05:48.946Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 7
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 **v2.0 velocity:** No data yet (0 plans completed)
 | Phase 08-auth-hardening-and-security P02 | 2 | 2 tasks | 3 files |
 | Phase 08 P04 | 214 | 3 tasks | 13 files |
+| Phase 08-auth-hardening-and-security P01 | 5 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - [Phase 08-auth-hardening-and-security]: Login rate limiter placed in route handler (not middleware) to enable reset-on-success behavior
 - [Phase 08]: Regex-based HTML sanitizer (no DOMPurify) for server-side XSS defense — avoids DOM shim dependency
 - [Phase 08]: Clever/ClassLink webhooks: graceful degradation when secret unconfigured; Stripe: hard 500 (required prod config)
+- [Phase 08-auth-hardening-and-security]: forgot-password always returns generic success message to prevent email enumeration
+- [Phase 08-auth-hardening-and-security]: PasswordSetupToken.type field (default 'setup') allows same model to handle setup, reset, and future verification tokens
+- [Phase 08-auth-hardening-and-security]: reset-password returns same response shape as login endpoint for client auto-login compatibility
 
 ### Pending Todos
 
@@ -84,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T20:04:00.234Z
-Stopped at: Completed 08-04-PLAN.md
+Last session: 2026-03-09T20:05:48.944Z
+Stopped at: Completed 08-auth-hardening-and-security/08-01-PLAN.md
 Resume file: None

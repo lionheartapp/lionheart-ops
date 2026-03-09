@@ -9,7 +9,7 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 
 ### Authentication & Security
 
-- [ ] **AUTH-01**: User can reset their password via a "Forgot Password" email link with secure token
+- [x] **AUTH-01**: User can reset their password via a "Forgot Password" email link with secure token
 - [x] **AUTH-02**: Login endpoint enforces rate limiting (max 5 attempts per 15 minutes per IP)
 - [x] **AUTH-03**: All public endpoints enforce rate limiting (configurable per-route)
 - [ ] **AUTH-04**: JWT tokens are stored in httpOnly secure cookies instead of localStorage
@@ -142,7 +142,7 @@ Deferred to next minor release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 8 | Pending |
+| AUTH-01 | Phase 8 | Complete |
 | AUTH-02 | Phase 8 | Complete |
 | AUTH-03 | Phase 8 | Complete |
 | AUTH-04 | Phase 8 | Pending |
