@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 08-02-PLAN.md (rate limiting)
-last_updated: "2026-03-09T20:02:04.426Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-03-09T20:04:00.236Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 7
   total_plans: 26
-  completed_plans: 22
+  completed_plans: 23
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 
 **v2.0 velocity:** No data yet (0 plans completed)
 | Phase 08-auth-hardening-and-security P02 | 2 | 2 tasks | 3 files |
+| Phase 08 P04 | 214 | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - [v2.0]: Phase 8 (auth) must complete before phases 9-13 extend API surface
 - [Phase 08-auth-hardening-and-security]: In-memory rate limiter for single-process Vercel deployments; Redis deferred to v2.1 for horizontal scaling
 - [Phase 08-auth-hardening-and-security]: Login rate limiter placed in route handler (not middleware) to enable reset-on-success behavior
+- [Phase 08]: Regex-based HTML sanitizer (no DOMPurify) for server-side XSS defense — avoids DOM shim dependency
+- [Phase 08]: Clever/ClassLink webhooks: graceful degradation when secret unconfigured; Stripe: hard 500 (required prod config)
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T20:02:04.423Z
-Stopped at: Completed 08-02-PLAN.md (rate limiting)
+Last session: 2026-03-09T20:04:00.234Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
