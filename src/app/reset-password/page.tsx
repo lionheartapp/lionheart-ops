@@ -3,6 +3,8 @@
 import { FormEvent, Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
+import PasswordInput from '@/components/PasswordInput'
+import { validatePassword } from '@/lib/validation/password'
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams()
@@ -11,7 +13,6 @@ function ResetPasswordContent() {
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -38,8 +39,9 @@ function ResetPasswordContent() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+    const { valid } = validatePassword(password)
+    if (!valid) {
+      setError('Please fix the password requirements above')
       return
     }
 
@@ -98,33 +100,15 @@ function ResetPasswordContent() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
-        <div>
-          <label htmlFor="rp-password" className="block text-sm font-medium text-gray-700">
-            New password
-          </label>
-          <div className="relative mt-1">
-            <input
-              id="rp-password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
-              required
-              autoComplete="new-password"
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
+        <PasswordInput
+          value={password}
+          onChange={setPassword}
+          label="New password"
+          placeholder="At least 8 characters"
+          id="rp-password"
+          required
+          autoComplete="new-password"
+        />
 
         <div>
           <label htmlFor="rp-confirm" className="block text-sm font-medium text-gray-700">

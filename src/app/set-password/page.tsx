@@ -2,6 +2,8 @@
 
 import { FormEvent, Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import PasswordInput from '@/components/PasswordInput'
+import { validatePassword } from '@/lib/validation/password'
 
 function SetPasswordContent() {
   const searchParams = useSearchParams()
@@ -52,8 +54,9 @@ function SetPasswordContent() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+    const { valid } = validatePassword(password)
+    if (!valid) {
+      setError('Please fix the password requirements above')
       return
     }
 
@@ -104,16 +107,14 @@ function SetPasswordContent() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <p className="text-sm text-gray-600">Setting password for {email}</p>
-            <div>
-              <label htmlFor="sp-password" className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
-              <input
-                id="sp-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="ui-input-bordered"
-              />
-            </div>
+            <PasswordInput
+              value={password}
+              onChange={setPassword}
+              label="New Password"
+              id="sp-password"
+              required
+              autoComplete="new-password"
+            />
             <div>
               <label htmlFor="sp-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
               <input
