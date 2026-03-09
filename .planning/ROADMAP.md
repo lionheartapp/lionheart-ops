@@ -165,14 +165,14 @@ Plans:
   3. JWT is stored in an httpOnly cookie — no token value is accessible from JavaScript via document.cookie or localStorage
   4. User who signs up receives a verification email and cannot access the authenticated dashboard until the email link is clicked
   5. Uploading a file with a disallowed MIME type or over the size limit is rejected with a descriptive error before any storage occurs
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 08-01: Forgot password flow — reset token endpoint, email template, reset UI (AUTH-01)
-- [ ] 08-02: Rate limiting middleware on login and public endpoints (AUTH-02, AUTH-03)
-- [ ] 08-03: httpOnly cookie JWT migration + CSRF protection (AUTH-04, AUTH-05)
-- [ ] 08-04: Input sanitization framework, file upload validation, webhook signature verification for Stripe + Clever + ClassLink (AUTH-06, AUTH-07, AUTH-08, AUTH-11)
-- [ ] 08-05: Email verification on signup + password complexity rules (AUTH-09, AUTH-10)
+- [ ] 08-01-PLAN.md — Forgot password flow: reset token endpoint, email template, reset UI (AUTH-01)
+- [ ] 08-02-PLAN.md — Rate limiting middleware on login and public endpoints (AUTH-02, AUTH-03)
+- [ ] 08-03-PLAN.md — httpOnly cookie JWT migration + CSRF protection (AUTH-04, AUTH-05)
+- [ ] 08-04-PLAN.md — Input sanitization, file upload validation, webhook signature verification (AUTH-06, AUTH-07, AUTH-08, AUTH-11)
+- [ ] 08-05-PLAN.md — Email verification on signup + password complexity rules (AUTH-09, AUTH-10)
 
 ### Phase 9: Marketing and Legal Pages
 **Goal**: Visitors can evaluate, trust, and sign up for the platform through complete public pages — no dead links or placeholder text
