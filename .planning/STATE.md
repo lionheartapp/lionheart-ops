@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 08-auth-hardening-and-security/08-01-PLAN.md
-last_updated: "2026-03-09T20:05:48.946Z"
+stopped_at: Completed 08-auth-hardening-and-security/08-03-PLAN.md
+last_updated: "2026-03-09T20:14:16.174Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 7
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 0
 ---
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 08-auth-hardening-and-security P02 | 2 | 2 tasks | 3 files |
 | Phase 08 P04 | 214 | 3 tasks | 13 files |
 | Phase 08-auth-hardening-and-security P01 | 5 | 2 tasks | 9 files |
+| Phase 08-auth-hardening-and-security P03 | 5 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 08-auth-hardening-and-security]: forgot-password always returns generic success message to prevent email enumeration
 - [Phase 08-auth-hardening-and-security]: PasswordSetupToken.type field (default 'setup') allows same model to handle setup, reset, and future verification tokens
 - [Phase 08-auth-hardening-and-security]: reset-password returns same response shape as login endpoint for client auto-login compatibility
+- [Phase 08-auth-hardening-and-security]: isPublicPath now lists specific auth routes instead of blanket /api/auth/ — /api/auth/me and /api/auth/logout are protected; NextAuth OAuth callback URLs kept public explicitly
+- [Phase 08-auth-hardening-and-security]: CSRF validation skips when csrf-token cookie is absent — preserves backward compatibility for existing localStorage sessions during migration grace period
+- [Phase 08-auth-hardening-and-security]: useAuth.token returns null always — JWT in httpOnly cookie not accessible to JS; pages using direct localStorage reads continue working via Authorization header fallback in middleware
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T20:05:48.944Z
-Stopped at: Completed 08-auth-hardening-and-security/08-01-PLAN.md
+Last session: 2026-03-09T20:14:16.172Z
+Stopped at: Completed 08-auth-hardening-and-security/08-03-PLAN.md
 Resume file: None
