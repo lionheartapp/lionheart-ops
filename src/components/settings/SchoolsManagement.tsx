@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { getAuthHeaders as getCookieAuthHeaders } from '@/lib/api-client'
 import { createPortal } from 'react-dom'
 import { Plus, Edit2, Trash2, ChevronDown, GraduationCap, Check } from 'lucide-react'
 import type { School } from '@prisma/client'
@@ -155,18 +156,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
     setMounted(true)
   }, [])
 
-  const getAuthHeaders = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-    const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
-    const headers: Record<string, string> = {}
-    if (token) {
-      headers.Authorization = `Bearer ${token}`
-    }
-    if (orgId) {
-      headers['x-org-id'] = orgId
-    }
-    return headers
-  }
+  const getAuthHeaders = () => getCookieAuthHeaders()
 
   // Search for principals by name
   const searchPrincipals = async (query: string) => {
@@ -178,6 +168,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
     setSearchingPrincipals(true)
     try {
       const response = await fetch(`/api/settings/principals?q=${encodeURIComponent(query)}`, {
+        credentials: 'include',
         headers: getAuthHeaders(),
       })
       const data = await response.json()
@@ -254,8 +245,8 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
     try {
       const response = await fetch('/api/settings/principals', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
         body: JSON.stringify({
@@ -312,6 +303,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
     try {
       const url = campusId ? `/api/settings/schools?campusId=${campusId}` : '/api/settings/schools'
       const response = await fetch(url, {
+        credentials: 'include',
         headers: getAuthHeaders(),
       })
       const data = await response.json()
@@ -353,8 +345,8 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
       const response = await fetch(url, {
         method,
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
         body: JSON.stringify(body),
@@ -440,6 +432,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
     try {
       const response = await fetch(`/api/settings/schools/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: getAuthHeaders(),
       })
 
@@ -543,8 +536,8 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
       const schoolResponse = await fetch(`/api/settings/schools/${principalEditor.schoolId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
         body: JSON.stringify({
@@ -563,8 +556,8 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
       if (principalEditor.principalId) {
         const principalResponse = await fetch(`/api/settings/principals/${principalEditor.principalId}`, {
           method: 'PATCH',
+          credentials: 'include',
           headers: {
-            'Content-Type': 'application/json',
             ...getAuthHeaders(),
           },
           body: JSON.stringify({

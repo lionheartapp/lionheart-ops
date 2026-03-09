@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { getAuthHeaders } from '@/lib/api-client'
 
 interface Suggestion {
   description: string
@@ -32,13 +33,9 @@ export default function AddressAutocomplete({ value, onChange, className = 'ui-i
 
     setIsLoading(true)
     try {
-      const token = localStorage.getItem('auth-token')
-      const orgId = localStorage.getItem('org-id')
       const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(input)}`, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...(orgId ? { 'x-org-id': orgId } : {}),
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       })
 
       if (!res.ok) return

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import { fetchApi } from '@/lib/api-client'
 
 type SmartEventModalProps = {
   onClose: () => void
@@ -9,29 +10,18 @@ type SmartEventModalProps = {
 export default function SmartEventModal({ onClose }: SmartEventModalProps) {
   const [input, setInput] = useState('')
   const [stage, setStage] = useState<'input' | 'processing' | 'done'>('input')
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setStage('processing')
 
     try {
-      const res = await fetch('/api/draft-events', {
+      await fetchApi<{ id: string }>('/api/draft-events', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          'x-org-id': orgId || '',
-        },
         body: JSON.stringify({ title: input }),
       })
-
-      const json = await res.json()
-      if (json.ok) {
-        setStage('done')
-        setTimeout(() => onClose(), 1500)
-      }
+      setStage('done')
+      setTimeout(() => onClose(), 1500)
     } catch (err) {
       console.error(err)
       setStage('input')
