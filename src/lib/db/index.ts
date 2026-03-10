@@ -8,6 +8,7 @@ const orgScopedModels = new Set([
 	'Event',
 	'DraftEvent',
 	'InventoryItem',
+	'InventoryTransaction',
 	'TeacherSchedule',
 	'Building',
 	'Area',
