@@ -41,8 +41,8 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 
 ### Calendar & Events
 
-- [ ] **CAL-01**: Admin can GET, PUT, and DELETE individual draft events via `/api/draft-events/[id]`
-- [ ] **CAL-02**: System prevents booking two events for the same room at the same time (conflict detection)
+- [x] **CAL-01**: Admin can GET, PUT, and DELETE individual draft events via `/api/draft-events/[id]`
+- [x] **CAL-02**: System prevents booking two events for the same room at the same time (conflict detection)
 
 ### Tickets
 
@@ -165,8 +165,8 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | INV-04 | Phase 10 | Complete |
 | INV-05 | Phase 10 | Complete |
 | INV-06 | Phase 10 | Complete |
-| CAL-01 | Phase 11 | Pending |
-| CAL-02 | Phase 11 | Pending |
+| CAL-01 | Phase 11 | Complete |
+| CAL-02 | Phase 11 | Complete |
 | TIX-01 | Phase 11 | Pending |
 | TIX-02 | Phase 11 | Complete |
 | TIX-03 | Phase 11 | Complete |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 11-calendar-ticket-and-feature-gaps/11-02-PLAN.md
-last_updated: "2026-03-10T22:09:16.208Z"
+stopped_at: Completed 11-calendar-ticket-and-feature-gaps/11-01-PLAN.md
+last_updated: "2026-03-10T22:11:28.719Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 10
   total_plans: 37
-  completed_plans: 35
+  completed_plans: 36
   percent: 0
 ---
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 10-inventory-system P02 | 4 | 2 tasks | 8 files |
 | Phase 10-inventory-system P03 | 3 | 1 tasks | 1 files |
 | Phase 11-calendar-ticket-and-feature-gaps P02 | 3 | 2 tasks | 8 files |
+| Phase 11-calendar-ticket-and-feature-gaps P01 | 18 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,7 @@ Recent decisions affecting current work:
 - [Phase 10-inventory-system]: Co-located sub-components in inventory page.tsx — self-contained feature, no premature extraction
 - [Phase 11-calendar-ticket-and-feature-gaps]: TicketComment/TicketAttachment not org-scoped in db extension — security via parent Ticket; sub-resource routes guard access via getTicketById
 - [Phase 11-calendar-ticket-and-feature-gaps]: ticket-attachments Supabase bucket created as public; base64 JSON body used for attachment uploads; search uses nested AND/OR to compose with access-control
+- [Phase 11-calendar-ticket-and-feature-gaps]: checkRoomConflict exported from eventService for reuse in draftEventService; ROOM_CONFLICT error uses .code property for semantic 409 catch in route handlers; smoke tests use DIRECT_URL to avoid pgbouncer prepared statement conflicts
 
 ### Pending Todos
 
@@ -125,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:09:16.205Z
-Stopped at: Completed 11-calendar-ticket-and-feature-gaps/11-02-PLAN.md
+Last session: 2026-03-10T22:11:28.716Z
+Stopped at: Completed 11-calendar-ticket-and-feature-gaps/11-01-PLAN.md
 Resume file: None
