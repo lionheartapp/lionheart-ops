@@ -148,7 +148,7 @@ Plans:
 
 - [x] **Phase 8: Auth Hardening and Security** - Production-grade auth: forgot password, rate limiting, httpOnly cookies, CSRF, email verification, input sanitization, and webhook signatures (gap closure in progress) (completed 2026-03-09)
 - [x] **Phase 9: Marketing and Legal Pages** - Public pages visitors need before signing up: Privacy Policy, Terms of Service, Pricing, About/Contact, and wired footer (completed 2026-03-10)
-- [ ] **Phase 10: Inventory System** - Full inventory CRUD, checkout/checkin workflow, transaction log, reorder alerts, and inventory UI page
+- [x] **Phase 10: Inventory System** - Full inventory CRUD, checkout/checkin workflow, transaction log, reorder alerts, and inventory UI page (completed 2026-03-10)
 - [ ] **Phase 11: Calendar, Ticket, and Feature Gaps** - Draft events individual routes, room conflict detection, ticket drawer edit button, ticket comments/attachments, and ticket search
 - [ ] **Phase 12: Settings and Admin Tools** - Audit log viewer, billing UI, CSV export, org name/slug editing, and notification preferences
 - [ ] **Phase 13: Infrastructure and Observability** - Vitest unit tests, GitHub Actions CI/CD, Pino structured logging, Sentry error tracking, list pagination, and DB transactions
@@ -281,7 +281,7 @@ Plans:
 | 7. Knowledge Base & Offline PWA | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 8. Auth Hardening and Security | 7/7 | Complete   | 2026-03-09 | - |
 | 9. Marketing and Legal Pages | 3/3 | Complete   | 2026-03-10 | - |
-| 10. Inventory System | 2/3 | In Progress|  | - |
+| 10. Inventory System | 3/3 | Complete   | 2026-03-10 | - |
 | 11. Calendar, Ticket, Feature Gaps | v2.0 | 0/3 | Not started | - |
 | 12. Settings and Admin Tools | v2.0 | 0/4 | Not started | - |
 | 13. Infrastructure and Observability | v2.0 | 0/5 | Not started | - |

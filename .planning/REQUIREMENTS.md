@@ -37,7 +37,7 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 - [x] **INV-03**: Staff can check in a returned inventory item and the system updates available quantity
 - [x] **INV-04**: Admin can view full transaction history (checkout/checkin log) for any inventory item
 - [x] **INV-05**: System alerts admin when item quantity falls below configured reorder threshold
-- [ ] **INV-06**: Admin can view and manage inventory through a dedicated UI page with search and filters
+- [x] **INV-06**: Admin can view and manage inventory through a dedicated UI page with search and filters
 
 ### Calendar & Events
 
@@ -164,7 +164,7 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | INV-03 | Phase 10 | Complete |
 | INV-04 | Phase 10 | Complete |
 | INV-05 | Phase 10 | Complete |
-| INV-06 | Phase 10 | Pending |
+| INV-06 | Phase 10 | Complete |
 | CAL-01 | Phase 11 | Pending |
 | CAL-02 | Phase 11 | Pending |
 | TIX-01 | Phase 11 | Pending |

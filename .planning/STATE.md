@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 10-inventory-system/10-02-PLAN.md
-last_updated: "2026-03-10T14:19:29.643Z"
+stopped_at: Completed 10-inventory-system/10-03-PLAN.md (awaiting human verify)
+last_updated: "2026-03-10T14:26:11.809Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 34
-  completed_plans: 33
+  completed_plans: 34
   percent: 0
 ---
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 09-marketing-and-legal-pages P03 | 4 | 2 tasks | 6 files |
 | Phase 10-inventory-system P01 | 12 | 2 tasks | 5 files |
 | Phase 10-inventory-system P02 | 4 | 2 tasks | 8 files |
+| Phase 10-inventory-system P03 | 3 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Recent decisions affecting current work:
 - [Phase 10-inventory-system]: Checkin route [id] param unused (service resolves item via transactionId in body) — kept for REST URL consistency
 - [Phase 10-inventory-system]: Inventory nav item not permission-gated — INVENTORY_READ on all viewer/member/admin roles, matches Dashboard/Calendar navItems behavior
 - [Phase 10-inventory-system]: Smoke test dual auth: Set-Cookie header preferred over Bearer token — compatible with pre- and post-phase-08 auth migration states
+- [Phase 10-inventory-system]: Inline query key factory in page.tsx — inventory is leaf feature, no cross-page sharing needed
+- [Phase 10-inventory-system]: Checkout form expands inline within detail drawer via AnimatePresence — avoids nested drawer UX
+- [Phase 10-inventory-system]: Co-located sub-components in inventory page.tsx — self-contained feature, no premature extraction
 
 ### Pending Todos
 
@@ -118,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:19:29.640Z
-Stopped at: Completed 10-inventory-system/10-02-PLAN.md
+Last session: 2026-03-10T14:26:11.806Z
+Stopped at: Completed 10-inventory-system/10-03-PLAN.md (awaiting human verify)
 Resume file: None
