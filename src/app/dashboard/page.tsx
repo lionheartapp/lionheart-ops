@@ -37,6 +37,11 @@ export default function DashboardPage() {
   const [createSaving, setCreateSaving] = useState(false)
   const [createError, setCreateError] = useState('')
 
+  // Edit ticket state
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editForm, setEditForm] = useState({ title: '', description: '', priority: 'NORMAL' as string })
+  const [editSaving, setEditSaving] = useState(false)
+
   // Ticket data from API
   const [tickets, setTickets] = useState<TicketData[]>([])
   const [ticketsLoading, setTicketsLoading] = useState(true)
@@ -148,6 +153,33 @@ export default function DashboardPage() {
       setCreateSaving(false)
     }
   }, [token, createForm, createCategory, fetchTickets])
+
+  const handleSaveEdit = async () => {
+    if (!selectedTicket) return
+    setEditSaving(true)
+    try {
+      const res = await fetch(`/api/tickets/${selectedTicket.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(editForm),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        // Update the local ticket data
+        setSelectedTicket({ ...selectedTicket, ...editForm })
+        setIsEditMode(false)
+        // Refresh the tickets list using the existing fetchTickets() pattern
+        fetchTickets()
+      }
+    } catch (err) {
+      console.error('Failed to update ticket:', err)
+    } finally {
+      setEditSaving(false)
+    }
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -466,51 +498,109 @@ export default function DashboardPage() {
       {/* Detail Drawer */}
       <DetailDrawer
         isOpen={isDetailOpen}
-        onClose={() => { setIsDetailOpen(false); setSelectedTicket(null) }}
+        onClose={() => { setIsDetailOpen(false); setSelectedTicket(null); setIsEditMode(false) }}
         title={selectedTicket?.title || 'Task Details'}
         width="md"
         onEdit={() => {
-          console.log('Edit clicked')
+          if (selectedTicket) {
+            setEditForm({
+              title: selectedTicket.title || '',
+              description: selectedTicket.description || '',
+              priority: selectedTicket.priority || 'NORMAL',
+            })
+            setIsEditMode(true)
+          }
         }}
       >
         {selectedTicket ? (
-          <div className="space-y-6">
-            {selectedTicket.description && (
-              <p className="text-gray-600 text-sm">{selectedTicket.description}</p>
-            )}
+          isEditMode ? (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Status</p>
-                <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedTicket.status === 'OPEN' ? 'bg-red-100 text-red-700' :
-                  selectedTicket.status === 'IN_PROGRESS' ? 'bg-primary-100 text-primary-700' :
-                  'bg-green-100 text-green-700'
-                }`}>
-                  {getStatusLabel(selectedTicket.status)}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Priority</p>
-                <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(selectedTicket.priority)}`}>
-                  {selectedTicket.priority}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Category</p>
-                <p className="text-gray-600">{selectedTicket.category}</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select
+                  value={editForm.priority}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, priority: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="LOW">Low</option>
+                  <option value="NORMAL">Normal</option>
+                  <option value="HIGH">High</option>
+                  <option value="CRITICAL">Critical</option>
+                </select>
               </div>
-              {selectedTicket.locationText && (
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Location</p>
-                  <p className="text-gray-600">{selectedTicket.locationText}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Created</p>
-                <p className="text-gray-600">{new Date(selectedTicket.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={editSaving}
+                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition active:scale-[0.97]"
+                >
+                  {editSaving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  onClick={() => setIsEditMode(false)}
+                  className="flex-1 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition active:scale-[0.97]"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-6">
+              {selectedTicket.description && (
+                <p className="text-gray-600 text-sm">{selectedTicket.description}</p>
+              )}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Status</p>
+                  <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                    selectedTicket.status === 'OPEN' ? 'bg-red-100 text-red-700' :
+                    selectedTicket.status === 'IN_PROGRESS' ? 'bg-primary-100 text-primary-700' :
+                    'bg-green-100 text-green-700'
+                  }`}>
+                    {getStatusLabel(selectedTicket.status)}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Priority</p>
+                  <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(selectedTicket.priority)}`}>
+                    {selectedTicket.priority}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Category</p>
+                  <p className="text-gray-600">{selectedTicket.category}</p>
+                </div>
+                {selectedTicket.locationText && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-1">Location</p>
+                    <p className="text-gray-600">{selectedTicket.locationText}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Created</p>
+                  <p className="text-gray-600">{new Date(selectedTicket.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                </div>
+              </div>
+            </div>
+          )
         ) : (
           <p className="text-gray-400 text-sm">Select a task to view details.</p>
         )}
