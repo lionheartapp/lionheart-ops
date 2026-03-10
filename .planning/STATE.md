@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 10-inventory-system/10-03-PLAN.md (awaiting human verify)
-last_updated: "2026-03-10T20:29:28.633Z"
+stopped_at: Completed 11-calendar-ticket-and-feature-gaps/11-02-PLAN.md
+last_updated: "2026-03-10T22:09:16.208Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 10
-  total_plans: 34
-  completed_plans: 34
+  total_plans: 37
+  completed_plans: 35
   percent: 0
 ---
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 10-inventory-system P01 | 12 | 2 tasks | 5 files |
 | Phase 10-inventory-system P02 | 4 | 2 tasks | 8 files |
 | Phase 10-inventory-system P03 | 3 | 1 tasks | 1 files |
+| Phase 11-calendar-ticket-and-feature-gaps P02 | 3 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 10-inventory-system]: Inline query key factory in page.tsx — inventory is leaf feature, no cross-page sharing needed
 - [Phase 10-inventory-system]: Checkout form expands inline within detail drawer via AnimatePresence — avoids nested drawer UX
 - [Phase 10-inventory-system]: Co-located sub-components in inventory page.tsx — self-contained feature, no premature extraction
+- [Phase 11-calendar-ticket-and-feature-gaps]: TicketComment/TicketAttachment not org-scoped in db extension — security via parent Ticket; sub-resource routes guard access via getTicketById
+- [Phase 11-calendar-ticket-and-feature-gaps]: ticket-attachments Supabase bucket created as public; base64 JSON body used for attachment uploads; search uses nested AND/OR to compose with access-control
 
 ### Pending Todos
 
@@ -122,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:26:11.806Z
-Stopped at: Completed 10-inventory-system/10-03-PLAN.md (awaiting human verify)
+Last session: 2026-03-10T22:09:16.205Z
+Stopped at: Completed 11-calendar-ticket-and-feature-gaps/11-02-PLAN.md
 Resume file: None
