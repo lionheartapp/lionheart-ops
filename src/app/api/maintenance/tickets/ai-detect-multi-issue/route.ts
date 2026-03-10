@@ -4,6 +4,8 @@
  * Analyzes ticket title/description/category to detect if multiple distinct
  * maintenance issues are described. Returns a suggestion to split into 2 tickets.
  * Gracefully degrades to { hasMultipleIssues: false } on any failure.
+ *
+ * Migrated from Google Gemini to Anthropic Claude.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -12,6 +14,7 @@ import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { claudeTextCompletion, extractJson, getClaudeClient } from '@/lib/services/ai/claude-client'
 
 function buildPrompt(title: string, description: string, category: string): string {
   return `You are analyzing a school maintenance request to determine if it describes multiple distinct maintenance issues.
@@ -45,8 +48,7 @@ export async function POST(req: NextRequest) {
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_SUBMIT)
 
-    const apiKey = process.env.GEMINI_API_KEY?.trim()
-    if (!apiKey) {
+    if (!getClaudeClient()) {
       return NextResponse.json(ok({ hasMultipleIssues: false }))
     }
 
@@ -58,27 +60,21 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const { GoogleGenAI } = await import('@google/genai')
-      const genai = new GoogleGenAI({ apiKey })
-
       const prompt = buildPrompt(
         String(title),
         String(description || ''),
         String(category)
       )
 
-      const result = await genai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: prompt,
-      })
-      const text = (result.text || '').trim()
+      const result = await claudeTextCompletion(prompt)
+      if (!result) {
+        return NextResponse.json(ok({ hasMultipleIssues: false }))
+      }
 
-      // Parse JSON response
-      const jsonText = text.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
-      const parsed = JSON.parse(jsonText)
+      const parsed = extractJson<{ hasMultipleIssues?: boolean; secondIssue?: { title?: string; suggestedCategory?: string } }>(result)
 
       // Validate response structure
-      if (typeof parsed.hasMultipleIssues !== 'boolean') {
+      if (!parsed || typeof parsed.hasMultipleIssues !== 'boolean') {
         return NextResponse.json(ok({ hasMultipleIssues: false }))
       }
 
@@ -93,14 +89,14 @@ export async function POST(req: NextRequest) {
           hasMultipleIssues: true,
           secondIssue: {
             title: String(parsed.secondIssue.title || '').trim(),
-            suggestedCategory: validCategories.includes(category) ? category : 'OTHER',
+            suggestedCategory: validCategories.includes(category || '') ? category : 'OTHER',
           },
         }))
       }
 
       return NextResponse.json(ok({ hasMultipleIssues: false }))
     } catch (aiError) {
-      console.error('[ai-detect-multi-issue] Gemini error (graceful degrade):', aiError)
+      console.error('[ai-detect-multi-issue] Claude error (graceful degrade):', aiError)
       return NextResponse.json(ok({ hasMultipleIssues: false }))
     }
   } catch (error) {

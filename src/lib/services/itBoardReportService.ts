@@ -3,14 +3,14 @@
  *
  * Aggregates IT device fleet metrics, refresh forecasting, repair/replace analysis,
  * and damage fee collection for superintendent-ready board reports. Also handles
- * AI narrative generation via Gemini and PDF export via jsPDF.
+ * AI narrative generation via Claude and PDF export via jsPDF.
  *
  * Uses rawPrisma for all queries — org ID is passed explicitly.
  */
 
 import { rawPrisma } from '@/lib/db'
 import { jsPDF } from 'jspdf'
-import { GoogleGenAI } from '@google/genai'
+import { claudeTextCompletion, getClaudeClient } from '@/lib/services/ai/claude-client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -629,8 +629,6 @@ export async function generateITNarrative(
   orgName: string,
   reportType?: string
 ): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
-
   const reportLabel = reportType
     ? { annual: 'Annual Technology', 'refresh-forecast': 'Device Refresh Forecast', 'repair-replace': 'Repair vs Replace', 'damage-fees': 'Damage Fee Collection' }[reportType] ?? 'Technology'
     : 'Technology'
@@ -648,17 +646,13 @@ Write a 3-4 paragraph executive narrative that:
 
 Do not use markdown formatting. Write in plain prose paragraphs.`
 
-  if (!apiKey) {
+  if (!getClaudeClient()) {
     return buildFallbackNarrative(metrics, orgName)
   }
 
   try {
-    const client = new GoogleGenAI({ apiKey })
-    const response = await client.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: prompt,
-    })
-    return response.text ?? buildFallbackNarrative(metrics, orgName)
+    const result = await claudeTextCompletion(prompt, 2048)
+    return result ?? buildFallbackNarrative(metrics, orgName)
   } catch (err) {
     console.error('[itBoardReportService] AI narrative generation failed:', err)
     return buildFallbackNarrative(metrics, orgName)
@@ -1798,13 +1792,10 @@ export async function getTicketROINarrative(
   })
   const orgName = org?.name ?? 'the organization'
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
-
   let narrative: string
 
-  if (apiKey) {
+  if (getClaudeClient()) {
     try {
-      const client = new GoogleGenAI({ apiKey })
       const prompt = `You are writing an IT Ticket ROI executive narrative for a K-12 school board presentation at ${orgName}. Be professional, concise (2-3 paragraphs), and highlight the value delivered by the IT team.
 
 IT Ticket Metrics:
@@ -1817,11 +1808,8 @@ Write a 2-3 paragraph executive narrative that:
 
 Do not use markdown formatting. Write in plain prose paragraphs.`
 
-      const response = await client.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: prompt,
-      })
-      narrative = response.text ?? buildROIFallbackNarrative(metrics, orgName)
+      const result = await claudeTextCompletion(prompt, 2048)
+      narrative = result ?? buildROIFallbackNarrative(metrics, orgName)
     } catch (err) {
       console.error('[itBoardReportService] AI ROI narrative generation failed:', err)
       narrative = buildROIFallbackNarrative(metrics, orgName)

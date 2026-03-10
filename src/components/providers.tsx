@@ -4,6 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect, useRef } from 'react'
 import { usePrefetchOnAuth } from '@/lib/hooks/usePrefetchOnAuth'
 import { ToastProvider } from '@/components/Toast'
+import dynamic from 'next/dynamic'
+
+// Lazy-load the AI chat button so it doesn't impact initial bundle size
+const ChatButton = dynamic(() => import('@/components/ai/ChatButton'), {
+  ssr: false,
+})
 
 // ── Paths that don't need auth hydration ────────────────────────────
 const PUBLIC_PREFIXES = [
@@ -149,7 +155,12 @@ function PrefetchGate({ children }: { children: React.ReactNode }) {
   // Warm the TanStack Query cache as soon as we know the user is authed
   usePrefetchOnAuth(token)
 
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      {token && <ChatButton />}
+    </>
+  )
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
