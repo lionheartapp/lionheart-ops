@@ -56,6 +56,9 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
+    if (error instanceof Error && (error as any).code === 'ROOM_CONFLICT') {
+      return NextResponse.json(fail('ROOM_CONFLICT', error.message), { status: 409 })
+    }
     if (error instanceof Error && error.message.includes('permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }

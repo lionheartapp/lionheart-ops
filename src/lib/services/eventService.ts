@@ -28,6 +28,46 @@ export type CreateEventInput = z.infer<typeof CreateEventSchema>
 export type UpdateEventInput = z.infer<typeof UpdateEventSchema>
 export type ListEventsInput = z.infer<typeof ListEventsSchema>
 
+// ============= Room Conflict Detection =============
+
+/**
+ * Check if a room is already booked during the given time range.
+ * Skips events with CANCELLED status. Comparison is case-insensitive.
+ * @param room Room name to check
+ * @param startsAt Start of the proposed booking
+ * @param endsAt End of the proposed booking
+ * @param excludeId Optional event ID to exclude from check (for updates)
+ */
+async function checkRoomConflict(
+  room: string | null | undefined,
+  startsAt: Date,
+  endsAt: Date,
+  excludeId?: string
+): Promise<void> {
+  if (!room || !room.trim()) return
+
+  const conflict = await prisma.event.findFirst({
+    where: {
+      room: { equals: room.trim(), mode: 'insensitive' },
+      status: { not: 'CANCELLED' },
+      startsAt: { lt: endsAt },
+      endsAt: { gt: startsAt },
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
+    select: { id: true, title: true, startsAt: true, endsAt: true },
+  })
+
+  if (conflict) {
+    const err = new Error(
+      `Room "${room.trim()}" is already booked from ${conflict.startsAt.toISOString()} to ${conflict.endsAt.toISOString()} ("${conflict.title}")`
+    ) as Error & { code: string }
+    err.code = 'ROOM_CONFLICT'
+    throw err
+  }
+}
+
+export { checkRoomConflict }
+
 // ============= Service Functions =============
 
 /**
@@ -97,6 +137,10 @@ export async function createEvent(
 
   const validated = CreateEventSchema.parse(input)
 
+  if (validated.room) {
+    await checkRoomConflict(validated.room, new Date(validated.startsAt), new Date(validated.endsAt))
+  }
+
   const event = await prisma.event.create({
     data: {
       title: validated.title,
@@ -127,6 +171,20 @@ export async function updateEvent(
   await assertCan(userId, PERMISSIONS.EVENTS_UPDATE_OWN)
 
   const validated = UpdateEventSchema.parse(input)
+
+  // Check room conflict if room or times are being changed
+  if (validated.room !== undefined || validated.startsAt !== undefined || validated.endsAt !== undefined) {
+    const existing = await prisma.event.findUnique({
+      where: { id },
+      select: { room: true, startsAt: true, endsAt: true },
+    })
+    if (existing) {
+      const effectiveRoom = validated.room !== undefined ? validated.room : existing.room
+      const effectiveStart = validated.startsAt !== undefined ? new Date(validated.startsAt) : existing.startsAt
+      const effectiveEnd = validated.endsAt !== undefined ? new Date(validated.endsAt) : existing.endsAt
+      await checkRoomConflict(effectiveRoom, effectiveStart, effectiveEnd, id)
+    }
+  }
 
   const updateData: any = {}
   if (validated.title !== undefined) updateData.title = validated.title

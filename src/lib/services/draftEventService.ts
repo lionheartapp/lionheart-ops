@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { DraftEvent, DraftEventStatus } from '@prisma/client'
 import { assertCan, can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { checkRoomConflict } from '@/lib/services/eventService'
 
 // ============= Validation Schemas =============
 
@@ -227,6 +228,11 @@ export async function submitDraftEvent(
 
   if (!draft.startsAt || !draft.endsAt) {
     throw new Error('Draft must have start and end times before submission')
+  }
+
+  // Check for room conflicts before publishing the draft as a confirmed event
+  if (draft.room) {
+    await checkRoomConflict(draft.room, draft.startsAt, draft.endsAt)
   }
 
   // Create confirmed event from draft
