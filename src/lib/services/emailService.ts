@@ -788,6 +788,63 @@ export async function sendBoardReportEmail(
   return { sent: false, reason: 'NO_EMAIL_PROVIDER_CONFIGURED' }
 }
 
+// ─── Contact Form Email ────────────────────────────────────────────────────────
+
+type ContactFormEmailInput = {
+  name: string
+  email: string
+  subject?: string
+  message: string
+}
+
+export async function sendContactFormEmail(input: ContactFormEmailInput): Promise<SendEmailResult> {
+  const to = process.env.CONTACT_EMAIL || process.env.MAIL_FROM || 'no-reply@lionheartapp.com'
+  const from = process.env.MAIL_FROM || 'Lionheart <no-reply@lionheartapp.com>'
+  const subject = `[Lionheart Contact] ${input.subject || 'New Message'} from ${input.name}`
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px;">
+  <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background: #4f46e5; padding: 24px 32px;">
+      <p style="color: #c7d2fe; margin: 0 0 4px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Contact Form Submission</p>
+      <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700;">New Message from ${input.name}</h1>
+    </div>
+    <div style="padding: 32px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+        <tr>
+          <td style="padding: 8px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; width: 100px; vertical-align: top;">Name</td>
+          <td style="padding: 8px 0; color: #111827; font-size: 14px;">${input.name}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; vertical-align: top;">Email</td>
+          <td style="padding: 8px 0;"><a href="mailto:${input.email}" style="color: #4f46e5; font-size: 14px;">${input.email}</a></td>
+        </tr>
+        ${input.subject ? `<tr>
+          <td style="padding: 8px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; vertical-align: top;">Subject</td>
+          <td style="padding: 8px 0; color: #111827; font-size: 14px;">${input.subject}</td>
+        </tr>` : ''}
+      </table>
+      <div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+        <p style="color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px;">Message</p>
+        <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${input.message}</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+
+  const text = `New contact form message from ${input.name} <${input.email}>\n${input.subject ? `Subject: ${input.subject}\n` : ''}\nMessage:\n${input.message}`
+
+  const resendResult = await sendViaResend(to, subject, html, text, from)
+  if (resendResult.sent) return resendResult
+  const smtpResult = await sendViaSmtp(to, subject, html, text, from)
+  if (smtpResult.sent) return smtpResult
+  return { sent: false, reason: 'NO_EMAIL_PROVIDER_CONFIGURED' }
+}
+
 // ─── Compliance Reminder Email ─────────────────────────────────────────────────
 
 type ComplianceReminderEmailInput = {
