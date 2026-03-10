@@ -32,11 +32,11 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 
 ### Inventory System
 
-- [ ] **INV-01**: Admin can create, update, and delete inventory items with name, category, SKU, and quantity
-- [ ] **INV-02**: Staff can check out an inventory item and the system records who, when, and expected return
-- [ ] **INV-03**: Staff can check in a returned inventory item and the system updates available quantity
-- [ ] **INV-04**: Admin can view full transaction history (checkout/checkin log) for any inventory item
-- [ ] **INV-05**: System alerts admin when item quantity falls below configured reorder threshold
+- [x] **INV-01**: Admin can create, update, and delete inventory items with name, category, SKU, and quantity
+- [x] **INV-02**: Staff can check out an inventory item and the system records who, when, and expected return
+- [x] **INV-03**: Staff can check in a returned inventory item and the system updates available quantity
+- [x] **INV-04**: Admin can view full transaction history (checkout/checkin log) for any inventory item
+- [x] **INV-05**: System alerts admin when item quantity falls below configured reorder threshold
 - [ ] **INV-06**: Admin can view and manage inventory through a dedicated UI page with search and filters
 
 ### Calendar & Events
@@ -159,11 +159,11 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | PAGE-04 | Phase 9 | Complete |
 | PAGE-05 | Phase 9 | Complete |
 | PAGE-06 | Phase 9 | Complete |
-| INV-01 | Phase 10 | Pending |
-| INV-02 | Phase 10 | Pending |
-| INV-03 | Phase 10 | Pending |
-| INV-04 | Phase 10 | Pending |
-| INV-05 | Phase 10 | Pending |
+| INV-01 | Phase 10 | Complete |
+| INV-02 | Phase 10 | Complete |
+| INV-03 | Phase 10 | Complete |
+| INV-04 | Phase 10 | Complete |
+| INV-05 | Phase 10 | Complete |
 | INV-06 | Phase 10 | Pending |
 | CAL-01 | Phase 11 | Pending |
 | CAL-02 | Phase 11 | Pending |

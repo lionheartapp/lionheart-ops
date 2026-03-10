@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 09-marketing-and-legal-pages/09-03-PLAN.md
-last_updated: "2026-03-10T00:15:41.072Z"
+stopped_at: Completed 10-inventory-system/10-01-PLAN.md
+last_updated: "2026-03-10T14:11:38.583Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 9
-  total_plans: 31
-  completed_plans: 31
+  total_plans: 34
+  completed_plans: 32
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 09-marketing-and-legal-pages P01 | 4 | 2 tasks | 4 files |
 | Phase 09-marketing-and-legal-pages P02 | 4 | 1 tasks | 3 files |
 | Phase 09-marketing-and-legal-pages P03 | 4 | 2 tasks | 6 files |
+| Phase 10-inventory-system P01 | 12 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 09-marketing-and-legal-pages]: Client+server layout split for pricing page — client component for toggle state, server layout.tsx for SEO metadata
 - [Phase 09-marketing-and-legal-pages]: sendContactFormEmail added as exported function in emailService.ts (Resend+SMTP fallback) for contact form delivery
 - [Phase 09-marketing-and-legal-pages]: About page uses use client for form state machine; layout.tsx handles server-side SEO metadata
+- [Phase 10-inventory-system]: InventoryTransaction quantity is signed (negative for CHECKOUT, positive for CHECKIN) - single field encodes direction
+- [Phase 10-inventory-system]: InventoryTransaction not soft-deleted - transactions are immutable audit records
+- [Phase 10-inventory-system]: INVENTORY_CHECKOUT and INVENTORY_CHECKIN assigned to ADMIN and MEMBER roles - staff need checkout capability without full management rights
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T00:11:27.070Z
-Stopped at: Completed 09-marketing-and-legal-pages/09-03-PLAN.md
+Last session: 2026-03-10T14:11:38.580Z
+Stopped at: Completed 10-inventory-system/10-01-PLAN.md
 Resume file: None
