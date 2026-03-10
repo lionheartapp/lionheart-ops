@@ -281,7 +281,7 @@ Plans:
 | 7. Knowledge Base & Offline PWA | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 8. Auth Hardening and Security | 7/7 | Complete   | 2026-03-09 | - |
 | 9. Marketing and Legal Pages | 3/3 | Complete   | 2026-03-10 | - |
-| 10. Inventory System | 3/3 | Complete   | 2026-03-10 | - |
+| 10. Inventory System | 3/3 | Complete    | 2026-03-10 | - |
 | 11. Calendar, Ticket, Feature Gaps | v2.0 | 0/3 | Not started | - |
 | 12. Settings and Admin Tools | v2.0 | 0/4 | Not started | - |
 | 13. Infrastructure and Observability | v2.0 | 0/5 | Not started | - |
