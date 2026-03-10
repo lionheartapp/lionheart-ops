@@ -41,6 +41,8 @@ export type NotificationType =
   | 'security_incident_escalated'
   | 'security_incident_status'
   | 'security_incident_closed'
+  // Inventory alerts
+  | 'inventory_low_stock'
 
 export interface CreateNotificationInput {
   userId: string
