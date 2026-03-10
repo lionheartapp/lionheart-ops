@@ -14,19 +14,10 @@ import { runWithOrgContext } from '@/lib/org-context'
 import { createBulkNotifications } from '@/lib/services/notificationService'
 import { PERMISSIONS } from '@/lib/permissions'
 import { stripAllHtml } from '@/lib/sanitize'
+import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
 
-// ─── Category Constants ─────────────────────────────────────────────────────
-
-export const INVENTORY_CATEGORIES = [
-  'Office Supplies',
-  'AV Equipment',
-  'Custodial',
-  'Sports Equipment',
-  'Classroom Materials',
-  'Technology',
-  'Medical/First Aid',
-  'Other',
-] as const
+// Re-export for backward compatibility with server-side consumers
+export { INVENTORY_CATEGORIES }
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
 

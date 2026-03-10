@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, XCircle, Clock, Mail, RefreshCw, ArrowLeft } from 'lucide-react'
 
@@ -13,6 +13,14 @@ type PageState =
 type ResendFormState = 'idle' | 'submitting' | 'sent' | 'error'
 
 export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<Layout><div className="text-center"><div className="mx-auto mb-6 h-16 w-16 rounded-full bg-zinc-100 animate-pulse" /><div className="h-6 w-48 mx-auto bg-zinc-100 rounded animate-pulse mb-2" /><div className="h-4 w-64 mx-auto bg-zinc-100 rounded animate-pulse" /></div></Layout>}>
+      <VerifyEmailContent />
+    </Suspense>
+  )
+}
+
+function VerifyEmailContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const error = searchParams.get('error')

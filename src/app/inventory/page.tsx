@@ -26,7 +26,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { fetchApi } from '@/lib/api-client'
 import { fadeInUp, staggerContainer, listItem, cardEntrance } from '@/lib/animations'
-import { INVENTORY_CATEGORIES } from '@/lib/services/inventoryService'
+import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
