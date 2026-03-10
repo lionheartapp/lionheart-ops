@@ -133,7 +133,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="bg-gray-50 border-y border-gray-200 py-16 sm:py-24">
+      <section id="features" className="bg-gray-50 border-y border-gray-200 py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
@@ -308,22 +308,22 @@ export default function Landing() {
             <nav>
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Features</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Pricing</a></li>
+                <li><a href="/#features" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Features</a></li>
+                <li><Link href="/pricing" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Pricing</Link></li>
               </ul>
             </nav>
             <nav>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">About</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Contact</a></li>
+                <li><Link href="/about" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">About</Link></li>
+                <li><Link href="/about#contact" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Contact</Link></li>
               </ul>
             </nav>
             <nav>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Terms</a></li>
+                <li><Link href="/privacy" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Privacy</Link></li>
+                <li><Link href="/terms" className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition">Terms</Link></li>
               </ul>
             </nav>
           </div>
