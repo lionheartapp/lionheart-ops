@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 10-inventory-system/10-01-PLAN.md
-last_updated: "2026-03-10T14:11:38.583Z"
+stopped_at: Completed 10-inventory-system/10-02-PLAN.md
+last_updated: "2026-03-10T14:19:29.643Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 9
   total_plans: 34
-  completed_plans: 32
+  completed_plans: 33
   percent: 0
 ---
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 09-marketing-and-legal-pages P02 | 4 | 1 tasks | 3 files |
 | Phase 09-marketing-and-legal-pages P03 | 4 | 2 tasks | 6 files |
 | Phase 10-inventory-system P01 | 12 | 2 tasks | 5 files |
+| Phase 10-inventory-system P02 | 4 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,9 @@ Recent decisions affecting current work:
 - [Phase 10-inventory-system]: InventoryTransaction quantity is signed (negative for CHECKOUT, positive for CHECKIN) - single field encodes direction
 - [Phase 10-inventory-system]: InventoryTransaction not soft-deleted - transactions are immutable audit records
 - [Phase 10-inventory-system]: INVENTORY_CHECKOUT and INVENTORY_CHECKIN assigned to ADMIN and MEMBER roles - staff need checkout capability without full management rights
+- [Phase 10-inventory-system]: Checkin route [id] param unused (service resolves item via transactionId in body) — kept for REST URL consistency
+- [Phase 10-inventory-system]: Inventory nav item not permission-gated — INVENTORY_READ on all viewer/member/admin roles, matches Dashboard/Calendar navItems behavior
+- [Phase 10-inventory-system]: Smoke test dual auth: Set-Cookie header preferred over Bearer token — compatible with pre- and post-phase-08 auth migration states
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:11:38.580Z
-Stopped at: Completed 10-inventory-system/10-01-PLAN.md
+Last session: 2026-03-10T14:19:29.640Z
+Stopped at: Completed 10-inventory-system/10-02-PLAN.md
 Resume file: None
