@@ -26,9 +26,9 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 - [x] **PAGE-01**: Visitors can view a Privacy Policy page compliant with COPPA/FERPA for K-12 schools
 - [x] **PAGE-02**: Visitors can view a Terms of Service page governing platform usage
 - [x] **PAGE-03**: Visitors can view a Pricing page showing plans and costs before signup
-- [ ] **PAGE-04**: Visitors can view an About page with company information and a Contact form
-- [ ] **PAGE-05**: All footer links navigate to real pages (Features, Pricing, About, Contact, Privacy, Terms)
-- [ ] **PAGE-06**: "Coming soon" OAuth buttons on signup are hidden or replaced with a clean non-OAuth flow
+- [x] **PAGE-04**: Visitors can view an About page with company information and a Contact form
+- [x] **PAGE-05**: All footer links navigate to real pages (Features, Pricing, About, Contact, Privacy, Terms)
+- [x] **PAGE-06**: "Coming soon" OAuth buttons on signup are hidden or replaced with a clean non-OAuth flow
 
 ### Inventory System
 
@@ -156,9 +156,9 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | PAGE-01 | Phase 9 | Complete |
 | PAGE-02 | Phase 9 | Complete |
 | PAGE-03 | Phase 9 | Complete |
-| PAGE-04 | Phase 9 | Pending |
-| PAGE-05 | Phase 9 | Pending |
-| PAGE-06 | Phase 9 | Pending |
+| PAGE-04 | Phase 9 | Complete |
+| PAGE-05 | Phase 9 | Complete |
+| PAGE-06 | Phase 9 | Complete |
 | INV-01 | Phase 10 | Pending |
 | INV-02 | Phase 10 | Pending |
 | INV-03 | Phase 10 | Pending |
