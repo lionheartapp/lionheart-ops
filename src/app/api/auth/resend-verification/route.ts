@@ -94,15 +94,17 @@ export async function POST(req: NextRequest) {
     const verificationLink = getVerificationLink(token)
     const firstName = user.firstName || user.name || user.email
 
-    // Fire-and-forget (don't let email failure affect response)
-    sendVerificationEmail({
+    // Must await — Vercel serverless kills process after response
+    const emailResult = await sendVerificationEmail({
       to: user.email,
       firstName,
       orgName: user.organization?.name ?? 'your organization',
       verificationLink,
-    }).catch((err) => {
-      console.error('[POST /api/auth/resend-verification] Email send failed:', err)
     })
+
+    if (!emailResult.sent) {
+      console.error('[POST /api/auth/resend-verification] Email not sent:', emailResult.reason)
+    }
 
     return NextResponse.json(ok(GENERIC_SUCCESS))
   } catch (error) {

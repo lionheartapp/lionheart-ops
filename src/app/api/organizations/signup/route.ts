@@ -70,14 +70,15 @@ export async function POST(req: NextRequest) {
       })
       const verificationLink = getVerificationLink(verificationToken)
       const firstName = (adminUser as any).firstName || (adminUser as any).name || adminUser.email
-      sendVerificationEmail({
+      const emailResult = await sendVerificationEmail({
         to: adminUser.email,
         firstName,
         orgName: result.name,
         verificationLink,
-      }).catch((err) => {
-        console.error('[signup] Verification email send failed:', err)
       })
+      if (!emailResult.sent) {
+        console.error('[signup] Verification email not sent:', emailResult.reason)
+      }
     } catch (err) {
       console.error('[signup] Failed to create verification token:', err)
     }

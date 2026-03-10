@@ -87,17 +87,20 @@ export async function POST(req: NextRequest) {
     const firstName = user.name?.split(' ')[0] || 'there'
     const orgName = user.organization?.name || 'your organization'
 
-    // Fire-and-forget email send
-    sendPasswordResetEmail({
+    // Await email send — Vercel serverless kills the process after response,
+    // so fire-and-forget never completes
+    const emailResult = await sendPasswordResetEmail({
       to: user.email,
       firstName,
       orgName,
       resetLink,
-    }).catch((err) => {
-      console.error('[forgot-password] Failed to send reset email:', err)
     })
 
-    // Fire-and-forget audit log
+    if (!emailResult.sent) {
+      console.error('[forgot-password] Email not sent:', emailResult.reason)
+    }
+
+    // Audit log can still be fire-and-forget (non-critical)
     void audit({
       organizationId: user.organizationId,
       userId: user.id,
