@@ -30,6 +30,7 @@ import {
   HelpCircle,
   Wrench,
   Monitor,
+  Package,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -739,6 +740,7 @@ export default function Sidebar({
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
+    { icon: Package, label: 'Inventory', href: '/inventory' },
   ]
 
   const handleAthleticsClick = () => {
