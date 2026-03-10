@@ -15,12 +15,12 @@ export default function PublicFooter() {
             <h4 className="text-white font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm" role="list">
               <li>
-                <Link
+                <a
                   href="/#features"
                   className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition"
                 >
                   Features
-                </Link>
+                </a>
               </li>
               <li>
                 <Link
