@@ -189,9 +189,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Privacy Policy + Terms of Service pages with COPPA/FERPA compliance, plus PublicNav/PublicFooter shared components (PAGE-01, PAGE-02)
-- [ ] 09-02-PLAN.md — Pricing page with three-tier comparison, monthly/annual toggle, feature table, and FAQ (PAGE-03)
-- [ ] 09-03-PLAN.md — About page with contact form, POST /api/public/contact endpoint, footer link wiring, signup OAuth cleanup + PasswordInput (PAGE-04, PAGE-05, PAGE-06)
+- [x] 09-01-PLAN.md — Privacy Policy + Terms of Service pages with COPPA/FERPA compliance, plus PublicNav/PublicFooter shared components (PAGE-01, PAGE-02)
+- [x] 09-02-PLAN.md — Pricing page with three-tier comparison, monthly/annual toggle, feature table, and FAQ (PAGE-03)
+- [x] 09-03-PLAN.md — About page with contact form, POST /api/public/contact endpoint, footer link wiring, signup OAuth cleanup + PasswordInput (PAGE-04, PAGE-05, PAGE-06)
 
 ### Phase 10: Inventory System
 **Goal**: Staff can manage physical inventory — track stock levels, check items in and out, and get alerted before stock runs out
@@ -203,12 +203,12 @@ Plans:
   3. Staff can check in a returned item and available quantity updates immediately
   4. Admin can view a complete transaction log showing every checkout and checkin event for a given item, with actor and timestamp
   5. Admin sees a visible alert (badge or notification) when an item's quantity drops below the configured reorder threshold
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: InventoryItem + InventoryTransaction data model, CRUD API routes, checkout/checkin endpoints (INV-01, INV-02, INV-03, INV-04)
-- [ ] 10-02: Reorder threshold alerts + alert delivery (INV-05)
-- [ ] 10-03: Inventory UI page with search, filters, and transaction history drawer (INV-06)
+- [ ] 10-01-PLAN.md — Schema extension (InventoryItem + InventoryTransaction model), permissions, inventoryService.ts with CRUD + checkout/checkin + low-stock alerts (INV-01, INV-02, INV-03, INV-04, INV-05)
+- [ ] 10-02-PLAN.md — All 5 API route handlers with auth/validation, sidebar Inventory nav item, smoke test (INV-01, INV-02, INV-03, INV-04, INV-05)
+- [ ] 10-03-PLAN.md — Inventory UI page with search, filters, CRUD drawers, checkout/checkin actions, transaction history, human verification (INV-06)
 
 ### Phase 11: Calendar, Ticket, and Feature Gaps
 **Goal**: Existing modules have their known gaps closed — draft events are fully manageable, rooms cannot be double-booked, and tickets are more searchable and interactive
