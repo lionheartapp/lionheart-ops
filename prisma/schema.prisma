@@ -223,6 +223,9 @@ model User {
   // Inventory module relations
   inventoryCheckouts        InventoryTransaction[]       @relation("InventoryCheckedOutBy")
   inventoryCheckins         InventoryTransaction[]       @relation("InventoryCheckedInBy")
+  // Ticket comment and attachment relations
+  ticketComments            TicketComment[]              @relation("TicketCommentAuthor")
+  ticketAttachments         TicketAttachment[]           @relation("TicketAttachmentUploader")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -272,6 +275,8 @@ model Ticket {
   school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   assignedTo     User?          @relation("AssignedTicketUser", fields: [assignedToId], references: [id], onDelete: SetNull)
   createdBy      User?          @relation("CreatedTicketUser", fields: [createdById], references: [id], onDelete: SetNull)
+  comments       TicketComment[]
+  attachments    TicketAttachment[]
 
   @@index([organizationId, status])
   @@index([organizationId, category])
@@ -280,6 +285,40 @@ model Ticket {
   @@index([organizationId, campusId])
   @@index([schoolId])
   @@index([createdById])
+}
+
+model TicketComment {
+  id             String   @id @default(cuid())
+  organizationId String
+  ticketId       String
+  authorId       String
+  body           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  ticket  Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author  User   @relation("TicketCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@index([organizationId])
+}
+
+model TicketAttachment {
+  id             String   @id @default(cuid())
+  organizationId String
+  ticketId       String
+  uploadedById   String
+  fileName       String
+  fileUrl        String
+  contentType    String
+  sizeBytes      Int
+  createdAt      DateTime @default(now())
+
+  ticket      Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy  User   @relation("TicketAttachmentUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@index([organizationId])
 }
 
 model Building {

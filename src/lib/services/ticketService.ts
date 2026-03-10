@@ -72,6 +72,7 @@ export const ListTicketsSchema = z.object({
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
   assignedToId: z.string().optional(),
   schoolId: z.string().optional(),
+  search: z.string().max(200).optional(),
 })
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>
@@ -107,6 +108,25 @@ export async function listTickets(
   }
   if (validated.schoolId) {
     where.schoolId = validated.schoolId
+  }
+
+  // Keyword search across title and description
+  // IMPORTANT: The AND wrapper is intentional — where.OR is used for access-control
+  // filtering below and must NOT be overwritten. The search OR must be nested inside
+  // AND to compose correctly with the access-control OR clause.
+  if (validated.search) {
+    const s = validated.search.trim()
+    if (s) {
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { title: { contains: s, mode: 'insensitive' } },
+            { description: { contains: s, mode: 'insensitive' } },
+          ],
+        },
+      ]
+    }
   }
 
   // Check if user can see all tickets, otherwise only show own (created or assigned)
@@ -148,18 +168,25 @@ export async function getTicketById(
   const ticket = await prisma.ticket.findUnique({
     where: { id },
     include: {
-      assignedTo: {
-        select: { id: true, name: true, email: true },
+      assignedTo: { select: { id: true, name: true, email: true } },
+      createdBy: { select: { id: true, name: true, email: true } },
+      comments: {
+        orderBy: { createdAt: 'asc' },
+        include: { author: { select: { id: true, name: true, email: true } } },
+      },
+      attachments: {
+        orderBy: { createdAt: 'desc' },
+        include: { uploadedBy: { select: { id: true, name: true } } },
       },
     },
   })
 
   if (!ticket) return null
 
-  // Check if user can view all tickets or if they're assigned to this ticket
+  // Check if user can view all tickets, or is the assignee, or is the creator
   const canReadAll = await can(userId, PERMISSIONS.TICKETS_READ_ALL)
-  if (!canReadAll && ticket.assignedToId !== userId) {
-    throw new Error('Access denied: You can only view tickets assigned to you')
+  if (!canReadAll && ticket.assignedToId !== userId && ticket.createdById !== userId) {
+    throw new Error('Access denied: You can only view tickets assigned to or created by you')
   }
 
   return ticket
