@@ -220,12 +220,12 @@ Plans:
   3. Clicking the edit button on a ticket in the dashboard drawer opens the ticket edit view (no dead button)
   4. User can add a comment and attach a file to a generic ticket, and both appear in the ticket detail view
   5. User can search tickets by typing a keyword and seeing results filtered live by matching title or description
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 11-01: Draft events GET/PUT/DELETE individual API routes (CAL-01)
-- [ ] 11-02: Room booking conflict detection on event create/update (CAL-02)
-- [ ] 11-03: Ticket drawer edit button wiring + ticket comments + file attachments + keyword search (TIX-01, TIX-02, TIX-03)
+- [ ] 11-01-PLAN.md — Draft events [id] route (GET/PUT/DELETE) + room conflict detection in eventService + smoke test (CAL-01, CAL-02)
+- [ ] 11-02-PLAN.md — TicketComment/TicketAttachment schema, ticket [id] route, comment/attachment services + API routes, keyword search (TIX-02, TIX-03)
+- [ ] 11-03-PLAN.md — Dashboard ticket drawer edit button wiring + ticket smoke test + human verification (TIX-01)
 
 ### Phase 12: Settings and Admin Tools
 **Goal**: Admins have full visibility into platform activity and full control over their organization configuration
