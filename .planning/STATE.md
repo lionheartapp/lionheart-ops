@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 11-calendar-ticket-and-feature-gaps/11-01-PLAN.md
-last_updated: "2026-03-10T22:11:28.719Z"
+stopped_at: Completed 11-calendar-ticket-and-feature-gaps/11-03-PLAN.md
+last_updated: "2026-03-10T23:13:37.414Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 37
-  completed_plans: 36
+  completed_plans: 37
   percent: 0
 ---
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 10-inventory-system P03 | 3 | 1 tasks | 1 files |
 | Phase 11-calendar-ticket-and-feature-gaps P02 | 3 | 2 tasks | 8 files |
 | Phase 11-calendar-ticket-and-feature-gaps P01 | 18 | 2 tasks | 5 files |
+| Phase 11-calendar-ticket-and-feature-gaps P03 | 59 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase 11-calendar-ticket-and-feature-gaps]: TicketComment/TicketAttachment not org-scoped in db extension — security via parent Ticket; sub-resource routes guard access via getTicketById
 - [Phase 11-calendar-ticket-and-feature-gaps]: ticket-attachments Supabase bucket created as public; base64 JSON body used for attachment uploads; search uses nested AND/OR to compose with access-control
 - [Phase 11-calendar-ticket-and-feature-gaps]: checkRoomConflict exported from eventService for reuse in draftEventService; ROOM_CONFLICT error uses .code property for semantic 409 catch in route handlers; smoke tests use DIRECT_URL to avoid pgbouncer prepared statement conflicts
+- [Phase Phase 11]: Edit form inline in dashboard drawer (not separate route) — avoids navigation for simple field edits; handleSaveEdit uses fetchTickets() callback since dashboard has no TanStack Query client
 
 ### Pending Todos
 
@@ -127,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:11:28.716Z
-Stopped at: Completed 11-calendar-ticket-and-feature-gaps/11-01-PLAN.md
+Last session: 2026-03-10T23:13:37.411Z
+Stopped at: Completed 11-calendar-ticket-and-feature-gaps/11-03-PLAN.md
 Resume file: None

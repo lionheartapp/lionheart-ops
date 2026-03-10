@@ -46,7 +46,7 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 
 ### Tickets
 
-- [ ] **TIX-01**: Dashboard ticket drawer edit button navigates to ticket edit view
+- [x] **TIX-01**: Dashboard ticket drawer edit button navigates to ticket edit view
 - [x] **TIX-02**: Generic tickets support comments and file attachments
 - [x] **TIX-03**: Users can search tickets by keyword across title and description
 
@@ -167,7 +167,7 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | INV-06 | Phase 10 | Complete |
 | CAL-01 | Phase 11 | Complete |
 | CAL-02 | Phase 11 | Complete |
-| TIX-01 | Phase 11 | Pending |
+| TIX-01 | Phase 11 | Complete |
 | TIX-02 | Phase 11 | Complete |
 | TIX-03 | Phase 11 | Complete |
 | SET-01 | Phase 12 | Pending |
