@@ -280,7 +280,7 @@ Plans:
 | 6. Compliance & Board Reporting | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 7. Knowledge Base & Offline PWA | v1.0 | 3/3 | Complete | 2026-03-06 |
 | 8. Auth Hardening and Security | 7/7 | Complete   | 2026-03-09 | - |
-| 9. Marketing and Legal Pages | v2.0 | 0/3 | Planning complete | - |
+| 9. Marketing and Legal Pages | 1/3 | In Progress|  | - |
 | 10. Inventory System | v2.0 | 0/3 | Not started | - |
 | 11. Calendar, Ticket, Feature Gaps | v2.0 | 0/3 | Not started | - |
 | 12. Settings and Admin Tools | v2.0 | 0/4 | Not started | - |

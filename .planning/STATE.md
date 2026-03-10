@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 08-auth-hardening-and-security/08-07-PLAN.md
-last_updated: "2026-03-09T22:30:01.165Z"
+stopped_at: Completed 09-marketing-and-legal-pages/09-01-PLAN.md
+last_updated: "2026-03-10T00:04:03.832Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 13
   completed_phases: 8
-  total_plans: 28
-  completed_plans: 28
+  total_plans: 31
+  completed_plans: 29
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 08-auth-hardening-and-security P05 | 349 | 2 tasks | 14 files |
 | Phase 08-auth-hardening-and-security P06 | 3 | 1 tasks | 2 files |
 | Phase 08-auth-hardening-and-security P07 | 2 | 2 tasks | 4 files |
+| Phase 09-marketing-and-legal-pages P01 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase 08-auth-hardening-and-security]: Confirm password field stays as raw input — rule indicators only needed on the primary password field where user creates their new password
 - [Phase 08-auth-hardening-and-security]: CSRF validation reordered to before directOrgId shortcut in middleware — no shortcut path can skip CSRF, closing AUTH-05
 - [Phase 08-auth-hardening-and-security]: Client components use getAuthHeaders()/fetchApi() from api-client — no direct localStorage reads or manual x-org-id headers
+- [Phase 09-marketing-and-legal-pages]: PublicNav and PublicFooter created as new components; landing page page.tsx left unchanged to avoid regression risk
+- [Phase 09-marketing-and-legal-pages]: Privacy and Terms pages are Server Components (no use client) — pure content with no interactivity needed
+- [Phase 09-marketing-and-legal-pages]: Legal footer links use real paths: /privacy, /terms, /pricing, /about — no placeholder # hrefs
 
 ### Pending Todos
 
@@ -101,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T22:23:13.437Z
-Stopped at: Completed 08-auth-hardening-and-security/08-07-PLAN.md
+Last session: 2026-03-10T00:04:03.829Z
+Stopped at: Completed 09-marketing-and-legal-pages/09-01-PLAN.md
 Resume file: None
