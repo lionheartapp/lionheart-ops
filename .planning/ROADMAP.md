@@ -152,6 +152,7 @@ Plans:
 - [x] **Phase 11: Calendar, Ticket, and Feature Gaps** - Draft events individual routes, room conflict detection, ticket drawer edit button, ticket comments/attachments, and ticket search (completed 2026-03-10)
 - [ ] **Phase 12: Settings and Admin Tools** - Audit log viewer, billing UI, CSV export, org name/slug editing, and notification preferences
 - [ ] **Phase 13: Infrastructure and Observability** - Vitest unit tests, GitHub Actions CI/CD, Pino structured logging, Sentry error tracking, list pagination, and DB transactions
+- [ ] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow
 
 ## Phase Details
 
@@ -255,6 +256,18 @@ Plans:
   3. Application logs are structured JSON with log levels (info, warn, error) — no raw console.error calls remain in route handlers
   4. Any list endpoint called with `?page=1&pageSize=25` returns the correct subset of results plus total count
   5. Multi-model write operations execute inside database transactions — a failure in any step rolls back all changes
+**Plans**: TBD
+
+### Phase 14: AI Assistant UX Upgrade
+**Goal**: The AI assistant (Leo) provides a rich conversational experience with tappable button choices, contextual suggestion chips, new tools for room/resource availability and weather, and a smarter event creation flow with rich confirmation cards
+**Depends on**: Leo persona + SSE streaming (already shipped)
+**Requirements**: AI-UX-01, AI-UX-02, AI-UX-03, AI-UX-04, AI-UX-05
+**Success Criteria** (what must be TRUE):
+  1. When Leo asks a question with choices, tappable button options appear below the message — clicking one sends that choice as a user message
+  2. After Leo responds with data, contextual suggestion chips appear (e.g., "Show by category", "Compare to last month") — clicking one sends that suggestion
+  3. Asking "Is the gym available Friday at 7pm?" calls check_room_availability and returns a clear yes/no with conflict details if booked
+  4. Asking "What's the weather for March 20?" calls get_weather_forecast and returns forecast data
+  5. Creating an event via Leo shows a rich confirmation card with editable fields, resource availability warnings, and approval chain preview
 **Plans**: TBD
 
 Plans:

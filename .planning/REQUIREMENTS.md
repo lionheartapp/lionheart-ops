@@ -182,9 +182,15 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | INFRA-05 | Phase 13 | Pending |
 | INFRA-06 | Phase 13 | Pending |
 
+| AI-UX-01 | Phase 14 | Pending |
+| AI-UX-02 | Phase 14 | Pending |
+| AI-UX-03 | Phase 14 | Pending |
+| AI-UX-04 | Phase 14 | Pending |
+| AI-UX-05 | Phase 14 | Pending |
+
 **Coverage:**
-- v2.0 requirements: 33 total
-- Mapped to phases: 33
+- v2.0 requirements: 38 total
+- Mapped to phases: 38
 - Unmapped: 0
 
 ---
