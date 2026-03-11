@@ -2,11 +2,29 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CalendarPlus, Clock, MapPin, Check, AlertTriangle, X } from 'lucide-react'
-import type { ActionConfirmation as ActionConfirmationType, RichConfirmationCardData } from '@/lib/types/assistant'
+import { CalendarPlus, Clock, MapPin, Check, AlertTriangle, X, Wrench, Tag, AlertCircle } from 'lucide-react'
+import type { ActionConfirmation as ActionConfirmationType, ConfirmationCardData } from '@/lib/types/assistant'
+
+const CATEGORY_LABELS: Record<string, string> = {
+  PLUMBING: 'Plumbing',
+  ELECTRICAL: 'Electrical',
+  HVAC: 'HVAC',
+  STRUCTURAL: 'Structural',
+  CUSTODIAL_BIOHAZARD: 'Custodial / Biohazard',
+  IT_AV: 'IT / AV',
+  GROUNDS: 'Grounds',
+  OTHER: 'Other',
+}
+
+const PRIORITY_STYLES: Record<string, { bg: string; text: string }> = {
+  URGENT: { bg: 'bg-red-100', text: 'text-red-700' },
+  HIGH: { bg: 'bg-orange-100', text: 'text-orange-700' },
+  MEDIUM: { bg: 'bg-blue-100', text: 'text-blue-700' },
+  LOW: { bg: 'bg-gray-100', text: 'text-gray-600' },
+}
 
 interface RichConfirmationCardProps {
-  action: ActionConfirmationType & { richCard?: RichConfirmationCardData }
+  action: ActionConfirmationType & { richCard?: ConfirmationCardData }
   onConfirm: (modifiedPayload?: Record<string, unknown>) => void
   onCancel: () => void
 }
@@ -28,6 +46,8 @@ export default function RichConfirmationCard({
 
   if (!card) return null
 
+  const isTicket = card.cardType === 'ticket'
+
   const handleConfirm = () => {
     // If title was modified, pass updated payload with new title
     if (editedTitle !== card.title && editedTitle.trim()) {
@@ -38,6 +58,218 @@ export default function RichConfirmationCard({
     } else {
       onConfirm()
     }
+  }
+
+  const renderTicketContent = () => {
+    if (card.cardType !== 'ticket') return null
+    const priorityStyle = PRIORITY_STYLES[card.priority] || PRIORITY_STYLES.MEDIUM
+
+    return (
+      <>
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-gray-100">
+          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50">
+            <Wrench className="h-4 w-4 text-amber-600" />
+          </div>
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Create Maintenance Ticket
+          </span>
+        </div>
+
+        {/* Content */}
+        <div className="px-4 py-3 space-y-2.5">
+          {/* Editable Title */}
+          <div>
+            {isEditingTitle ? (
+              <input
+                autoFocus
+                type="text"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === 'Escape') {
+                    setIsEditingTitle(false)
+                  }
+                }}
+                className="w-full text-sm font-semibold text-gray-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+              />
+            ) : (
+              <button
+                className="text-left w-full group cursor-pointer"
+                onClick={() => setIsEditingTitle(true)}
+                title="Click to edit title"
+              >
+                <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                  {editedTitle || card.title}
+                </span>
+                <span className="ml-1.5 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  edit
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* Category */}
+          <div className="flex items-start gap-2">
+            <Tag className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <span className="text-xs text-gray-600">
+              {CATEGORY_LABELS[card.category] || card.category}
+            </span>
+          </div>
+
+          {/* Priority */}
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${priorityStyle.bg} ${priorityStyle.text}`}>
+              {card.priority}
+            </span>
+          </div>
+
+          {/* Location */}
+          {card.location && (
+            <div className="flex items-start gap-2">
+              <MapPin className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-gray-600">{card.location}</span>
+            </div>
+          )}
+
+          {/* Description */}
+          {card.description && (
+            <p className="text-xs text-gray-500 line-clamp-2 pl-0.5">
+              {card.description}
+            </p>
+          )}
+        </div>
+      </>
+    )
+  }
+
+  const renderEventContent = () => {
+    if (card.cardType === 'ticket') return null
+    return (
+      <>
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-gray-100">
+          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
+            <CalendarPlus className="h-4 w-4 text-blue-600" />
+          </div>
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Create Event
+          </span>
+        </div>
+
+        {/* Content */}
+        <div className="px-4 py-3 space-y-2.5">
+          {/* Editable Title */}
+          <div>
+            {isEditingTitle ? (
+              <input
+                autoFocus
+                type="text"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === 'Escape') {
+                    setIsEditingTitle(false)
+                  }
+                }}
+                className="w-full text-sm font-semibold text-gray-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+              />
+            ) : (
+              <button
+                className="text-left w-full group cursor-pointer"
+                onClick={() => setIsEditingTitle(true)}
+                title="Click to edit title"
+              >
+                <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                  {editedTitle || card.title}
+                </span>
+                <span className="ml-1.5 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  edit
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* Date/Time */}
+          <div className="flex items-start gap-2">
+            <Clock className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <span className="text-xs text-gray-600">
+              {card.startDisplay}
+              {card.endDisplay && card.endDisplay !== 'Not set' && (
+                <> &mdash; {card.endDisplay}</>
+              )}
+            </span>
+          </div>
+
+          {/* Location */}
+          {card.location && (
+            <div className="flex items-start gap-2">
+              <MapPin className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-gray-600">{card.location}</span>
+            </div>
+          )}
+
+          {/* Description */}
+          {card.description && (
+            <p className="text-xs text-gray-500 line-clamp-2 pl-0.5">
+              {card.description}
+            </p>
+          )}
+
+          {/* Resources */}
+          {card.resources && card.resources.length > 0 && (
+            <div className="pt-1">
+              <p className="text-xs font-medium text-gray-700 mb-1.5">Resources</p>
+              <div className="space-y-1">
+                {card.resources.map((resource, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    {resource.status === 'ok' && (
+                      <Check className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
+                    )}
+                    {resource.status === 'low' && (
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                    )}
+                    {resource.status === 'unavailable' && (
+                      <X className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
+                    )}
+                    <span className="text-xs text-gray-600">
+                      {resource.name}
+                      {resource.status === 'ok' && (
+                        <span className="text-gray-400 ml-1">({resource.available} available)</span>
+                      )}
+                      {resource.status === 'low' && (
+                        <span className="text-amber-600 ml-1">({resource.available} available &mdash; low stock)</span>
+                      )}
+                      {resource.status === 'unavailable' && (
+                        <span className="text-red-500 ml-1">(unavailable)</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Approval Channels */}
+          {card.approvalChannels && card.approvalChannels.length > 0 && (
+            <div className="pt-1">
+              <p className="text-xs font-medium text-gray-700 mb-1.5">Approvals needed</p>
+              <div className="space-y-0.5">
+                {card.approvalChannels.map((channel, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-600">{channel}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    )
   }
 
   return (
@@ -57,125 +289,7 @@ export default function RichConfirmationCard({
           transition={{ duration: 0.15 }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-gray-100">
-            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
-              <CalendarPlus className="h-4 w-4 text-blue-600" />
-            </div>
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Create Event
-            </span>
-          </div>
-
-          {/* Content */}
-          <div className="px-4 py-3 space-y-2.5">
-            {/* Editable Title */}
-            <div>
-              {isEditingTitle ? (
-                <input
-                  autoFocus
-                  type="text"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  onBlur={() => setIsEditingTitle(false)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === 'Escape') {
-                      setIsEditingTitle(false)
-                    }
-                  }}
-                  className="w-full text-sm font-semibold text-gray-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
-                />
-              ) : (
-                <button
-                  className="text-left w-full group cursor-pointer"
-                  onClick={() => setIsEditingTitle(true)}
-                  title="Click to edit title"
-                >
-                  <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
-                    {editedTitle || card.title}
-                  </span>
-                  <span className="ml-1.5 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    edit
-                  </span>
-                </button>
-              )}
-            </div>
-
-            {/* Date/Time */}
-            <div className="flex items-start gap-2">
-              <Clock className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-              <span className="text-xs text-gray-600">
-                {card.startDisplay}
-                {card.endDisplay && card.endDisplay !== 'Not set' && (
-                  <> &mdash; {card.endDisplay}</>
-                )}
-              </span>
-            </div>
-
-            {/* Location */}
-            {card.location && (
-              <div className="flex items-start gap-2">
-                <MapPin className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-                <span className="text-xs text-gray-600">{card.location}</span>
-              </div>
-            )}
-
-            {/* Description */}
-            {card.description && (
-              <p className="text-xs text-gray-500 line-clamp-2 pl-0.5">
-                {card.description}
-              </p>
-            )}
-
-            {/* Resources */}
-            {card.resources && card.resources.length > 0 && (
-              <div className="pt-1">
-                <p className="text-xs font-medium text-gray-700 mb-1.5">Resources</p>
-                <div className="space-y-1">
-                  {card.resources.map((resource, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      {resource.status === 'ok' && (
-                        <Check className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
-                      )}
-                      {resource.status === 'low' && (
-                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
-                      )}
-                      {resource.status === 'unavailable' && (
-                        <X className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
-                      )}
-                      <span className="text-xs text-gray-600">
-                        {resource.name}
-                        {resource.status === 'ok' && (
-                          <span className="text-gray-400 ml-1">({resource.available} available)</span>
-                        )}
-                        {resource.status === 'low' && (
-                          <span className="text-amber-600 ml-1">({resource.available} available &mdash; low stock)</span>
-                        )}
-                        {resource.status === 'unavailable' && (
-                          <span className="text-red-500 ml-1">(unavailable)</span>
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Approval Channels */}
-            {card.approvalChannels && card.approvalChannels.length > 0 && (
-              <div className="pt-1">
-                <p className="text-xs font-medium text-gray-700 mb-1.5">Approvals needed</p>
-                <div className="space-y-0.5">
-                  {card.approvalChannels.map((channel, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                      <span className="text-xs text-gray-600">{channel}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          {isTicket ? renderTicketContent() : renderEventContent()}
 
           {/* Buttons */}
           <div className="flex gap-2 px-4 pb-4 pt-1">

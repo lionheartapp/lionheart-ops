@@ -44,9 +44,10 @@ export interface ChatResponseData {
   actionConfirmation?: ActionConfirmation
 }
 
-// ─── Rich Confirmation Card (Plan 14-03 will use this for the card component) ─
+// ─── Rich Confirmation Cards ─────────────────────────────────────────────────
 
 export interface RichConfirmationCardData {
+  cardType?: 'event'       // discriminator (absent = event for backward compat)
   title: string
   startDisplay: string     // e.g. "Friday, April 15 * 6:00 PM"
   endDisplay: string       // e.g. "9:00 PM"
@@ -61,6 +62,17 @@ export interface RichConfirmationCardData {
   approvalChannels?: string[]  // e.g. ["Admin", "AV Production"]
 }
 
+export interface TicketConfirmationCardData {
+  cardType: 'ticket'
+  title: string
+  category: string         // e.g. "PLUMBING", "ELECTRICAL"
+  priority: string         // e.g. "URGENT", "HIGH", "MEDIUM", "LOW"
+  location?: string
+  description?: string
+}
+
+export type ConfirmationCardData = RichConfirmationCardData | TicketConfirmationCardData
+
 // ─── Streaming Events (SSE) ──────────────────────────────────────────────────
 
 export type StreamEvent =
@@ -70,6 +82,6 @@ export type StreamEvent =
   | { type: 'action_confirmation'; action: ActionConfirmation }
   | { type: 'choices'; options: string[] }
   | { type: 'suggestions'; items: string[] }
-  | { type: 'rich_confirmation'; card: RichConfirmationCardData }
+  | { type: 'rich_confirmation'; card: ConfirmationCardData }
   | { type: 'done'; conversationHistory: ConversationTurn[] }
   | { type: 'error'; message: string }

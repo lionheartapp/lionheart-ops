@@ -221,17 +221,23 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
 
                 case 'rich_confirmation':
                   // Merge rich card onto existing pending action (preserving payload from action_confirmation)
-                  setPendingAction((prev) => prev ? {
-                    ...prev,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    richCard: event.card,
-                  } as any : {
-                    type: 'create_event',
-                    description: 'Event draft ready for review',
-                    payload: {},
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    richCard: event.card,
-                  } as any)
+                  setPendingAction((prev) => {
+                    const cardType = event.card?.cardType
+                    const fallbackType = cardType === 'ticket' ? 'create_maintenance_ticket' : 'create_event'
+                    const fallbackDesc = cardType === 'ticket' ? 'Ticket draft ready for review' : 'Event draft ready for review'
+
+                    return prev ? {
+                      ...prev,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      richCard: event.card,
+                    } as any : {
+                      type: fallbackType,
+                      description: fallbackDesc,
+                      payload: {},
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      richCard: event.card,
+                    } as any
+                  })
                   break
 
                 case 'done':

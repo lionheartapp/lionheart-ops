@@ -860,10 +860,20 @@ async function executeCreateTicketDraft(
     priority: String(input.priority || 'MEDIUM'),
   }
 
+  const richCard = {
+    cardType: 'ticket' as const,
+    title: draft.title,
+    category: draft.category,
+    priority: draft.priority,
+    location: draft.location !== 'Not specified' ? draft.location : undefined,
+    description: draft.description || undefined,
+  }
+
   return JSON.stringify({
     confirmationRequired: true,
-    message: `I've prepared a maintenance ticket draft. Please confirm to create it:\n• Title: ${draft.title}\n• Category: ${draft.category}\n• Priority: ${draft.priority}\n• Location: ${draft.location}`,
+    message: `I've prepared a maintenance ticket for your review.`,
     draft,
+    richCard,
   })
 }
 

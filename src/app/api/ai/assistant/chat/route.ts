@@ -24,7 +24,7 @@ import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext } from '@/lib/org-context'
 import { getAvailableTools, executeTool } from '@/lib/services/ai/assistant-tools'
 import { buildSystemPrompt } from '@/lib/services/ai/assistant.service'
-import type { ConversationTurn, ActionConfirmation, StreamEvent, RichConfirmationCardData } from '@/lib/types/assistant'
+import type { ConversationTurn, ActionConfirmation, StreamEvent, ConfirmationCardData } from '@/lib/types/assistant'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
 
           let iterations = 0
           let actionConfirmation: ActionConfirmation | undefined
-          let richCard: RichConfirmationCardData | undefined
+          let richCard: ConfirmationCardData | undefined
 
           // Outer loop: handle tool calls iteratively
           // First call is streaming; subsequent calls after tool execution are non-streaming
@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
                       }
                       // Capture rich card data if present (event drafts include this)
                       if (parsed.richCard) {
-                        richCard = parsed.richCard as RichConfirmationCardData
+                        richCard = parsed.richCard as ConfirmationCardData
                       }
                     }
                   } catch {
@@ -349,7 +349,7 @@ export async function POST(req: NextRequest) {
                       }
                       // Capture rich card data if present (event drafts include this)
                       if (parsed.richCard) {
-                        richCard = parsed.richCard as RichConfirmationCardData
+                        richCard = parsed.richCard as ConfirmationCardData
                       }
                     }
                   } catch { /* */ }

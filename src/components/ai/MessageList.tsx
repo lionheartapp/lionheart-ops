@@ -37,6 +37,90 @@ const TOOL_LABELS: Record<string, { label: string; icon: typeof Search }> = {
   check_resource_availability: { label: 'Checking inventory', icon: Package },
 }
 
+/** Render basic markdown in chat messages: bold, italic, inline code, bullet lists, paragraphs */
+function ChatMarkdown({ text }: { text: string }) {
+  const paragraphs = text.split(/\n\n+/)
+
+  return (
+    <>
+      {paragraphs.map((para, pIdx) => {
+        const trimmed = para.trim()
+        if (!trimmed) return null
+
+        // Check if this paragraph is a bullet list
+        const lines = trimmed.split('\n')
+        const isList = lines.every((l) => /^[\s]*[-•]\s/.test(l) || l.trim() === '')
+
+        if (isList) {
+          return (
+            <ul key={pIdx} className="list-disc list-inside space-y-0.5 my-1">
+              {lines.map((line, lIdx) => {
+                const content = line.replace(/^[\s]*[-•]\s*/, '')
+                if (!content.trim()) return null
+                return <li key={lIdx}>{renderInline(content)}</li>
+              })}
+            </ul>
+          )
+        }
+
+        return (
+          <span key={pIdx}>
+            {pIdx > 0 && <br />}
+            {renderInline(trimmed)}
+          </span>
+        )
+      })}
+    </>
+  )
+}
+
+/** Render inline markdown: **bold**, *italic*, `code` */
+function renderInline(text: string): React.ReactNode {
+  // Split on markdown patterns, preserving delimiters
+  const parts: React.ReactNode[] = []
+  let remaining = text
+  let key = 0
+
+  while (remaining.length > 0) {
+    // Bold: **text**
+    const boldMatch = remaining.match(/^([\s\S]*?)\*\*([\s\S]+?)\*\*([\s\S]*)$/)
+    if (boldMatch) {
+      if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>)
+      parts.push(<strong key={key++} className="font-semibold">{boldMatch[2]}</strong>)
+      remaining = boldMatch[3]
+      continue
+    }
+
+    // Italic: *text*
+    const italicMatch = remaining.match(/^([\s\S]*?)\*([\s\S]+?)\*([\s\S]*)$/)
+    if (italicMatch) {
+      if (italicMatch[1]) parts.push(<span key={key++}>{italicMatch[1]}</span>)
+      parts.push(<em key={key++}>{italicMatch[2]}</em>)
+      remaining = italicMatch[3]
+      continue
+    }
+
+    // Inline code: `text`
+    const codeMatch = remaining.match(/^([\s\S]*?)`([\s\S]+?)`([\s\S]*)$/)
+    if (codeMatch) {
+      if (codeMatch[1]) parts.push(<span key={key++}>{codeMatch[1]}</span>)
+      parts.push(
+        <code key={key++} className="px-1 py-0.5 bg-gray-100 rounded text-xs font-mono">
+          {codeMatch[2]}
+        </code>
+      )
+      remaining = codeMatch[3]
+      continue
+    }
+
+    // No more patterns
+    parts.push(<span key={key++}>{remaining}</span>)
+    break
+  }
+
+  return <>{parts}</>
+}
+
 /**
  * Scrollable list of conversation messages.
  * Supports streaming display with blinking cursor and tool execution indicators.
@@ -102,7 +186,11 @@ export default function MessageList({
               }`}
               style={turn.role === 'user' ? { background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' } : undefined}
             >
-              {turn.content || (showCursor ? '' : '')}
+              {turn.role === 'assistant' && turn.content ? (
+                <ChatMarkdown text={turn.content} />
+              ) : (
+                turn.content || (showCursor ? '' : '')
+              )}
               {showCursor && (
                 <span className="inline-block w-[2px] h-[14px] bg-gray-400 ml-0.5 align-middle animate-blink" />
               )}

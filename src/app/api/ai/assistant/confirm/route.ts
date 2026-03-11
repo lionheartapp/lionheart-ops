@@ -56,9 +56,15 @@ export async function POST(req: NextRequest) {
         case 'create_maintenance_ticket': {
           await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_SUBMIT)
           const { createMaintenanceTicket } = await import('@/lib/services/maintenanceTicketService')
+          const location = payload.location ? String(payload.location) : ''
+          const baseDescription = String(payload.description || '')
+          const fullDescription = location && !baseDescription.includes(location)
+            ? `${baseDescription}${baseDescription ? '\n' : ''}Location: ${location}`
+            : baseDescription
+
           const ticket = await createMaintenanceTicket({
             title: String(payload.title || ''),
-            description: String(payload.description || ''),
+            description: fullDescription,
             category: String(payload.category || 'OTHER') as any,
             priority: String(payload.priority || 'MEDIUM') as any,
           }, ctx.userId, orgId)
