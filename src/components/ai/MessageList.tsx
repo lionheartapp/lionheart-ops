@@ -7,6 +7,7 @@ import type { ConversationTurn } from '@/lib/types/assistant'
 import ChoiceButtons from './ChoiceButtons'
 import SuggestionChips from './SuggestionChips'
 import AnimatedOrb, { type OrbState } from './AnimatedOrb'
+import StructuredList, { parseStructuredLists } from './StructuredList'
 
 interface MessageListProps {
   conversation: ConversationTurn[]
@@ -106,6 +107,31 @@ function ChatMarkdown({ text }: { text: string }) {
             {renderInline(trimmed)}
           </span>
         )
+      })}
+    </>
+  )
+}
+
+/**
+ * Render assistant message content with support for structured list blocks.
+ * Splits on :::list{...}::: delimiters — text segments get ChatMarkdown,
+ * list segments get StructuredList cards.
+ */
+function ChatMarkdownWithLists({ text }: { text: string }) {
+  // Fast path: no structured data
+  if (!text.includes(':::list')) {
+    return <ChatMarkdown text={text} />
+  }
+
+  const segments = parseStructuredLists(text)
+
+  return (
+    <>
+      {segments.map((seg, idx) => {
+        if (seg.listData) {
+          return <StructuredList key={idx} data={seg.listData} />
+        }
+        return seg.text ? <ChatMarkdown key={idx} text={seg.text} /> : null
       })}
     </>
   )
@@ -226,7 +252,7 @@ export default function MessageList({
               style={turn.role === 'user' ? { background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' } : undefined}
             >
               {turn.role === 'assistant' && turn.content ? (
-                <ChatMarkdown text={turn.content} />
+                <ChatMarkdownWithLists text={turn.content} />
               ) : (
                 turn.content || (showCursor ? '' : '')
               )}
