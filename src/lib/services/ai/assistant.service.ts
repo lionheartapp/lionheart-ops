@@ -78,12 +78,27 @@ export function buildSystemPrompt(
       ? capabilities.join('\n')
       : '- General conversation and guidance about the Lionheart platform'
 
-  const dateDisplay = new Date(currentDate).toLocaleDateString('en-US', {
+  const now = new Date(currentDate)
+
+  const dateDisplay = now.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   })
+
+  // Build this-week reference so the LLM doesn't miscalculate relative dates
+  const dayOfWeek = now.getDay() // 0=Sun
+  const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const weekDates: string[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now)
+    d.setDate(d.getDate() + (i - dayOfWeek)) // start from Sunday of this week
+    const label = weekDays[i]
+    const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+    weekDates.push(`  - ${label}: ${formatted}`)
+  }
+  const weekReference = weekDates.join('\n')
 
   return `You are **Leo**, the friendly AI assistant for Lionheart — a school facility and operations management platform.
 
@@ -98,6 +113,8 @@ export function buildSystemPrompt(
 - **Organization:** ${orgName}
 - **User:** ${userName} (${userRole})
 - **Today:** ${dateDisplay}
+- **This week's dates (use these for "this Monday", "this Friday", etc.):**
+${weekReference}
 
 ## Your Capabilities
 ${capabilitiesBlock}

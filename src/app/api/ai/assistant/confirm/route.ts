@@ -25,6 +25,16 @@ function nullToUndef(v: string | null): string | undefined {
   return v === null ? undefined : v
 }
 
+/** Ensure a date string is full ISO 8601 (with Z suffix) for Zod .datetime() */
+function ensureISODate(dateStr: string): string {
+  if (!dateStr) return dateStr
+  // If it already has timezone info, return as-is
+  if (dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)) return dateStr
+  // Try to parse and convert to ISO
+  const d = new Date(dateStr)
+  return isNaN(d.getTime()) ? dateStr : d.toISOString()
+}
+
 export async function POST(req: NextRequest) {
   try {
     const orgId = getOrgIdFromRequest(req)
@@ -56,8 +66,8 @@ export async function POST(req: NextRequest) {
             title: String(payload.title || ''),
             description: String(payload.description || '') || undefined,
             room: String(payload.room || '') || undefined,
-            startsAt: String(payload.startsAt),
-            endsAt: String(payload.endsAt),
+            startsAt: ensureISODate(String(payload.startsAt)),
+            endsAt: ensureISODate(String(payload.endsAt)),
           }, ctx.userId)
           return NextResponse.json(ok({
             success: true,
