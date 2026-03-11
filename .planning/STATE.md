@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 15-auth-security-gap-closure-01-PLAN.md
-last_updated: "2026-03-11T17:59:45.511Z"
+stopped_at: Completed 16-billing-permission-observability-retrofit-01-PLAN.md
+last_updated: "2026-03-11T19:03:45.387Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
-  total_phases: 15
+  total_phases: 16
   completed_phases: 15
-  total_plans: 47
-  completed_plans: 47
+  total_plans: 49
+  completed_plans: 48
   percent: 0
 ---
 
@@ -79,6 +79,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 13-infrastructure-and-observability P02 | 16 | 2 tasks | 32 files |
 | Phase 13-infrastructure-and-observability P03 | 7 | 2 tasks | 14 files |
 | Phase 15-auth-security-gap-closure P01 | 2 | 2 tasks | 4 files |
+| Phase 16-billing-permission-observability-retrofit P01 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,7 @@ Recent decisions affecting current work:
 - [Phase 15-auth-security-gap-closure]: reset-password added to publicApiRateLimiter (30 req/min) — same limit as forgot-password and set-password, closing last unprotected public auth endpoint
 - [Phase 15-auth-security-gap-closure]: Signup route sets httpOnly auth-token + csrf-token cookies on 201 response, matching login route pattern; admin.token kept in JSON body for backward compat during migration window
 - [Phase 15-auth-security-gap-closure]: org-name, org-slug, user-name, user-email remain in localStorage (non-sensitive display data for onboarding); auth-token and org-id removed — JWT now lives only in httpOnly cookie
+- [Phase 16-billing-permission-observability-retrofit]: SETTINGS_BILLING added to DEFAULT_ROLES.ADMIN immediately after SETTINGS_UPDATE; backfill script excludes super-admin (*:* wildcard already covers billing); scope: 'global' used matching organizationRegistrationService.ts convention
 
 ### Pending Todos
 
@@ -171,6 +173,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T17:56:26.771Z
-Stopped at: Completed 15-auth-security-gap-closure-01-PLAN.md
+Last session: 2026-03-11T19:03:45.384Z
+Stopped at: Completed 16-billing-permission-observability-retrofit-01-PLAN.md
 Resume file: None
