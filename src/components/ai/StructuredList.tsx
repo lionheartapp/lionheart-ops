@@ -168,8 +168,8 @@ function EventsList({ items, onItemClick }: { items: EventItem[]; onItemClick?: 
       {Object.entries(groups).map(([dateGroup, events]) => (
         <div key={dateGroup}>
           {/* Date Group Header */}
-          <div className="flex items-center gap-2 mb-2.5">
-            <span className="text-[10px] font-bold tracking-wider text-primary-600 uppercase">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs font-bold tracking-wider text-primary-600 uppercase">
               {dateGroup.startsWith('TODAY') && '☀️ '}{dateGroup}
             </span>
           </div>
@@ -182,38 +182,38 @@ function EventsList({ items, onItemClick }: { items: EventItem[]; onItemClick?: 
               return (
                 <div
                   key={idx}
-                  className={`flex items-stretch gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+                  className={`flex items-stretch gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
                     onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
                   }`}
                   onClick={onItemClick ? () => onItemClick('events', event) : undefined}
                 >
                   {/* Time column */}
                   <div className="w-16 flex-shrink-0 text-right pr-1 pt-0.5">
-                    <span className="text-xs font-semibold text-gray-700">{time}</span>
+                    <span className="text-sm font-semibold text-gray-700">{time}</span>
                   </div>
 
                   {/* Timeline bar */}
                   <div className="flex flex-col items-center flex-shrink-0">
-                    <div className={`w-1 flex-1 rounded-full ${color}`} />
+                    <div className={`w-1.5 flex-1 rounded-full ${color}`} />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0 py-0.5">
                     <p className="text-sm font-semibold text-gray-900 truncate">{event.title}</p>
                     {event.location && (
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                        <span className="text-[11px] text-gray-500 truncate">{event.location}</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span className="text-xs text-gray-500 truncate">{event.location}</span>
                       </div>
                     )}
                     {event.calendar && (
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                        <span className="text-[11px] text-gray-500 truncate">{event.calendar}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span className="text-xs text-gray-500 truncate">{event.calendar}</span>
                       </div>
                     )}
                     {event.host && (
-                      <span className="text-[11px] text-gray-400">Host: {event.host}</span>
+                      <span className="text-xs text-gray-400">Host: {event.host}</span>
                     )}
                   </div>
                 </div>
@@ -237,7 +237,7 @@ function TicketsList({ items, onItemClick }: { items: TicketItem[]; onItemClick?
         return (
           <div
             key={idx}
-            className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+            className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
               onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
             }`}
             onClick={onItemClick ? () => onItemClick('tickets', ticket) : undefined}
@@ -246,7 +246,7 @@ function TicketsList({ items, onItemClick }: { items: TicketItem[]; onItemClick?
             <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${priorityColor}`} />
 
             {/* Status icon */}
-            <StatusIcon className={`w-4 h-4 flex-shrink-0 ${
+            <StatusIcon className={`w-4.5 h-4.5 flex-shrink-0 ${
               ticket.status === 'OPEN' ? 'text-red-500' :
               ticket.status === 'IN_PROGRESS' ? 'text-blue-500' :
               ticket.status === 'RESOLVED' ? 'text-green-500' : 'text-gray-400'
@@ -256,29 +256,26 @@ function TicketsList({ items, onItemClick }: { items: TicketItem[]; onItemClick?
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-gray-900 truncate">{ticket.title}</p>
-                {ticket.id && (
-                  <span className="text-[10px] text-gray-400 flex-shrink-0">{ticket.id}</span>
-                )}
               </div>
-              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                 {ticket.category && (
-                  <span className="text-[11px] text-gray-500">{ticket.category}</span>
+                  <span className="text-xs text-gray-500">{ticket.category}</span>
                 )}
                 {ticket.location && (
-                  <span className="text-[11px] text-gray-400">• {ticket.location}</span>
+                  <span className="text-xs text-gray-400">• {ticket.location}</span>
                 )}
                 {ticket.assignee && (
-                  <span className="text-[11px] text-gray-400">• {ticket.assignee}</span>
+                  <span className="text-xs text-gray-400">• {ticket.assignee}</span>
                 )}
                 {ticket.created && (
-                  <span className="text-[11px] text-gray-400">• {ticket.created}</span>
+                  <span className="text-xs text-gray-400">• {ticket.created}</span>
                 )}
               </div>
             </div>
 
             {/* Status badge */}
             {ticket.status && (
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 ${statusColor}`}>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${statusColor}`}>
                 {ticket.status.replace(/_/g, ' ')}
               </span>
             )}
@@ -308,32 +305,32 @@ function UsersList({ items, onItemClick }: { items: UserItem[]; onItemClick?: On
         return (
           <div
             key={idx}
-            className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+            className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
               onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
             }`}
             onClick={onItemClick ? () => onItemClick('users', user) : undefined}
           >
             {/* Avatar */}
-            <div className={`w-8 h-8 rounded-full ${avatarColors[idx % avatarColors.length]} flex items-center justify-center flex-shrink-0`}>
+            <div className={`w-9 h-9 rounded-full ${avatarColors[idx % avatarColors.length]} flex items-center justify-center flex-shrink-0`}>
               <span className="text-white text-xs font-bold">{initials}</span>
             </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-1">
                 {user.email && (
-                  <span className="text-[11px] text-gray-500 truncate">{user.email}</span>
+                  <span className="text-xs text-gray-500 truncate">{user.email}</span>
                 )}
                 {user.team && (
-                  <span className="text-[11px] text-gray-400">• {user.team}</span>
+                  <span className="text-xs text-gray-400">• {user.team}</span>
                 )}
               </div>
             </div>
 
             {/* Role badge */}
             {user.role && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-100 text-primary-700 flex-shrink-0">
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-700 flex-shrink-0">
                 {user.role}
               </span>
             )}
@@ -350,25 +347,25 @@ function InventoryList({ items, onItemClick }: { items: InventoryItem[]; onItemC
       {items.map((item, idx) => (
         <div
           key={idx}
-          className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+          className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
             onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
           }`}
           onClick={onItemClick ? () => onItemClick('inventory', item) : undefined}
         >
           {/* Icon */}
-          <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200/50 flex items-center justify-center flex-shrink-0">
-            <Package className="w-4 h-4 text-amber-600" />
+          <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200/50 flex items-center justify-center flex-shrink-0">
+            <Package className="w-4.5 h-4.5 text-amber-600" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 mt-1">
               {item.category && (
-                <span className="text-[11px] text-gray-500">{item.category}</span>
+                <span className="text-xs text-gray-500">{item.category}</span>
               )}
               {item.location && (
-                <span className="text-[11px] text-gray-400">• {item.location}</span>
+                <span className="text-xs text-gray-400">• {item.location}</span>
               )}
             </div>
           </div>
@@ -379,7 +376,7 @@ function InventoryList({ items, onItemClick }: { items: InventoryItem[]; onItemC
               <p className="text-sm font-bold text-gray-900">
                 {item.available !== undefined ? item.available : item.quantity}
               </p>
-              <p className="text-[10px] text-gray-400">
+              <p className="text-xs text-gray-400">
                 {item.available !== undefined ? 'available' : 'total'}
               </p>
             </div>
@@ -396,7 +393,7 @@ function GenericList({ items, onItemClick }: { items: GenericItem[]; onItemClick
       {items.map((item, idx) => (
         <div
           key={idx}
-          className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+          className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
             onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
           }`}
           onClick={onItemClick ? () => onItemClick('generic', item) : undefined}
@@ -408,16 +405,16 @@ function GenericList({ items, onItemClick }: { items: GenericItem[]; onItemClick
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{item.title}</p>
             {item.subtitle && (
-              <span className="text-[11px] text-gray-500">{item.subtitle}</span>
+              <span className="text-xs text-gray-500">{item.subtitle}</span>
             )}
             {item.detail && (
-              <span className="text-[11px] text-gray-400 block">{item.detail}</span>
+              <span className="text-xs text-gray-400 block mt-0.5">{item.detail}</span>
             )}
           </div>
 
           {/* Badge */}
           {item.badge && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 flex-shrink-0">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 flex-shrink-0">
               {item.badge}
             </span>
           )}
@@ -445,15 +442,15 @@ export default function StructuredList({ data, onItemClick }: { data: Structured
   return (
     <div className="mt-1.5 -mx-1 rounded-lg bg-gray-50/80 border border-gray-100 overflow-hidden">
       {/* List header bar */}
-      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border-b border-gray-100">
-        <Icon className="w-3 h-3 text-gray-400" />
-        <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+      <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
+        <Icon className="w-3.5 h-3.5 text-gray-400" />
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
           {data.items.length} {data.type === 'generic' ? 'items' : data.type}
         </span>
       </div>
 
       {/* List content */}
-      <div className="px-3 py-1">
+      <div className="px-3 py-1.5">
         {data.type === 'events' && <EventsList items={data.items as EventItem[]} onItemClick={onItemClick} />}
         {data.type === 'tickets' && <TicketsList items={data.items as TicketItem[]} onItemClick={onItemClick} />}
         {data.type === 'users' && <UsersList items={data.items as UserItem[]} onItemClick={onItemClick} />}

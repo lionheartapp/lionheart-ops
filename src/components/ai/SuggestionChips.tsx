@@ -27,7 +27,7 @@ export default function SuggestionChips({ items, onSelect }: SuggestionChipsProp
             <button
               key={item}
               onClick={() => onSelect(item)}
-              className="flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200 cursor-pointer whitespace-nowrap active:scale-[0.97]"
+              className="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200 cursor-pointer whitespace-nowrap active:scale-[0.97] min-h-[36px]"
               aria-label={item}
             >
               {item}

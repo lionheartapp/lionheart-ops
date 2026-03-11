@@ -309,7 +309,7 @@ export default function MessageList({
             {/* Feedback buttons — thumbs up/down on persisted assistant messages */}
             {showFeedback && (
               <div
-                className={`flex items-center gap-1 mt-0.5 px-1 ${
+                className={`flex items-center gap-1.5 mt-1 px-1 ${
                   isLastMsg ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 } transition-opacity duration-150`}
               >
@@ -318,36 +318,36 @@ export default function MessageList({
                     const newScore = turn.feedbackScore === 5 ? 0 : 5
                     onFeedback!(turn.messageId!, newScore)
                   }}
-                  className={`p-0.5 rounded transition-colors duration-150 cursor-pointer ${
+                  className={`p-1.5 rounded-lg transition-colors duration-150 cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center ${
                     turn.feedbackScore === 5
-                      ? 'text-green-500'
-                      : 'text-gray-300 hover:text-gray-500'
+                      ? 'text-green-500 bg-green-50'
+                      : 'text-gray-300 hover:text-gray-500 hover:bg-gray-100'
                   }`}
                   aria-label="Thumbs up"
                   title="Helpful"
                 >
-                  <ThumbsUp className="h-3.5 w-3.5" />
+                  <ThumbsUp className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => {
                     const newScore = turn.feedbackScore === 1 ? 0 : 1
                     onFeedback!(turn.messageId!, newScore)
                   }}
-                  className={`p-0.5 rounded transition-colors duration-150 cursor-pointer ${
+                  className={`p-1.5 rounded-lg transition-colors duration-150 cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center ${
                     turn.feedbackScore === 1
-                      ? 'text-red-400'
-                      : 'text-gray-300 hover:text-gray-500'
+                      ? 'text-red-400 bg-red-50'
+                      : 'text-gray-300 hover:text-gray-500 hover:bg-gray-100'
                   }`}
                   aria-label="Thumbs down"
                   title="Not helpful"
                 >
-                  <ThumbsDown className="h-3.5 w-3.5" />
+                  <ThumbsDown className="h-4 w-4" />
                 </button>
               </div>
             )}
 
             {!showCursor && (
-              <span className="text-[10px] text-gray-400 px-1">
+              <span className="text-xs text-gray-400 px-1">
                 {formatTime(turn.timestamp)}
               </span>
             )}
@@ -386,9 +386,9 @@ export default function MessageList({
             return (
               <div
                 key={tool}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50/80 backdrop-blur-sm border border-indigo-100/50 text-xs text-indigo-600"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50/80 backdrop-blur-sm border border-indigo-100/50 text-xs text-indigo-600"
               >
-                <Icon className="w-3 h-3 animate-pulse" />
+                <Icon className="w-3.5 h-3.5 animate-pulse" />
                 <span>{info.label}...</span>
               </div>
             )
