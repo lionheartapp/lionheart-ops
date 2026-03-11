@@ -9,6 +9,8 @@ on:
 permissions:
   contents: read
 
+# TODO: Add services.postgres when integration tests requiring real DB are added
+
 jobs:
   build:
     name: Build
@@ -28,11 +30,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Architecture boundaries
-        run: npm run check:architecture
-
       - name: Prisma generate
         run: npx prisma generate
 
+      - name: Architecture boundaries
+        run: npm run check:architecture
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npx vitest run --reporter=verbose
+        env:
+          AUTH_SECRET: ci-test-secret-32-chars-minimum-x
+          DATABASE_URL: ""
+          DIRECT_URL: ""
+
       - name: Build
         run: npm run build
+        env:
+          AUTH_SECRET: ci-test-secret-32-chars-minimum-x
