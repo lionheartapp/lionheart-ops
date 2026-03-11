@@ -34,8 +34,11 @@ import { rawPrisma } from '@/lib/db'
 import { ZodError } from 'zod'
 import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/auth/password-setup'
 import { sendVerificationEmail } from '@/lib/services/emailService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/organizations/signup', method: 'POST' })
   try {
     const body = await req.json()
 
@@ -77,10 +80,10 @@ export async function POST(req: NextRequest) {
         verificationLink,
       })
       if (!emailResult.sent) {
-        console.error('[signup] Verification email not sent:', emailResult.reason)
+        log.warn({ reason: emailResult.reason }, 'Signup verification email not sent')
       }
     } catch (err) {
-      console.error('[signup] Failed to create verification token:', err)
+      log.warn({ err }, 'Failed to create verification token during signup')
     }
 
     // Return created organization with admin user details + auth token
@@ -95,7 +98,8 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Signup error:', error)
+    log.error({ err: error }, 'Signup error')
+    Sentry.captureException(error)
 
     // Handle Zod validation errors
     if (error instanceof ZodError) {

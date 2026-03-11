@@ -11,11 +11,15 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createAsset, getAssets } from '@/lib/services/maintenanceAssetService'
 import type { AssetFilters } from '@/lib/services/maintenanceAssetService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/maintenance/assets', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.ASSETS_READ)
 
     const url = new URL(req.url)
@@ -39,15 +43,18 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[GET /api/maintenance/assets]', error)
+    log.error({ err: error }, 'Failed to list maintenance assets')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/maintenance/assets', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.ASSETS_CREATE)
 
     const body = await req.json()
@@ -66,7 +73,8 @@ export async function POST(req: NextRequest) {
         )
       }
     }
-    console.error('[POST /api/maintenance/assets]', error)
+    log.error({ err: error }, 'Failed to create maintenance asset')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

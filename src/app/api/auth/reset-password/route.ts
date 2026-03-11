@@ -7,6 +7,8 @@ import { hashSetupToken } from '@/lib/auth/password-setup'
 import { signAuthToken } from '@/lib/auth'
 import { audit, getIp } from '@/lib/services/auditService'
 import { passwordSchema } from '@/lib/validation/password'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const schema = z.object({
   token: z.string().min(1, 'token is required'),
@@ -14,6 +16,7 @@ const schema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/auth/reset-password', method: 'POST' })
   try {
     const body = await req.json()
     const parsed = schema.safeParse(body)
@@ -162,7 +165,8 @@ export async function POST(req: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('[POST /api/auth/reset-password]', error)
+    log.error({ err: error }, 'Password reset failed')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

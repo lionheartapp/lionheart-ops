@@ -11,15 +11,19 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getAssetById, getAssetWithDetails, updateAsset, deleteAsset } from '@/lib/services/maintenanceAssetService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/maintenance/assets/[id]', method: 'GET' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.ASSETS_READ)
 
     const asset = await runWithOrgContext(orgId, () => getAssetWithDetails(orgId, id))
@@ -32,7 +36,8 @@ export async function GET(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[GET /api/maintenance/assets/[id]]', error)
+    log.error({ err: error }, 'Failed to fetch maintenance asset')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
@@ -41,10 +46,12 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/maintenance/assets/[id]', method: 'PATCH' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.ASSETS_UPDATE)
 
     const body = await req.json()
@@ -63,7 +70,8 @@ export async function PATCH(
         )
       }
     }
-    console.error('[PATCH /api/maintenance/assets/[id]]', error)
+    log.error({ err: error }, 'Failed to update maintenance asset')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
@@ -72,10 +80,12 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/maintenance/assets/[id]', method: 'DELETE' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.ASSETS_DELETE)
 
     await runWithOrgContext(orgId, () => deleteAsset(orgId, id))
@@ -84,7 +94,8 @@ export async function DELETE(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[DELETE /api/maintenance/assets/[id]]', error)
+    log.error({ err: error }, 'Failed to delete maintenance asset')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

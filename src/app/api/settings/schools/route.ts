@@ -7,6 +7,8 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { getCached, invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const GRADE_DEFAULTS: Record<string, string> = {
   ELEMENTARY: '#a855f7',
@@ -35,9 +37,11 @@ const CreateSchoolSchema = z.object({
 type CreateSchoolInput = z.infer<typeof CreateSchoolSchema>
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/schools', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
@@ -76,15 +80,18 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to fetch schools:', error)
+    log.error({ err: error }, 'Failed to fetch schools')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch schools'), { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/schools', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
     const input = CreateSchoolSchema.parse(body)
     const principalPhone = (input.principalPhone || '').trim()
@@ -189,7 +196,8 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to create school:', error)
+    log.error({ err: error }, 'Failed to create school')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create school'), { status: 500 })
   }
 }

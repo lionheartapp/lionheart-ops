@@ -7,6 +7,8 @@ import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const CreateTeamSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -26,9 +28,11 @@ function toSlug(value: string) {
 }
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/teams', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     // Check permission to view teams
     await assertCan(userContext.userId, PERMISSIONS.TEAMS_READ)
@@ -56,7 +60,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to fetch teams:', error)
+    log.error({ err: error }, 'Failed to fetch teams')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to fetch teams'),
       { status: 500 }
@@ -65,9 +70,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/teams', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
     const input = CreateTeamSchema.parse(body)
 
@@ -138,7 +145,8 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       )
     }
-    console.error('Failed to create team:', error)
+    log.error({ err: error }, 'Failed to create team')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to create team'),
       { status: 500 }

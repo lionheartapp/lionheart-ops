@@ -5,11 +5,15 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { listItems, createItem, CreateItemSchema } from '@/lib/services/inventoryService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/inventory', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.INVENTORY_READ)
 
     const { searchParams } = new URL(req.url)
@@ -27,15 +31,18 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to list inventory items:', error)
+    log.error({ err: error }, 'Failed to list inventory items')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to list inventory items'), { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/inventory', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.INVENTORY_CREATE)
 
     const body = await req.json()
@@ -58,7 +65,8 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to create inventory item:', error)
+    log.error({ err: error }, 'Failed to create inventory item')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create inventory item'), { status: 500 })
   }
 }

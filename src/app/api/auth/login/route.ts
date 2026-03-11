@@ -6,8 +6,11 @@ import { runWithOrgContext } from '@/lib/org-context'
 import { signAuthToken } from '@/lib/auth'
 import { audit, getIp } from '@/lib/services/auditService'
 import { loginRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/auth/login', method: 'POST' })
   try {
     // ─── Rate limit check (per IP, before any body parsing) ──────────
     const ip = getIp(req) ?? 'unknown'
@@ -151,7 +154,8 @@ export async function POST(req: NextRequest) {
       return response
     })
   } catch (error) {
-    console.error('[POST /api/auth/login]', error)
+    log.error({ err: error }, 'Login failed')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

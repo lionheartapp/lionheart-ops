@@ -6,6 +6,8 @@ import { prisma } from '@/lib/db'
 import { assertCan, can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp, sanitize } from '@/lib/services/auditService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 type RouteParams = {
   params: Promise<{
@@ -14,10 +16,12 @@ type RouteParams = {
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/users/[id]', method: 'GET' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     await assertCan(userContext.userId, PERMISSIONS.USERS_READ)
 
@@ -63,7 +67,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
 
-    console.error('Failed to fetch user details:', error)
+    log.error({ err: error }, 'Failed to fetch user details')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch user details'), {
       status: 500,
     })
@@ -71,10 +76,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/users/[id]', method: 'PATCH' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
 
     await assertCan(userContext.userId, PERMISSIONS.USERS_UPDATE)
@@ -214,7 +221,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
 
-    console.error('Failed to update user:', error)
+    log.error({ err: error }, 'Failed to update user')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update user'), {
       status: 500,
     })
@@ -222,10 +230,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/users/[id]', method: 'DELETE' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     await assertCan(userContext.userId, PERMISSIONS.USERS_DELETE)
 
@@ -278,7 +288,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
 
-    console.error('Failed to delete user:', error)
+    log.error({ err: error }, 'Failed to delete user')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete user'), {
       status: 500,
     })

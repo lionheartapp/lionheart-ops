@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { signAuthToken } from '@/lib/auth'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/auth/verify-email', method: 'GET' })
   const token = req.nextUrl.searchParams.get('token')
 
   if (!token) {
@@ -122,7 +125,8 @@ export async function GET(req: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('[GET /api/auth/verify-email]', error)
+    log.error({ err: error }, 'Email verification failed')
+    Sentry.captureException(error)
     const url = req.nextUrl.clone()
     url.pathname = '/verify-email'
     url.search = '?error=invalid'

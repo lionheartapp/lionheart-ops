@@ -6,6 +6,8 @@ import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const createEventSchema = z.object({
   calendarId: z.string().min(1),
@@ -25,9 +27,11 @@ const createEventSchema = z.object({
 })
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/calendar-events', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_READ)
 
     return await runWithOrgContext(orgId, async () => {
@@ -60,20 +64,28 @@ export async function GET(req: NextRequest) {
         }
       )
 
-      return NextResponse.json(ok(events))
+      return NextResponse.json(ok(events), {
+        headers: {
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+        },
+      })
     })
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to fetch calendar events')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/calendar-events', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     // Members with CREATE_OWN can create events on personal/campus calendars
     const hasCreatePerm = await canAny(ctx.userId, [
       PERMISSIONS.CALENDAR_EVENTS_CREATE,
@@ -109,13 +121,14 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('[calendar-events POST] Validation error:', error.issues)
+      log.error({ err: error }, 'calendar-events POST validation error')
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[calendar-events POST] Internal error:', error)
+    log.error({ err: error }, 'Failed to create calendar event')
+    Sentry.captureException(error)
     const message = error instanceof Error ? error.message : 'Something went wrong'
     return NextResponse.json(fail('INTERNAL_ERROR', message), { status: 500 })
   }

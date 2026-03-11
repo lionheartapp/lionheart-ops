@@ -15,14 +15,18 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
 import { getCached, settingsCacheKey } from '@/lib/cache/settings-cache'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 // Dashboard data TTL: 60 seconds (frequent enough to feel live, reduces DB load)
 const DASHBOARD_CACHE_TTL = 60 * 1000
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/maintenance/dashboard', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_READ_ALL)
 
     const url = new URL(req.url)
@@ -145,7 +149,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[GET /api/maintenance/dashboard]', error)
+    log.error({ err: error }, 'Failed to fetch maintenance dashboard')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -3,10 +3,14 @@ import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/search', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     await getUserContext(req)
 
     const url = new URL(req.url)
@@ -87,6 +91,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Search failed')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -5,13 +5,17 @@ import { getUserContext } from '@/lib/request-context'
 import { rawPrisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const PAGE_SIZE = 50
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/audit-logs', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
 
@@ -72,7 +76,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to fetch audit logs:', error)
+    log.error({ err: error }, 'Failed to fetch audit logs')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch audit logs'), { status: 500 })
   }
 }

@@ -10,11 +10,15 @@ import { generateSetupToken, getSetupLink, hashSetupToken } from '@/lib/auth/pas
 import { sendWelcomeEmail } from '@/lib/services/emailService'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/users', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     // Check permission to view users
     await assertCan(userContext.userId, PERMISSIONS.USERS_READ)
@@ -105,7 +109,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to fetch users:', error)
+    log.error({ err: error }, 'Failed to fetch users')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to fetch users'),
       { status: 500 }
@@ -114,9 +119,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/users', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
 
     // Check permission to invite users
@@ -251,15 +258,7 @@ export async function POST(req: NextRequest) {
         mode: provisioningMode,
       })
 
-      console.log('[WELCOME_LINK]', {
-        userId: user.id,
-        email: user.email,
-        provisioningMode,
-        setupLink,
-        expiresAt: expiresAt.toISOString(),
-        emailSent: emailResult.sent,
-        emailReason: emailResult.reason,
-      })
+      log.info({ userId: user.id, provisioningMode, emailSent: emailResult.sent }, 'Welcome link generated')
 
       await audit({
         organizationId: orgId,
@@ -294,7 +293,8 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to create user:', error)
+    log.error({ err: error }, 'Failed to create user')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to create user'),
       { status: 500 }

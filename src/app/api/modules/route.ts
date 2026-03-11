@@ -7,10 +7,14 @@ import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { syncRolePermissions } from '@/lib/services/organizationRegistrationService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/modules', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
@@ -24,6 +28,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to fetch modules')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch modules'), { status: 500 })
   }
 }
@@ -35,9 +41,11 @@ const ToggleModuleSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/modules', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
 
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
@@ -82,7 +90,8 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Permission denied')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[POST /api/modules] error:', error)
+    log.error({ err: error }, 'Failed to toggle module')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to toggle module'), { status: 500 })
   }
 }

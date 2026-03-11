@@ -16,11 +16,15 @@ import type {
   MaintenanceCategory,
   MaintenancePriority,
 } from '@prisma/client'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/maintenance/tickets', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_SUBMIT)
 
     const body = await req.json()
@@ -39,15 +43,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid request data', [error.message]), { status: 400 })
       }
     }
-    console.error('[POST /api/maintenance/tickets]', error)
+    log.error({ err: error }, 'Failed to create maintenance ticket')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/maintenance/tickets', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_READ_OWN)
 
     const url = new URL(req.url)
@@ -71,7 +78,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[GET /api/maintenance/tickets]', error)
+    log.error({ err: error }, 'Failed to list maintenance tickets')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -7,6 +7,8 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { audit, getIp } from '@/lib/services/auditService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 type RouteParams = {
   params: Promise<{ id: string }>
@@ -41,10 +43,12 @@ function toSlug(value: string) {
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/teams/[id]', method: 'GET' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     await assertCan(userContext.userId, PERMISSIONS.TEAMS_READ)
 
@@ -70,7 +74,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to fetch team:', error)
+    log.error({ err: error }, 'Failed to fetch team')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to fetch team'),
       { status: 500 }
@@ -79,10 +84,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/teams/[id]', method: 'PATCH' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
     const input = UpdateTeamSchema.parse(body)
 
@@ -161,7 +168,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to update team:', error)
+    log.error({ err: error }, 'Failed to update team')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to update team'),
       { status: 500 }
@@ -170,10 +178,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/teams/[id]', method: 'DELETE' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     let reassignTeamId: string | null | undefined
     let userReassignments: Array<{ userId: string; teamId: string }> = []
@@ -315,7 +325,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to delete team:', error)
+    log.error({ err: error }, 'Failed to delete team')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to delete team'),
       { status: 500 }

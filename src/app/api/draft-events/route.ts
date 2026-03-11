@@ -4,11 +4,15 @@ import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import * as draftEventService from '@/lib/services/draftEventService'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/draft-events', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
 
     return await runWithOrgContext(orgId, async () => {
@@ -22,6 +26,8 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
+    log.error({ err: error }, 'Failed to create draft event')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
       { status: 500 }
@@ -30,9 +36,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/draft-events', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
@@ -51,6 +59,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
+    log.error({ err: error }, 'Failed to fetch draft events')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
       { status: 500 }

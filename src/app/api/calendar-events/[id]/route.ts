@@ -9,6 +9,8 @@ import * as notificationService from '@/lib/services/notificationService'
 import { sendEventUpdateEmails } from '@/lib/services/emailService'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const updateEventSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -32,9 +34,11 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/calendar-events/[id]', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_READ)
     const { id } = await params
 
@@ -59,6 +63,8 @@ export async function GET(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to fetch calendar event')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
@@ -67,9 +73,11 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/calendar-events/[id]', method: 'PUT' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const { id } = await params
     const body = await req.json()
     const data = updateEventSchema.parse(body)
@@ -182,6 +190,8 @@ export async function PUT(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to update calendar event')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
@@ -194,9 +204,11 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/calendar-events/[id]', method: 'DELETE' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const { id } = await params
 
     // Parse optional JSON body for editMode
@@ -260,7 +272,8 @@ export async function DELETE(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('DELETE /api/calendar-events/[id] error:', error)
+    log.error({ err: error }, 'Failed to delete calendar event')
+    Sentry.captureException(error)
     const msg = error instanceof Error ? error.message : 'Something went wrong'
     return NextResponse.json(fail('INTERNAL_ERROR', msg), { status: 500 })
   }

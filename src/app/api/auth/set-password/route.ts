@@ -5,8 +5,11 @@ import { rawPrisma as prisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { passwordSchema } from '@/lib/validation/password'
 import { ZodError } from 'zod'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/auth/set-password', method: 'POST' })
   try {
     const passwordSetupTokenModel = (prisma as any).passwordSetupToken
     const body = (await req.json()) as { token?: string; password?: string }
@@ -79,7 +82,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(ok({ success: true }))
   } catch (error) {
-    console.error('Set password error:', error)
+    log.error({ err: error }, 'Set password error')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to set password'), { status: 500 })
   }
 }

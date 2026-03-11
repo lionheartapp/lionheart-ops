@@ -6,6 +6,8 @@ import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
@@ -22,7 +24,7 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
     }
     return null
   } catch (err) {
-    console.error('[GEOCODE] Failed to geocode address:', err)
+    logger.warn({ err }, 'Failed to geocode address')
     return null
   }
 }
@@ -107,9 +109,11 @@ function toNullable(value?: string | null) {
 }
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/school-info', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
@@ -195,15 +199,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
 
-    console.error('Failed to fetch school info:', error)
+    log.error({ err: error }, 'Failed to fetch school info')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch school information'), { status: 500 })
   }
 }
 
 export async function PATCH(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/school-info', method: 'PATCH' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
 
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
@@ -297,7 +304,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json(fail('CONFLICT', 'That subdomain is already in use'), { status: 409 })
     }
 
-    console.error('Failed to update school info:', error)
+    log.error({ err: error }, 'Failed to update school info')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update school information'), { status: 500 })
   }
 }

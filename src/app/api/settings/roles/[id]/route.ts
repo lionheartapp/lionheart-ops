@@ -8,6 +8,8 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { audit, getIp } from '@/lib/services/auditService'
 import { invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 type RouteParams = {
   params: Promise<{ id: string }>
@@ -41,10 +43,12 @@ function toSlug(value: string) {
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/roles/[id]', method: 'GET' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     await assertCan(userContext.userId, PERMISSIONS.ROLES_READ)
 
@@ -84,7 +88,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to fetch role:', error)
+    log.error({ err: error }, 'Failed to fetch role')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to fetch role'),
       { status: 500 }
@@ -93,10 +98,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/roles/[id]', method: 'PATCH' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
     const input = UpdateRoleSchema.parse(body)
 
@@ -207,7 +214,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to update role:', error)
+    log.error({ err: error }, 'Failed to update role')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to update role'),
       { status: 500 }
@@ -216,10 +224,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/settings/roles/[id]', method: 'DELETE' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     let reassignRoleId: string | null | undefined
     let userReassignments: Array<{ userId: string; roleId: string }> = []
@@ -384,7 +394,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to delete role:', error)
+    log.error({ err: error }, 'Failed to delete role')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to delete role'),
       { status: 500 }

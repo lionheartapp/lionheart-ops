@@ -7,8 +7,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { organizationService } from '@/lib/services'
 import { ok, fail } from '@/lib/api-response'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/branding', method: 'GET' })
   try {
     // Get subdomain from middleware-injected header
     const subdomain = req.headers.get('x-org-subdomain')
@@ -31,7 +34,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(ok(branding))
   } catch (error) {
-    console.error('Branding fetch error:', error)
+    log.error({ err: error }, 'Branding fetch error')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to fetch organization branding'),
       { status: 500 }

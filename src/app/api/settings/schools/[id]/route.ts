@@ -7,6 +7,8 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { invalidateOrgCache } from '@/lib/cache/settings-cache'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const isValidPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -31,10 +33,12 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/settings/schools/[id]', method: 'PATCH' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
     const input = UpdateSchoolSchema.parse(body)
     const principalPhone = input.principalPhone === undefined || input.principalPhone === null
@@ -129,7 +133,8 @@ export async function PATCH(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to update school:', error)
+    log.error({ err: error }, 'Failed to update school')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update school'), { status: 500 })
   }
 }
@@ -138,10 +143,12 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = logger.child({ route: '/api/settings/schools/[id]', method: 'DELETE' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
 
@@ -181,7 +188,8 @@ export async function DELETE(
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to delete school:', error)
+    log.error({ err: error }, 'Failed to delete school')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete school'), { status: 500 })
   }
 }

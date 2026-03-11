@@ -8,6 +8,8 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
 import { getCached, invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const CreateRoleSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -26,9 +28,11 @@ function toSlug(value: string) {
 }
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/roles', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
 
     // Check permission to view roles
     await assertCan(userContext.userId, PERMISSIONS.ROLES_READ)
@@ -62,7 +66,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('Failed to fetch roles:', error)
+    log.error({ err: error }, 'Failed to fetch roles')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to fetch roles'),
       { status: 500 }
@@ -71,9 +76,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/roles', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
     const userContext = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
     const body = await req.json()
     const input = CreateRoleSchema.parse(body)
 
@@ -169,7 +176,8 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       )
     }
-    console.error('Failed to create role:', error)
+    log.error({ err: error }, 'Failed to create role')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to create role'),
       { status: 500 }

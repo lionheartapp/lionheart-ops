@@ -9,6 +9,8 @@ import {
 } from '@/lib/auth/password-setup'
 import { sendPasswordResetEmail } from '@/lib/services/emailService'
 import { audit, getIp } from '@/lib/services/auditService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -18,6 +20,7 @@ const schema = z.object({
 const GENERIC_SUCCESS = { message: 'If an account exists, we sent a reset link.' }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/auth/forgot-password', method: 'POST' })
   try {
     const body = await req.json()
     const parsed = schema.safeParse(body)
@@ -98,7 +101,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!emailResult.sent) {
-      console.error('[forgot-password] Email not sent:', emailResult.reason)
+      log.warn({ reason: emailResult.reason }, 'Forgot-password email not sent')
     }
 
     // Audit log can still be fire-and-forget (non-critical)
@@ -115,7 +118,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(ok(GENERIC_SUCCESS))
   } catch (error) {
-    console.error('[POST /api/auth/forgot-password]', error)
+    log.error({ err: error }, 'Forgot password failed')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
