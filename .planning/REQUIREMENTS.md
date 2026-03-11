@@ -55,8 +55,8 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 - [x] **SET-01**: Admin can view audit log history through a dedicated UI in Settings
 - [x] **SET-02**: Org admin can view and manage their billing/subscription plan
 - [x] **SET-03**: Admin can export users, tickets, and events as CSV files
-- [ ] **SET-04**: Admin can edit organization name and subdomain slug after initial signup
-- [ ] **SET-05**: Users can configure which email/in-app notifications they receive
+- [x] **SET-04**: Admin can edit organization name and subdomain slug after initial signup
+- [x] **SET-05**: Users can configure which email/in-app notifications they receive
 
 ### Infrastructure
 
@@ -173,8 +173,8 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | SET-01 | Phase 12 | Complete |
 | SET-02 | Phase 12 | Complete |
 | SET-03 | Phase 12 | Complete |
-| SET-04 | Phase 12 | Pending |
-| SET-05 | Phase 12 | Pending |
+| SET-04 | Phase 12 | Complete |
+| SET-05 | Phase 12 | Complete |
 | INFRA-01 | Phase 13 | Pending |
 | INFRA-02 | Phase 13 | Pending |
 | INFRA-03 | Phase 13 | Pending |

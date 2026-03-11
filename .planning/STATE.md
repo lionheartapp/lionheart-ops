@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-11T15:39:10.925Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-03-11T15:39:24.480Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 15
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 14-ai-assistant-ux-upgrade P03 | 15 | 3 tasks | 4 files |
 | Phase 12-settings-and-admin-tools P01 | 20 | 3 tasks | 9 files |
 | Phase 12-settings-and-admin-tools P02 | 18 | 2 tasks | 7 files |
+| Phase 12-settings-and-admin-tools P03 | 25 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,9 @@ Recent decisions affecting current work:
 - [Phase 12-settings-and-admin-tools]: Audit-logs date range filtering applied at database level (server-side) so it works across all paginated pages
 - [Phase 12-settings-and-admin-tools]: Stripe graceful degradation: missing STRIPE_SECRET_KEY returns 503 SERVICE_UNAVAILABLE, not a crash — billing is optional until configured
 - [Phase 12-settings-and-admin-tools]: Billing portal inline error: text-red-600 shown below button for 5 seconds when stripeCustomerId is null — visible but not alarming, does not fail silently
+- [Phase 12-settings-and-admin-tools]: NotificationPreference queries use rawPrisma — model not in org-scoped whitelist in db/index.ts
+- [Phase 12-settings-and-admin-tools]: Slug confirmation flow is inline expandable section (AnimatePresence) — not a modal
+- [Phase 12-settings-and-admin-tools]: NOTIFICATION_TYPES exported as array from notificationService for validation in preferences API
 
 ### Pending Todos
 
@@ -150,6 +154,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T15:38:58.485Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-03-11T15:39:24.478Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None
