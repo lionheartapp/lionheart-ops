@@ -22,7 +22,7 @@ function getClient(): Anthropic | null {
 
 // ─── Model ────────────────────────────────────────────────────────────────────
 
-const MODEL = 'claude-sonnet-4-5-20250929'
+const MODEL = 'claude-sonnet-4-5-20241022'
 
 // ─── Prompts ──────────────────────────────────────────────────────────────────
 
