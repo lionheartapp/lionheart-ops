@@ -2,7 +2,7 @@
  * AI Assistant Chatbot Types
  *
  * Types for the platform-wide AI assistant conversation,
- * tool calls, and API request/response shapes.
+ * tool calls, streaming events, and API request/response shapes.
  */
 
 // ─── Conversation ─────────────────────────────────────────────────────────────
@@ -32,3 +32,13 @@ export interface ChatResponseData {
   conversationHistory: ConversationTurn[]
   actionConfirmation?: ActionConfirmation
 }
+
+// ─── Streaming Events (SSE) ──────────────────────────────────────────────────
+
+export type StreamEvent =
+  | { type: 'delta'; content: string }
+  | { type: 'tool_start'; tool: string; input: Record<string, unknown> }
+  | { type: 'tool_result'; tool: string; summary: string }
+  | { type: 'action_confirmation'; action: ActionConfirmation }
+  | { type: 'done'; conversationHistory: ConversationTurn[] }
+  | { type: 'error'; message: string }
