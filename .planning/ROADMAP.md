@@ -305,6 +305,6 @@ Plans:
 | 9. Marketing and Legal Pages | 3/3 | Complete   | 2026-03-10 | - |
 | 10. Inventory System | 3/3 | Complete    | 2026-03-10 | - |
 | 11. Calendar, Ticket, Feature Gaps | 3/3 | Complete    | 2026-03-10 | - |
-| 12. Settings and Admin Tools | v2.0 | 0/3 | Not started | - |
+| 12. Settings and Admin Tools | 1/3 | In Progress|  | - |
 | 13. Infrastructure and Observability | v2.0 | 0/5 | Not started | - |
 | 15. Auth Security Gap Closure | v2.0 | 0/1 | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 14-03-PLAN.md (Phase 14 complete)
-last_updated: "2026-03-11T14:03:39.017Z"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-03-11T15:30:20.811Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
-  total_phases: 14
+  total_phases: 15
   completed_phases: 12
-  total_plans: 40
-  completed_plans: 40
+  total_plans: 43
+  completed_plans: 41
   percent: 0
 ---
 
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 14-ai-assistant-ux-upgrade P01 | 4 | 2 tasks | 7 files |
 | Phase 14-ai-assistant-ux-upgrade P03 | 3 | 2 tasks | 4 files |
 | Phase 14-ai-assistant-ux-upgrade P03 | 15 | 3 tasks | 4 files |
+| Phase 12-settings-and-admin-tools P01 | 20 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,9 @@ Recent decisions affecting current work:
 - [Phase 14-ai-assistant-ux-upgrade]: Dual SSE emission: action_confirmation first for backward compat, rich_confirmation overrides in ChatPanel handler
 - [Phase 14-ai-assistant-ux-upgrade]: approvalChannels omitted from richCard — approval channel config not yet standardized; card renders section only when present
 - [Phase 14-ai-assistant-ux-upgrade]: InventoryItem uses quantityOnHand not quantity — corrected in executeCreateEventDraft resource availability lookup
+- [Phase 12-settings-and-admin-tools]: AuditLogTab uses plain fetch (not TanStack Query) to match other Settings tab patterns
+- [Phase 12-settings-and-admin-tools]: Export buttons use window.open for CSV download; tickets export uses TICKETS_READ_ALL, events uses EVENTS_READ, users uses SETTINGS_READ
+- [Phase 12-settings-and-admin-tools]: Audit-logs date range filtering applied at database level (server-side) so it works across all paginated pages
 
 ### Pending Todos
 
@@ -143,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T13:58:06.267Z
-Stopped at: Completed 14-03-PLAN.md (Phase 14 complete)
+Last session: 2026-03-11T15:30:20.808Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
