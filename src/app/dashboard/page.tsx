@@ -344,6 +344,22 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
           </div>
 
+          {/* Compact stats row */}
+          <div className="flex gap-3 mb-6">
+            <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
+              <p className="text-2xl font-bold text-primary-600">
+                <AnimatedCounter value={ticketCount} duration={0.8} />
+              </p>
+              <p className="text-[10px] text-gray-600 mt-0.5">Active Requests</p>
+            </div>
+            <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
+              <p className="text-2xl font-bold text-blue-600">
+                <AnimatedCounter value={tickets.length} duration={0.8} />
+              </p>
+              <p className="text-[10px] text-gray-600 mt-0.5">Total Tasks</p>
+            </div>
+          </div>
+
           {ticketsLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
@@ -397,28 +413,9 @@ export default function DashboardPage() {
         {/* Right Rail — Embedded Leo AI Assistant */}
         <motion.div
           variants={cardEntrance}
-          className="flex flex-col gap-4 lg:min-h-[500px]"
+          className="h-full lg:min-h-[560px]"
         >
-          {/* Compact stats row */}
-          <div className="flex gap-3">
-            <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
-              <p className="text-2xl font-bold text-primary-600">
-                <AnimatedCounter value={ticketCount} duration={0.8} />
-              </p>
-              <p className="text-[10px] text-gray-600 mt-0.5">Active Requests</p>
-            </div>
-            <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
-              <p className="text-2xl font-bold text-blue-600">
-                <AnimatedCounter value={tickets.length} duration={0.8} />
-              </p>
-              <p className="text-[10px] text-gray-600 mt-0.5">Total Tasks</p>
-            </div>
-          </div>
-
-          {/* Embedded Leo */}
-          <div className="flex-1 min-h-0">
-            <ChatPanel variant="embedded" />
-          </div>
+          <ChatPanel variant="embedded" />
         </motion.div>
       </motion.div>
       </MotionConfig>

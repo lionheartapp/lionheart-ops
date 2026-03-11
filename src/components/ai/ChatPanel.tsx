@@ -56,6 +56,10 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
     async (message: string, images?: ImageAttachment[]) => {
       if ((!message.trim() && (!images || images.length === 0)) || isLoading || isStreaming) return
 
+      // Clear any pending action confirmation — the user chose to interact
+      // via the conversation flow instead of the confirmation overlay
+      setPendingAction(null)
+
       // Clear choices/suggestions from the previous assistant message
       setConversation((prev) => {
         if (prev.length === 0) return prev
@@ -355,7 +359,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
 
   const panelContent = (
     <div
-      className={`flex flex-col overflow-hidden ${
+      className={`relative flex flex-col overflow-hidden ${
         isEmbedded
           ? 'w-full h-full rounded-2xl border border-gray-200 bg-white shadow-sm'
           : 'w-[384px] rounded-2xl border border-gray-200 bg-white shadow-2xl'

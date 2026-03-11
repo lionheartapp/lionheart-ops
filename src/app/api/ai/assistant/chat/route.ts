@@ -379,7 +379,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Extract markers from completed text
-          const { cleanText, choices, suggestions } = extractMarkers(finalText)
+          let { cleanText, choices, suggestions } = extractMarkers(finalText)
           finalText = cleanText
 
           // Send action confirmation if any
@@ -394,6 +394,11 @@ export async function POST(req: NextRequest) {
             if (richCard) {
               write({ type: 'rich_confirmation', card: richCard })
             }
+
+            // Don't send choices when there's an action confirmation — the
+            // confirmation card handles yes/no. Sending both causes double-fire
+            // if the user clicks a choice while the overlay is present.
+            choices = []
           }
 
           // Emit structured events
