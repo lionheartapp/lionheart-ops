@@ -122,3 +122,15 @@ describe('assertCan', () => {
     await expect(assertCan('user-1', 'tickets:read:all')).resolves.toBeUndefined()
   })
 })
+
+import { DEFAULT_ROLES, PERMISSIONS } from '@/lib/permissions'
+
+describe('DEFAULT_ROLES', () => {
+  it('ADMIN role includes PERMISSIONS.SETTINGS_BILLING', () => {
+    expect(DEFAULT_ROLES.ADMIN.permissions).toContain(PERMISSIONS.SETTINGS_BILLING)
+  })
+
+  it('PERMISSIONS.SETTINGS_BILLING equals "settings:billing"', () => {
+    expect(PERMISSIONS.SETTINGS_BILLING).toBe('settings:billing')
+  })
+})
