@@ -4,6 +4,8 @@ import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/a
 import { sendVerificationEmail } from '@/lib/services/emailService'
 import { ok, fail } from '@/lib/api-response'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -13,6 +15,7 @@ const schema = z.object({
 const GENERIC_SUCCESS = { message: 'If your account exists and is unverified, a verification email has been sent.' }
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/auth/resend-verification', method: 'POST' })
   try {
     const body = await req.json()
     const parsed = schema.safeParse(body)
@@ -103,12 +106,13 @@ export async function POST(req: NextRequest) {
     })
 
     if (!emailResult.sent) {
-      console.error('[POST /api/auth/resend-verification] Email not sent:', emailResult.reason)
+      log.warn({ reason: emailResult.reason }, 'Verification email not sent')
     }
 
     return NextResponse.json(ok(GENERIC_SUCCESS))
   } catch (error) {
-    console.error('[POST /api/auth/resend-verification]', error)
+    log.error({ err: error }, 'Failed to resend verification email')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

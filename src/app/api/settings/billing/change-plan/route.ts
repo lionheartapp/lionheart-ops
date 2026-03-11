@@ -7,6 +7,8 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
@@ -20,8 +22,10 @@ const changePlanSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/billing/change-plan', method: 'POST' })
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_BILLING)
 
@@ -282,7 +286,8 @@ export async function POST(req: NextRequest) {
     )) {
       return NextResponse.json(fail('UNAUTHORIZED', error.message), { status: 401 })
     }
-    console.error('[POST /api/settings/billing/change-plan]', error)
+    log.error({ err: error }, 'Failed to change billing plan')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

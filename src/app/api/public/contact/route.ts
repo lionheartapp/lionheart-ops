@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { sendContactFormEmail } from '@/lib/services/emailService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const contactSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -11,6 +13,7 @@ const contactSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  const log = logger.child({ route: '/api/public/contact', method: 'POST' })
   try {
     const body = await req.json()
     const parsed = contactSchema.safeParse(body)
@@ -26,7 +29,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(ok({ sent: true }))
   } catch (error) {
-    console.error('Contact form error:', error)
+    log.error({ err: error }, 'Failed to send contact form email')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Something went wrong'),
       { status: 500 }

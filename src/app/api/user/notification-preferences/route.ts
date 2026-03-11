@@ -5,6 +5,8 @@ import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma } from '@/lib/db'
 import { NOTIFICATION_TYPES } from '@/lib/services/notificationService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const PreferenceUpdateSchema = z.object({
   preferences: z
@@ -20,8 +22,10 @@ const PreferenceUpdateSchema = z.object({
 })
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/user/notification-preferences', method: 'GET' })
   try {
-    getOrgIdFromRequest(req) // validates org header is present
+    const orgId = getOrgIdFromRequest(req) // validates org header is present
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
 
     const [preferences, user] = await Promise.all([
@@ -45,13 +49,17 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to fetch notification preferences')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
 
 export async function PUT(req: NextRequest) {
+  const log = logger.child({ route: '/api/user/notification-preferences', method: 'PUT' })
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
 
     let body: unknown
@@ -120,6 +128,8 @@ export async function PUT(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to update notification preferences')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

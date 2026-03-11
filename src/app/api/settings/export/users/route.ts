@@ -9,6 +9,8 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 function toCsv(headers: string[], rows: string[][]): string {
   const escape = (val: string) => `"${val.replace(/"/g, '""')}"`
@@ -16,8 +18,10 @@ function toCsv(headers: string[], rows: string[][]): string {
 }
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/export/users', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
 
@@ -67,7 +71,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[GET /api/settings/export/users]', error)
+    log.error({ err: error }, 'Failed to export users CSV')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

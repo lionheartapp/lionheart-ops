@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 /**
  * GET /api/auth/me
@@ -11,6 +13,7 @@ import { ok, fail } from '@/lib/api-response'
  * This replaces the localStorage-based pattern in useAuth.
  */
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/auth/me', method: 'GET' })
   try {
     // Try cookie first, fall back to Authorization header
     const cookieToken = req.cookies.get('auth-token')?.value
@@ -26,6 +29,8 @@ export async function GET(req: NextRequest) {
     if (!claims) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Invalid or expired token'), { status: 401 })
     }
+
+    Sentry.setTag('org_id', claims.organizationId)
 
     const user = await rawPrisma.user.findUnique({
       where: { id: claims.userId },
@@ -81,7 +86,8 @@ export async function GET(req: NextRequest) {
       })
     )
   } catch (error) {
-    console.error('[GET /api/auth/me]', error)
+    log.error({ err: error }, 'Failed to fetch current user')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

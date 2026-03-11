@@ -7,6 +7,8 @@ import { rawPrisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const OrgUpdateSchema = z.object({
   name: z.string().trim().min(2).max(100).optional(),
@@ -24,8 +26,10 @@ const OrgUpdateSchema = z.object({
 })
 
 export async function GET(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/organization', method: 'GET' })
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
 
@@ -43,13 +47,17 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to fetch organization settings')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
 
 export async function PATCH(req: NextRequest) {
+  const log = logger.child({ route: '/api/settings/organization', method: 'PATCH' })
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
 
@@ -117,6 +125,8 @@ export async function PATCH(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
+    log.error({ err: error }, 'Failed to update organization settings')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
