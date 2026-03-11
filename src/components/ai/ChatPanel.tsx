@@ -365,28 +365,15 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
 
   const panelContent = (
     <div
-      className={`relative flex flex-col overflow-hidden ${
+      className={`relative flex flex-col ${
         isEmbedded
-          ? 'w-full h-full rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
+          ? 'w-full h-full min-h-0 rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
           : 'w-[384px] rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-2xl'
       }`}
       style={isEmbedded ? undefined : { height: '520px' }}
     >
       {/* Header — minimal glass style */}
-      <div className="relative flex items-center justify-between px-4 py-2.5 border-b border-gray-200/40">
-        {/* Aurora accent line at top */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
-          style={{
-            background: isAiActive
-              ? 'linear-gradient(90deg, #7c5bf1, #5b8af1, #4ecdc4, #44d986, #f5a623, #e84393, #7c5bf1)'
-              : 'linear-gradient(90deg, #3B82F6, #6366F1)',
-            backgroundSize: isAiActive ? '200% 100%' : '100% 100%',
-            animation: isAiActive ? 'glowSlide 2s linear infinite' : 'none',
-            opacity: isAiActive ? 1 : 0.5,
-          }}
-        />
-
+      <div className="relative flex-shrink-0 flex items-center justify-between px-4 pt-2.5 pb-3">
         <div className="flex items-center gap-2">
           <div
             className="flex items-center justify-center w-6 h-6 rounded-full"
@@ -426,6 +413,19 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
             </button>
           )}
         </div>
+
+        {/* Aurora accent line — below header */}
+        <div
+          className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full"
+          style={{
+            background: isAiActive
+              ? 'linear-gradient(90deg, #7c5bf1, #5b8af1, #4ecdc4, #44d986, #f5a623, #e84393, #7c5bf1)'
+              : 'linear-gradient(90deg, #3B82F6, #6366F1)',
+            backgroundSize: isAiActive ? '200% 100%' : '100% 100%',
+            animation: isAiActive ? 'glowSlide 2s linear infinite' : 'none',
+            opacity: isAiActive ? 1 : 0.5,
+          }}
+        />
       </div>
 
       {/* Messages */}

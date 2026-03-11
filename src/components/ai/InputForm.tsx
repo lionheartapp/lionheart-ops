@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Send, Mic, MicOff, Square, ImagePlus, X } from 'lucide-react'
 import { useSpeechRecognition } from '@/lib/hooks/useSpeechRecognition'
 import { ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
@@ -33,7 +33,18 @@ export default function InputForm({
   const [images, setImages] = useState<ImageAttachment[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
+  const [isFocused, setIsFocused] = useState(false)
+  const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const PLACEHOLDER_EXAMPLES = useMemo(() => [
+    'How many open tickets do we have?',
+    'There\'s a leak in the boys bathroom...',
+    'Schedule a staff meeting for Friday',
+    'What events are coming up this week?',
+    'Show me our maintenance stats',
+    'Create an IT ticket for a broken projector',
+  ], [])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const {
     isSupported: voiceSupported,
@@ -65,6 +76,15 @@ export default function InputForm({
   useEffect(() => {
     textareaRef.current?.focus()
   }, [])
+
+  // Cycle placeholder examples when not focused and empty
+  useEffect(() => {
+    if (isFocused || input) return
+    const timer = setInterval(() => {
+      setPlaceholderIdx((prev) => (prev + 1) % PLACEHOLDER_EXAMPLES.length)
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [isFocused, input, PLACEHOLDER_EXAMPLES])
 
   // Clear image error after 3 seconds
   useEffect(() => {
@@ -307,10 +327,12 @@ export default function InputForm({
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : 'Ask anything...'}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : isFocused ? 'Ask anything...' : PLACEHOLDER_EXAMPLES[placeholderIdx]}
           disabled={isLoading}
           rows={1}
-          className={`flex-1 resize-none rounded-xl border bg-gray-50/80 px-3 py-2 text-sm leading-relaxed placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
+          className={`flex-1 resize-none rounded-full border bg-gray-50/80 px-4 py-2.5 text-sm leading-relaxed placeholder:text-gray-400 placeholder:transition-opacity focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
             isListening
               ? 'border-indigo-300 focus:border-indigo-400 focus:ring-indigo-400'
               : 'border-gray-200/80 focus:border-indigo-400 focus:ring-indigo-400'

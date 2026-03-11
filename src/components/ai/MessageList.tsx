@@ -144,7 +144,7 @@ export default function MessageList({
   const isLastAssistantStreaming = isStreaming && conversation.length > 0 && conversation[conversation.length - 1]?.role === 'assistant'
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>
+    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3 leo-scrollbar" style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>
       {/* Empty state — animated orb */}
       {conversation.length === 0 && !isLoading && (
         <motion.div
