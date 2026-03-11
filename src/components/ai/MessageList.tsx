@@ -2,14 +2,18 @@
 
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Loader2, Sparkles, Search, BarChart3, Calendar, Building2, Wrench } from 'lucide-react'
+import { Loader2, Sparkles, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package } from 'lucide-react'
 import type { ConversationTurn } from '@/lib/types/assistant'
+import ChoiceButtons from './ChoiceButtons'
+import SuggestionChips from './SuggestionChips'
 
 interface MessageListProps {
   conversation: ConversationTurn[]
   isLoading: boolean
   isStreaming?: boolean
   activeTools?: string[]
+  onChoiceSelect?: (choice: string) => void
+  onSuggestionSelect?: (suggestion: string) => void
 }
 
 /** Human-friendly labels for tool names */
@@ -26,17 +30,23 @@ const TOOL_LABELS: Record<string, { label: string; icon: typeof Search }> = {
   create_it_ticket: { label: 'Preparing IT ticket draft', icon: Wrench },
   update_maintenance_ticket_status: { label: 'Preparing status update', icon: Wrench },
   assign_maintenance_ticket: { label: 'Looking up assignee', icon: Search },
+  check_room_availability: { label: 'Checking room availability', icon: Calendar },
+  get_weather_forecast: { label: 'Checking weather', icon: Cloud },
+  check_resource_availability: { label: 'Checking inventory', icon: Package },
 }
 
 /**
  * Scrollable list of conversation messages.
  * Supports streaming display with blinking cursor and tool execution indicators.
+ * Renders ChoiceButtons and SuggestionChips below the last assistant message.
  */
 export default function MessageList({
   conversation,
   isLoading,
   isStreaming = false,
   activeTools = [],
+  onChoiceSelect,
+  onSuggestionSelect,
 }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
 
@@ -94,6 +104,24 @@ export default function MessageList({
               <span className="text-[10px] text-gray-400 px-1">
                 {formatTime(turn.timestamp)}
               </span>
+            )}
+
+            {/* Choice buttons — only on last assistant message, only when not streaming */}
+            {turn.role === 'assistant' && isLastMsg && !isStreaming && !isLoading &&
+              turn.choices && turn.choices.length > 0 && onChoiceSelect && (
+              <ChoiceButtons
+                options={turn.choices}
+                onSelect={onChoiceSelect}
+              />
+            )}
+
+            {/* Suggestion chips — only on last assistant message, only when idle */}
+            {turn.role === 'assistant' && isLastMsg && !isStreaming && !isLoading &&
+              turn.suggestions && turn.suggestions.length > 0 && onSuggestionSelect && (
+              <SuggestionChips
+                items={turn.suggestions}
+                onSelect={onSuggestionSelect}
+              />
             )}
           </motion.div>
         )

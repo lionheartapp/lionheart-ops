@@ -46,6 +46,17 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
     async (message: string) => {
       if (!message.trim() || isLoading || isStreaming) return
 
+      // Clear choices/suggestions from the previous assistant message
+      setConversation((prev) => {
+        if (prev.length === 0) return prev
+        const updated = [...prev]
+        const lastIdx = updated.length - 1
+        if (updated[lastIdx]?.role === 'assistant') {
+          updated[lastIdx] = { ...updated[lastIdx], choices: undefined, suggestions: undefined }
+        }
+        return updated
+      })
+
       // Optimistically add user message + empty assistant placeholder
       const userTurn: ConversationTurn = {
         role: 'user',
@@ -168,6 +179,42 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
                   setPendingAction(event.action)
                   break
 
+                case 'choices':
+                  // Store choices on the last assistant turn
+                  setConversation((prev) => {
+                    const updated = [...prev]
+                    const last = updated[updated.length - 1]
+                    if (last?.role === 'assistant') {
+                      updated[updated.length - 1] = { ...last, choices: event.options }
+                    }
+                    return updated
+                  })
+                  break
+
+                case 'suggestions':
+                  // Store suggestions on the last assistant turn
+                  setConversation((prev) => {
+                    const updated = [...prev]
+                    const last = updated[updated.length - 1]
+                    if (last?.role === 'assistant') {
+                      updated[updated.length - 1] = { ...last, suggestions: event.items }
+                    }
+                    return updated
+                  })
+                  break
+
+                case 'rich_confirmation':
+                  // Store the rich confirmation card data as a pending action
+                  // Plan 14-03 will add the richCard field to ActionConfirmation properly
+                  setPendingAction({
+                    type: 'create_event',
+                    description: 'Event draft ready for review',
+                    payload: {},
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    richCard: event.card,
+                  } as any)
+                  break
+
                 case 'done':
                   setConversation(event.conversationHistory)
                   break
@@ -280,6 +327,14 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
     setActiveTools([])
   }, [])
 
+  const handleChoiceSelect = useCallback((choice: string) => {
+    handleSendMessage(choice)
+  }, [handleSendMessage])
+
+  const handleSuggestionSelect = useCallback((suggestion: string) => {
+    handleSendMessage(suggestion)
+  }, [handleSendMessage])
+
   return (
     <motion.div
       className="fixed bottom-24 right-6 z-50"
@@ -343,6 +398,8 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
             isLoading={isLoading}
             isStreaming={isStreaming}
             activeTools={activeTools}
+            onChoiceSelect={handleChoiceSelect}
+            onSuggestionSelect={handleSuggestionSelect}
           />
 
           {/* Input with voice */}
