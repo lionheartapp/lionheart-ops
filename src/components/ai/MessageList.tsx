@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Loader2, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package, Users, Mail, ListChecks, Monitor, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { ConversationTurn } from '@/lib/types/assistant'
@@ -212,7 +211,6 @@ export default function MessageList({
   onFeedback,
 }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -220,26 +218,12 @@ export default function MessageList({
 
   const isLastAssistantStreaming = isStreaming && conversation.length > 0 && conversation[conversation.length - 1]?.role === 'assistant'
 
-  /** Navigate to the appropriate detail view when a list item is clicked */
+  /** Dispatch a custom event so the parent page can open a detail drawer */
   const handleItemClick: OnItemClick = useCallback((type, item) => {
-    switch (type) {
-      case 'events':
-        router.push('/calendar')
-        break
-      case 'tickets':
-        // Navigate to the appropriate ticket section
-        router.push('/dashboard')
-        break
-      case 'users':
-        router.push('/settings')
-        break
-      case 'inventory':
-        router.push('/av-inventory')
-        break
-      default:
-        break
-    }
-  }, [router])
+    window.dispatchEvent(
+      new CustomEvent('leo-item-click', { detail: { type, item } })
+    )
+  }, [])
 
   return (
     <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>

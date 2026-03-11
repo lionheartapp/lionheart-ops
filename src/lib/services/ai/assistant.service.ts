@@ -374,8 +374,8 @@ When returning a list of 2 or more items from tool calls (events, tickets, users
 
 **Supported types and their item fields:**
 
-**events** — calendar events, meetings, scheduled items:
-\`:::list{"type":"events","items":[{"title":"Spring Concert","date":"Tomorrow","time":"7:00 PM","location":"Performing Arts Center","calendar":"Main Campus Master","host":"Amy Smith"}]}:::\`
+**events** — calendar events, meetings, scheduled items (ALWAYS include the \`id\` field from the tool result so events are clickable):
+\`:::list{"type":"events","items":[{"id":"abc-123-uuid","title":"Spring Concert","date":"Tomorrow","time":"7:00 PM","location":"Performing Arts Center","calendar":"Main Campus Master","host":"Amy Smith"}]}:::\`
 
 **tickets** — maintenance tickets, IT tickets, support requests:
 \`:::list{"type":"tickets","items":[{"title":"Water Leak - Gym","status":"OPEN","priority":"HIGH","category":"PLUMBING","location":"Main Gym","assignee":"Tom Riddle","created":"2 days ago","id":"#1234"}]}:::\`
@@ -399,6 +399,7 @@ When returning a list of 2 or more items from tool calls (events, tickets, users
 - You can have text before AND after a :::list block in the same response
 - **CRITICAL:** Do NOT wrap :::list blocks in code fences (\`\`\`). Output them as raw text — NOT inside \`\`\`json or \`\`\` markers. The UI renderer handles formatting.
 - Do NOT put backticks around the :::list block. Just output it directly in your response text.
+- **ALWAYS include the \`id\` field** for events and tickets when the tool result provides an ID. This enables the user to click on items to see full details.
 
 ### Choices
 When asking the user to choose between options, append this EXACTLY at the end of your response:
