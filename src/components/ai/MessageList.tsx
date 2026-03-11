@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Loader2, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package, Users, Mail, ListChecks, Monitor, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { ConversationTurn } from '@/lib/types/assistant'
 import ChoiceButtons from './ChoiceButtons'
 import SuggestionChips from './SuggestionChips'
 import AnimatedOrb, { type OrbState } from './AnimatedOrb'
-import StructuredList, { parseStructuredLists } from './StructuredList'
+import StructuredList, { parseStructuredLists, type OnItemClick } from './StructuredList'
 
 interface MessageListProps {
   conversation: ConversationTurn[]
@@ -116,20 +117,31 @@ function ChatMarkdown({ text }: { text: string }) {
  * Render assistant message content with support for structured list blocks.
  * Splits on :::list{...}::: delimiters — text segments get ChatMarkdown,
  * list segments get StructuredList cards.
+ *
+ * During streaming, incomplete :::list blocks are hidden and replaced with
+ * a subtle loading indicator so the user doesn't see raw JSON.
  */
-function ChatMarkdownWithLists({ text }: { text: string }) {
-  // Fast path: no structured data
-  if (!text.includes(':::list')) {
+function ChatMarkdownWithLists({ text, isStreaming = false, onItemClick }: { text: string; isStreaming?: boolean; onItemClick?: OnItemClick }) {
+  // Fast path: no structured data and not potentially starting one
+  if (!text.includes(':::') && !text.includes('```')) {
     return <ChatMarkdown text={text} />
   }
 
-  const segments = parseStructuredLists(text)
+  const segments = parseStructuredLists(text, isStreaming)
 
   return (
     <>
       {segments.map((seg, idx) => {
         if (seg.listData) {
-          return <StructuredList key={idx} data={seg.listData} />
+          return <StructuredList key={idx} data={seg.listData} onItemClick={onItemClick} />
+        }
+        if (seg.pendingBlock) {
+          return (
+            <div key={idx} className="flex items-center gap-2 py-2 text-gray-400">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span className="text-xs">Preparing list...</span>
+            </div>
+          )
         }
         return seg.text ? <ChatMarkdown key={idx} text={seg.text} /> : null
       })}
@@ -200,12 +212,34 @@ export default function MessageList({
   onFeedback,
 }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [conversation, isLoading, isStreaming, activeTools])
 
   const isLastAssistantStreaming = isStreaming && conversation.length > 0 && conversation[conversation.length - 1]?.role === 'assistant'
+
+  /** Navigate to the appropriate detail view when a list item is clicked */
+  const handleItemClick: OnItemClick = useCallback((type, item) => {
+    switch (type) {
+      case 'events':
+        router.push('/calendar')
+        break
+      case 'tickets':
+        // Navigate to the appropriate ticket section
+        router.push('/dashboard')
+        break
+      case 'users':
+        router.push('/settings')
+        break
+      case 'inventory':
+        router.push('/av-inventory')
+        break
+      default:
+        break
+    }
+  }, [router])
 
   return (
     <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>
@@ -252,7 +286,11 @@ export default function MessageList({
               style={turn.role === 'user' ? { background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' } : undefined}
             >
               {turn.role === 'assistant' && turn.content ? (
-                <ChatMarkdownWithLists text={turn.content} />
+                <ChatMarkdownWithLists
+                  text={turn.content}
+                  isStreaming={showCursor}
+                  onItemClick={handleItemClick}
+                />
               ) : (
                 turn.content || (showCursor ? '' : '')
               )}

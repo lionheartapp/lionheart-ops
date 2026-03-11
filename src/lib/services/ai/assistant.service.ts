@@ -397,6 +397,8 @@ When returning a list of 2 or more items from tool calls (events, tickets, users
 - Events on the same date will be visually grouped together — set the same \`date\` value for them
 - NEVER use plain bullet points when you have 2+ items from tool results. ALWAYS use :::list blocks.
 - You can have text before AND after a :::list block in the same response
+- **CRITICAL:** Do NOT wrap :::list blocks in code fences (\`\`\`). Output them as raw text — NOT inside \`\`\`json or \`\`\` markers. The UI renderer handles formatting.
+- Do NOT put backticks around the :::list block. Just output it directly in your response text.
 
 ### Choices
 When asking the user to choose between options, append this EXACTLY at the end of your response:

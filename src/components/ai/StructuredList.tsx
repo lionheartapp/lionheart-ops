@@ -13,6 +13,7 @@ interface EventItem {
   calendar?: string
   status?: string
   host?: string
+  id?: string
 }
 
 interface TicketItem {
@@ -58,6 +59,9 @@ export interface StructuredListData {
   items: ListItem[]
   groupBy?: string
 }
+
+/** Callback when an item in a structured list is clicked */
+export type OnItemClick = (type: string, item: ListItem) => void
 
 // ─── Color Utilities ──────────────────────────────────────────────────────────
 
@@ -156,7 +160,7 @@ function extractTime(item: EventItem): string {
 
 // ─── Renderers ────────────────────────────────────────────────────────────────
 
-function EventsList({ items }: { items: EventItem[] }) {
+function EventsList({ items, onItemClick }: { items: EventItem[]; onItemClick?: OnItemClick }) {
   const groups = groupEventsByDate(items)
 
   return (
@@ -178,7 +182,10 @@ function EventsList({ items }: { items: EventItem[] }) {
               return (
                 <div
                   key={idx}
-                  className="flex items-stretch gap-3 py-2.5 border-t border-gray-100 first:border-t-0"
+                  className={`flex items-stretch gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+                    onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
+                  }`}
+                  onClick={onItemClick ? () => onItemClick('events', event) : undefined}
                 >
                   {/* Time column */}
                   <div className="w-16 flex-shrink-0 text-right pr-1 pt-0.5">
@@ -219,7 +226,7 @@ function EventsList({ items }: { items: EventItem[] }) {
   )
 }
 
-function TicketsList({ items }: { items: TicketItem[] }) {
+function TicketsList({ items, onItemClick }: { items: TicketItem[]; onItemClick?: OnItemClick }) {
   return (
     <div className="space-y-0">
       {items.map((ticket, idx) => {
@@ -230,7 +237,10 @@ function TicketsList({ items }: { items: TicketItem[] }) {
         return (
           <div
             key={idx}
-            className="flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0"
+            className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+              onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
+            }`}
+            onClick={onItemClick ? () => onItemClick('tickets', ticket) : undefined}
           >
             {/* Priority indicator */}
             <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${priorityColor}`} />
@@ -279,7 +289,7 @@ function TicketsList({ items }: { items: TicketItem[] }) {
   )
 }
 
-function UsersList({ items }: { items: UserItem[] }) {
+function UsersList({ items, onItemClick }: { items: UserItem[]; onItemClick?: OnItemClick }) {
   return (
     <div className="space-y-0">
       {items.map((user, idx) => {
@@ -298,7 +308,10 @@ function UsersList({ items }: { items: UserItem[] }) {
         return (
           <div
             key={idx}
-            className="flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0"
+            className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+              onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
+            }`}
+            onClick={onItemClick ? () => onItemClick('users', user) : undefined}
           >
             {/* Avatar */}
             <div className={`w-8 h-8 rounded-full ${avatarColors[idx % avatarColors.length]} flex items-center justify-center flex-shrink-0`}>
@@ -331,13 +344,16 @@ function UsersList({ items }: { items: UserItem[] }) {
   )
 }
 
-function InventoryList({ items }: { items: InventoryItem[] }) {
+function InventoryList({ items, onItemClick }: { items: InventoryItem[]; onItemClick?: OnItemClick }) {
   return (
     <div className="space-y-0">
       {items.map((item, idx) => (
         <div
           key={idx}
-          className="flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0"
+          className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+            onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
+          }`}
+          onClick={onItemClick ? () => onItemClick('inventory', item) : undefined}
         >
           {/* Icon */}
           <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200/50 flex items-center justify-center flex-shrink-0">
@@ -374,13 +390,16 @@ function InventoryList({ items }: { items: InventoryItem[] }) {
   )
 }
 
-function GenericList({ items }: { items: GenericItem[] }) {
+function GenericList({ items, onItemClick }: { items: GenericItem[]; onItemClick?: OnItemClick }) {
   return (
     <div className="space-y-0">
       {items.map((item, idx) => (
         <div
           key={idx}
-          className="flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0"
+          className={`flex items-center gap-3 py-2.5 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+            onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
+          }`}
+          onClick={onItemClick ? () => onItemClick('generic', item) : undefined}
         >
           {/* Color bar */}
           <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${getTimelineColor(idx)}`} />
@@ -410,7 +429,7 @@ function GenericList({ items }: { items: GenericItem[] }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function StructuredList({ data }: { data: StructuredListData }) {
+export default function StructuredList({ data, onItemClick }: { data: StructuredListData; onItemClick?: OnItemClick }) {
   if (!data.items || data.items.length === 0) return null
 
   const listTypeIcon = {
@@ -435,11 +454,11 @@ export default function StructuredList({ data }: { data: StructuredListData }) {
 
       {/* List content */}
       <div className="px-3 py-1">
-        {data.type === 'events' && <EventsList items={data.items as EventItem[]} />}
-        {data.type === 'tickets' && <TicketsList items={data.items as TicketItem[]} />}
-        {data.type === 'users' && <UsersList items={data.items as UserItem[]} />}
-        {data.type === 'inventory' && <InventoryList items={data.items as InventoryItem[]} />}
-        {data.type === 'generic' && <GenericList items={data.items as GenericItem[]} />}
+        {data.type === 'events' && <EventsList items={data.items as EventItem[]} onItemClick={onItemClick} />}
+        {data.type === 'tickets' && <TicketsList items={data.items as TicketItem[]} onItemClick={onItemClick} />}
+        {data.type === 'users' && <UsersList items={data.items as UserItem[]} onItemClick={onItemClick} />}
+        {data.type === 'inventory' && <InventoryList items={data.items as InventoryItem[]} onItemClick={onItemClick} />}
+        {data.type === 'generic' && <GenericList items={data.items as GenericItem[]} onItemClick={onItemClick} />}
       </div>
     </div>
   )
@@ -448,21 +467,53 @@ export default function StructuredList({ data }: { data: StructuredListData }) {
 // ─── Parser ───────────────────────────────────────────────────────────────────
 
 /**
+ * Clean up common LLM artifacts around :::list blocks:
+ * - Strip code fences (```json ... ```) wrapping the block
+ * - Strip backtick-quoted :::list blocks
+ * - Remove stray "json" labels from code fence openings
+ */
+function cleanListArtifacts(text: string): string {
+  let cleaned = text
+
+  // Remove ```json / ``` wrapping around :::list blocks
+  // Handles: ```json\n:::list{...}:::\n``` and ``` :::list{...}::: ```
+  cleaned = cleaned.replace(/```(?:json)?\s*\n?\s*(:::list[\s\S]*?:::)\s*\n?\s*```/g, '$1')
+
+  // Remove standalone ``` that might appear near list blocks
+  cleaned = cleaned.replace(/```(?:json)?\s*\n(:::list)/g, '$1')
+  cleaned = cleaned.replace(/(:::)\s*\n\s*```/g, '$1')
+
+  // Remove backtick-quoted list blocks: `:::list{...}:::`
+  cleaned = cleaned.replace(/`(:::list[\s\S]*?:::)`/g, '$1')
+
+  return cleaned
+}
+
+/**
  * Parse structured list blocks from assistant message text.
  * Format: :::list{"type":"events","items":[...]}:::
  *
- * Returns an array of { text, listData } segments for rendering.
+ * When isStreaming=true, any incomplete :::list block at the end is hidden
+ * (returned as { pendingBlock: true }) so raw JSON isn't shown during streaming.
+ *
+ * Returns an array of { text, listData, pendingBlock } segments for rendering.
  */
-export function parseStructuredLists(text: string): Array<{ text?: string; listData?: StructuredListData }> {
-  const segments: Array<{ text?: string; listData?: StructuredListData }> = []
+export function parseStructuredLists(
+  text: string,
+  isStreaming = false
+): Array<{ text?: string; listData?: StructuredListData; pendingBlock?: boolean }> {
+  // First clean up any code fence artifacts
+  const cleaned = cleanListArtifacts(text)
+
+  const segments: Array<{ text?: string; listData?: StructuredListData; pendingBlock?: boolean }> = []
   const regex = /:::list([\s\S]*?):::/g
   let lastIndex = 0
   let match
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = regex.exec(cleaned)) !== null) {
     // Add text before this block
     if (match.index > lastIndex) {
-      const before = text.slice(lastIndex, match.index).trim()
+      const before = cleaned.slice(lastIndex, match.index).trim()
       if (before) segments.push({ text: before })
     }
 
@@ -473,21 +524,37 @@ export function parseStructuredLists(text: string): Array<{ text?: string; listD
       if (data && data.type && Array.isArray(data.items)) {
         segments.push({ listData: data })
       } else {
-        // Invalid structure, render as text
         segments.push({ text: match[0] })
       }
     } catch {
-      // JSON parse failed, render as plain text
       segments.push({ text: match[0] })
     }
 
     lastIndex = match.index + match[0].length
   }
 
-  // Add remaining text
-  if (lastIndex < text.length) {
-    const remaining = text.slice(lastIndex).trim()
-    if (remaining) segments.push({ text: remaining })
+  // Handle remaining text after last match
+  if (lastIndex < cleaned.length) {
+    const remaining = cleaned.slice(lastIndex).trim()
+    if (remaining) {
+      // During streaming, check if there's an incomplete :::list block being typed
+      if (isStreaming && remaining.includes(':::list')) {
+        // Split at the incomplete block — show text before it, hide the rest
+        const incompleteIdx = remaining.indexOf(':::list')
+        const beforeIncomplete = remaining.slice(0, incompleteIdx).trim()
+        if (beforeIncomplete) segments.push({ text: beforeIncomplete })
+        // Signal that a list block is loading
+        segments.push({ pendingBlock: true })
+      } else if (isStreaming && (remaining.includes(':::') || remaining.match(/```(?:json)?\s*$/))) {
+        // Partial opening delimiter during streaming — hide it
+        const delimIdx = remaining.search(/:::|```(?:json)?\s*$/)
+        const beforeDelim = remaining.slice(0, delimIdx).trim()
+        if (beforeDelim) segments.push({ text: beforeDelim })
+        segments.push({ pendingBlock: true })
+      } else {
+        segments.push({ text: remaining })
+      }
+    }
   }
 
   return segments.length > 0 ? segments : [{ text }]
