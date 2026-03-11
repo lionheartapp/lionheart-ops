@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       // Get the organization and its roles
       const organization = await rawPrisma.organization.findUnique({
         where: { id: orgId },
-        select: { name: true },
+        select: { name: true, slug: true },
       })
 
       if (!organization) {
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Send welcome email
-          const setupLink = getSetupLink(plainToken)
+          const setupLink = getSetupLink(plainToken, organization.slug)
           await sendWelcomeEmail({
             to: user.email,
             firstName: firstName || user.email,

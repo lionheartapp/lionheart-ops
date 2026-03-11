@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         deletedAt: true,
         organizationId: true,
         organization: {
-          select: { name: true },
+          select: { name: true, slug: true },
         },
       },
     })
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    const verificationLink = getVerificationLink(token)
+    const verificationLink = getVerificationLink(token, user.organization!.slug)
     const firstName = user.firstName || user.name || user.email
 
     // Must await — Vercel serverless kills process after response

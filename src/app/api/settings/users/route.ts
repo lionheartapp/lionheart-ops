@@ -177,11 +177,17 @@ export async function POST(req: NextRequest) {
         })
       }
 
+      // Fetch org slug for tenant-aware email links
+      const org = await prisma.organization.findUniqueOrThrow({
+        where: { id: orgId },
+        select: { slug: true, name: true },
+      })
+
       const temporaryPassword = randomBytes(24).toString('hex')
       const passwordHash = await hash(temporaryPassword, 10)
       const setupToken = generateSetupToken()
       const setupTokenHash = hashSetupToken(setupToken)
-      const setupLink = getSetupLink(setupToken)
+      const setupLink = getSetupLink(setupToken, org.slug)
       const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
 
       const user = await prisma.user.create({
@@ -236,15 +242,10 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      const organization = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { name: true },
-      })
-
       const emailResult = await sendWelcomeEmail({
         to: user.email,
         firstName: user.firstName || 'there',
-        organizationName: organization?.name || 'your school',
+        organizationName: org.name || 'your school',
         setupLink,
         expiresAtIso: expiresAt.toISOString(),
         mode: provisioningMode,

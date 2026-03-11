@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
         organization: {
           select: {
             name: true,
+            slug: true,
           },
         },
       },
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    const resetLink = getResetLink(token)
+    const resetLink = getResetLink(token, user.organization!.slug)
     const firstName = user.name?.split(' ')[0] || 'there'
     const orgName = user.organization?.name || 'your organization'
 

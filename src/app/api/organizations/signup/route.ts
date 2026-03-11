@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
       })
-      const verificationLink = getVerificationLink(verificationToken)
+      const verificationLink = getVerificationLink(verificationToken, result.slug)
       const firstName = (adminUser as any).firstName || (adminUser as any).name || adminUser.email
       const emailResult = await sendVerificationEmail({
         to: adminUser.email,

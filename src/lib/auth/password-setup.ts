@@ -8,27 +8,30 @@ export function generateSetupToken(): string {
   return randomBytes(32).toString('hex')
 }
 
-function getAppUrl(): string {
-  return (
-    process.env.APP_URL ||
-    process.env.NEXT_PUBLIC_PLATFORM_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : 'http://127.0.0.1:3004')
-  )
+/**
+ * Build the tenant-specific base URL for an organization.
+ * In production: https://{slug}.lionheartapp.com
+ * Locally: http://{slug}.localhost:3004
+ */
+function getTenantUrl(slug: string): string {
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return `https://${slug}.lionheartapp.com`
+  }
+  const port = process.env.PORT || '3004'
+  return `http://${slug}.localhost:${port}`
 }
 
-export function getSetupLink(token: string): string {
-  const appUrl = getAppUrl()
-  return `${appUrl.replace(/\/$/, '')}/set-password?token=${encodeURIComponent(token)}`
+export function getSetupLink(token: string, slug: string): string {
+  const base = getTenantUrl(slug)
+  return `${base}/set-password?token=${encodeURIComponent(token)}`
 }
 
-export function getResetLink(token: string): string {
-  const appUrl = getAppUrl()
-  return `${appUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`
+export function getResetLink(token: string, slug: string): string {
+  const base = getTenantUrl(slug)
+  return `${base}/reset-password?token=${encodeURIComponent(token)}`
 }
 
-export function getVerificationLink(token: string): string {
-  const appUrl = getAppUrl()
-  return `${appUrl.replace(/\/$/, '')}/api/auth/verify-email?token=${encodeURIComponent(token)}`
+export function getVerificationLink(token: string, slug: string): string {
+  const base = getTenantUrl(slug)
+  return `${base}/api/auth/verify-email?token=${encodeURIComponent(token)}`
 }
