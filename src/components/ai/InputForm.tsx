@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { Send, Mic, MicOff, Square, ImagePlus, X } from 'lucide-react'
+import { Send, Mic, ImagePlus, X } from 'lucide-react'
 import { useSpeechRecognition } from '@/lib/hooks/useSpeechRecognition'
 import { ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 import type { ImageAttachment } from '@/lib/types/assistant'
 import MentionDropdown from './MentionDropdown'
+import VoiceOrb from './VoiceOrb'
 import { useGlobalSearch } from '@/lib/hooks/useGlobalSearch'
 
 const MAX_IMAGES = 3
@@ -66,6 +67,7 @@ export default function InputForm({
     isSupported: voiceSupported,
     isListening,
     transcript,
+    audioLevel,
     toggleListening,
     stopListening,
     clearTranscript,
@@ -501,26 +503,26 @@ export default function InputForm({
           />
         </div>
 
-        {/* Mic button */}
+        {/* Mic / Voice Orb */}
         {voiceSupported && (
-          <button
-            type="button"
-            onClick={handleMicClick}
-            disabled={isLoading}
-            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
-              isListening
-                ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse'
-                : 'bg-gray-100/80 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
-            } disabled:opacity-40`}
-            aria-label={isListening ? 'Stop listening' : 'Start voice input'}
-            title={isListening ? 'Stop listening' : 'Voice input'}
-          >
-            {isListening ? (
-              <Square className="h-3.5 w-3.5" />
-            ) : (
+          isListening ? (
+            <VoiceOrb
+              audioLevel={audioLevel}
+              size={44}
+              onClick={handleMicClick}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={handleMicClick}
+              disabled={isLoading}
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gray-100/80 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-all cursor-pointer disabled:opacity-40"
+              aria-label="Start voice input"
+              title="Voice input"
+            >
               <Mic className="h-4 w-4" />
-            )}
-          </button>
+            </button>
+          )
         )}
 
         {/* Send button */}

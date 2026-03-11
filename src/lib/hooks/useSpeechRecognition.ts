@@ -42,6 +42,8 @@ export interface UseSpeechRecognitionReturn {
   isListening: boolean
   /** The current transcript (interim + final) */
   transcript: string
+  /** Audio level 0–1 (updated at ~60fps while listening) */
+  audioLevel: number
   /** Start listening */
   startListening: () => void
   /** Stop listening */
@@ -64,8 +66,68 @@ function getSpeechRecognition(): SpeechRecognitionConstructor | null {
 export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
+  const [audioLevel, setAudioLevel] = useState(0)
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const rafRef = useRef<number>(0)
   const isSupported = typeof window !== 'undefined' && !!getSpeechRecognition()
+
+  /** Start monitoring microphone audio levels via Web Audio API */
+  const startAudioMonitor = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      mediaStreamRef.current = stream
+
+      const audioCtx = new AudioContext()
+      audioContextRef.current = audioCtx
+
+      const source = audioCtx.createMediaStreamSource(stream)
+      const analyser = audioCtx.createAnalyser()
+      analyser.fftSize = 256
+      analyser.smoothingTimeConstant = 0.4
+      source.connect(analyser)
+      analyserRef.current = analyser
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount)
+
+      const tick = () => {
+        analyser.getByteFrequencyData(dataArray)
+        // Compute RMS of frequency data, normalized to 0–1
+        let sum = 0
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i] * dataArray[i]
+        }
+        const rms = Math.sqrt(sum / dataArray.length) / 255
+        // Apply a curve for more dynamic range at low volumes
+        const level = Math.min(1, rms * 2.5)
+        setAudioLevel(level)
+        rafRef.current = requestAnimationFrame(tick)
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    } catch {
+      // Microphone permission denied or unavailable — silent fallback
+    }
+  }, [])
+
+  /** Stop monitoring audio levels */
+  const stopAudioMonitor = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = 0
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {})
+      audioContextRef.current = null
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(t => t.stop())
+      mediaStreamRef.current = null
+    }
+    analyserRef.current = null
+    setAudioLevel(0)
+  }, [])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -74,8 +136,9 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
         recognitionRef.current.abort()
         recognitionRef.current = null
       }
+      stopAudioMonitor()
     }
-  }, [])
+  }, [stopAudioMonitor])
 
   const startListening = useCallback(() => {
     const SR = getSpeechRecognition()
@@ -127,19 +190,21 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
 
     try {
       recognition.start()
+      startAudioMonitor()
     } catch (error) {
       console.warn('[SpeechRecognition] Failed to start:', error)
       setIsListening(false)
     }
-  }, [])
+  }, [startAudioMonitor])
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop()
       recognitionRef.current = null
     }
+    stopAudioMonitor()
     setIsListening(false)
-  }, [])
+  }, [stopAudioMonitor])
 
   const toggleListening = useCallback(() => {
     if (isListening) {
@@ -158,6 +223,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     isSupported,
     isListening,
     transcript,
+    audioLevel,
     startListening,
     stopListening,
     toggleListening,
