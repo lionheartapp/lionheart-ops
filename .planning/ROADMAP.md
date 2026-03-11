@@ -239,13 +239,12 @@ Plans:
   3. Admin can click Export and download a CSV file of users, tickets, or events from the Settings panel
   4. Admin can change the organization name or subdomain slug after initial signup and the change takes effect without re-logging in
   5. User can open their notification preferences and toggle which email and in-app notification types they receive
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 12-01: Audit log viewer UI in Settings — paginated event list (SET-01)
-- [ ] 12-02: Billing/subscription plan UI in Settings (SET-02)
-- [ ] 12-03: CSV export for users, tickets, and events + org name/slug editing (SET-03, SET-04)
-- [ ] 12-04: Notification preferences UI — per-user toggle controls (SET-05)
+- [ ] 12-01-PLAN.md — Audit log viewer tab in Settings + CSV export API routes for users/tickets/events + MembersTab export button (SET-01, SET-03)
+- [ ] 12-02-PLAN.md — Billing/subscription management tab with plan comparison, plan change with Stripe proration, invoice history, payment portal (SET-02)
+- [ ] 12-03-PLAN.md — Org name/slug editing in SchoolInfoTab + NotificationPreference schema + per-user notification preferences UI in profile (SET-04, SET-05)
 
 ### Phase 13: Infrastructure and Observability
 **Goal**: The platform is observable, testable, and safe to continuously deploy — with structured logs, error tracking, CI/CD, and consistent data access patterns
@@ -306,6 +305,6 @@ Plans:
 | 9. Marketing and Legal Pages | 3/3 | Complete   | 2026-03-10 | - |
 | 10. Inventory System | 3/3 | Complete    | 2026-03-10 | - |
 | 11. Calendar, Ticket, Feature Gaps | 3/3 | Complete    | 2026-03-10 | - |
-| 12. Settings and Admin Tools | v2.0 | 0/4 | Not started | - |
+| 12. Settings and Admin Tools | v2.0 | 0/3 | Not started | - |
 | 13. Infrastructure and Observability | v2.0 | 0/5 | Not started | - |
 | 15. Auth Security Gap Closure | v2.0 | 0/1 | Not started | - |
