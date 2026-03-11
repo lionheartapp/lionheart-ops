@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
-import WeatherWidget from '@/components/dashboard/WeatherWidget'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2 } from 'lucide-react'
@@ -394,44 +394,31 @@ export default function DashboardPage() {
           )}
         </motion.div>
 
-        {/* Side Panel - Projects/Stats */}
-        <motion.div variants={staggerContainer(0.1, 0)} initial="hidden" animate="visible" className="space-y-6">
-          {/* Weather Widget */}
-          <motion.div variants={cardEntrance}>
-            <WeatherWidget />
-          </motion.div>
+        {/* Right Rail — Embedded Leo AI Assistant */}
+        <motion.div
+          variants={cardEntrance}
+          className="flex flex-col gap-4 lg:min-h-[500px]"
+        >
+          {/* Compact stats row */}
+          <div className="flex gap-3">
+            <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
+              <p className="text-2xl font-bold text-primary-600">
+                <AnimatedCounter value={ticketCount} duration={0.8} />
+              </p>
+              <p className="text-[10px] text-gray-600 mt-0.5">Active Requests</p>
+            </div>
+            <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
+              <p className="text-2xl font-bold text-blue-600">
+                <AnimatedCounter value={tickets.length} duration={0.8} />
+              </p>
+              <p className="text-[10px] text-gray-600 mt-0.5">Total Tasks</p>
+            </div>
+          </div>
 
-          {/* Stats Card */}
-          <motion.div variants={cardEntrance} className="bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-2xl p-6 border border-primary-200/30 shadow-sm">
-            <p className="text-sm text-gray-600 mb-2">Active Requests</p>
-            <p className="text-4xl font-bold text-primary-600">
-              <AnimatedCounter value={ticketCount} duration={0.8} />
-            </p>
-            <p className="text-xs text-gray-600 mt-2">Open &amp; in-progress</p>
-          </motion.div>
-
-          {/* Quick Links */}
-          <motion.div variants={cardEntrance} className="ui-glass-hover p-6 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2">
-            <h3 className="font-bold text-gray-900 mb-4">Quick Links</h3>
-            <ul className="space-y-2" role="list">
-              <li>
-                <button
-                  onClick={() => router.push('/calendar')}
-                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition"
-                >
-                  Calendar
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push('/settings')}
-                  className="w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition"
-                >
-                  Settings
-                </button>
-              </li>
-            </ul>
-          </motion.div>
+          {/* Embedded Leo */}
+          <div className="flex-1 min-h-0">
+            <ChatPanel variant="embedded" />
+          </div>
         </motion.div>
       </motion.div>
       </MotionConfig>

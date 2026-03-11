@@ -1,11 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Mic, MicOff, Square } from 'lucide-react'
+import { Send, Mic, MicOff, Square, ImagePlus, X } from 'lucide-react'
 import { useSpeechRecognition } from '@/lib/hooks/useSpeechRecognition'
+import { ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
+import type { ImageAttachment } from '@/lib/types/assistant'
+
+const MAX_IMAGES = 3
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // 4MB
 
 interface InputFormProps {
-  onSendMessage: (message: string) => void
+  onSendMessage: (message: string, images?: ImageAttachment[]) => void
   isLoading: boolean
   isAvailable: boolean
   /** Called when listening state changes (drives the glow effect) */
@@ -13,9 +18,10 @@ interface InputFormProps {
 }
 
 /**
- * Chat input form with auto-resizing textarea and voice input.
+ * Chat input form with auto-resizing textarea, voice input, and image upload.
  * Enter sends, Shift+Enter adds a newline.
  * Mic button toggles speech recognition.
+ * Images can be attached via button, paste, or drag-and-drop.
  */
 export default function InputForm({
   onSendMessage,
@@ -24,7 +30,11 @@ export default function InputForm({
   onListeningChange,
 }: InputFormProps) {
   const [input, setInput] = useState('')
+  const [images, setImages] = useState<ImageAttachment[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const {
     isSupported: voiceSupported,
     isListening,
@@ -56,11 +66,73 @@ export default function InputForm({
     textareaRef.current?.focus()
   }, [])
 
+  // Clear image error after 3 seconds
+  useEffect(() => {
+    if (!imageError) return
+    const timer = setTimeout(() => setImageError(null), 3000)
+    return () => clearTimeout(timer)
+  }, [imageError])
+
+  /** Convert a File to ImageAttachment (base64) */
+  const fileToAttachment = useCallback((file: File): Promise<ImageAttachment | null> => {
+    // Validate type
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      setImageError(`${file.name}: unsupported type. Use JPEG, PNG, WebP, or GIF.`)
+      return Promise.resolve(null)
+    }
+    // Validate size
+    if (file.size > MAX_IMAGE_BYTES) {
+      setImageError(`${file.name}: exceeds 4MB limit.`)
+      return Promise.resolve(null)
+    }
+
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = reader.result as string
+        // Strip data URL prefix: "data:image/png;base64,..."
+        const base64 = result.split(',')[1]
+        if (!base64) {
+          resolve(null)
+          return
+        }
+        resolve({ data: base64, mimeType: file.type, name: file.name })
+      }
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(file)
+    })
+  }, [])
+
+  /** Add files to the images list (respecting MAX_IMAGES) */
+  const addFiles = useCallback(async (files: File[]) => {
+    setImageError(null)
+    const remaining = MAX_IMAGES - images.length
+    if (remaining <= 0) {
+      setImageError(`Max ${MAX_IMAGES} images allowed.`)
+      return
+    }
+
+    const toProcess = files.slice(0, remaining)
+    if (files.length > remaining) {
+      setImageError(`Only ${remaining} more image(s) can be added.`)
+    }
+
+    const results = await Promise.all(toProcess.map(fileToAttachment))
+    const valid = results.filter(Boolean) as ImageAttachment[]
+    if (valid.length > 0) {
+      setImages((prev) => [...prev, ...valid])
+    }
+  }, [images.length, fileToAttachment])
+
+  const removeImage = useCallback((index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index))
+  }, [])
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
       const msg = input.trim()
-      if (!msg || isLoading) return
+      if ((!msg && images.length === 0) || isLoading) return
 
       // Stop listening if active
       if (isListening) {
@@ -68,14 +140,16 @@ export default function InputForm({
       }
       clearTranscript()
 
-      onSendMessage(msg)
+      onSendMessage(msg || '(image)', images.length > 0 ? images : undefined)
       setInput('')
+      setImages([])
+      setImageError(null)
       // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
       }
     },
-    [input, isLoading, isListening, stopListening, clearTranscript, onSendMessage]
+    [input, images, isLoading, isListening, stopListening, clearTranscript, onSendMessage]
   )
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -105,6 +179,58 @@ export default function InputForm({
     }
   }
 
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) addFiles(files)
+    // Reset so the same file can be re-selected
+    e.target.value = ''
+  }
+
+  // Paste support
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    const imageFiles: File[] = []
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile()
+        if (file) imageFiles.push(file)
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      e.preventDefault()
+      addFiles(imageFiles)
+    }
+  }, [addFiles])
+
+  // Drag-and-drop
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+    if (files.length > 0) addFiles(files)
+  }, [addFiles])
+
   if (!isAvailable) {
     return (
       <div className="px-4 py-3 bg-amber-50 border-t border-gray-200">
@@ -115,15 +241,73 @@ export default function InputForm({
     )
   }
 
+  const acceptTypes = [...ALLOWED_IMAGE_TYPES].join(',')
+
   return (
     <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-white px-3 py-3 rounded-b-2xl">
-      <div className="flex items-end gap-2">
+      {/* Image previews */}
+      {images.length > 0 && (
+        <div className="flex gap-2 mb-2 px-0.5">
+          {images.map((img, idx) => (
+            <div key={idx} className="relative group">
+              <img
+                src={`data:${img.mimeType};base64,${img.data}`}
+                alt={img.name}
+                className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(idx)}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-gray-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label={`Remove ${img.name}`}
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Error message */}
+      {imageError && (
+        <p className="text-xs text-red-500 mb-1.5 px-0.5">{imageError}</p>
+      )}
+
+      <div
+        className={`flex items-end gap-2 ${isDragging ? 'rounded-lg ring-2 ring-blue-400 ring-dashed bg-blue-50/50' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={acceptTypes}
+          multiple
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
+        {/* Image upload button */}
+        <button
+          type="button"
+          onClick={handleImageButtonClick}
+          disabled={isLoading || images.length >= MAX_IMAGES}
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 disabled:opacity-40"
+          aria-label="Attach image"
+          title={images.length >= MAX_IMAGES ? `Max ${MAX_IMAGES} images` : 'Attach image'}
+        >
+          <ImagePlus className="h-4 w-4" />
+        </button>
+
         <textarea
           ref={textareaRef}
           value={input}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          placeholder={isListening ? 'Listening...' : 'Ask anything...'}
+          onPaste={handlePaste}
+          placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : 'Ask anything...'}
           disabled={isLoading}
           rows={1}
           className={`flex-1 resize-none rounded-lg border bg-gray-50 px-3 py-2 text-sm leading-relaxed placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
@@ -158,7 +342,7 @@ export default function InputForm({
         {/* Send button */}
         <button
           type="submit"
-          disabled={isLoading || !input.trim()}
+          disabled={isLoading || (!input.trim() && images.length === 0)}
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500 text-white transition-colors hover:bg-blue-600 disabled:opacity-40 disabled:hover:bg-blue-500"
           aria-label="Send message"
         >
@@ -166,7 +350,7 @@ export default function InputForm({
         </button>
       </div>
       <p className="mt-1.5 text-center text-[10px] text-gray-400">
-        {isListening ? 'Speak now — tap stop when done' : 'Shift+Enter for new line'}
+        {isDragging ? 'Drop to attach' : isListening ? 'Speak now — tap stop when done' : 'Shift+Enter for new line · Paste or drop images'}
       </p>
     </form>
   )

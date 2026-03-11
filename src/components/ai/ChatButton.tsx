@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, X } from 'lucide-react'
 import ChatPanel from './ChatPanel'
@@ -11,12 +12,14 @@ import AiGlow from './AiGlow'
  * Fixed bottom-right, toggles the ChatPanel open/closed.
  * Shows Apple Intelligence-style gradient glow when AI is active.
  * Only renders when user is authenticated.
+ * Hidden on /dashboard where Leo is embedded in the right rail.
  */
 export default function ChatButton() {
   const [isOpen, setIsOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   /** True when the AI is listening (voice) or thinking (processing) */
   const [isAiActive, setIsAiActive] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const token = localStorage.getItem('auth-token')
@@ -27,7 +30,10 @@ export default function ChatButton() {
     setIsAiActive(active)
   }, [])
 
-  if (!isAuthenticated) return null
+  // Hide on dashboard — Leo is embedded in the right rail there
+  const isDashboard = pathname === '/dashboard'
+
+  if (!isAuthenticated || isDashboard) return null
 
   return (
     <>

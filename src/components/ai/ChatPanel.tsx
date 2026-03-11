@@ -8,12 +8,14 @@ import InputForm from './InputForm'
 import ActionConfirmation from './ActionConfirmation'
 import RichConfirmationCard from './RichConfirmationCard'
 import AiGlow from './AiGlow'
-import type { ConversationTurn, ActionConfirmation as ActionConfirmationType, StreamEvent } from '@/lib/types/assistant'
+import type { ConversationTurn, ActionConfirmation as ActionConfirmationType, StreamEvent, ImageAttachment } from '@/lib/types/assistant'
 
 interface ChatPanelProps {
-  onClose: () => void
+  onClose?: () => void
   /** Notifies parent when AI is active (listening or thinking) */
   onAiActiveChange?: (active: boolean) => void
+  /** 'floating' = fixed-position popup (default), 'embedded' = fills parent container */
+  variant?: 'floating' | 'embedded'
 }
 
 /**
@@ -21,8 +23,12 @@ interface ChatPanelProps {
  * Manages conversation state, sends messages to the API,
  * and handles action confirmations for write operations.
  * Streams responses via SSE for real-time text display.
+ *
+ * Supports two layout modes:
+ * - floating (default): fixed-position popup with close button
+ * - embedded: fills parent container, no close button (used in dashboard right rail)
  */
-export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps) {
+export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floating' }: ChatPanelProps) {
   const [conversation, setConversation] = useState<ConversationTurn[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
@@ -35,6 +41,9 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
   // AI is "active" when listening (voice) or thinking (loading/streaming)
   const isAiActive = isListening || isLoading || isStreaming
 
+  // Granular state for the animated orb
+  const aiState = isListening ? 'listening' as const : isLoading ? 'thinking' as const : isStreaming ? 'streaming' as const : 'idle' as const
+
   useEffect(() => {
     onAiActiveChange?.(isAiActive)
   }, [isAiActive, onAiActiveChange])
@@ -44,8 +53,8 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
   }, [])
 
   const handleSendMessage = useCallback(
-    async (message: string) => {
-      if (!message.trim() || isLoading || isStreaming) return
+    async (message: string, images?: ImageAttachment[]) => {
+      if ((!message.trim() && (!images || images.length === 0)) || isLoading || isStreaming) return
 
       // Clear choices/suggestions from the previous assistant message
       setConversation((prev) => {
@@ -63,6 +72,7 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
         role: 'user',
         content: message,
         timestamp: new Date().toISOString(),
+        ...(images && images.length > 0 ? { images } : {}),
       }
       setConversation((prev) => [...prev, userTurn])
       setIsLoading(true)
@@ -81,6 +91,7 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
           body: JSON.stringify({
             message,
             conversationHistory: conversation,
+            ...(images && images.length > 0 ? { images } : {}),
           }),
           signal: abortController.signal,
         })
@@ -340,6 +351,118 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
     handleSendMessage(suggestion)
   }, [handleSendMessage])
 
+  const isEmbedded = variant === 'embedded'
+
+  const panelContent = (
+    <div
+      className={`flex flex-col overflow-hidden ${
+        isEmbedded
+          ? 'w-full h-full rounded-2xl border border-gray-200 bg-white shadow-sm'
+          : 'w-[384px] rounded-2xl border border-gray-200 bg-white shadow-2xl'
+      }`}
+      style={isEmbedded ? undefined : { height: '520px' }}
+    >
+      {/* Header */}
+      <div className="relative flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 rounded-t-2xl">
+        {isAiActive && (
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 h-[2px] ai-glow-spin"
+            style={{
+              background:
+                'linear-gradient(90deg, #7c5bf1, #5b8af1, #4ecdc4, #44d986, #f5a623, #e84393, #7c5bf1)',
+              backgroundSize: '200% 100%',
+              animation: 'glowSlide 2s linear infinite',
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+
+        <div className="flex items-center gap-2">
+          <Sparkles className={`h-4 w-4 ${isAiActive ? 'text-white animate-pulse' : 'text-white/90'}`} />
+          <h3 className="text-sm font-semibold text-white">
+            {isListening ? 'Listening...' : isLoading ? 'Thinking...' : isStreaming ? 'Leo' : 'Leo'}
+          </h3>
+        </div>
+        <div className="flex items-center gap-1">
+          {conversation.length > 0 && (
+            <button
+              onClick={handleClearChat}
+              className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+              aria-label="Clear conversation"
+              title="New conversation"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {!isEmbedded && onClose && (
+            <button
+              onClick={onClose}
+              className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+              aria-label="Close"
+            >
+              <span className="text-lg leading-none">&times;</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <MessageList
+        conversation={conversation}
+        isLoading={isLoading}
+        isStreaming={isStreaming}
+        activeTools={activeTools}
+        aiState={aiState}
+        onChoiceSelect={handleChoiceSelect}
+        onSuggestionSelect={handleSuggestionSelect}
+      />
+
+      {/* Input with voice */}
+      <InputForm
+        onSendMessage={handleSendMessage}
+        isLoading={isLoading || isStreaming}
+        isAvailable={isAvailable}
+        onListeningChange={handleListeningChange}
+      />
+
+      {/* Action confirmation overlay */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {pendingAction && (
+        (pendingAction as any).richCard ? (
+          <RichConfirmationCard
+            action={pendingAction as any}
+            onConfirm={handleConfirmAction}
+            onCancel={handleCancelAction}
+          />
+        ) : (
+          <ActionConfirmation
+            action={pendingAction}
+            onConfirm={handleConfirmAction}
+            onCancel={handleCancelAction}
+          />
+        )
+      )}
+    </div>
+  )
+
+  // Embedded mode: render inline, no fixed positioning or AiGlow wrapper
+  if (isEmbedded) {
+    return (
+      <>
+        {panelContent}
+        <style jsx global>{`
+          @keyframes glowSlide {
+            from { background-position: 0% 50%; }
+            to { background-position: 200% 50%; }
+          }
+        `}</style>
+      </>
+    )
+  }
+
+  // Floating mode: fixed-position popup with AiGlow and entrance animation
   return (
     <motion.div
       className="fixed bottom-24 right-6 z-50"
@@ -349,90 +472,7 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
       transition={{ duration: 0.2, ease: 'easeOut' }}
     >
       <AiGlow active={isAiActive} shape="rounded">
-        <div
-          className="flex w-[384px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
-          style={{ height: '520px' }}
-        >
-          {/* Header */}
-          <div className="relative flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3">
-            {isAiActive && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-[2px] ai-glow-spin"
-                style={{
-                  background:
-                    'linear-gradient(90deg, #7c5bf1, #5b8af1, #4ecdc4, #44d986, #f5a623, #e84393, #7c5bf1)',
-                  backgroundSize: '200% 100%',
-                  animation: 'glowSlide 2s linear infinite',
-                }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              />
-            )}
-
-            <div className="flex items-center gap-2">
-              <Sparkles className={`h-4 w-4 ${isAiActive ? 'text-white animate-pulse' : 'text-white/90'}`} />
-              <h3 className="text-sm font-semibold text-white">
-                {isListening ? 'Listening...' : isLoading ? 'Thinking...' : isStreaming ? 'Leo' : 'Leo'}
-              </h3>
-            </div>
-            <div className="flex items-center gap-1">
-              {conversation.length > 0 && (
-                <button
-                  onClick={handleClearChat}
-                  className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/15 hover:text-white"
-                  aria-label="Clear conversation"
-                  title="New conversation"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </button>
-              )}
-              <button
-                onClick={onClose}
-                className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/15 hover:text-white"
-                aria-label="Close"
-              >
-                <span className="text-lg leading-none">&times;</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <MessageList
-            conversation={conversation}
-            isLoading={isLoading}
-            isStreaming={isStreaming}
-            activeTools={activeTools}
-            onChoiceSelect={handleChoiceSelect}
-            onSuggestionSelect={handleSuggestionSelect}
-          />
-
-          {/* Input with voice */}
-          <InputForm
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading || isStreaming}
-            isAvailable={isAvailable}
-            onListeningChange={handleListeningChange}
-          />
-
-          {/* Action confirmation overlay */}
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {pendingAction && (
-            (pendingAction as any).richCard ? (
-              <RichConfirmationCard
-                action={pendingAction as any}
-                onConfirm={handleConfirmAction}
-                onCancel={handleCancelAction}
-              />
-            ) : (
-              <ActionConfirmation
-                action={pendingAction}
-                onConfirm={handleConfirmAction}
-                onCancel={handleCancelAction}
-              />
-            )
-          )}
-        </div>
+        {panelContent}
       </AiGlow>
 
       <style jsx global>{`

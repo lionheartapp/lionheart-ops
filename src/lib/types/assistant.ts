@@ -5,6 +5,14 @@
  * tool calls, streaming events, and API request/response shapes.
  */
 
+// ─── Image Attachments ───────────────────────────────────────────────────────
+
+export interface ImageAttachment {
+  data: string    // base64-encoded image data (no data-URL prefix)
+  mimeType: string
+  name: string
+}
+
 // ─── Conversation ─────────────────────────────────────────────────────────────
 
 export interface ConversationTurn {
@@ -13,6 +21,7 @@ export interface ConversationTurn {
   timestamp: string // ISO 8601
   choices?: string[]     // tappable options below this message
   suggestions?: string[] // follow-up suggestion chips
+  images?: ImageAttachment[] // user-attached images (base64, not persisted)
 }
 
 // ─── API Request / Response ───────────────────────────────────────────────────

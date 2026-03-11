@@ -2,16 +2,18 @@
 
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Loader2, Sparkles, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package } from 'lucide-react'
+import { Loader2, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package } from 'lucide-react'
 import type { ConversationTurn } from '@/lib/types/assistant'
 import ChoiceButtons from './ChoiceButtons'
 import SuggestionChips from './SuggestionChips'
+import AnimatedOrb, { type OrbState } from './AnimatedOrb'
 
 interface MessageListProps {
   conversation: ConversationTurn[]
   isLoading: boolean
   isStreaming?: boolean
   activeTools?: string[]
+  aiState?: OrbState
   onChoiceSelect?: (choice: string) => void
   onSuggestionSelect?: (suggestion: string) => void
 }
@@ -45,6 +47,7 @@ export default function MessageList({
   isLoading,
   isStreaming = false,
   activeTools = [],
+  aiState = 'idle',
   onChoiceSelect,
   onSuggestionSelect,
 }: MessageListProps) {
@@ -58,19 +61,22 @@ export default function MessageList({
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
-      {/* Empty state */}
+      {/* Empty state — animated orb */}
       {conversation.length === 0 && !isLoading && (
-        <div className="flex flex-col items-center justify-center h-full text-center px-6">
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
-            <Sparkles className="w-6 h-6 text-blue-500" />
-          </div>
+        <motion.div
+          className="flex flex-col items-center justify-center h-full text-center px-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <AnimatedOrb state={aiState} size={80} className="mb-5" />
           <p className="text-sm font-medium text-gray-700 mb-1">
             Hi! I&apos;m Leo, your AI Assistant
           </p>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Ask me about maintenance tickets, IT devices, campus info, events, or analytics. I can also help create tickets and events.
+            Ask me anything about your school — tickets, events, campus info, or analytics.
           </p>
-        </div>
+        </motion.div>
       )}
 
       {/* Messages */}
@@ -98,6 +104,29 @@ export default function MessageList({
               {turn.content || (showCursor ? '' : '')}
               {showCursor && (
                 <span className="inline-block w-[2px] h-[14px] bg-gray-400 ml-0.5 align-middle animate-blink" />
+              )}
+              {/* Image thumbnails on user messages */}
+              {turn.role === 'user' && turn.images && turn.images.length > 0 && (
+                <div className="flex gap-1.5 mt-1.5">
+                  {turn.images.map((img, imgIdx) => (
+                    <button
+                      key={imgIdx}
+                      type="button"
+                      onClick={() => {
+                        const url = `data:${img.mimeType};base64,${img.data}`
+                        window.open(url, '_blank')
+                      }}
+                      className="block rounded-md overflow-hidden border border-white/20 hover:opacity-80 transition-opacity cursor-pointer"
+                      title={img.name}
+                    >
+                      <img
+                        src={`data:${img.mimeType};base64,${img.data}`}
+                        alt={img.name}
+                        className="w-16 h-16 object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
             {!showCursor && (

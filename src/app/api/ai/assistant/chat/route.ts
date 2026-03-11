@@ -36,9 +36,16 @@ const ConversationTurnSchema = z.object({
   suggestions: z.array(z.string()).optional(),
 })
 
+const ImageAttachmentSchema = z.object({
+  data: z.string().max(6_000_000), // ~4MB base64 (base64 is ~33% larger than raw)
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  name: z.string().max(255),
+})
+
 const ChatRequestSchema = z.object({
   message: z.string().min(1).max(4000),
   conversationHistory: z.array(ConversationTurnSchema).max(50),
+  images: z.array(ImageAttachmentSchema).max(3).optional(),
 })
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -135,7 +142,16 @@ export async function POST(req: NextRequest) {
         parts: [{ text: turn.content }],
       })
     }
-    geminiContents.push({ role: 'user', parts: [{ text: body.message }] })
+    // Build current user message parts (text + optional images)
+    const currentUserParts: Array<Record<string, unknown>> = [{ text: body.message }]
+    if (body.images && body.images.length > 0) {
+      for (const img of body.images) {
+        currentUserParts.push({
+          inlineData: { data: img.data, mimeType: img.mimeType },
+        })
+      }
+    }
+    geminiContents.push({ role: 'user', parts: currentUserParts })
 
     const geminiTools = tools.length > 0 ? [{ functionDeclarations: tools }] : undefined
 
