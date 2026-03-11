@@ -24,7 +24,7 @@ import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext } from '@/lib/org-context'
 import { getAvailableTools, executeTool } from '@/lib/services/ai/assistant-tools'
 import { buildSystemPrompt } from '@/lib/services/ai/assistant.service'
-import type { ConversationTurn, ActionConfirmation, StreamEvent } from '@/lib/types/assistant'
+import type { ConversationTurn, ActionConfirmation, StreamEvent, RichConfirmationCardData } from '@/lib/types/assistant'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -153,6 +153,7 @@ export async function POST(req: NextRequest) {
 
           let iterations = 0
           let actionConfirmation: ActionConfirmation | undefined
+          let richCard: RichConfirmationCardData | undefined
 
           // Outer loop: handle tool calls iteratively
           // First call is streaming; subsequent calls after tool execution are non-streaming
@@ -231,6 +232,10 @@ export async function POST(req: NextRequest) {
                         type: parsed.draft.action as ActionConfirmation['type'],
                         description: parsed.message,
                         payload: parsed.draft,
+                      }
+                      // Capture rich card data if present (event drafts include this)
+                      if (parsed.richCard) {
+                        richCard = parsed.richCard as RichConfirmationCardData
                       }
                     }
                   } catch {
@@ -326,6 +331,10 @@ export async function POST(req: NextRequest) {
                         description: parsed.message,
                         payload: parsed.draft,
                       }
+                      // Capture rich card data if present (event drafts include this)
+                      if (parsed.richCard) {
+                        richCard = parsed.richCard as RichConfirmationCardData
+                      }
                     }
                   } catch { /* */ }
 
@@ -360,6 +369,15 @@ export async function POST(req: NextRequest) {
           // Send action confirmation if any
           if (actionConfirmation) {
             write({ type: 'action_confirmation', action: actionConfirmation })
+
+            // Emit rich_confirmation as a SEPARATE event per CONTEXT.md locked decision.
+            // ChatPanel's rich_confirmation handler (from Plan 01) will override pendingAction
+            // with rich card data, causing RichConfirmationCard to render instead of ActionConfirmation.
+            // Ordering matters: action_confirmation fires first (backward compat), then
+            // rich_confirmation overrides with the richer data for event creations.
+            if (richCard) {
+              write({ type: 'rich_confirmation', card: richCard })
+            }
           }
 
           // Emit structured events

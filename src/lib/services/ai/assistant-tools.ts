@@ -9,6 +9,7 @@
  */
 
 import { prisma, rawPrisma } from '@/lib/db'
+import type { RichConfirmationCardData } from '@/lib/types/assistant'
 import { can } from '@/lib/auth/permissions'
 import { checkRoomConflict } from '@/lib/services/eventService'
 import { fetchWeatherForecast } from '@/lib/services/weatherService'
@@ -879,13 +880,69 @@ async function executeCreateEventDraft(
     room: String(input.location || ''),
   }
 
-  const startDisplay = draft.startsAt ? new Date(draft.startsAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'
-  const endDisplay = draft.endsAt ? new Date(draft.endsAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'
+  const startDate = draft.startsAt ? new Date(draft.startsAt) : null
+  const endDate = draft.endsAt ? new Date(draft.endsAt) : null
+
+  const startDisplay = startDate
+    ? startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) +
+      ' \u2022 ' +
+      startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+    : 'Not set'
+  const endDisplay = endDate
+    ? endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+    : 'Not set'
+
+  // Check resource availability from description/title keywords
+  let resources: RichConfirmationCardData['resources'] = undefined
+  const descLower = (draft.description + ' ' + draft.title).toLowerCase()
+  const resourceKeywords = ['chair', 'table', 'projector', 'microphone', 'speaker', 'screen', 'laptop', 'whiteboard', 'easel', 'tent', 'podium', 'av setup']
+  const matchedKeywords = resourceKeywords.filter(kw => descLower.includes(kw))
+
+  if (matchedKeywords.length > 0) {
+    try {
+      const items = await prisma.inventoryItem.findMany({
+        where: {
+          OR: matchedKeywords.map(kw => ({ name: { contains: kw, mode: 'insensitive' as const } })),
+        },
+        select: { name: true, quantityOnHand: true, reorderThreshold: true },
+        take: 10,
+      })
+
+      if (items.length > 0) {
+        resources = items.map(item => ({
+          name: item.name,
+          requested: 0, // Unknown from description alone
+          available: item.quantityOnHand,
+          status: item.quantityOnHand <= 0
+            ? 'unavailable' as const
+            : item.quantityOnHand <= item.reorderThreshold
+              ? 'low' as const
+              : 'ok' as const,
+        }))
+      }
+    } catch {
+      // Non-critical -- continue without resource data
+    }
+  }
+
+  // Build rich card data
+  const richCard: RichConfirmationCardData = {
+    title: draft.title,
+    startDisplay,
+    endDisplay,
+    location: draft.room || undefined,
+    description: draft.description || undefined,
+    resources,
+    // approvalChannels intentionally omitted -- approval config varies by org
+    // and the data model for storing approval channel config is not yet standardized.
+    // The card UI handles undefined approvalChannels gracefully (section doesn't render).
+  }
 
   return JSON.stringify({
     confirmationRequired: true,
-    message: `I've prepared an event draft. Please confirm to create it:\n• Title: ${draft.title}\n• Start: ${startDisplay}\n• End: ${endDisplay}${draft.room ? `\n• Location: ${draft.room}` : ''}${draft.description ? `\n• Description: ${draft.description}` : ''}`,
+    message: `I've prepared an event draft. Please review and confirm:`,
     draft,
+    richCard,
   })
 }
 
