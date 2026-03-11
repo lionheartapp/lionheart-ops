@@ -23,10 +23,19 @@ export async function GET(req: NextRequest) {
       const userId      = searchParams.get('userId')       ?? undefined
       const resourceType= searchParams.get('resourceType') ?? undefined
 
+      const from         = searchParams.get('from') ?? undefined
+      const to           = searchParams.get('to')   ?? undefined
+
       const where: Record<string, unknown> = { organizationId: orgId }
       if (action)       where.action       = action
       if (userId)       where.userId       = userId
       if (resourceType) where.resourceType = resourceType
+      if (from || to) {
+        const createdAt: Record<string, unknown> = {}
+        if (from) createdAt.gte = new Date(from)
+        if (to)   createdAt.lte = new Date(to)
+        where.createdAt = createdAt
+      }
 
       const [total, logs] = await Promise.all([
         rawPrisma.auditLog.count({ where }),

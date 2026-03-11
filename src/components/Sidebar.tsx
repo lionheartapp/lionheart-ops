@@ -31,6 +31,7 @@ import {
   Wrench,
   Monitor,
   Package,
+  ScrollText,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -72,7 +73,7 @@ export interface CalendarSidebarData {
   campus?: { id: string; name: string } | null
 }
 
-export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons'
+export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons' | 'activity-log'
 export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
 export type MaintenanceTab = 'dashboard' | 'my-requests'
 
@@ -800,6 +801,7 @@ export default function Sidebar({
     { id: 'users' as SettingsTab, label: 'Members', icon: UserCog },
     { id: 'campus' as SettingsTab, label: 'Campus', icon: Building2 },
     { id: 'add-ons' as SettingsTab, label: 'Add-ons', icon: Puzzle },
+    { id: 'activity-log' as SettingsTab, label: 'Activity Log', icon: ScrollText },
   ]
 
   const secondaryOpen = settingsOpen || calendarOpen || athleticsOpen
