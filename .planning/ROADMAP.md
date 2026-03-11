@@ -289,7 +289,10 @@ Plans:
   1. `/api/auth/reset-password` is covered by `publicApiRateLimiter` in middleware — same limits as forgot-password and set-password
   2. `POST /api/organizations/signup` response sets `auth-token` and `csrf-token` httpOnly cookies (matching login route pattern)
   3. Signup page no longer writes JWT to localStorage — cookie-based auth from first session
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 15-01-PLAN.md — Rate-limit reset-password, set httpOnly cookies on signup, remove localStorage JWT from signup page (AUTH-02, AUTH-03, AUTH-04, AUTH-05)
 
 ---
 
