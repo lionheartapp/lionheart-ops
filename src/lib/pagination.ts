@@ -13,7 +13,7 @@ export interface PaginationParams {
   skip: number
 }
 
-export interface PaginationMeta {
+export interface PaginationMeta extends Record<string, unknown> {
   total: number
   page: number
   limit: number

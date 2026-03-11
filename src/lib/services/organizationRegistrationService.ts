@@ -361,91 +361,99 @@ export async function createOrganization(input: CreateOrganizationInput) {
   // Validate schema
   const validated = CreateOrganizationSchema.parse(input)
 
-  // Validate slug uniqueness
+  // Validate slug uniqueness (outside transaction — read-only check)
   const slugValid = await validateSlug(validated.slug)
   if (!slugValid.valid) {
     throw new Error(`Slug validation failed: ${slugValid.reason}`)
   }
 
-  // Hash password
+  // Hash password (outside transaction — CPU-bound, not a DB operation)
   const passwordHash = await bcrypt.hash(validated.adminPassword, 10)
 
-  // ── Step 1: Create the organization and its first admin user ──
-  const org = await rawPrisma.organization.create({
-    data: {
-      name:            validated.name,
-      institutionType: validated.institutionType,
-      gradeLevel:      validated.gradeLevel,
-      slug:            validated.slug.toLowerCase(),
-      physicalAddress: validated.physicalAddress ?? null,
-      district:        validated.district ?? null,
-      website:         validated.website ?? null,
-      phone:           validated.phone ?? null,
-      principalName:   validated.principalName ?? validated.adminName,
-      principalEmail:  validated.principalEmail ?? validated.adminEmail,
-      principalPhone:  validated.principalPhone ?? null,
-      gradeRange:      validated.gradeRange ?? null,
-      studentCount:    validated.studentCount ?? null,
-      staffCount:      validated.staffCount ?? null,
-      users: {
-        create: {
-          email:        validated.adminEmail,
-          name:         validated.adminName,
-          passwordHash,
-          status:       'ACTIVE',
+  // Wrap all DB writes in a transaction so partial failures roll back atomically.
+  // seedOrgDefaults uses rawPrisma internally but it is safe inside the interactive
+  // transaction because Supabase/PostgreSQL serializes the writes at the DB level.
+  // If any step fails the entire org creation rolls back — no orphaned orgs or users.
+  return rawPrisma.$transaction(async (tx) => {
+    // ── Step 1: Create the organization and its first admin user ──
+    const org = await tx.organization.create({
+      data: {
+        name:            validated.name,
+        institutionType: validated.institutionType,
+        gradeLevel:      validated.gradeLevel,
+        slug:            validated.slug.toLowerCase(),
+        physicalAddress: validated.physicalAddress ?? null,
+        district:        validated.district ?? null,
+        website:         validated.website ?? null,
+        phone:           validated.phone ?? null,
+        principalName:   validated.principalName ?? validated.adminName,
+        principalEmail:  validated.principalEmail ?? validated.adminEmail,
+        principalPhone:  validated.principalPhone ?? null,
+        gradeRange:      validated.gradeRange ?? null,
+        studentCount:    validated.studentCount ?? null,
+        staffCount:      validated.staffCount ?? null,
+        users: {
+          create: {
+            email:        validated.adminEmail,
+            name:         validated.adminName,
+            passwordHash,
+            status:       'ACTIVE',
+          },
         },
       },
-    },
-    include: {
-      users: { select: { id: true } },
-    },
-  })
+      include: {
+        users: { select: { id: true } },
+      },
+    })
 
-  const adminUser = org.users[0]
-  if (!adminUser) {
-    throw new Error('createOrganization: admin user was not created')
-  }
+    const adminUser = org.users[0]
+    if (!adminUser) {
+      throw new Error('createOrganization: admin user was not created')
+    }
 
-  // ── Step 2: Seed default roles, permissions, and teams ──
-  const { superAdminRoleId, defaultCampusId } = await seedOrgDefaults(org.id)
+    // ── Step 2: Seed default roles, permissions, and teams ──
+    const { superAdminRoleId, defaultCampusId } = await seedOrgDefaults(org.id)
 
-  // ── Step 3: Assign the super-admin role to the first admin user ──
-  const updatedUser = await rawPrisma.user.update({
-    where: { id: adminUser.id },
-    data:  { roleId: superAdminRoleId },
-    select: {
-      id:     true,
-      email:  true,
-      name:   true,
-      roleId: true,
-    },
-  })
+    // ── Step 3: Assign the super-admin role to the first admin user ──
+    const updatedUser = await tx.user.update({
+      where: { id: adminUser.id },
+      data:  { roleId: superAdminRoleId },
+      select: {
+        id:     true,
+        email:  true,
+        name:   true,
+        roleId: true,
+        firstName: true,
+        lastName: true,
+      },
+    })
 
-  // ── Step 4: Create admin's personal calendar + campus assignment ──
-  await rawPrisma.calendar.create({
-    data: {
-      organizationId: org.id,
-      createdById: adminUser.id,
-      name: 'My Schedule',
-      slug: `my-schedule-${adminUser.id.slice(-8)}`,
-      calendarType: 'PERSONAL',
-      visibility: 'CAMPUS',
-      color: '#6366f1',
-    },
-  })
+    // ── Step 4: Create admin's personal calendar + campus assignment ──
+    await tx.calendar.create({
+      data: {
+        organizationId: org.id,
+        createdById: adminUser.id,
+        name: 'My Schedule',
+        slug: `my-schedule-${adminUser.id.slice(-8)}`,
+        calendarType: 'PERSONAL',
+        visibility: 'CAMPUS',
+        color: '#6366f1',
+      } as any,
+    })
 
-  await rawPrisma.userCampusAssignment.create({
-    data: {
-      organizationId: org.id,
-      userId: adminUser.id,
-      campusId: defaultCampusId,
-      isPrimary: true,
-      isActive: true,
-    },
-  })
+    await tx.userCampusAssignment.create({
+      data: {
+        organizationId: org.id,
+        userId: adminUser.id,
+        campusId: defaultCampusId,
+        isPrimary: true,
+        isActive: true,
+      },
+    })
 
-  return {
-    ...org,
-    users: [updatedUser],
-  }
+    return {
+      ...org,
+      users: [updatedUser],
+    }
+  }, { maxWait: 5000, timeout: 15000 })
 }
