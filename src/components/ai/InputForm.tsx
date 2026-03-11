@@ -314,7 +314,7 @@ export default function InputForm({
       )}
 
       <div
-        className={`flex items-end gap-2 ${isDragging ? 'rounded-lg ring-2 ring-blue-400 ring-dashed bg-blue-50/50' : ''}`}
+        className={`flex items-center gap-2 ${isDragging ? 'rounded-lg ring-2 ring-blue-400 ring-dashed bg-blue-50/50' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -334,7 +334,7 @@ export default function InputForm({
           type="button"
           onClick={handleImageButtonClick}
           disabled={isLoading || images.length >= MAX_IMAGES}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gray-100/80 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-40 cursor-pointer"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100/80 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-40 cursor-pointer"
           aria-label="Attach image"
           title={images.length >= MAX_IMAGES ? `Max ${MAX_IMAGES} images` : 'Attach image'}
         >
@@ -391,7 +391,7 @@ export default function InputForm({
             type="button"
             onClick={handleMicClick}
             disabled={isLoading}
-            className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
               isListening
                 ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse'
                 : 'bg-gray-100/80 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
@@ -411,7 +411,7 @@ export default function InputForm({
         <button
           type="submit"
           disabled={isLoading || (!input.trim() && images.length === 0)}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-white transition-all hover:shadow-md disabled:opacity-40 cursor-pointer"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-white transition-all hover:shadow-md disabled:opacity-40 cursor-pointer"
           style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' }}
           aria-label="Send message"
         >
