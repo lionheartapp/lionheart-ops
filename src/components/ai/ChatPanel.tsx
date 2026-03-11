@@ -6,6 +6,7 @@ import { Sparkles, RotateCcw } from 'lucide-react'
 import MessageList from './MessageList'
 import InputForm from './InputForm'
 import ActionConfirmation from './ActionConfirmation'
+import RichConfirmationCard from './RichConfirmationCard'
 import AiGlow from './AiGlow'
 import type { ConversationTurn, ActionConfirmation as ActionConfirmationType, StreamEvent } from '@/lib/types/assistant'
 
@@ -271,20 +272,21 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
     [conversation, isLoading, isStreaming]
   )
 
-  const handleConfirmAction = useCallback(async () => {
+  const handleConfirmAction = useCallback(async (modifiedPayload?: Record<string, unknown>) => {
     if (!pendingAction) return
     const action = pendingAction
     setPendingAction(null)
     setIsLoading(true)
 
     try {
+      const payload = modifiedPayload || action.payload
       const res = await fetch('/api/ai/assistant/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          action: action.payload.action || action.type,
-          payload: action.payload,
+          action: payload.action || action.type,
+          payload,
         }),
       })
       const json = await res.json()
@@ -411,12 +413,21 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
           />
 
           {/* Action confirmation overlay */}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {pendingAction && (
-            <ActionConfirmation
-              action={pendingAction}
-              onConfirm={handleConfirmAction}
-              onCancel={handleCancelAction}
-            />
+            (pendingAction as any).richCard ? (
+              <RichConfirmationCard
+                action={pendingAction as any}
+                onConfirm={handleConfirmAction}
+                onCancel={handleCancelAction}
+              />
+            ) : (
+              <ActionConfirmation
+                action={pendingAction}
+                onConfirm={handleConfirmAction}
+                onCancel={handleCancelAction}
+              />
+            )
           )}
         </div>
       </AiGlow>
