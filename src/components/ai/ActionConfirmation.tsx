@@ -68,7 +68,7 @@ export default function ActionConfirmation({
               Cancel
             </button>
             <button
-              onClick={onConfirm}
+              onClick={() => onConfirm()}
               className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-blue-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
             >
               <Check className="h-3.5 w-3.5" />
