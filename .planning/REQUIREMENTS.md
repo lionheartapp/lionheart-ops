@@ -64,8 +64,8 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 - [x] **INFRA-02**: GitHub Actions CI pipeline runs tests, linting, and type-check on every PR
 - [x] **INFRA-03**: Application uses structured JSON logging (Pino) with log levels instead of console.error
 - [x] **INFRA-04**: Runtime errors are captured and reported to Sentry with context
-- [ ] **INFRA-05**: All list API endpoints support cursor-based or offset pagination with configurable page size
-- [ ] **INFRA-06**: Complex multi-model operations use database transactions instead of sequential awaits
+- [x] **INFRA-05**: All list API endpoints support cursor-based or offset pagination with configurable page size
+- [x] **INFRA-06**: Complex multi-model operations use database transactions instead of sequential awaits
 
 ## v1.0 Requirements (Complete)
 
@@ -179,8 +179,8 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | INFRA-02 | Phase 13 | Complete |
 | INFRA-03 | Phase 13 | Complete |
 | INFRA-04 | Phase 13 | Complete |
-| INFRA-05 | Phase 13 | Pending |
-| INFRA-06 | Phase 13 | Pending |
+| INFRA-05 | Phase 13 | Complete |
+| INFRA-06 | Phase 13 | Complete |
 
 | AI-UX-01 | Phase 14 | Complete |
 | AI-UX-02 | Phase 14 | Complete |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 13-infrastructure-and-observability-02-PLAN.md
-last_updated: "2026-03-11T17:15:15.147Z"
+stopped_at: Completed 13-infrastructure-and-observability-03-PLAN.md
+last_updated: "2026-03-11T17:25:09.339Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 15
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 46
-  completed_plans: 45
+  completed_plans: 46
   percent: 0
 ---
 
@@ -77,6 +77,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 12-settings-and-admin-tools P03 | 25 | 2 tasks | 7 files |
 | Phase 13-infrastructure-and-observability P01 | 6 | 2 tasks | 8 files |
 | Phase 13-infrastructure-and-observability P02 | 16 | 2 tasks | 32 files |
+| Phase 13-infrastructure-and-observability P03 | 7 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,9 @@ Recent decisions affecting current work:
 - [Phase 13-infrastructure-and-observability]: WELCOME_LINK console.log replaced with log.info containing only userId, provisioningMode, emailSent boolean — removes PII (email, setupLink) from logs for FERPA compliance
 - [Phase 13-infrastructure-and-observability]: onRequestError hook skipped — not exported in current @sentry/nextjs version; Sentry.captureException in catch blocks provides equivalent coverage
 - [Phase 13-infrastructure-and-observability]: disableServerWebpackPlugin/disableClientWebpackPlugin removed from withSentryConfig — not valid in installed version; replaced with sourcemaps.disable pattern
+- [Phase Phase 13-infrastructure-and-observability]: PaginationMeta extends Record<string, unknown> to satisfy ok() meta parameter type without casting at every call site
+- [Phase Phase 13-infrastructure-and-observability]: createOrganization wrapped in rawPrisma.$transaction() — partial signup failures roll back atomically, no orphaned orgs/users
+- [Phase Phase 13-infrastructure-and-observability]: calendar-events route uses defaultLimit=100, maxLimit=500 — date-range calendar views load all events in visible window
 
 ### Pending Todos
 
@@ -163,6 +167,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T17:15:15.144Z
-Stopped at: Completed 13-infrastructure-and-observability-02-PLAN.md
+Last session: 2026-03-11T17:25:09.336Z
+Stopped at: Completed 13-infrastructure-and-observability-03-PLAN.md
 Resume file: None
