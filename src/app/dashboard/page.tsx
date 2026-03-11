@@ -333,7 +333,7 @@ export default function DashboardPage() {
 
       {/* Dashboard Panels Grid */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.1, 0.15)}
@@ -413,7 +413,7 @@ export default function DashboardPage() {
         {/* Right Rail — Embedded Leo AI Assistant */}
         <motion.div
           variants={cardEntrance}
-          className="h-full lg:min-h-[560px]"
+          className="h-full min-h-0"
         >
           <ChatPanel variant="embedded" />
         </motion.div>

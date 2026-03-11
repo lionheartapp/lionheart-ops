@@ -256,14 +256,14 @@ export default function DashboardLayout({
         />
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 overflow-hidden relative">
+        <main className="flex-1 min-w-0 overflow-hidden relative flex flex-col">
           {/* Ambient gradient blobs — gives glass cards depth */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
             <div className="absolute -top-32 right-0 w-[500px] h-[500px] rounded-full blur-[120px] bg-blue-200/[0.08]" />
             <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[120px] bg-violet-200/[0.06]" />
             <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[100px] bg-amber-100/[0.06]" />
           </div>
-          <div className="relative py-4 sm:py-6 lg:py-8 px-4 sm:px-10">
+          <div className="relative py-4 sm:py-6 lg:py-8 px-4 sm:px-10 flex-1 flex flex-col">
             {children}
           </div>
         </main>
