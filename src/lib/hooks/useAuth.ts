@@ -78,12 +78,43 @@ const DEFAULT_ORG: AuthOrg = {
 
 export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {}): AuthState {
   const router = useRouter()
-  const [isReady, setIsReady] = useState(false)
-  const [user, setUser] = useState<AuthUser>(DEFAULT_USER)
-  const [org, setOrg] = useState<AuthOrg>(DEFAULT_ORG)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Fetch user data from server on mount (reads httpOnly cookie automatically)
+  // Hydrate from localStorage immediately (AuthBridge populates this on app load)
+  const [user, setUser] = useState<AuthUser>(() => {
+    if (typeof window === 'undefined') return DEFAULT_USER
+    const name = localStorage.getItem('user-name')
+    if (!name) return DEFAULT_USER
+    return {
+      name,
+      email: localStorage.getItem('user-email') || '',
+      avatar: localStorage.getItem('user-avatar') || null,
+      team: localStorage.getItem('user-team') || null,
+      schoolScope: localStorage.getItem('user-school-scope') || null,
+      role: localStorage.getItem('user-role') || null,
+    }
+  })
+  const [org, setOrg] = useState<AuthOrg>(() => {
+    if (typeof window === 'undefined') return DEFAULT_ORG
+    const id = localStorage.getItem('org-id')
+    if (!id) return DEFAULT_ORG
+    return {
+      id,
+      name: localStorage.getItem('org-name') || 'School',
+      schoolType: localStorage.getItem('org-school-type') || null,
+      logoUrl: localStorage.getItem('org-logo-url') || null,
+    }
+  })
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !!localStorage.getItem('auth-token') && !!localStorage.getItem('org-id')
+  })
+  const [isReady, setIsReady] = useState(() => {
+    // If localStorage already has auth data (from AuthBridge), we're ready immediately
+    if (typeof window === 'undefined') return false
+    return !!localStorage.getItem('auth-token') && !!localStorage.getItem('org-id')
+  })
+
+  // Background refresh from server (keeps data fresh, handles session expiry)
   useEffect(() => {
     let cancelled = false
 
@@ -102,6 +133,7 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
       })
       .catch(() => {
         if (cancelled) return
+        setIsAuthenticated(false)
         setIsReady(true)
         if (redirectTo) router.push(redirectTo)
       })
