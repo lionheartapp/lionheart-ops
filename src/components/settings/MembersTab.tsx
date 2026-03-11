@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield, ChevronDown, X, Search } from 'lucide-react'
+import { Plus, RefreshCw, UserCog, Edit2, Trash2, UserMinus, UserCheck, Shield, ChevronDown, X, Search, Download } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -538,12 +538,26 @@ const MembersTab = (_props: MembersTabProps) => {
           </h2>
           <p className="text-sm text-gray-500 mt-1">Manage your organization&apos;s users and their roles</p>
         </div>
-        <button
-          onClick={openInvite}
-          className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition self-start sm:self-auto flex-shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Invite user
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
+          <button
+            onClick={() => {
+              const params = new URLSearchParams()
+              if (statusTab !== 'all') params.set('status', statusTab)
+              const qs = params.toString()
+              window.open(`/api/settings/export/users${qs ? `?${qs}` : ''}`, '_blank')
+            }}
+            className="px-4 py-2.5 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+          <button
+            onClick={openInvite}
+            className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition"
+          >
+            <Plus className="w-4 h-4" /> Invite user
+          </button>
+        </div>
       </div>
 
       {/* Error */}
