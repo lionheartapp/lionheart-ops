@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next'
 import withSerwistInit from '@serwist/next'
+import { withSentryConfig } from '@sentry/nextjs'
 
 const withSerwist = withSerwistInit({
   swSrc: 'src/app/sw.ts',
@@ -11,7 +12,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ['mjml', 'mjml-core', 'mjml-preset-core'],
+  serverExternalPackages: ['mjml', 'mjml-core', 'mjml-preset-core', 'pino-pretty'],
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
@@ -33,4 +34,9 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withSerwist(nextConfig)
+export default withSentryConfig(withSerwist(nextConfig), {
+  silent: true, // Suppress Sentry webpack plugin logs
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+})
