@@ -385,6 +385,36 @@ export async function rejectEvent(
 }
 
 /**
+ * Count base event records in a date range (does not expand recurring events).
+ * Used for pagination metadata on calendar-events list endpoint.
+ */
+export async function countEventsInRange(
+  calendarIds: string[],
+  start: Date,
+  end: Date,
+  filters?: {
+    categoryId?: string
+    calendarStatus?: CalendarEventStatus[]
+    createdById?: string
+  }
+): Promise<number> {
+  const where: Prisma.CalendarEventWhereInput = {
+    calendarId: { in: calendarIds },
+    OR: [
+      { rrule: null, startTime: { lte: end }, endTime: { gte: start } },
+      { rrule: { not: null }, parentEventId: null, startTime: { lte: end } },
+    ],
+    parentEventId: null,
+  }
+
+  if (filters?.categoryId) where.categoryId = filters.categoryId
+  if (filters?.calendarStatus) where.calendarStatus = { in: filters.calendarStatus }
+  if (filters?.createdById) where.createdById = filters.createdById
+
+  return prisma.calendarEvent.count({ where })
+}
+
+/**
  * Get events in a date range, expanding recurring events.
  */
 export async function getEventsInRange(
@@ -395,6 +425,8 @@ export async function getEventsInRange(
     categoryId?: string
     calendarStatus?: CalendarEventStatus[]
     createdById?: string
+    skip?: number
+    take?: number
   }
 ) {
   const where: Prisma.CalendarEventWhereInput = {
@@ -407,9 +439,11 @@ export async function getEventsInRange(
         endTime: { gte: start },
       },
       // Recurring events that could have instances in range
+      // Bound by startTime <= end so we don't fetch every recurring event ever created
       {
         rrule: { not: null },
         parentEventId: null, // Only parent events
+        startTime: { lte: end },
       },
     ],
     // Exclude exceptions — they're merged by expandRecurrence
@@ -440,6 +474,8 @@ export async function getEventsInRange(
       exceptions: true,
     },
     orderBy: { startTime: 'asc' },
+    ...(filters?.skip !== undefined ? { skip: filters.skip } : {}),
+    ...(filters?.take !== undefined ? { take: filters.take } : {}),
   })
 
   // Expand recurring events

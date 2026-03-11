@@ -14,10 +14,10 @@ import { runWithOrgContext } from '@/lib/org-context'
 import { createBulkNotifications } from '@/lib/services/notificationService'
 import { PERMISSIONS } from '@/lib/permissions'
 import { stripAllHtml } from '@/lib/sanitize'
-import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
+import { INVENTORY_CATEGORIES, AV_EQUIPMENT_TAGS } from '@/lib/constants/inventory'
 
 // Re-export for backward compatibility with server-side consumers
-export { INVENTORY_CATEGORIES }
+export { INVENTORY_CATEGORIES, AV_EQUIPMENT_TAGS }
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
 
@@ -52,6 +52,47 @@ export type CreateItemInput = z.input<typeof CreateItemSchema>
 export type UpdateItemInput = z.input<typeof UpdateItemSchema>
 export type CheckoutInput = z.input<typeof CheckoutSchema>
 export type CheckinInput = z.input<typeof CheckinSchema>
+
+// ─── AV Equipment Schemas ───────────────────────────────────────────────────
+
+export const AVLocationEntrySchema = z.object({
+  id: z.string(),
+  quantity: z.number().int().min(1),
+  locationId: z.string().nullable().optional(),
+  locationName: z.string().default(''),
+  usage: z.string().optional().default(''),
+})
+
+export const AVDocLinkSchema = z.object({
+  id: z.string(),
+  url: z.string().url(),
+  title: z.string().min(1).max(200),
+  type: z.enum(['manual', 'spec_sheet', 'warranty', 'other']),
+})
+
+export const CreateAVEquipmentSchema = z.object({
+  // Step 1 — Essentials
+  name: z.string().min(1).max(200).transform(stripAllHtml),
+  description: z.string().max(2000).optional().transform((v) => (v ? stripAllHtml(v) : v)),
+  ownerId: z.string().nullable().optional(),
+  locations: z.array(AVLocationEntrySchema).default([]),
+  allowCheckout: z.boolean().default(false),
+  category: z.string().optional(),
+  // Step 2 — Details
+  manufacturer: z.string().max(200).optional().transform((v) => (v ? stripAllHtml(v) : v)),
+  model: z.string().max(200).optional().transform((v) => (v ? stripAllHtml(v) : v)),
+  serialNumbers: z.array(z.string().max(100)).default([]),
+  imageUrl: z.string().optional().nullable(),
+  documentationLinks: z.array(AVDocLinkSchema).default([]),
+  tags: z.array(z.string()).default([]),
+})
+
+export const UpdateAVEquipmentSchema = CreateAVEquipmentSchema.partial()
+
+export type CreateAVEquipmentInput = z.input<typeof CreateAVEquipmentSchema>
+export type UpdateAVEquipmentInput = z.input<typeof UpdateAVEquipmentSchema>
+export type AVLocationEntry = z.infer<typeof AVLocationEntrySchema>
+export type AVDocLink = z.infer<typeof AVDocLinkSchema>
 
 // ─── Private Helpers ────────────────────────────────────────────────────────
 
@@ -138,11 +179,11 @@ async function notifyLowStock(
 // ─── CRUD ───────────────────────────────────────────────────────────────────
 
 /**
- * List inventory items for an org, with optional search and category filters.
+ * List inventory items for an org, with optional search, category, and pagination.
  */
 export async function listItems(
   orgId: string,
-  filters?: { search?: string; category?: string }
+  filters?: { search?: string; category?: string; skip?: number; take?: number }
 ) {
   return runWithOrgContext(orgId, async () => {
     const where: Record<string, unknown> = {}
@@ -155,6 +196,8 @@ export async function listItems(
     return prisma.inventoryItem.findMany({
       where,
       orderBy: { name: 'asc' },
+      ...(filters?.skip !== undefined ? { skip: filters.skip } : {}),
+      ...(filters?.take !== undefined ? { take: filters.take } : {}),
     })
   })
 }
@@ -359,6 +402,86 @@ export async function checkinItem(
     })
 
     return updatedItem
+  })
+}
+
+// ─── AV Equipment CRUD ──────────────────────────────────────────────────────
+
+/**
+ * Create a new AV equipment item from the 2-step wizard data.
+ * Auto-calculates quantityOnHand from the locations array.
+ */
+export async function createAVEquipment(
+  orgId: string,
+  input: CreateAVEquipmentInput
+) {
+  const data = CreateAVEquipmentSchema.parse(input)
+  const totalQuantity = (data.locations || []).reduce((sum, loc) => sum + loc.quantity, 0)
+
+  return runWithOrgContext(orgId, async () => {
+    return prisma.inventoryItem.create({
+      data: {
+        name: data.name,
+        description: data.description ?? null,
+        category: data.category ?? null,
+        ownerId: data.ownerId ?? null,
+        allowCheckout: data.allowCheckout,
+        locations: data.locations as any,
+        quantityOnHand: totalQuantity,
+        reorderThreshold: 0,
+        manufacturer: data.manufacturer ?? null,
+        model: data.model ?? null,
+        serialNumbers: data.serialNumbers,
+        imageUrl: data.imageUrl ?? null,
+        documentationLinks: data.documentationLinks as any,
+        tags: data.tags,
+      } as any,
+    })
+  })
+}
+
+/**
+ * Update an existing AV equipment item.
+ * Recalculates quantityOnHand if locations changed.
+ */
+export async function updateAVEquipment(
+  orgId: string,
+  itemId: string,
+  input: UpdateAVEquipmentInput
+) {
+  const data = UpdateAVEquipmentSchema.parse(input)
+
+  return runWithOrgContext(orgId, async () => {
+    const existing = await prisma.inventoryItem.findFirst({ where: { id: itemId } })
+    if (!existing) {
+      const err = new Error('Inventory item not found')
+      ;(err as any).code = 'NOT_FOUND'
+      throw err
+    }
+
+    // Recalculate quantityOnHand if locations changed
+    let quantityOnHand = existing.quantityOnHand
+    if (data.locations) {
+      quantityOnHand = (data.locations as any[]).reduce((sum, loc) => sum + loc.quantity, 0)
+    }
+
+    return prisma.inventoryItem.update({
+      where: { id: itemId },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description ?? null }),
+        ...(data.ownerId !== undefined && { ownerId: data.ownerId ?? null }),
+        ...(data.category !== undefined && { category: data.category ?? null }),
+        ...(data.allowCheckout !== undefined && { allowCheckout: data.allowCheckout }),
+        ...(data.locations && { locations: data.locations as any, quantityOnHand }),
+        ...(data.manufacturer !== undefined && { manufacturer: data.manufacturer ?? null }),
+        ...(data.model !== undefined && { model: data.model ?? null }),
+        ...(data.serialNumbers && { serialNumbers: data.serialNumbers }),
+        ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl ?? null }),
+        ...(data.tags && { tags: data.tags }),
+        ...(data.documentationLinks && { documentationLinks: data.documentationLinks as any }),
+      },
+    })
   })
 }
 

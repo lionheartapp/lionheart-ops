@@ -65,8 +65,8 @@ export const UpdateTicketSchema = z.object({
 })
 
 export const ListTicketsSchema = z.object({
-  limit: z.number().int().min(1).max(100).default(50),
-  offset: z.number().int().min(0).default(0),
+  limit: z.number().int().min(1).max(100).default(25),
+  skip: z.number().int().min(0).default(0),
   status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED']).optional(),
   category: z.enum(['MAINTENANCE', 'IT', 'EVENT']).optional(),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).optional(),
@@ -142,7 +142,7 @@ export async function listTickets(
     where,
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     take: validated.limit,
-    skip: validated.offset,
+    skip: validated.skip,
     include: {
       assignedTo: {
         select: { id: true, name: true, email: true },
@@ -154,6 +154,49 @@ export async function listTickets(
   })
 
   return tickets
+}
+
+/**
+ * Count tickets matching the given filters (for pagination metadata)
+ * Mirrors the access-control logic of listTickets.
+ */
+export async function countTickets(
+  input: Partial<ListTicketsInput>,
+  userId: string
+): Promise<number> {
+  const validated = ListTicketsSchema.parse(input)
+
+  const where: any = {}
+  if (validated.status) where.status = validated.status
+  if (validated.category) where.category = validated.category
+  if (validated.priority) where.priority = validated.priority
+  if (validated.assignedToId) where.assignedToId = validated.assignedToId
+  if (validated.schoolId) where.schoolId = validated.schoolId
+
+  if (validated.search) {
+    const s = validated.search.trim()
+    if (s) {
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { title: { contains: s, mode: 'insensitive' } },
+            { description: { contains: s, mode: 'insensitive' } },
+          ],
+        },
+      ]
+    }
+  }
+
+  const canReadAll = await can(userId, PERMISSIONS.TICKETS_READ_ALL)
+  if (!canReadAll) {
+    where.OR = [
+      { assignedToId: userId },
+      { createdById: userId },
+    ]
+  }
+
+  return prisma.ticket.count({ where })
 }
 
 /**

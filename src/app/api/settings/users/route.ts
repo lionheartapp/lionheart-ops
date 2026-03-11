@@ -9,6 +9,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { generateSetupToken, getSetupLink, hashSetupToken } from '@/lib/auth/password-setup'
 import { sendWelcomeEmail } from '@/lib/services/emailService'
 import { PERMISSIONS } from '@/lib/permissions'
+import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { audit, getIp } from '@/lib/services/auditService'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
     await assertCan(userContext.userId, PERMISSIONS.USERS_READ)
 
     const { searchParams } = new URL(req.url)
+    const { page, limit, skip } = parsePagination(searchParams)
     const search = searchParams.get('search') || ''
     const roleId = searchParams.get('roleId') || ''
     const teamSlug = searchParams.get('teamSlug') || ''
@@ -66,41 +68,48 @@ export async function GET(req: NextRequest) {
         where.schoolScope = schoolScope
       }
 
-      const users = await prisma.user.findMany({
-        where,
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          avatar: true,
-          jobTitle: true,
-          schoolScope: true,
-          employmentType: true,
-          phone: true,
-          status: true,
-          createdAt: true,
-          teams: {
-            select: {
-              team: { select: { id: true, name: true, slug: true } },
-            },
-          },
-          userRole: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
+      const userSelect = {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        jobTitle: true,
+        schoolScope: true,
+        employmentType: true,
+        phone: true,
+        status: true,
+        createdAt: true,
+        teams: {
+          select: {
+            team: { select: { id: true, name: true, slug: true } },
           },
         },
-        orderBy: [
-          { status: 'asc' }, // ACTIVE first
-          { lastName: 'asc' },
-          { firstName: 'asc' },
-        ],
-      })
+        userRole: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      }
 
-      return NextResponse.json(ok(users))
+      const [total, users] = await Promise.all([
+        prisma.user.count({ where }),
+        prisma.user.findMany({
+          where,
+          select: userSelect,
+          skip,
+          take: limit,
+          orderBy: [
+            { status: 'asc' }, // ACTIVE first
+            { lastName: 'asc' },
+            { firstName: 'asc' },
+          ],
+        }),
+      ])
+
+      return NextResponse.json(ok(users, paginationMeta(total, { page, limit, skip })))
     })
   } catch (error) {
     if (isAuthError(error)) {

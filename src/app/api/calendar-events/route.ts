@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -53,18 +54,34 @@ export async function GET(req: NextRequest) {
         calendarIds.push(...calendars.map((c) => c.id))
       }
 
-      const events = await calendarService.getEventsInRange(
-        calendarIds,
-        new Date(start),
-        new Date(end),
-        {
-          categoryId: searchParams.get('categoryId') || undefined,
-          calendarStatus: searchParams.get('status')?.split(',') as any || undefined,
-          createdById: searchParams.get('createdById') || undefined,
-        }
-      )
+      const { page, limit, skip } = parsePagination(searchParams, 100, 500)
 
-      return NextResponse.json(ok(events), {
+      const [events, total] = await Promise.all([
+        calendarService.getEventsInRange(
+          calendarIds,
+          new Date(start),
+          new Date(end),
+          {
+            categoryId: searchParams.get('categoryId') || undefined,
+            calendarStatus: searchParams.get('status')?.split(',') as any || undefined,
+            createdById: searchParams.get('createdById') || undefined,
+            skip,
+            take: limit,
+          }
+        ),
+        calendarService.countEventsInRange(
+          calendarIds,
+          new Date(start),
+          new Date(end),
+          {
+            categoryId: searchParams.get('categoryId') || undefined,
+            calendarStatus: searchParams.get('status')?.split(',') as any || undefined,
+            createdById: searchParams.get('createdById') || undefined,
+          }
+        ),
+      ])
+
+      return NextResponse.json(ok(events, paginationMeta(total, { page, limit, skip })), {
         headers: {
           'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
         },

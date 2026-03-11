@@ -3,6 +3,7 @@ import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import * as ticketService from '@/lib/services/ticketService'
+import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -16,8 +17,7 @@ export async function GET(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
-      const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50
-      const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0
+      const { page, limit, skip } = parsePagination(searchParams)
       const status = searchParams.get('status') || undefined
       const category = searchParams.get('category') || undefined
       const priority = searchParams.get('priority') || undefined
@@ -25,12 +25,14 @@ export async function GET(req: NextRequest) {
       const schoolId = searchParams.get('schoolId') || undefined
       const search = searchParams.get('search') || undefined
 
-      const tickets = await ticketService.listTickets(
-        { limit, offset, status: status as any, category: category as any, priority: priority as any, assignedToId, schoolId, search },
-        userContext.userId
-      )
+      const filters = { limit, skip, status: status as any, category: category as any, priority: priority as any, assignedToId, schoolId, search }
 
-      return NextResponse.json(ok(tickets))
+      const [total, tickets] = await Promise.all([
+        ticketService.countTickets(filters, userContext.userId),
+        ticketService.listTickets(filters, userContext.userId),
+      ])
+
+      return NextResponse.json(ok(tickets, paginationMeta(total, { page, limit, skip })))
     })
   } catch (error) {
     if (error instanceof z.ZodError) {

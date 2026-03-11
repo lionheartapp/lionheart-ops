@@ -19,8 +19,8 @@ export const CreateEventSchema = z.object({
 export const UpdateEventSchema = CreateEventSchema.partial()
 
 export const ListEventsSchema = z.object({
-  limit: z.number().int().min(1).max(100).default(50),
-  offset: z.number().int().min(0).default(0),
+  limit: z.number().int().min(1).max(100).default(25),
+  skip: z.number().int().min(0).default(0),
   status: z.enum(['DRAFT', 'CONFIRMED', 'CANCELLED']).optional(),
 })
 
@@ -92,7 +92,7 @@ export async function listEvents(
     where,
     orderBy: { startsAt: 'desc' },
     take: validated.limit,
-    skip: validated.offset,
+    skip: validated.skip,
     include: {
       submittedBy: {
         select: { id: true, name: true, email: true },
@@ -101,6 +101,22 @@ export async function listEvents(
   })
 
   return events
+}
+
+/**
+ * Count events matching the given filters (for pagination metadata)
+ */
+export async function countEvents(
+  input: Partial<ListEventsInput>,
+  userId: string
+): Promise<number> {
+  await assertCan(userId, PERMISSIONS.EVENTS_READ)
+
+  const validated = ListEventsSchema.parse(input)
+  const where: any = {}
+  if (validated.status) where.status = validated.status
+
+  return prisma.event.count({ where })
 }
 
 /**

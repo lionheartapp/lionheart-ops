@@ -4,6 +4,7 @@ import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import * as eventService from '@/lib/services/eventService'
 import { operationsEngine } from '@/lib/services/operations/engine'
+import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -17,16 +18,17 @@ export async function GET(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
-      const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50
-      const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0
+      const { page, limit, skip } = parsePagination(searchParams)
       const status = searchParams.get('status') || undefined
 
-      const events = await eventService.listEvents(
-        { limit, offset, status: status as any },
-        userContext.userId
-      )
+      const filters = { limit, skip, status: status as any }
 
-      return NextResponse.json(ok(events))
+      const [total, events] = await Promise.all([
+        eventService.countEvents(filters, userContext.userId),
+        eventService.listEvents(filters, userContext.userId),
+      ])
+
+      return NextResponse.json(ok(events, paginationMeta(total, { page, limit, skip })))
     })
   } catch (error) {
     if (error instanceof z.ZodError) {

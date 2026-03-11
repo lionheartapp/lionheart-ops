@@ -25,8 +25,8 @@ export const UpdateDraftEventSchema = z.object({
 })
 
 export const ListDraftEventsSchema = z.object({
-  limit: z.number().int().min(1).max(100).default(20),
-  offset: z.number().int().min(0).default(0),
+  limit: z.number().int().min(1).max(100).default(25),
+  skip: z.number().int().min(0).default(0),
   status: z.enum(['DRAFT', 'READY', 'SUBMITTED']).optional(),
 })
 
@@ -64,7 +64,7 @@ export async function listDraftEvents(
     where,
     orderBy: { updatedAt: 'desc' },
     take: validated.limit,
-    skip: validated.offset,
+    skip: validated.skip,
     include: {
       createdBy: {
         select: { id: true, name: true, email: true },
@@ -73,6 +73,27 @@ export async function listDraftEvents(
   })
 
   return drafts
+}
+
+/**
+ * Count draft events matching the given filters (for pagination metadata)
+ */
+export async function countDraftEvents(
+  input: Partial<ListDraftEventsInput>,
+  userId: string
+): Promise<number> {
+  await assertCan(userId, PERMISSIONS.EVENTS_CREATE)
+
+  const validated = ListDraftEventsSchema.parse(input)
+  const where: any = {}
+  if (validated.status) where.status = validated.status
+
+  const canViewAll = await can(userId, PERMISSIONS.EVENTS_APPROVE)
+  if (!canViewAll) {
+    where.createdById = userId
+  }
+
+  return prisma.draftEvent.count({ where })
 }
 
 /**
