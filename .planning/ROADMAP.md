@@ -154,6 +154,7 @@ Plans:
 - [x] **Phase 13: Infrastructure and Observability** - Vitest unit tests, GitHub Actions CI/CD, Pino structured logging, Sentry error tracking, list pagination, and DB transactions (completed 2026-03-11)
 - [x] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow (completed 2026-03-11)
 - [x] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit) (completed 2026-03-11)
+- [ ] **Phase 16: Billing Permission & Observability Retrofit** - Add SETTINGS_BILLING to admin role, retrofit Pino/Sentry instrumentation to 21 routes from Phases 10-15 (gap closure from v2.0 audit)
 
 ## Phase Details
 
@@ -294,6 +295,21 @@ Plans:
 Plans:
 - [ ] 15-01-PLAN.md — Rate-limit reset-password, set httpOnly cookies on signup, remove localStorage JWT from signup page (AUTH-02, AUTH-03, AUTH-04, AUTH-05)
 
+### Phase 16: Billing Permission & Observability Retrofit
+**Goal**: Close the last 3 audit gaps — billing permission assignment for admin users and Pino/Sentry instrumentation for 21 routes added after Phase 13
+**Depends on**: Phase 15 (closes remaining v2.0 audit gaps)
+**Requirements**: SET-02, INFRA-03, INFRA-04 (hardening — partially satisfied, this closes integration gaps)
+**Gap Closure:** Closes integration/flow gaps from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Admin-role users can access all 4 billing API routes without 403 — `SETTINGS_BILLING` permission assigned to admin role
+  2. All 21 routes from Phases 10-15 have `logger.child({ route, method })` Pino instrumentation
+  3. All 21 routes from Phases 10-15 have `Sentry.captureException(error)` in catch blocks
+**Plans**: 2 plans
+
+Plans:
+- [ ] 16-01-PLAN.md — Add SETTINGS_BILLING to admin role permissions array, backfill script for existing orgs, unit test (SET-02)
+- [ ] 16-02-PLAN.md — Retrofit Pino logger and Sentry instrumentation to all 21 routes from Phases 10-15 (INFRA-03, INFRA-04)
+
 ---
 
 ## Progress
@@ -316,3 +332,4 @@ Plans:
 | 12. Settings and Admin Tools | 3/3 | Complete    | 2026-03-11 | - |
 | 13. Infrastructure and Observability | 3/3 | Complete    | 2026-03-11 | - |
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
+| 16. Billing Permission & Observability Retrofit | 0/2 | Planned    | - | - |
