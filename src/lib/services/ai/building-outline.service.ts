@@ -1,13 +1,4 @@
-/**
- * Building Outline Detection Service — Anthropic Claude Vision
- *
- * Detects building rooflines from satellite/aerial imagery using Claude's
- * vision capabilities. Returns pixel coordinates for map polygon overlay.
- *
- * Migrated from Google Gemini to Anthropic Claude.
- */
-
-import { claudeVisionCompletion, extractJson } from './claude-client'
+import { GoogleGenAI } from '@google/genai'
 
 interface PixelCoord {
   x: number
@@ -22,6 +13,13 @@ interface DetectionResult {
 }
 
 export class BuildingOutlineService {
+  private client: GoogleGenAI | null
+
+  constructor() {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
+    this.client = apiKey ? new GoogleGenAI({ apiKey }) : null
+  }
+
   /**
    * Detect the building outline from a satellite tile image.
    * Returns pixel coordinates (relative to the tile image) of the building perimeter.
@@ -32,6 +30,8 @@ export class BuildingOutlineService {
     imageWidth: number = 512,
     imageHeight: number = 512
   ): Promise<PixelCoord[] | null> {
+    if (!this.client) return null
+
     const prompt = `You are a computer vision expert specializing in building footprint extraction from satellite imagery.
 
 IMAGE: A ${imageWidth}x${imageHeight} pixel satellite/aerial image. The building "${buildingName}" should be near the center.
@@ -72,26 +72,49 @@ Return ONLY valid JSON (no markdown fences, no extra text):
 If no clear building is visible near center, return: {"found": false, "confidence": 0, "pixelCoordinates": [], "description": "reason"}`
 
     try {
-      const result = await claudeVisionCompletion(
-        prompt,
-        [{ type: 'base64', data: imageBase64, mediaType: 'image/png' }],
-        1024
-      )
+      const result = await this.client.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                inlineData: {
+                  mimeType: 'image/png',
+                  data: imageBase64,
+                },
+              },
+              { text: prompt },
+            ],
+          },
+        ],
+      })
 
-      if (!result) {
-        console.error('[OUTLINE] No response from Claude')
+      const text = (result.text || '').trim()
+
+      // Extract JSON from response: find first { and last } and extract that substring
+      const firstBraceIdx = text.indexOf('{')
+      const lastBraceIdx = text.lastIndexOf('}')
+
+      if (firstBraceIdx === -1 || lastBraceIdx === -1 || firstBraceIdx >= lastBraceIdx) {
+        console.error('[OUTLINE] No valid JSON found in response. Raw text:', text)
         return null
       }
 
-      const parsed = extractJson<DetectionResult>(result)
+      const jsonStr = text.substring(firstBraceIdx, lastBraceIdx + 1)
 
-      if (!parsed) {
-        console.error('[OUTLINE] Failed to parse JSON response. Raw text:', result)
+      let parsed: DetectionResult
+      try {
+        parsed = JSON.parse(jsonStr)
+      } catch (parseError) {
+        console.error('[OUTLINE] Failed to parse JSON response. Raw text:', text)
+        console.error('[OUTLINE] Extracted JSON:', jsonStr)
+        console.error('[OUTLINE] Parse error:', parseError)
         return null
       }
 
       // Even if 'found' is false, return coordinates if we have 3+ points
-      // Sometimes the model sets found:false even when it detects something
+      // Sometimes Gemini sets found:false even when it detects something
       if (!parsed.pixelCoordinates?.length || parsed.pixelCoordinates.length < 3) {
         console.log('[OUTLINE] Building detection has insufficient points (<3). Found flag:', parsed.found, 'Description:', parsed.description)
         return null
@@ -115,7 +138,7 @@ If no clear building is visible near center, return: {"found": false, "confidenc
 
       return parsed.pixelCoordinates
     } catch (error) {
-      console.error('[OUTLINE] Claude detection failed:', error)
+      console.error('[OUTLINE] Gemini detection failed:', error)
       return null
     }
   }

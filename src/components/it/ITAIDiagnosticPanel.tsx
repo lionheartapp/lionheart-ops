@@ -164,7 +164,7 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
             <div>
               <h4 className="text-sm font-semibold text-gray-900">AI Diagnostics</h4>
               <p className="text-xs text-gray-400">
-                Powered by Claude
+                Powered by Gemini
               </p>
             </div>
           </div>

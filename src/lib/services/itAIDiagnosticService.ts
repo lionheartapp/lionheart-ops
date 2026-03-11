@@ -1,17 +1,14 @@
 /**
  * IT AI Diagnostic Service
  *
- * Uses Anthropic Claude (when configured) to provide intelligent diagnostics:
+ * Uses Google Gemini (when configured) to provide intelligent diagnostics:
  * - Ticket analysis: categorization, severity, troubleshooting steps
  * - Device health scoring: based on repair history and ticket patterns
  *
- * Falls back to rule-based heuristics when ANTHROPIC_API_KEY is not set.
- *
- * Migrated from Google Gemini to Anthropic Claude.
+ * Falls back to rule-based heuristics when GEMINI_API_KEY is not set.
  */
 
 import { prisma } from '@/lib/db'
-import { claudeTextCompletion, extractJson, getClaudeClient } from '@/lib/services/ai/claude-client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,8 +43,9 @@ export async function diagnoseTicket(ticketId: string): Promise<DiagnosticResult
   })
   if (!ticket) throw new Error('Ticket not found')
 
-  // Check if Claude API is available
-  if (!getClaudeClient()) {
+  // Check if Gemini API key is available
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
     return {
       category: ticket.issueType || 'General',
       severity: ticket.priority === 'URGENT' ? 'critical' : ticket.priority === 'HIGH' ? 'high' : 'medium',
@@ -72,6 +70,9 @@ export async function diagnoseTicket(ticketId: string): Promise<DiagnosticResult
   }
 
   try {
+    const { GoogleGenAI } = await import('@google/genai')
+    const ai = new GoogleGenAI({ apiKey })
+
     const avEnhancement = ticket.issueType === 'DISPLAY_AV' && ticket.avSubType ? (avPromptEnhancements[ticket.avSubType] || '') : ''
 
     const prompt = `You are an IT help desk diagnostic assistant. Analyze this IT support ticket and provide a JSON response.
@@ -90,10 +91,15 @@ Respond with ONLY valid JSON (no markdown):
   "confidence": 0.0-1.0
 }`
 
-    const result = await claudeTextCompletion(prompt)
-    if (result) {
-      const parsed = extractJson<DiagnosticResult>(result)
-      if (parsed) return parsed
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
+    })
+
+    const text = response.text || ''
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]) as DiagnosticResult
     }
   } catch (e) {
     console.error('AI diagnostic failed:', e)
@@ -125,7 +131,8 @@ export async function diagnoseDevice(deviceId: string): Promise<DeviceDiagnostic
   })
   if (!device) throw new Error('Device not found')
 
-  if (!getClaudeClient()) {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
     const repairCount = device.repairs.length
     const healthScore = Math.max(20, 100 - repairCount * 15)
     return {
@@ -138,6 +145,9 @@ export async function diagnoseDevice(deviceId: string): Promise<DeviceDiagnostic
   }
 
   try {
+    const { GoogleGenAI } = await import('@google/genai')
+    const ai = new GoogleGenAI({ apiKey })
+
     const repairHistory = device.repairs.map((r) => `${r.repairType || 'Unknown'}: ${r.description || 'No details'} (Cost: $${r.repairCost})`).join('\n')
 
     const prompt = `You are an IT device health analyst. Analyze this device's history and provide a JSON response.
@@ -160,10 +170,15 @@ Respond with ONLY valid JSON (no markdown):
   "recommendations": ["array of 2-4 recommendations"]
 }`
 
-    const result = await claudeTextCompletion(prompt)
-    if (result) {
-      const parsed = extractJson<DeviceDiagnosticResult>(result)
-      if (parsed) return parsed
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
+    })
+
+    const text = response.text || ''
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]) as DeviceDiagnosticResult
     }
   } catch (e) {
     console.error('AI device diagnostic failed:', e)

@@ -2,21 +2,19 @@
  * POST /api/ai/assistant/chat — AI Assistant conversation endpoint
  *
  * Handles multi-turn conversations with the AI assistant using
- * Anthropic Claude's tool_use feature. The tool-calling loop executes
+ * Google Gemini's function calling feature. The tool-calling loop executes
  * analytics queries, searches, and other operations on behalf of the user,
  * respecting their permissions.
  *
- * Gracefully degrades to { available: false } when ANTHROPIC_API_KEY is not set.
+ * Gracefully degrades to { available: false } when GEMINI_API_KEY is not set.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import Anthropic from '@anthropic-ai/sdk'
 import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext } from '@/lib/org-context'
-import { getClaudeClient, MODEL } from '@/lib/services/ai/claude-client'
 import { getAvailableTools, executeTool } from '@/lib/services/ai/assistant-tools'
 import { buildSystemPrompt } from '@/lib/services/ai/assistant.service'
 import type { ConversationTurn, ActionConfirmation } from '@/lib/types/assistant'
@@ -37,8 +35,8 @@ const ChatRequestSchema = z.object({
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MAX_TOOL_ITERATIONS = 8
-const MAX_RESPONSE_TOKENS = 2048
 const CONVERSATION_CONTEXT_LIMIT = 20 // Keep last N turns to manage token usage
+const MODEL = 'gemini-2.0-flash'
 
 // ─── Route Handler ────────────────────────────────────────────────────────────
 
@@ -50,9 +48,9 @@ export async function POST(req: NextRequest) {
     // Parse & validate request body
     const body = ChatRequestSchema.parse(await req.json())
 
-    // Check if Claude is available
-    const client = getClaudeClient()
-    if (!client) {
+    // Check if Gemini is available
+    const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
+    if (!apiKey) {
       return NextResponse.json(
         ok({
           available: false,
@@ -68,11 +66,6 @@ export async function POST(req: NextRequest) {
 
       // Build system prompt with available capabilities
       const toolNames = tools.map((t) => t.name)
-      const systemPrompt = buildSystemPrompt(
-        toolNames,
-        ctx.organizationId, // Will be replaced with org name below
-        ctx.email
-      )
 
       // Fetch org name for a better system prompt
       let orgName = 'your organization'
@@ -100,135 +93,131 @@ export async function POST(req: NextRequest) {
         // Non-critical
       }
 
-      const finalSystemPrompt = buildSystemPrompt(toolNames, orgName, userName)
+      const systemPrompt = buildSystemPrompt(toolNames, orgName, userName)
 
-      // Build Claude messages from conversation history
-      // Trim to last N turns to manage token budget
+      // Build Gemini-format conversation from history
       const recentHistory = body.conversationHistory.slice(
         -CONVERSATION_CONTEXT_LIMIT
       )
-      const claudeMessages: Anthropic.MessageParam[] = recentHistory.map(
-        (turn) => ({
-          role: turn.role,
-          content: turn.content,
+
+      const geminiContents: Array<{ role: string; parts: Array<{ text: string }> }> = []
+      for (const turn of recentHistory) {
+        geminiContents.push({
+          role: turn.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: turn.content }],
         })
-      )
+      }
 
       // Add the new user message
-      claudeMessages.push({ role: 'user', content: body.message })
+      geminiContents.push({ role: 'user', parts: [{ text: body.message }] })
 
       // ── Tool-calling loop ──────────────────────────────────────────────
-      let response: Anthropic.Message
       let iterations = 0
       let actionConfirmation: ActionConfirmation | undefined
+      let finalMessage: string | null = null
 
       try {
-        response = await client.messages.create({
+        const { GoogleGenAI } = await import('@google/genai')
+        const client = new GoogleGenAI({ apiKey })
+
+        // Configure tools for Gemini
+        const geminiTools = tools.length > 0
+          ? [{ functionDeclarations: tools }]
+          : undefined
+
+        let result = await client.models.generateContent({
           model: MODEL,
-          max_tokens: MAX_RESPONSE_TOKENS,
-          system: finalSystemPrompt,
-          tools: tools.length > 0 ? tools : undefined,
-          messages: claudeMessages,
+          contents: geminiContents as any,
+          config: {
+            systemInstruction: systemPrompt,
+            tools: geminiTools as any,
+          },
         })
-      } catch (apiError) {
-        console.error('[ai-assistant] Initial Claude call failed:', apiError)
-        return NextResponse.json(
-          ok({
-            available: true,
-            message:
-              "I'm having trouble connecting right now. Please try again in a moment.",
-            conversationHistory: [
-              ...body.conversationHistory,
-              {
-                role: 'user' as const,
-                content: body.message,
-                timestamp: new Date().toISOString(),
-              },
-              {
-                role: 'assistant' as const,
-                content:
-                  "I'm having trouble connecting right now. Please try again in a moment.",
-                timestamp: new Date().toISOString(),
-              },
-            ],
-          })
-        )
-      }
 
-      // Process tool calls
-      while (response.stop_reason === 'tool_use' && iterations < MAX_TOOL_ITERATIONS) {
-        iterations++
+        // Process function calls in a loop
+        while (iterations < MAX_TOOL_ITERATIONS) {
+          const candidate = result.candidates?.[0]
+          if (!candidate?.content?.parts) break
 
-        const toolUseBlocks = response.content.filter(
-          (block) => block.type === 'tool_use'
-        )
-
-        if (toolUseBlocks.length === 0) break
-
-        // Execute each tool call
-        const toolResults: Anthropic.ToolResultBlockParam[] = []
-        for (const block of toolUseBlocks) {
-          if (block.type !== 'tool_use') continue
-          const toolUse = block as Anthropic.ToolUseBlock
-
-          const result = await executeTool(
-            toolUse.name,
-            toolUse.input as Record<string, unknown>,
-            { userId: ctx.userId, organizationId: orgId }
+          // Check for function calls
+          const functionCalls = candidate.content.parts.filter(
+            (part: any) => part.functionCall
           )
 
-          // Check if this is a confirmation-requiring action
-          try {
-            const parsed = JSON.parse(result)
-            if (parsed.confirmationRequired && parsed.draft) {
-              actionConfirmation = {
-                type: parsed.draft.action as ActionConfirmation['type'],
-                description: parsed.message,
-                payload: parsed.draft,
-              }
-            }
-          } catch {
-            // Not JSON or not a confirmation — that's fine
+          if (functionCalls.length === 0) {
+            // No more function calls — extract text response
+            const textPart = candidate.content.parts.find(
+              (part: any) => part.text
+            )
+            finalMessage = (textPart as any)?.text || null
+            break
           }
 
-          toolResults.push({
-            type: 'tool_result',
-            tool_use_id: toolUse.id,
-            content: result,
+          iterations++
+
+          // Execute each function call
+          const functionResponses: any[] = []
+          for (const part of functionCalls) {
+            const fc = (part as any).functionCall
+            const toolResult = await executeTool(
+              fc.name,
+              fc.args || {},
+              { userId: ctx.userId, organizationId: orgId }
+            )
+
+            // Check if this is a confirmation-requiring action
+            try {
+              const parsed = JSON.parse(toolResult)
+              if (parsed.confirmationRequired && parsed.draft) {
+                actionConfirmation = {
+                  type: parsed.draft.action as ActionConfirmation['type'],
+                  description: parsed.message,
+                  payload: parsed.draft,
+                }
+              }
+            } catch {
+              // Not JSON or not a confirmation — that's fine
+            }
+
+            functionResponses.push({
+              functionResponse: {
+                name: fc.name,
+                response: { result: toolResult },
+              },
+            })
+          }
+
+          // Add assistant's function call and our responses to the conversation
+          geminiContents.push({
+            role: 'model',
+            parts: candidate.content.parts as any,
           })
-        }
+          geminiContents.push({
+            role: 'user',
+            parts: functionResponses as any,
+          })
 
-        // Send tool results back to Claude
-        claudeMessages.push({
-          role: 'assistant',
-          content: response.content as any,
-        })
-        claudeMessages.push({
-          role: 'user',
-          content: toolResults,
-        })
-
-        try {
-          response = await client.messages.create({
+          // Continue the conversation with function results
+          result = await client.models.generateContent({
             model: MODEL,
-            max_tokens: MAX_RESPONSE_TOKENS,
-            system: finalSystemPrompt,
-            tools: tools.length > 0 ? tools : undefined,
-            messages: claudeMessages,
+            contents: geminiContents as any,
+            config: {
+              systemInstruction: systemPrompt,
+              tools: geminiTools as any,
+            },
           })
-        } catch (apiError) {
-          console.error('[ai-assistant] Tool loop Claude call failed:', apiError)
-          break
         }
-      }
 
-      // Extract final text from response
-      const textBlock = response.content.find(
-        (block): block is Anthropic.TextBlock => block.type === 'text'
-      )
-      const finalMessage =
-        textBlock?.text ||
-        "I processed your request but couldn't generate a response. Please try again."
+        // If we didn't get a final message from the loop, try to extract it
+        if (!finalMessage) {
+          finalMessage = result.text ||
+            "I processed your request but couldn't generate a response. Please try again."
+        }
+      } catch (apiError) {
+        console.error('[ai-assistant] Gemini call failed:', apiError)
+        finalMessage =
+          "I'm having trouble connecting right now. Please try again in a moment."
+      }
 
       // Build updated conversation history
       const updatedHistory: ConversationTurn[] = [

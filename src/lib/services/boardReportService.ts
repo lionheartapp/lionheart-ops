@@ -3,7 +3,7 @@
  *
  * Aggregates FCI, cost, PM ratio, compliance, asset EOL, and YoY metrics
  * for the superintendent-ready board report. Also handles AI narrative
- * generation via Anthropic and PDF export via jsPDF.
+ * generation via Gemini and PDF export via jsPDF.
  *
  * Uses rawPrisma for all queries — org ID is passed explicitly.
  */
@@ -511,7 +511,7 @@ export async function generateAINarrative(
   metrics: BoardReportMetrics,
   orgName: string
 ): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
 
   const complianceSummary = Object.entries(metrics.complianceStatus.byDomain)
     .map(([domain, d]) => `${domain}: ${d.current}/${d.total} current (${d.overdue} overdue)`)
@@ -561,16 +561,13 @@ Write a 3-4 paragraph executive narrative.`
   }
 
   try {
-    const Anthropic = (await import('@anthropic-ai/sdk')).default
-    const client = new Anthropic({ apiKey })
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
+    const { GoogleGenAI } = await import('@google/genai')
+    const client = new GoogleGenAI({ apiKey })
+    const result = await client.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
     })
-    const content = response.content[0]
-    if (content.type === 'text') return content.text
-    return buildFallbackNarrative(orgName, metrics)
+    return result.text || buildFallbackNarrative(orgName, metrics)
   } catch (err) {
     console.error('[boardReportService] AI narrative generation failed:', err)
     return buildFallbackNarrative(orgName, metrics)

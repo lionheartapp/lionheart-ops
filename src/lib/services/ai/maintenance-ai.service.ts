@@ -1,28 +1,25 @@
 /**
- * Maintenance AI Service — Anthropic Claude Vision
+ * Maintenance AI Service — Google Gemini Vision
  *
- * Wraps the Anthropic SDK for two maintenance-specific use cases:
+ * Wraps the Google GenAI SDK for two maintenance-specific use cases:
  *   1. analyzeMaintenancePhotos — Vision-based diagnosis with tools, parts, and steps
  *   2. askMaintenanceAI — Free-form follow-up questions with conversation history
  *
- * Uses claude-sonnet-4-5 (pinned per project decision in STATE.md).
+ * Uses gemini-2.0-flash model.
  * Gracefully returns null on any API or parse failure.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
 import type { AiDiagnosis, AiConversationTurn } from '@/lib/types/maintenance-ai'
 
 // ─── Client ───────────────────────────────────────────────────────────────────
 
-function getClient(): Anthropic | null {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
-  if (!apiKey) return null
-  return new Anthropic({ apiKey })
+function getApiKey(): string | null {
+  return (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim() || null
 }
 
 // ─── Model ────────────────────────────────────────────────────────────────────
 
-const MODEL = 'claude-sonnet-4-5-20241022'
+const MODEL = 'gemini-2.0-flash'
 
 // ─── Prompts ──────────────────────────────────────────────────────────────────
 
@@ -50,69 +47,6 @@ Confidence guidelines:
 Return ONLY valid JSON with no markdown code blocks, no explanation, no preamble.`
 }
 
-function buildConversationMessages(
-  question: string,
-  ticketContext: { category: string; title: string; description?: string | null; photos: string[] },
-  conversationHistory: AiConversationTurn[]
-): Anthropic.MessageParam[] {
-  // Build initial context message
-  const contextText = `You are an expert school facilities maintenance technician helping diagnose and resolve a maintenance issue.
-
-Ticket Information:
-- Category: ${ticketContext.category}
-- Title: ${ticketContext.title}
-${ticketContext.description ? `- Description: ${ticketContext.description}` : ''}
-${ticketContext.photos.length > 0 ? `- Number of photos on ticket: ${ticketContext.photos.length}` : '- No photos attached to this ticket'}
-
-Answer questions clearly and practically. Focus on actionable advice for school maintenance staff.`
-
-  const messages: Anthropic.MessageParam[] = []
-
-  // Add conversation history
-  for (const turn of conversationHistory) {
-    messages.push({
-      role: turn.role,
-      content: turn.content,
-    })
-  }
-
-  // Add current question (with context if this is the first message)
-  if (conversationHistory.length === 0) {
-    // First message — include full context
-    const contentParts: Anthropic.ContentBlockParam[] = [
-      { type: 'text', text: contextText + '\n\nUser question: ' + question },
-    ]
-
-    // Include photos if available (first question gets visual context)
-    if (ticketContext.photos.length > 0) {
-      const imageBlocks: Anthropic.ContentBlockParam[] = ticketContext.photos.slice(0, 3).map((url) => ({
-        type: 'image' as const,
-        source: {
-          type: 'url' as const,
-          url,
-        },
-      }))
-      messages.push({
-        role: 'user',
-        content: [...imageBlocks, ...contentParts],
-      })
-    } else {
-      messages.push({
-        role: 'user',
-        content: contentParts,
-      })
-    }
-  } else {
-    // Follow-up message — just the question
-    messages.push({
-      role: 'user',
-      content: question,
-    })
-  }
-
-  return messages
-}
-
 // ─── analyzeMaintenancePhotos ─────────────────────────────────────────────────
 
 interface AnalyzePhotosParams {
@@ -123,42 +57,52 @@ interface AnalyzePhotosParams {
 }
 
 export async function analyzeMaintenancePhotos(params: AnalyzePhotosParams): Promise<AiDiagnosis | null> {
-  const client = getClient()
-  if (!client) return null
+  const apiKey = getApiKey()
+  if (!apiKey) return null
 
   const { photoUrls, category, title, description } = params
 
   try {
-    // Build content array: images first, then diagnostic prompt
-    const imageBlocks: Anthropic.ContentBlockParam[] = photoUrls.map((url) => ({
-      type: 'image' as const,
-      source: {
-        type: 'url' as const,
-        url,
-      },
-    }))
+    const { GoogleGenAI } = await import('@google/genai')
+    const client = new GoogleGenAI({ apiKey })
 
-    const textBlock: Anthropic.ContentBlockParam = {
-      type: 'text',
-      text: buildDiagnosticPrompt(category, title, description),
+    // Build content parts: images first, then diagnostic prompt
+    const parts: any[] = []
+
+    // For URL-based images, we need to fetch them and convert to inline data
+    for (const url of photoUrls) {
+      try {
+        const response = await fetch(url, { signal: AbortSignal.timeout(10000) })
+        if (response.ok) {
+          const buffer = await response.arrayBuffer()
+          const base64 = Buffer.from(buffer).toString('base64')
+          const contentType = response.headers.get('content-type') || 'image/jpeg'
+          parts.push({
+            inlineData: {
+              data: base64,
+              mimeType: contentType,
+            },
+          })
+        }
+      } catch {
+        // Skip images that fail to fetch
+        console.warn(`[maintenance-ai] Failed to fetch image: ${url}`)
+      }
     }
 
-    const response = await client.messages.create({
+    if (parts.length === 0) {
+      console.warn('[maintenance-ai] No images could be fetched for analysis')
+      return null
+    }
+
+    parts.push({ text: buildDiagnosticPrompt(category, title, description) })
+
+    const result = await client.models.generateContent({
       model: MODEL,
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: [...imageBlocks, textBlock],
-        },
-      ],
+      contents: [{ role: 'user', parts }],
     })
 
-    // Extract text content from response
-    const textContent = response.content.find((block) => block.type === 'text')
-    if (!textContent || textContent.type !== 'text') return null
-
-    const raw = textContent.text.trim()
+    const raw = (result.text || '').trim()
 
     // Strip any accidental markdown code fences
     const jsonText = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
@@ -181,7 +125,7 @@ export async function analyzeMaintenancePhotos(params: AnalyzePhotosParams): Pro
       !Array.isArray(parsed.suggestedParts) ||
       !Array.isArray(parsed.steps)
     ) {
-      console.error('[maintenance-ai] Invalid response structure from Claude:', parsed)
+      console.error('[maintenance-ai] Invalid response structure from Gemini:', parsed)
       return null
     }
 
@@ -215,24 +159,76 @@ interface AskMaintenanceAIParams {
 }
 
 export async function askMaintenanceAI(params: AskMaintenanceAIParams): Promise<string | null> {
-  const client = getClient()
-  if (!client) return null
+  const apiKey = getApiKey()
+  if (!apiKey) return null
 
   const { question, ticketContext, conversationHistory } = params
 
   try {
-    const messages = buildConversationMessages(question, ticketContext, conversationHistory)
+    const { GoogleGenAI } = await import('@google/genai')
+    const client = new GoogleGenAI({ apiKey })
 
-    const response = await client.messages.create({
+    const contextText = `You are an expert school facilities maintenance technician helping diagnose and resolve a maintenance issue.
+
+Ticket Information:
+- Category: ${ticketContext.category}
+- Title: ${ticketContext.title}
+${ticketContext.description ? `- Description: ${ticketContext.description}` : ''}
+${ticketContext.photos.length > 0 ? `- Number of photos on ticket: ${ticketContext.photos.length}` : '- No photos attached to this ticket'}
+
+Answer questions clearly and practically. Focus on actionable advice for school maintenance staff.`
+
+    // Build Gemini-format conversation contents
+    const contents: any[] = []
+
+    // Add conversation history
+    for (const turn of conversationHistory) {
+      contents.push({
+        role: turn.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: turn.content }],
+      })
+    }
+
+    // Build the current message
+    if (conversationHistory.length === 0) {
+      // First message — include full context and photos
+      const parts: any[] = []
+
+      // Include photos if available (first question gets visual context)
+      if (ticketContext.photos.length > 0) {
+        for (const url of ticketContext.photos.slice(0, 3)) {
+          try {
+            const response = await fetch(url, { signal: AbortSignal.timeout(10000) })
+            if (response.ok) {
+              const buffer = await response.arrayBuffer()
+              const base64 = Buffer.from(buffer).toString('base64')
+              const contentType = response.headers.get('content-type') || 'image/jpeg'
+              parts.push({
+                inlineData: { data: base64, mimeType: contentType },
+              })
+            }
+          } catch {
+            // Skip failed images
+          }
+        }
+      }
+
+      parts.push({ text: contextText + '\n\nUser question: ' + question })
+      contents.push({ role: 'user', parts })
+    } else {
+      // Follow-up message — just the question
+      contents.push({
+        role: 'user',
+        parts: [{ text: question }],
+      })
+    }
+
+    const result = await client.models.generateContent({
       model: MODEL,
-      max_tokens: 1024,
-      messages,
+      contents,
     })
 
-    const textContent = response.content.find((block) => block.type === 'text')
-    if (!textContent || textContent.type !== 'text') return null
-
-    return textContent.text.trim() || null
+    return (result.text || '').trim() || null
   } catch (error) {
     console.error('[maintenance-ai] askMaintenanceAI error:', error)
     return null

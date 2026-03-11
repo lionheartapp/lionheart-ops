@@ -5,9 +5,9 @@
  * the maintenance ticket. Appends the conversation turn to the cached aiAnalysis.
  *
  * Behavior:
- *   - Gracefully degrades if ANTHROPIC_API_KEY is not set
+ *   - Gracefully degrades if GEMINI_API_KEY is not set
  *   - Loads existing conversation history from aiAnalysis cache
- *   - Sends conversation history + new question to Claude
+ *   - Sends conversation history + new question to Gemini
  *   - Appends user + assistant turns to cache and persists to DB
  *
  * Required permission: MAINTENANCE_CLAIM (technicians and heads can use AI)
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_CLAIM)
 
     // Graceful degrade — API key not configured
-    if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+    if (!(process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()) {
       return NextResponse.json(ok({ available: false, answer: null, conversation: [] }))
     }
 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       const cached = ticket.aiAnalysis as AiAnalysisCache | null
       const conversationHistory: AiConversationTurn[] = cached?.conversation ?? []
 
-      // Call Anthropic API
+      // Call Gemini API
       const answer = await askMaintenanceAI({
         question,
         ticketContext: {

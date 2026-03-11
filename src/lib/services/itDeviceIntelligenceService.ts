@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { prisma, rawPrisma } from '@/lib/db'
-import { claudeTextCompletion, extractJson, getClaudeClient } from '@/lib/services/ai/claude-client'
+import { GoogleGenAI } from '@google/genai'
 
 // ============= Validation Schemas =============
 
@@ -226,7 +226,7 @@ export async function calculateRepairVsReplace(deviceId: string) {
 
 /**
  * Get an AI-powered recommendation for a device (repair, replace, or keep).
- * Falls back to a simple rule-based recommendation if ANTHROPIC_API_KEY is not set.
+ * Falls back to a simple rule-based recommendation if GEMINI_API_KEY is not set.
  * Stores the result in the device's aiRecommendation field.
  */
 export async function getAIRecommendation(deviceId: string, orgId: string) {
@@ -262,7 +262,7 @@ export async function getAIRecommendation(deviceId: string, orgId: string) {
       )
     : null
 
-  const hasAI = !!getClaudeClient()
+  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
 
   let recommendation: {
     action: 'repair' | 'replace' | 'monitor'
@@ -270,9 +270,9 @@ export async function getAIRecommendation(deviceId: string, orgId: string) {
     confidence: number
   }
 
-  if (hasAI) {
-    // Use Claude AI for recommendation
-    recommendation = await getClaudeRecommendation({
+  if (apiKey) {
+    // Use Gemini AI for recommendation
+    recommendation = await getGeminiRecommendation(apiKey, {
       assetTag: device.assetTag,
       deviceType: device.deviceType,
       make: device.make,
@@ -314,14 +314,15 @@ export async function getAIRecommendation(deviceId: string, orgId: string) {
     assetTag: device.assetTag,
     ...recommendation,
     generatedAt: new Date().toISOString(),
-    source: hasAI ? 'claude' : 'rule-based',
+    source: apiKey ? 'gemini' : 'rule-based',
   }
 }
 
 /**
- * Call Claude API for a device recommendation.
+ * Call Gemini API for a device recommendation.
  */
-async function getClaudeRecommendation(
+async function getGeminiRecommendation(
+  apiKey: string,
   deviceData: {
     assetTag: string
     deviceType: string
@@ -340,6 +341,8 @@ async function getClaudeRecommendation(
     }>
   }
 ): Promise<{ action: 'repair' | 'replace' | 'monitor'; reasoning: string; confidence: number }> {
+  const ai = new GoogleGenAI({ apiKey })
+
   const prompt = `You are an IT asset management advisor for a school. Analyze this device and recommend whether to REPAIR, REPLACE, or MONITOR it.
 
 Device: ${deviceData.make || 'Unknown'} ${deviceData.model || deviceData.deviceType} (Asset: ${deviceData.assetTag})
@@ -363,24 +366,28 @@ Return ONLY valid JSON:
 }`
 
   try {
-    const result = await claudeTextCompletion(prompt)
-    if (result) {
-      const parsed = extractJson<{ action?: string; reasoning?: string; confidence?: number }>(result)
-      if (parsed) {
-        return {
-          action: ['repair', 'replace', 'monitor'].includes(parsed.action || '')
-            ? (parsed.action as 'repair' | 'replace' | 'monitor')
-            : 'monitor',
-          reasoning: String(parsed.reasoning || 'AI analysis complete.'),
-          confidence: Math.min(1, Math.max(0, Number(parsed.confidence) || 0.5)),
-        }
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
+    })
+
+    const responseText = result.text || ''
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      return {
+        action: ['repair', 'replace', 'monitor'].includes(parsed.action)
+          ? parsed.action
+          : 'monitor',
+        reasoning: String(parsed.reasoning || 'AI analysis complete.'),
+        confidence: Math.min(1, Math.max(0, Number(parsed.confidence) || 0.5)),
       }
     }
   } catch (err) {
-    console.error('[itDeviceIntelligence] Claude API error:', err)
+    console.error('[itDeviceIntelligence] Gemini API error:', err)
   }
 
-  // Fallback if Claude fails to return valid JSON
+  // Fallback if Gemini fails to return valid JSON
   return getRuleBasedRecommendation({
     purchasePrice: deviceData.purchasePrice,
     totalRepairCost: deviceData.totalRepairCost,

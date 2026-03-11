@@ -1,16 +1,4 @@
-/**
- * Event AI Service — Anthropic Claude
- *
- * Handles AI-powered event operations:
- *   - parseEventFromText: Natural language → structured event fields
- *   - generateEventDescription: Title → professional description
- *   - patchDraftFromText: Extract structured hints from requests
- *
- * Migrated from Google Gemini to Anthropic Claude.
- * Retains the same exported interface for backward compatibility.
- */
-
-import { claudeTextCompletion, extractJson } from './claude-client'
+import { GoogleGenAI } from '@google/genai'
 
 export interface ParsedEvent {
   title?: string
@@ -25,24 +13,38 @@ export interface ParsedEvent {
 }
 
 export class GeminiService {
-  async patchDraftFromText(input: string) {
-    const prompt = `Extract structured event hints from this school operations request: ${input}`
-    const result = await claudeTextCompletion(prompt)
+  private client: GoogleGenAI | null
 
-    if (!result) {
+  constructor() {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
+    this.client = apiKey ? new GoogleGenAI({ apiKey }) : null
+  }
+
+  async patchDraftFromText(input: string) {
+    if (!this.client) {
       return {
         summary: input,
-        hints: ['Set ANTHROPIC_API_KEY to enable semantic patching'],
+        hints: ['Set GEMINI_API_KEY to enable semantic patching'],
       }
     }
 
+    const prompt = `Extract structured event hints from this school operations request: ${input}`
+    const result = await this.client.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
+    })
+
     return {
-      summary: result,
+      summary: result.text || input,
       hints: ['AI patch generated'],
     }
   }
 
   async parseEventFromText(text: string): Promise<ParsedEvent> {
+    if (!this.client) {
+      return { title: text }
+    }
+
     const prompt = `Parse the following natural language description into structured calendar event fields.
 Return ONLY valid JSON with these optional fields:
 - title (string): event name
@@ -60,24 +62,38 @@ Input: "${text.replace(/"/g, '\\"')}"
 JSON:`
 
     try {
-      const result = await claudeTextCompletion(prompt)
-      if (!result) return { title: text }
+      const result = await this.client.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
+      })
 
-      const parsed = extractJson<ParsedEvent>(result)
-      return parsed ?? { title: text }
+      const responseText = result.text || ''
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]) as ParsedEvent
+      }
+      return { title: text }
     } catch {
       return { title: text }
     }
   }
 
   async generateEventDescription(title: string, context?: string): Promise<string> {
+    if (!this.client) {
+      return ''
+    }
+
     const prompt = `Write a concise, professional 2-3 sentence description for a school calendar event.
 Title: "${title}"
 ${context ? `Context: ${context}` : ''}
 Keep it informative and appropriate for parents and staff. Do not use emoji.`
 
     try {
-      return (await claudeTextCompletion(prompt)) ?? ''
+      const result = await this.client.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
+      })
+      return result.text || ''
     } catch {
       return ''
     }

@@ -11,10 +11,9 @@
  * - Creates in-app notifications for recipients
  * - Stores idempotency timestamp on asset (no duplicate alerts within 30 days)
  *
- * For cost threshold: also generates AI replace-vs-repair recommendation via Anthropic.
+ * For cost threshold: also generates AI replace-vs-repair recommendation via Gemini.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
 import { rawPrisma } from '@/lib/db'
 import { createNotification } from '@/lib/services/notificationService'
 import {
@@ -85,8 +84,8 @@ async function getMaintenanceAnalyticsRecipients(orgId: string): Promise<Recipie
 // ─── AI Recommendation ────────────────────────────────────────────────────────
 
 /**
- * Generate a replace-vs-repair recommendation using Anthropic Claude.
- * Returns a fallback object if ANTHROPIC_API_KEY is not configured or if the call fails.
+ * Generate a replace-vs-repair recommendation using Google Gemini.
+ * Returns a fallback object if GEMINI_API_KEY is not configured or if the call fails.
  */
 export async function generateReplaceVsRepairRecommendation(
   asset: {
@@ -101,11 +100,11 @@ export async function generateReplaceVsRepairRecommendation(
   },
   cumulativeRepairCost: number
 ): Promise<AiRecommendation> {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
 
   if (!apiKey) {
     return {
-      recommendation: 'AI recommendation unavailable — ANTHROPIC_API_KEY not configured',
+      recommendation: 'AI recommendation unavailable — GEMINI_API_KEY not configured',
       decision: 'UNKNOWN',
       urgency: 'MEDIUM',
     }
@@ -130,17 +129,17 @@ Provide a concise recommendation (2-3 sentences) covering:
 2. Key financial reasoning
 3. Suggested timeline for action
 
-Respond with JSON: { "recommendation": "...", "decision": "REPLACE" | "REPAIR", "urgency": "LOW" | "MEDIUM" | "HIGH" }`
+Respond with ONLY valid JSON (no markdown): { "recommendation": "...", "decision": "REPLACE" | "REPAIR", "urgency": "LOW" | "MEDIUM" | "HIGH" }`
 
   try {
-    const anthropic = new Anthropic({ apiKey })
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 512,
-      messages: [{ role: 'user', content: prompt }],
+    const { GoogleGenAI } = await import('@google/genai')
+    const ai = new GoogleGenAI({ apiKey })
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
     })
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : ''
+    const text = (result.text || '').trim()
 
     // Extract JSON from the response (may be wrapped in markdown code blocks)
     const jsonMatch = text.match(/\{[\s\S]*\}/)

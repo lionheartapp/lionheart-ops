@@ -4,9 +4,9 @@
  * Returns an AI-powered diagnosis of the ticket's photos.
  *
  * Behavior:
- *   - Gracefully degrades if ANTHROPIC_API_KEY is not set
+ *   - Gracefully degrades if GEMINI_API_KEY is not set
  *   - Returns cached diagnosis if photos haven't changed since last analysis
- *   - Calls Anthropic Claude Vision API and caches result in aiAnalysis field
+ *   - Calls Google Gemini Vision API and caches result in aiAnalysis field
  *   - Adding new photos (changing photos array) invalidates the cache
  *
  * Required permission: MAINTENANCE_CLAIM (technicians and heads can use AI)
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_CLAIM)
 
     // Graceful degrade — API key not configured
-    if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+    if (!(process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()) {
       return NextResponse.json(ok({ available: false, diagnosis: null, cached: false }))
     }
 
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         }
       }
 
-      // Call Anthropic API
+      // Call Gemini API
       const diagnosis = await analyzeMaintenancePhotos({
         photoUrls: ticket.photos,
         category: ticket.category,

@@ -4,9 +4,10 @@
  * Defines the tools available to the AI assistant and handles execution.
  * Each tool maps to existing analytics services or Prisma queries.
  * Permission checks are enforced before executing any tool.
+ *
+ * Tool definitions use Gemini FunctionDeclaration format.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
 import { prisma } from '@/lib/db'
 import { can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -29,10 +30,21 @@ import {
   type ITAnalyticsOptions,
 } from '@/lib/services/itAnalyticsService'
 
-// ─── Tool Registry ────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+/** Gemini-compatible function declaration */
+export interface GeminiFunctionDeclaration {
+  name: string
+  description: string
+  parameters: {
+    type: string
+    properties: Record<string, unknown>
+    required?: string[]
+  }
+}
 
 export interface ToolRegistryEntry {
-  definition: Anthropic.Tool
+  definition: GeminiFunctionDeclaration
   requiredPermission: string | null // null = no permission needed
   execute: (input: Record<string, unknown>, ctx: ToolContext) => Promise<string>
 }
@@ -42,6 +54,8 @@ export interface ToolContext {
   organizationId: string
 }
 
+// ─── Tool Registry ────────────────────────────────────────────────────────────
+
 const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
   // ── Maintenance Analytics ─────────────────────────────────────────────
   query_maintenance_stats: {
@@ -49,8 +63,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'query_maintenance_stats',
       description:
         'Query maintenance analytics for the organization. Returns statistics about maintenance tickets, technician workload, PM compliance, costs, and more.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           stat_type: {
             type: 'string',
@@ -86,8 +100,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'query_it_stats',
       description:
         'Query IT analytics for the organization. Returns statistics about IT tickets, device health, repair costs, SLA compliance, and loaner utilization.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           stat_type: {
             type: 'string',
@@ -123,8 +137,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'search_platform',
       description:
         'Search across the platform for users, tickets, events, devices, buildings, and rooms by keyword.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           query: {
             type: 'string',
@@ -148,8 +162,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'list_upcoming_events',
       description:
         'List upcoming calendar events for the organization. Returns event title, date, time, location, and status.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           days_ahead: {
             type: 'number',
@@ -173,8 +187,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'get_campus_info',
       description:
         'Get information about campus buildings, rooms, and schools in the organization.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           info_type: {
             type: 'string',
@@ -199,8 +213,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'get_ticket_details',
       description:
         'Get detailed information about a specific maintenance ticket by its ID or ticket number.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           ticket_id: {
             type: 'string',
@@ -220,8 +234,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'get_device_info',
       description:
         'Get detailed information about an IT device by its asset tag or ID, including repair history.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           identifier: {
             type: 'string',
@@ -241,8 +255,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'create_maintenance_ticket',
       description:
         'Draft a new maintenance ticket. Returns a summary for user confirmation before actually creating it. Use this when the user asks to create, submit, or report a maintenance issue.',
-      input_schema: {
-        type: 'object' as const,
+      parameters: {
+        type: 'object',
         properties: {
           title: {
             type: 'string',
@@ -291,8 +305,8 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
  */
 export async function getAvailableTools(
   userId: string
-): Promise<Anthropic.Tool[]> {
-  const tools: Anthropic.Tool[] = []
+): Promise<GeminiFunctionDeclaration[]> {
+  const tools: GeminiFunctionDeclaration[] = []
 
   for (const entry of Object.values(TOOL_REGISTRY)) {
     if (!entry.requiredPermission || (await can(userId, entry.requiredPermission))) {

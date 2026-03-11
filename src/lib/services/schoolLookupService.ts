@@ -7,7 +7,7 @@
  * 3. Meta tag fallback for basic styling
  */
 
-import { claudeTextCompletion, extractJson, getClaudeClient } from '@/lib/services/ai/claude-client'
+import { GoogleGenAI } from '@google/genai'
 
 interface SchoolLookupResult {
   logo: string | null
@@ -295,14 +295,17 @@ function stripHtmlToText(html: string): string {
   return text.slice(0, 5000) // Limit to 5000 chars for API
 }
 
-// Layer 2: Claude AI extraction
+// Layer 2: Gemini AI extraction
 async function extractWithGemini(htmlText: string, rawHtml: string, domain: string): Promise<Partial<SchoolLookupResult> | null> {
-  if (!getClaudeClient()) {
-    console.log('ANTHROPIC_API_KEY not set, skipping AI extraction layer')
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
+  if (!apiKey) {
+    console.log('Gemini API key not set (checked GEMINI_API_KEY and NEXT_PUBLIC_GEMINI_API_KEY), skipping layer 2')
     return null
   }
 
   try {
+    const client = new GoogleGenAI({ apiKey })
+
     // Extract CSS color hints from raw HTML for the AI to analyze
     const cssSnippet = extractCssColorHints(rawHtml)
 
@@ -328,17 +331,20 @@ ${cssSnippet ? `CSS color hints from the page:\n${cssSnippet}\n` : ''}
 Website text content:
 ${htmlText}`
 
-    const responseText = await claudeTextCompletion(prompt, 1024)
-    if (!responseText) {
-      console.log('No response from Claude AI extraction')
+    const response = await client.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
+    })
+    const responseText = response.text || ''
+
+    // Parse JSON response
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      console.log('No JSON found in Gemini response')
       return null
     }
 
-    const extracted = extractJson<GeminiExtractionResult>(responseText)
-    if (!extracted) {
-      console.log('No JSON found in Claude response')
-      return null
-    }
+    const extracted: GeminiExtractionResult = JSON.parse(jsonMatch[0])
 
     const result: Partial<SchoolLookupResult> = {
       phone: extracted.phone || null,
@@ -352,7 +358,7 @@ ${htmlText}`
       staffCount: extracted.staffCount || null,
     }
 
-    // If Claude found a primary color, include it
+    // If Gemini found a primary color, include it
     if (extracted.primaryColor && extracted.primaryColor !== 'null') {
       result.colors = {
         primary: extracted.primaryColor.startsWith('#') ? extracted.primaryColor : `#${extracted.primaryColor}`,
@@ -363,7 +369,7 @@ ${htmlText}`
 
     return result
   } catch (error) {
-    console.error('Claude extraction error:', error instanceof Error ? error.message : error)
+    console.error('Gemini extraction error:', error instanceof Error ? error.message : error)
     return null
   }
 }

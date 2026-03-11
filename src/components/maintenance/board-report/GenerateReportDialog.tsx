@@ -188,7 +188,7 @@ export function GenerateReportDialog({
                       </span>
                     </div>
                     <p className="text-xs text-gray-500">
-                      Powered by Claude — analyzes your facility data and writes a 3-paragraph
+                      Powered by Gemini — analyzes your facility data and writes a 3-paragraph
                       narrative for board members
                     </p>
                   </div>

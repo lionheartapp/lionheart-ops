@@ -116,10 +116,10 @@ export default function PrivacyPage() {
               account-related emails. Resend does not use this information for its own marketing.
             </li>
             <li>
-              <strong>Anthropic Claude (AI features):</strong> When AI-assisted features are enabled,
-              relevant operational data may be sent to Anthropic&rsquo;s Claude API to generate
+              <strong>Google Gemini (AI features):</strong> When AI-assisted features are enabled,
+              relevant operational data may be sent to Google&rsquo;s Gemini API to generate
               summaries, suggestions, or analyses. Schools can opt out of AI features. Data
-              processed by Claude is subject to Anthropic&rsquo;s API data processing terms.
+              processed by Gemini is subject to Google&rsquo;s API data processing terms.
             </li>
           </ul>
           <p className="text-gray-700 leading-relaxed mb-6">

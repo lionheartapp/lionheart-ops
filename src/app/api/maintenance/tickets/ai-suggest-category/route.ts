@@ -3,8 +3,6 @@
  *
  * Accepts an image (base64 or URL) and returns a suggested MaintenanceCategory.
  * Gracefully degrades to null if AI fails or API key is not set.
- *
- * Migrated from Google Gemini to Anthropic Claude.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -13,7 +11,6 @@ import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
-import { claudeVisionCompletion, getClaudeClient } from '@/lib/services/ai/claude-client'
 
 const CATEGORY_PROMPT = `You are a maintenance category classifier for a school facility management system.
 
@@ -36,7 +33,8 @@ export async function POST(req: NextRequest) {
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_SUBMIT)
 
-    if (!getClaudeClient()) {
+    const apiKey = process.env.GEMINI_API_KEY?.trim()
+    if (!apiKey) {
       return NextResponse.json(ok({ suggestedCategory: null }))
     }
 
@@ -48,18 +46,32 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      let images: Array<{ type: 'base64'; data: string; mediaType: string } | { type: 'url'; url: string }>
+      const { GoogleGenAI } = await import('@google/genai')
+      const genai = new GoogleGenAI({ apiKey })
+
+      let contents: unknown[]
 
       if (imageBase64) {
         const base64Data = imageBase64.replace(/^data:[^;]+;base64,/, '')
-        images = [{ type: 'base64', data: base64Data, mediaType: contentType || 'image/jpeg' }]
+        contents = [
+          CATEGORY_PROMPT,
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: contentType || 'image/jpeg',
+            },
+          },
+        ]
       } else {
-        images = [{ type: 'url', url: imageUrl }]
+        contents = [CATEGORY_PROMPT, imageUrl]
       }
 
-      const result = await claudeVisionCompletion(CATEGORY_PROMPT, images)
+      const result = await genai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: contents as any,
+      })
 
-      const text = (result || '').trim().toUpperCase()
+      const text = (result.text || '').trim().toUpperCase()
       const validCategories = [
         'ELECTRICAL', 'PLUMBING', 'HVAC', 'STRUCTURAL',
         'CUSTODIAL_BIOHAZARD', 'IT_AV', 'GROUNDS', 'OTHER',
@@ -68,7 +80,7 @@ export async function POST(req: NextRequest) {
       const suggestedCategory = validCategories.includes(text) ? text : null
       return NextResponse.json(ok({ suggestedCategory }))
     } catch (aiError) {
-      console.error('[ai-suggest-category] Claude error (graceful degrade):', aiError)
+      console.error('[ai-suggest-category] Gemini error (graceful degrade):', aiError)
       return NextResponse.json(ok({ suggestedCategory: null }))
     }
   } catch (error) {

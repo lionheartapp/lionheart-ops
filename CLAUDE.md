@@ -13,7 +13,7 @@ Educational institution management SaaS. Multi-tenant Next.js 15 app with one Su
 | ORM | Prisma v5.22 |
 | Auth | JWT (jose, HS256, 30-day expiry) |
 | Email | Resend (via nodemailer adapter) |
-| AI | Anthropic Claude (`@anthropic-ai/sdk`) |
+| AI | Google Gemini (`@google/genai`) |
 | UI | React 18, Tailwind CSS, TanStack Query |
 | Validation | Zod |
 
@@ -27,7 +27,7 @@ Dev server runs on **port 3004**: `npm run dev`
 DATABASE_URL      # Pooled Supabase connection (transactions/queries)
 DIRECT_URL        # Direct Supabase connection (migrations/introspection)
 AUTH_SECRET       # JWT signing secret — must be long and random
-ANTHROPIC_API_KEY # Required — powers all AI features (events, maintenance, diagnostics, reports)
+GEMINI_API_KEY    # Optional — powers all AI features (events, maintenance, diagnostics, reports)
 RESEND_API_KEY    # Optional — enables welcome emails
 MAIL_FROM         # Optional — sender address (default: no-reply@lionheartapp.com)
 ```
