@@ -1,9 +1,143 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePrefetchOnAuth } from '@/lib/hooks/usePrefetchOnAuth'
 import { ToastProvider } from '@/components/Toast'
+
+// ── Paths that don't need auth hydration ────────────────────────────
+const PUBLIC_PREFIXES = [
+  '/login', '/set-password', '/reset-password', '/signup',
+  '/verify-email', '/it/sub', '/it/password-reset', '/it/ticket-status',
+  '/athletics/public', '/pricing', '/about',
+]
+
+function isPublicPage(): boolean {
+  if (typeof window === 'undefined') return false
+  const path = window.location.pathname
+  return path === '/' || PUBLIC_PREFIXES.some((p) => path.startsWith(p))
+}
+
+// ── CSRF Interceptor ────────────────────────────────────────────────
+// Old pages use raw fetch() without the CSRF header. Install a global
+// interceptor that reads the csrf-token cookie and adds the header
+// automatically on state-changing requests.
+function installCsrfInterceptor() {
+  if (typeof window === 'undefined') return
+  // Only install once
+  if ((window as any).__csrfInterceptorInstalled) return
+  ;(window as any).__csrfInterceptorInstalled = true
+
+  const originalFetch = window.fetch.bind(window)
+
+  window.fetch = async function patchedFetch(
+    input: RequestInfo | URL,
+    init?: RequestInit
+  ): Promise<Response> {
+    // Only add CSRF for same-origin mutating requests
+    const method = (init?.method || 'GET').toUpperCase()
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : (input as Request).url
+      const isSameOrigin =
+        url.startsWith('/') || url.startsWith(window.location.origin)
+
+      if (isSameOrigin) {
+        const csrfMatch = document.cookie
+          .split(';')
+          .find((c) => c.trim().startsWith('csrf-token='))
+        const csrfToken = csrfMatch
+          ? csrfMatch.trim().slice('csrf-token='.length)
+          : null
+
+        if (csrfToken) {
+          const headers = new Headers(init?.headers)
+          if (!headers.has('X-CSRF-Token')) {
+            headers.set('X-CSRF-Token', csrfToken)
+          }
+          init = { ...init, headers }
+        }
+      }
+    }
+
+    return originalFetch(input, init)
+  }
+}
+
+// ── Auth Bridge ─────────────────────────────────────────────────────
+// Fetches /api/auth/me (reads httpOnly cookie) and populates localStorage
+// so all existing pages keep working with zero changes. Blocks rendering
+// of children on auth-required pages until the check completes.
+function AuthBridge({ children }: { children: React.ReactNode }) {
+  const [ready, setReady] = useState(false)
+  const ran = useRef(false)
+
+  useEffect(() => {
+    if (ran.current) return
+    ran.current = true
+
+    // Install CSRF interceptor on first load
+    installCsrfInterceptor()
+
+    // Public pages don't need to wait for auth hydration
+    if (isPublicPage()) {
+      setReady(true)
+      return
+    }
+
+    // If localStorage already has auth data, render immediately
+    // (the cookie check will still run to keep it fresh)
+    const hasLocalAuth = localStorage.getItem('auth-token') && localStorage.getItem('org-id')
+    if (hasLocalAuth) {
+      setReady(true)
+    }
+
+    // Hydrate from cookie → localStorage
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Not authenticated')
+        return res.json()
+      })
+      .then((json) => {
+        if (!json.ok) throw new Error('Not authenticated')
+        const { user, org } = json.data
+
+        // Bridge: populate localStorage for backward compat with all existing pages
+        localStorage.setItem('auth-token', 'cookie-auth') // sentinel — real JWT is in httpOnly cookie
+        localStorage.setItem('org-id', org.id)
+        localStorage.setItem('user-name', user.name || '')
+        localStorage.setItem('user-email', user.email || '')
+        localStorage.setItem('user-avatar', user.avatar || '')
+        localStorage.setItem('user-team', user.team || '')
+        localStorage.setItem('user-school-scope', user.schoolScope || '')
+        localStorage.setItem('user-role', user.role || '')
+        localStorage.setItem('org-name', org.name || '')
+        localStorage.setItem('org-school-type', org.schoolType || '')
+        localStorage.setItem('org-logo-url', org.logoUrl || '')
+
+        setReady(true)
+      })
+      .catch(() => {
+        // Not authenticated — clear any stale localStorage data
+        ;[
+          'auth-token', 'org-id', 'user-name', 'user-email', 'user-avatar',
+          'user-team', 'user-school-scope', 'user-role', 'org-name',
+          'org-school-type', 'org-logo-url',
+        ].forEach((k) => localStorage.removeItem(k))
+        setReady(true)
+        // Individual pages will see empty localStorage and redirect to /login
+      })
+  }, [])
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    )
+  }
+
+  return <>{children}</>
+}
 
 function PrefetchGate({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
@@ -24,26 +158,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // ── Key change: bump staleTime from 15s → 5 minutes ──
-            // School data (rosters, calendars, settings) doesn't change
-            // every 15 seconds. This prevents unnecessary background
-            // refetches when navigating between pages and is the single
-            // biggest win for perceived performance.
-            staleTime: 5 * 60 * 1000, // 5 minutes
-
-            // Keep unused data in memory for 30 minutes before GC.
-            // Users often navigate away and come back within a session.
-            gcTime: 30 * 60 * 1000, // 30 minutes
-
-            // Still refetch when user returns to the tab — keeps data
-            // fresh after they've been away
+            staleTime: 5 * 60 * 1000,
+            gcTime: 30 * 60 * 1000,
             refetchOnWindowFocus: true,
-
-            // Don't refetch when the component remounts (e.g. navigating
-            // back). Combined with staleTime this means instant page loads.
             refetchOnMount: false,
-
-            // Retry once on failure, then show error
             retry: 1,
           },
         },
@@ -53,7 +171,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <PrefetchGate>{children}</PrefetchGate>
+        <AuthBridge>
+          <PrefetchGate>{children}</PrefetchGate>
+        </AuthBridge>
       </ToastProvider>
     </QueryClientProvider>
   )
