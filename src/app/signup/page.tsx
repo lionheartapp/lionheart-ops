@@ -50,6 +50,7 @@ export default function SignupPage() {
       const res = await fetch('/api/organizations/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name: schoolName,
           website: normalizedWebsite,
@@ -69,16 +70,15 @@ export default function SignupPage() {
         throw new Error(data.error?.message || 'Signup failed')
       }
 
-      // Store auth info in localStorage
       if (data.data) {
-        const { organizationId, admin, slug } = data.data
-        localStorage.setItem('auth-token', admin.token || '')
-        localStorage.setItem('org-id', organizationId || '')
+        const { slug } = data.data
+        // Non-sensitive display data for onboarding pages (AuthBridge will refresh from /api/auth/me)
         localStorage.setItem('org-name', schoolName)
         localStorage.setItem('org-slug', slug || '')
         localStorage.setItem('user-name', name)
         localStorage.setItem('user-email', email)
 
+        // Auth token is now in httpOnly cookie set by the server — no localStorage write needed
         // Redirect to onboarding
         window.location.href = '/onboarding/school-info'
       }
