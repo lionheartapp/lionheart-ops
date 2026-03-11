@@ -416,7 +416,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
 
         {/* Aurora accent line — below header */}
         <div
-          className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full"
+          className="absolute bottom-0 left-0 right-0 h-[2px]"
           style={{
             background: isAiActive
               ? 'linear-gradient(90deg, #7c5bf1, #5b8af1, #4ecdc4, #44d986, #f5a623, #e84393, #7c5bf1)'

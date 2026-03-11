@@ -35,6 +35,7 @@ export default function InputForm({
   const [imageError, setImageError] = useState<string | null>(null)
   const [isFocused, setIsFocused] = useState(false)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
+  const [placeholderTransition, setPlaceholderTransition] = useState(true)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const PLACEHOLDER_EXAMPLES = useMemo(() => [
@@ -78,10 +79,29 @@ export default function InputForm({
   }, [])
 
   // Cycle placeholder examples when not focused and empty
+  // Uses a clone of the first item at end of list for seamless wrap
   useEffect(() => {
     if (isFocused || input) return
+    const total = PLACEHOLDER_EXAMPLES.length
     const timer = setInterval(() => {
-      setPlaceholderIdx((prev) => (prev + 1) % PLACEHOLDER_EXAMPLES.length)
+      setPlaceholderIdx((prev) => {
+        const next = prev + 1
+        if (next === total) {
+          // Animate to the clone (index = total), then snap back to 0
+          setPlaceholderTransition(true)
+          setTimeout(() => {
+            setPlaceholderTransition(false)
+            setPlaceholderIdx(0)
+            // Re-enable transition after the snap
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => setPlaceholderTransition(true))
+            })
+          }, 500) // wait for the transition to finish
+          return next
+        }
+        setPlaceholderTransition(true)
+        return next
+      })
     }, 3000)
     return () => clearInterval(timer)
   }, [isFocused, input, PLACEHOLDER_EXAMPLES])
@@ -321,23 +341,49 @@ export default function InputForm({
           <ImagePlus className="h-4 w-4" />
         </button>
 
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : isFocused ? 'Ask anything...' : PLACEHOLDER_EXAMPLES[placeholderIdx]}
-          disabled={isLoading}
-          rows={1}
-          className={`flex-1 resize-none rounded-full border bg-gray-50/80 px-4 py-2.5 text-sm leading-relaxed placeholder:text-gray-400 placeholder:transition-opacity focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
-            isListening
-              ? 'border-indigo-300 focus:border-indigo-400 focus:ring-indigo-400'
-              : 'border-gray-200/80 focus:border-indigo-400 focus:ring-indigo-400'
-          }`}
-        />
+        <div className="relative flex-1">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : isFocused ? 'Ask anything...' : undefined}
+            disabled={isLoading}
+            rows={1}
+            className={`w-full resize-none rounded-full border bg-gray-50/80 px-4 py-2.5 text-sm leading-relaxed placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
+              isListening
+                ? 'border-indigo-300 focus:border-indigo-400 focus:ring-indigo-400'
+                : 'border-gray-200/80 focus:border-indigo-400 focus:ring-indigo-400'
+            }`}
+          />
+          {/* Animated "Try:" placeholder with vertical scroll */}
+          {!input && !isFocused && !isListening && !isDragging && (
+            <div className="pointer-events-none absolute inset-0 flex items-center px-4 overflow-hidden">
+              <span className="text-sm text-gray-400 flex-shrink-0">Try:&nbsp;</span>
+              <div className="relative h-[20px] overflow-hidden flex-1">
+                <div
+                  style={{
+                    transform: `translateY(-${placeholderIdx * 20}px)`,
+                    transition: placeholderTransition ? 'transform 500ms cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none',
+                  }}
+                >
+                  {PLACEHOLDER_EXAMPLES.map((example, i) => (
+                    <div key={i} className="h-[20px] flex items-center text-sm text-gray-400 truncate">
+                      {example}
+                    </div>
+                  ))}
+                  {/* Clone of first item for seamless wrap */}
+                  <div className="h-[20px] flex items-center text-sm text-gray-400 truncate">
+                    {PLACEHOLDER_EXAMPLES[0]}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Mic button */}
         {voiceSupported && (
