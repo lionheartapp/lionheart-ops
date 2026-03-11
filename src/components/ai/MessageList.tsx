@@ -60,7 +60,7 @@ export default function MessageList({
   const isLastAssistantStreaming = isStreaming && conversation.length > 0 && conversation[conversation.length - 1]?.role === 'assistant'
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
+    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>
       {/* Empty state — animated orb */}
       {conversation.length === 0 && !isLoading && (
         <motion.div
@@ -97,9 +97,10 @@ export default function MessageList({
             <div
               className={`max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
                 turn.role === 'user'
-                  ? 'bg-blue-500 text-white rounded-br-sm'
-                  : 'bg-white text-gray-900 border border-gray-200 rounded-bl-sm shadow-sm'
+                  ? 'text-white rounded-br-sm shadow-md'
+                  : 'bg-white/90 backdrop-blur-sm text-gray-900 border border-gray-200/50 rounded-bl-sm shadow-sm'
               }`}
+              style={turn.role === 'user' ? { background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' } : undefined}
             >
               {turn.content || (showCursor ? '' : '')}
               {showCursor && (
@@ -169,7 +170,7 @@ export default function MessageList({
             return (
               <div
                 key={tool}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-xs text-blue-700"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50/80 backdrop-blur-sm border border-indigo-100/50 text-xs text-indigo-600"
               >
                 <Icon className="w-3 h-3 animate-pulse" />
                 <span>{info.label}...</span>

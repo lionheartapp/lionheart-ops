@@ -361,39 +361,49 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
     <div
       className={`relative flex flex-col overflow-hidden ${
         isEmbedded
-          ? 'w-full h-full rounded-2xl border border-gray-200 bg-white shadow-sm'
-          : 'w-[384px] rounded-2xl border border-gray-200 bg-white shadow-2xl'
+          ? 'w-full h-full rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
+          : 'w-[384px] rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-2xl'
       }`}
       style={isEmbedded ? undefined : { height: '520px' }}
     >
-      {/* Header */}
-      <div className="relative flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 rounded-t-2xl">
-        {isAiActive && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-[2px] ai-glow-spin"
-            style={{
-              background:
-                'linear-gradient(90deg, #7c5bf1, #5b8af1, #4ecdc4, #44d986, #f5a623, #e84393, #7c5bf1)',
-              backgroundSize: '200% 100%',
-              animation: 'glowSlide 2s linear infinite',
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-        )}
+      {/* Header — minimal glass style */}
+      <div className="relative flex items-center justify-between px-4 py-2.5 border-b border-gray-200/40">
+        {/* Aurora accent line at top */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+          style={{
+            background: isAiActive
+              ? 'linear-gradient(90deg, #7c5bf1, #5b8af1, #4ecdc4, #44d986, #f5a623, #e84393, #7c5bf1)'
+              : 'linear-gradient(90deg, #3B82F6, #6366F1)',
+            backgroundSize: isAiActive ? '200% 100%' : '100% 100%',
+            animation: isAiActive ? 'glowSlide 2s linear infinite' : 'none',
+            opacity: isAiActive ? 1 : 0.5,
+          }}
+        />
 
         <div className="flex items-center gap-2">
-          <Sparkles className={`h-4 w-4 ${isAiActive ? 'text-white animate-pulse' : 'text-white/90'}`} />
-          <h3 className="text-sm font-semibold text-white">
-            {isListening ? 'Listening...' : isLoading ? 'Thinking...' : isStreaming ? 'Leo' : 'Leo'}
-          </h3>
+          <div
+            className="flex items-center justify-center w-6 h-6 rounded-full"
+            style={{
+              background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)',
+            }}
+          >
+            <Sparkles className="h-3 w-3 text-white" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Leo</h3>
+            {isAiActive && (
+              <p className="text-[10px] text-indigo-500 font-medium -mt-0.5">
+                {isListening ? 'Listening...' : isLoading ? 'Thinking...' : 'Responding...'}
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           {conversation.length > 0 && (
             <button
               onClick={handleClearChat}
-              className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
               aria-label="Clear conversation"
               title="New conversation"
             >
@@ -403,7 +413,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
           {!isEmbedded && onClose && (
             <button
               onClick={onClose}
-              className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
               aria-label="Close"
             >
               <span className="text-lg leading-none">&times;</span>
