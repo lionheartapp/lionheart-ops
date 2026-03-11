@@ -246,7 +246,7 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      <div className="flex flex-1 pt-16">
+      <div className="flex flex-1 pt-16 min-h-0">
         {/* Sidebar */}
         <Sidebar
           userName={userName}
@@ -256,7 +256,7 @@ export default function DashboardLayout({
         />
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 overflow-hidden relative flex flex-col">
+        <main className="flex-1 min-w-0 min-h-0 overflow-hidden relative flex flex-col">
           {/* Ambient gradient blobs — gives glass cards depth */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
             <div className="absolute -top-32 right-0 w-[500px] h-[500px] rounded-full blur-[120px] bg-blue-200/[0.08]" />
