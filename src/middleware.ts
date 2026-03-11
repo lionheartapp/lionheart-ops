@@ -162,7 +162,8 @@ export async function middleware(req: NextRequest) {
       limiter = signupRateLimiter
     } else if (
       pathname.startsWith('/api/auth/forgot-password') ||
-      pathname.startsWith('/api/auth/set-password')
+      pathname.startsWith('/api/auth/set-password') ||
+      pathname.startsWith('/api/auth/reset-password')
     ) {
       limiter = publicApiRateLimiter
     }

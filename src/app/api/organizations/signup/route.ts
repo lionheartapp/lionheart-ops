@@ -87,7 +87,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Return created organization with admin user details + auth token
-    return NextResponse.json(
+    // Also set httpOnly auth cookie and CSRF cookie (matching login route pattern)
+    const response = NextResponse.json(
       ok({
         organizationId: result.id,
         organizationName: result.name,
@@ -97,6 +98,27 @@ export async function POST(req: NextRequest) {
       }),
       { status: 201 }
     )
+
+    // Set httpOnly auth cookie (primary auth mechanism — replaces localStorage JWT)
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    })
+
+    // Set CSRF token (non-httpOnly so JS can read it for X-CSRF-Token header)
+    const csrfToken = crypto.randomUUID()
+    response.cookies.set('csrf-token', csrfToken, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    })
+
+    return response
   } catch (error) {
     log.error({ err: error }, 'Signup error')
     Sentry.captureException(error)
