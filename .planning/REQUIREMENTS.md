@@ -60,8 +60,8 @@ Requirements for Launch Readiness milestone. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Critical API routes have Vitest unit tests covering happy path and error cases
-- [ ] **INFRA-02**: GitHub Actions CI pipeline runs tests, linting, and type-check on every PR
+- [x] **INFRA-01**: Critical API routes have Vitest unit tests covering happy path and error cases
+- [x] **INFRA-02**: GitHub Actions CI pipeline runs tests, linting, and type-check on every PR
 - [ ] **INFRA-03**: Application uses structured JSON logging (Pino) with log levels instead of console.error
 - [ ] **INFRA-04**: Runtime errors are captured and reported to Sentry with context
 - [ ] **INFRA-05**: All list API endpoints support cursor-based or offset pagination with configurable page size
@@ -175,8 +175,8 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | SET-03 | Phase 12 | Complete |
 | SET-04 | Phase 12 | Complete |
 | SET-05 | Phase 12 | Complete |
-| INFRA-01 | Phase 13 | Pending |
-| INFRA-02 | Phase 13 | Pending |
+| INFRA-01 | Phase 13 | Complete |
+| INFRA-02 | Phase 13 | Complete |
 | INFRA-03 | Phase 13 | Pending |
 | INFRA-04 | Phase 13 | Pending |
 | INFRA-05 | Phase 13 | Pending |

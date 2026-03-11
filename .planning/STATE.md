@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Phase 13 context gathered
-last_updated: "2026-03-11T16:19:26.532Z"
+stopped_at: Completed 13-infrastructure-and-observability-01-PLAN.md
+last_updated: "2026-03-11T17:01:53.582Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 15
   completed_phases: 13
-  total_plans: 43
-  completed_plans: 43
+  total_plans: 46
+  completed_plans: 44
   percent: 0
 ---
 
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 12-settings-and-admin-tools P01 | 20 | 3 tasks | 9 files |
 | Phase 12-settings-and-admin-tools P02 | 18 | 2 tasks | 7 files |
 | Phase 12-settings-and-admin-tools P03 | 25 | 2 tasks | 7 files |
+| Phase 13-infrastructure-and-observability P01 | 6 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 12-settings-and-admin-tools]: NotificationPreference queries use rawPrisma — model not in org-scoped whitelist in db/index.ts
 - [Phase 12-settings-and-admin-tools]: Slug confirmation flow is inline expandable section (AnimatePresence) — not a modal
 - [Phase 12-settings-and-admin-tools]: NOTIFICATION_TYPES exported as array from notificationService for validation in preferences API
+- [Phase 13-infrastructure-and-observability]: vi.mock async factory (not __mocks__ directory) required because Vitest path alias resolution does not auto-detect __mocks__ for @/ imports
+- [Phase 13-infrastructure-and-observability]: DATABASE_URL empty string in test env — all DB calls mocked via vitest-mock-extended; Docker Postgres CI services deferred to future plan
 
 ### Pending Todos
 
@@ -154,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T16:19:26.528Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-infrastructure-and-observability/13-CONTEXT.md
+Last session: 2026-03-11T17:01:53.579Z
+Stopped at: Completed 13-infrastructure-and-observability-01-PLAN.md
+Resume file: None
