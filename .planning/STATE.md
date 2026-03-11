@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 13-infrastructure-and-observability-03-PLAN.md
-last_updated: "2026-03-11T17:40:57.122Z"
+stopped_at: Completed 15-auth-security-gap-closure-01-PLAN.md
+last_updated: "2026-03-11T17:56:26.775Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 15
-  completed_phases: 14
-  total_plans: 46
-  completed_plans: 46
+  completed_phases: 15
+  total_plans: 47
+  completed_plans: 47
   percent: 0
 ---
 
@@ -78,6 +78,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 13-infrastructure-and-observability P01 | 6 | 2 tasks | 8 files |
 | Phase 13-infrastructure-and-observability P02 | 16 | 2 tasks | 32 files |
 | Phase 13-infrastructure-and-observability P03 | 7 | 2 tasks | 14 files |
+| Phase 15-auth-security-gap-closure P01 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Recent decisions affecting current work:
 - [Phase Phase 13-infrastructure-and-observability]: PaginationMeta extends Record<string, unknown> to satisfy ok() meta parameter type without casting at every call site
 - [Phase Phase 13-infrastructure-and-observability]: createOrganization wrapped in rawPrisma.$transaction() — partial signup failures roll back atomically, no orphaned orgs/users
 - [Phase Phase 13-infrastructure-and-observability]: calendar-events route uses defaultLimit=100, maxLimit=500 — date-range calendar views load all events in visible window
+- [Phase 15-auth-security-gap-closure]: reset-password added to publicApiRateLimiter (30 req/min) — same limit as forgot-password and set-password, closing last unprotected public auth endpoint
+- [Phase 15-auth-security-gap-closure]: Signup route sets httpOnly auth-token + csrf-token cookies on 201 response, matching login route pattern; admin.token kept in JSON body for backward compat during migration window
+- [Phase 15-auth-security-gap-closure]: org-name, org-slug, user-name, user-email remain in localStorage (non-sensitive display data for onboarding); auth-token and org-id removed — JWT now lives only in httpOnly cookie
 
 ### Pending Todos
 
@@ -167,6 +171,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T17:25:09.336Z
-Stopped at: Completed 13-infrastructure-and-observability-03-PLAN.md
+Last session: 2026-03-11T17:56:26.771Z
+Stopped at: Completed 15-auth-security-gap-closure-01-PLAN.md
 Resume file: None

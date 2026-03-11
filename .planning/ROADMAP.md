@@ -153,7 +153,7 @@ Plans:
 - [x] **Phase 12: Settings and Admin Tools** - Audit log viewer, billing UI, CSV export, org name/slug editing, and notification preferences (completed 2026-03-11)
 - [x] **Phase 13: Infrastructure and Observability** - Vitest unit tests, GitHub Actions CI/CD, Pino structured logging, Sentry error tracking, list pagination, and DB transactions (completed 2026-03-11)
 - [x] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow (completed 2026-03-11)
-- [ ] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit)
+- [x] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit) (completed 2026-03-11)
 
 ## Phase Details
 
@@ -315,4 +315,4 @@ Plans:
 | 11. Calendar, Ticket, Feature Gaps | 3/3 | Complete    | 2026-03-10 | - |
 | 12. Settings and Admin Tools | 3/3 | Complete    | 2026-03-11 | - |
 | 13. Infrastructure and Observability | 3/3 | Complete    | 2026-03-11 | - |
-| 15. Auth Security Gap Closure | v2.0 | 0/1 | Not started | - |
+| 15. Auth Security Gap Closure | 1/1 | Complete   | 2026-03-11 | - |
