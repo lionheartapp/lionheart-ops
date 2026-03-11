@@ -254,9 +254,14 @@ Plans:
   1. Opening a pull request to main triggers a GitHub Actions run that executes Vitest tests, ESLint, and TypeScript type-check — failing checks block merge
   2. A runtime error in a production API route appears in Sentry within minutes, with request context and the user's org ID attached
   3. Application logs are structured JSON with log levels (info, warn, error) — no raw console.error calls remain in route handlers
-  4. Any list endpoint called with `?page=1&pageSize=25` returns the correct subset of results plus total count
+  4. Any list endpoint called with `?page=1&limit=25` returns the correct subset of results plus total count
   5. Multi-model write operations execute inside database transactions — a failure in any step rolls back all changes
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Vitest setup, Prisma mock singleton, auth/permissions/org-context unit tests, and CI pipeline with type-check + lint + test (INFRA-01, INFRA-02)
+- [ ] 13-02-PLAN.md — Pino logger singleton, Sentry instrumentation, global-error boundary, and console.* migration in 24 route handler files (INFRA-03, INFRA-04)
+- [ ] 13-03-PLAN.md — Shared pagination utility, 6 list endpoint retrofits, database transaction wrapping, and tickets route test (INFRA-05, INFRA-06)
 
 ### Phase 14: AI Assistant UX Upgrade
 **Goal**: The AI assistant (Leo) provides a rich conversational experience with tappable button choices, contextual suggestion chips, new tools for room/resource availability and weather, and a smarter event creation flow with rich confirmation cards
@@ -306,5 +311,5 @@ Plans:
 | 10. Inventory System | 3/3 | Complete    | 2026-03-10 | - |
 | 11. Calendar, Ticket, Feature Gaps | 3/3 | Complete    | 2026-03-10 | - |
 | 12. Settings and Admin Tools | 3/3 | Complete    | 2026-03-11 | - |
-| 13. Infrastructure and Observability | v2.0 | 0/5 | Not started | - |
+| 13. Infrastructure and Observability | v2.0 | 0/3 | Not started | - |
 | 15. Auth Security Gap Closure | v2.0 | 0/1 | Not started | - |
