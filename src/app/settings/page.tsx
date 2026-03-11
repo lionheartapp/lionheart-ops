@@ -16,9 +16,11 @@ import AcademicCalendarTab from '@/components/settings/AcademicCalendarTab'
 import ApprovalConfigTab from '@/components/settings/ApprovalConfigTab'
 import AddOnsTab from '@/components/settings/AddOnsTab'
 import AuditLogTab from '@/components/settings/AuditLogTab'
+import BillingTab from '@/components/settings/BillingTab'
+import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 
-type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'activity-log'
+type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'activity-log' | 'billing'
 
 type WorkspaceTab = Exclude<Tab, 'profile'>
 
@@ -405,6 +407,7 @@ export default function SettingsPage() {
       next.add('approval-config')
       next.add('add-ons')
       next.add('activity-log')
+      next.add('billing')
       return next
     })
   }, [canManageWorkspace])
@@ -826,6 +829,12 @@ export default function SettingsPage() {
               {canManageWorkspace && visitedTabs.has('activity-log') && (
                 <div className={activeTab === 'activity-log' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'activity-log'}>
                   <AuditLogTab />
+                </div>
+              )}
+
+              {canManageWorkspace && visitedTabs.has('billing') && (
+                <div className={activeTab === 'billing' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'billing'}>
+                  <BillingTab />
                 </div>
               )}
       </div>
