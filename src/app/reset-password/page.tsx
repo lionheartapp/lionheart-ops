@@ -75,8 +75,20 @@ function ResetPasswordContent() {
         return
       }
 
-      // Auth token is now stored in an httpOnly cookie by the server.
-      // No localStorage writes needed — redirect directly to dashboard.
+      // Hydrate localStorage so all existing pages have auth context immediately
+      const { token: authToken, organizationId: orgId, organization: orgData, user: userData } = data.data
+      localStorage.setItem('auth-token', authToken || 'cookie-auth')
+      localStorage.setItem('org-id', orgId || '')
+      localStorage.setItem('user-name', userData?.name || '')
+      localStorage.setItem('user-email', userData?.email || '')
+      localStorage.setItem('user-avatar', userData?.avatar || '')
+      localStorage.setItem('user-team', userData?.team || '')
+      localStorage.setItem('user-school-scope', userData?.schoolScope || '')
+      localStorage.setItem('user-role', userData?.role || '')
+      localStorage.setItem('org-name', orgData?.name || '')
+      localStorage.setItem('org-school-type', orgData?.gradeLevel || '')
+      localStorage.setItem('org-logo-url', orgData?.logoUrl || '')
+
       setSuccess(true)
       setTimeout(() => router.push('/dashboard'), 1500)
     } catch {
