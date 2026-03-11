@@ -374,6 +374,23 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
         onClose={() => setShowEditDrawer(false)}
         title="Edit Season"
         width="md"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowEditDrawer(false)}
+              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              disabled={updateSeason.isPending || !editName.trim()}
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+            >
+              {updateSeason.isPending ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        }
       >
         <div className="space-y-4 p-1">
           <FloatingInput
@@ -416,21 +433,6 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
             onChange={(e) => setEditBudgetCap(e.target.value)}
             placeholder="Optional"
           />
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => setShowEditDrawer(false)}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveEdit}
-              disabled={updateSeason.isPending || !editName.trim()}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
-            >
-              {updateSeason.isPending ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
         </div>
       </DetailDrawer>
     </div>

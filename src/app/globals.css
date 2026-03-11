@@ -298,7 +298,7 @@ a:visited {
   }
 
   .ui-glass-overlay {
-    @apply bg-white/80 backdrop-blur-md border border-gray-200/30 shadow-heavy;
+    @apply bg-white border border-gray-200 shadow-heavy;
   }
 
   .ui-glass-dropdown {

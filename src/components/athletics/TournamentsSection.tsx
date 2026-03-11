@@ -349,6 +349,24 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         title={editing ? 'Edit Tournament' : 'New Tournament'}
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDrawerOpen(false)}
+              disabled={formSaving}
+              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={formSaving}
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+            >
+              {formSaving ? 'Saving...' : editing ? 'Update' : 'Create'}
+            </button>
+          </div>
+        }
       >
         <div className="space-y-4 p-1">
           <FloatingInput
@@ -395,23 +413,6 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
           />
 
           {formError && <p className="text-sm text-red-600">{formError}</p>}
-
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => setDrawerOpen(false)}
-              disabled={formSaving}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={formSaving}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
-            >
-              {formSaving ? 'Saving...' : editing ? 'Update' : 'Create'}
-            </button>
-          </div>
         </div>
       </DetailDrawer>
 

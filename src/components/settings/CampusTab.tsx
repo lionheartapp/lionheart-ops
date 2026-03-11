@@ -1244,8 +1244,16 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         onClose={closeBuildingDrawer}
         title={editingBuilding ? `Edit ${editingBuilding.name}` : 'Add Building'}
         width="lg"
+        footer={
+          <div className="space-y-3">
+            <button type="submit" form="building-form" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={buildingFormSaving}>
+              {buildingFormSaving ? 'Saving...' : editingBuilding ? 'Save Changes' : 'Add Building'}
+            </button>
+            <button type="button" onClick={closeBuildingDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={buildingFormSaving}>Cancel</button>
+          </div>
+        }
       >
-        <form onSubmit={saveBuildingForm} className="p-8 space-y-6">
+        <form id="building-form" onSubmit={saveBuildingForm} className="p-8 space-y-6">
           {buildingFormError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{buildingFormError}</div>
           )}
@@ -1320,13 +1328,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               />
             </section>
           )}
-
-          <div className="space-y-3 pt-4">
-            <button type="submit" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={buildingFormSaving}>
-              {buildingFormSaving ? 'Saving...' : editingBuilding ? 'Save Changes' : 'Add Building'}
-            </button>
-            <button type="button" onClick={closeBuildingDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={buildingFormSaving}>Cancel</button>
-          </div>
         </form>
       </DetailDrawer>
 
@@ -1336,8 +1337,16 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         onClose={closeOutdoorDrawer}
         title={editingOutdoor ? `Edit ${editingOutdoor.name}` : 'Add Outdoor Space'}
         width="lg"
+        footer={
+          <div className="space-y-3">
+            <button type="submit" form="outdoor-form" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={outdoorFormSaving}>
+              {outdoorFormSaving ? 'Saving...' : editingOutdoor ? 'Save Changes' : 'Add Space'}
+            </button>
+            <button type="button" onClick={closeOutdoorDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={outdoorFormSaving}>Cancel</button>
+          </div>
+        }
       >
-        <form onSubmit={saveOutdoorForm} className="p-8 space-y-6">
+        <form id="outdoor-form" onSubmit={saveOutdoorForm} className="p-8 space-y-6">
           {outdoorFormError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{outdoorFormError}</div>
           )}
@@ -1393,13 +1402,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               />
             </section>
           )}
-
-          <div className="space-y-3 pt-4">
-            <button type="submit" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={outdoorFormSaving}>
-              {outdoorFormSaving ? 'Saving...' : editingOutdoor ? 'Save Changes' : 'Add Space'}
-            </button>
-            <button type="button" onClick={closeOutdoorDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={outdoorFormSaving}>Cancel</button>
-          </div>
         </form>
       </DetailDrawer>
 
@@ -1700,8 +1702,23 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         onClose={closeAddCampusModal}
         title="Add Campus"
         width="md"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="add-campus-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              disabled={addCampusSaving}
+            >
+              {addCampusSaving ? 'Adding...' : 'Add Campus'}
+            </button>
+            <button type="button" onClick={closeAddCampusModal} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
+              Cancel
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={saveAddCampusForm} className="p-8 space-y-6">
+        <form id="add-campus-form" onSubmit={saveAddCampusForm} className="p-8 space-y-6">
           {addCampusError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{addCampusError}</div>
           )}
@@ -1737,18 +1754,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               { value: 'SATELLITE', label: 'Satellite' },
             ]}
           />
-          <div className="space-y-3 pt-4">
-            <button
-              type="submit"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-              disabled={addCampusSaving}
-            >
-              {addCampusSaving ? 'Adding...' : 'Add Campus'}
-            </button>
-            <button type="button" onClick={closeAddCampusModal} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
-              Cancel
-            </button>
-          </div>
         </form>
       </DetailDrawer>
 
@@ -1758,8 +1763,23 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         onClose={closeEditCampusDrawer}
         title={editingCampus ? `Edit ${editingCampus.name}` : 'Edit Campus'}
         width="md"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="edit-campus-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              disabled={editCampusSaving}
+            >
+              {editCampusSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button type="button" onClick={closeEditCampusDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
+              Cancel
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={saveEditCampusForm} className="p-8 space-y-6">
+        <form id="edit-campus-form" onSubmit={saveEditCampusForm} className="p-8 space-y-6">
           {editCampusError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{editCampusError}</div>
           )}
@@ -1795,18 +1815,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               { value: 'SATELLITE', label: 'Satellite' },
             ]}
           />
-          <div className="space-y-3 pt-4">
-            <button
-              type="submit"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-              disabled={editCampusSaving}
-            >
-              {editCampusSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button type="button" onClick={closeEditCampusDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
-              Cancel
-            </button>
-          </div>
         </form>
       </DetailDrawer>
 

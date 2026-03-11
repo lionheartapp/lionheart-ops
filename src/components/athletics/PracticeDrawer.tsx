@@ -106,6 +106,16 @@ export default function PracticeDrawer({
       onClose={onClose}
       title="New Practice"
       width="lg"
+      footer={
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
+        >
+          {saving ? 'Saving...' : 'Create Practice'}
+        </button>
+      }
     >
       <div className="space-y-5">
         <FloatingDropdown
@@ -170,15 +180,6 @@ export default function PracticeDrawer({
         )}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
-
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
-        >
-          {saving ? 'Saving...' : 'Create Practice'}
-        </button>
       </div>
     </DetailDrawer>
   )

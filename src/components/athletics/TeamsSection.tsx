@@ -525,6 +525,16 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
         onClose={() => setDrawerOpen(false)}
         title={editingTeam ? 'Edit Team' : 'New Team'}
         width="lg"
+        footer={
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
+          >
+            {saving ? 'Saving...' : editingTeam ? 'Update Team' : 'Create Team'}
+          </button>
+        }
       >
         <div className="space-y-5">
           <FloatingInput
@@ -603,15 +613,6 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
           )}
 
           {formError && <p className="text-sm text-red-600">{formError}</p>}
-
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
-          >
-            {saving ? 'Saving...' : editingTeam ? 'Update Team' : 'Create Team'}
-          </button>
         </div>
       </DetailDrawer>
 

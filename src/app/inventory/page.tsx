@@ -147,9 +147,12 @@ interface ItemFormProps {
   item?: InventoryItem | null
   onSuccess: () => void
   onCancel: () => void
+  hideActions?: boolean
+  formId?: string
+  onPendingChange?: (pending: boolean) => void
 }
 
-function ItemForm({ item, onSuccess, onCancel }: ItemFormProps) {
+function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingChange }: ItemFormProps) {
   const queryClient = useQueryClient()
   const [name, setName] = useState(item?.name ?? '')
   const [category, setCategory] = useState(item?.category ?? '')
@@ -204,8 +207,13 @@ function ItemForm({ item, onSuccess, onCancel }: ItemFormProps) {
     mutation.mutate()
   }
 
+  // Expose pending state to parent for external footer buttons
+  useEffect(() => {
+    onPendingChange?.(mutation.isPending)
+  }, [mutation.isPending, onPendingChange])
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4">
       {fieldErrors._form && (
         <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
           {fieldErrors._form}
@@ -292,23 +300,25 @@ function ItemForm({ item, onSuccess, onCancel }: ItemFormProps) {
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={mutation.isPending}
-          className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={mutation.isPending}
-          className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
-        >
-          {mutation.isPending ? 'Saving…' : isEditing ? 'Save Changes' : 'Add Item'}
-        </button>
-      </div>
+      {!hideActions && (
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={mutation.isPending}
+            className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+          >
+            {mutation.isPending ? 'Saving…' : isEditing ? 'Save Changes' : 'Add Item'}
+          </button>
+        </div>
+      )}
     </form>
   )
 }
@@ -740,6 +750,7 @@ export default function InventoryPage() {
   const [formDrawerOpen, setFormDrawerOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null)
+  const [formPending, setFormPending] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   // ── Data fetching ──
@@ -1183,6 +1194,29 @@ export default function InventoryPage() {
           }}
           title={editingItem ? 'Edit Item' : 'Add Item'}
           width="md"
+          footer={
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormDrawerOpen(false)
+                  setEditingItem(null)
+                }}
+                disabled={formPending}
+                className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="inventory-item-form"
+                disabled={formPending}
+                className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+              >
+                {formPending ? 'Saving…' : editingItem ? 'Save Changes' : 'Add Item'}
+              </button>
+            </div>
+          }
         >
           <ItemForm
             item={editingItem}
@@ -1191,6 +1225,9 @@ export default function InventoryPage() {
               setFormDrawerOpen(false)
               setEditingItem(null)
             }}
+            hideActions
+            formId="inventory-item-form"
+            onPendingChange={setFormPending}
           />
         </DetailDrawer>
 

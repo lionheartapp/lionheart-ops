@@ -498,8 +498,34 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         }}
         title="Create Team"
         width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="create-team-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={createLoading}
+            >
+              {createLoading ? 'Creating...' : 'Create Team'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowCreateModal(false)
+                setTeamName('')
+                setTeamDescription('')
+                setTeamType(null)
+                setActionError(null)
+              }}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              disabled={createLoading}
+            >
+              Cancel
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={handleCreateTeam} className="space-y-6">
+        <form id="create-team-form" onSubmit={handleCreateTeam} className="space-y-6">
           {actionError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {actionError}
@@ -539,30 +565,6 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
               disabled={createLoading}
             />
           </section>
-
-          <div className="space-y-3 pt-4">
-            <button
-              type="submit"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              disabled={createLoading}
-            >
-              {createLoading ? 'Creating...' : 'Create Team'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowCreateModal(false)
-                setTeamName('')
-                setTeamDescription('')
-                setTeamType(null)
-                setActionError(null)
-              }}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-              disabled={createLoading}
-            >
-              Cancel
-            </button>
-          </div>
         </form>
       </DetailDrawer>
 
@@ -571,6 +573,28 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
         onClose={closeEditDrawer}
         title={editTeam ? `Edit ${editTeam.name}` : 'Edit Team'}
         width="lg"
+        footer={
+          !editLoading ? (
+            <div className="space-y-3">
+              <button
+                type="submit"
+                form="edit-team-form"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={editSaving}
+              >
+                {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={closeEditDrawer}
+                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+                disabled={editSaving}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : undefined
+        }
       >
         {editLoading ? (
           <div className="space-y-4">
@@ -579,7 +603,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             ))}
           </div>
         ) : (
-          <form onSubmit={handleEditTeam} className="space-y-6">
+          <form id="edit-team-form" onSubmit={handleEditTeam} className="space-y-6">
             {editError && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {editError}
@@ -623,24 +647,6 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 disabled={editSaving}
               />
             </section>
-
-            <div className="space-y-3 pt-4">
-              <button
-                type="submit"
-                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                disabled={editSaving}
-              >
-                {editSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={closeEditDrawer}
-                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-                disabled={editSaving}
-              >
-                Cancel
-              </button>
-            </div>
           </form>
         )}
       </DetailDrawer>

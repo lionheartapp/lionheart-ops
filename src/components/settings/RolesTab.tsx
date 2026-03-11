@@ -529,8 +529,28 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         onClose={closeCreateDrawer}
         title="Create Role"
         width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="create-role-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={createLoading}
+            >
+              {createLoading ? 'Creating...' : 'Create Role'}
+            </button>
+            <button
+              type="button"
+              onClick={closeCreateDrawer}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              disabled={createLoading}
+            >
+              Cancel
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={handleCreateRole} className="space-y-6">
+        <form id="create-role-form" onSubmit={handleCreateRole} className="space-y-6">
           {actionError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {actionError}
@@ -577,24 +597,6 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               />
             )}
           </section>
-
-          <div className="space-y-3 pt-4">
-            <button
-              type="submit"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              disabled={createLoading}
-            >
-              {createLoading ? 'Creating...' : 'Create Role'}
-            </button>
-            <button
-              type="button"
-              onClick={closeCreateDrawer}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-              disabled={createLoading}
-            >
-              Cancel
-            </button>
-          </div>
         </form>
       </DetailDrawer>
 
@@ -603,6 +605,28 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         onClose={closeEditDrawer}
         title={editRole ? `Edit ${editRole.name}` : 'Edit Role'}
         width="lg"
+        footer={
+          !editLoading ? (
+            <div className="space-y-3">
+              <button
+                type="submit"
+                form="edit-role-form"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={editSaving}
+              >
+                {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={closeEditDrawer}
+                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+                disabled={editSaving}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : undefined
+        }
       >
         {editLoading ? (
           <div className="space-y-4">
@@ -611,7 +635,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             ))}
           </div>
         ) : (
-          <form onSubmit={handleEditRole} className="space-y-6">
+          <form id="edit-role-form" onSubmit={handleEditRole} className="space-y-6">
             {editError && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {editError}
@@ -658,24 +682,6 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                 />
               )}
             </section>
-
-            <div className="space-y-3 pt-4">
-              <button
-                type="submit"
-                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                disabled={editSaving}
-              >
-                {editSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={closeEditDrawer}
-                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-                disabled={editSaving}
-              >
-                Cancel
-              </button>
-            </div>
           </form>
         )}
       </DetailDrawer>

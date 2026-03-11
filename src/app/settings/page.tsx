@@ -697,8 +697,28 @@ export default function SettingsPage() {
                     onClose={closeChangePassword}
                     title="Change Password"
                     width="md"
+                    footer={
+                      <div className="space-y-3">
+                        <button
+                          type="submit"
+                          form="change-password-form"
+                          disabled={passwordSaving || passwordSuccess}
+                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                        >
+                          {passwordSaving ? 'Saving...' : 'Update Password'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={closeChangePassword}
+                          disabled={passwordSaving}
+                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    }
                   >
-                    <form onSubmit={handleChangePassword} className="space-y-6">
+                    <form id="change-password-form" onSubmit={handleChangePassword} className="space-y-6">
                       {passwordError && (
                         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{passwordError}</div>
                       )}
@@ -744,24 +764,6 @@ export default function SettingsPage() {
                           autoComplete="new-password"
                         />
                       </section>
-
-                      <div className="space-y-3 pt-4">
-                        <button
-                          type="submit"
-                          disabled={passwordSaving || passwordSuccess}
-                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                        >
-                          {passwordSaving ? 'Saving...' : 'Update Password'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={closeChangePassword}
-                          disabled={passwordSaving}
-                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                        >
-                          Cancel
-                        </button>
-                      </div>
                     </form>
                   </DetailDrawer>
                 </motion.div>

@@ -260,8 +260,34 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   const canSubmit = title.trim().length > 0 && issueType !== ''
 
   return (
-    <DetailDrawer isOpen={isOpen} onClose={handleClose} title="New IT Request" width="md">
+    <DetailDrawer
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="New IT Request"
+      width="md"
+      footer={
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            form="it-ticket-create-form"
+            disabled={!canSubmit || createMutation.isPending}
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            Submit Request
+          </button>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+      }
+    >
       <form
+        id="it-ticket-create-form"
         onSubmit={(e) => {
           e.preventDefault()
           if (canSubmit) createMutation.mutate()
@@ -462,24 +488,6 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={!canSubmit || createMutation.isPending}
-            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            Submit Request
-          </button>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all"
-          >
-            Cancel
-          </button>
-        </div>
       </form>
     </DetailDrawer>
   )

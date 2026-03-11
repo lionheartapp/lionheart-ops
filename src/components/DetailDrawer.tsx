@@ -9,6 +9,7 @@ interface DetailDrawerProps {
   onClose: () => void
   title: string
   children: ReactNode
+  footer?: ReactNode
   width?: 'sm' | 'md' | 'lg' | 'xl'
   onEdit?: () => void
 }
@@ -25,6 +26,7 @@ export default function DetailDrawer({
   onClose,
   title,
   children,
+  footer,
   width = 'md',
   onEdit,
 }: DetailDrawerProps) {
@@ -129,15 +131,17 @@ export default function DetailDrawer({
           {children}
         </div>
 
-        {/* Footer with Edit button */}
-        {onEdit && (
-          <div className="px-6 pb-6 pt-2 flex-shrink-0">
-            <button
-              onClick={onEdit}
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition"
-            >
-              Edit
-            </button>
+        {/* Footer — sticky bottom with separator */}
+        {(footer || onEdit) && (
+          <div className="flex-shrink-0 border-t border-gray-200 px-6 py-4">
+            {footer ?? (
+              <button
+                onClick={onEdit}
+                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition cursor-pointer"
+              >
+                Edit
+              </button>
+            )}
           </div>
         )}
       </div>

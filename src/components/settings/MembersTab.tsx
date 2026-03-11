@@ -751,8 +751,28 @@ const MembersTab = (_props: MembersTabProps) => {
           ? `Edit ${[editUser.firstName, editUser.lastName].filter(Boolean).join(' ') || editUser.email}`
           : 'Edit Member'}
         width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="edit-member-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={editSaving}
+            >
+              {editSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={closeEditUser}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              disabled={editSaving}
+            >
+              Cancel
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={handleEditUser} className="space-y-6">
+        <form id="edit-member-form" onSubmit={handleEditUser} className="space-y-6">
           {editError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {editError}
@@ -839,23 +859,6 @@ const MembersTab = (_props: MembersTabProps) => {
             </div>
           </section>
 
-          <div className="space-y-3 pt-4">
-            <button
-              type="submit"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={editSaving}
-            >
-              {editSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button
-              type="button"
-              onClick={closeEditUser}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-              disabled={editSaving}
-            >
-              Cancel
-            </button>
-          </div>
         </form>
       </DetailDrawer>
 
@@ -865,80 +868,8 @@ const MembersTab = (_props: MembersTabProps) => {
         onClose={closeManagePermissions}
         title="User Permissions"
         width="lg"
-      >
-        <div className="flex flex-col" style={{ margin: '-1rem -1.5rem', height: 'calc(100% + 2rem)' }}>
-          {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* User identity header */}
-            {permUser && (
-              <div className="flex items-center gap-4">
-                {permUser.avatar ? (
-                  <img
-                    src={permUser.avatar}
-                    alt={`${permUser.firstName} ${permUser.lastName}`}
-                    className="h-12 w-12 rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <span className={`inline-flex items-center justify-center h-12 w-12 rounded-full text-white text-sm font-bold flex-shrink-0 ${getAvatarColor(permUser.id)}`}>
-                    {getInitials(permUser.firstName, permUser.lastName, permUser.email)}
-                  </span>
-                )}
-                <div>
-                  <p className="text-base font-semibold text-gray-900">
-                    {[permUser.firstName, permUser.lastName].filter(Boolean).join(' ') || permUser.email}
-                  </p>
-                  <p className="text-sm text-gray-500">{permUser.email}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Role info banner */}
-            <div className="rounded-lg bg-primary-50 border border-primary-200 px-4 py-3">
-              <p className="text-sm text-primary-800">
-                <span className="font-medium">Role:</span> {permRoleName || 'No role assigned'}
-              </p>
-              <p className="text-xs text-primary-600 mt-0.5">
-                Permission list will change when you select a different role for this user
-              </p>
-            </div>
-
-            {permError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {permError}
-              </div>
-            )}
-
-            {/* Permission toggle list */}
-            <PermissionToggleList
-              permissions={permItems}
-              selectedIds={permSelectedIds}
-              onToggle={(id) => {
-                setPermSelectedIds((prev) =>
-                  prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-                )
-                // Update the item status for visual feedback
-                setPermItems((prev) =>
-                  prev.map((p) => {
-                    if (p.id !== id) return p
-                    const willBeSelected = !permSelectedIds.includes(id)
-                    const roleHasIt = permRolePermIds.has(id)
-                    let newStatus: 'inherited' | 'granted' | 'revoked' | 'none'
-                    if (willBeSelected && roleHasIt) newStatus = 'inherited'
-                    else if (willBeSelected && !roleHasIt) newStatus = 'granted'
-                    else if (!willBeSelected && roleHasIt) newStatus = 'revoked'
-                    else newStatus = 'none'
-                    return { ...p, status: newStatus }
-                  })
-                )
-              }}
-              mode="user"
-              loading={permLoading}
-              disabled={permSaving}
-            />
-          </div>
-
-          {/* Pinned footer */}
-          <div className="flex-shrink-0 px-6 py-4 bg-white space-y-3">
+        footer={
+          <div className="space-y-3">
             <button
               type="button"
               onClick={saveManagePermissions}
@@ -956,6 +887,75 @@ const MembersTab = (_props: MembersTabProps) => {
               Cancel
             </button>
           </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* User identity header */}
+          {permUser && (
+            <div className="flex items-center gap-4">
+              {permUser.avatar ? (
+                <img
+                  src={permUser.avatar}
+                  alt={`${permUser.firstName} ${permUser.lastName}`}
+                  className="h-12 w-12 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <span className={`inline-flex items-center justify-center h-12 w-12 rounded-full text-white text-sm font-bold flex-shrink-0 ${getAvatarColor(permUser.id)}`}>
+                  {getInitials(permUser.firstName, permUser.lastName, permUser.email)}
+                </span>
+              )}
+              <div>
+                <p className="text-base font-semibold text-gray-900">
+                  {[permUser.firstName, permUser.lastName].filter(Boolean).join(' ') || permUser.email}
+                </p>
+                <p className="text-sm text-gray-500">{permUser.email}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Role info banner */}
+          <div className="rounded-lg bg-primary-50 border border-primary-200 px-4 py-3">
+            <p className="text-sm text-primary-800">
+              <span className="font-medium">Role:</span> {permRoleName || 'No role assigned'}
+            </p>
+            <p className="text-xs text-primary-600 mt-0.5">
+              Permission list will change when you select a different role for this user
+            </p>
+          </div>
+
+          {permError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {permError}
+            </div>
+          )}
+
+          {/* Permission toggle list */}
+          <PermissionToggleList
+            permissions={permItems}
+            selectedIds={permSelectedIds}
+            onToggle={(id) => {
+              setPermSelectedIds((prev) =>
+                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+              )
+              // Update the item status for visual feedback
+              setPermItems((prev) =>
+                prev.map((p) => {
+                  if (p.id !== id) return p
+                  const willBeSelected = !permSelectedIds.includes(id)
+                  const roleHasIt = permRolePermIds.has(id)
+                  let newStatus: 'inherited' | 'granted' | 'revoked' | 'none'
+                  if (willBeSelected && roleHasIt) newStatus = 'inherited'
+                  else if (willBeSelected && !roleHasIt) newStatus = 'granted'
+                  else if (!willBeSelected && roleHasIt) newStatus = 'revoked'
+                  else newStatus = 'none'
+                  return { ...p, status: newStatus }
+                })
+              )
+            }}
+            mode="user"
+            loading={permLoading}
+            disabled={permSaving}
+          />
         </div>
       </DetailDrawer>
 
@@ -978,8 +978,28 @@ const MembersTab = (_props: MembersTabProps) => {
         onClose={() => setShowInvite(false)}
         title="Invite Member"
         width="md"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="invite-member-form"
+              disabled={inviteSaving || !inviteForm.email.trim()}
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+            >
+              {inviteSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
+              Send Invite
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowInvite(false)}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+            >
+              Cancel
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={handleInvite} className="space-y-5">
+        <form id="invite-member-form" onSubmit={handleInvite} className="space-y-5">
           <FloatingInput
             id="invite-email"
             label="Email address"
@@ -1024,24 +1044,6 @@ const MembersTab = (_props: MembersTabProps) => {
               {inviteError}
             </div>
           )}
-
-          <div className="space-y-3 pt-2">
-            <button
-              type="submit"
-              disabled={inviteSaving || !inviteForm.email.trim()}
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-            >
-              {inviteSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
-              Send Invite
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowInvite(false)}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-            >
-              Cancel
-            </button>
-          </div>
         </form>
       </DetailDrawer>
     </div>

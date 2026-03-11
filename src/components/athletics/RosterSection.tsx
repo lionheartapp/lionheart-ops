@@ -519,6 +519,26 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         title={editing ? 'Edit Player' : 'Add Player'}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              disabled={saving}
+              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : editing ? 'Update Player' : 'Add Player'}
+            </button>
+          </div>
+        }
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -541,25 +561,6 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           />
 
           {error && <p className="text-sm text-red-600">{error}</p>}
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(false)}
-              disabled={saving}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : editing ? 'Update Player' : 'Add Player'}
-            </button>
-          </div>
         </div>
       </DetailDrawer>
 

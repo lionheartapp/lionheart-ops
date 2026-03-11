@@ -266,6 +266,16 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
         onClose={() => { setDrawerOpen(false); setCreateError('') }}
         title={editingSport ? 'Edit Sport' : 'New Sport'}
         width="md"
+        footer={
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={createSaving}
+            className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
+          >
+            {createSaving ? 'Saving...' : editingSport ? 'Update Sport' : 'Create Sport'}
+          </button>
+        }
       >
         <div className="space-y-5">
           <FloatingInput
@@ -316,15 +326,6 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
           </div>
 
           {createError && <p className="text-sm text-red-600">{createError}</p>}
-
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={createSaving}
-            className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
-          >
-            {createSaving ? 'Saving...' : editingSport ? 'Update Sport' : 'Create Sport'}
-          </button>
         </div>
       </DetailDrawer>
 

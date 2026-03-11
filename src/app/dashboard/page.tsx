@@ -452,6 +452,23 @@ export default function DashboardPage() {
             setIsEditMode(true)
           }
         }}
+        footer={selectedTicket && isEditMode ? (
+          <div className="flex gap-3">
+            <button
+              onClick={handleSaveEdit}
+              disabled={editSaving}
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition active:scale-[0.97]"
+            >
+              {editSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              onClick={() => setIsEditMode(false)}
+              className="flex-1 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition active:scale-[0.97]"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : undefined}
       >
         {selectedTicket ? (
           isEditMode ? (
@@ -486,21 +503,6 @@ export default function DashboardPage() {
                   <option value="HIGH">High</option>
                   <option value="CRITICAL">Critical</option>
                 </select>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleSaveEdit}
-                  disabled={editSaving}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition active:scale-[0.97]"
-                >
-                  {editSaving ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button
-                  onClick={() => setIsEditMode(false)}
-                  className="flex-1 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition active:scale-[0.97]"
-                >
-                  Cancel
-                </button>
               </div>
             </div>
           ) : (
@@ -553,6 +555,24 @@ export default function DashboardPage() {
         onClose={() => setCreateCategory(null)}
         title={createCategory === 'IT' ? 'New IT Request' : 'New Facilities Request'}
         width="md"
+        footer={
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCreateCategory(null)}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateSubmit}
+              disabled={createSaving}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
+            >
+              {createSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+              Submit Request
+            </button>
+          </div>
+        }
       >
         <div className="space-y-5">
           <FloatingInput
@@ -592,23 +612,6 @@ export default function DashboardPage() {
           {createError && (
             <p className="text-sm text-red-600">{createError}</p>
           )}
-
-          <div className="flex items-center gap-3 pt-2">
-            <button
-              onClick={() => setCreateCategory(null)}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreateSubmit}
-              disabled={createSaving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
-            >
-              {createSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-              Submit Request
-            </button>
-          </div>
         </div>
       </DetailDrawer>
     </DashboardLayout>

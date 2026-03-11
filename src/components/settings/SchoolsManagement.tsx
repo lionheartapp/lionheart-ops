@@ -698,8 +698,27 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
         onClose={handleCloseModal}
         title={editingId ? 'Edit School' : 'Add New School'}
         width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="school-form"
+              disabled={saving || searchingPrincipals || creatingPrincipal}
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+            >
+              {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add School'}
+            </button>
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+            >
+              Cancel
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={handleSaveSchool} className="p-8 space-y-6">
+        <form id="school-form" onSubmit={handleSaveSchool} className="p-8 space-y-6">
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
@@ -863,23 +882,6 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               />
             </div>
           </section>
-
-          <div className="space-y-3 pt-4">
-            <button
-              type="submit"
-              disabled={saving || searchingPrincipals || creatingPrincipal}
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-            >
-              {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add School'}
-            </button>
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-            >
-              Cancel
-            </button>
-          </div>
         </form>
       </DetailDrawer>
 
@@ -926,9 +928,28 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
         onClose={handlePrincipalEditorClose}
         title="Edit Principal Information"
         width="md"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="principal-editor-form"
+              disabled={savingPrincipalEditor}
+              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+            >
+              {savingPrincipalEditor ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={handlePrincipalEditorClose}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+            >
+              Cancel
+            </button>
+          </div>
+        }
       >
         {principalEditor && (
-          <form onSubmit={handleSavePrincipalEditor} className="space-y-4">
+          <form id="principal-editor-form" onSubmit={handleSavePrincipalEditor} className="space-y-4">
             {principalEditorError && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {principalEditorError}
@@ -985,23 +1006,6 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               value={principalEditor.principalJobTitle}
               onChange={(e) => setPrincipalEditor((prev) => (prev ? { ...prev, principalJobTitle: e.target.value } : prev))}
             />
-
-            <div className="space-y-3 pt-4">
-              <button
-                type="submit"
-                disabled={savingPrincipalEditor}
-                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-              >
-                {savingPrincipalEditor ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={handlePrincipalEditorClose}
-                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
-              >
-                Cancel
-              </button>
-            </div>
           </form>
         )}
       </DetailDrawer>
