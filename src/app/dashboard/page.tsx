@@ -414,7 +414,7 @@ export default function DashboardPage() {
         {/* Right Rail — Embedded Leo AI Assistant */}
         <motion.div
           variants={cardEntrance}
-          className="h-full min-h-0"
+          className="h-full min-h-0 overflow-hidden"
         >
           <ChatPanel variant="embedded" />
         </motion.div>

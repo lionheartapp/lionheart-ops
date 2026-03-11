@@ -572,7 +572,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
     <div
       className={`relative flex flex-col ${
         isEmbedded
-          ? 'w-full h-full min-h-0 rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
+          ? 'w-full h-full min-h-0 overflow-hidden rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
           : 'w-[384px] rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-2xl'
       }`}
       style={isEmbedded ? undefined : { height: '520px' }}
