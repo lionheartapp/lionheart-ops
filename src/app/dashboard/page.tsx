@@ -11,6 +11,8 @@ import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, b
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2 } from 'lucide-react'
 import { IllustrationTickets } from '@/components/illustrations'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { getAuthHeaders } from '@/lib/api-client'
 
 interface TicketData {
   id: string
@@ -26,7 +28,7 @@ interface TicketData {
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [isClient, setIsClient] = useState(false)
+  const { user, org, isReady, logout } = useAuth()
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
@@ -47,49 +49,12 @@ export default function DashboardPage() {
   const [ticketsLoading, setTicketsLoading] = useState(true)
   const [ticketCount, setTicketCount] = useState(0)
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
-  const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
-  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user-email') : null
-  const userAvatar = typeof window !== 'undefined' ? localStorage.getItem('user-avatar') : null
-  const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
-  const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
-  const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
-  const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
-    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
-  )
-
-  // Fetch org logo from API if not in localStorage
-  useEffect(() => {
-    if (orgLogoUrl || !token) return
-    const fetchLogo = async () => {
-      try {
-        const res = await fetch('/api/onboarding/school-info', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.ok && data.data?.logoUrl) {
-            setOrgLogoUrl(data.data.logoUrl)
-            localStorage.setItem('org-logo-url', data.data.logoUrl)
-          }
-        }
-      } catch {
-        // Silently fail — logo is non-critical
-      }
-    }
-    fetchLogo()
-  }, [orgLogoUrl, token])
-
   // Fetch tickets from API
   const fetchTickets = useCallback(async () => {
-    if (!token) return
     setTicketsLoading(true)
     try {
       const res = await fetch('/api/tickets?limit=10', {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       })
       if (res.ok) {
         const data = await res.json()
@@ -104,11 +69,11 @@ export default function DashboardPage() {
     } finally {
       setTicketsLoading(false)
     }
-  }, [token])
+  }, [])
 
   useEffect(() => {
-    if (token) fetchTickets()
-  }, [token, fetchTickets])
+    if (isReady && org.id) fetchTickets()
+  }, [isReady, org.id, fetchTickets])
 
   const openCreateDrawer = useCallback((category: 'MAINTENANCE' | 'IT') => {
     setCreateCategory(category)
@@ -118,7 +83,6 @@ export default function DashboardPage() {
   }, [])
 
   const handleCreateSubmit = useCallback(async () => {
-    if (!token) return
     if (!createForm.title.trim() || !createForm.locationText.trim()) {
       setCreateError('Title and location are required.')
       return
@@ -128,7 +92,8 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/tickets', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           title: createForm.title.trim(),
           description: createForm.description.trim() || undefined,
@@ -152,7 +117,7 @@ export default function DashboardPage() {
     } finally {
       setCreateSaving(false)
     }
-  }, [token, createForm, createCategory, fetchTickets])
+  }, [createForm, createCategory, fetchTickets])
 
   const handleSaveEdit = async () => {
     if (!selectedTicket) return
@@ -160,10 +125,8 @@ export default function DashboardPage() {
     try {
       const res = await fetch(`/api/tickets/${selectedTicket.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify(editForm),
       })
       const data = await res.json()
@@ -196,29 +159,7 @@ export default function DashboardPage() {
     }
   }, [isCreateDropdownOpen])
 
-  useEffect(() => {
-    setIsClient(true)
-    if (!token || !orgId) {
-      router.push('/login')
-    }
-  }, [token, orgId, router])
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth-token')
-    localStorage.removeItem('org-id')
-    localStorage.removeItem('user-name')
-    localStorage.removeItem('user-email')
-    localStorage.removeItem('user-avatar')
-    localStorage.removeItem('user-team')
-    localStorage.removeItem('user-school-scope')
-    localStorage.removeItem('user-role')
-    localStorage.removeItem('org-name')
-    localStorage.removeItem('org-school-type')
-    localStorage.removeItem('org-logo-url')
-    router.push('/login')
-  }
-
-  if (!isClient || !token || !orgId) {
+  if (!isReady) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
@@ -283,14 +224,14 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout
-      userName={userName || 'User'}
-      userEmail={userEmail || 'user@school.edu'}
-      userAvatar={userAvatar || undefined}
-      organizationName={orgName || 'School'}
-      organizationLogoUrl={orgLogoUrl || undefined}
-      schoolLabel={userSchoolScope || orgSchoolType || orgName || 'School'}
-      teamLabel={userTeam || userRole || 'Team'}
-      onLogout={handleLogout}
+      userName={user.name || 'User'}
+      userEmail={user.email || 'user@school.edu'}
+      userAvatar={user.avatar || undefined}
+      organizationName={org.name || 'School'}
+      organizationLogoUrl={org.logoUrl || undefined}
+      schoolLabel={user.schoolScope || org.schoolType || org.name || 'School'}
+      teamLabel={user.team || user.role || 'Team'}
+      onLogout={logout}
     >
       <MotionConfig reducedMotion="user">
       {/* Greeting Section with Create Dropdown Button */}
@@ -303,7 +244,7 @@ export default function DashboardPage() {
         <motion.div variants={fadeInUp}>
           <p className="text-gray-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            {getGreeting()}, {userName?.split(' ')[0] || 'there'}
+            {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
           </h1>
         </motion.div>
         <motion.div variants={fadeInUp} className="relative self-start sm:self-center">
