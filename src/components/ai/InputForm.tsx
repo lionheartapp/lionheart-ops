@@ -506,11 +506,13 @@ export default function InputForm({
         {/* Mic / Voice Orb */}
         {voiceSupported && (
           isListening ? (
-            <VoiceOrb
-              audioLevel={audioLevel}
-              size={44}
-              onClick={handleMicClick}
-            />
+            <div className="flex-shrink-0 flex items-center justify-center" style={{ width: 44, height: 44, overflow: 'visible' }}>
+              <VoiceOrb
+                audioLevel={audioLevel}
+                size={38}
+                onClick={handleMicClick}
+              />
+            </div>
           ) : (
             <button
               type="button"

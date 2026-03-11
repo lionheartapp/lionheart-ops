@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Square } from 'lucide-react'
 
 interface VoiceOrbProps {
@@ -14,17 +14,13 @@ interface VoiceOrbProps {
 }
 
 /**
- * Audio-reactive orb for voice input visualization.
+ * Audio-reactive version of Leo's AnimatedOrb for voice input.
  *
- * The orb morphs and warps in response to audio amplitude:
- * - At silence (level ~0): gentle organic breathing
- * - At speech (level 0.2–0.8): dynamic warping/bulging
- * - At loud speech (level >0.8): intense pulsing distortion
+ * Uses the exact same CSS layer approach as AnimatedOrb:
+ * breathing aura, morphing glass base, rotating iridescent rings,
+ * edge shadows — but animation speeds and scale respond to audioLevel.
  *
  * A small stop icon sits in the center.
- *
- * Uses a canvas for smooth 60fps shape rendering with
- * CSS-layered iridescent gradients for the glass effect.
  */
 export default function VoiceOrb({
   audioLevel,
@@ -32,224 +28,279 @@ export default function VoiceOrb({
   onClick,
   className = '',
 }: VoiceOrbProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animRef = useRef<number>(0)
-  const smoothLevelRef = useRef(0)
-  const timeRef = useRef(0)
-  const lastTimeRef = useRef(0)
-
-  // Aura size is slightly larger than the orb
-  const auraSize = size * 1.5
-
-  // Memoize the style object for the stop button
-  const stopBtnStyle = useMemo(() => ({
-    position: 'absolute' as const,
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    zIndex: 10,
-  }), [])
+  // Smooth the audio level for organic response
+  const [smoothLevel, setSmoothLevel] = useState(0)
+  const rafRef = useRef<number>(0)
+  const smoothRef = useRef(0)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Use devicePixelRatio for crisp rendering
-    const dpr = window.devicePixelRatio || 1
-    const canvasSize = auraSize
-    canvas.width = canvasSize * dpr
-    canvas.height = canvasSize * dpr
-    ctx.scale(dpr, dpr)
-
-    const centerX = canvasSize / 2
-    const centerY = canvasSize / 2
-    const baseRadius = size / 2
-
-    const draw = (timestamp: number) => {
-      if (!lastTimeRef.current) lastTimeRef.current = timestamp
-      const dt = (timestamp - lastTimeRef.current) / 1000
-      lastTimeRef.current = timestamp
-      timeRef.current += dt
-
-      // Smooth the audio level for organic response
-      const targetLevel = audioLevel
-      smoothLevelRef.current += (targetLevel - smoothLevelRef.current) * 0.15
-
-      const level = smoothLevelRef.current
-      const t = timeRef.current
-
-      // Clear canvas
-      ctx.clearRect(0, 0, canvasSize, canvasSize)
-
-      // ── Outer aura glow ──
-      const auraRadius = baseRadius * (1.2 + level * 0.4)
-      const auraGrad = ctx.createRadialGradient(
-        centerX, centerY, baseRadius * 0.5,
-        centerX, centerY, auraRadius * 1.3
-      )
-      const auraOpacity = 0.2 + level * 0.4
-      auraGrad.addColorStop(0, `rgba(140, 160, 255, ${auraOpacity})`)
-      auraGrad.addColorStop(0.5, `rgba(160, 130, 255, ${auraOpacity * 0.6})`)
-      auraGrad.addColorStop(1, 'rgba(140, 160, 255, 0)')
-      ctx.fillStyle = auraGrad
-      ctx.beginPath()
-      ctx.arc(centerX, centerY, auraRadius * 1.3, 0, Math.PI * 2)
-      ctx.fill()
-
-      // ── Main orb shape (warped circle using bezier curves) ──
-      // Generate control points that warp based on audio level
-      const numPoints = 8
-      const points: { x: number; y: number }[] = []
-
-      for (let i = 0; i < numPoints; i++) {
-        const angle = (i / numPoints) * Math.PI * 2
-        // Each point gets a unique distortion based on time + audio
-        const freq1 = Math.sin(t * 2.5 + i * 1.7) * level * 0.25
-        const freq2 = Math.cos(t * 3.1 + i * 2.3) * level * 0.15
-        const freq3 = Math.sin(t * 1.8 + i * 0.9) * 0.03 // baseline breathing
-        const distortion = freq1 + freq2 + freq3
-
-        const r = baseRadius * (1 + distortion)
-        points.push({
-          x: centerX + Math.cos(angle) * r,
-          y: centerY + Math.sin(angle) * r,
-        })
-      }
-
-      // Draw the warped shape using smooth bezier curves
-      ctx.beginPath()
-      for (let i = 0; i < numPoints; i++) {
-        const curr = points[i]
-        const next = points[(i + 1) % numPoints]
-        const prev = points[(i - 1 + numPoints) % numPoints]
-        const nextNext = points[(i + 2) % numPoints]
-
-        if (i === 0) {
-          ctx.moveTo(curr.x, curr.y)
-        }
-
-        // Catmull-Rom to bezier control points
-        const cp1x = curr.x + (next.x - prev.x) / 6
-        const cp1y = curr.y + (next.y - prev.y) / 6
-        const cp2x = next.x - (nextNext.x - curr.x) / 6
-        const cp2y = next.y - (nextNext.y - curr.y) / 6
-
-        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y)
-      }
-      ctx.closePath()
-
-      // White glass fill
-      const glassGrad = ctx.createRadialGradient(
-        centerX - baseRadius * 0.15, centerY - baseRadius * 0.15, 0,
-        centerX, centerY, baseRadius * 1.1
-      )
-      glassGrad.addColorStop(0, 'rgba(255, 255, 255, 0.98)')
-      glassGrad.addColorStop(0.5, 'rgba(250, 252, 255, 0.95)')
-      glassGrad.addColorStop(1, 'rgba(240, 245, 252, 0.88)')
-      ctx.fillStyle = glassGrad
-      ctx.fill()
-
-      // ── Iridescent ring overlay ──
-      ctx.save()
-      ctx.clip() // clip to the orb shape
-
-      // Rotating conic-like gradient ring (simulated with arc segments)
-      const ringInner = baseRadius * 0.65
-      const ringOuter = baseRadius * 0.95
-      const rotAngle = t * 1.2
-
-      const ringColors = [
-        { angle: 0, color: `rgba(120, 100, 220, ${0.7 + level * 0.3})` },
-        { angle: Math.PI * 0.5, color: `rgba(100, 180, 255, ${0.5 + level * 0.3})` },
-        { angle: Math.PI, color: 'rgba(255, 255, 255, 0)' },
-        { angle: Math.PI * 1.5, color: `rgba(140, 100, 240, ${0.6 + level * 0.3})` },
-      ]
-
-      for (let s = 0; s < ringColors.length; s++) {
-        const segStart = ringColors[s].angle + rotAngle
-        const segEnd = ringColors[(s + 1) % ringColors.length].angle + rotAngle + (s === ringColors.length - 1 ? Math.PI * 2 : 0)
-
-        ctx.beginPath()
-        ctx.arc(centerX, centerY, ringOuter, segStart, segEnd)
-        ctx.arc(centerX, centerY, ringInner, segEnd, segStart, true)
-        ctx.closePath()
-        ctx.fillStyle = ringColors[s].color
-        ctx.fill()
-      }
-
-      ctx.restore()
-
-      // ── Edge highlight / shadow ──
-      ctx.save()
-      // Redraw the orb path for stroke
-      ctx.beginPath()
-      for (let i = 0; i < numPoints; i++) {
-        const curr = points[i]
-        const next = points[(i + 1) % numPoints]
-        const prev = points[(i - 1 + numPoints) % numPoints]
-        const nextNext = points[(i + 2) % numPoints]
-
-        if (i === 0) ctx.moveTo(curr.x, curr.y)
-
-        const cp1x = curr.x + (next.x - prev.x) / 6
-        const cp1y = curr.y + (next.y - prev.y) / 6
-        const cp2x = next.x - (nextNext.x - curr.x) / 6
-        const cp2y = next.y - (nextNext.y - curr.y) / 6
-
-        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y)
-      }
-      ctx.closePath()
-      ctx.strokeStyle = `rgba(160, 180, 255, ${0.3 + level * 0.3})`
-      ctx.lineWidth = 1.5
-      ctx.stroke()
-      ctx.restore()
-
-      animRef.current = requestAnimationFrame(draw)
+    const tick = () => {
+      smoothRef.current += (audioLevel - smoothRef.current) * 0.12
+      setSmoothLevel(smoothRef.current)
+      rafRef.current = requestAnimationFrame(tick)
     }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
+  }, [audioLevel])
 
-    animRef.current = requestAnimationFrame(draw)
+  const level = smoothLevel
 
-    return () => {
-      if (animRef.current) cancelAnimationFrame(animRef.current)
-    }
-  }, [audioLevel, size, auraSize])
+  // Audio-reactive config — maps level to animation speeds
+  // At silence: gentle idle-like breathing. At loud speech: intense fast animation
+  const breathe = `${2.5 - level * 1.5}s`       // 2.5s → 1s
+  const breatheSlow = `${3.0 - level * 1.5}s`   // 3.0s → 1.5s
+  const spin = `${4.0 - level * 2.5}s`           // 4.0s → 1.5s
+  const spinReverse = `${6.0 - level * 3.0}s`   // 6.0s → 3.0s
+  const morph = `${3.5 - level * 2.0}s`          // 3.5s → 1.5s
+
+  // Audio-reactive scale: orb grows slightly with volume
+  const scale = 1 + level * 0.15
+  const auraIntensity = 1.3 + level * 0.7 // 1.3 → 2.0
+
+  const auraSize = size * 1.5
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex items-center justify-center cursor-pointer transition-transform active:scale-95 ${className}`}
-      style={{ width: size, height: size }}
+      className={`relative flex items-center justify-center cursor-pointer active:scale-95 transition-transform ${className}`}
+      style={{ width: auraSize, height: auraSize }}
       aria-label="Stop listening"
       title="Stop listening"
     >
-      {/* Canvas for the animated orb */}
-      <canvas
-        ref={canvasRef}
+      {/* Reuse the same keyframes as AnimatedOrb */}
+      <style>{`
+        @keyframes voiceOrbRotate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes voiceBreathe {
+          0%, 100% { transform: scale(0.8); opacity: 0.25; }
+          50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        @keyframes voiceBreatheSlow {
+          0%, 100% { transform: scale(0.85); opacity: 0.2; }
+          50% { transform: scale(1.15); opacity: 0.6; }
+        }
+        @keyframes voiceMorph {
+          0%, 100% {
+            border-radius: 60% 40% 55% 45% / 55% 45% 50% 50%;
+            transform: scale(0.95) rotate(0deg);
+          }
+          20% {
+            border-radius: 45% 55% 40% 60% / 60% 40% 55% 45%;
+            transform: scale(1.08) rotate(3deg);
+          }
+          40% {
+            border-radius: 55% 45% 60% 40% / 45% 55% 45% 55%;
+            transform: scale(0.90) rotate(-2deg);
+          }
+          60% {
+            border-radius: 40% 60% 45% 55% / 50% 50% 60% 40%;
+            transform: scale(1.06) rotate(2deg);
+          }
+          80% {
+            border-radius: 50% 50% 55% 45% / 40% 60% 45% 55%;
+            transform: scale(0.93) rotate(-3deg);
+          }
+        }
+        @keyframes voiceMorphRing {
+          0%, 100% { border-radius: 60% 40% 55% 45% / 55% 45% 50% 50%; }
+          20% { border-radius: 45% 55% 40% 60% / 60% 40% 55% 45%; }
+          40% { border-radius: 55% 45% 60% 40% / 45% 55% 45% 55%; }
+          60% { border-radius: 40% 60% 45% 55% / 50% 50% 60% 40%; }
+          80% { border-radius: 50% 50% 55% 45% / 40% 60% 45% 55%; }
+        }
+      `}</style>
+
+      <div
         style={{
-          position: 'absolute',
+          position: 'relative',
           width: auraSize,
           height: auraSize,
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transform: `scale(${scale})`,
+          transition: 'transform 0.15s ease-out',
         }}
-      />
-
-      {/* Stop icon in the center */}
-      <div style={stopBtnStyle}>
-        <Square
-          className="text-indigo-600/70"
+      >
+        {/* Breathing aura — outer */}
+        <div
           style={{
-            width: size * 0.28,
-            height: size * 0.28,
-            fill: 'currentColor',
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            background: `radial-gradient(
+              circle at center,
+              rgba(160, 150, 255, ${0.4 * auraIntensity}) 15%,
+              rgba(140, 170, 255, ${0.3 * auraIntensity}) 35%,
+              rgba(170, 150, 255, ${0.15 * auraIntensity}) 50%,
+              rgba(130, 160, 255, ${0.05 * auraIntensity}) 65%,
+              transparent 75%
+            )`,
+            filter: 'blur(5px)',
+            animation: `voiceBreathe ${breathe} ease-in-out infinite`,
           }}
         />
+
+        {/* Breathing aura — inner */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: '10%',
+            borderRadius: '50%',
+            background: `radial-gradient(
+              circle at center,
+              rgba(140, 160, 255, ${0.35 * auraIntensity}) 20%,
+              rgba(170, 140, 255, ${0.25 * auraIntensity}) 40%,
+              rgba(150, 170, 255, ${0.1 * auraIntensity}) 55%,
+              transparent 70%
+            )`,
+            filter: 'blur(3px)',
+            animation: `voiceBreatheSlow ${breatheSlow} ease-in-out infinite 0.3s`,
+          }}
+        />
+
+        {/* Main orb container */}
+        <div
+          style={{
+            position: 'relative',
+            width: size,
+            height: size,
+          }}
+        >
+          {/* White glass base — morphing */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              background: `radial-gradient(
+                ellipse 85% 85% at 45% 45%,
+                rgba(255, 255, 255, 0.98) 0%,
+                rgba(250, 252, 255, 0.95) 40%,
+                rgba(245, 248, 255, 0.9) 70%,
+                rgba(240, 245, 252, 0.85) 100%
+              )`,
+              animation: `voiceMorph ${morph} ease-in-out infinite`,
+            }}
+          />
+
+          {/* Subtle bottom shadow — morphing */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              background: `radial-gradient(
+                ellipse 90% 90% at 60% 60%,
+                transparent 50%,
+                rgba(140, 160, 255, 0.12) 80%,
+                rgba(120, 140, 240, 0.2) 100%
+              )`,
+              animation: `voiceMorphRing ${morph} ease-in-out infinite`,
+            }}
+          />
+
+          {/* Primary rotating + morphing iridescent ring */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              animation: `voiceOrbRotate ${spin} linear infinite, voiceMorphRing ${morph} ease-in-out infinite`,
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: 'inherit',
+                background: `conic-gradient(
+                  from 0deg,
+                  rgba(120, 100, 220, 0.85) 0deg,
+                  rgba(160, 120, 255, 0.75) 45deg,
+                  rgba(100, 180, 255, 0.65) 90deg,
+                  transparent 135deg,
+                  transparent 200deg,
+                  rgba(80, 150, 255, 0.55) 240deg,
+                  rgba(140, 100, 240, 0.75) 280deg,
+                  rgba(180, 120, 255, 0.85) 320deg,
+                  rgba(120, 100, 220, 0.85) 360deg
+                )`,
+                mask: `radial-gradient(circle at center, transparent 60%, black 70%, black 90%, transparent 100%)`,
+                WebkitMask: `radial-gradient(circle at center, transparent 60%, black 70%, black 90%, transparent 100%)`,
+              }}
+            />
+          </div>
+
+          {/* Secondary counter-rotating + morphing ring */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              animation: `voiceOrbRotate ${spinReverse} linear infinite reverse, voiceMorphRing ${morph} ease-in-out infinite`,
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: 'inherit',
+                background: `conic-gradient(
+                  from 180deg,
+                  transparent 0deg,
+                  rgba(100, 200, 255, 0.45) 60deg,
+                  rgba(180, 140, 255, 0.55) 120deg,
+                  transparent 180deg,
+                  transparent 240deg,
+                  rgba(140, 180, 255, 0.45) 300deg,
+                  transparent 360deg
+                )`,
+                mask: `radial-gradient(circle at center, transparent 53%, black 66%, black 86%, transparent 100%)`,
+                WebkitMask: `radial-gradient(circle at center, transparent 53%, black 66%, black 86%, transparent 100%)`,
+              }}
+            />
+          </div>
+
+          {/* Edge definition — morphing */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              boxShadow: `
+                inset 0 0 ${size * 0.1}px rgba(140, 160, 255, 0.35),
+                inset -${size * 0.03}px -${size * 0.03}px ${size * 0.1}px rgba(160, 140, 255, 0.25),
+                0 0 ${size * 0.08}px rgba(160, 180, 255, 0.4)
+              `,
+              animation: `voiceMorphRing ${morph} ease-in-out infinite`,
+            }}
+          />
+
+          {/* Stop icon centered */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+            }}
+          >
+            <Square
+              style={{
+                width: size * 0.26,
+                height: size * 0.26,
+                color: 'rgba(99, 102, 241, 0.7)',
+                fill: 'rgba(99, 102, 241, 0.6)',
+              }}
+            />
+          </div>
+        </div>
       </div>
     </button>
   )
