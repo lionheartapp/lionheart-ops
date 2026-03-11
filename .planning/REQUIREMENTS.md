@@ -184,8 +184,8 @@ Deferred to next minor release. Tracked but not in current roadmap.
 
 | AI-UX-01 | Phase 14 | Pending |
 | AI-UX-02 | Phase 14 | Pending |
-| AI-UX-03 | Phase 14 | Pending |
-| AI-UX-04 | Phase 14 | Pending |
+| AI-UX-03 | Phase 14 | Complete |
+| AI-UX-04 | Phase 14 | Complete |
 | AI-UX-05 | Phase 14 | Pending |
 
 **Coverage:**

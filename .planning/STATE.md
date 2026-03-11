@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Phase 12 context gathered
-last_updated: "2026-03-10T23:34:36.772Z"
+stopped_at: Completed 14-ai-assistant-ux-upgrade-02-PLAN.md
+last_updated: "2026-03-11T13:44:23.863Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
-  total_phases: 13
+  total_phases: 14
   completed_phases: 11
-  total_plans: 37
-  completed_plans: 37
+  total_plans: 40
+  completed_plans: 38
   percent: 0
 ---
 
@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 11-calendar-ticket-and-feature-gaps P02 | 3 | 2 tasks | 8 files |
 | Phase 11-calendar-ticket-and-feature-gaps P01 | 18 | 2 tasks | 5 files |
 | Phase 11-calendar-ticket-and-feature-gaps P03 | 59 | 1 tasks | 2 files |
+| Phase 14-ai-assistant-ux-upgrade P02 | 12 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 11-calendar-ticket-and-feature-gaps]: ticket-attachments Supabase bucket created as public; base64 JSON body used for attachment uploads; search uses nested AND/OR to compose with access-control
 - [Phase 11-calendar-ticket-and-feature-gaps]: checkRoomConflict exported from eventService for reuse in draftEventService; ROOM_CONFLICT error uses .code property for semantic 409 catch in route handlers; smoke tests use DIRECT_URL to avoid pgbouncer prepared statement conflicts
 - [Phase Phase 11]: Edit form inline in dashboard drawer (not separate route) — avoids navigation for simple field edits; handleSaveEdit uses fetchTickets() callback since dashboard has no TanStack Query client
+- [Phase 14-ai-assistant-ux-upgrade]: Room model has no capacity field -- find_available_rooms min_capacity param accepted but not applied against schema
+- [Phase 14-ai-assistant-ux-upgrade]: InventoryItem uses quantityOnHand not quantity -- corrected in check_resource_availability handler
+- [Phase 14-ai-assistant-ux-upgrade]: executeGetWeatherForecast uses rawPrisma (not prisma) for Organization lat/lng lookup
 
 ### Pending Todos
 
@@ -129,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T23:34:36.767Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-settings-and-admin-tools/12-CONTEXT.md
+Last session: 2026-03-11T13:44:23.860Z
+Stopped at: Completed 14-ai-assistant-ux-upgrade-02-PLAN.md
+Resume file: None
