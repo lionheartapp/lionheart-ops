@@ -152,7 +152,7 @@ Plans:
 - [x] **Phase 11: Calendar, Ticket, and Feature Gaps** - Draft events individual routes, room conflict detection, ticket drawer edit button, ticket comments/attachments, and ticket search (completed 2026-03-10)
 - [ ] **Phase 12: Settings and Admin Tools** - Audit log viewer, billing UI, CSV export, org name/slug editing, and notification preferences
 - [ ] **Phase 13: Infrastructure and Observability** - Vitest unit tests, GitHub Actions CI/CD, Pino structured logging, Sentry error tracking, list pagination, and DB transactions
-- [ ] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow
+- [x] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow (completed 2026-03-11)
 
 ## Phase Details
 
