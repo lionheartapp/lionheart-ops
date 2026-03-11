@@ -226,7 +226,7 @@ export default function MessageList({
   }, [])
 
   return (
-    <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>
+    <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar overflow-x-hidden ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>
       {/* Empty state — animated orb */}
       {conversation.length === 0 && !isLoading && (
         <motion.div
@@ -254,7 +254,7 @@ export default function MessageList({
         return (
           <motion.div
             key={idx}
-            className={`group flex flex-col gap-1 ${
+            className={`group flex flex-col gap-1 min-w-0 w-full ${
               turn.role === 'user' ? 'items-end' : 'items-start'
             }`}
             initial={{ opacity: 0, y: 8 }}
