@@ -45,7 +45,27 @@ export function buildSystemPrompt(
   }
   if (availableToolNames.includes('create_maintenance_ticket')) {
     capabilities.push(
-      '- Draft new maintenance tickets (you will prepare the details and ask the user to confirm before creating)'
+      '- Create new maintenance tickets (you will prepare the details and ask the user to confirm before creating)'
+    )
+  }
+  if (availableToolNames.includes('create_event')) {
+    capabilities.push(
+      '- Create calendar events (you will prepare the details and ask the user to confirm before creating)'
+    )
+  }
+  if (availableToolNames.includes('create_it_ticket')) {
+    capabilities.push(
+      '- Create IT support tickets (you will prepare the details and ask the user to confirm before creating)'
+    )
+  }
+  if (availableToolNames.includes('update_maintenance_ticket_status')) {
+    capabilities.push(
+      '- Update maintenance ticket statuses (move to In Progress, Done, On Hold, etc.)'
+    )
+  }
+  if (availableToolNames.includes('assign_maintenance_ticket')) {
+    capabilities.push(
+      '- Assign maintenance tickets to technicians or staff members'
     )
   }
 

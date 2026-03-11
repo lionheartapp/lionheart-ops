@@ -296,6 +296,133 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     requiredPermission: PERMISSIONS.MAINTENANCE_SUBMIT,
     execute: executeCreateTicketDraft,
   },
+
+  // ── Create Calendar Event (Draft) ──────────────────────────────────
+  create_event: {
+    definition: {
+      name: 'create_event',
+      description:
+        'Draft a new calendar event. Returns a summary for user confirmation before actually creating it. Use this when the user asks to create, schedule, or add an event.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: {
+            type: 'string',
+            description: 'Event title',
+          },
+          description: {
+            type: 'string',
+            description: 'Event description (optional)',
+          },
+          start_date: {
+            type: 'string',
+            description: 'Start date and time in ISO format (e.g. "2026-03-15T14:00:00")',
+          },
+          end_date: {
+            type: 'string',
+            description: 'End date and time in ISO format (e.g. "2026-03-15T15:00:00")',
+          },
+          location: {
+            type: 'string',
+            description: 'Room or location name (optional)',
+          },
+        },
+        required: ['title', 'start_date', 'end_date'],
+      },
+    },
+    requiredPermission: PERMISSIONS.EVENTS_CREATE,
+    execute: executeCreateEventDraft,
+  },
+
+  // ── Create IT Ticket (Draft) ───────────────────────────────────────
+  create_it_ticket: {
+    definition: {
+      name: 'create_it_ticket',
+      description:
+        'Draft a new IT support ticket. Returns a summary for user confirmation before creating. Use when the user reports an IT issue or needs tech support.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: {
+            type: 'string',
+            description: 'Short title describing the IT issue',
+          },
+          description: {
+            type: 'string',
+            description: 'Detailed description of the issue',
+          },
+          issue_type: {
+            type: 'string',
+            enum: ['HARDWARE', 'SOFTWARE', 'NETWORK', 'ACCOUNT_ACCESS', 'DISPLAY_AV', 'PRINTER', 'OTHER'],
+            description: 'Type of IT issue',
+          },
+          priority: {
+            type: 'string',
+            enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
+            description: 'Priority level (default: MEDIUM)',
+          },
+        },
+        required: ['title', 'issue_type'],
+      },
+    },
+    requiredPermission: PERMISSIONS.IT_TICKET_SUBMIT,
+    execute: executeCreateITTicketDraft,
+  },
+
+  // ── Update Maintenance Ticket Status ───────────────────────────────
+  update_maintenance_ticket_status: {
+    definition: {
+      name: 'update_maintenance_ticket_status',
+      description:
+        'Update the status of a maintenance ticket (e.g. move to In Progress, mark as Done, cancel). Returns a confirmation before executing.',
+      parameters: {
+        type: 'object',
+        properties: {
+          ticket_id: {
+            type: 'string',
+            description: 'The ticket ID or ticket number',
+          },
+          new_status: {
+            type: 'string',
+            enum: ['BACKLOG', 'TODO', 'IN_PROGRESS', 'ON_HOLD', 'QA', 'DONE', 'CANCELLED'],
+            description: 'The new status to set',
+          },
+          note: {
+            type: 'string',
+            description: 'Optional note (required for QA completion or cancellation)',
+          },
+        },
+        required: ['ticket_id', 'new_status'],
+      },
+    },
+    requiredPermission: PERMISSIONS.MAINTENANCE_UPDATE_ALL,
+    execute: executeUpdateMaintenanceStatusDraft,
+  },
+
+  // ── Assign Maintenance Ticket ──────────────────────────────────────
+  assign_maintenance_ticket: {
+    definition: {
+      name: 'assign_maintenance_ticket',
+      description:
+        'Assign a maintenance ticket to a specific user/technician. Search for the user first to get their ID.',
+      parameters: {
+        type: 'object',
+        properties: {
+          ticket_id: {
+            type: 'string',
+            description: 'The ticket ID or ticket number',
+          },
+          assignee_name: {
+            type: 'string',
+            description: 'Name or email of the person to assign to',
+          },
+        },
+        required: ['ticket_id', 'assignee_name'],
+      },
+    },
+    requiredPermission: PERMISSIONS.MAINTENANCE_ASSIGN,
+    execute: executeAssignMaintenanceTicketDraft,
+  },
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -661,6 +788,123 @@ async function executeCreateTicketDraft(
   return JSON.stringify({
     confirmationRequired: true,
     message: `I've prepared a maintenance ticket draft. Please confirm to create it:\n• Title: ${draft.title}\n• Category: ${draft.category}\n• Priority: ${draft.priority}\n• Location: ${draft.location}`,
+    draft,
+  })
+}
+
+async function executeCreateEventDraft(
+  input: Record<string, unknown>,
+  _ctx: ToolContext
+): Promise<string> {
+  const draft = {
+    action: 'create_event',
+    title: String(input.title || ''),
+    description: String(input.description || ''),
+    startsAt: String(input.start_date || ''),
+    endsAt: String(input.end_date || ''),
+    room: String(input.location || ''),
+  }
+
+  const startDisplay = draft.startsAt ? new Date(draft.startsAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'
+  const endDisplay = draft.endsAt ? new Date(draft.endsAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'
+
+  return JSON.stringify({
+    confirmationRequired: true,
+    message: `I've prepared an event draft. Please confirm to create it:\n• Title: ${draft.title}\n• Start: ${startDisplay}\n• End: ${endDisplay}${draft.room ? `\n• Location: ${draft.room}` : ''}${draft.description ? `\n• Description: ${draft.description}` : ''}`,
+    draft,
+  })
+}
+
+async function executeCreateITTicketDraft(
+  input: Record<string, unknown>,
+  _ctx: ToolContext
+): Promise<string> {
+  const draft = {
+    action: 'create_it_ticket',
+    title: String(input.title || ''),
+    description: String(input.description || ''),
+    issueType: String(input.issue_type || 'OTHER'),
+    priority: String(input.priority || 'MEDIUM'),
+  }
+
+  return JSON.stringify({
+    confirmationRequired: true,
+    message: `I've prepared an IT ticket draft. Please confirm to create it:\n• Title: ${draft.title}\n• Issue Type: ${draft.issueType}\n• Priority: ${draft.priority}${draft.description ? `\n• Description: ${draft.description}` : ''}`,
+    draft,
+  })
+}
+
+async function executeUpdateMaintenanceStatusDraft(
+  input: Record<string, unknown>,
+  _ctx: ToolContext
+): Promise<string> {
+  const ticketId = String(input.ticket_id || '')
+  const newStatus = String(input.new_status || '')
+  const note = String(input.note || '')
+
+  // Look up the ticket to show current status
+  let ticketInfo = ''
+  try {
+    const ticket = await prisma.maintenanceTicket
+      .findFirst({
+        where: { OR: [{ id: ticketId }, { ticketNumber: { equals: ticketId, mode: 'insensitive' } }] },
+        select: { id: true, ticketNumber: true, title: true, status: true },
+      })
+      .catch(() => null)
+    if (ticket) {
+      ticketInfo = `\n• Ticket: ${ticket.ticketNumber} — ${ticket.title}\n• Current Status: ${ticket.status}`
+    }
+  } catch { /* non-critical */ }
+
+  const draft = {
+    action: 'update_maintenance_ticket_status',
+    ticketId,
+    newStatus,
+    note,
+  }
+
+  return JSON.stringify({
+    confirmationRequired: true,
+    message: `I'll update this maintenance ticket's status. Please confirm:${ticketInfo}\n• New Status: ${newStatus}${note ? `\n• Note: ${note}` : ''}`,
+    draft,
+  })
+}
+
+async function executeAssignMaintenanceTicketDraft(
+  input: Record<string, unknown>,
+  _ctx: ToolContext
+): Promise<string> {
+  const ticketId = String(input.ticket_id || '')
+  const assigneeName = String(input.assignee_name || '')
+
+  // Look up assignee by name
+  let assigneeId: string | null = null
+  let assigneeDisplay = assigneeName
+  try {
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ name: { contains: assigneeName, mode: 'insensitive' } }, { email: { contains: assigneeName, mode: 'insensitive' } }] },
+      select: { id: true, name: true, email: true },
+    })
+    if (user) {
+      assigneeId = user.id
+      assigneeDisplay = `${user.name} (${user.email})`
+    }
+  } catch { /* non-critical */ }
+
+  if (!assigneeId) {
+    return JSON.stringify({ error: `Could not find a user matching "${assigneeName}". Try searching for them first.` })
+  }
+
+  const draft = {
+    action: 'assign_maintenance_ticket',
+    ticketId,
+    assigneeId,
+    assigneeName: assigneeDisplay,
+  }
+
+  return JSON.stringify({
+    confirmationRequired: true,
+    message: `I'll assign this ticket. Please confirm:\n• Ticket: ${ticketId}\n• Assign to: ${assigneeDisplay}`,
     draft,
   })
 }

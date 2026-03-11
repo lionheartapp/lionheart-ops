@@ -106,17 +106,41 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
     [conversation, isLoading]
   )
 
-  const handleConfirmAction = useCallback(() => {
+  const handleConfirmAction = useCallback(async () => {
+    if (!pendingAction) return
+    const action = pendingAction
     setPendingAction(null)
-    setConversation((prev) => [
-      ...prev,
-      {
-        role: 'assistant',
-        content: 'Action confirmed. This feature will create the ticket in a future update.',
-        timestamp: new Date().toISOString(),
-      },
-    ])
-  }, [])
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/ai/assistant/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          action: action.payload.action || action.type,
+          payload: action.payload,
+        }),
+      })
+      const json = await res.json()
+
+      const message = json.ok
+        ? json.data.message || 'Done!'
+        : json.error?.message || 'Something went wrong. Please try again.'
+
+      setConversation((prev) => [
+        ...prev,
+        { role: 'assistant', content: message, timestamp: new Date().toISOString() },
+      ])
+    } catch {
+      setConversation((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Network error. The action may not have completed.', timestamp: new Date().toISOString() },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [pendingAction])
 
   const handleCancelAction = useCallback(() => {
     setPendingAction(null)

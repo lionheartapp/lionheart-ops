@@ -21,8 +21,10 @@ export default function ActionConfirmation({
 }: ActionConfirmationProps) {
   const actionLabels: Record<string, string> = {
     create_maintenance_ticket: 'Create Maintenance Ticket',
-    assign_ticket: 'Assign Ticket',
     create_event: 'Create Event',
+    create_it_ticket: 'Create IT Ticket',
+    update_maintenance_ticket_status: 'Update Ticket Status',
+    assign_maintenance_ticket: 'Assign Ticket',
   }
 
   return (

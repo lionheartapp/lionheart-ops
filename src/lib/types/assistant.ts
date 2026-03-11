@@ -21,7 +21,7 @@ export interface ChatRequest {
 }
 
 export interface ActionConfirmation {
-  type: 'create_maintenance_ticket' | 'assign_ticket' | 'create_event'
+  type: 'create_maintenance_ticket' | 'create_event' | 'create_it_ticket' | 'update_maintenance_ticket_status' | 'assign_maintenance_ticket'
   description: string
   payload: Record<string, unknown>
 }
