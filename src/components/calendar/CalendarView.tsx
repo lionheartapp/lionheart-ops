@@ -36,7 +36,7 @@ import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
-import { Calendar as CalendarIcon, Loader2, Check, X } from 'lucide-react'
+import { Calendar as CalendarIcon, Loader2, Check, X, Download } from 'lucide-react'
 import { IllustrationCalendar } from '@/components/illustrations'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
@@ -596,7 +596,7 @@ export default function CalendarView() {
   }, [])
 
   // Prefetch adjacent time ranges for instant navigation
-  useCalendarPrefetch(currentDate, view, !calendarsLoading)
+  useCalendarPrefetch(currentDate, view, !calendarsLoading, athleticsCampusArray)
 
   // Keyboard navigation: T=Today, M=Month, W=Week, D=Day, A=Agenda, N=New event
   useEffect(() => {
@@ -748,6 +748,19 @@ export default function CalendarView() {
           campuses={athleticsCampuses}
           sports={athleticsSports}
         />
+
+        {/* Export CSV button */}
+        <div className="flex justify-end mt-2">
+          <button
+            onClick={() => {
+              window.open('/api/settings/export/events', '_blank')
+            }}
+            className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-1.5"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
+          </button>
+        </div>
 
       </div>
 

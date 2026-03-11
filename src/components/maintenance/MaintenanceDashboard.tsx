@@ -12,6 +12,7 @@ import {
   CalendarClock,
   DollarSign,
   RefreshCw,
+  Download,
 } from 'lucide-react'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
@@ -208,6 +209,22 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
       animate="visible"
       variants={staggerContainer(0.06, 0.04)}
     >
+      {/* Export CSV button */}
+      <motion.div variants={fadeInUp} className="flex justify-end">
+        <button
+          onClick={() => {
+            const params = new URLSearchParams()
+            if (activeCampusId) params.set('schoolId', activeCampusId)
+            const qs = params.toString()
+            window.open(`/api/settings/export/tickets${qs ? `?${qs}` : ''}`, '_blank')
+          }}
+          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Export CSV
+        </button>
+      </motion.div>
+
       {/* Stat Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, i) => {
