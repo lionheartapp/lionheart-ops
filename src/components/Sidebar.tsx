@@ -737,10 +737,12 @@ export default function Sidebar({
   const { enabled: maintenanceEnabled, loading: maintenanceModuleLoading } = useModuleEnabled('maintenance')
   const { enabled: itHelpdeskEnabled, loading: itHelpdeskModuleLoading } = useModuleEnabled('it-helpdesk')
 
+  const canReadInventory = perms?.canReadInventory ?? false
+
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Calendar', href: '/calendar' },
-    { icon: Package, label: 'Inventory', href: '/inventory' },
+    ...(canReadInventory ? [{ icon: Package, label: 'AV Inventory', href: '/inventory' }] : []),
   ]
 
   const handleAthleticsClick = () => {

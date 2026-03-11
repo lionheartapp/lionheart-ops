@@ -75,6 +75,8 @@ export async function GET(req: NextRequest) {
       canViewSecurityIncidents,
       canCreateSecurityIncident,
       canManageSecurityIncidents,
+      canReadInventory,
+      canWriteInventory,
     ] = await Promise.all([
       canAny(userContext.userId, WORKSPACE_MANAGE_PERMISSIONS),
       canAny(userContext.userId, ATHLETICS_WRITE_PERMISSIONS),
@@ -125,6 +127,9 @@ export async function GET(req: NextRequest) {
       can(userContext.userId, PERMISSIONS.IT_INCIDENT_READ),
       can(userContext.userId, PERMISSIONS.IT_INCIDENT_CREATE),
       can(userContext.userId, PERMISSIONS.IT_INCIDENT_MANAGE),
+      // Inventory
+      can(userContext.userId, PERMISSIONS.INVENTORY_READ),
+      can(userContext.userId, PERMISSIONS.INVENTORY_CREATE),
     ])
 
     const legacyRole = await getLegacyRole(userContext.userId)
@@ -175,6 +180,8 @@ export async function GET(req: NextRequest) {
         canViewSecurityIncidents,
         canCreateSecurityIncident,
         canManageSecurityIncidents,
+        canReadInventory,
+        canWriteInventory,
         legacyRole,
       })
     )

@@ -55,7 +55,7 @@ const RESOURCE_META: Record<string, { label: string; icon: React.ReactNode; colo
     color: 'bg-purple-100 text-purple-600',
   },
   inventory: {
-    label: 'Inventory',
+    label: 'AV Inventory',
     icon: <Package className="w-5 h-5" />,
     color: 'bg-emerald-100 text-emerald-600',
   },

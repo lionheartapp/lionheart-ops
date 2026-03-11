@@ -309,6 +309,8 @@ export const queryOptions = {
         canManageSync: boolean
         canViewIntelligence: boolean
         canConfigureDevices: boolean
+        canReadInventory: boolean
+        canWriteInventory: boolean
         legacyRole: string | null
       }>('/api/auth/permissions'),
     staleTime: 10 * 60 * 1000, // 10 minutes — permissions rarely change mid-session

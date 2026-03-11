@@ -852,10 +852,10 @@ export default function InventoryPage() {
           <div>
             <motion.div variants={fadeInUp} className="flex items-center gap-2 mb-0.5">
               <Package className="w-5 h-5 text-gray-400" aria-hidden="true" />
-              <h1 className="text-2xl font-semibold text-gray-900">Inventory</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">AV Inventory</h1>
             </motion.div>
             <motion.p variants={fadeInUp} className="text-sm text-gray-500">
-              Track and manage your organization&apos;s supplies and equipment
+              Track and manage your A/V equipment and supplies
             </motion.p>
           </div>
           <motion.div variants={fadeInUp}>

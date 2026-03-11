@@ -51,6 +51,8 @@ interface Permissions {
   canViewSecurityIncidents: boolean
   canCreateSecurityIncident: boolean
   canManageSecurityIncidents: boolean
+  canReadInventory: boolean
+  canWriteInventory: boolean
   legacyRole: string | null
 }
 

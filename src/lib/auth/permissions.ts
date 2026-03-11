@@ -55,6 +55,11 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
           permission: true,
         },
       },
+      teams: {
+        include: {
+          team: true,
+        },
+      },
     },
   })
 
@@ -83,6 +88,19 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
         effectivePermissions.delete(permStr)
       }
     })
+  }
+
+  // Auto-grant full inventory access to AV Production team members
+  const isOnAvTeam = user.teams?.some(
+    (ut: { team: { slug: string } }) => ut.team.slug === 'av-production'
+  )
+  if (isOnAvTeam) {
+    effectivePermissions.add('inventory:read')
+    effectivePermissions.add('inventory:create')
+    effectivePermissions.add('inventory:update')
+    effectivePermissions.add('inventory:delete')
+    effectivePermissions.add('inventory:checkout')
+    effectivePermissions.add('inventory:checkin')
   }
 
   const permissions = Array.from(effectivePermissions)
