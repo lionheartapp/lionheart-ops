@@ -30,9 +30,18 @@ function ensureISODate(dateStr: string): string {
   if (!dateStr) return dateStr
   // If it already has timezone info, return as-is
   if (dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)) return dateStr
-  // Try to parse and convert to ISO
-  const d = new Date(dateStr)
-  return isNaN(d.getTime()) ? dateStr : d.toISOString()
+  // Try to parse directly
+  let d = new Date(dateStr)
+  if (!isNaN(d.getTime())) return d.toISOString()
+
+  // Try common natural-language patterns the LLM might produce
+  // e.g. "March 13, 2026 7:30 PM" or "March 13 2026 19:30"
+  const cleaned = dateStr.replace(/,/g, '').trim()
+  d = new Date(cleaned)
+  if (!isNaN(d.getTime())) return d.toISOString()
+
+  console.warn('[ensureISODate] Could not parse date string:', dateStr)
+  return dateStr
 }
 
 export async function POST(req: NextRequest) {

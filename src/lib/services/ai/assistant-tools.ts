@@ -257,7 +257,7 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     definition: {
       name: 'create_maintenance_ticket',
       description:
-        'Draft a new maintenance ticket. Returns a summary for user confirmation before actually creating it. Use this when the user asks to create, submit, or report a maintenance issue.',
+        'Draft a new maintenance ticket. ALWAYS generate a descriptive title from the user\'s report — never ask them for a title. Infer the category from keywords (water/pipe/leak=PLUMBING, electrical/power=ELECTRICAL, heating/cooling/AC=HVAC, roof/wall/floor=STRUCTURAL, cleaning/spill=CUSTODIAL_BIOHAZARD, technology/wifi=IT_AV, landscaping/parking=GROUNDS). Infer priority from severity (safety hazard/flooding/gas=URGENT, broken/non-functional=HIGH, minor/cosmetic=LOW, everything else=MEDIUM). Extract location from the message. Returns a summary for user confirmation.',
       parameters: {
         type: 'object',
         properties: {
@@ -305,7 +305,7 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     definition: {
       name: 'create_event',
       description:
-        'Draft a new calendar event. Returns a summary for user confirmation before actually creating it. Use this when the user asks to create, schedule, or add an event.',
+        'Draft a new calendar event. Before calling this tool, ask the user about: AV needs (microphone, projector, speakers), facilities setup (chairs, tables, staging), expected attendance, and any special requirements. Include these details in the description. Only call this tool after the user has confirmed all event details or explicitly said to skip follow-up questions.',
       parameters: {
         type: 'object',
         properties: {

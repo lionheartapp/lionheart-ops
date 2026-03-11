@@ -205,9 +205,12 @@ export default function ChatPanel({ onClose, onAiActiveChange }: ChatPanelProps)
                   break
 
                 case 'rich_confirmation':
-                  // Store the rich confirmation card data as a pending action
-                  // Plan 14-03 will add the richCard field to ActionConfirmation properly
-                  setPendingAction({
+                  // Merge rich card onto existing pending action (preserving payload from action_confirmation)
+                  setPendingAction((prev) => prev ? {
+                    ...prev,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    richCard: event.card,
+                  } as any : {
                     type: 'create_event',
                     description: 'Event draft ready for review',
                     payload: {},
