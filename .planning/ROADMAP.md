@@ -268,14 +268,12 @@ Plans:
   3. Asking "Is the gym available Friday at 7pm?" calls check_room_availability and returns a clear yes/no with conflict details if booked
   4. Asking "What's the weather for March 20?" calls get_weather_forecast and returns forecast data
   5. Creating an event via Leo shows a rich confirmation card with editable fields, resource availability warnings, and approval chain preview
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 13-01: Vitest unit tests for critical API routes — auth, tickets, inventory (INFRA-01)
-- [ ] 13-02: GitHub Actions CI pipeline — test, lint, type-check on PR (INFRA-02)
-- [ ] 13-03: Pino structured logging integration across route handlers (INFRA-03)
-- [ ] 13-04: Sentry error tracking setup with Next.js integration (INFRA-04)
-- [ ] 13-05: Cursor-based pagination on all list endpoints + DB transaction wrapping for multi-model writes (INFRA-05, INFRA-06)
+- [ ] 14-01-PLAN.md — Extend types, SSE marker parsing, system prompt, ChoiceButtons + SuggestionChips components (AI-UX-01, AI-UX-02)
+- [ ] 14-02-PLAN.md — 4 new tools: room availability, room finder, resource availability, weather forecast (AI-UX-03, AI-UX-04)
+- [ ] 14-03-PLAN.md — Rich event confirmation card with editable fields, resource warnings, and approval preview (AI-UX-05)
 
 ---
 
