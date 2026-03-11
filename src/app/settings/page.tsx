@@ -771,6 +771,13 @@ export default function SettingsPage() {
                       </section>
                     </form>
                   </DetailDrawer>
+
+                  {/* ── Notification Preferences ─────────────────────────────── */}
+                  <motion.section variants={cardEntrance}>
+                    <h3 className="text-2xl font-semibold text-gray-900">Notification Preferences</h3>
+                    <div className="h-px bg-gray-200 mt-4 mb-6" />
+                    <NotificationPreferences />
+                  </motion.section>
                 </motion.div>
               )}
 

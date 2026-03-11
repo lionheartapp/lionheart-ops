@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Save, School } from 'lucide-react'
+import { Save, School, CheckCircle, XCircle, Pencil } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -118,6 +119,16 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
   const formRef = useRef<FormState>(EMPTY_FORM)
   const isDirty = useMemo(() => !areFormsEqual(form, savedForm), [form, savedForm])
 
+  // Slug editing state
+  const [slugEditing, setSlugEditing] = useState(false)
+  const [slugInput, setSlugInput] = useState('')
+  const [slugValidating, setSlugValidating] = useState(false)
+  const [slugValid, setSlugValid] = useState<null | true | string>(null) // null=unchecked, true=valid, string=error
+  const [slugSaving, setSlugSaving] = useState(false)
+  const [slugSuccess, setSlugSuccess] = useState('')
+  const [slugError, setSlugError] = useState('')
+  const slugDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
     formRef.current = form
   }, [form])
@@ -129,6 +140,101 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       headers.Authorization = `Bearer ${token}`
     }
     return headers
+  }
+
+  // Slug editing helpers
+  const openSlugEdit = () => {
+    setSlugInput(form.slug)
+    setSlugValid(null)
+    setSlugError('')
+    setSlugSuccess('')
+    setSlugEditing(true)
+  }
+
+  const cancelSlugEdit = () => {
+    setSlugEditing(false)
+    setSlugInput('')
+    setSlugValid(null)
+    setSlugError('')
+    setSlugSuccess('')
+    if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current)
+  }
+
+  const validateSlugFormat = (slug: string): string | null => {
+    if (slug.length < 3) return 'Slug must be at least 3 characters'
+    if (slug.length > 50) return 'Slug must be 50 characters or less'
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      return 'Slug can only contain lowercase letters, numbers, and hyphens'
+    }
+    return null
+  }
+
+  const handleSlugInputChange = (value: string) => {
+    const normalized = value.toLowerCase().trim()
+    setSlugInput(normalized)
+    setSlugValid(null)
+    setSlugError('')
+
+    if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current)
+
+    const formatError = validateSlugFormat(normalized)
+    if (formatError) {
+      setSlugValid(formatError)
+      return
+    }
+
+    // Don't check if same as current slug
+    if (normalized === form.slug) {
+      setSlugValid(true)
+      return
+    }
+
+    setSlugValidating(true)
+    slugDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/organizations/slug-check?slug=${encodeURIComponent(normalized)}`)
+        const data = await res.json()
+        if (data.ok && data.data?.valid) {
+          setSlugValid(true)
+        } else {
+          setSlugValid(data.data?.reason || 'Slug is not available')
+        }
+      } catch {
+        setSlugValid('Could not validate slug')
+      } finally {
+        setSlugValidating(false)
+      }
+    }, 300)
+  }
+
+  const handleSlugSave = async () => {
+    if (slugValid !== true || slugSaving) return
+
+    setSlugSaving(true)
+    setSlugError('')
+
+    try {
+      const res = await fetch('/api/settings/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ slug: slugInput }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to update subdomain')
+
+      // Update form state and localStorage
+      setForm((prev) => ({ ...prev, slug: slugInput }))
+      setSavedForm((prev) => ({ ...prev, slug: slugInput }))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('org-slug', slugInput)
+      }
+      setSlugSuccess(`Subdomain updated to ${slugInput}.lionheartapp.com`)
+      setSlugEditing(false)
+    } catch (err) {
+      setSlugError(err instanceof Error ? err.message : 'Failed to update subdomain')
+    } finally {
+      setSlugSaving(false)
+    }
   }
 
   const loadSchoolInfo = async () => {
@@ -399,11 +505,6 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             { value: 'MULTI_SCHOOL_CAMPUS', label: 'Multi-School Campus' },
           ]} />
 
-          <div>
-            <FloatingInput id="si-slug" label="Subdomain Slug" value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required />
-            <p className="mt-1 text-xs text-gray-500">Used as: {form.slug || 'your-school'}.lionheartapp.com</p>
-          </div>
-
           <FloatingInput id="si-district" label="District" value={form.district} onChange={(event) => setForm((prev) => ({ ...prev, district: event.target.value }))} />
 
           <FloatingInput id="si-website" label="Website" value={form.website} onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))} />
@@ -434,6 +535,131 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       <section>
         <h3 className="text-lg font-semibold text-gray-900">Branding</h3>
         <div className="h-px bg-gray-200 mt-4 mb-6" />
+
+        {/* Subdomain slug management */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Subdomain</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                <span className="font-mono text-gray-800">{form.slug || 'your-school'}</span>
+                .lionheartapp.com
+              </p>
+            </div>
+            {!slugEditing && (
+              <button
+                type="button"
+                onClick={openSlugEdit}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+              >
+                <Pencil className="w-3 h-3" />
+                Change Slug
+              </button>
+            )}
+          </div>
+
+          <AnimatePresence>
+            {slugSuccess && !slugEditing && (
+              <motion.div
+                key="slug-success"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                  {slugSuccess}
+                </div>
+              </motion.div>
+            )}
+
+            {slugEditing && (
+              <motion.div
+                key="slug-edit"
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-4">
+                  <div className="rounded-lg border border-amber-300 bg-amber-100 px-4 py-3 text-sm text-amber-800">
+                    Changing your subdomain will update all links to your organization. Existing bookmarks will stop working.
+                  </div>
+
+                  {slugError && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {slugError}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-700">
+                      Type the new slug to confirm
+                    </label>
+                    <div className="relative">
+                      <FloatingInput
+                        id="si-slug-new"
+                        label="New subdomain slug"
+                        value={slugInput}
+                        onChange={(e) => handleSlugInputChange(e.target.value)}
+                        disabled={slugSaving}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+                        {slugValidating && (
+                          <span className="inline-block h-4 w-4 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" />
+                        )}
+                        {!slugValidating && slugValid === true && (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        )}
+                        {!slugValidating && typeof slugValid === 'string' && (
+                          <XCircle className="w-4 h-4 text-red-500" />
+                        )}
+                      </div>
+                    </div>
+                    {typeof slugValid === 'string' && (
+                      <p className="text-xs text-red-600">{slugValid}</p>
+                    )}
+                    {slugValid === true && slugInput !== form.slug && (
+                      <p className="text-xs text-green-600">
+                        {slugInput}.lionheartapp.com is available
+                      </p>
+                    )}
+                    {slugValid === true && slugInput === form.slug && (
+                      <p className="text-xs text-gray-500">
+                        That is already your current slug
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleSlugSave}
+                      disabled={slugValid !== true || slugSaving || slugInput === form.slug}
+                      className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {slugSaving ? 'Saving...' : 'Confirm Change'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelSlugEdit}
+                      disabled={slugSaving}
+                      className="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Divider between slug section and image uploads */}
+        <div className="h-px bg-gray-200 my-4" />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
           <ImageDropZone
             label="Logo"
