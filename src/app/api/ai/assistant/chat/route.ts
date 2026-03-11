@@ -32,6 +32,8 @@ const ConversationTurnSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
   timestamp: z.string(),
+  choices: z.array(z.string()).optional(),
+  suggestions: z.array(z.string()).optional(),
 })
 
 const ChatRequestSchema = z.object({
@@ -49,6 +51,32 @@ const MODEL = 'gemini-2.0-flash'
 
 function sseEvent(event: StreamEvent): string {
   return `data: ${JSON.stringify(event)}\n\n`
+}
+
+// ─── Marker Extraction ────────────────────────────────────────────────────────
+
+function extractMarkers(text: string): {
+  cleanText: string
+  choices: string[]
+  suggestions: string[]
+} {
+  let cleanText = text
+  let choices: string[] = []
+  let suggestions: string[] = []
+
+  const choicesMatch = cleanText.match(/\[CHOICES:\s*([^\]]+)\]/)
+  if (choicesMatch) {
+    choices = choicesMatch[1].split('|').map(s => s.trim()).filter(Boolean)
+    cleanText = cleanText.replace(choicesMatch[0], '').trim()
+  }
+
+  const suggestMatch = cleanText.match(/\[SUGGEST:\s*([^\]]+)\]/)
+  if (suggestMatch) {
+    suggestions = suggestMatch[1].split('|').map(s => s.trim()).filter(Boolean)
+    cleanText = cleanText.replace(suggestMatch[0], '').trim()
+  }
+
+  return { cleanText, choices, suggestions }
 }
 
 // ─── Route Handler ────────────────────────────────────────────────────────────
@@ -325,16 +353,30 @@ export async function POST(req: NextRequest) {
             finalText = "I processed your request but couldn't generate a response. Please try again."
           }
 
+          // Extract markers from completed text
+          const { cleanText, choices, suggestions } = extractMarkers(finalText)
+          finalText = cleanText
+
           // Send action confirmation if any
           if (actionConfirmation) {
             write({ type: 'action_confirmation', action: actionConfirmation })
           }
 
+          // Emit structured events
+          if (choices.length > 0) write({ type: 'choices', options: choices })
+          if (suggestions.length > 0) write({ type: 'suggestions', items: suggestions })
+
           // Build updated conversation history
           const updatedHistory: ConversationTurn[] = [
             ...body.conversationHistory,
             { role: 'user', content: body.message, timestamp: new Date().toISOString() },
-            { role: 'assistant', content: finalText, timestamp: new Date().toISOString() },
+            {
+              role: 'assistant',
+              content: finalText,
+              timestamp: new Date().toISOString(),
+              ...(choices.length > 0 ? { choices } : {}),
+              ...(suggestions.length > 0 ? { suggestions } : {}),
+            },
           ]
 
           write({ type: 'done', conversationHistory: updatedHistory })

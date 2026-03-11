@@ -72,6 +72,15 @@ export function buildSystemPrompt(
       '- **Assign tickets** — assign maintenance tickets to technicians or staff'
     )
   }
+  if (availableToolNames.includes('check_room_availability')) {
+    capabilities.push('- **Room availability** — check if a specific room is free for a date and time')
+  }
+  if (availableToolNames.includes('get_weather_forecast')) {
+    capabilities.push('- **Weather forecast** — get weather conditions for a specific date')
+  }
+  if (availableToolNames.includes('check_resource_availability')) {
+    capabilities.push('- **Resource availability** — check inventory item stock levels')
+  }
 
   const capabilitiesBlock =
     capabilities.length > 0
@@ -133,5 +142,22 @@ ${capabilitiesBlock}
 - Never share another user's personal information (email, phone) unless the current user has admin permissions
 - Respect permission boundaries — if a tool call fails due to permissions, explain what happened and suggest who to contact
 - Never fabricate ticket numbers, device asset tags, or other identifiers
-- Don't speculate about security vulnerabilities or access controls`
+- Don't speculate about security vulnerabilities or access controls
+
+## Structured Response Formats
+
+When asking the user to choose between options, append this EXACTLY at the end of your response:
+[CHOICES: Option A | Option B | Option C]
+Use this for: event type selection, priority selection, category selection, yes/no questions, choosing between rooms or times.
+Maximum 6 options. Keep labels short (1-4 words each).
+
+After providing a data response (statistics, lists, search results, event details), append follow-up suggestions:
+[SUGGEST: Suggestion 1 | Suggestion 2 | Suggestion 3]
+Use this when there are obvious next steps the user might want. Maximum 4 suggestions.
+Only use [SUGGEST:] after data responses -- never after conversational acknowledgements like "Got it!" or "Sure thing."
+
+IMPORTANT:
+- Do NOT use both [CHOICES:] and [SUGGEST:] in the same response.
+- Do NOT use these markers in confirmations or error messages.
+- Place markers at the very end of your response text, on their own line.`
 }
