@@ -154,7 +154,7 @@ Plans:
 - [x] **Phase 13: Infrastructure and Observability** - Vitest unit tests, GitHub Actions CI/CD, Pino structured logging, Sentry error tracking, list pagination, and DB transactions (completed 2026-03-11)
 - [x] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow (completed 2026-03-11)
 - [x] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit) (completed 2026-03-11)
-- [ ] **Phase 16: Billing Permission & Observability Retrofit** - Add SETTINGS_BILLING to admin role, retrofit Pino/Sentry instrumentation to 21 routes from Phases 10-15 (gap closure from v2.0 audit)
+- [x] **Phase 16: Billing Permission & Observability Retrofit** - Add SETTINGS_BILLING to admin role, retrofit Pino/Sentry instrumentation to 21 routes from Phases 10-15 (gap closure from v2.0 audit) (completed 2026-03-11)
 
 ## Phase Details
 
@@ -332,4 +332,4 @@ Plans:
 | 12. Settings and Admin Tools | 3/3 | Complete    | 2026-03-11 | - |
 | 13. Infrastructure and Observability | 3/3 | Complete    | 2026-03-11 | - |
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
-| 16. Billing Permission & Observability Retrofit | 1/2 | In Progress|  | - |
+| 16. Billing Permission & Observability Retrofit | 2/2 | Complete   | 2026-03-11 | - |

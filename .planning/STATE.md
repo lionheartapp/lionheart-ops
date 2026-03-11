@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 16-billing-permission-observability-retrofit-01-PLAN.md
-last_updated: "2026-03-11T19:03:45.387Z"
+stopped_at: Completed 16-billing-permission-observability-retrofit-02-PLAN.md
+last_updated: "2026-03-11T19:08:36.269Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 16
-  completed_phases: 15
+  completed_phases: 16
   total_plans: 49
-  completed_plans: 48
+  completed_plans: 49
   percent: 0
 ---
 
@@ -80,6 +80,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 13-infrastructure-and-observability P03 | 7 | 2 tasks | 14 files |
 | Phase 15-auth-security-gap-closure P01 | 2 | 2 tasks | 4 files |
 | Phase 16-billing-permission-observability-retrofit P01 | 3 | 2 tasks | 3 files |
+| Phase 16-billing-permission-observability-retrofit P02 | 7 | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,10 @@ Recent decisions affecting current work:
 - [Phase 15-auth-security-gap-closure]: Signup route sets httpOnly auth-token + csrf-token cookies on 201 response, matching login route pattern; admin.token kept in JSON body for backward compat during migration window
 - [Phase 15-auth-security-gap-closure]: org-name, org-slug, user-name, user-email remain in localStorage (non-sensitive display data for onboarding); auth-token and org-id removed — JWT now lives only in httpOnly cookie
 - [Phase 16-billing-permission-observability-retrofit]: SETTINGS_BILLING added to DEFAULT_ROLES.ADMIN immediately after SETTINGS_UPDATE; backfill script excludes super-admin (*:* wildcard already covers billing); scope: 'global' used matching organizationRegistrationService.ts convention
+- [Phase 16-billing-permission-observability-retrofit]: auth/logout wrapped in try/catch for consistency even though cookie clearing never throws
+- [Phase 16-billing-permission-observability-retrofit]: auth/me Sentry.setTag placed after claims verification using claims.organizationId, not getOrgIdFromRequest
+- [Phase 16-billing-permission-observability-retrofit]: resend-verification email-not-sent downgraded from console.error to log.warn — expected degraded state, not app crash; uses reason key not email for FERPA
+- [Phase 16-billing-permission-observability-retrofit]: public/contact route has no Sentry.setTag — public endpoint with no orgId available
 
 ### Pending Todos
 
@@ -173,6 +178,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T19:03:45.384Z
-Stopped at: Completed 16-billing-permission-observability-retrofit-01-PLAN.md
+Last session: 2026-03-11T19:08:36.266Z
+Stopped at: Completed 16-billing-permission-observability-retrofit-02-PLAN.md
 Resume file: None
