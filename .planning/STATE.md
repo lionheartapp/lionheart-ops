@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-11T15:30:20.811Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-03-11T15:39:10.925Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 15
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 43
-  completed_plans: 41
+  completed_plans: 43
   percent: 0
 ---
 
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 14-ai-assistant-ux-upgrade P03 | 3 | 2 tasks | 4 files |
 | Phase 14-ai-assistant-ux-upgrade P03 | 15 | 3 tasks | 4 files |
 | Phase 12-settings-and-admin-tools P01 | 20 | 3 tasks | 9 files |
+| Phase 12-settings-and-admin-tools P02 | 18 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 12-settings-and-admin-tools]: AuditLogTab uses plain fetch (not TanStack Query) to match other Settings tab patterns
 - [Phase 12-settings-and-admin-tools]: Export buttons use window.open for CSV download; tickets export uses TICKETS_READ_ALL, events uses EVENTS_READ, users uses SETTINGS_READ
 - [Phase 12-settings-and-admin-tools]: Audit-logs date range filtering applied at database level (server-side) so it works across all paginated pages
+- [Phase 12-settings-and-admin-tools]: Stripe graceful degradation: missing STRIPE_SECRET_KEY returns 503 SERVICE_UNAVAILABLE, not a crash — billing is optional until configured
+- [Phase 12-settings-and-admin-tools]: Billing portal inline error: text-red-600 shown below button for 5 seconds when stripeCustomerId is null — visible but not alarming, does not fail silently
 
 ### Pending Todos
 
@@ -147,6 +150,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T15:30:20.808Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-03-11T15:38:58.485Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
