@@ -153,6 +153,7 @@ Plans:
 - [ ] **Phase 12: Settings and Admin Tools** - Audit log viewer, billing UI, CSV export, org name/slug editing, and notification preferences
 - [ ] **Phase 13: Infrastructure and Observability** - Vitest unit tests, GitHub Actions CI/CD, Pino structured logging, Sentry error tracking, list pagination, and DB transactions
 - [x] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow (completed 2026-03-11)
+- [ ] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit)
 
 ## Phase Details
 
@@ -275,6 +276,17 @@ Plans:
 - [ ] 14-02-PLAN.md — 4 new tools: room availability, room finder, resource availability, weather forecast (AI-UX-03, AI-UX-04)
 - [ ] 14-03-PLAN.md — Rich event confirmation card with editable fields, resource warnings, and approval preview (AI-UX-05)
 
+### Phase 15: Auth Security Gap Closure
+**Goal**: All auth security mechanisms apply uniformly — no public endpoint bypasses rate limiting, and no auth flow falls back to localStorage
+**Depends on**: Phase 8 (closes tech debt from auth hardening)
+**Requirements**: AUTH-02, AUTH-03, AUTH-04, AUTH-05 (hardening — already satisfied, this closes implementation gaps)
+**Gap Closure:** Closes integration/flow gaps from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `/api/auth/reset-password` is covered by `publicApiRateLimiter` in middleware — same limits as forgot-password and set-password
+  2. `POST /api/organizations/signup` response sets `auth-token` and `csrf-token` httpOnly cookies (matching login route pattern)
+  3. Signup page no longer writes JWT to localStorage — cookie-based auth from first session
+**Plans**: TBD
+
 ---
 
 ## Progress
@@ -296,3 +308,4 @@ Plans:
 | 11. Calendar, Ticket, Feature Gaps | 3/3 | Complete    | 2026-03-10 | - |
 | 12. Settings and Admin Tools | v2.0 | 0/4 | Not started | - |
 | 13. Infrastructure and Observability | v2.0 | 0/5 | Not started | - |
+| 15. Auth Security Gap Closure | v2.0 | 0/1 | Not started | - |
