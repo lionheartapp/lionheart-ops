@@ -137,6 +137,8 @@ model Organization {
   securityIncidentActivities  SecurityIncidentActivity[]
   // Inventory module relations
   inventoryTransactions       InventoryTransaction[]
+  // Notification preferences
+  notificationPreferences     NotificationPreference[]
 
   @@index([onboardingStatus])
 }
@@ -161,6 +163,7 @@ model User {
   authMethod     AuthMethod       @default(EMAIL)
   googleId       String?          @unique
   microsoftId    String?          @unique
+  pauseAllNotifications Boolean   @default(false)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
@@ -226,6 +229,8 @@ model User {
   // Ticket comment and attachment relations
   ticketComments            TicketComment[]              @relation("TicketCommentAuthor")
   ticketAttachments         TicketAttachment[]           @relation("TicketAttachmentUploader")
+  // Notification preferences
+  notificationPreferences   NotificationPreference[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -1919,6 +1924,7 @@ model Game {
   @@index([organizationId])
   @@index([athleticTeamId])
   @@index([organizationId, startTime])
+  @@index([athleticTeamId, startTime])
 }
 
 model Practice {
@@ -1939,6 +1945,7 @@ model Practice {
 
   @@index([organizationId])
   @@index([athleticTeamId])
+  @@index([athleticTeamId, startTime])
 }
 
 model Tournament {
@@ -3483,5 +3490,23 @@ model SecurityIncidentActivity {
   actor        User?            @relation("IncidentActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([incidentId, createdAt])
+  @@index([organizationId])
+}
+
+model NotificationPreference {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  type           String   // NotificationType string (e.g. "event_updated")
+  emailEnabled   Boolean  @default(true)
+  inAppEnabled   Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
   @@index([organizationId])
 }

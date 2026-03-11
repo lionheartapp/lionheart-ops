@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -44,6 +44,23 @@ export type NotificationType =
   // Inventory alerts
   | 'inventory_low_stock'
 
+/** Exported array of all valid notification type strings (for validation). */
+export const NOTIFICATION_TYPES: NotificationType[] = [
+  'event_updated', 'event_deleted', 'event_invite', 'event_approved', 'event_rejected',
+  'maintenance_submitted', 'maintenance_assigned', 'maintenance_claimed',
+  'maintenance_in_progress', 'maintenance_on_hold', 'maintenance_qa_ready',
+  'maintenance_done', 'maintenance_urgent', 'maintenance_stale', 'maintenance_qa_rejected',
+  'maintenance_scheduled_released', 'maintenance_repeat_repair', 'maintenance_cost_threshold',
+  'maintenance_end_of_life',
+  'it_ticket_submitted', 'it_ticket_assigned', 'it_ticket_in_progress',
+  'it_ticket_on_hold', 'it_ticket_done', 'it_ticket_cancelled',
+  'it_ticket_urgent', 'it_ticket_comment', 'it_stale_ticket',
+  'compliance_reminder',
+  'security_incident_created', 'security_incident_escalated',
+  'security_incident_status', 'security_incident_closed',
+  'inventory_low_stock',
+]
+
 export interface CreateNotificationInput {
   userId: string
   type: NotificationType
@@ -65,6 +82,24 @@ export interface CreateBulkNotificationInput {
 /** Create a single notification. Fire-and-forget — never throws. */
 export async function createNotification(data: CreateNotificationInput) {
   try {
+    // Check master pause and per-type in-app preference
+    const [user, pref] = await Promise.all([
+      rawPrisma.user.findUnique({
+        where: { id: data.userId },
+        select: { pauseAllNotifications: true },
+      }),
+      rawPrisma.notificationPreference.findUnique({
+        where: { userId_type: { userId: data.userId, type: data.type } },
+        select: { inAppEnabled: true },
+      }),
+    ])
+
+    // If user has paused all notifications, skip entirely
+    if (user?.pauseAllNotifications) return
+
+    // If per-type in-app is explicitly disabled, skip
+    if (pref && !pref.inAppEnabled) return
+
     await prisma.notification.create({
       data: {
         userId: data.userId,
