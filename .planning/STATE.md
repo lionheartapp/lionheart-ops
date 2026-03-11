@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 13-infrastructure-and-observability-01-PLAN.md
-last_updated: "2026-03-11T17:01:53.582Z"
+stopped_at: Completed 13-infrastructure-and-observability-02-PLAN.md
+last_updated: "2026-03-11T17:15:15.147Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 15
   completed_phases: 13
   total_plans: 46
-  completed_plans: 44
+  completed_plans: 45
   percent: 0
 ---
 
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 12-settings-and-admin-tools P02 | 18 | 2 tasks | 7 files |
 | Phase 12-settings-and-admin-tools P03 | 25 | 2 tasks | 7 files |
 | Phase 13-infrastructure-and-observability P01 | 6 | 2 tasks | 8 files |
+| Phase 13-infrastructure-and-observability P02 | 16 | 2 tasks | 32 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,11 @@ Recent decisions affecting current work:
 - [Phase 12-settings-and-admin-tools]: NOTIFICATION_TYPES exported as array from notificationService for validation in preferences API
 - [Phase 13-infrastructure-and-observability]: vi.mock async factory (not __mocks__ directory) required because Vitest path alias resolution does not auto-detect __mocks__ for @/ imports
 - [Phase 13-infrastructure-and-observability]: DATABASE_URL empty string in test env — all DB calls mocked via vitest-mock-extended; Docker Postgres CI services deferred to future plan
+- [Phase 13-infrastructure-and-observability]: Pino child logger pattern: logger.child({ route, method }) per handler — allows filtering logs by route in production without per-call overhead
+- [Phase 13-infrastructure-and-observability]: Sentry.setTag('org_id') placed after orgId extraction — scopes all Sentry errors to a specific org for multi-tenant debugging
+- [Phase 13-infrastructure-and-observability]: WELCOME_LINK console.log replaced with log.info containing only userId, provisioningMode, emailSent boolean — removes PII (email, setupLink) from logs for FERPA compliance
+- [Phase 13-infrastructure-and-observability]: onRequestError hook skipped — not exported in current @sentry/nextjs version; Sentry.captureException in catch blocks provides equivalent coverage
+- [Phase 13-infrastructure-and-observability]: disableServerWebpackPlugin/disableClientWebpackPlugin removed from withSentryConfig — not valid in installed version; replaced with sourcemaps.disable pattern
 
 ### Pending Todos
 
@@ -157,6 +163,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T17:01:53.579Z
-Stopped at: Completed 13-infrastructure-and-observability-01-PLAN.md
+Last session: 2026-03-11T17:15:15.144Z
+Stopped at: Completed 13-infrastructure-and-observability-02-PLAN.md
 Resume file: None
