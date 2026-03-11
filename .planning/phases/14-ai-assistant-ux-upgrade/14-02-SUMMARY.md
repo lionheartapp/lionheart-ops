@@ -121,6 +121,16 @@ None - no external service configuration required. Weather uses Open-Meteo (no A
 - Smoke test at `scripts/smoke-ai-assistant.mjs` can validate tool registration end-to-end (requires dev server + GEMINI_API_KEY)
 - Phase 14 plan 03 can build on these tools for improved assistant UX
 
+## Self-Check: PASSED
+
+- FOUND: `src/lib/services/weatherService.ts` (exports `fetchWeatherForecast`)
+- FOUND: `src/lib/services/ai/assistant-tools.ts` (4 new tools in TOOL_REGISTRY)
+- FOUND: `scripts/smoke-ai-assistant.mjs` (syntax valid)
+- FOUND: `.planning/phases/14-ai-assistant-ux-upgrade/14-02-SUMMARY.md`
+- FOUND: commit `71cfbb3` (feat: weatherService + 4 tools)
+- FOUND: commit `72cc760` (feat: smoke test)
+- TypeScript: PASSED (npx tsc --noEmit clean)
+
 ---
 *Phase: 14-ai-assistant-ux-upgrade*
 *Completed: 2026-03-11*

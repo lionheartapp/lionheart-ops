@@ -106,6 +106,15 @@ None - no external service configuration required. Rate limiter is fully in-proc
 - Login and public endpoints protected against brute-force and abuse
 - Ready for remaining phase 8 plans (session management, CSRF, security headers, etc.)
 
+## Self-Check: PASSED
+
+- src/lib/rate-limit.ts: FOUND
+- src/app/api/auth/login/route.ts: FOUND
+- src/middleware.ts: FOUND
+- 08-02-SUMMARY.md: FOUND
+- Commit c31ba7d (Task 1): FOUND
+- Commit 340d660 (Task 2): FOUND
+
 ---
 *Phase: 08-auth-hardening-and-security*
 *Completed: 2026-03-09*

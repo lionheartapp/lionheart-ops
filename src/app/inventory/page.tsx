@@ -24,6 +24,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import AVEquipmentWizard from '@/components/inventory/AVEquipmentWizard'
 import { fetchApi } from '@/lib/api-client'
 import { fadeInUp, staggerContainer, listItem, cardEntrance } from '@/lib/animations'
 import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
@@ -33,10 +34,21 @@ import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
 interface InventoryItem {
   id: string
   name: string
+  description: string | null
   category: string | null
   sku: string | null
   quantityOnHand: number
   reorderThreshold: number
+  // AV Equipment fields
+  ownerId: string | null
+  manufacturer: string | null
+  model: string | null
+  serialNumbers: string[]
+  tags: string[]
+  allowCheckout: boolean
+  imageUrl: string | null
+  locations: any[] | null
+  documentationLinks: any[] | null
   createdAt: string
   updatedAt: string
 }
@@ -1185,48 +1197,23 @@ export default function InventoryPage() {
           )}
         </DetailDrawer>
 
-        {/* ── Add/Edit Item Drawer ── */}
+        {/* ── Add/Edit Equipment Drawer (2-Step Wizard) ── */}
         <DetailDrawer
           isOpen={formDrawerOpen}
           onClose={() => {
             setFormDrawerOpen(false)
             setEditingItem(null)
           }}
-          title={editingItem ? 'Edit Item' : 'Add Item'}
-          width="md"
-          footer={
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setFormDrawerOpen(false)
-                  setEditingItem(null)
-                }}
-                disabled={formPending}
-                className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="inventory-item-form"
-                disabled={formPending}
-                className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
-              >
-                {formPending ? 'Saving…' : editingItem ? 'Save Changes' : 'Add Item'}
-              </button>
-            </div>
-          }
+          title={editingItem ? 'Edit Equipment' : 'Add Equipment'}
+          width="xl"
         >
-          <ItemForm
-            item={editingItem}
+          <AVEquipmentWizard
+            item={editingItem as any}
             onSuccess={handleFormSuccess}
             onCancel={() => {
               setFormDrawerOpen(false)
               setEditingItem(null)
             }}
-            hideActions
-            formId="inventory-item-form"
             onPendingChange={setFormPending}
           />
         </DetailDrawer>

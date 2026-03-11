@@ -8,11 +8,15 @@ import { queryOptions } from '@/lib/queries'
 /**
  * Prefetches adjacent time ranges so navigating forward/backward feels instant.
  * Uses a 300ms delay to avoid firing during rapid navigation.
+ *
+ * When athleticsCampusIds are provided, also prefetches athletics calendar events
+ * for adjacent ranges so the athletics panel doesn't block on navigation.
  */
 export function useCalendarPrefetch(
   currentDate: Date,
   view: CalendarViewType,
-  enabled = true
+  enabled = true,
+  athleticsCampusIds: string[] = []
 ) {
   const queryClient = useQueryClient()
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
@@ -37,20 +41,33 @@ export function useCalendarPrefetch(
         }
 
         const { start, end } = computeDateRange(adjacentDate, view)
-        const opts = queryOptions.calendarEvents(
-          [],
-          start.toISOString(),
-          end.toISOString()
+
+        // Prefetch regular calendar events
+        queryClient.prefetchQuery(
+          queryOptions.calendarEvents(
+            [],
+            start.toISOString(),
+            end.toISOString()
+          )
         )
 
-        queryClient.prefetchQuery(opts)
+        // Prefetch athletics calendar events if athletics is visible
+        if (athleticsCampusIds.length > 0) {
+          queryClient.prefetchQuery(
+            queryOptions.athleticsCalendarEvents(
+              athleticsCampusIds,
+              start.toISOString(),
+              end.toISOString()
+            )
+          )
+        }
       }
     }, 300)
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [currentDate, view, enabled, queryClient])
+  }, [currentDate, view, enabled, athleticsCampusIds, queryClient])
 }
 
 function getAdjacentOffsets(view: CalendarViewType): number[] {

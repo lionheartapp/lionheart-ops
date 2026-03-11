@@ -35,7 +35,11 @@ export async function GET(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const events = await getAthleticsCalendarEvents(campusIds, start, end)
-      return NextResponse.json(ok(events))
+      return NextResponse.json(ok(events), {
+        headers: {
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+        },
+      })
     })
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {

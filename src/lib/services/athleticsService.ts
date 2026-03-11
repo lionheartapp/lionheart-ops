@@ -972,11 +972,21 @@ export async function getAthleticsCalendarEvents(
 ): Promise<AthleticsCalendarEvent[]> {
   if (campusIds.length === 0) return []
 
-  // 1. Resolve campusId → schoolIds (School.campusId)
-  const schools = await db.school.findMany({
-    where: { campusId: { in: campusIds } },
-    select: { id: true, campusId: true, name: true },
-  })
+  // Phase 1: Parallel batch — schools, campuses, and teams have no interdependencies
+  // on games/practices, but teams depend on school IDs. So we batch schools+campuses
+  // first, then teams, then games+practices in parallel.
+
+  // 1. Resolve campusId → schoolIds and build campus name map (parallel)
+  const [schools, campuses] = await Promise.all([
+    db.school.findMany({
+      where: { campusId: { in: campusIds } },
+      select: { id: true, campusId: true, name: true },
+    }),
+    db.campus.findMany({
+      where: { id: { in: campusIds } },
+      select: { id: true, name: true },
+    }),
+  ])
 
   const schoolIdToCampusId = new Map<string, string>(
     schools.map((s: { id: string; campusId: string }) => [s.id, s.campusId!])
@@ -987,11 +997,6 @@ export async function getAthleticsCalendarEvents(
   }
   const schoolIds = schools.map((s: { id: string }) => s.id)
 
-  // Build a campus name lookup from the campusIds
-  const campuses = await db.campus.findMany({
-    where: { id: { in: campusIds } },
-    select: { id: true, name: true },
-  })
   const campusNameMap = new Map<string, string>(
     campuses.map((c: { id: string; name: string }) => [c.id, c.name])
   )
@@ -1000,7 +1005,11 @@ export async function getAthleticsCalendarEvents(
   const teamWhereIds = [...new Set([...schoolIds, ...campusIds])]
   const teams = await db.athleticTeam.findMany({
     where: { schoolId: { in: teamWhereIds } },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      level: true,
+      schoolId: true,
       sport: { select: { id: true, name: true, color: true } },
     },
   })
@@ -1010,25 +1019,28 @@ export async function getAthleticsCalendarEvents(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const teamMap = new Map<string, any>(teams.map((t: any) => [t.id, t]))
 
-  // 3. Fetch games in date range
-  const games = await db.game.findMany({
-    where: {
-      athleticTeamId: { in: teamIds },
-      startTime: { gte: start, lte: end },
-    },
-    orderBy: { startTime: 'asc' },
-  })
-
-  // 4. Fetch practices (non-recurring in range, plus all recurring to expand)
-  const practices = await db.practice.findMany({
-    where: {
-      athleticTeamId: { in: teamIds },
-      OR: [
-        { rrule: null, startTime: { gte: start, lte: end } },
-        { rrule: { not: null } },
-      ],
-    },
-  })
+  // 3. Fetch games and practices in parallel (both only depend on teamIds)
+  const [games, practices] = await Promise.all([
+    db.game.findMany({
+      where: {
+        athleticTeamId: { in: teamIds },
+        startTime: { gte: start, lte: end },
+      },
+      orderBy: { startTime: 'asc' },
+    }),
+    db.practice.findMany({
+      where: {
+        athleticTeamId: { in: teamIds },
+        OR: [
+          // Non-recurring: only fetch practices within the date range
+          { rrule: null, startTime: { gte: start, lte: end } },
+          // Recurring: bound the fetch — only practices that started before range end
+          // (rrule expansion in JS is already bounded to [start, end])
+          { rrule: { not: null }, startTime: { lte: end } },
+        ],
+      },
+    }),
+  ])
 
   const results: AthleticsCalendarEvent[] = []
 

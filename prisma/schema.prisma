@@ -226,6 +226,7 @@ model User {
   // Inventory module relations
   inventoryCheckouts        InventoryTransaction[]       @relation("InventoryCheckedOutBy")
   inventoryCheckins         InventoryTransaction[]       @relation("InventoryCheckedInBy")
+  ownedInventoryItems       InventoryItem[]              @relation("InventoryItemOwner")
   // Ticket comment and attachment relations
   ticketComments            TicketComment[]              @relation("TicketCommentAuthor")
   ticketAttachments         TicketAttachment[]           @relation("TicketAttachmentUploader")
@@ -596,23 +597,36 @@ model DraftEvent {
 }
 
 model InventoryItem {
-  id               String        @id @default(cuid())
-  organizationId   String
-  name             String
-  category         String?
-  sku              String?
-  quantityOnHand   Int           @default(0)
-  reorderThreshold Int           @default(0)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?
-  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  transactions     InventoryTransaction[]
+  id                 String        @id @default(cuid())
+  organizationId     String
+  name               String
+  description        String?
+  category           String?
+  sku                String?
+  quantityOnHand     Int           @default(0)
+  reorderThreshold   Int           @default(0)
+  // AV Equipment fields
+  ownerId            String?
+  manufacturer       String?
+  model              String?
+  serialNumbers      String[]      @default([])
+  tags               String[]      @default([])
+  allowCheckout      Boolean       @default(false)
+  imageUrl           String?
+  locations          Json?
+  documentationLinks Json?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+  organization       Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner              User?         @relation("InventoryItemOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  transactions       InventoryTransaction[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
   @@index([organizationId, deletedAt])
   @@index([organizationId, category])
+  @@index([ownerId])
 }
 
 enum InventoryTransactionType {
