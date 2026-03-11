@@ -8,8 +8,10 @@
  * Tool definitions use Gemini FunctionDeclaration format.
  */
 
-import { prisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
 import { can } from '@/lib/auth/permissions'
+import { checkRoomConflict } from '@/lib/services/eventService'
+import { fetchWeatherForecast } from '@/lib/services/weatherService'
 import { PERMISSIONS } from '@/lib/permissions'
 import {
   getTicketsByStatus,
@@ -422,6 +424,78 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     },
     requiredPermission: PERMISSIONS.MAINTENANCE_ASSIGN,
     execute: executeAssignMaintenanceTicketDraft,
+  },
+
+  // ── Room Availability ──────────────────────────────────────────────
+  check_room_availability: {
+    definition: {
+      name: 'check_room_availability',
+      description: 'Check if a specific room is available for a date and time range. Returns whether the room is free or shows the conflicting event.',
+      parameters: {
+        type: 'object',
+        properties: {
+          room_name: { type: 'string', description: 'Room name or number to check (e.g. "Gym", "Room 101")' },
+          start_datetime: { type: 'string', description: 'Start date/time in ISO format (e.g. "2026-04-15T18:00:00")' },
+          end_datetime: { type: 'string', description: 'End date/time in ISO format (e.g. "2026-04-15T21:00:00")' },
+        },
+        required: ['room_name', 'start_datetime', 'end_datetime'],
+      },
+    },
+    requiredPermission: null, // Room availability is public info within the org
+    execute: executeCheckRoomAvailability,
+  },
+
+  // ── Find Available Rooms ───────────────────────────────────────────
+  find_available_rooms: {
+    definition: {
+      name: 'find_available_rooms',
+      description: 'Find rooms matching criteria like capacity or campus. Lists rooms without checking time-slot availability.',
+      parameters: {
+        type: 'object',
+        properties: {
+          min_capacity: { type: 'number', description: 'Minimum room capacity needed (optional)' },
+          building_name: { type: 'string', description: 'Filter by building name (optional)' },
+          limit: { type: 'number', description: 'Max results to return (default: 10)' },
+        },
+        required: [],
+      },
+    },
+    requiredPermission: null,
+    execute: executeFindAvailableRooms,
+  },
+
+  // ── Resource / Inventory Availability ─────────────────────────────
+  check_resource_availability: {
+    definition: {
+      name: 'check_resource_availability',
+      description: 'Check if an inventory item is available and its current stock level. Returns quantity available and low-stock warning if applicable.',
+      parameters: {
+        type: 'object',
+        properties: {
+          item_name: { type: 'string', description: 'Name or partial name of the inventory item to check (e.g. "chairs", "tables", "projector")' },
+        },
+        required: ['item_name'],
+      },
+    },
+    requiredPermission: null,
+    execute: executeCheckResourceAvailability,
+  },
+
+  // ── Weather Forecast ───────────────────────────────────────────────
+  get_weather_forecast: {
+    definition: {
+      name: 'get_weather_forecast',
+      description: 'Get weather forecast for a specific date. Uses the organization\'s location. Returns temperature, conditions, and precipitation chance.',
+      parameters: {
+        type: 'object',
+        properties: {
+          date: { type: 'string', description: 'Target date in YYYY-MM-DD format (e.g. "2026-03-20"). Must be within 16 days from today.' },
+        },
+        required: ['date'],
+      },
+    },
+    requiredPermission: null,
+    execute: executeGetWeatherForecast,
   },
 }
 
@@ -906,5 +980,148 @@ async function executeAssignMaintenanceTicketDraft(
     confirmationRequired: true,
     message: `I'll assign this ticket. Please confirm:\n• Ticket: ${ticketId}\n• Assign to: ${assigneeDisplay}`,
     draft,
+  })
+}
+
+async function executeCheckRoomAvailability(
+  input: Record<string, unknown>,
+  _ctx: ToolContext
+): Promise<string> {
+  const roomName = String(input.room_name || '')
+  const startStr = String(input.start_datetime || '')
+  const endStr = String(input.end_datetime || '')
+
+  if (!roomName || !startStr || !endStr) {
+    return JSON.stringify({ error: 'Room name, start time, and end time are all required.' })
+  }
+
+  try {
+    await checkRoomConflict(roomName, new Date(startStr), new Date(endStr))
+    return JSON.stringify({
+      available: true,
+      room: roomName,
+      start: startStr,
+      end: endStr,
+      message: `${roomName} is available for that time.`,
+    })
+  } catch (err: any) {
+    if (err.code === 'ROOM_CONFLICT') {
+      return JSON.stringify({
+        available: false,
+        room: roomName,
+        conflict: err.message,
+        message: `${roomName} is not available -- ${err.message}`,
+      })
+    }
+    return JSON.stringify({ error: `Failed to check room availability: ${err.message}` })
+  }
+}
+
+async function executeFindAvailableRooms(
+  input: Record<string, unknown>,
+  _ctx: ToolContext
+): Promise<string> {
+  const minCapacity = input.min_capacity as number | undefined
+  const buildingName = input.building_name as string | undefined
+  const limit = Math.min((input.limit as number) || 10, 25)
+
+  const where: Record<string, unknown> = {}
+  // Note: Room model does not have a capacity field -- filter ignored if provided
+  if (buildingName) {
+    where.building = { name: { contains: buildingName, mode: 'insensitive' } }
+  }
+
+  const rooms = await prisma.room.findMany({
+    where,
+    select: {
+      id: true,
+      roomNumber: true,
+      displayName: true,
+      building: { select: { name: true } },
+    },
+    orderBy: { roomNumber: 'asc' },
+    take: limit,
+  })
+
+  return JSON.stringify({
+    rooms: rooms.map(r => ({
+      name: r.displayName || r.roomNumber,
+      number: r.roomNumber,
+      building: r.building?.name,
+    })),
+    count: rooms.length,
+  })
+}
+
+async function executeCheckResourceAvailability(
+  input: Record<string, unknown>,
+  _ctx: ToolContext
+): Promise<string> {
+  const itemName = String(input.item_name || '').trim()
+  if (!itemName) {
+    return JSON.stringify({ error: 'Item name is required.' })
+  }
+
+  const items = await prisma.inventoryItem.findMany({
+    where: { name: { contains: itemName, mode: 'insensitive' } },
+    select: { id: true, name: true, quantityOnHand: true, reorderThreshold: true, category: true },
+    take: 5,
+  })
+
+  if (items.length === 0) {
+    return JSON.stringify({ found: false, message: `No inventory items matching "${itemName}" found.` })
+  }
+
+  return JSON.stringify({
+    found: true,
+    items: items.map(item => ({
+      name: item.name,
+      category: item.category,
+      available: item.quantityOnHand,
+      reorderThreshold: item.reorderThreshold,
+      lowStock: item.quantityOnHand <= item.reorderThreshold,
+    })),
+    count: items.length,
+  })
+}
+
+async function executeGetWeatherForecast(
+  input: Record<string, unknown>,
+  ctx: ToolContext
+): Promise<string> {
+  const targetDate = String(input.date || '')
+
+  if (!targetDate || !/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
+    return JSON.stringify({ error: 'Please provide a date in YYYY-MM-DD format (e.g. "2026-03-20").' })
+  }
+
+  // Look up org coordinates -- uses rawPrisma because Organization is not org-scoped
+  const org = await rawPrisma.organization.findUnique({
+    where: { id: ctx.organizationId },
+    select: { latitude: true, longitude: true, name: true },
+  })
+
+  if (!org?.latitude || !org?.longitude) {
+    return JSON.stringify({
+      error: `Location data is not configured for ${org?.name || 'your organization'}. An admin can set the organization coordinates in Settings to enable weather forecasts.`,
+    })
+  }
+
+  const forecast = await fetchWeatherForecast(org.latitude, org.longitude, targetDate)
+
+  if (!forecast) {
+    return JSON.stringify({
+      error: `Could not fetch weather data for ${targetDate}. The date may be more than 16 days in the future, or the weather service may be temporarily unavailable.`,
+    })
+  }
+
+  return JSON.stringify({
+    date: forecast.date,
+    location: org.name,
+    high: `${forecast.tempMax}F`,
+    low: `${forecast.tempMin}F`,
+    condition: forecast.condition,
+    precipitationChance: `${forecast.precipitationChance}%`,
+    message: `${forecast.condition} on ${forecast.date} -- High ${forecast.tempMax}F, Low ${forecast.tempMin}F, ${forecast.precipitationChance}% chance of precipitation.`,
   })
 }

@@ -49,6 +49,71 @@ function kmhToMph(kmh: number): number {
   return Math.round(kmh * 0.621371)
 }
 
+// ─── Daily Forecast ───────────────────────────────────────────────────────────
+
+export interface WeatherForecastDay {
+  date: string              // YYYY-MM-DD
+  tempMax: number           // Fahrenheit
+  tempMin: number           // Fahrenheit
+  condition: string         // Human-readable
+  icon: string              // Lucide icon name
+  precipitationChance: number // 0-100%
+}
+
+/**
+ * Fetch a daily weather forecast for a specific date.
+ * Uses Open-Meteo daily forecast API with start_date/end_date parameters.
+ * Returns null on any failure or if the date is out of range (>16 days).
+ */
+export async function fetchWeatherForecast(
+  lat: number,
+  lng: number,
+  targetDate: string // YYYY-MM-DD
+): Promise<WeatherForecastDay | null> {
+  try {
+    const url = new URL('https://api.open-meteo.com/v1/forecast')
+    url.searchParams.set('latitude', lat.toString())
+    url.searchParams.set('longitude', lng.toString())
+    url.searchParams.set('daily', 'temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max')
+    url.searchParams.set('temperature_unit', 'celsius')
+    url.searchParams.set('start_date', targetDate)
+    url.searchParams.set('end_date', targetDate)
+    url.searchParams.set('timezone', 'America/Los_Angeles')
+
+    const res = await fetch(url.toString(), {
+      signal: AbortSignal.timeout(5000),
+    })
+
+    if (!res.ok) {
+      console.warn(`[Weather] Open-Meteo forecast returned ${res.status}`)
+      return null
+    }
+
+    const data = await res.json()
+    const daily = data.daily
+
+    if (!daily || !daily.time || daily.time.length === 0) {
+      return null
+    }
+
+    const { condition, icon } = mapWeatherCode(daily.weather_code[0])
+
+    return {
+      date: daily.time[0],
+      tempMax: cToF(daily.temperature_2m_max[0]),
+      tempMin: cToF(daily.temperature_2m_min[0]),
+      condition,
+      icon,
+      precipitationChance: Math.round(daily.precipitation_probability_max?.[0] ?? 0),
+    }
+  } catch (error) {
+    console.error('[Weather] Forecast error:', error)
+    return null
+  }
+}
+
+// ─── Current Weather ──────────────────────────────────────────────────────────
+
 /**
  * Fetch current weather for a lat/lng coordinate.
  * Returns null on any failure.
