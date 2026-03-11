@@ -4,15 +4,19 @@ import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import * as ticketService from '@/lib/services/ticketService'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 type RouteParams = {
   params: Promise<{ id: string }>
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/tickets/[id]', method: 'GET' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
@@ -34,6 +38,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.toLowerCase().includes('not found')) {
       return NextResponse.json(fail('NOT_FOUND', error.message), { status: 404 })
     }
+    log.error({ err: error }, 'Failed to fetch ticket')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
       { status: 500 }
@@ -42,9 +48,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/tickets/[id]', method: 'PUT' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
     const body = await req.json()
 
@@ -65,6 +73,8 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.toLowerCase().includes('not found')) {
       return NextResponse.json(fail('NOT_FOUND', error.message), { status: 404 })
     }
+    log.error({ err: error }, 'Failed to update ticket')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
       { status: 500 }
@@ -73,9 +83,11 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/tickets/[id]', method: 'DELETE' })
   try {
     const { id } = await params
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
@@ -92,6 +104,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.toLowerCase().includes('not found')) {
       return NextResponse.json(fail('NOT_FOUND', error.message), { status: 404 })
     }
+    log.error({ err: error }, 'Failed to delete ticket')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
       { status: 500 }

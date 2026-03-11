@@ -5,13 +5,17 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { checkinItem, CheckinSchema } from '@/lib/services/inventoryService'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 
 type RouteParams = { params: Promise<{ id: string }> }
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
+  const log = logger.child({ route: '/api/inventory/[id]/checkin', method: 'POST' })
   try {
     const { id: _id } = await params
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.INVENTORY_CHECKIN)
 
@@ -41,7 +45,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && (error as any).code === 'NOT_FOUND') {
       return NextResponse.json(fail('NOT_FOUND', 'Checkout transaction not found'), { status: 404 })
     }
-    console.error('Failed to checkin inventory item:', error)
+    log.error({ err: error }, 'Failed to checkin inventory item')
+    Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to checkin inventory item'), { status: 500 })
   }
 }
