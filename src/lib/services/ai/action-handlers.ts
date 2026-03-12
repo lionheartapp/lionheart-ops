@@ -9,7 +9,7 @@
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
-import { createEvent } from '@/lib/services/eventService'
+import { createEvent as createCalendarEvent } from '@/lib/services/calendarService'
 import { clearPermissionCache } from '@/lib/auth/permissions'
 
 interface ActionContext {
@@ -128,14 +128,26 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
   create_event: {
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     execute: async (payload, ctx) => {
-      const event = await createEvent({
+      // Find the org's default or first GENERAL calendar
+      const calendar = await prisma.calendar.findFirst({
+        where: { isActive: true },
+        orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+        select: { id: true },
+      })
+      if (!calendar) throw new Error('No calendar found. Please create a calendar first.')
+
+      const { can } = await import('@/lib/auth/permissions')
+      const canPublish = await can(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_APPROVE)
+
+      const event = await createCalendarEvent({
+        calendarId: calendar.id,
         title: String(payload.title || ''),
         description: String(payload.description || '') || undefined,
-        room: String(payload.room || '') || undefined,
-        startsAt: ensureISODate(String(payload.startsAt)),
-        endsAt: ensureISODate(String(payload.endsAt)),
-      }, ctx.userId)
-      return { message: `Event created: "${event.title}" on ${new Date(event.startsAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}` }
+        locationText: String(payload.room || '') || undefined,
+        startTime: new Date(ensureISODate(String(payload.startsAt))),
+        endTime: new Date(ensureISODate(String(payload.endsAt))),
+      }, ctx.userId, canPublish)
+      return { message: `Event created: "${event.title}" on ${new Date(event.startTime).toLocaleDateString('en-US', { dateStyle: 'medium' })}` }
     },
   },
 
