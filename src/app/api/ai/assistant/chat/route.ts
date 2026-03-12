@@ -173,6 +173,11 @@ export async function POST(req: NextRequest) {
     const tools = await runWithOrgContext(orgId, () => getAvailableTools(ctx.userId))
     const toolNames = tools.map((t) => t.name)
 
+    routeLog.info(
+      { toolCount: tools.length, historyLength: body.conversationHistory.length, hasConversationId: !!body.conversationId },
+      'Chat request context'
+    )
+
     // Fetch org name + user name/role for system prompt
     let orgName = 'your organization'
     let userName = ctx.email
@@ -296,6 +301,12 @@ export async function POST(req: NextRequest) {
                 if (functionCalls.length === 0) {
                   // No tool calls — we're done
                   finalText = accumulatedText
+                  if (tools.length > 0) {
+                    routeLog.warn(
+                      { toolCount: tools.length, responseLength: accumulatedText.length, message: body.message.slice(0, 80) },
+                      'Gemini responded without calling any tools'
+                    )
+                  }
                   break
                 }
 
