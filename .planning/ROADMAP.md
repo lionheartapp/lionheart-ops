@@ -156,6 +156,7 @@ Plans:
 - [x] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit) (completed 2026-03-11)
 - [x] **Phase 16: Billing Permission & Observability Retrofit** - Add SETTINGS_BILLING to admin role, retrofit Pino/Sentry instrumentation to 21 routes from Phases 10-15 (gap closure from v2.0 audit) (completed 2026-03-11)
 - [x] **Phase 17: Leo Memory & Learning** - Conversation persistence, pgvector embeddings, semantic recall tool, user profiles, feedback loop, and conversation summarization (completed 2026-03-12)
+- [ ] **Phase 18: Integration Gap Closure** - Preference-aware bulk notifications, AI route observability retrofit, and resend-verification rate limiting (gap closure from v2.0 audit)
 
 ## Phase Details
 
@@ -333,6 +334,21 @@ Plans:
 - [ ] 17-06-PLAN.md — Conversation auto-summarization service, end-to-end human verification (LEO-MEM-07)
 - [ ] 17-07-PLAN.md — Gap closure: Fix API response data-shape parsing in ConversationSidebar and ChatPanel (LEO-MEM-01)
 
+### Phase 18: Integration Gap Closure
+**Goal**: Close all 3 integration gaps and 1 broken E2E flow identified by the v2.0 milestone audit — bulk notifications respect user preferences, AI routes have observability, and resend-verification is rate-limited
+**Depends on**: Phase 17 (closes remaining v2.0 audit gaps)
+**Requirements**: INV-04, SET-05, INFRA-03, INFRA-04, AUTH-03 (hardening — already satisfied, this closes integration gaps)
+**Gap Closure:** Closes INT-01, INT-02, INT-03 and "Inventory Checkout → Low-Stock → Preference Check → Delivery" flow from v2.0 audit
+**Success Criteria** (what must be TRUE):
+  1. `createBulkNotifications` filters recipients through `NotificationPreference` before creating rows — users with `pauseAllNotifications` or disabled `inAppEnabled` do not receive bulk notifications
+  2. All 3 AI routes (`chat`, `generate-description`, `parse-event`) have `logger.child({ route, method })` Pino instrumentation and `Sentry.captureException(error)` in catch blocks
+  3. `POST /api/auth/resend-verification` is included in the `publicApiRateLimiter` branch in middleware
+  4. The E2E flow "Inventory Checkout → Low-Stock → Preference Check → Delivery" completes without bypassing user notification preferences
+**Plans**: 0 plans
+
+Plans:
+_(none yet — run `/gsd:plan-phase 18`)_
+
 ---
 
 ## Progress
@@ -357,3 +373,4 @@ Plans:
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
 | 16. Billing Permission & Observability Retrofit | 2/2 | Complete    | 2026-03-11 | - |
 | 17. Leo Memory & Learning | 7/7 | Complete    | 2026-03-12 | - |
+| 18. Integration Gap Closure | 0/0 | Not Started | - | - |
