@@ -35,10 +35,9 @@ const tools: Record<string, ToolRegistryEntry> = {
       const { createNotification } = await import('@/lib/services/notificationService')
       await createNotification({
         userId: user.id,
-        organizationId: ctx.organizationId,
         title: String(input.title || ''),
-        message: String(input.message || ''),
-        type: 'GENERAL',
+        body: String(input.message || ''),
+        type: 'maintenance_submitted' as any, // Generic notification via maintenance type
       })
 
       return JSON.stringify({ executed: true, message: `Notification sent to ${user.name}.` })

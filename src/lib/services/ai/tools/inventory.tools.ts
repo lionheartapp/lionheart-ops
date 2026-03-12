@@ -166,7 +166,7 @@ const tools: Record<string, ToolRegistryEntry> = {
       const { checkoutItem } = await import('@/lib/services/inventoryService')
       await checkoutItem(ctx.organizationId, item.id, {
         quantity,
-        checkedOutTo: String(input.checked_out_to || ''),
+        notes: String(input.checked_out_to || '') || undefined,
       }, ctx.userId)
 
       return JSON.stringify({
@@ -202,8 +202,16 @@ const tools: Record<string, ToolRegistryEntry> = {
       })
       if (!item) return JSON.stringify({ error: `Inventory item not found: "${itemName}"` })
 
+      // Find the most recent checkout transaction for this item
+      const transaction = await prisma.inventoryTransaction.findFirst({
+        where: { itemId: item.id, type: 'CHECKOUT' },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      })
+      if (!transaction) return JSON.stringify({ error: `No active checkout found for "${item.name}".` })
+
       const { checkinItem } = await import('@/lib/services/inventoryService')
-      await checkinItem(ctx.organizationId, { itemId: item.id, quantity }, ctx.userId)
+      await checkinItem(ctx.organizationId, { transactionId: transaction.id, notes: `Checked in ${quantity}x via Leo` }, ctx.userId)
 
       return JSON.stringify({
         executed: true,

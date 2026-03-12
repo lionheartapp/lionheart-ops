@@ -333,7 +333,7 @@ const tools: Record<string, ToolRegistryEntry> = {
     riskTier: 'RED',
     execute: async (input) => {
       const eventId = String(input.event_id || '')
-      const event = await prisma.calendarEvent?.findUnique?.({ where: { id: eventId }, select: { id: true, title: true, startsAt: true } }).catch(() => null)
+      const event = await prisma.calendarEvent?.findUnique?.({ where: { id: eventId }, select: { id: true, title: true, startTime: true } }).catch(() => null)
         ?? await prisma.event?.findUnique?.({ where: { id: eventId }, select: { id: true, title: true, startsAt: true } }).catch(() => null)
       if (!event) return JSON.stringify({ error: `Event not found: ${eventId}` })
 

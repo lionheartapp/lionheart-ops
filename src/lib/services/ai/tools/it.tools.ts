@@ -273,7 +273,7 @@ const tools: Record<string, ToolRegistryEntry> = {
       if (!ticket) return JSON.stringify({ error: `IT ticket not found: ${ticketId}` })
 
       const { addITTicketComment } = await import('@/lib/services/itTicketService')
-      await addITTicketComment(ticket.id, comment, false, { userId: ctx.userId, organizationId: ctx.organizationId })
+      await addITTicketComment(ticket.id, comment, false, { userId: ctx.userId })
 
       return JSON.stringify({
         executed: true,

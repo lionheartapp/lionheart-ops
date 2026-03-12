@@ -210,7 +210,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     requiredPermission: PERMISSIONS.IT_TICKET_UPDATE_STATUS,
     execute: async (payload, ctx) => {
       const { transitionITTicketStatus } = await import('@/lib/services/itTicketService')
-      await transitionITTicketStatus(String(payload.ticketId), String(payload.newStatus) as any, { note: String(payload.note || '') }, { userId: ctx.userId, organizationId: ctx.organizationId })
+      await transitionITTicketStatus(String(payload.ticketId), String(payload.newStatus) as any, { comment: String(payload.note || '') }, { userId: ctx.userId, orgId: ctx.organizationId })
       return { message: `IT ticket ${payload.ticketNumber || ''} updated to ${payload.newStatus}.` }
     },
   },
@@ -219,7 +219,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     requiredPermission: PERMISSIONS.IT_TICKET_ASSIGN,
     execute: async (payload, ctx) => {
       const { assignITTicket } = await import('@/lib/services/itTicketService')
-      await assignITTicket(String(payload.ticketId), String(payload.assigneeId), { userId: ctx.userId, organizationId: ctx.organizationId })
+      await assignITTicket(String(payload.ticketId), String(payload.assigneeId), { userId: ctx.userId, orgId: ctx.organizationId })
       return { message: `IT ticket ${payload.ticketNumber || ''} assigned to ${payload.assigneeName || 'user'}.` }
     },
   },
@@ -348,10 +348,8 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     execute: async (payload) => {
       const { sendContactFormEmail } = await import('@/lib/services/emailService')
       await sendContactFormEmail({
-        toEmail: String(payload.recipientEmail || ''),
-        toName: String(payload.recipientName || ''),
-        fromName: 'Leo (AI Assistant)',
-        fromEmail: 'noreply@lionheartapp.com',
+        name: String(payload.recipientName || 'Leo (AI Assistant)'),
+        email: String(payload.recipientEmail || ''),
         subject: String(payload.subject || ''),
         message: String(payload.message || ''),
       })

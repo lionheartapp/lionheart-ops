@@ -186,7 +186,7 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       const activities = await prisma.maintenanceTicketActivity.findMany({
         where: { ticketId: ticket.id },
-        select: { id: true, type: true, content: true, createdAt: true, user: { select: { name: true } } },
+        select: { id: true, type: true, content: true, createdAt: true, actor: { select: { name: true } } },
         orderBy: { createdAt: 'desc' },
         take: limit,
       })
@@ -194,7 +194,7 @@ const tools: Record<string, ToolRegistryEntry> = {
       return JSON.stringify({
         ticket: ticket.ticketNumber,
         activities: activities.map(a => ({
-          type: a.type, content: a.content, by: a.user?.name, at: a.createdAt,
+          type: a.type, content: a.content, by: (a as any).actor?.name, at: a.createdAt,
         })),
         count: activities.length,
       })
@@ -257,7 +257,7 @@ const tools: Record<string, ToolRegistryEntry> = {
       await prisma.maintenanceTicketActivity.create({
         data: {
           ticketId: ticket.id,
-          userId: ctx.userId,
+          actorId: ctx.userId,
           type: 'COMMENT',
           content: comment,
           organizationId: ctx.organizationId,
