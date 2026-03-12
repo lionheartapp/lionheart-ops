@@ -107,6 +107,11 @@ export function buildSystemPrompt(
   if (availableToolNames.includes('checkout_inventory')) {
     capabilities.push('- **Inventory checkout/checkin** — manage equipment loans')
   }
+  if (availableToolNames.includes('recall_context')) {
+    capabilities.push(
+      '- **Memory & recall** — search past tickets, events, conversations, and inventory by meaning, not just keywords'
+    )
+  }
 
   const capabilitiesBlock =
     capabilities.length > 0

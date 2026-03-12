@@ -17,6 +17,7 @@ import './tools/communication.tools'
 import './tools/search.tools'
 import './tools/weather.tools'
 import './tools/workflow.tools'
+import './tools/memory.tools'
 
 // Re-export public API
 export { getAvailableTools, executeTool, getToolRiskTier } from './tools/_registry'
