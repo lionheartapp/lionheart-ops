@@ -139,7 +139,7 @@ export default function DashboardLayout({
   const subtitleParts = [formattedSchoolLabel, teamLabel].filter(Boolean)
 
   return (
-    <div className="flex w-full min-h-screen bg-gray-50 flex-col">
+    <div className="flex w-full h-screen bg-gray-50 flex-col overflow-hidden">
       {/* Top Bar Header */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-navbar">
         {/* Logo and Organization Name */}
@@ -263,7 +263,7 @@ export default function DashboardLayout({
             <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[120px] bg-violet-200/[0.06]" />
             <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[100px] bg-amber-100/[0.06]" />
           </div>
-          <div className="relative py-4 sm:py-6 lg:py-8 px-4 sm:px-10 flex-1 flex flex-col">
+          <div className="relative py-4 sm:py-6 lg:py-8 px-4 sm:px-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
             {children}
           </div>
         </main>

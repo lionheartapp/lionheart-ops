@@ -236,7 +236,7 @@ export default function DashboardPage() {
       <MotionConfig reducedMotion="user">
       {/* Greeting Section with Create Dropdown Button */}
       <motion.div
-        className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.08, 0.05)}
@@ -333,13 +333,13 @@ export default function DashboardPage() {
 
       {/* Dashboard Panels Grid */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.1, 0.15)}
       >
         {/* My Tasks Panel */}
-        <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover p-6 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 min-h-[300px]">
+        <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover p-6 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 min-h-0 overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Tasks</h2>
           </div>
