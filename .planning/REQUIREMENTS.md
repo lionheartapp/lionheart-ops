@@ -101,7 +101,7 @@ All 101 requirements from v1.0 Maintenance & Facilities Module — completed 202
 ### AI Assistant Memory & Learning
 
 - [x] **LEO-MEM-01**: Leo conversations are persisted to the database — users can resume past conversations from a sidebar list
-- [ ] **LEO-MEM-02**: Users can give thumbs up/down feedback on Leo's messages and feedback is stored per message
+- [x] **LEO-MEM-02**: Users can give thumbs up/down feedback on Leo's messages and feedback is stored per message
 - [x] **LEO-MEM-03**: pgvector extension is enabled and embeddings are generated for tickets, events, and inventory items using Gemini Embedding API
 - [x] **LEO-MEM-04**: Leo has a `recall_context` tool that performs semantic search over organizational data (tickets, events, conversations) and returns relevant history
 - [ ] **LEO-MEM-05**: Leo maintains a per-user profile with learned preferences, frequent topics, common actions, and communication style — extracted automatically after conversations

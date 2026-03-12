@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 17-leo-memory-and-learning-03-PLAN.md
-last_updated: "2026-03-12T03:50:14.519Z"
+stopped_at: Completed 17-leo-memory-and-learning-02-PLAN.md
+last_updated: "2026-03-12T03:51:05.528Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 55
-  completed_plans: 51
+  completed_plans: 52
   percent: 0
 ---
 
@@ -83,6 +83,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 16-billing-permission-observability-retrofit P02 | 7 | 2 tasks | 21 files |
 | Phase 17-leo-memory-and-learning P01 | 4 | 3 tasks | 5 files |
 | Phase 17-leo-memory-and-learning P03 | 3 | 2 tasks | 7 files |
+| Phase 17-leo-memory-and-learning P02 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,8 @@ Recent decisions affecting current work:
 - [Phase 17-leo-memory-and-learning]: Gemini text-embedding-004 at 768 dimensions (Matryoshka truncation from 3072)
 - [Phase 17-leo-memory-and-learning]: recall_context uses Promise.allSettled across scopes so one failed scope does not break results from others
 - [Phase 17-leo-memory-and-learning]: embedTicket/embedCalendarEvent/embedInventoryItem are sync functions with internal void async — callers never await or catch
+- [Phase 17-leo-memory-and-learning]: Fire-and-forget persistence via safeAsync wrapper in chat route — streaming errors never block SSE
+- [Phase 17-leo-memory-and-learning]: DELETE /api/conversations/[id] uses userId check (owner-only), not just orgId — users can only delete their own conversations
 
 ### Pending Todos
 
@@ -186,6 +189,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T03:50:14.516Z
-Stopped at: Completed 17-leo-memory-and-learning-03-PLAN.md
+Last session: 2026-03-12T03:51:05.524Z
+Stopped at: Completed 17-leo-memory-and-learning-02-PLAN.md
 Resume file: None
