@@ -1,4 +1,7 @@
 import { prisma, rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'notificationService' })
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -8,6 +11,7 @@ export type NotificationType =
   | 'event_invite'
   | 'event_approved'
   | 'event_rejected'
+  | 'event_rsvp'
   // Maintenance ticket notifications (11 triggers)
   | 'maintenance_submitted'
   | 'maintenance_assigned'
@@ -46,7 +50,7 @@ export type NotificationType =
 
 /** Exported array of all valid notification type strings (for validation). */
 export const NOTIFICATION_TYPES: NotificationType[] = [
-  'event_updated', 'event_deleted', 'event_invite', 'event_approved', 'event_rejected',
+  'event_updated', 'event_deleted', 'event_invite', 'event_approved', 'event_rejected', 'event_rsvp',
   'maintenance_submitted', 'maintenance_assigned', 'maintenance_claimed',
   'maintenance_in_progress', 'maintenance_on_hold', 'maintenance_qa_ready',
   'maintenance_done', 'maintenance_urgent', 'maintenance_stale', 'maintenance_qa_rejected',
@@ -110,16 +114,52 @@ export async function createNotification(data: CreateNotificationInput) {
       } as any,
     })
   } catch (err) {
-    console.error('Failed to create notification:', err)
+    log.error({ err }, 'Failed to create notification')
   }
 }
 
-/** Create notifications for multiple users. Fire-and-forget — never throws. */
+/** Create notifications for multiple users. Fire-and-forget — never throws.
+ *  Batch-checks pauseAllNotifications and per-type inAppEnabled preferences
+ *  before persisting rows. Uses rawPrisma for lookups (NotificationPreference
+ *  is not in the org-scoped whitelist per STATE.md decision).
+ */
 export async function createBulkNotifications(items: CreateBulkNotificationInput[]) {
   if (items.length === 0) return
   try {
+    const userIds = [...new Set(items.map((i) => i.userId))]
+    const types = [...new Set(items.map((i) => i.type))]
+
+    // Batch-fetch paused users
+    const users = await rawPrisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, pauseAllNotifications: true },
+    })
+    const pausedSet = new Set(
+      users.filter((u) => u.pauseAllNotifications).map((u) => u.id)
+    )
+
+    // Batch-fetch explicitly disabled per-type in-app preferences
+    const disabledPrefs = await rawPrisma.notificationPreference.findMany({
+      where: {
+        userId: { in: userIds },
+        type: { in: types as any },
+        inAppEnabled: false,
+      },
+      select: { userId: true, type: true },
+    })
+    const disabledSet = new Set(disabledPrefs.map((p) => `${p.userId}:${p.type}`))
+
+    // Filter to only eligible recipients
+    const eligible = items.filter(
+      (item) =>
+        !pausedSet.has(item.userId) &&
+        !disabledSet.has(`${item.userId}:${item.type}`)
+    )
+
+    if (eligible.length === 0) return
+
     await prisma.notification.createMany({
-      data: items.map((item) => ({
+      data: eligible.map((item) => ({
         userId: item.userId,
         type: item.type,
         title: item.title,
@@ -128,7 +168,7 @@ export async function createBulkNotifications(items: CreateBulkNotificationInput
       })) as any,
     })
   } catch (err) {
-    console.error('Failed to create bulk notifications:', err)
+    log.error({ err }, 'Failed to create bulk notifications')
   }
 }
 
