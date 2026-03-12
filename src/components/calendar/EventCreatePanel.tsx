@@ -831,12 +831,15 @@ export default function EventCreatePanel({
             <div className="px-6 pb-6 pt-2 space-y-3">
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !form.title.trim()}
+                disabled={isSubmitting || !form.title.trim() || !form.calendarId}
                 className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {isEditing ? 'Save Changes' : 'Create Event'}
               </button>
+              {!form.calendarId && form.title.trim() && (
+                <p className="text-xs text-amber-600 text-center">Please select a calendar</p>
+              )}
               <button
                 type="button"
                 onClick={onClose}

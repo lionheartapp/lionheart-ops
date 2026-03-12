@@ -140,6 +140,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           limit: { type: 'number', description: 'Max events to return (default: 10)' },
           search: { type: 'string', description: 'Search events by title (optional). Use this when looking for a specific event.' },
           date: { type: 'string', description: 'Specific date to look up in YYYY-MM-DD format (optional). Overrides days_ahead.' },
+          location: { type: 'string', description: 'Filter events by location/room/building name (case-insensitive match)' },
         },
         required: [],
       },
@@ -185,6 +186,17 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       // Filter out cancelled events
       allEvents = allEvents.filter((e: any) => e.calendarStatus !== 'CANCELLED')
+
+      // Apply location filter if provided (match locationText, building name, area name)
+      const locationQuery = input.location ? String(input.location).trim() : ''
+      if (locationQuery) {
+        const locNeedle = locationQuery.toLowerCase()
+        allEvents = allEvents.filter((e: any) =>
+          (e.locationText || '').toLowerCase().includes(locNeedle) ||
+          (e.building?.name || '').toLowerCase().includes(locNeedle) ||
+          (e.area?.name || '').toLowerCase().includes(locNeedle)
+        )
+      }
 
       // Apply search filter if provided (search title + description)
       if (searchQuery) {
@@ -417,19 +429,25 @@ const tools: Record<string, ToolRegistryEntry> = {
           title: { type: 'string', description: 'Event title' },
           description: { type: 'string', description: 'Event description (optional)' },
           start_date: { type: 'string', description: 'Start date and time in ISO format (e.g. "2026-03-15T14:00:00")' },
-          end_date: { type: 'string', description: 'End date and time in ISO format (e.g. "2026-03-15T15:00:00")' },
+          end_date: { type: 'string', description: 'End date and time in ISO format (e.g. "2026-03-15T15:00:00"). If omitted, defaults to 1 hour after start.' },
           location: { type: 'string', description: 'Room or location name (optional)' },
           attendees: { type: 'string', description: 'Comma-separated names of people to invite (from @mentions)' },
           calendar_id: { type: 'string', description: 'ID of the calendar to create the event on (from list_calendars). Must provide this or calendar_name.' },
           calendar_name: { type: 'string', description: 'Name of the calendar to create the event on (e.g. "School Calendar", "Staff Calendar"). Will be fuzzy-matched against active calendars. Must provide this or calendar_id.' },
           equipment_list: { type: 'string', description: 'JSON array of equipment/setup items, e.g. [{"item":"Vocal Microphones","quantity":4},{"item":"Projector","quantity":1}]. Use this when the user describes setup requirements.' },
         },
-        required: ['title', 'start_date', 'end_date'],
+        required: ['title', 'start_date'],
       },
     },
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     riskTier: 'ORANGE',
     execute: async (input) => {
+      // Default end_date to 1 hour after start if not provided
+      if (!input.end_date && input.start_date) {
+        const start = new Date(String(input.start_date))
+        input.end_date = new Date(start.getTime() + 60 * 60 * 1000).toISOString()
+      }
+
       let calendarId = input.calendar_id ? String(input.calendar_id) : undefined
       const calendarNameInput = input.calendar_name ? String(input.calendar_name).trim() : undefined
       const equipmentListStr = input.equipment_list ? String(input.equipment_list) : undefined
