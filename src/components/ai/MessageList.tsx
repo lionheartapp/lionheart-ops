@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Loader2, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package, Users, Mail, ListChecks, Monitor } from 'lucide-react'
+import { Loader2, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package, Users, Mail, ListChecks, Monitor, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { ConversationTurn } from '@/lib/types/assistant'
 import ChoiceButtons from './ChoiceButtons'
 import SuggestionChips from './SuggestionChips'
@@ -16,6 +16,7 @@ interface MessageListProps {
   aiState?: OrbState
   onChoiceSelect?: (choice: string) => void
   onSuggestionSelect?: (suggestion: string) => void
+  onFeedback?: (messageId: string, score: number) => void
 }
 
 /** Human-friendly labels for tool names */
@@ -170,6 +171,7 @@ export default function MessageList({
   aiState = 'idle',
   onChoiceSelect,
   onSuggestionSelect,
+  onFeedback,
 }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
 
@@ -203,11 +205,12 @@ export default function MessageList({
       {conversation.map((turn, idx) => {
         const isLastMsg = idx === conversation.length - 1
         const showCursor = isLastMsg && isLastAssistantStreaming
+        const showFeedback = turn.role === 'assistant' && !!turn.messageId && !!onFeedback
 
         return (
           <motion.div
             key={idx}
-            className={`flex flex-col gap-1 ${
+            className={`group flex flex-col gap-1 ${
               turn.role === 'user' ? 'items-end' : 'items-start'
             }`}
             initial={{ opacity: 0, y: 8 }}
@@ -254,6 +257,47 @@ export default function MessageList({
                 </div>
               )}
             </div>
+
+            {/* Feedback buttons — thumbs up/down on persisted assistant messages */}
+            {showFeedback && (
+              <div
+                className={`flex items-center gap-1 mt-0.5 px-1 ${
+                  isLastMsg ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                } transition-opacity duration-150`}
+              >
+                <button
+                  onClick={() => {
+                    const newScore = turn.feedbackScore === 5 ? 0 : 5
+                    onFeedback!(turn.messageId!, newScore)
+                  }}
+                  className={`p-0.5 rounded transition-colors duration-150 cursor-pointer ${
+                    turn.feedbackScore === 5
+                      ? 'text-green-500'
+                      : 'text-gray-300 hover:text-gray-500'
+                  }`}
+                  aria-label="Thumbs up"
+                  title="Helpful"
+                >
+                  <ThumbsUp className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => {
+                    const newScore = turn.feedbackScore === 1 ? 0 : 1
+                    onFeedback!(turn.messageId!, newScore)
+                  }}
+                  className={`p-0.5 rounded transition-colors duration-150 cursor-pointer ${
+                    turn.feedbackScore === 1
+                      ? 'text-red-400'
+                      : 'text-gray-300 hover:text-gray-500'
+                  }`}
+                  aria-label="Thumbs down"
+                  title="Not helpful"
+                >
+                  <ThumbsDown className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+
             {!showCursor && (
               <span className="text-[10px] text-gray-400 px-1">
                 {formatTime(turn.timestamp)}

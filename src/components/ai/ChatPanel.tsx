@@ -2,13 +2,14 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, RotateCcw } from 'lucide-react'
+import { Sparkles, RotateCcw, Clock } from 'lucide-react'
 import MessageList from './MessageList'
 import InputForm from './InputForm'
 import ActionConfirmation from './ActionConfirmation'
 import RichConfirmationCard from './RichConfirmationCard'
 import WorkflowPlanCard from './WorkflowPlanCard'
 import AiGlow from './AiGlow'
+import ConversationSidebar from './ConversationSidebar'
 import type { ConversationTurn, ActionConfirmation as ActionConfirmationType, StreamEvent, ImageAttachment, WorkflowPlan, WorkflowStep } from '@/lib/types/assistant'
 
 interface ChatPanelProps {
@@ -31,6 +32,8 @@ interface ChatPanelProps {
  */
 export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floating' }: ChatPanelProps) {
   const [conversation, setConversation] = useState<ConversationTurn[]>([])
+  const [conversationId, setConversationId] = useState<string | null>(null)
+  const [showSidebar, setShowSidebar] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const [isAvailable, setIsAvailable] = useState(true)
@@ -100,6 +103,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
           body: JSON.stringify({
             message,
             conversationHistory: conversation,
+            conversationId: conversationId || undefined,
             ...(images && images.length > 0 ? { images } : {}),
           }),
           signal: abortController.signal,
@@ -249,6 +253,10 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
                   setPendingWorkflow(event.plan)
                   setWorkflowStepStatuses({})
                   setWorkflowStepErrors({})
+                  break
+
+                case 'conversation_id':
+                  setConversationId(event.conversationId)
                   break
 
                 case 'done':
@@ -482,6 +490,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
   const handleClearChat = useCallback(() => {
     abortRef.current?.abort()
     setConversation([])
+    setConversationId(null)
     setIsLoading(false)
     setIsStreaming(false)
     setActiveTools([])
@@ -499,6 +508,63 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
   const handleSuggestionSelect = useCallback((suggestion: string) => {
     handleSendMessage(suggestion)
   }, [handleSendMessage])
+
+  const handleFeedback = useCallback(async (messageId: string, score: number) => {
+    if (!conversationId) return
+    try {
+      await fetch(`/api/conversations/${conversationId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ messageId, score }),
+      })
+      // Update local conversation state to reflect feedback
+      setConversation((prev) =>
+        prev.map((turn) =>
+          turn.messageId === messageId ? { ...turn, feedbackScore: score } : turn
+        )
+      )
+    } catch {
+      // silent
+    }
+  }, [conversationId])
+
+  const handleSelectConversation = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/conversations/${id}/messages`, {
+        credentials: 'include',
+      })
+      if (!res.ok) return
+      const json = await res.json()
+      if (!json.ok || !Array.isArray(json.data)) return
+
+      // Map persisted messages to ConversationTurn format
+      const turns: ConversationTurn[] = json.data
+        .filter((msg: { role: string }) => msg.role === 'user' || msg.role === 'assistant')
+        .map((msg: { role: string; content: string; createdAt: string; id: string; feedbackScore?: number }) => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+          timestamp: msg.createdAt,
+          messageId: msg.id,
+          feedbackScore: msg.feedbackScore ?? undefined,
+        }))
+
+      setConversation(turns)
+      setConversationId(id)
+      setShowSidebar(false)
+      setPendingAction(null)
+      setPendingWorkflow(null)
+      setWorkflowStepStatuses({})
+      setWorkflowStepErrors({})
+    } catch {
+      // silent
+    }
+  }, [])
+
+  const handleNewConversation = useCallback(() => {
+    handleClearChat()
+    setShowSidebar(false)
+  }, [handleClearChat])
 
   const isEmbedded = variant === 'embedded'
 
@@ -532,6 +598,14 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            onClick={() => setShowSidebar((prev) => !prev)}
+            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
+            aria-label="Conversation history"
+            title="Conversation history"
+          >
+            <Clock className="h-3.5 w-3.5" />
+          </button>
           {conversation.length > 0 && (
             <button
               onClick={handleClearChat}
@@ -567,6 +641,15 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
         />
       </div>
 
+      {/* Conversation history sidebar */}
+      <ConversationSidebar
+        isOpen={showSidebar}
+        onClose={() => setShowSidebar(false)}
+        onSelectConversation={handleSelectConversation}
+        onNewConversation={handleNewConversation}
+        activeConversationId={conversationId}
+      />
+
       {/* Messages */}
       <MessageList
         conversation={conversation}
@@ -576,6 +659,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
         aiState={aiState}
         onChoiceSelect={handleChoiceSelect}
         onSuggestionSelect={handleSuggestionSelect}
+        onFeedback={handleFeedback}
       />
 
       {/* Input with voice */}
