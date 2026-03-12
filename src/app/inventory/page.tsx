@@ -865,6 +865,7 @@ export default function InventoryPage() {
   return (
     <DashboardLayout>
       <MotionConfig reducedMotion="user">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         {/* ── Page header ── */}
         <motion.div
           className="flex items-start justify-between mb-6"
@@ -1230,6 +1231,7 @@ export default function InventoryPage() {
           loadingText="Deleting…"
           variant="danger"
         />
+      </div>
       </MotionConfig>
     </DashboardLayout>
   )

@@ -234,6 +234,7 @@ export default function DashboardPage() {
       onLogout={logout}
     >
       <MotionConfig reducedMotion="user">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* Greeting Section with Create Dropdown Button */}
       <motion.div
         className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0"
@@ -418,6 +419,7 @@ export default function DashboardPage() {
           <ChatPanel variant="embedded" />
         </motion.div>
       </motion.div>
+      </div>
       </MotionConfig>
 
       {/* Detail Drawer */}

@@ -220,7 +220,7 @@ export default function AthleticsPage() {
     >
       <ModuleGate moduleId="athletics">
         <MotionConfig reducedMotion="user">
-        <div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {/* Page header */}
           <motion.div
             className="mb-6"
