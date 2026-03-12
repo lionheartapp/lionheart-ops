@@ -357,7 +357,7 @@ const tools: Record<string, ToolRegistryEntry> = {
   check_user_availability: {
     definition: {
       name: 'check_user_availability',
-      description: 'Check a user\'s calendar availability for a date or date range. Returns their busy time slots. Use when scheduling meetings — check each participant\'s availability to find overlapping free time.',
+      description: 'Check a user\'s calendar availability for a date or date range. Returns their busy time slots from ALL calendars including personal calendars. Also finds events that mention the user by name in the title. Use when scheduling meetings — check each participant\'s availability to find overlapping free time.',
       parameters: {
         type: 'object',
         properties: {
@@ -397,12 +397,38 @@ const tools: Record<string, ToolRegistryEntry> = {
       }
 
       const { getEventsForUser } = await import('@/lib/services/calendarService')
-      const events = await getEventsForUser(user.id, start, end)
+      const formalEvents = await getEventsForUser(user.id, start, end)
 
-      const busySlots = events.map((e: any) => ({
+      // Also find events on ANY calendar (including personal calendars) that
+      // mention this user by name in the title — catches informal references
+      // like "Meeting with Tom Riddle" where Tom wasn't added as a formal attendee.
+      const formalIds = new Set(formalEvents.map((e: any) => e.id))
+      const nameParts = (user.name || '').split(' ').filter((p: string) => p.length > 2)
+      let nameMatchEvents: any[] = []
+      if (nameParts.length > 0) {
+        const nameMatches = await prisma.calendarEvent.findMany({
+          where: {
+            calendarStatus: { in: ['CONFIRMED', 'TENTATIVE', 'PENDING_APPROVAL'] as any[] },
+            parentEventId: null,
+            deletedAt: null,
+            title: { contains: nameParts[nameParts.length - 1], mode: 'insensitive' },
+            OR: [
+              { rrule: null, startTime: { lte: end }, endTime: { gte: start } },
+              { rrule: { not: null } },
+            ],
+          },
+          select: { id: true, title: true, startTime: true, endTime: true, calendar: { select: { name: true, calendarType: true } } },
+        })
+        // Only add events not already found via formal attendee/creator query
+        nameMatchEvents = nameMatches.filter((e: any) => !formalIds.has(e.id))
+      }
+
+      const allEvents = [...formalEvents, ...nameMatchEvents]
+      const busySlots = allEvents.map((e: any) => ({
         title: e.title,
-        start: e.startsAt || e.start,
-        end: e.endsAt || e.end,
+        start: e.startTime,
+        end: e.endTime,
+        calendar: e.calendar?.name || undefined,
       }))
 
       return JSON.stringify({

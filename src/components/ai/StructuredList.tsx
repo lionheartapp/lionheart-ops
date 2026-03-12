@@ -455,7 +455,7 @@ export default function StructuredList({ data, onItemClick }: { data: Structured
         {data.type === 'tickets' && <TicketsList items={data.items as TicketItem[]} onItemClick={onItemClick} />}
         {data.type === 'users' && <UsersList items={data.items as UserItem[]} onItemClick={onItemClick} />}
         {data.type === 'inventory' && <InventoryList items={data.items as InventoryItem[]} onItemClick={onItemClick} />}
-        {data.type === 'generic' && <GenericList items={data.items as GenericItem[]} onItemClick={onItemClick} />}
+        {data.type === 'generic' && <GenericList items={data.items as GenericItem[]} />}
       </div>
     </div>
   )

@@ -923,12 +923,13 @@ export async function createCategory(data: {
 
 /**
  * Get events for a specific user in a date range.
- * Returns events where the user is the creator OR an attendee, only CONFIRMED status.
+ * Returns events where the user is the creator OR an attendee.
+ * Includes CONFIRMED, TENTATIVE, and PENDING_APPROVAL events since all represent time commitments.
  */
 export async function getEventsForUser(userId: string, start: Date, end: Date) {
   const events = await prisma.calendarEvent.findMany({
     where: {
-      calendarStatus: 'CONFIRMED',
+      calendarStatus: { in: ['CONFIRMED', 'TENTATIVE', 'PENDING_APPROVAL'] as any[] },
       parentEventId: null,
       OR: [
         // Events created by the user (non-recurring in range, or recurring parent)
