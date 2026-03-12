@@ -74,7 +74,8 @@ export default function DashboardLayout({
   // Detect impersonation state and super-admin role
   useEffect(() => {
     setIsImpersonating(localStorage.getItem('is-impersonating') === 'true')
-    setIsSuperAdmin(localStorage.getItem('user-role') === 'super-admin')
+    const role = (localStorage.getItem('user-role') || '').toLowerCase().replace(/\s+/g, '-')
+    setIsSuperAdmin(role === 'super-admin')
   }, [pathname]) // re-check on navigation (catches reload after impersonate)
 
   // Cmd+K / Ctrl+K shortcut for search
