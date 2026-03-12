@@ -116,3 +116,12 @@ None — no external service configuration required. All API routes were impleme
 ---
 *Phase: 17-leo-memory-and-learning*
 *Completed: 2026-03-12*
+
+## Self-Check: PASSED
+
+- FOUND: src/components/ai/ConversationSidebar.tsx
+- FOUND: src/components/ai/ChatPanel.tsx
+- FOUND: src/components/ai/MessageList.tsx
+- FOUND: .planning/phases/17-leo-memory-and-learning/17-05-SUMMARY.md
+- FOUND commit: df9e935 (feat(17-05): create ConversationSidebar component)
+- FOUND commit: ee5d17f (feat(17-05): wire conversation history sidebar and feedback into ChatPanel/MessageList)

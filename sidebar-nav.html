@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sidebar Nav — Glow Trail Indicator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0E0E10;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      background: #18181B;
+      border: 1px solid #2A2A2E;
+      width: 240px;
+      padding: 24px 0;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+
+    /* ─── SECTION ─── */
+    .nav-section {
+      padding: 0 0 8px 0;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-icon {
+      width: 18px;
+      height: 18px;
+      color: #555558;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #E4E4E7;
+      letter-spacing: -0.01em;
+    }
+    .chevron {
+      color: #44444A;
+      transition: transform 0.25s ease;
+    }
+    .chevron.open  { transform: rotate(0deg); }
+    .chevron.closed { transform: rotate(180deg); }
+
+    /* ─── ITEMS CONTAINER ─── */
+    .nav-items-wrap {
+      position: relative;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    /* The subtle track line */
+    .track-line {
+      position: absolute;
+      left: 20px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #2A2A2E;
+      border-radius: 2px;
+    }
+
+    /* ─── GLOW TRAIL (fading afterimage) ─── */
+    .glow-trail {
+      position: absolute;
+      left: 20px;
+      width: 2px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #A78BFA 0%, #EC4899 100%);
+      opacity: 0;
+      pointer-events: none;
+      filter: blur(1px);
+    }
+
+    /* ─── MAIN INDICATOR ─── */
+    .indicator {
+      position: absolute;
+      left: 20px;
+      width: 2px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #A78BFA 0%, #EC4899 100%);
+      pointer-events: none;
+      box-shadow:
+        0 0 8px rgba(167, 139, 250, 0.5),
+        0 0 16px rgba(236, 72, 153, 0.25);
+      z-index: 2;
+    }
+
+    /* ─── NAV ITEM ─── */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 20px 8px 38px;
+      font-size: 13.5px;
+      font-weight: 400;
+      color: #52525B;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s ease;
+      position: relative;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      letter-spacing: -0.01em;
+    }
+    .nav-item:hover { color: #A1A1AA; }
+    .nav-item.active {
+      font-weight: 500;
+      color: #E4E4E7;
+    }
+
+    /* ─── DIVIDER ─── */
+    .nav-divider {
+      height: 1px;
+      background: #2A2A2E;
+      margin: 8px 0;
+    }
+
+    /* ─── BOTTOM ITEMS (flat, no indicator) ─── */
+    .flat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #52525B;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s ease;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      letter-spacing: -0.01em;
+    }
+    .flat-item:hover { color: #A1A1AA; }
+    .flat-item.active { color: #E4E4E7; }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <!-- Print & Mail section -->
+  <div class="nav-section">
+    <div class="section-header" id="toggle-print">
+      <div class="section-header-left">
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        <span class="section-title">Print &amp; Mail</span>
+      </div>
+      <svg class="chevron open" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </div>
+    <div class="nav-items-wrap" id="items-print">
+      <div class="track-line"></div>
+      <div class="glow-trail" id="trail-print"></div>
+      <div class="indicator" id="indicator-print"></div>
+      <button class="nav-item" data-group="print">Campaigns</button>
+      <button class="nav-item active" data-group="print">Postcards</button>
+      <button class="nav-item" data-group="print">Letters</button>
+      <button class="nav-item" data-group="print">Buckslips</button>
+      <button class="nav-item" data-group="print">Cards</button>
+      <button class="nav-item" data-group="print">Checks</button>
+      <button class="nav-item" data-group="print">Bank Accounts</button>
+      <button class="nav-item" data-group="print">Batches</button>
+      <button class="nav-item" data-group="print">Envelopes</button>
+      <button class="nav-item" data-group="print">Self Mailers</button>
+    </div>
+  </div>
+
+  <div class="nav-divider"></div>
+
+  <!-- API Requests section -->
+  <div class="nav-section">
+    <div class="section-header" id="toggle-api">
+      <div class="section-header-left">
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"/>
+          <polyline points="8 6 2 12 8 18"/>
+        </svg>
+        <span class="section-title">API Requests</span>
+      </div>
+      <svg class="chevron closed" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </div>
+    <div class="nav-items-wrap" id="items-api" style="max-height:0;">
+      <div class="track-line"></div>
+      <div class="glow-trail" id="trail-api"></div>
+      <div class="indicator" id="indicator-api" style="opacity:0;"></div>
+      <button class="nav-item" data-group="api">Logs</button>
+      <button class="nav-item" data-group="api">Webhooks</button>
+      <button class="nav-item" data-group="api">Rate Limits</button>
+    </div>
+  </div>
+
+  <div class="nav-divider"></div>
+
+  <!-- Settings (flat) -->
+  <button class="flat-item">
+    <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    Settings
+  </button>
+</nav>
+
+<script>
+function initSideNav(itemsId, indicatorId, trailId) {
+  const container = document.getElementById(itemsId);
+  const indicator = document.getElementById(indicatorId);
+  const trail     = document.getElementById(trailId);
+  const items     = [...container.querySelectorAll('.nav-item')];
+
+  // Current indicator position tracking
+  let currentTop    = 0;
+  let currentHeight = 0;
+
+  function getRelativePos(el) {
+    const cRect = container.getBoundingClientRect();
+    const eRect = el.getBoundingClientRect();
+    return {
+      top:    eRect.top - cRect.top + container.scrollTop,
+      height: eRect.height
+    };
+  }
+
+  function setIndicatorInstant(el) {
+    const pos = getRelativePos(el);
+    currentTop    = pos.top;
+    currentHeight = pos.height;
+    indicator.style.transition = 'none';
+    indicator.style.top     = pos.top + 'px';
+    indicator.style.height  = pos.height + 'px';
+    indicator.style.opacity = '1';
+    // force reflow so the no-transition takes effect
+    indicator.offsetHeight;
+  }
+
+  function moveIndicator(el) {
+    const pos     = getRelativePos(el);
+    const newTop  = pos.top;
+    const newH    = pos.height;
+    const oldTop  = currentTop;
+    const oldH    = currentHeight;
+
+    // ─── STEP 1: Spawn glow trail at old position ───
+    // The trail covers from old position to new position and fades out
+    const trailTop    = Math.min(oldTop, newTop);
+    const trailBottom = Math.max(oldTop + oldH, newTop + newH);
+    const trailHeight = trailBottom - trailTop;
+    const movingDown  = newTop > oldTop;
+
+    // Set gradient direction based on movement direction
+    trail.style.background = movingDown
+      ? 'linear-gradient(180deg, rgba(167,139,250,0.6) 0%, rgba(236,72,153,0.4) 50%, rgba(236,72,153,0) 100%)'
+      : 'linear-gradient(0deg, rgba(167,139,250,0.6) 0%, rgba(236,72,153,0.4) 50%, rgba(236,72,153,0) 100%)';
+
+    // Position trail to cover the full travel path
+    trail.style.transition = 'none';
+    trail.style.top     = trailTop + 'px';
+    trail.style.height  = trailHeight + 'px';
+    trail.style.opacity = '0.7';
+    trail.offsetHeight; // force reflow
+
+    // Fade trail out over time
+    trail.style.transition = 'opacity 0.6s ease-out';
+    trail.style.opacity = '0';
+
+    // ─── STEP 2: Move the main indicator smoothly ───
+    indicator.style.transition =
+      'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+      'height 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+      'opacity 0.2s ease';
+    indicator.style.top     = newTop + 'px';
+    indicator.style.height  = newH + 'px';
+    indicator.style.opacity = '1';
+
+    // Update tracked position
+    currentTop    = newTop;
+    currentHeight = newH;
+  }
+
+  // ─── Initialize on the currently active item ───
+  const activeEl = items.find(i => i.classList.contains('active'));
+  if (activeEl) {
+    requestAnimationFrame(() => {
+      setIndicatorInstant(activeEl);
+      // Re-enable transitions after initial placement
+      requestAnimationFrame(() => {
+        indicator.style.transition =
+          'top 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+          'height 0.4s cubic-bezier(0.22, 1, 0.36, 1), ' +
+          'opacity 0.2s ease';
+      });
+    });
+  }
+
+  // ─── Click handlers ───
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      if (item.classList.contains('active')) return; // already there
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      moveIndicator(item);
+    });
+  });
+}
+
+// ─── Collapsible sections ───
+function initToggle(toggleId, itemsId) {
+  const btn     = document.getElementById(toggleId);
+  const wrap    = document.getElementById(itemsId);
+  const chevron = btn.querySelector('.chevron');
+  let open      = !wrap.style.maxHeight || wrap.style.maxHeight !== '0px';
+
+  btn.addEventListener('click', () => {
+    open = !open;
+    if (open) {
+      wrap.style.maxHeight = wrap.scrollHeight + 'px';
+      chevron.classList.replace('closed', 'open');
+    } else {
+      wrap.style.maxHeight = '0px';
+      chevron.classList.replace('open', 'closed');
+    }
+  });
+
+  if (open) {
+    wrap.style.maxHeight = wrap.scrollHeight + 'px';
+  }
+}
+
+// ─── Boot ───
+initSideNav('items-print', 'indicator-print', 'trail-print');
+initSideNav('items-api',   'indicator-api',   'trail-api');
+initToggle('toggle-print', 'items-print');
+initToggle('toggle-api',   'items-api');
+</script>
+</body>
+</html>

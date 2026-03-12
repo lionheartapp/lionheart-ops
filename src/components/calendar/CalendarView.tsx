@@ -15,6 +15,7 @@ import {
   useDeleteEvent,
   useCategories,
   useCreateCategory,
+  useRsvp,
   type CalendarEventData,
 } from '@/lib/hooks/useCalendar'
 import CalendarToolbar from './CalendarToolbar'
@@ -360,14 +361,38 @@ export default function CalendarView() {
     }))
   }, [meetWithPeople])
 
-  // Auto-open create panel when navigated with ?create=true
+  // Search params for deep-linking (create, RSVP)
   const searchParams = useSearchParams()
+
+  // Handle ?rsvp= query param from email links
+  const rsvpParam = searchParams.get('rsvp')
+  const eventIdParam = searchParams.get('eventId')
+  const rsvpAutoMutation = useRsvp()
+  const [rsvpAutoTriggered, setRsvpAutoTriggered] = useState(false)
+
+  // Auto-open create panel when navigated with ?create=true
   useEffect(() => {
     if (searchParams.get('create') === 'true') {
       setIsCreateOpen(true)
       window.history.replaceState({}, '', '/calendar')
     }
   }, [searchParams])
+
+  // Auto-RSVP from email link (?eventId=X&rsvp=accept|maybe|decline)
+  useEffect(() => {
+    if (!eventIdParam || !rsvpParam || rsvpAutoTriggered) return
+    const targetEvent = allEvents.find(e => e.id === eventIdParam)
+    if (targetEvent) {
+      setSelectedEvent(targetEvent)
+      if (rsvpParam === 'accept') {
+        setRsvpAutoTriggered(true)
+        rsvpAutoMutation.mutate({ eventId: eventIdParam, status: 'ACCEPTED' })
+      }
+      // For maybe/decline, the EventDetailPanel's RSVP dialog handles it
+      // We just need to open the panel - the user clicks the button from there
+      setRsvpAutoTriggered(true)
+    }
+  }, [eventIdParam, rsvpParam, allEvents, rsvpAutoTriggered]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Quick-create calendar state
   const [showCreateCalendar, setShowCreateCalendar] = useState(false)

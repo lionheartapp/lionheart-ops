@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -11,6 +11,7 @@ import {
   useRejectEvent,
   useAddAttendees,
   useRemoveAttendee,
+  useRsvp,
   type CalendarEventData,
   type EventApprovalData,
   type ApprovalChannelType,
@@ -18,6 +19,7 @@ import {
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useToast } from '@/components/Toast'
 import AttendeePicker, { type AttendeeSelection } from '@/components/calendar/AttendeePicker'
+import RsvpDialog from '@/components/calendar/RsvpDialog'
 
 interface EventDetailPanelProps {
   event: CalendarEventData | null
@@ -154,6 +156,11 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   const removeAttendee = useRemoveAttendee()
   const [showAddAttendee, setShowAddAttendee] = useState(false)
 
+  // RSVP
+  const rsvpMutation = useRsvp()
+  const [rsvpDialogStatus, setRsvpDialogStatus] = useState<'DECLINED' | 'TENTATIVE' | null>(null)
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
+
   // Client-side permission check (server enforces real permissions)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isCreator, setIsCreator] = useState(false)
@@ -164,6 +171,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
     setIsAdmin(role === 'super admin' || role === 'administrator' || role === 'super-admin' || role === 'admin')
     const email = localStorage.getItem('user-email')
     setIsCreator(!!email && event.createdBy?.email === email)
+    setCurrentUserEmail(email)
   }, [event])
 
   useEffect(() => {
@@ -188,6 +196,25 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
     setRejectReason('')
     setShowAddAttendee(false)
   }, [event?.id])
+
+  // RSVP: find current user's attendee record
+  const myAttendee = useMemo(() => {
+    if (!currentUserEmail || !eventDetail?.attendees) return null
+    return eventDetail.attendees.find(
+      (a: any) => a.user?.email === currentUserEmail
+    ) || null
+  }, [currentUserEmail, eventDetail])
+
+  const handleRsvp = async (status: 'ACCEPTED' | 'DECLINED' | 'TENTATIVE', responseNote?: string) => {
+    if (!event) return
+    try {
+      await rsvpMutation.mutateAsync({ eventId: event.id, status, responseNote })
+      toast(`RSVP: ${status === 'ACCEPTED' ? 'Accepted' : status === 'DECLINED' ? 'Declined' : 'Maybe'}`, 'success')
+      setRsvpDialogStatus(null)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to RSVP', 'error')
+    }
+  }
 
   const isAthletics = !!(event?.metadata as any)?.athleticsType
   const athleticsMeta = isAthletics ? (event?.metadata as any) : null
@@ -515,12 +542,67 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
               {(event.attendees && event.attendees.length > 0 || isAdmin || isCreator) && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                    Attendees {event.attendees && event.attendees.length > 0 ? `(${event.attendees.length})` : ''}
+                    Attendees {event.attendees && event.attendees.length > 0 ? (() => {
+                      const a = eventDetail?.attendees || event.attendees || []
+                      const yes = a.filter((x: any) => x.responseStatus === 'ACCEPTED').length
+                      const no = a.filter((x: any) => x.responseStatus === 'DECLINED').length
+                      const maybe = a.filter((x: any) => x.responseStatus === 'TENTATIVE').length
+                      const pending = a.filter((x: any) => x.responseStatus === 'PENDING').length
+                      const parts: string[] = []
+                      if (yes) parts.push(`${yes} yes`)
+                      if (no) parts.push(`${no} no`)
+                      if (maybe) parts.push(`${maybe} maybe`)
+                      if (pending) parts.push(`${pending} pending`)
+                      return `(${parts.join(', ')})`
+                    })() : ''}
                   </h3>
+                  {/* RSVP buttons for current user */}
+                  {myAttendee && (
+                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-50">
+                      <span className="text-xs text-gray-500 mr-1">Your RSVP:</span>
+                      <button
+                        onClick={() => handleRsvp('ACCEPTED')}
+                        disabled={rsvpMutation.isPending}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors cursor-pointer flex items-center gap-1 ${
+                          myAttendee.responseStatus === 'ACCEPTED'
+                            ? 'bg-green-100 text-green-700 ring-1 ring-green-300'
+                            : 'bg-gray-50 text-gray-600 hover:bg-green-50 hover:text-green-700'
+                        }`}
+                      >
+                        <ThumbsUp className="w-3 h-3" />
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setRsvpDialogStatus('TENTATIVE')}
+                        disabled={rsvpMutation.isPending}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors cursor-pointer flex items-center gap-1 ${
+                          myAttendee.responseStatus === 'TENTATIVE'
+                            ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300'
+                            : 'bg-gray-50 text-gray-600 hover:bg-amber-50 hover:text-amber-700'
+                        }`}
+                      >
+                        <HelpCircle className="w-3 h-3" />
+                        Maybe
+                      </button>
+                      <button
+                        onClick={() => setRsvpDialogStatus('DECLINED')}
+                        disabled={rsvpMutation.isPending}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors cursor-pointer flex items-center gap-1 ${
+                          myAttendee.responseStatus === 'DECLINED'
+                            ? 'bg-red-100 text-red-700 ring-1 ring-red-300'
+                            : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-700'
+                        }`}
+                      >
+                        <ThumbsDown className="w-3 h-3" />
+                        No
+                      </button>
+                    </div>
+                  )}
                   {event.attendees && event.attendees.length > 0 && (
                     <div className="space-y-1">
-                      {event.attendees.map((a) => (
-                        <div key={a.id} className="group flex items-center gap-2.5 py-1 rounded-lg hover:bg-gray-50 px-1 -mx-1">
+                      {(eventDetail?.attendees || event.attendees || []).map((a: any) => (
+                        <div key={a.id || a.user?.id}>
+                        <div className="group flex items-center gap-2.5 py-1 rounded-lg hover:bg-gray-50 px-1 -mx-1">
                           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                             {a.user.avatar ? (
                               <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
@@ -560,6 +642,10 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                               <X className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
                             </button>
                           )}
+                        </div>
+                        {(a.responseStatus === 'DECLINED' || a.responseStatus === 'TENTATIVE') && a.responseNote && (isAdmin || isCreator) && (
+                          <p className="text-xs text-gray-400 italic ml-11 -mt-0.5 mb-1">&ldquo;{a.responseNote}&rdquo;</p>
+                        )}
                         </div>
                       ))}
                     </div>
@@ -650,6 +736,13 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
               )}
             </div>
           </motion.div>
+
+          <RsvpDialog
+            isOpen={!!rsvpDialogStatus}
+            status={rsvpDialogStatus || 'DECLINED'}
+            onSubmit={(note) => handleRsvp(rsvpDialogStatus!, note)}
+            onCancel={() => setRsvpDialogStatus(null)}
+          />
         </>
       )}
     </AnimatePresence>

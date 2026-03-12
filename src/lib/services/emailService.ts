@@ -47,6 +47,7 @@ type EventRejectedEmailInput = EventNotifyEmailInput & {
 type EventInviteEmailInput = EventNotifyEmailInput & {
   eventDate?: string
   eventTime?: string
+  eventId?: string
 }
 
 // ─── Config ───────────────────────────────────────────────────────────
@@ -302,6 +303,7 @@ export async function sendEventInviteEmail(input: EventInviteEmailInput): Promis
     eventTitle: input.eventTitle,
     eventDate: input.eventDate,
     eventTime: input.eventTime,
+    eventId: input.eventId,
     orgName: input.orgName,
     appUrl: input.appUrl || getAppUrl(),
     eventLink: input.eventLink || getAppUrl(),

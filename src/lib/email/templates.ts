@@ -416,6 +416,32 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
           vars.eventDate
             ? detailCard(`<strong>When</strong><br />{{eventDate}}<br />{{eventTime}}`)
             : '',
+          // RSVP action buttons
+          vars.eventId ? `
+    <mj-section background-color="${B.white}" padding="8px 40px 0 40px">
+      <mj-column>
+        <mj-text align="center" font-size="13px" color="${B.gray500}" padding-bottom="12px">
+          Will you attend?
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="${B.white}" padding="0 40px 8px 40px">
+      <mj-column>
+        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=accept" background-color="${B.green}" color="${B.white}" align="center" border-radius="24px" inner-padding="12px 28px" font-size="14px" font-weight="600">
+          Accept
+        </mj-button>
+      </mj-column>
+      <mj-column>
+        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=maybe" background-color="#f59e0b" color="${B.white}" align="center" border-radius="24px" inner-padding="12px 28px" font-size="14px" font-weight="600">
+          Maybe
+        </mj-button>
+      </mj-column>
+      <mj-column>
+        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=decline" background-color="${B.red}" color="${B.white}" align="center" border-radius="24px" inner-padding="12px 28px" font-size="14px" font-weight="600">
+          Decline
+        </mj-button>
+      </mj-column>
+    </mj-section>` : '',
           centeredCta('View Event', '{{eventLink}}'),
         ].filter(Boolean).join('\n'),
       })

@@ -868,6 +868,25 @@ export async function removeAttendee(eventId: string, userId: string) {
   })
 }
 
+/**
+ * Update an attendee's RSVP status with optional note.
+ */
+export async function updateRsvpStatus(
+  eventId: string,
+  userId: string,
+  status: 'ACCEPTED' | 'DECLINED' | 'TENTATIVE',
+  responseNote?: string
+) {
+  return prisma.eventAttendee.update({
+    where: { eventId_userId: { eventId, userId } },
+    data: {
+      responseStatus: status,
+      respondedAt: new Date(),
+      responseNote: responseNote || null,
+    },
+  })
+}
+
 // ─── Calendar Subscriptions ────────────────────────────────────────────
 
 export async function getUserSubscriptions(userId: string) {

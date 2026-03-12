@@ -378,6 +378,23 @@ export function useRemoveAttendee() {
   })
 }
 
+// ─── RSVP mutation hook ─────────────────────────────────────────────
+
+export function useRsvp() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ eventId, status, responseNote }: { eventId: string; status: 'ACCEPTED' | 'DECLINED' | 'TENTATIVE'; responseNote?: string }) =>
+      fetchApi(`/api/calendar-events/${eventId}/rsvp`, {
+        method: 'PUT',
+        body: JSON.stringify({ status, responseNote }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-event-detail'] })
+    },
+  })
+}
+
 // ─── Date range computation (shared by navigation + prefetch) ──────────
 
 export function computeDateRange(date: Date, view: CalendarViewType): { start: Date; end: Date } {
