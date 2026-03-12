@@ -128,15 +128,22 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
   create_event: {
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     execute: async (payload, ctx) => {
-      // Find the user's personal calendar first, fall back to org default
+      // Find the user's personal calendar, auto-create if missing
       let calendar = await prisma.calendar.findFirst({
         where: { isActive: true, calendarType: 'PERSONAL' as any, createdById: ctx.userId },
         select: { id: true },
       })
       if (!calendar) {
-        calendar = await prisma.calendar.findFirst({
-          where: { isActive: true },
-          orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+        // Auto-create personal calendar for users who don't have one yet
+        calendar = await prisma.calendar.create({
+          data: {
+            name: 'My Schedule',
+            slug: `my-schedule-${ctx.userId.slice(-8)}`,
+            calendarType: 'PERSONAL' as any,
+            visibility: 'CAMPUS' as any,
+            createdById: ctx.userId,
+            color: '#6366f1',
+          } as any,
           select: { id: true },
         })
       }
