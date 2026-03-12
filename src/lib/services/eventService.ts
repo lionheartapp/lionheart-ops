@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { prisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
 import type { Event } from '@prisma/client'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -18,6 +18,7 @@ export const CreateEventSchema = z.object({
   submittedById: z.string().optional().nullable(),
   requiresAV: z.boolean().optional().default(false),
   avRequirements: z.string().max(1000).optional().nullable(),
+  attendeeIds: z.array(z.string()).optional().default([]),
 })
 
 export const UpdateEventSchema = CreateEventSchema.partial()
@@ -192,6 +193,18 @@ export async function createEvent(
       avRequirements: validated.avRequirements ?? null,
     } as any, // Temp workaround for org-scoped extension typing
   })
+
+  // Create attendee records (EventAttendee is not org-scoped, linked via eventId)
+  if (validated.attendeeIds && validated.attendeeIds.length > 0) {
+    await rawPrisma.eventAttendee.createMany({
+      data: validated.attendeeIds.map((aid) => ({
+        eventId: event.id,
+        userId: aid,
+        responseStatus: 'PENDING',
+      })),
+      skipDuplicates: true,
+    })
+  }
 
   return event
 }

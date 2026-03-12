@@ -13,6 +13,7 @@ import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, ChevronRight, Calen
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getAuthHeaders } from '@/lib/api-client'
+import AttendeePicker, { type AttendeeSelection } from '@/components/calendar/AttendeePicker'
 
 interface TicketData {
   id: string
@@ -76,6 +77,7 @@ export default function DashboardPage() {
     room: '',
     startsAt: '',
     endsAt: '',
+    attendees: [] as AttendeeSelection[],
     requiresAV: false,
     avRequirements: '',
     requiresFacilitySetup: false,
@@ -265,6 +267,7 @@ export default function DashboardPage() {
     setStepperForm({
       title: '', description: '', room: '',
       startsAt: toLocal(now), endsAt: toLocal(end),
+      attendees: [],
       requiresAV: false, avRequirements: '',
       requiresFacilitySetup: false, facilityNotes: '', setupNeeds: [],
     })
@@ -312,6 +315,7 @@ export default function DashboardPage() {
           endsAt: new Date(stepperForm.endsAt).toISOString(),
           requiresAV: stepperForm.requiresAV,
           avRequirements: stepperForm.avRequirements.trim() || null,
+          attendeeIds: stepperForm.attendees.map((a) => a.id),
           ...(isQuick ? { status: 'CONFIRMED' } : {}),
         }),
       })
@@ -1104,6 +1108,10 @@ export default function DashboardPage() {
                       onChange={(e) => setStepperForm(f => ({ ...f, description: e.target.value }))}
                       rows={2}
                     />
+                    <AttendeePicker
+                      value={stepperForm.attendees}
+                      onChange={(attendees) => setStepperForm(f => ({ ...f, attendees }))}
+                    />
                   </motion.div>
                 </AnimatePresence>
               )}
@@ -1240,6 +1248,14 @@ export default function DashboardPage() {
                               {new Date(stepperForm.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })},{' '}
                               {new Date(stepperForm.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                               {stepperForm.endsAt ? ` – ${new Date(stepperForm.endsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
+                            </span>
+                          </div>
+                        )}
+                        {stepperForm.attendees.length > 0 && (
+                          <div className="flex justify-between items-start">
+                            <span className="text-gray-500">Attendees</span>
+                            <span className="font-medium text-gray-900 text-right max-w-[60%]">
+                              {stepperForm.attendees.map(a => a.firstName || a.email.split('@')[0]).join(', ')}
                             </span>
                           </div>
                         )}
