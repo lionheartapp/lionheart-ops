@@ -200,13 +200,13 @@ Deferred to next minor release. Tracked but not in current roadmap.
 | AI-UX-04 | Phase 14 | Complete |
 | AI-UX-05 | Phase 14 | Complete |
 
-| LEO-MEM-01 | Phase 17 | Planned |
-| LEO-MEM-02 | Phase 17 | Planned |
-| LEO-MEM-03 | Phase 17 | Planned |
-| LEO-MEM-04 | Phase 17 | Planned |
-| LEO-MEM-05 | Phase 17 | Planned |
-| LEO-MEM-06 | Phase 17 | Planned |
-| LEO-MEM-07 | Phase 17 | Planned |
+| LEO-MEM-01 | Phase 17 | Complete |
+| LEO-MEM-02 | Phase 17 | Complete |
+| LEO-MEM-03 | Phase 17 | Complete |
+| LEO-MEM-04 | Phase 17 | Complete |
+| LEO-MEM-05 | Phase 17 | Complete |
+| LEO-MEM-06 | Phase 17 | Complete |
+| LEO-MEM-07 | Phase 17 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 45 total
