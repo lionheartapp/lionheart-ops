@@ -106,7 +106,7 @@ All 101 requirements from v1.0 Maintenance & Facilities Module — completed 202
 - [x] **LEO-MEM-04**: Leo has a `recall_context` tool that performs semantic search over organizational data (tickets, events, conversations) and returns relevant history
 - [x] **LEO-MEM-05**: Leo maintains a per-user profile with learned preferences, frequent topics, common actions, and communication style — extracted automatically after conversations
 - [x] **LEO-MEM-06**: Leo's system prompt incorporates user profile and semantically relevant memory facts for personalized responses
-- [ ] **LEO-MEM-07**: Long conversations are automatically summarized and compressed into ConversationSummary records for efficient context assembly
+- [x] **LEO-MEM-07**: Long conversations are automatically summarized and compressed into ConversationSummary records for efficient context assembly
 
 ## v2.1 Requirements
 

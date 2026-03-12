@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 17-leo-memory-and-learning-04-PLAN.md
-last_updated: "2026-03-12T03:57:26.833Z"
+stopped_at: Completed 17-leo-memory-and-learning-06-PLAN.md Task 1 — awaiting human verification checkpoint (Task 2)
+last_updated: "2026-03-12T04:02:09.942Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 17
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 55
-  completed_plans: 54
+  completed_plans: 55
   percent: 0
 ---
 
@@ -86,6 +86,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 17-leo-memory-and-learning P02 | 8 | 2 tasks | 5 files |
 | Phase 17 P05 | 4 | 2 tasks | 3 files |
 | Phase 17-leo-memory-and-learning P04 | 3 | 2 tasks | 4 files |
+| Phase 17-leo-memory-and-learning P06 | 2 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -183,6 +184,8 @@ Recent decisions affecting current work:
 - [Phase 17-leo-memory-and-learning]: Memory extraction triggers only when conversation has 5+ messages — avoids expensive Gemini calls on short exchanges
 - [Phase 17-leo-memory-and-learning]: assembleContext uses Promise.allSettled across all 3 layers so a failed profile lookup does not block fact retrieval
 - [Phase 17-leo-memory-and-learning]: buildPersonalizedContext caps output at 2000 chars (~500 tokens) — preserves token budget for conversation history and tools
+- [Phase 17-leo-memory-and-learning]: summarizeConversation summarizes the oldest 75% of dialog messages, leaving recent 25% verbatim — preserves recency while compressing history
+- [Phase 17-leo-memory-and-learning]: shouldSummarize uses 10-message buffer to avoid re-summarizing after every new message; active conversation summary prioritized first in loadRecentSummaries
 
 ### Pending Todos
 
@@ -197,6 +200,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T03:57:26.830Z
-Stopped at: Completed 17-leo-memory-and-learning-04-PLAN.md
+Last session: 2026-03-12T04:02:09.939Z
+Stopped at: Completed 17-leo-memory-and-learning-06-PLAN.md Task 1 — awaiting human verification checkpoint (Task 2)
 Resume file: None
