@@ -40,7 +40,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen antialiased bg-white font-body">
         <Providers>{children}</Providers>
         <ServiceWorkerRegistration />
-        <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
       </body>
     </html>
   )
