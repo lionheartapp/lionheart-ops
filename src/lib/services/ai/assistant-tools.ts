@@ -18,6 +18,10 @@ import './tools/search.tools'
 import './tools/weather.tools'
 import './tools/workflow.tools'
 import './tools/memory.tools'
+import './tools/knowledge-base.tools'
+import './tools/athletics.tools'
+import './tools/teacher-schedule.tools'
+import './tools/notification-reading.tools'
 
 // Re-export public API
 export { getAvailableTools, executeTool, getToolRiskTier } from './tools/_registry'

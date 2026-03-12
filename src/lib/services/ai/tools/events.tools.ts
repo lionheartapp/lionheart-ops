@@ -841,6 +841,204 @@ const tools: Record<string, ToolRegistryEntry> = {
     },
   },
 
+  // ── GREEN: Search Past Events ───────────────────────────────────────────
+  search_past_events: {
+    definition: {
+      name: 'search_past_events',
+      description:
+        'Search historical/past events (up to 365 days back). Use when users ask about events that already happened — "what happened last month?", "show me events from January", "did we have a concert last spring?"',
+      parameters: {
+        type: 'object',
+        properties: {
+          days_back: { type: 'number', description: 'Number of days to look back (default: 30, max: 365)' },
+          search: { type: 'string', description: 'Search events by title (optional)' },
+          location: { type: 'string', description: 'Filter by location/room/building name (optional)' },
+          limit: { type: 'number', description: 'Max events to return (default: 15, max: 50)' },
+        },
+        required: [],
+      },
+    },
+    requiredPermission: PERMISSIONS.EVENTS_READ,
+    riskTier: 'GREEN',
+    execute: async (input, ctx) => {
+      const daysBack = Math.min((input.days_back as number) || 30, 365)
+      const limit = Math.min((input.limit as number) || 15, 50)
+      const searchQuery = input.search ? String(input.search).trim() : ''
+      const locationQuery = input.location ? String(input.location).trim() : ''
+
+      const orgTz = await getOrgTimezone(ctx.organizationId)
+      const now = new Date()
+      const rangeStart = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000)
+
+      // Get all active calendars
+      const calendars = await prisma.calendar.findMany({
+        where: { isActive: true },
+        select: { id: true },
+      })
+      const calendarIds = calendars.map((c: any) => c.id)
+
+      const { getEventsInRange } = await import('@/lib/services/calendarService')
+      let allEvents: any[] = []
+      if (calendarIds.length > 0) {
+        allEvents = await getEventsInRange(calendarIds, rangeStart, now, {
+          take: limit * 3,
+        })
+      }
+
+      // Filter out cancelled
+      allEvents = allEvents.filter((e: any) => e.calendarStatus !== 'CANCELLED')
+
+      // Apply location filter
+      if (locationQuery) {
+        const locNeedle = locationQuery.toLowerCase()
+        allEvents = allEvents.filter((e: any) =>
+          (e.locationText || '').toLowerCase().includes(locNeedle) ||
+          (e.building?.name || '').toLowerCase().includes(locNeedle) ||
+          (e.area?.name || '').toLowerCase().includes(locNeedle)
+        )
+      }
+
+      // Apply search filter
+      if (searchQuery) {
+        const needle = searchQuery.toLowerCase()
+        allEvents = allEvents.filter((e: any) =>
+          (e.title || '').toLowerCase().includes(needle) ||
+          (e.description || '').toLowerCase().includes(needle)
+        )
+      }
+
+      // Sort newest first for past events
+      allEvents.sort((a: any, b: any) =>
+        new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+      )
+
+      const mapped = allEvents.slice(0, limit).map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        description: e.description || undefined,
+        start: e.startTime,
+        end: e.endTime,
+        location: e.locationText || undefined,
+        calendar: e.calendar?.name,
+        createdBy: e.createdBy?.name || undefined,
+        status: e.calendarStatus,
+      }))
+
+      return JSON.stringify({
+        events: mapped,
+        count: mapped.length,
+        period: `Past ${daysBack} days`,
+        ...(searchQuery ? { searchQuery } : {}),
+      })
+    },
+  },
+
+  // ── GREEN: Check Event Equipment Availability ─────────────────────────────
+  check_event_equipment_availability: {
+    definition: {
+      name: 'check_event_equipment_availability',
+      description:
+        'Check whether the equipment listed on an event is available in inventory. Takes an event ID, reads its equipment list from metadata, and fuzzy-matches each item against inventory. Returns availability status per item.',
+      parameters: {
+        type: 'object',
+        properties: {
+          event_id: { type: 'string', description: 'The event ID to check equipment for' },
+        },
+        required: ['event_id'],
+      },
+    },
+    requiredPermission: PERMISSIONS.EVENTS_READ,
+    riskTier: 'GREEN',
+    execute: async (input) => {
+      const eventId = String(input.event_id || '').trim()
+      if (!eventId) return JSON.stringify({ error: 'event_id is required.' })
+
+      const event = await prisma.calendarEvent.findUnique({
+        where: { id: eventId },
+        select: { id: true, title: true, metadata: true },
+      }).catch(() => null)
+
+      if (!event) return JSON.stringify({ error: `Event not found: ${eventId}` })
+
+      const meta = event.metadata as Record<string, unknown> | null
+      const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
+
+      if (!equipmentList || equipmentList.length === 0) {
+        return JSON.stringify({
+          event: event.title,
+          message: 'This event has no equipment list in its metadata.',
+          items: [],
+        })
+      }
+
+      // Fuzzy-match each equipment item against inventory
+      const results = await Promise.all(
+        equipmentList.map(async (eq) => {
+          const keywords = eq.item.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+
+          // Try exact-ish match first, then keyword match
+          let inventoryItem = await prisma.inventoryItem.findFirst({
+            where: { name: { contains: eq.item, mode: 'insensitive' } },
+            select: { id: true, name: true, quantityOnHand: true, reorderThreshold: true },
+          })
+
+          if (!inventoryItem && keywords.length > 0) {
+            inventoryItem = await prisma.inventoryItem.findFirst({
+              where: {
+                OR: keywords.map(kw => ({ name: { contains: kw, mode: 'insensitive' as const } })),
+              },
+              select: { id: true, name: true, quantityOnHand: true, reorderThreshold: true },
+            })
+          }
+
+          if (!inventoryItem) {
+            return {
+              requested: eq.item,
+              quantity: eq.quantity,
+              status: 'not_found' as const,
+              message: `"${eq.item}" not found in inventory`,
+            }
+          }
+
+          const available = inventoryItem.quantityOnHand
+          const status = available <= 0
+            ? 'unavailable' as const
+            : available < eq.quantity
+              ? 'low' as const
+              : available <= inventoryItem.reorderThreshold
+                ? 'low' as const
+                : 'available' as const
+
+          return {
+            requested: eq.item,
+            quantity: eq.quantity,
+            inventoryName: inventoryItem.name,
+            inStock: available,
+            status,
+            message: status === 'available'
+              ? `${available} in stock (${eq.quantity} needed)`
+              : status === 'low'
+                ? `Only ${available} in stock but ${eq.quantity} needed`
+                : `Out of stock (${eq.quantity} needed)`,
+          }
+        })
+      )
+
+      const allGood = results.every(r => r.status === 'available')
+      const issues = results.filter(r => r.status !== 'available')
+
+      return JSON.stringify({
+        event: event.title,
+        items: results,
+        allAvailable: allGood,
+        issueCount: issues.length,
+        summary: allGood
+          ? 'All equipment is available!'
+          : `${issues.length} item(s) have availability issues.`,
+      })
+    },
+  },
+
   // ── YELLOW: Manage Event Attendees ───────────────────────────────────────
   manage_event_attendees: {
     definition: {

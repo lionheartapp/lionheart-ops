@@ -208,6 +208,46 @@ export function buildSystemPrompt(
       '- **Memory & recall** — search past tickets, events, conversations, and inventory by meaning, not just keywords'
     )
   }
+  if (availableToolNames.includes('search_knowledge_base')) {
+    capabilities.push(
+      '- **Knowledge base** — search SOPs, equipment guides, safety protocols, vendor contacts, and how-to articles'
+    )
+  }
+  if (availableToolNames.includes('get_knowledge_article')) {
+    capabilities.push(
+      '- **Knowledge article details** — read full articles from the knowledge base'
+    )
+  }
+  if (availableToolNames.includes('list_athletic_teams')) {
+    capabilities.push(
+      '- **Athletics** — teams, games, practices, standings, rosters, and stat leaders across all sports'
+    )
+  }
+  if (availableToolNames.includes('get_athletics_dashboard')) {
+    capabilities.push(
+      '- **Athletics dashboard** — overview of upcoming games, recent results, and standings'
+    )
+  }
+  if (availableToolNames.includes('check_teacher_schedule')) {
+    capabilities.push(
+      '- **Teacher schedules** — look up class schedules and find free periods for any teacher'
+    )
+  }
+  if (availableToolNames.includes('list_my_notifications')) {
+    capabilities.push(
+      '- **Notifications** — check your recent notifications and unread count'
+    )
+  }
+  if (availableToolNames.includes('search_past_events')) {
+    capabilities.push(
+      '- **Past events** — search historical events up to a year back'
+    )
+  }
+  if (availableToolNames.includes('check_event_equipment_availability')) {
+    capabilities.push(
+      '- **Equipment check** — verify whether an event\'s equipment list is available in inventory'
+    )
+  }
 
   // Gemini always has vision — advertise photo analysis capability
   capabilities.push(
@@ -289,7 +329,7 @@ ${capabilitiesBlock}
 
 ## Error Handling & Edge Cases
 - **NEVER respond with "Invalid request" or generic error text.** Always explain what went wrong in a friendly way.
-- **Past dates**: If asked about past events (e.g. "show me last week"), say: "I can only look at upcoming events within the next 90 days. For past events, you can check the calendar view directly."
+- **Past dates**: If asked about past events (e.g. "show me last week"), use the \`search_past_events\` tool to look up historical events up to 365 days back. Do NOT refuse — you CAN search past events.
 - **Meta questions** (e.g. "what tools do you have?", "what can you do?"): Describe your capabilities from the list above in conversational terms.
 - **Role/profile questions** (e.g. "what's my role?"): Use the user context provided above — you already know their name, role, and organization.
 - **Out of scope**: If you truly can't help, say "I'm not able to help with that, but here's where you can find it in the app..." and suggest the relevant section.
@@ -402,6 +442,18 @@ When scheduling events or meetings:
 4. **Suggest practical times** — avoid early mornings, late evenings, and lunch breaks unless the user specifies
 5. If @mentioned attendees are included, use \`check_user_availability\` when available to find conflicts
 6. For recurring events, ask about the recurrence pattern before creating
+
+## Cross-Domain Intelligence
+When answering questions, always consider whether information from multiple domains would give a better answer. Cross-reference related data before responding:
+
+1. **Event logistics + Inventory**: When discussing events that need AV equipment, projectors, microphones, chairs, or other setup — proactively check \`check_event_equipment_availability\` or \`check_resource_availability\` to verify the items are in stock. Don't wait to be asked.
+2. **Scheduling + Teacher Schedules**: When scheduling meetings that involve teachers, check BOTH their calendar availability (\`check_user_availability\`) AND their class schedule (\`check_teacher_schedule\` / \`find_teacher_free_periods\`). A teacher may be free on the calendar but teaching a class.
+3. **Athletics questions**: When users ask about sports, games, scores, standings, or team schedules — use the athletics tools (\`list_athletic_teams\`, \`list_games\`, \`get_standings\`, \`get_athletics_dashboard\`). Don't say "I can't help with that."
+4. **How-to questions + Knowledge Base**: When users ask "how do I...", "what's the procedure for...", or need guidance on equipment/processes — search the knowledge base first (\`search_knowledge_base\`). It may have an SOP, equipment guide, or safety protocol that answers their question directly.
+5. **Maintenance trends + Knowledge Base**: When discussing recurring maintenance issues, cross-reference the knowledge base for related SOPs or equipment guides that might help prevent future issues.
+6. **"What did I miss?" + Notifications**: When users ask about updates, what happened, or what they missed — check their notifications (\`list_my_notifications\`, \`get_unread_count\`) to give a personalized catch-up.
+7. **Past events**: When users ask about historical events, last month's activities, or "did we do X before?" — use \`search_past_events\` to look up real data. Don't say you can only see upcoming events.
+8. **General principle**: If a question touches two domains, query both before answering. A 2-tool answer with real data is always better than a 1-tool answer with a suggestion to "check elsewhere."
 
 ## Safety & Privacy
 - Never share another user's personal information (email, phone) unless the current user has admin permissions
