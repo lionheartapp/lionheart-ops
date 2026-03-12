@@ -334,7 +334,7 @@ export default function InputForm({
           type="button"
           onClick={handleImageButtonClick}
           disabled={isLoading || images.length >= MAX_IMAGES}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100/80 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-40 cursor-pointer"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gray-100/80 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-40 cursor-pointer"
           aria-label="Attach image"
           title={images.length >= MAX_IMAGES ? `Max ${MAX_IMAGES} images` : 'Attach image'}
         >
@@ -361,22 +361,23 @@ export default function InputForm({
           />
           {/* Animated "Try:" placeholder with vertical scroll */}
           {!input && !isFocused && !isListening && !isDragging && (
-            <div className="pointer-events-none absolute inset-0 flex items-center px-4 overflow-hidden">
-              <span className="text-sm text-gray-400 flex-shrink-0">Try:&nbsp;</span>
-              <div className="relative h-[20px] overflow-hidden flex-1">
+            <div className="pointer-events-none absolute inset-0 flex items-start px-4 py-2.5 overflow-hidden">
+              <span className="text-sm leading-relaxed text-gray-400 flex-shrink-0">Try:&nbsp;</span>
+              <div className="relative overflow-hidden flex-1" style={{ height: '1.625em', fontSize: '0.875rem' }}>
                 <div
                   style={{
-                    transform: `translateY(-${placeholderIdx * 20}px)`,
+                    transform: `translateY(-${placeholderIdx * 1.625}em)`,
                     transition: placeholderTransition ? 'transform 500ms cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none',
+                    fontSize: '0.875rem',
                   }}
                 >
                   {PLACEHOLDER_EXAMPLES.map((example, i) => (
-                    <div key={i} className="h-[20px] flex items-center text-sm text-gray-400 truncate">
+                    <div key={i} className="text-sm leading-relaxed text-gray-400 truncate" style={{ height: '1.625em' }}>
                       {example}
                     </div>
                   ))}
                   {/* Clone of first item for seamless wrap */}
-                  <div className="h-[20px] flex items-center text-sm text-gray-400 truncate">
+                  <div className="text-sm leading-relaxed text-gray-400 truncate" style={{ height: '1.625em' }}>
                     {PLACEHOLDER_EXAMPLES[0]}
                   </div>
                 </div>
@@ -391,7 +392,7 @@ export default function InputForm({
             type="button"
             onClick={handleMicClick}
             disabled={isLoading}
-            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
+            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-all cursor-pointer ${
               isListening
                 ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse'
                 : 'bg-gray-100/80 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
@@ -411,7 +412,7 @@ export default function InputForm({
         <button
           type="submit"
           disabled={isLoading || (!input.trim() && images.length === 0)}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-white transition-all hover:shadow-md disabled:opacity-40 cursor-pointer"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-white transition-all hover:shadow-md disabled:opacity-40 cursor-pointer"
           style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' }}
           aria-label="Send message"
         >
