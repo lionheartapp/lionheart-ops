@@ -23,6 +23,8 @@ import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext } from '@/lib/org-context'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
 import { getAvailableTools, executeTool, getToolRiskTier } from '@/lib/services/ai/assistant-tools'
 import { buildSystemPrompt } from '@/lib/services/ai/assistant.service'
 import { assembleContext } from '@/lib/services/ai/contextAssemblyService'
@@ -65,6 +67,10 @@ const MAX_TOOL_ITERATIONS = 12
 const CONVERSATION_CONTEXT_LIMIT = 20
 const MODEL = 'gemini-2.0-flash'
 
+// ─── Module-level logger ───────────────────────────────────────────────────────
+
+const routeLog = logger.child({ route: '/api/ai/assistant/chat', method: 'POST' })
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function sseEvent(event: StreamEvent): string {
@@ -74,7 +80,7 @@ function sseEvent(event: StreamEvent): string {
 /** Fire-and-forget wrapper — logs errors but never throws */
 function safeAsync(fn: () => Promise<unknown>, label: string): void {
   fn().catch((err) => {
-    console.error(`[ai-assistant] ${label}:`, err)
+    routeLog.error({ err, label }, 'Background task failed')
   })
 }
 
@@ -109,6 +115,7 @@ function extractMarkers(text: string): {
 export async function POST(req: NextRequest) {
   try {
     const orgId = getOrgIdFromRequest(req)
+    Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
 
     const body = ChatRequestSchema.parse(await req.json())
@@ -577,7 +584,8 @@ export async function POST(req: NextRequest) {
             } catch { /* logged internally */ }
           })()
         } catch (error) {
-          console.error('[ai-assistant] Streaming error:', error)
+          routeLog.error({ err: error }, 'Streaming error')
+          Sentry.captureException(error)
           write({
             type: 'error',
             message: "I'm having trouble connecting right now. Please try again in a moment.",
@@ -608,7 +616,8 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[POST /api/ai/assistant/chat]', error)
+    routeLog.error({ err: error }, 'Chat request failed')
+    Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Something went wrong'),
       { status: 500 }

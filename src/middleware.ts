@@ -163,7 +163,8 @@ export async function middleware(req: NextRequest) {
     } else if (
       pathname.startsWith('/api/auth/forgot-password') ||
       pathname.startsWith('/api/auth/set-password') ||
-      pathname.startsWith('/api/auth/reset-password')
+      pathname.startsWith('/api/auth/reset-password') ||
+      pathname.startsWith('/api/auth/resend-verification')
     ) {
       limiter = publicApiRateLimiter
     }
