@@ -200,9 +200,10 @@ export default function InputForm({
       setImages([])
       setMentionQuery(null)
       setImageError(null)
-      // Reset textarea height
+      // Reset textarea height and re-focus for continuous conversation
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
+        textareaRef.current.focus()
       }
     },
     [input, images, isLoading, isListening, stopListening, clearTranscript, onSendMessage]

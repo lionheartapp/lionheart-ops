@@ -333,7 +333,7 @@ export default function DashboardPage() {
 
       {/* Dashboard Panels Grid */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0"
+        className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[1fr] gap-6 flex-1 min-h-0 overflow-hidden"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.1, 0.15)}
