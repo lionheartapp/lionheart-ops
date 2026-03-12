@@ -16,6 +16,8 @@ export const CreateEventSchema = z.object({
   startsAt: z.string().datetime().or(z.date()),
   endsAt: z.string().datetime().or(z.date()),
   submittedById: z.string().optional().nullable(),
+  requiresAV: z.boolean().optional().default(false),
+  avRequirements: z.string().max(1000).optional().nullable(),
 })
 
 export const UpdateEventSchema = CreateEventSchema.partial()
@@ -24,6 +26,9 @@ export const ListEventsSchema = z.object({
   limit: z.number().int().min(1).max(100).default(25),
   skip: z.number().int().min(0).default(0),
   status: z.enum(['DRAFT', 'CONFIRMED', 'CANCELLED']).optional(),
+  requiresAV: z.boolean().optional(),
+  fromDate: z.date().optional(),
+  toDate: z.date().optional(),
 })
 
 export type CreateEventInput = z.infer<typeof CreateEventSchema>
@@ -89,13 +94,18 @@ export async function listEvents(
   const validated = ListEventsSchema.parse(input)
 
   const where: any = {}
-  if (validated.status) {
-    where.status = validated.status
+  if (validated.status) where.status = validated.status
+  if (validated.requiresAV !== undefined) where.requiresAV = validated.requiresAV
+  if (validated.fromDate || validated.toDate) {
+    where.startsAt = {
+      ...(validated.fromDate ? { gte: validated.fromDate } : {}),
+      ...(validated.toDate ? { lte: validated.toDate } : {}),
+    }
   }
 
   const events = await prisma.event.findMany({
     where,
-    orderBy: { startsAt: 'desc' },
+    orderBy: { startsAt: 'asc' },
     take: validated.limit,
     skip: validated.skip,
     include: {
@@ -120,6 +130,13 @@ export async function countEvents(
   const validated = ListEventsSchema.parse(input)
   const where: any = {}
   if (validated.status) where.status = validated.status
+  if (validated.requiresAV !== undefined) where.requiresAV = validated.requiresAV
+  if (validated.fromDate || validated.toDate) {
+    where.startsAt = {
+      ...(validated.fromDate ? { gte: validated.fromDate } : {}),
+      ...(validated.toDate ? { lte: validated.toDate } : {}),
+    }
+  }
 
   return prisma.event.count({ where })
 }
@@ -171,6 +188,8 @@ export async function createEvent(
       endsAt: new Date(validated.endsAt),
       status: 'CONFIRMED',
       submittedById: validated.submittedById || userId,
+      requiresAV: validated.requiresAV ?? false,
+      avRequirements: validated.avRequirements ?? null,
     } as any, // Temp workaround for org-scoped extension typing
   })
 
@@ -213,6 +232,8 @@ export async function updateEvent(
   if (validated.room !== undefined) updateData.room = validated.room
   if (validated.startsAt !== undefined) updateData.startsAt = new Date(validated.startsAt)
   if (validated.endsAt !== undefined) updateData.endsAt = new Date(validated.endsAt)
+  if (validated.requiresAV !== undefined) updateData.requiresAV = validated.requiresAV
+  if (validated.avRequirements !== undefined) updateData.avRequirements = validated.avRequirements
 
   const event = await prisma.event.update({
     where: { id },

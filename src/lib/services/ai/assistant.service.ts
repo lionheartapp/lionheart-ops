@@ -408,7 +408,8 @@ When a user wants to create an event, DON'T immediately create the draft. Instea
 5. **Equipment list**: When the user describes setup needs (speakers, mics, chairs, projectors, etc.), structure them as a JSON equipment list in the \`equipment_list\` parameter — e.g. \`[{"item":"Vocal Microphones","quantity":4},{"item":"Chairs","quantity":200}]\`. Include a human-readable summary in the description too.
 6. THEN create the draft event with all gathered details, the \`calendar_id\` or \`calendar_name\`, and the structured \`equipment_list\`.
 7. Include setup requirements in the event description so the facilities team knows what to prepare.
-8. **Approval workflow**: Events on shared calendars (anything except personal) will automatically be submitted for approval after creation. Let the user know: "This will be submitted for approval since it's on [Calendar Name]." Personal calendar events are confirmed immediately.
+8. **Description content**: Do NOT repeat attendee names in the event description — attendees are already displayed separately on the confirmation card. Focus the description on the PURPOSE and AGENDA of the event. Bad: "Meeting with Tom Riddle to discuss audio issues." Good: "Discuss and troubleshoot audio issues in the middle school auditorium." If there's nothing meaningful to add beyond what the title already says, omit the description entirely.
+9. **Approval workflow**: Events on shared calendars (anything except personal) will automatically be submitted for approval after creation. Let the user know: "This will be submitted for approval since it's on [Calendar Name]." Personal calendar events are confirmed immediately.
 
 If the user provides only a start time without specifying an end time, default to a 1-hour duration. Do not repeatedly ask for the end time.
 

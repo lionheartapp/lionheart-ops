@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
         schoolScope: true,
         organizationId: true,
         userRole: {
-          select: { name: true },
+          select: { name: true, slug: true },
         },
         organization: {
           select: {
@@ -59,12 +59,29 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(fail('NOT_FOUND', 'User not found'), { status: 404 })
     }
 
-    // Fetch first team name
-    const firstMembership = await rawPrisma.userTeam.findFirst({
+    // Fetch all team memberships for name + slugs
+    const teamMemberships = await rawPrisma.userTeam.findMany({
       where: { userId: user.id },
-      select: { team: { select: { name: true } } },
+      select: { team: { select: { name: true, slug: true } } },
     })
-    const teamName = firstMembership?.team?.name ?? null
+    const teamName = teamMemberships[0]?.team?.name ?? null
+    const teamSlugs = teamMemberships.map((m) => m.team.slug)
+
+    // Compute dashboard mode based on role slug + team membership
+    const roleSlug = user.userRole?.slug ?? ''
+    const isAdminRole = ['admin', 'super-admin'].includes(roleSlug)
+    const isMaintenanceRole = ['maintenance-head', 'maintenance-technician'].includes(roleSlug)
+    const isITRole = ['it-coordinator', 'student-technician'].includes(roleSlug)
+    const isOnMaintenanceTeam = teamSlugs.includes('maintenance')
+    const isOnITTeam = teamSlugs.includes('it-support')
+    const isOnAVTeam = teamSlugs.includes('av-production')
+
+    type DashboardMode = 'admin' | 'maintenance' | 'it' | 'av' | 'default'
+    let dashboardMode: DashboardMode = 'default'
+    if (isAdminRole) dashboardMode = 'admin'
+    else if (isMaintenanceRole || isOnMaintenanceTeam) dashboardMode = 'maintenance'
+    else if (isITRole || isOnITTeam) dashboardMode = 'it'
+    else if (isOnAVTeam) dashboardMode = 'av'
 
     // Check if currently impersonating (admin-token cookie present)
     const adminToken = req.cookies.get('admin-token')?.value
@@ -93,6 +110,7 @@ export async function GET(req: NextRequest) {
           schoolScope: user.schoolScope ?? null,
           role: user.userRole?.name ?? null,
           team: teamName,
+          dashboardMode,
         },
         org: {
           id: user.organization?.id ?? user.organizationId,

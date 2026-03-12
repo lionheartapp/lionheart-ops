@@ -25,6 +25,8 @@ export interface AuthUser {
   team: string | null
   schoolScope: string | null
   role: string | null
+  /** Controls which panel the dashboard renders: 'admin'|'maintenance'|'it'|'av'|'default' */
+  dashboardMode: string
 }
 
 export interface AuthOrg {
@@ -67,6 +69,7 @@ const DEFAULT_USER: AuthUser = {
   team: null,
   schoolScope: null,
   role: null,
+  dashboardMode: 'default',
 }
 
 const DEFAULT_ORG: AuthOrg = {
@@ -91,6 +94,7 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
       team: localStorage.getItem('user-team') || null,
       schoolScope: localStorage.getItem('user-school-scope') || null,
       role: localStorage.getItem('user-role') || null,
+      dashboardMode: 'default', // Will be overwritten by /api/auth/me response
     }
   })
   const [org, setOrg] = useState<AuthOrg>(() => {

@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import * as eventService from '@/lib/services/eventService'
 import { operationsEngine } from '@/lib/services/operations/engine'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
+import { parseAVRequirementsAsync } from '@/lib/services/ai/avEquipmentParser'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -20,8 +21,14 @@ export async function GET(req: NextRequest) {
       const { searchParams } = new URL(req.url)
       const { page, limit, skip } = parsePagination(searchParams)
       const status = searchParams.get('status') || undefined
+      const requiresAVParam = searchParams.get('requiresAV')
+      const requiresAV = requiresAVParam === 'true' ? true : requiresAVParam === 'false' ? false : undefined
+      const fromDateParam = searchParams.get('fromDate')
+      const toDateParam = searchParams.get('toDate')
+      const fromDate = fromDateParam ? new Date(fromDateParam) : undefined
+      const toDate = toDateParam ? new Date(toDateParam) : undefined
 
-      const filters = { limit, skip, status: status as any }
+      const filters = { limit, skip, status: status as any, requiresAV, fromDate, toDate }
 
       const [total, events] = await Promise.all([
         eventService.countEvents(filters, userContext.userId),
@@ -59,6 +66,11 @@ export async function POST(req: NextRequest) {
 
       // Trigger operations automation
       await operationsEngine.onEventCreated(event)
+
+      // Fire-and-forget AI parsing of AV requirements
+      if ((event as any).requiresAV && (event as any).avRequirements) {
+        void parseAVRequirementsAsync(event.id, (event as any).avRequirements)
+      }
 
       return NextResponse.json(ok(event), { status: 201 })
     })
