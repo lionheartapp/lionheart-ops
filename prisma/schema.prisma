@@ -139,6 +139,9 @@ model Organization {
   inventoryTransactions       InventoryTransaction[]
   // Notification preferences
   notificationPreferences     NotificationPreference[]
+  // Leo memory module relations
+  conversations               Conversation[]
+  conversationMessages        ConversationMessage[]
 
   @@index([onboardingStatus])
 }
@@ -232,6 +235,10 @@ model User {
   ticketAttachments         TicketAttachment[]           @relation("TicketAttachmentUploader")
   // Notification preferences
   notificationPreferences   NotificationPreference[]
+  // Leo memory module relations
+  conversations             Conversation[]
+  assistantProfile          UserAssistantProfile?
+  memoryFacts               UserMemoryFact[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -281,6 +288,7 @@ model Ticket {
   school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   assignedTo     User?          @relation("AssignedTicketUser", fields: [assignedToId], references: [id], onDelete: SetNull)
   createdBy      User?          @relation("CreatedTicketUser", fields: [createdById], references: [id], onDelete: SetNull)
+  embedding      Unsupported("vector(768)")?
   comments       TicketComment[]
   attachments    TicketAttachment[]
 
@@ -620,6 +628,7 @@ model InventoryItem {
   deletedAt          DateTime?
   organization       Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   owner              User?         @relation("InventoryItemOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  embedding          Unsupported("vector(768)")?
   transactions       InventoryTransaction[]
 
   @@unique([organizationId, name])
@@ -1219,8 +1228,9 @@ model CalendarEvent {
   area        Area?             @relation(fields: [areaId], references: [id], onDelete: SetNull)
   createdBy   User?             @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
   approvedBy  User?             @relation("CalendarEventApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  attendees   EventAttendee[]
-  approvals   EventApproval[]
+  embedding        Unsupported("vector(768)")?
+  attendees        EventAttendee[]
+  approvals        EventApproval[]
   resourceRequests EventResourceRequest[]
   syncMappings     EventSyncMapping[]
 
@@ -1282,6 +1292,7 @@ model EventAttendee {
   userId         String
   responseStatus RSVPStatus     @default(PENDING)
   respondedAt    DateTime?
+  responseNote   String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -3523,4 +3534,96 @@ model NotificationPreference {
   @@unique([userId, type])
   @@index([userId])
   @@index([organizationId])
+}
+
+// ─── Leo Memory Module ─────────────────────────────────────────────────────────
+
+model Conversation {
+  id             String    @id @default(cuid())
+  organizationId String
+  userId         String
+  title          String?
+  metadata       Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages     ConversationMessage[]
+  summaries    ConversationSummary[]
+  memoryFacts  UserMemoryFact[]
+
+  @@index([organizationId, userId, updatedAt])
+  @@index([organizationId, deletedAt])
+}
+
+model ConversationMessage {
+  id             String    @id @default(cuid())
+  organizationId String
+  conversationId String
+  role           String    // "user" | "assistant" | "tool_call" | "tool_result"
+  content        String
+  tokenCount     Int?
+  feedbackScore  Int?      // 1 = thumbs down, 5 = thumbs up
+  toolName       String?
+  toolSuccess    Boolean?
+  embedding      Unsupported("vector(768)")?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([organizationId])
+}
+
+model ConversationSummary {
+  id             String   @id @default(cuid())
+  conversationId String
+  summaryText    String
+  messageCount   Int
+  tokenCount     Int?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
+model UserAssistantProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  responseLength     String?  // "short" | "medium" | "detailed"
+  tonePreference     String?  // "casual" | "professional" | "mixed"
+  frequentTopics     String[] @default([])
+  commonActions      String[] @default([])
+  domainExpertise    String[] @default([])
+  communicationStyle Json?
+  conversationCount  Int      @default(0)
+  totalMessages      Int      @default(0)
+  lastUpdated        DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserMemoryFact {
+  id                   String    @id @default(cuid())
+  userId               String
+  factText             String
+  category             String?   // "preference" | "pattern" | "context" | "instruction"
+  importance           Float     @default(0.5)
+  sourceConversationId String?
+  embedding            Unsupported("vector(768)")?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceConversation Conversation? @relation(fields: [sourceConversationId], references: [id], onDelete: SetNull)
+
+  @@index([userId, category])
+  @@index([userId, importance])
 }

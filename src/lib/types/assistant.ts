@@ -22,6 +22,8 @@ export interface ConversationTurn {
   choices?: string[]     // tappable options below this message
   suggestions?: string[] // follow-up suggestion chips
   images?: ImageAttachment[] // user-attached images (base64, not persisted)
+  feedbackScore?: number   // 1 = thumbs down, 5 = thumbs up
+  messageId?: string       // persisted message ID for feedback targeting
 }
 
 // ─── API Request / Response ───────────────────────────────────────────────────
@@ -29,6 +31,7 @@ export interface ConversationTurn {
 export interface ChatRequest {
   message: string
   conversationHistory: ConversationTurn[]
+  conversationId?: string  // for continuing a persisted conversation
 }
 
 export interface ActionConfirmation {
@@ -113,5 +116,6 @@ export type StreamEvent =
   | { type: 'workflow_step_complete'; stepNumber: number; result: string }
   | { type: 'workflow_step_failed'; stepNumber: number; error: string }
   | { type: 'workflow_complete'; summary: string }
+  | { type: 'conversation_id'; conversationId: string }
   | { type: 'done'; conversationHistory: ConversationTurn[] }
   | { type: 'error'; message: string }

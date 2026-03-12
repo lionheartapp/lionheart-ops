@@ -86,6 +86,9 @@ const orgScopedModels = new Set([
 	// Security Incident module
 	'SecurityIncident',
 	'SecurityIncidentActivity',
+	// Leo memory module
+	'Conversation',
+	'ConversationMessage',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -120,6 +123,8 @@ const softDeleteModels = new Set([
 	'ITSummerBatch',
 	// E-Rate module
 	'ITERateTask',
+	// Leo memory module
+	'Conversation',
 ])
 
 /**
