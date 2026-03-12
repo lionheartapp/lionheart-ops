@@ -67,7 +67,7 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<EventData[]>([])
   const [eventsLoading, setEventsLoading] = useState(false)
 
-  // Event stepper / quick meeting state
+  // Event stepper state (mode: 'stepper' = Plan Event, 'quick' = Schedule Meeting)
   const [eventStepperOpen, setEventStepperOpen] = useState(false)
   const [eventStepperMode, setEventStepperMode] = useState<'stepper' | 'quick'>('stepper')
   const [eventStep, setEventStep] = useState(1)
@@ -465,34 +465,44 @@ export default function DashboardPage() {
               animate="visible"
               exit="exit"
             >
-              {/* Events Section */}
+              {/* Meetings Section */}
               <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-1">Events</p>
-                <button
-                  onClick={() => openEventStepper('stepper')}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                >
-                  <Calendar className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">Schedule Event</p>
-                    <p className="text-xs text-gray-600">Full workflow with approvals</p>
-                  </div>
-                </button>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-1">Meetings</p>
                 <button
                   onClick={() => openEventStepper('quick')}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Users className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Quick Meeting</p>
-                    <p className="text-xs text-gray-600">Fast, no approval needed</p>
+                    <p className="font-medium text-gray-900">Schedule Meeting</p>
+                    <p className="text-xs text-gray-600">Informal — added instantly, no approval</p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="px-3">
+                <div className="h-px bg-gray-200" />
+              </div>
+
+              {/* Events Section */}
+              <div className="p-3 space-y-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-1">School Events</p>
+                <button
+                  onClick={() => openEventStepper('stepper')}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                >
+                  <Calendar className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">Plan Event</p>
+                    <p className="text-xs text-gray-600">Formal — AV, facilities &amp; admin approval</p>
                   </div>
                 </button>
                 <div className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed">
                   <Sparkles className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-500">Smart Event <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
-                    <p className="text-xs text-gray-400">Create with AI</p>
+                    <p className="font-medium text-gray-500">AI Event Planner <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
+                    <p className="text-xs text-gray-400">Plan an event with AI assistance</p>
                   </div>
                 </div>
               </div>
@@ -967,7 +977,7 @@ export default function DashboardPage() {
           }))
         }
 
-        const drawerTitle = isQuick ? 'Quick Meeting' : `Schedule Event${eventStep < 4 ? ` — Step ${eventStep} of 3` : ''}`
+        const drawerTitle = isQuick ? 'Schedule Meeting' : `Plan Event${eventStep < 4 ? ` — Step ${eventStep} of 3` : ' — Review'}`
 
         const footer = (
           <div className="space-y-3">
@@ -998,7 +1008,7 @@ export default function DashboardPage() {
                   className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
                 >
                   {eventStepperSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isQuick ? 'Create Meeting' : 'Submit for Approval'}
+                  {isQuick ? 'Schedule Meeting' : 'Submit for Approval'}
                 </button>
               ) : (
                 <button
@@ -1060,7 +1070,7 @@ export default function DashboardPage() {
                       <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-2.5">
                         <Users className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm font-medium text-blue-900">Quick Meeting</p>
+                          <p className="text-sm font-medium text-blue-900">Schedule Meeting</p>
                           <p className="text-xs text-blue-600 mt-0.5">Goes straight to your calendar — no approval needed.</p>
                         </div>
                       </div>
