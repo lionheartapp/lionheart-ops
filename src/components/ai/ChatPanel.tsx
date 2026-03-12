@@ -7,8 +7,9 @@ import MessageList from './MessageList'
 import InputForm from './InputForm'
 import ActionConfirmation from './ActionConfirmation'
 import RichConfirmationCard from './RichConfirmationCard'
+import WorkflowPlanCard from './WorkflowPlanCard'
 import AiGlow from './AiGlow'
-import type { ConversationTurn, ActionConfirmation as ActionConfirmationType, StreamEvent, ImageAttachment } from '@/lib/types/assistant'
+import type { ConversationTurn, ActionConfirmation as ActionConfirmationType, StreamEvent, ImageAttachment, WorkflowPlan, WorkflowStep } from '@/lib/types/assistant'
 
 interface ChatPanelProps {
   onClose?: () => void
@@ -35,6 +36,10 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
   const [isAvailable, setIsAvailable] = useState(true)
   const [isListening, setIsListening] = useState(false)
   const [pendingAction, setPendingAction] = useState<ActionConfirmationType | null>(null)
+  const [pendingWorkflow, setPendingWorkflow] = useState<WorkflowPlan | null>(null)
+  const [workflowStepStatuses, setWorkflowStepStatuses] = useState<Record<number, WorkflowStep['status']>>({})
+  const [workflowStepErrors, setWorkflowStepErrors] = useState<Record<number, string>>({})
+  const [isExecutingWorkflow, setIsExecutingWorkflow] = useState(false)
   const [activeTools, setActiveTools] = useState<string[]>([])
   const abortRef = useRef<AbortController | null>(null)
 
@@ -240,6 +245,12 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
                   })
                   break
 
+                case 'workflow_plan':
+                  setPendingWorkflow(event.plan)
+                  setWorkflowStepStatuses({})
+                  setWorkflowStepErrors({})
+                  break
+
                 case 'done':
                   setConversation(event.conversationHistory)
                   break
@@ -345,12 +356,140 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
     ])
   }, [])
 
+  const handleApproveWorkflow = useCallback(async () => {
+    if (!pendingWorkflow || isExecutingWorkflow) return
+    setIsExecutingWorkflow(true)
+
+    try {
+      const res = await fetch('/api/ai/assistant/execute-workflow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ steps: pendingWorkflow.steps }),
+      })
+
+      if (!res.body) throw new Error('No response body')
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const jsonStr = line.slice(6).trim()
+          if (!jsonStr) continue
+
+          try {
+            const event: StreamEvent = JSON.parse(jsonStr)
+
+            switch (event.type) {
+              case 'workflow_step_start':
+                setWorkflowStepStatuses((prev) => ({
+                  ...prev,
+                  [event.stepNumber]: 'running',
+                }))
+                break
+
+              case 'workflow_step_complete':
+                setWorkflowStepStatuses((prev) => ({
+                  ...prev,
+                  [event.stepNumber]: 'done',
+                }))
+                break
+
+              case 'workflow_step_failed':
+                setWorkflowStepStatuses((prev) => ({
+                  ...prev,
+                  [event.stepNumber]: 'failed',
+                }))
+                setWorkflowStepErrors((prev) => ({
+                  ...prev,
+                  [event.stepNumber]: event.error,
+                }))
+                break
+
+              case 'workflow_complete':
+                setConversation((prev) => [
+                  ...prev,
+                  {
+                    role: 'assistant',
+                    content: event.summary,
+                    timestamp: new Date().toISOString(),
+                  },
+                ])
+                // Clear workflow after a brief delay so user sees final state
+                setTimeout(() => {
+                  setPendingWorkflow(null)
+                  setIsExecutingWorkflow(false)
+                  setWorkflowStepStatuses({})
+                  setWorkflowStepErrors({})
+                }, 1500)
+                break
+
+              case 'error':
+                setConversation((prev) => [
+                  ...prev,
+                  {
+                    role: 'assistant',
+                    content: event.message,
+                    timestamp: new Date().toISOString(),
+                  },
+                ])
+                setIsExecutingWorkflow(false)
+                break
+            }
+          } catch {
+            // Malformed SSE — skip
+          }
+        }
+      }
+    } catch {
+      setConversation((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Network error. The workflow may not have completed.',
+          timestamp: new Date().toISOString(),
+        },
+      ])
+      setIsExecutingWorkflow(false)
+    }
+  }, [pendingWorkflow, isExecutingWorkflow])
+
+  const handleCancelWorkflow = useCallback(() => {
+    setPendingWorkflow(null)
+    setWorkflowStepStatuses({})
+    setWorkflowStepErrors({})
+    setIsExecutingWorkflow(false)
+    setConversation((prev) => [
+      ...prev,
+      {
+        role: 'assistant',
+        content: 'No problem — I cancelled the workflow.',
+        timestamp: new Date().toISOString(),
+      },
+    ])
+  }, [])
+
   const handleClearChat = useCallback(() => {
     abortRef.current?.abort()
     setConversation([])
     setIsLoading(false)
     setIsStreaming(false)
     setActiveTools([])
+    setPendingAction(null)
+    setPendingWorkflow(null)
+    setWorkflowStepStatuses({})
+    setWorkflowStepErrors({})
+    setIsExecutingWorkflow(false)
   }, [])
 
   const handleChoiceSelect = useCallback((choice: string) => {
@@ -463,6 +602,18 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
             onCancel={handleCancelAction}
           />
         )
+      )}
+
+      {/* Workflow plan overlay */}
+      {pendingWorkflow && (
+        <WorkflowPlanCard
+          plan={pendingWorkflow}
+          stepStatuses={workflowStepStatuses}
+          stepErrors={workflowStepErrors}
+          isExecuting={isExecutingWorkflow}
+          onApprove={handleApproveWorkflow}
+          onCancel={handleCancelWorkflow}
+        />
       )}
     </div>
   )

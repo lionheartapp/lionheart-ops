@@ -32,9 +32,28 @@ export interface ChatRequest {
 }
 
 export interface ActionConfirmation {
-  type: 'create_maintenance_ticket' | 'create_event' | 'create_it_ticket' | 'update_maintenance_ticket_status' | 'assign_maintenance_ticket'
+  type: string // action name (e.g. 'create_maintenance_ticket', 'update_event', etc.)
   description: string
   payload: Record<string, unknown>
+  riskTier?: 'ORANGE' | 'RED'
+  riskWarning?: string
+}
+
+// ─── Workflow Types ───────────────────────────────────────────────────────────
+
+export interface WorkflowStep {
+  stepNumber: number
+  tool: string
+  description: string
+  input: Record<string, unknown>
+  status: 'pending' | 'running' | 'done' | 'failed'
+  result?: string
+}
+
+export interface WorkflowPlan {
+  title: string
+  steps: WorkflowStep[]
+  stepCount: number
 }
 
 export interface ChatResponseData {
@@ -83,5 +102,10 @@ export type StreamEvent =
   | { type: 'choices'; options: string[] }
   | { type: 'suggestions'; items: string[] }
   | { type: 'rich_confirmation'; card: ConfirmationCardData }
+  | { type: 'workflow_plan'; plan: WorkflowPlan }
+  | { type: 'workflow_step_start'; stepNumber: number; tool: string }
+  | { type: 'workflow_step_complete'; stepNumber: number; result: string }
+  | { type: 'workflow_step_failed'; stepNumber: number; error: string }
+  | { type: 'workflow_complete'; summary: string }
   | { type: 'done'; conversationHistory: ConversationTurn[] }
   | { type: 'error'; message: string }

@@ -19,12 +19,33 @@ export default function ActionConfirmation({
   onConfirm,
   onCancel,
 }: ActionConfirmationProps) {
+  const isRed = action.riskTier === 'RED'
+
   const actionLabels: Record<string, string> = {
     create_maintenance_ticket: 'Create Maintenance Ticket',
     create_event: 'Create Event',
     create_it_ticket: 'Create IT Ticket',
     update_maintenance_ticket_status: 'Update Ticket Status',
     assign_maintenance_ticket: 'Assign Ticket',
+    update_maintenance_ticket: 'Update Ticket',
+    delete_maintenance_ticket: 'Delete Ticket',
+    update_event: 'Update Event',
+    cancel_event: 'Cancel Event',
+    submit_event_for_approval: 'Submit for Approval',
+    approve_event: 'Approve Event',
+    reject_event: 'Reject Event',
+    update_it_ticket_status: 'Update IT Ticket Status',
+    assign_it_ticket: 'Assign IT Ticket',
+    invite_user: 'Invite User',
+    update_user_role: 'Change User Role',
+    deactivate_user: 'Deactivate User',
+    create_inventory_item: 'Create Inventory Item',
+    update_inventory_item: 'Update Inventory Item',
+    create_building: 'Create Building',
+    update_building: 'Update Building',
+    create_room: 'Create Room',
+    update_room: 'Update Room',
+    send_email: 'Send Email',
   }
 
   return (
@@ -43,10 +64,17 @@ export default function ActionConfirmation({
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Red tier warning banner */}
+          {isRed && action.riskWarning && (
+            <div className="mb-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
+              <p className="text-xs font-medium text-red-700">{action.riskWarning}</p>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-start gap-3 mb-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
-              <AlertTriangle className="h-4.5 w-4.5 text-amber-600" />
+            <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full ${isRed ? 'bg-red-100' : 'bg-amber-100'}`}>
+              <AlertTriangle className={`h-4.5 w-4.5 ${isRed ? 'text-red-600' : 'text-amber-600'}`} />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-semibold text-gray-900">
@@ -69,7 +97,7 @@ export default function ActionConfirmation({
             </button>
             <button
               onClick={() => onConfirm()}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-blue-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-white transition-colors ${isRed ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
             >
               <Check className="h-3.5 w-3.5" />
               Confirm

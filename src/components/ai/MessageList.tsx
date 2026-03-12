@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Loader2, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package } from 'lucide-react'
+import { Loader2, Search, BarChart3, Calendar, Building2, Wrench, Cloud, Package, Users, Mail, ListChecks, Monitor } from 'lucide-react'
 import type { ConversationTurn } from '@/lib/types/assistant'
 import ChoiceButtons from './ChoiceButtons'
 import SuggestionChips from './SuggestionChips'
@@ -33,8 +33,44 @@ const TOOL_LABELS: Record<string, { label: string; icon: typeof Search }> = {
   update_maintenance_ticket_status: { label: 'Preparing status update', icon: Wrench },
   assign_maintenance_ticket: { label: 'Looking up assignee', icon: Search },
   check_room_availability: { label: 'Checking room availability', icon: Calendar },
+  find_available_rooms: { label: 'Finding rooms', icon: Building2 },
   get_weather_forecast: { label: 'Checking weather', icon: Cloud },
   check_resource_availability: { label: 'Checking inventory', icon: Package },
+  // New tools
+  list_maintenance_tickets: { label: 'Listing maintenance tickets', icon: Wrench },
+  list_ticket_comments: { label: 'Loading ticket comments', icon: Wrench },
+  claim_maintenance_ticket: { label: 'Claiming ticket', icon: Wrench },
+  add_ticket_comment: { label: 'Adding comment', icon: Wrench },
+  update_maintenance_ticket: { label: 'Preparing ticket update', icon: Wrench },
+  delete_maintenance_ticket: { label: 'Preparing ticket deletion', icon: Wrench },
+  check_user_availability: { label: 'Checking availability', icon: Calendar },
+  update_event: { label: 'Preparing event update', icon: Calendar },
+  cancel_event: { label: 'Preparing cancellation', icon: Calendar },
+  submit_event_for_approval: { label: 'Submitting for approval', icon: Calendar },
+  approve_event: { label: 'Preparing approval', icon: Calendar },
+  reject_event: { label: 'Preparing rejection', icon: Calendar },
+  manage_event_attendees: { label: 'Managing attendees', icon: Users },
+  list_it_tickets: { label: 'Listing IT tickets', icon: Monitor },
+  get_it_ticket_details: { label: 'Looking up IT ticket', icon: Monitor },
+  update_it_ticket_status: { label: 'Preparing status update', icon: Monitor },
+  add_it_ticket_comment: { label: 'Adding IT comment', icon: Monitor },
+  assign_it_ticket: { label: 'Preparing IT assignment', icon: Monitor },
+  invite_user: { label: 'Preparing invitation', icon: Users },
+  update_user_role: { label: 'Preparing role change', icon: Users },
+  add_user_to_team: { label: 'Adding to team', icon: Users },
+  remove_user_from_team: { label: 'Removing from team', icon: Users },
+  deactivate_user: { label: 'Preparing deactivation', icon: Users },
+  create_inventory_item: { label: 'Preparing inventory item', icon: Package },
+  update_inventory_item: { label: 'Preparing item update', icon: Package },
+  checkout_inventory: { label: 'Checking out item', icon: Package },
+  checkin_inventory: { label: 'Checking in item', icon: Package },
+  create_building: { label: 'Preparing building', icon: Building2 },
+  update_building: { label: 'Preparing building update', icon: Building2 },
+  create_room: { label: 'Preparing room', icon: Building2 },
+  update_room: { label: 'Preparing room update', icon: Building2 },
+  send_notification: { label: 'Sending notification', icon: Mail },
+  send_email: { label: 'Preparing email', icon: Mail },
+  plan_workflow: { label: 'Planning workflow', icon: ListChecks },
 }
 
 /** Render basic markdown in chat messages: bold, italic, inline code, bullet lists, paragraphs */

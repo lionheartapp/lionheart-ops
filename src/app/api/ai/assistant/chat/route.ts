@@ -22,7 +22,7 @@ import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext } from '@/lib/org-context'
-import { getAvailableTools, executeTool } from '@/lib/services/ai/assistant-tools'
+import { getAvailableTools, executeTool, getToolRiskTier } from '@/lib/services/ai/assistant-tools'
 import { buildSystemPrompt } from '@/lib/services/ai/assistant.service'
 import type { ConversationTurn, ActionConfirmation, StreamEvent, ConfirmationCardData } from '@/lib/types/assistant'
 
@@ -50,7 +50,7 @@ const ChatRequestSchema = z.object({
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MAX_TOOL_ITERATIONS = 8
+const MAX_TOOL_ITERATIONS = 12
 const CONVERSATION_CONTEXT_LIMIT = 20
 const MODEL = 'gemini-2.0-flash'
 
@@ -240,16 +240,19 @@ export async function POST(req: NextRequest) {
                     executeTool(fc.name, fc.args, { userId: ctx.userId, organizationId: orgId })
                   )
 
-                  // Check for action confirmation
+                  // Check for action confirmation / workflow plan
                   try {
                     const parsed = JSON.parse(toolResult)
-                    if (parsed.confirmationRequired && parsed.draft) {
+                    if (parsed.workflowPlan) {
+                      write({ type: 'workflow_plan' as any, plan: { title: parsed.title, steps: parsed.steps, stepCount: parsed.stepCount } })
+                    } else if (parsed.confirmationRequired && parsed.draft) {
+                      const tier = getToolRiskTier(fc.name)
                       actionConfirmation = {
                         type: parsed.draft.action as ActionConfirmation['type'],
                         description: parsed.message,
                         payload: parsed.draft,
+                        ...(tier === 'RED' ? { riskTier: 'RED' as const, riskWarning: parsed.riskWarning } : {}),
                       }
-                      // Capture rich card data if present (event drafts include this)
                       if (parsed.richCard) {
                         richCard = parsed.richCard as ConfirmationCardData
                       }
