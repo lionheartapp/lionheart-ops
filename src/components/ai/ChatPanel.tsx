@@ -536,10 +536,10 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
       })
       if (!res.ok) return
       const json = await res.json()
-      if (!json.ok || !Array.isArray(json.data)) return
+      if (!json.ok || !Array.isArray(json.data?.messages)) return
 
       // Map persisted messages to ConversationTurn format
-      const turns: ConversationTurn[] = json.data
+      const turns: ConversationTurn[] = json.data.messages
         .filter((msg: { role: string }) => msg.role === 'user' || msg.role === 'assistant')
         .map((msg: { role: string; content: string; createdAt: string; id: string; feedbackScore?: number }) => ({
           role: msg.role as 'user' | 'assistant',

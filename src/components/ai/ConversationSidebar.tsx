@@ -62,8 +62,8 @@ export default function ConversationSidebar({
       const res = await fetch('/api/conversations?limit=30', { credentials: 'include' })
       if (!res.ok) return
       const json = await res.json()
-      if (json.ok && Array.isArray(json.data)) {
-        setConversations(json.data)
+      if (json.ok && Array.isArray(json.data?.conversations)) {
+        setConversations(json.data.conversations)
       }
     } catch {
       // silent
