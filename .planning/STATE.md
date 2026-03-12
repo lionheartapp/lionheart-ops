@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 17-leo-memory-and-learning-01-PLAN.md
-last_updated: "2026-03-12T03:45:21.923Z"
+stopped_at: Completed 17-leo-memory-and-learning-03-PLAN.md
+last_updated: "2026-03-12T03:50:14.519Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 55
-  completed_plans: 50
+  completed_plans: 51
   percent: 0
 ---
 
@@ -82,6 +82,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 16-billing-permission-observability-retrofit P01 | 3 | 2 tasks | 3 files |
 | Phase 16-billing-permission-observability-retrofit P02 | 7 | 2 tasks | 21 files |
 | Phase 17-leo-memory-and-learning P01 | 4 | 3 tasks | 5 files |
+| Phase 17-leo-memory-and-learning P03 | 3 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,8 @@ Recent decisions affecting current work:
 - [Phase 17-leo-memory-and-learning]: ConversationMessage is org-scoped but NOT soft-deleted — messages are immutable audit records
 - [Phase 17-leo-memory-and-learning]: pgvector HNSW indexes created lazily on first embedding operation
 - [Phase 17-leo-memory-and-learning]: Gemini text-embedding-004 at 768 dimensions (Matryoshka truncation from 3072)
+- [Phase 17-leo-memory-and-learning]: recall_context uses Promise.allSettled across scopes so one failed scope does not break results from others
+- [Phase 17-leo-memory-and-learning]: embedTicket/embedCalendarEvent/embedInventoryItem are sync functions with internal void async — callers never await or catch
 
 ### Pending Todos
 
@@ -183,6 +186,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T03:45:21.920Z
-Stopped at: Completed 17-leo-memory-and-learning-01-PLAN.md
+Last session: 2026-03-12T03:50:14.516Z
+Stopped at: Completed 17-leo-memory-and-learning-03-PLAN.md
 Resume file: None
