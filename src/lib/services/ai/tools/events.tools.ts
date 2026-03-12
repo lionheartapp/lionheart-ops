@@ -310,7 +310,7 @@ const tools: Record<string, ToolRegistryEntry> = {
     definition: {
       name: 'create_event',
       description:
-        'Draft a new calendar event. Before calling this tool, ask the user about: AV needs, facilities setup, expected attendance, and any special requirements. Only call after the user has confirmed all details or explicitly said to skip follow-up questions.',
+        'Draft a new calendar event. REQUIRED: You must specify either calendar_id or calendar_name. Call list_calendars first if you don\'t know the calendar. Before calling this tool, ask the user about: AV needs, facilities setup, expected attendance, and any special requirements. Only call after the user has confirmed all details or explicitly said to skip follow-up questions.',
       parameters: {
         type: 'object',
         properties: {
@@ -320,7 +320,8 @@ const tools: Record<string, ToolRegistryEntry> = {
           end_date: { type: 'string', description: 'End date and time in ISO format (e.g. "2026-03-15T15:00:00")' },
           location: { type: 'string', description: 'Room or location name (optional)' },
           attendees: { type: 'string', description: 'Comma-separated names of people to invite (from @mentions)' },
-          calendar_id: { type: 'string', description: 'ID of the calendar to create the event on (from list_calendars). If omitted, defaults to the user\'s personal calendar.' },
+          calendar_id: { type: 'string', description: 'ID of the calendar to create the event on (from list_calendars). Must provide this or calendar_name.' },
+          calendar_name: { type: 'string', description: 'Name of the calendar to create the event on (e.g. "School Calendar", "Staff Calendar"). Will be fuzzy-matched against active calendars. Must provide this or calendar_id.' },
           equipment_list: { type: 'string', description: 'JSON array of equipment/setup items, e.g. [{"item":"Vocal Microphones","quantity":4},{"item":"Projector","quantity":1}]. Use this when the user describes setup requirements.' },
         },
         required: ['title', 'start_date', 'end_date'],
@@ -329,7 +330,8 @@ const tools: Record<string, ToolRegistryEntry> = {
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     riskTier: 'ORANGE',
     execute: async (input) => {
-      const calendarId = input.calendar_id ? String(input.calendar_id) : undefined
+      let calendarId = input.calendar_id ? String(input.calendar_id) : undefined
+      const calendarNameInput = input.calendar_name ? String(input.calendar_name).trim() : undefined
       const equipmentListStr = input.equipment_list ? String(input.equipment_list) : undefined
 
       // Parse equipment list if provided
@@ -346,9 +348,57 @@ const tools: Record<string, ToolRegistryEntry> = {
         } catch { /* Non-critical — equipment stays in description */ }
       }
 
+      // ── Calendar Resolution ─────────────────────────────────────────────
+      // Priority: calendar_id > calendar_name (fuzzy match) > error with available list
+
+      // If no calendar_id but calendar_name provided, fuzzy-match against active calendars
+      if (!calendarId && calendarNameInput) {
+        try {
+          const calendars = await prisma.calendar.findMany({
+            where: { isActive: true },
+            select: { id: true, name: true, calendarType: true },
+          })
+          // Try exact match first (case-insensitive)
+          let match = calendars.find((c: any) =>
+            c.name.toLowerCase() === calendarNameInput.toLowerCase()
+          )
+          // Then try partial/fuzzy match
+          if (!match) {
+            const needle = calendarNameInput.toLowerCase()
+            match = calendars.find((c: any) =>
+              c.name.toLowerCase().includes(needle) || needle.includes(c.name.toLowerCase())
+            )
+          }
+          if (match) {
+            calendarId = match.id
+          }
+        } catch { /* Fall through to no-calendar error */ }
+      }
+
+      // If still no calendar specified at all, return an error listing available calendars
+      if (!calendarId && !calendarNameInput) {
+        try {
+          const calendars = await prisma.calendar.findMany({
+            where: { isActive: true },
+            select: { id: true, name: true, calendarType: true },
+            orderBy: { name: 'asc' },
+          })
+          const calendarList = calendars.map((c: any) => `- "${c.name}" (${c.calendarType}, id: ${c.id})`).join('\n')
+          return JSON.stringify({
+            error: true,
+            message: `No calendar specified. You must include a calendar_id or calendar_name when creating an event. Ask the user which calendar to use.\n\nAvailable calendars:\n${calendarList}`,
+          })
+        } catch {
+          return JSON.stringify({
+            error: true,
+            message: 'No calendar specified. You must include a calendar_id or calendar_name when creating an event. Call list_calendars first, then ask the user which calendar to use.',
+          })
+        }
+      }
+
       // Look up selected calendar name and type
       let calendarName: string | undefined
-      let isPersonalCalendar = !calendarId // No calendar selected = personal fallback
+      let isPersonalCalendar = !calendarId
       if (calendarId) {
         try {
           const cal = await prisma.calendar.findUnique({
@@ -372,6 +422,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         attendees: String(input.attendees || ''),
       }
       if (calendarId) draft.calendarId = calendarId
+      if (calendarName) draft.calendarName = calendarName
       if (equipmentList && equipmentList.length > 0) draft.equipmentList = equipmentList
 
       const startDate = draft.startsAt ? new Date(draft.startsAt as string) : null

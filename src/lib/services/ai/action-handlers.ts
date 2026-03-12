@@ -144,8 +144,9 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       // Fetch org timezone for date interpretation
       const orgTz = await getOrgTimezone(ctx.organizationId)
 
-      // Use the user-selected calendar if provided, otherwise fall back to personal calendar
+      // Use the user-selected calendar if provided, otherwise try calendarName, then fall back to personal
       let calendarId = payload.calendarId ? String(payload.calendarId) : undefined
+      const calendarNamePayload = payload.calendarName ? String(payload.calendarName).trim() : undefined
       let isPersonalCalendar = false
 
       if (calendarId) {
@@ -155,9 +156,32 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
           select: { id: true, calendarType: true },
         })
         if (!selectedCal) {
-          calendarId = undefined // Fall back to personal
+          calendarId = undefined // Fall through to name lookup or personal fallback
         } else {
           isPersonalCalendar = selectedCal.calendarType === 'PERSONAL'
+        }
+      }
+
+      // If calendarId failed or wasn't provided, try resolving by calendarName
+      if (!calendarId && calendarNamePayload) {
+        const calendars = await prisma.calendar.findMany({
+          where: { isActive: true },
+          select: { id: true, name: true, calendarType: true },
+        })
+        // Exact match (case-insensitive)
+        let match = calendars.find((c: any) =>
+          c.name.toLowerCase() === calendarNamePayload.toLowerCase()
+        )
+        // Partial/fuzzy match
+        if (!match) {
+          const needle = calendarNamePayload.toLowerCase()
+          match = calendars.find((c: any) =>
+            c.name.toLowerCase().includes(needle) || needle.includes(c.name.toLowerCase())
+          )
+        }
+        if (match) {
+          calendarId = match.id
+          isPersonalCalendar = match.calendarType === 'PERSONAL'
         }
       }
 
