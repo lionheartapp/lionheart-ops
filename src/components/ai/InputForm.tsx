@@ -5,6 +5,8 @@ import { Send, Mic, MicOff, Square, ImagePlus, X } from 'lucide-react'
 import { useSpeechRecognition } from '@/lib/hooks/useSpeechRecognition'
 import { ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 import type { ImageAttachment } from '@/lib/types/assistant'
+import MentionDropdown from './MentionDropdown'
+import { useGlobalSearch } from '@/lib/hooks/useGlobalSearch'
 
 const MAX_IMAGES = 3
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // 4MB
@@ -36,7 +38,20 @@ export default function InputForm({
   const [isFocused, setIsFocused] = useState(false)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [placeholderTransition, setPlaceholderTransition] = useState(true)
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const [mentionStartIndex, setMentionStartIndex] = useState(0)
+  const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const formWrapperRef = useRef<HTMLDivElement>(null)
+
+  // @mention user search — reuses the global search endpoint (TanStack Query caches it)
+  const mentionSearchQuery = mentionQuery && mentionQuery.length >= 1 ? mentionQuery : ''
+  const { data: mentionSearchData, isLoading: mentionLoading } = useGlobalSearch(mentionSearchQuery)
+  const mentionUsers = useMemo(
+    () => mentionSearchData?.users?.slice(0, 5) ?? [],
+    [mentionSearchData?.users]
+  )
+  const isMentionOpen = mentionQuery !== null && mentionQuery.length >= 1 && (mentionLoading || mentionUsers.length > 0)
 
   const PLACEHOLDER_EXAMPLES = useMemo(() => [
     'How many open tickets do we have?',
@@ -183,6 +198,7 @@ export default function InputForm({
       onSendMessage(msg || '(image)', images.length > 0 ? images : undefined)
       setInput('')
       setImages([])
+      setMentionQuery(null)
       setImageError(null)
       // Reset textarea height
       if (textareaRef.current) {
@@ -193,18 +209,105 @@ export default function InputForm({
   )
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // When mention dropdown is open, intercept navigation keys
+    if (isMentionOpen && mentionUsers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setMentionSelectedIndex((prev) => (prev + 1) % mentionUsers.length)
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setMentionSelectedIndex((prev) => (prev - 1 + mentionUsers.length) % mentionUsers.length)
+        return
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault()
+        const selectedUser = mentionUsers[mentionSelectedIndex]
+        if (selectedUser) handleMentionSelect(selectedUser)
+        return
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setMentionQuery(null)
+        return
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSubmit(e)
     }
   }
 
+  // Detect @mention trigger from text + cursor position
+  const detectMention = useCallback((text: string, cursorPos: number) => {
+    // Walk backwards from cursor to find an unescaped @
+    const before = text.slice(0, cursorPos)
+    const atIdx = before.lastIndexOf('@')
+
+    if (atIdx === -1) {
+      setMentionQuery(null)
+      return
+    }
+
+    // @ must be at start or preceded by a space/newline
+    if (atIdx > 0 && !/\s/.test(before[atIdx - 1])) {
+      setMentionQuery(null)
+      return
+    }
+
+    const query = before.slice(atIdx + 1)
+
+    // Dismiss if query contains a space after a complete name (user already selected)
+    // But allow spaces within the query for multi-word names like "Tom Sm"
+    if (query.length > 30) {
+      setMentionQuery(null)
+      return
+    }
+
+    setMentionStartIndex(atIdx)
+    setMentionQuery(query.length >= 1 ? query : query.length === 0 ? '' : null)
+    setMentionSelectedIndex(0)
+  }, [])
+
+  // Handle @mention user selection
+  const handleMentionSelect = useCallback((user: { firstName?: string | null; lastName?: string | null; email: string }) => {
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+    const before = input.slice(0, mentionStartIndex)
+    const after = input.slice(textareaRef.current?.selectionStart ?? input.length)
+    const newValue = `${before}@${name} ${after}`
+    setInput(newValue)
+    setMentionQuery(null)
+
+    // Restore focus and cursor position after insertion
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        const cursorPos = before.length + name.length + 2 // @name + space
+        textareaRef.current.focus()
+        textareaRef.current.setSelectionRange(cursorPos, cursorPos)
+        // Auto-resize
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`
+      }
+    })
+  }, [input, mentionStartIndex])
+
   // Auto-resize textarea
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value)
+    const value = e.target.value
+    setInput(value)
+    detectMention(value, e.target.selectionStart ?? value.length)
     const el = e.target
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`
+  }
+
+  // Re-detect mentions when cursor position changes (click, arrow keys after dropdown closes)
+  const handleSelect = () => {
+    if (textareaRef.current) {
+      detectMention(input, textareaRef.current.selectionStart)
+    }
   }
 
   const handleMicClick = () => {
@@ -341,13 +444,14 @@ export default function InputForm({
           <ImagePlus className="h-4 w-4" />
         </button>
 
-        <div className="relative flex-1">
+        <div className="relative flex-1" ref={formWrapperRef}>
           <textarea
             ref={textareaRef}
             value={input}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
+            onSelect={handleSelect}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : isFocused ? 'Ask anything...' : undefined}
@@ -384,6 +488,16 @@ export default function InputForm({
               </div>
             </div>
           )}
+
+          {/* @mention autocomplete dropdown */}
+          <MentionDropdown
+            users={mentionUsers}
+            isLoading={mentionLoading}
+            isOpen={isMentionOpen}
+            selectedIndex={mentionSelectedIndex}
+            onSelect={handleMentionSelect}
+            anchorBottom={(textareaRef.current?.offsetHeight ?? 44) + 4}
+          />
         </div>
 
         {/* Mic button */}
