@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -42,6 +42,7 @@ interface EventData {
 
 export default function DashboardPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, org, isReady, logout } = useAuth()
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
@@ -277,6 +278,16 @@ export default function DashboardPage() {
     setIsCreateDropdownOpen(false)
     setEventStepperOpen(true)
   }, [])
+
+  // Auto-open Plan Event stepper when navigated here with ?planEvent=1
+  // (e.g. from the calendar toolbar "Plan Event" option)
+  useEffect(() => {
+    if (!isReady) return
+    if (searchParams.get('planEvent') === '1') {
+      openEventStepper('stepper')
+      router.replace('/dashboard', { scroll: false })
+    }
+  }, [isReady, searchParams, openEventStepper, router])
 
   const handleStepperSubmit = useCallback(async () => {
     if (!stepperForm.title.trim() || !stepperForm.startsAt || !stepperForm.endsAt) {
