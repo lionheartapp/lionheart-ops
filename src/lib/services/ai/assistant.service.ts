@@ -5,17 +5,108 @@
  * the user's permissions, organization context, and current date/time.
  */
 
+import type { AssembledContext } from './contextAssemblyService'
+
+// ─── Context Block Builders ───────────────────────────────────────────────────
+
+/**
+ * Build the "What I Know About You" profile section.
+ * Returns empty string if profile is null or has no meaningful data.
+ */
+function buildProfileBlock(context: AssembledContext): string {
+  const profile = context.userProfile
+  if (!profile) return ''
+
+  const lines: string[] = []
+
+  if (profile.responseLength) {
+    lines.push(`- You tend to prefer **${profile.responseLength}** responses`)
+  }
+  if (profile.tonePreference) {
+    lines.push(`- Your communication style is **${profile.tonePreference}**`)
+  }
+  if (profile.frequentTopics && profile.frequentTopics.length > 0) {
+    lines.push(`- Topics you frequently ask about: ${profile.frequentTopics.join(', ')}`)
+  }
+  if (profile.domainExpertise && profile.domainExpertise.length > 0) {
+    lines.push(`- Your areas of expertise: ${profile.domainExpertise.join(', ')}`)
+  }
+  if (
+    profile.communicationStyle &&
+    typeof profile.communicationStyle === 'object' &&
+    'notes' in profile.communicationStyle &&
+    profile.communicationStyle.notes
+  ) {
+    lines.push(`- Communication notes: ${profile.communicationStyle.notes}`)
+  }
+
+  return lines.length > 0 ? lines.join('\n') : ''
+}
+
+/**
+ * Build the "Relevant History" facts + summaries section.
+ * Returns empty string if no facts or summaries exist.
+ */
+function buildHistoryBlock(context: AssembledContext): string {
+  const parts: string[] = []
+
+  if (context.relevantFacts && context.relevantFacts.length > 0) {
+    const factLines = context.relevantFacts
+      .map(f => `- ${f.factText}${f.category ? ` (${f.category})` : ''}`)
+      .join('\n')
+    parts.push(factLines)
+  }
+
+  if (context.recentSummaries && context.recentSummaries.length > 0) {
+    const summaryLines = context.recentSummaries
+      .map(s => `- ${s.conversationTitle ? `[${s.conversationTitle}] ` : ''}${s.summaryText}`)
+      .join('\n')
+    parts.push(`Recent conversation summaries:\n${summaryLines}`)
+  }
+
+  return parts.join('\n\n')
+}
+
+/**
+ * Build the personalized context sections to append to the system prompt.
+ * Caps total output to ~2000 chars (~500 tokens) to stay within budget.
+ */
+function buildPersonalizedContext(context: AssembledContext): string {
+  const profileBlock = buildProfileBlock(context)
+  const historyBlock = buildHistoryBlock(context)
+
+  const sections: string[] = []
+  if (profileBlock) {
+    sections.push(`## What I Know About You\n${profileBlock}`)
+  }
+  if (historyBlock) {
+    sections.push(`## Relevant History\n${historyBlock}`)
+  }
+
+  if (sections.length === 0) return ''
+
+  const combined = sections.join('\n\n')
+  // Cap at 2000 chars to avoid blowing up the system prompt
+  return combined.length > 2000 ? combined.slice(0, 2000) + '\n...' : combined
+}
+
+// ─── System Prompt Builder ────────────────────────────────────────────────────
+
 /**
  * Build the system prompt for the AI assistant.
  * Includes the "Leo" persona, available capabilities, safety rules,
  * and dynamic user/org context.
+ *
+ * When assembledContext is provided, personalized profile and memory fact
+ * sections are appended after the ## Context section.
  */
 export function buildSystemPrompt(
   availableToolNames: string[],
   orgName: string,
   userName: string,
   userRole: string = 'member',
-  currentDate: string = new Date().toISOString()
+  currentDate: string = new Date().toISOString(),
+  assembledContext?: AssembledContext
 ): string {
   // Build capabilities list from available tools
   const capabilities: string[] = []
@@ -140,7 +231,7 @@ export function buildSystemPrompt(
   }
   const weekReference = weekDates.join('\n')
 
-  return `You are **Leo**, the friendly AI assistant for Lionheart — a school facility and operations management platform.
+  const basePrompt = `You are **Leo**, the friendly AI assistant for Lionheart — a school facility and operations management platform.
 
 ## Personality
 - Warm, approachable, and genuinely helpful — like a knowledgeable colleague who's always happy to assist
@@ -272,4 +363,14 @@ IMPORTANT:
 - Do NOT use both [CHOICES:] and [SUGGEST:] in the same response.
 - Do NOT use these markers in confirmations or error messages.
 - Place markers at the very end of your response text, on their own line.`
+
+  // Append personalized context sections if available
+  if (assembledContext) {
+    const personalizedContext = buildPersonalizedContext(assembledContext)
+    if (personalizedContext) {
+      return basePrompt + '\n\n' + personalizedContext
+    }
+  }
+
+  return basePrompt
 }
