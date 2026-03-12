@@ -49,11 +49,16 @@ function log(level: 'info' | 'warn' | 'error', msg: string, data?: Record<string
  * Assemble the full personalized context for a Leo conversation turn.
  * Gracefully degrades: if Gemini API is unavailable, falls back to
  * importance-ranked facts (no semantic search).
+ *
+ * @param conversationId - Optional active conversation ID. When provided,
+ *   the current conversation's summary is prioritized in the L3 layer so
+ *   long conversations stay coherent even when the older portion is compressed.
  */
 export async function assembleContext(
   userId: string,
   _orgId: string,
-  currentMessage: string
+  currentMessage: string,
+  conversationId?: string
 ): Promise<AssembledContext> {
   const result: AssembledContext = {
     userProfile: null,
@@ -65,7 +70,7 @@ export async function assembleContext(
   const [profileResult, factsResult, summariesResult] = await Promise.allSettled([
     loadUserProfile(userId),
     loadRelevantFacts(userId, currentMessage),
-    loadRecentSummaries(userId),
+    loadRecentSummaries(userId, conversationId),
   ])
 
   if (profileResult.status === 'fulfilled') {
@@ -189,28 +194,63 @@ async function loadRelevantFacts(
 // ─── Layer: Recent Summaries ──────────────────────────────────────────────────
 
 async function loadRecentSummaries(
-  userId: string
+  userId: string,
+  activeConversationId?: string
 ): Promise<AssembledContext['recentSummaries']> {
-  // Get the 3 most recent conversation summaries for this user
-  const summaries = await rawPrisma.conversationSummary.findMany({
-    where: {
-      conversation: {
-        userId,
-        deletedAt: null,
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 3,
-    select: {
-      summaryText: true,
-      conversation: {
-        select: { title: true },
-      },
-    },
-  })
+  // If we have an active conversation, prioritize its summary first (most recent),
+  // then fill remaining slots from other recent conversations (up to 2 more).
+  // This ensures long active conversations stay coherent via their compressed summary.
 
-  return summaries.map(s => ({
-    summaryText: s.summaryText,
-    conversationTitle: s.conversation.title,
-  }))
+  const results: AssembledContext['recentSummaries'] = []
+
+  if (activeConversationId) {
+    // Fetch the current conversation's most recent summary
+    const activeSummary = await rawPrisma.conversationSummary.findFirst({
+      where: {
+        conversationId: activeConversationId,
+        conversation: { userId, deletedAt: null },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        summaryText: true,
+        conversation: { select: { title: true } },
+      },
+    })
+
+    if (activeSummary) {
+      results.push({
+        summaryText: activeSummary.summaryText,
+        conversationTitle: activeSummary.conversation.title,
+      })
+    }
+  }
+
+  // Fill remaining slots with other recent summaries (exclude the active conversation)
+  const remainingSlots = 3 - results.length
+  if (remainingSlots > 0) {
+    const otherSummaries = await rawPrisma.conversationSummary.findMany({
+      where: {
+        conversation: {
+          userId,
+          deletedAt: null,
+          ...(activeConversationId ? { id: { not: activeConversationId } } : {}),
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: remainingSlots,
+      select: {
+        summaryText: true,
+        conversation: { select: { title: true } },
+      },
+    })
+
+    for (const s of otherSummaries) {
+      results.push({
+        summaryText: s.summaryText,
+        conversationTitle: s.conversation.title,
+      })
+    }
+  }
+
+  return results
 }

@@ -27,6 +27,7 @@ import { getAvailableTools, executeTool, getToolRiskTier } from '@/lib/services/
 import { buildSystemPrompt } from '@/lib/services/ai/assistant.service'
 import { assembleContext } from '@/lib/services/ai/contextAssemblyService'
 import { extractMemoryFromConversation } from '@/lib/services/ai/memoryExtractionService'
+import { shouldSummarize, summarizeConversation } from '@/lib/services/ai/conversationSummarizationService'
 import {
   createConversation,
   addMessage,
@@ -189,7 +190,7 @@ export async function POST(req: NextRequest) {
     // Failure-tolerant: errors are caught inside assembleContext and return empty context
     let assembledCtx
     try {
-      assembledCtx = await assembleContext(ctx.userId, orgId, body.message)
+      assembledCtx = await assembleContext(ctx.userId, orgId, body.message, conversationId)
     } catch {
       // Non-critical — proceed without personalized context
     }
@@ -565,6 +566,16 @@ export async function POST(req: NextRequest) {
               'memory extraction'
             )
           }
+
+          // Trigger auto-summarization check for long conversations (fire-and-forget)
+          // Runs after memory extraction trigger, never blocks the response
+          void (async () => {
+            try {
+              if (await shouldSummarize(activeConversationId)) {
+                await summarizeConversation(activeConversationId)
+              }
+            } catch { /* logged internally */ }
+          })()
         } catch (error) {
           console.error('[ai-assistant] Streaming error:', error)
           write({
