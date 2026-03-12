@@ -146,99 +146,92 @@ const tools: Record<string, ToolRegistryEntry> = {
     },
     requiredPermission: PERMISSIONS.EVENTS_READ,
     riskTier: 'GREEN',
-    execute: async (input) => {
-      const limit = Math.min((input.limit as number) || 10, 25)
+    execute: async (input, ctx) => {
+      const limit = Math.min((input.limit as number) || 25, 50)
       const searchQuery = input.search ? String(input.search).trim() : ''
       const specificDate = input.date ? String(input.date).trim() : ''
+
+      // Use org timezone for correct day boundaries
+      const orgTz = await getOrgTimezone(ctx.organizationId)
+      const tzOffset = getTimezoneOffset(orgTz)
 
       let rangeStart: Date
       let rangeEnd: Date
 
       if (specificDate) {
-        // Look at the specific date (full day)
-        rangeStart = new Date(specificDate + 'T00:00:00')
-        rangeEnd = new Date(specificDate + 'T23:59:59')
+        rangeStart = new Date(specificDate + 'T00:00:00' + tzOffset)
+        rangeEnd = new Date(specificDate + 'T23:59:59' + tzOffset)
       } else {
         const daysAhead = Math.min((input.days_ahead as number) || 14, 90)
         rangeStart = new Date()
         rangeEnd = new Date(rangeStart.getTime() + daysAhead * 24 * 60 * 60 * 1000)
       }
 
-      // Query CalendarEvent (current model)
-      const calWhere: Record<string, unknown> = {
-        calendarStatus: { not: 'CANCELLED' as any },
-        startTime: { lte: rangeEnd },
-        endTime: { gte: rangeStart },
+      // Get all active calendars for the org (same as calendar UI)
+      const calendars = await prisma.calendar.findMany({
+        where: { isActive: true },
+        select: { id: true },
+      })
+      const calendarIds = calendars.map((c: any) => c.id)
+
+      // Use getEventsInRange from calendarService — handles recurring event expansion
+      const { getEventsInRange } = await import('@/lib/services/calendarService')
+      let allEvents: any[] = []
+      if (calendarIds.length > 0) {
+        allEvents = await getEventsInRange(calendarIds, rangeStart, rangeEnd, {
+          take: limit * 2, // Fetch extra to account for post-filtering
+        })
       }
+
+      // Filter out cancelled events
+      allEvents = allEvents.filter((e: any) => e.calendarStatus !== 'CANCELLED')
+
+      // Apply search filter if provided (search title + description)
       if (searchQuery) {
-        calWhere.title = { contains: searchQuery, mode: 'insensitive' }
+        const needle = searchQuery.toLowerCase()
+        allEvents = allEvents.filter((e: any) =>
+          (e.title || '').toLowerCase().includes(needle) ||
+          (e.description || '').toLowerCase().includes(needle)
+        )
       }
 
-      const calEvents = await prisma.calendarEvent.findMany({
-        where: calWhere as any,
-        select: {
-          id: true, title: true, description: true, startTime: true, endTime: true,
-          locationText: true, calendarStatus: true, metadata: true,
-          calendar: { select: { name: true } },
-          createdBy: { select: { name: true } },
-          attendees: { select: { user: { select: { name: true } }, responseStatus: true } },
-          resourceRequests: { select: { resourceType: true, requestStatus: true, details: true } },
-        },
-        orderBy: { startTime: 'asc' },
-        take: limit,
-      }).catch(() => [] as any[])
-
-      // Also check legacy Event table
-      const legacyWhere: Record<string, unknown> = {
-        status: { not: 'CANCELLED' },
-        startsAt: { lte: rangeEnd },
-        endsAt: { gte: rangeStart },
-      }
-      if (searchQuery) {
-        legacyWhere.title = { contains: searchQuery, mode: 'insensitive' }
+      // Fetch resource requests for matched events (not included by getEventsInRange)
+      const eventIds = allEvents.map((e: any) => e.id).filter(Boolean)
+      const resourceRequests = eventIds.length > 0
+        ? await prisma.eventResourceRequest.findMany({
+            where: { eventId: { in: eventIds } },
+            select: { eventId: true, resourceType: true, requestStatus: true, details: true },
+          }).catch(() => [] as any[])
+        : []
+      const requestsByEvent = new Map<string, any[]>()
+      for (const r of resourceRequests) {
+        const list = requestsByEvent.get(r.eventId) || []
+        list.push({ type: r.resourceType, status: r.requestStatus, details: r.details })
+        requestsByEvent.set(r.eventId, list)
       }
 
-      const legacyEvents = await prisma.event.findMany({
-        where: legacyWhere as any,
-        select: { id: true, title: true, startsAt: true, endsAt: true, room: true, status: true },
-        orderBy: { startsAt: 'asc' },
-        take: limit,
-      }).catch(() => [] as any[])
+      // Map to output format
+      const merged = allEvents.slice(0, limit).map((e: any) => {
+        const meta = e.metadata as Record<string, unknown> | null
+        const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
+        const attendeeNames = (e.attendees || []).map((a: any) => a.user?.name || a.user?.firstName).filter(Boolean)
+        const evtResources = requestsByEvent.get(e.id) || []
+        const hasAV = evtResources.some((r: any) => r.type === 'AV_EQUIPMENT') ||
+          (equipmentList || []).some((eq: any) => /mic|speaker|projector|screen|sound|av|audio|video/i.test(eq.item))
 
-      // Merge and sort
-      const merged = [
-        ...calEvents.map((e: any) => {
-          // Extract equipment list from metadata if present
-          const meta = e.metadata as Record<string, unknown> | null
-          const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
-          // Summarize attendees
-          const attendeeNames = (e.attendees || []).map((a: any) => a.user?.name).filter(Boolean)
-          // Summarize resource requests
-          const resourceRequests = (e.resourceRequests || []).map((r: any) => ({
-            type: r.resourceType,
-            status: r.requestStatus,
-            details: r.details,
-          }))
-          const hasAV = resourceRequests.some((r: any) => r.type === 'AV_EQUIPMENT') ||
-            (equipmentList || []).some((eq: any) => /mic|speaker|projector|screen|sound|av|audio|video/i.test(eq.item))
-
-          return {
-            id: e.id, title: e.title, description: e.description || undefined,
-            start: e.startTime, end: e.endTime,
-            location: e.locationText, status: e.calendarStatus, calendar: e.calendar?.name,
-            createdBy: e.createdBy?.name || undefined,
-            attendees: attendeeNames.length > 0 ? attendeeNames : undefined,
-            equipmentList: equipmentList && equipmentList.length > 0 ? equipmentList : undefined,
-            resourceRequests: resourceRequests.length > 0 ? resourceRequests : undefined,
-            hasAV,
-          }
-        }),
-        ...legacyEvents.map((e: any) => ({
-          id: e.id, title: e.title, start: e.startsAt, end: e.endsAt,
-          location: e.room, status: e.status, calendar: undefined,
-        })),
-      ].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-       .slice(0, limit)
+        return {
+          id: e.id, title: e.title, description: e.description || undefined,
+          start: e.startTime, end: e.endTime,
+          location: e.locationText, status: e.calendarStatus,
+          calendar: e.calendar?.name,
+          createdBy: e.createdBy?.name || e.createdBy?.firstName || undefined,
+          attendees: attendeeNames.length > 0 ? attendeeNames : undefined,
+          equipmentList: equipmentList && equipmentList.length > 0 ? equipmentList : undefined,
+          resourceRequests: evtResources.length > 0 ? evtResources : undefined,
+          hasAV,
+          isRecurring: !!e.rrule,
+        }
+      })
 
       const periodLabel = specificDate
         ? specificDate
