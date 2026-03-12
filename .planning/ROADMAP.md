@@ -156,7 +156,7 @@ Plans:
 - [x] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit) (completed 2026-03-11)
 - [x] **Phase 16: Billing Permission & Observability Retrofit** - Add SETTINGS_BILLING to admin role, retrofit Pino/Sentry instrumentation to 21 routes from Phases 10-15 (gap closure from v2.0 audit) (completed 2026-03-11)
 - [x] **Phase 17: Leo Memory & Learning** - Conversation persistence, pgvector embeddings, semantic recall tool, user profiles, feedback loop, and conversation summarization (completed 2026-03-12)
-- [ ] **Phase 18: Integration Gap Closure** - Preference-aware bulk notifications, AI route observability retrofit, and resend-verification rate limiting (gap closure from v2.0 audit)
+- [x] **Phase 18: Integration Gap Closure** - Preference-aware bulk notifications, AI route observability retrofit, and resend-verification rate limiting (gap closure from v2.0 audit) (completed 2026-03-12)
 
 ## Phase Details
 
@@ -373,4 +373,4 @@ Plans:
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
 | 16. Billing Permission & Observability Retrofit | 2/2 | Complete    | 2026-03-11 | - |
 | 17. Leo Memory & Learning | 7/7 | Complete    | 2026-03-12 | - |
-| 18. Integration Gap Closure | 0/1 | In Progress | - | - |
+| 18. Integration Gap Closure | 1/1 | Complete   | 2026-03-12 | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 17-leo-memory-and-learning Phase 17 Plan 07 — API response parsing bug fix for Leo conversation history
-last_updated: "2026-03-12T04:32:41.408Z"
+stopped_at: Completed 18-integration-gap-closure Phase 18 Plan 01 — all 3 integration gaps closed (INT-01, INT-02, INT-03)
+last_updated: "2026-03-12T05:06:21.244Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
-  total_phases: 17
-  completed_phases: 17
-  total_plans: 56
-  completed_plans: 56
+  total_phases: 18
+  completed_phases: 18
+  total_plans: 57
+  completed_plans: 57
   percent: 0
 ---
 
@@ -89,6 +89,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 17-leo-memory-and-learning P06 | 2 | 1 tasks | 3 files |
 | Phase 17-leo-memory-and-learning P06 | 3 | 2 tasks | 3 files |
 | Phase 17-leo-memory-and-learning P07 | 5 | 1 tasks | 2 files |
+| Phase 18-integration-gap-closure P01 | 244 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -189,6 +190,9 @@ Recent decisions affecting current work:
 - [Phase 17-leo-memory-and-learning]: summarizeConversation summarizes the oldest 75% of dialog messages, leaving recent 25% verbatim — preserves recency while compressing history
 - [Phase 17-leo-memory-and-learning]: shouldSummarize uses 10-message buffer to avoid re-summarizing after every new message; active conversation summary prioritized first in loadRecentSummaries
 - [Phase 17-leo-memory-and-learning]: No architectural changes needed — pure data-shape bug fix correcting json.data.conversations and json.data.messages parsing in ConversationSidebar and ChatPanel
+- [Phase 18-integration-gap-closure]: rawPrisma used for notificationPreference batch lookups in createBulkNotifications — model not in org-scoped whitelist; disabledSet uses userId:type composite key for O(1) filtering
+- [Phase 18-integration-gap-closure]: module-level routeLog in assistant/chat route — multiple catch sites (safeAsync helper, inner stream catch, outer catch) require shared logger instance; Sentry.setTag skipped in generate-description and parse-event (no orgId available in those routes)
+- [Phase 18-integration-gap-closure]: resend-verification added to publicApiRateLimiter branch in middleware — 30 req/min matching existing auth endpoint protection (INT-03 closed)
 
 ### Pending Todos
 
@@ -203,6 +207,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T04:27:40.068Z
-Stopped at: Completed 17-leo-memory-and-learning Phase 17 Plan 07 — API response parsing bug fix for Leo conversation history
+Last session: 2026-03-12T05:06:21.241Z
+Stopped at: Completed 18-integration-gap-closure Phase 18 Plan 01 — all 3 integration gaps closed (INT-01, INT-02, INT-03)
 Resume file: None
