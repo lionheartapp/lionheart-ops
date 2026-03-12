@@ -4,6 +4,8 @@ import type { Event } from '@prisma/client'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { stripAllHtml } from '@/lib/sanitize'
+import { formatInTimezone, getOrgTimezone } from '@/lib/utils/timezone'
+import { getOrgContextId } from '@/lib/org-context'
 
 // ============= Validation Schemas =============
 
@@ -58,8 +60,11 @@ async function checkRoomConflict(
   })
 
   if (conflict) {
+    let tz = 'America/Chicago'
+    try { tz = await getOrgTimezone(getOrgContextId()) } catch { /* keep default */ }
+    const timeFmt: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }
     const err = new Error(
-      `Room "${room.trim()}" is already booked from ${conflict.startsAt.toISOString()} to ${conflict.endsAt.toISOString()} ("${conflict.title}")`
+      `Room "${room.trim()}" is already booked from ${formatInTimezone(conflict.startsAt, tz, timeFmt)} to ${formatInTimezone(conflict.endsAt, tz, timeFmt)} ("${conflict.title}")`
     ) as Error & { code: string }
     err.code = 'ROOM_CONFLICT'
     throw err

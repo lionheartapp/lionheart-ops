@@ -11,6 +11,7 @@
 import { rawPrisma } from '@/lib/db'
 import { jsPDF } from 'jspdf'
 import { GoogleGenAI } from '@google/genai'
+import { formatInTimezone, getOrgTimezone } from '@/lib/utils/timezone'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -713,7 +714,8 @@ export async function exportITReportPDF(
   reportType: ITReportType,
   metrics: Record<string, unknown>,
   narrative: string,
-  orgName: string
+  orgName: string,
+  orgTimezone: string = 'America/Chicago'
 ): Promise<ArrayBuffer> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
@@ -736,7 +738,7 @@ export async function exportITReportPDF(
   }
 
   const reportTitle = reportTitles[reportType]
-  const generatedStr = `Generated: ${new Date().toLocaleString('en-US', {
+  const generatedStr = `Generated: ${formatInTimezone(new Date(), orgTimezone, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',

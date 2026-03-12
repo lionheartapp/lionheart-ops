@@ -6,6 +6,7 @@
  */
 
 import type { AssembledContext } from './contextAssemblyService'
+import { getTimezoneOffset, getOrgToday } from '@/lib/utils/timezone'
 
 // ─── Context Block Builders ───────────────────────────────────────────────────
 
@@ -210,9 +211,14 @@ export function buildSystemPrompt(
       ? capabilities.join('\n')
       : '- General conversation and guidance about the Lionheart platform'
 
-  const now = new Date(currentDate)
+  // Use org timezone for all date calculations (prevents off-by-one when UTC has crossed midnight but local hasn't)
+  const utcNow = new Date(currentDate)
+  const orgToday = getOrgToday(orgTimezone, utcNow)
+  // Pinned to noon on the org's local date to avoid TZ drift during day math
+  const now = new Date(`${orgToday.dateStr}T12:00:00`)
 
-  const dateDisplay = now.toLocaleDateString('en-US', {
+  const dateDisplay = utcNow.toLocaleDateString('en-US', {
+    timeZone: orgTimezone,
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -232,26 +238,7 @@ export function buildSystemPrompt(
   }
   const weekReference = weekDates.join('\n')
 
-  // Compute timezone offset string for instructing Leo to use in dates
-  // e.g., "America/Chicago" → "-05:00" or "-06:00" depending on DST
-  let tzOffsetStr = '-06:00' // fallback
-  try {
-    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: orgTimezone, timeZoneName: 'shortOffset' })
-    const parts = formatter.formatToParts(now)
-    const tzPart = parts.find(p => p.type === 'timeZoneName')
-    if (tzPart?.value) {
-      // Convert "GMT-5" or "GMT-6" to "-05:00" or "-06:00"
-      const match = tzPart.value.match(/GMT([+-])(\d+)(?::(\d+))?/)
-      if (match) {
-        const sign = match[1]
-        const hours = match[2].padStart(2, '0')
-        const minutes = (match[3] || '0').padStart(2, '0')
-        tzOffsetStr = `${sign}${hours}:${minutes}`
-      }
-    }
-  } catch {
-    // Keep fallback
-  }
+  const tzOffsetStr = getTimezoneOffset(orgTimezone, utcNow)
 
   const basePrompt = `You are **Leo**, the friendly AI assistant for Lionheart — a school facility and operations management platform.
 

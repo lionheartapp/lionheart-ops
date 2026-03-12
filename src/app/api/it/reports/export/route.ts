@@ -5,6 +5,7 @@ import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { rawPrisma } from '@/lib/db'
+import { getOrgTimezone, toOrgDateString } from '@/lib/utils/timezone'
 import {
   getAnnualTechReport,
   getRefreshForecast,
@@ -46,9 +47,10 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const org = await rawPrisma.organization.findUnique({
         where: { id: orgId },
-        select: { name: true },
+        select: { name: true, timezone: true },
       })
       const orgName = org?.name ?? 'Organization'
+      const orgTz = org?.timezone || 'America/Chicago'
 
       let metrics: Record<string, unknown>
 
@@ -76,13 +78,13 @@ export async function POST(req: NextRequest) {
       }
 
       const narrative = await generateITNarrative(metrics, orgName, reportType)
-      const pdfBuffer = await exportITReportPDF(reportType, metrics, narrative, orgName)
+      const pdfBuffer = await exportITReportPDF(reportType, metrics, narrative, orgName, orgTz)
 
       return new NextResponse(pdfBuffer, {
         status: 200,
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${reportType}-report-${new Date().toISOString().slice(0, 10)}.pdf"`,
+          'Content-Disposition': `attachment; filename="${reportType}-report-${toOrgDateString(new Date(), orgTz)}.pdf"`,
         },
       })
     })

@@ -11,6 +11,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createEvent as createCalendarEvent } from '@/lib/services/calendarService'
 import { clearPermissionCache } from '@/lib/auth/permissions'
+import { getTimezoneOffset, getOrgTimezone } from '@/lib/utils/timezone'
 
 interface ActionContext {
   userId: string
@@ -20,36 +21,6 @@ interface ActionContext {
 interface ActionHandler {
   requiredPermission: string
   execute: (payload: Record<string, unknown>, ctx: ActionContext) => Promise<{ message: string }>
-}
-
-/** Compute the UTC offset string (e.g., "-05:00") for a given IANA timezone at a given instant. */
-function getTimezoneOffset(timezone: string, date: Date = new Date()): string {
-  try {
-    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
-    const parts = formatter.formatToParts(date)
-    const tzPart = parts.find(p => p.type === 'timeZoneName')
-    if (tzPart?.value) {
-      const match = tzPart.value.match(/GMT([+-])(\d+)(?::(\d+))?/)
-      if (match) {
-        return `${match[1]}${match[2].padStart(2, '0')}:${(match[3] || '0').padStart(2, '0')}`
-      }
-    }
-  } catch { /* fall through */ }
-  return '-06:00' // safe fallback (CST)
-}
-
-/** Fetch the org's IANA timezone from the database. */
-async function getOrgTimezone(organizationId: string): Promise<string> {
-  try {
-    const { rawPrisma } = await import('@/lib/db')
-    const org = await rawPrisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { timezone: true },
-    })
-    return org?.timezone || 'America/Chicago'
-  } catch {
-    return 'America/Chicago'
-  }
 }
 
 /** Ensure a date string is full ISO 8601.

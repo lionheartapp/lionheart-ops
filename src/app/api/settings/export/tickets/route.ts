@@ -11,6 +11,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
+import { toOrgDateString, getOrgTimezone, formatInTimezone } from '@/lib/utils/timezone'
 
 function toCsv(headers: string[], rows: string[][]): string {
   const escape = (val: string) => `"${val.replace(/"/g, '""')}"`
@@ -49,6 +50,8 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: 'desc' },
       })
 
+      const orgTz = await getOrgTimezone(orgId)
+      const dtFmt: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }
       const headers = ['ID', 'Title', 'Status', 'Category', 'Priority', 'Assigned To', 'Created At', 'Updated At']
       const rows = tickets.map((t) => {
         const assignee = t.assignedTo
@@ -61,15 +64,16 @@ export async function GET(req: NextRequest) {
           t.category,
           t.priority,
           assignee,
-          new Date(t.createdAt).toISOString(),
-          new Date(t.updatedAt).toISOString(),
+          formatInTimezone(new Date(t.createdAt), orgTz, dtFmt),
+          formatInTimezone(new Date(t.updatedAt), orgTz, dtFmt),
         ]
       })
 
       return toCsv(headers, rows)
     })
 
-    const date = new Date().toISOString().slice(0, 10)
+    const orgTz = await getOrgTimezone(orgId)
+    const date = toOrgDateString(new Date(), orgTz)
 
     return new NextResponse(csv, {
       status: 200,

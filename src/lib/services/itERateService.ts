@@ -8,6 +8,7 @@
 import { rawPrisma } from '@/lib/db'
 import { jsPDF } from 'jspdf'
 import { createNotification, createBulkNotifications } from '@/lib/services/notificationService'
+import { getOrgToday, formatInTimezone } from '@/lib/utils/timezone'
 
 // ─── Static Task Definitions ──────────────────────────────────────────────────
 
@@ -59,10 +60,9 @@ function computeDueDate(schoolYear: string, month: number, day: number): Date {
  * If month >= 7 (July+), school year is currentYear-nextYear.
  * If month < 7, school year is prevYear-currentYear.
  */
-function getCurrentSchoolYear(): string {
-  const now = new Date()
-  const month = now.getMonth() + 1 // 1-indexed
-  const year = now.getFullYear()
+function getCurrentSchoolYear(timezone: string = 'America/Chicago'): string {
+  const today = getOrgToday(timezone)
+  const { month, year } = today
   if (month >= 7) {
     return `${year}-${year + 1}`
   }
@@ -419,7 +419,7 @@ export async function generateERateDocPackage(
 
   y += 12
   doc.setFontSize(10)
-  doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, y, { align: 'center' })
+  doc.text(`Generated: ${formatInTimezone(new Date(), 'America/Chicago', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, y, { align: 'center' })
 
   // --- Task Status Table ---
   doc.addPage()

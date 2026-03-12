@@ -11,6 +11,7 @@ import { prisma } from '@/lib/db'
 import type { RichConfirmationCardData } from '@/lib/types/assistant'
 import { PERMISSIONS } from '@/lib/permissions'
 import { checkRoomConflict } from '@/lib/services/eventService'
+import { getTimezoneOffset, getOrgTimezone, formatInTimezone, getOrgToday } from '@/lib/utils/timezone'
 
 const tools: Record<string, ToolRegistryEntry> = {
   // ── GREEN: List Calendars ──────────────────────────────────────────────
@@ -162,7 +163,7 @@ const tools: Record<string, ToolRegistryEntry> = {
     },
     requiredPermission: null,
     riskTier: 'GREEN',
-    execute: async (input) => {
+    execute: async (input, ctx) => {
       const roomName = String(input.room_name || '')
       const startStr = String(input.start_datetime || '')
       const endStr = String(input.end_datetime || '')
@@ -170,6 +171,8 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       const startDt = new Date(startStr)
       const endDt = new Date(endStr)
+      const orgTz = await getOrgTimezone(ctx.organizationId)
+      const timeFmt: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }
 
       // Check CalendarEvent table (current model) first
       try {
@@ -183,7 +186,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           select: { id: true, title: true, startTime: true, endTime: true },
         })
         if (calConflict) {
-          const conflictMsg = `Room "${roomName}" is already booked from ${calConflict.startTime.toISOString()} to ${calConflict.endTime.toISOString()} ("${calConflict.title}")`
+          const conflictMsg = `Room "${roomName}" is already booked from ${formatInTimezone(calConflict.startTime, orgTz, timeFmt)} to ${formatInTimezone(calConflict.endTime, orgTz, timeFmt)} ("${calConflict.title}")`
           return JSON.stringify({ available: false, room: roomName, conflict: conflictMsg, message: `${roomName} is not available -- ${conflictMsg}` })
         }
       } catch { /* Fall through to legacy check */ }
@@ -264,31 +267,9 @@ const tools: Record<string, ToolRegistryEntry> = {
       })
       if (!user) return JSON.stringify({ error: `Could not find user matching "${userName}"` })
 
-      // Fetch org timezone so date ranges use the correct local day boundaries
-      let orgTimezone = 'America/Chicago'
-      try {
-        const { rawPrisma } = await import('@/lib/db')
-        const org = await rawPrisma.organization.findUnique({
-          where: { id: ctx.organizationId },
-          select: { timezone: true },
-        })
-        if (org?.timezone) orgTimezone = org.timezone
-      } catch { /* keep default */ }
-
-      // Compute UTC offset for the org's timezone
-      let tzOffset = '-06:00'
-      try {
-        const refDate = new Date()
-        const formatter = new Intl.DateTimeFormat('en-US', { timeZone: orgTimezone, timeZoneName: 'shortOffset' })
-        const parts = formatter.formatToParts(refDate)
-        const tzPart = parts.find(p => p.type === 'timeZoneName')
-        if (tzPart?.value) {
-          const match = tzPart.value.match(/GMT([+-])(\d+)(?::(\d+))?/)
-          if (match) {
-            tzOffset = `${match[1]}${match[2].padStart(2, '0')}:${(match[3] || '0').padStart(2, '0')}`
-          }
-        }
-      } catch { /* keep default */ }
+      // Use org timezone for correct day boundaries
+      const orgTz = await getOrgTimezone(ctx.organizationId)
+      const tzOffset = getTimezoneOffset(orgTz)
 
       const singleDate = input.date as string | undefined
       let start: Date, end: Date
@@ -296,7 +277,8 @@ const tools: Record<string, ToolRegistryEntry> = {
         start = new Date(singleDate + 'T00:00:00' + tzOffset)
         end = new Date(singleDate + 'T23:59:59' + tzOffset)
       } else {
-        const startStr = (input.start_date as string) || new Date().toISOString().split('T')[0]
+        const todayStr = getOrgToday(orgTz).dateStr
+        const startStr = (input.start_date as string) || todayStr
         const endStr = (input.end_date as string) || startStr
         start = new Date(startStr + 'T00:00:00' + tzOffset)
         end = new Date(endStr + 'T23:59:59' + tzOffset)

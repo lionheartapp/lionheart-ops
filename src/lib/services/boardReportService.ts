@@ -10,6 +10,7 @@
 
 import { rawPrisma } from '@/lib/db'
 import { jsPDF } from 'jspdf'
+import { formatInTimezone, getOrgTimezone } from '@/lib/utils/timezone'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -617,8 +618,9 @@ export async function exportBoardReportPDF(
       ? [245, 158, 11]
       : [239, 68, 68]
 
-  const periodStr = `${metrics.period.from.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} – ${metrics.period.to.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
-  const generatedStr = `Generated: ${new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`
+  const orgTz = await getOrgTimezone(orgId)
+  const periodStr = `${formatInTimezone(metrics.period.from, orgTz, { month: 'long', year: 'numeric' })} – ${formatInTimezone(metrics.period.to, orgTz, { month: 'long', year: 'numeric' })}`
+  const generatedStr = `Generated: ${formatInTimezone(new Date(), orgTz, { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`
 
   const addFooter = (pageNum: number) => {
     doc.setFontSize(8)
