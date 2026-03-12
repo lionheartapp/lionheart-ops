@@ -3,6 +3,7 @@ import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import * as ticketService from '@/lib/services/ticketService'
+import { embedTicket } from '@/lib/services/ai/embeddingTriggers'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
@@ -63,6 +64,13 @@ export async function POST(req: NextRequest) {
         body,
         userContext.userId
       )
+
+      void embedTicket(ticket.id, {
+        title: ticket.title,
+        description: ticket.description,
+        category: ticket.category,
+        priority: ticket.priority,
+      })
 
       return NextResponse.json(ok(ticket), { status: 201 })
     })

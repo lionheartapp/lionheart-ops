@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import { embedCalendarEvent } from '@/lib/services/ai/embeddingTriggers'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
@@ -133,6 +134,12 @@ export async function POST(req: NextRequest) {
       if (attendeeIds && attendeeIds.length > 0) {
         await calendarService.addAttendees(event.id, attendeeIds)
       }
+
+      void embedCalendarEvent(event.id, {
+        title: event.title,
+        description: event.description,
+        locationText: event.locationText,
+      })
 
       return NextResponse.json(ok(event), { status: 201 })
     })

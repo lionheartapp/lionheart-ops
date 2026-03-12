@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { listItems, createItem, createAVEquipment, CreateItemSchema, CreateAVEquipmentSchema } from '@/lib/services/inventoryService'
+import { embedInventoryItem } from '@/lib/services/ai/embeddingTriggers'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
@@ -69,6 +70,11 @@ export async function POST(req: NextRequest) {
       }
       return await runWithOrgContext(orgId, async () => {
         const item = await createAVEquipment(orgId, parsed.data)
+        void embedInventoryItem(item.id, {
+          name: item.name,
+          description: item.description,
+          category: item.category,
+        })
         return NextResponse.json(ok(item), { status: 201 })
       })
     }
@@ -84,6 +90,11 @@ export async function POST(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const item = await createItem(orgId, parsed.data)
+      void embedInventoryItem(item.id, {
+        name: item.name,
+        description: item.description,
+        category: item.category,
+      })
       return NextResponse.json(ok(item), { status: 201 })
     })
   } catch (error) {
