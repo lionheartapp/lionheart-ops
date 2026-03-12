@@ -467,7 +467,7 @@ const tools: Record<string, ToolRegistryEntry> = {
     },
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     riskTier: 'ORANGE',
-    execute: async (input) => {
+    execute: async (input, ctx) => {
       // Default end_date to 1 hour after start if not provided
       if (!input.end_date && input.start_date) {
         const start = new Date(String(input.start_date))
@@ -571,12 +571,15 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       const startDate = draft.startsAt ? new Date(draft.startsAt as string) : null
       const endDate = draft.endsAt ? new Date(draft.endsAt as string) : null
+
+      // Use org timezone for display so times match what the user requested
+      const orgTz = await getOrgTimezone(ctx.organizationId)
       const startDisplay = startDate
-        ? startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' \u2022 ' +
-          startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        ? formatInTimezone(startDate, orgTz, { weekday: 'long', month: 'long', day: 'numeric' }) + ' \u2022 ' +
+          formatInTimezone(startDate, orgTz, { hour: 'numeric', minute: '2-digit', hour12: true })
         : 'Not set'
       const endDisplay = endDate
-        ? endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        ? formatInTimezone(endDate, orgTz, { hour: 'numeric', minute: '2-digit', hour12: true })
         : 'Not set'
 
       // Check resource availability from description/title keywords
@@ -621,8 +624,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           }).catch(() => null)
 
           if (calConflict) {
-            const cStart = new Date(calConflict.startTime)
-            const cTime = cStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+            const cTime = formatInTimezone(new Date(calConflict.startTime), orgTz, { hour: 'numeric', minute: '2-digit', hour12: true })
             conflictWarning = `"${roomName}" is already booked for "${calConflict.title}" at ${cTime}. You may have a scheduling conflict.`
           } else {
             // Also check legacy Event table
@@ -637,8 +639,7 @@ const tools: Record<string, ToolRegistryEntry> = {
             }).catch(() => null)
 
             if (legacyConflict) {
-              const lStart = new Date(legacyConflict.startsAt)
-              const lTime = lStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+              const lTime = formatInTimezone(new Date(legacyConflict.startsAt), orgTz, { hour: 'numeric', minute: '2-digit', hour12: true })
               conflictWarning = `"${roomName}" is already booked for "${legacyConflict.title}" at ${lTime}. You may have a scheduling conflict.`
             }
           }
