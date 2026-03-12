@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    if (!admin || admin.userRole?.name !== 'super-admin') {
+    const roleName = (admin?.userRole?.name || '').toLowerCase().replace(/\s+/g, '-')
+    if (!admin || roleName !== 'super-admin') {
       return NextResponse.json(fail('FORBIDDEN', 'Only super-admin can impersonate users'), { status: 403 })
     }
 
