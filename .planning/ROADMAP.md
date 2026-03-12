@@ -155,6 +155,7 @@ Plans:
 - [x] **Phase 14: AI Assistant UX Upgrade** - Button/choice UI in chat, new tools (room availability, resource availability, weather), suggestion chips, rich confirmation cards, smarter event creation flow (completed 2026-03-11)
 - [x] **Phase 15: Auth Security Gap Closure** - Rate-limit reset-password endpoint, migrate signup to httpOnly cookies, issue CSRF token on signup (gap closure from v2.0 audit) (completed 2026-03-11)
 - [x] **Phase 16: Billing Permission & Observability Retrofit** - Add SETTINGS_BILLING to admin role, retrofit Pino/Sentry instrumentation to 21 routes from Phases 10-15 (gap closure from v2.0 audit) (completed 2026-03-11)
+- [ ] **Phase 17: Leo Memory & Learning** - Conversation persistence, pgvector embeddings, semantic recall tool, user profiles, feedback loop, and conversation summarization
 
 ## Phase Details
 
@@ -310,6 +311,27 @@ Plans:
 - [ ] 16-01-PLAN.md — Add SETTINGS_BILLING to admin role permissions array, backfill script for existing orgs, unit test (SET-02)
 - [ ] 16-02-PLAN.md — Retrofit Pino logger and Sentry instrumentation to all 21 routes from Phases 10-15 (INFRA-03, INFRA-04)
 
+### Phase 17: Leo Memory & Learning
+**Goal**: Leo remembers past conversations, learns user preferences, and uses semantic search over organizational data to provide contextually aware, personalized assistance
+**Depends on**: Phase 14 (AI Assistant UX Upgrade must be in place)
+**Requirements**: LEO-MEM-01, LEO-MEM-02, LEO-MEM-03, LEO-MEM-04, LEO-MEM-05, LEO-MEM-06, LEO-MEM-07
+**Success Criteria** (what must be TRUE):
+  1. A user can close Leo's chat, reopen it later, and see a list of past conversations — clicking one loads the full message history
+  2. A user can click thumbs up or thumbs down on any Leo message and the feedback is stored in the database
+  3. Tickets, events, and inventory items have pgvector embeddings generated via Gemini Embedding API — searching "gym plumbing issues" returns semantically similar records
+  4. Leo can call `recall_context` to search organizational history and surface relevant past tickets, events, or conversations without the user specifying exact keywords
+  5. After 5+ conversations, Leo's system prompt includes the user's learned preferences (frequent topics, communication style) — responses are noticeably personalized
+  6. Conversations longer than 20 messages are automatically summarized into compressed summaries for efficient context window usage
+**Plans**: 6 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — Prisma models (Conversation, ConversationMessage, ConversationSummary, UserAssistantProfile, UserMemoryFact), pgvector setup, embedding service, conversation service (LEO-MEM-01, LEO-MEM-03)
+- [ ] 17-02-PLAN.md — Chat route persistence (save every message), conversation CRUD APIs, feedback API (LEO-MEM-01, LEO-MEM-02)
+- [ ] 17-03-PLAN.md — recall_context semantic search tool, embedding triggers on ticket/event/inventory create (LEO-MEM-03, LEO-MEM-04)
+- [ ] 17-04-PLAN.md — Memory extraction service, context assembly (4-layer), system prompt personalization (LEO-MEM-05, LEO-MEM-06)
+- [ ] 17-05-PLAN.md — Frontend: conversation history sidebar, feedback thumbs up/down buttons, load past conversations (LEO-MEM-01, LEO-MEM-02)
+- [ ] 17-06-PLAN.md — Conversation auto-summarization service, end-to-end human verification (LEO-MEM-07)
+
 ---
 
 ## Progress
@@ -333,3 +355,4 @@ Plans:
 | 13. Infrastructure and Observability | 3/3 | Complete    | 2026-03-11 | - |
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
 | 16. Billing Permission & Observability Retrofit | 2/2 | Complete    | 2026-03-11 | - |
+| 17. Leo Memory & Learning | 0/6 | Planning    | - | - |
