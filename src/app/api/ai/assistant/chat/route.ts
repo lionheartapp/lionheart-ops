@@ -10,6 +10,7 @@
  *   data: {"type":"tool_start","tool":"..."}         — tool execution started
  *   data: {"type":"tool_result","tool":"..."}        — tool execution completed
  *   data: {"type":"action_confirmation","action":{}} — needs user confirmation
+ *   data: {"type":"conversation_id","conversationId":"..."} — persisted conversation ID
  *   data: {"type":"done","conversationHistory":[]}   — stream complete
  *   data: {"type":"error","message":"..."}           — error occurred
  *
@@ -24,6 +25,12 @@ import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext } from '@/lib/org-context'
 import { getAvailableTools, executeTool, getToolRiskTier } from '@/lib/services/ai/assistant-tools'
 import { buildSystemPrompt } from '@/lib/services/ai/assistant.service'
+import {
+  createConversation,
+  addMessage,
+  getConversation,
+  updateConversationTitle,
+} from '@/lib/services/ai/conversationService'
 import type { ConversationTurn, ActionConfirmation, StreamEvent, ConfirmationCardData } from '@/lib/types/assistant'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
@@ -46,6 +53,7 @@ const ChatRequestSchema = z.object({
   message: z.string().min(1).max(4000),
   conversationHistory: z.array(ConversationTurnSchema).max(50),
   images: z.array(ImageAttachmentSchema).max(3).optional(),
+  conversationId: z.string().optional(),
 })
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -58,6 +66,13 @@ const MODEL = 'gemini-2.0-flash'
 
 function sseEvent(event: StreamEvent): string {
   return `data: ${JSON.stringify(event)}\n\n`
+}
+
+/** Fire-and-forget wrapper — logs errors but never throws */
+function safeAsync(fn: () => Promise<unknown>, label: string): void {
+  fn().catch((err) => {
+    console.error(`[ai-assistant] ${label}:`, err)
+  })
 }
 
 // ─── Marker Extraction ────────────────────────────────────────────────────────
@@ -104,6 +119,43 @@ export async function POST(req: NextRequest) {
           message: '',
           conversationHistory: body.conversationHistory,
         })
+      )
+    }
+
+    // ─── Resolve or create conversation ───────────────────────────────────────
+    let conversationId: string
+    const isNewConversation = !body.conversationId
+
+    if (body.conversationId) {
+      // Verify conversation belongs to current user's org
+      const existing = await getConversation(body.conversationId, orgId)
+      if (existing) {
+        conversationId = existing.id
+      } else {
+        // Not found or wrong org — start a new conversation
+        const conv = await createConversation(ctx.userId, orgId)
+        conversationId = conv.id
+      }
+    } else {
+      const conv = await createConversation(ctx.userId, orgId)
+      conversationId = conv.id
+    }
+
+    // Persist the user's message immediately (fire-and-forget)
+    safeAsync(
+      () => addMessage(conversationId, {
+        role: 'user',
+        content: body.message,
+        organizationId: orgId,
+      }),
+      'persist user message'
+    )
+
+    // Auto-title new conversations from the first user message
+    if (isNewConversation) {
+      safeAsync(
+        () => updateConversationTitle(conversationId, body.message.slice(0, 100)),
+        'auto-title conversation'
       )
     }
 
@@ -155,6 +207,9 @@ export async function POST(req: NextRequest) {
 
     const geminiTools = tools.length > 0 ? [{ functionDeclarations: tools }] : undefined
 
+    // Capture conversationId in closure for stream
+    const activeConversationId = conversationId
+
     // Create SSE streaming response
     const stream = new ReadableStream({
       async start(controller) {
@@ -164,6 +219,9 @@ export async function POST(req: NextRequest) {
         }
 
         try {
+          // Emit conversation ID so the frontend can track this conversation
+          write({ type: 'conversation_id', conversationId: activeConversationId })
+
           const { GoogleGenAI } = await import('@google/genai')
           const client = new GoogleGenAI({ apiKey })
 
@@ -228,6 +286,18 @@ export async function POST(req: NextRequest) {
                 if (accumulatedText) modelParts.push({ text: accumulatedText })
                 for (const fc of functionCalls) {
                   modelParts.push({ functionCall: { name: fc.name, args: fc.args } })
+
+                  // Persist tool call (fire-and-forget)
+                  const fcCopy = fc
+                  safeAsync(
+                    () => addMessage(activeConversationId, {
+                      role: 'tool_call',
+                      content: JSON.stringify({ name: fcCopy.name, args: fcCopy.args }),
+                      toolName: fcCopy.name,
+                      organizationId: orgId,
+                    }),
+                    `persist tool_call ${fc.name}`
+                  )
                 }
                 geminiContents.push({ role: 'model', parts: modelParts })
 
@@ -241,8 +311,9 @@ export async function POST(req: NextRequest) {
                   )
 
                   // Check for action confirmation / workflow plan
+                  let parsed: any = null
                   try {
-                    const parsed = JSON.parse(toolResult)
+                    parsed = JSON.parse(toolResult)
                     if (parsed.workflowPlan) {
                       write({ type: 'workflow_plan' as any, plan: { title: parsed.title, steps: parsed.steps, stepCount: parsed.stepCount } })
                     } else if (parsed.confirmationRequired && parsed.draft) {
@@ -261,13 +332,27 @@ export async function POST(req: NextRequest) {
                     // Not JSON or not a confirmation
                   }
 
+                  // Persist tool result (fire-and-forget)
+                  const toolSuccess = parsed ? !parsed.error : true
+                  const fcName = fc.name
+                  safeAsync(
+                    () => addMessage(activeConversationId, {
+                      role: 'tool_result',
+                      content: toolResult,
+                      toolName: fcName,
+                      toolSuccess,
+                      organizationId: orgId,
+                    }),
+                    `persist tool_result ${fc.name}`
+                  )
+
                   // Summarize for the UI
                   let summary = 'Done'
                   try {
-                    const parsed = JSON.parse(toolResult)
-                    if (parsed.error) summary = `Error: ${parsed.error}`
-                    else if (parsed.count !== undefined) summary = `Found ${parsed.count} results`
-                    else if (parsed.confirmationRequired) summary = 'Ready for confirmation'
+                    const p = JSON.parse(toolResult)
+                    if (p.error) summary = `Error: ${p.error}`
+                    else if (p.count !== undefined) summary = `Found ${p.count} results`
+                    else if (p.confirmationRequired) summary = 'Ready for confirmation'
                     else summary = 'Data retrieved'
                   } catch {
                     summary = 'Completed'
@@ -331,6 +416,18 @@ export async function POST(req: NextRequest) {
                 if (accumulatedText) modelParts.push({ text: accumulatedText })
                 for (const fc of functionCalls) {
                   modelParts.push({ functionCall: { name: fc.name, args: fc.args } })
+
+                  // Persist tool call (fire-and-forget)
+                  const fcCopy = fc
+                  safeAsync(
+                    () => addMessage(activeConversationId, {
+                      role: 'tool_call',
+                      content: JSON.stringify({ name: fcCopy.name, args: fcCopy.args }),
+                      toolName: fcCopy.name,
+                      organizationId: orgId,
+                    }),
+                    `persist tool_call ${fc.name}`
+                  )
                 }
                 geminiContents.push({ role: 'model', parts: modelParts })
 
@@ -342,8 +439,9 @@ export async function POST(req: NextRequest) {
                     executeTool(fc.name, fc.args, { userId: ctx.userId, organizationId: orgId })
                   )
 
+                  let parsed: any = null
                   try {
-                    const parsed = JSON.parse(toolResult)
+                    parsed = JSON.parse(toolResult)
                     if (parsed.confirmationRequired && parsed.draft) {
                       actionConfirmation = {
                         type: parsed.draft.action as ActionConfirmation['type'],
@@ -357,12 +455,26 @@ export async function POST(req: NextRequest) {
                     }
                   } catch { /* */ }
 
+                  // Persist tool result (fire-and-forget)
+                  const toolSuccess = parsed ? !parsed.error : true
+                  const fcName = fc.name
+                  safeAsync(
+                    () => addMessage(activeConversationId, {
+                      role: 'tool_result',
+                      content: toolResult,
+                      toolName: fcName,
+                      toolSuccess,
+                      organizationId: orgId,
+                    }),
+                    `persist tool_result ${fc.name}`
+                  )
+
                   let summary = 'Done'
                   try {
-                    const parsed = JSON.parse(toolResult)
-                    if (parsed.error) summary = `Error: ${parsed.error}`
-                    else if (parsed.count !== undefined) summary = `Found ${parsed.count} results`
-                    else if (parsed.confirmationRequired) summary = 'Ready for confirmation'
+                    const p = JSON.parse(toolResult)
+                    if (p.error) summary = `Error: ${p.error}`
+                    else if (p.count !== undefined) summary = `Found ${p.count} results`
+                    else if (p.confirmationRequired) summary = 'Ready for confirmation'
                     else summary = 'Data retrieved'
                   } catch { summary = 'Completed' }
                   write({ type: 'tool_result', tool: fc.name, summary })
@@ -384,6 +496,16 @@ export async function POST(req: NextRequest) {
           // Extract markers from completed text
           let { cleanText, choices, suggestions } = extractMarkers(finalText)
           finalText = cleanText
+
+          // Persist the assistant's final response (fire-and-forget)
+          safeAsync(
+            () => addMessage(activeConversationId, {
+              role: 'assistant',
+              content: finalText,
+              organizationId: orgId,
+            }),
+            'persist assistant response'
+          )
 
           // Send action confirmation if any
           if (actionConfirmation) {
