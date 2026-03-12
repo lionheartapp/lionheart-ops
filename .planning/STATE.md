@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Launch Readiness
 status: planning
-stopped_at: Completed 17-leo-memory-and-learning-02-PLAN.md
-last_updated: "2026-03-12T03:51:05.528Z"
+stopped_at: Completed 17-leo-memory-and-learning-05-PLAN.md
+last_updated: "2026-03-12T03:57:20.787Z"
 last_activity: 2026-03-08 — Roadmap created, v2.0 phases 8-13 defined
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 55
-  completed_plans: 52
+  completed_plans: 54
   percent: 0
 ---
 
@@ -84,6 +84,8 @@ Progress: [░░░░░░░░░░] 0% (v2.0 milestone)
 | Phase 17-leo-memory-and-learning P01 | 4 | 3 tasks | 5 files |
 | Phase 17-leo-memory-and-learning P03 | 3 | 2 tasks | 7 files |
 | Phase 17-leo-memory-and-learning P02 | 8 | 2 tasks | 5 files |
+| Phase 17 P05 | 4 | 2 tasks | 3 files |
+| Phase 17-leo-memory-and-learning P04 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -175,6 +177,12 @@ Recent decisions affecting current work:
 - [Phase 17-leo-memory-and-learning]: embedTicket/embedCalendarEvent/embedInventoryItem are sync functions with internal void async — callers never await or catch
 - [Phase 17-leo-memory-and-learning]: Fire-and-forget persistence via safeAsync wrapper in chat route — streaming errors never block SSE
 - [Phase 17-leo-memory-and-learning]: DELETE /api/conversations/[id] uses userId check (owner-only), not just orgId — users can only delete their own conversations
+- [Phase 17-leo-memory-and-learning]: ConversationSidebar uses absolute overlay within relative panel container — works in both floating and embedded modes without breaking layout
+- [Phase 17-leo-memory-and-learning]: handleSelectConversation filters tool_call/tool_result messages before rendering — only user/assistant roles render as chat bubbles
+- [Phase 17-leo-memory-and-learning]: Feedback toggle: clicking active button sends score=0 to deselect — matches common rating UX conventions
+- [Phase 17-leo-memory-and-learning]: Memory extraction triggers only when conversation has 5+ messages — avoids expensive Gemini calls on short exchanges
+- [Phase 17-leo-memory-and-learning]: assembleContext uses Promise.allSettled across all 3 layers so a failed profile lookup does not block fact retrieval
+- [Phase 17-leo-memory-and-learning]: buildPersonalizedContext caps output at 2000 chars (~500 tokens) — preserves token budget for conversation history and tools
 
 ### Pending Todos
 
@@ -189,6 +197,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T03:51:05.524Z
-Stopped at: Completed 17-leo-memory-and-learning-02-PLAN.md
+Last session: 2026-03-12T03:57:00.153Z
+Stopped at: Completed 17-leo-memory-and-learning-05-PLAN.md
 Resume file: None
