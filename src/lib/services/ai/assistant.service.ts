@@ -129,7 +129,10 @@ export function buildSystemPrompt(
     )
   }
   if (availableToolNames.includes('list_upcoming_events')) {
-    capabilities.push('- **Calendar** — list upcoming events with details')
+    capabilities.push('- **Calendar** — list upcoming events with full details (description, attendees, equipment lists, AV requirements, resource requests)')
+  }
+  if (availableToolNames.includes('get_event_details')) {
+    capabilities.push('- **Event details** — get full details on a specific event (attendees, approvals, equipment, resource requests)')
   }
   if (availableToolNames.includes('get_campus_info')) {
     capabilities.push('- **Campus info** — look up buildings, rooms, and schools')

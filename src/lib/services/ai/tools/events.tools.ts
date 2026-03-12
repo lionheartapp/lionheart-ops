@@ -46,11 +46,93 @@ const tools: Record<string, ToolRegistryEntry> = {
     },
   },
 
+  // ── GREEN: Get Event Details ─────────────────────────────────────────────
+  get_event_details: {
+    definition: {
+      name: 'get_event_details',
+      description: 'Get full details for a specific calendar event by ID. Returns description, attendees, equipment/resource requests, approval status, and all metadata.',
+      parameters: {
+        type: 'object',
+        properties: {
+          event_id: { type: 'string', description: 'The event ID to look up' },
+        },
+        required: ['event_id'],
+      },
+    },
+    requiredPermission: PERMISSIONS.EVENTS_READ,
+    riskTier: 'GREEN',
+    execute: async (input) => {
+      const eventId = String(input.event_id || '')
+      if (!eventId) return JSON.stringify({ error: 'event_id is required.' })
+
+      const event = await prisma.calendarEvent.findUnique({
+        where: { id: eventId },
+        select: {
+          id: true, title: true, description: true, startTime: true, endTime: true,
+          timezone: true, isAllDay: true, locationText: true, calendarStatus: true,
+          metadata: true, rrule: true,
+          calendar: { select: { name: true, calendarType: true } },
+          createdBy: { select: { name: true, email: true } },
+          approvedBy: { select: { name: true } },
+          attendees: { select: { user: { select: { name: true, email: true } }, responseStatus: true } },
+          resourceRequests: { select: { resourceType: true, requestStatus: true, details: true, responseNote: true } },
+          approvals: { select: { channelType: true, approvalStatus: true, reason: true, respondedBy: { select: { name: true } } } },
+          building: { select: { name: true } },
+          area: { select: { name: true } },
+          category: { select: { name: true } },
+        },
+      }).catch(() => null)
+
+      if (!event) return JSON.stringify({ error: `Event not found: ${eventId}` })
+
+      const meta = event.metadata as Record<string, unknown> | null
+      const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
+
+      return JSON.stringify({
+        id: event.id,
+        title: event.title,
+        description: event.description || undefined,
+        start: event.startTime,
+        end: event.endTime,
+        timezone: event.timezone,
+        isAllDay: event.isAllDay,
+        location: event.locationText || undefined,
+        building: (event as any).building?.name || undefined,
+        area: (event as any).area?.name || undefined,
+        status: event.calendarStatus,
+        calendar: (event as any).calendar?.name,
+        calendarType: (event as any).calendar?.calendarType,
+        category: (event as any).category?.name || undefined,
+        createdBy: (event as any).createdBy?.name || undefined,
+        approvedBy: (event as any).approvedBy?.name || undefined,
+        recurrence: event.rrule || undefined,
+        attendees: (event as any).attendees?.map((a: any) => ({
+          name: a.user?.name,
+          email: a.user?.email,
+          rsvp: a.responseStatus,
+        })) || [],
+        equipmentList: equipmentList && equipmentList.length > 0 ? equipmentList : undefined,
+        resourceRequests: (event as any).resourceRequests?.map((r: any) => ({
+          type: r.resourceType,
+          status: r.requestStatus,
+          details: r.details,
+          note: r.responseNote || undefined,
+        })) || [],
+        approvals: (event as any).approvals?.map((a: any) => ({
+          channel: a.channelType,
+          status: a.approvalStatus,
+          reason: a.reason || undefined,
+          respondedBy: a.respondedBy?.name || undefined,
+        })) || [],
+      })
+    },
+  },
+
   // ── GREEN: List Upcoming Events ──────────────────────────────────────────
   list_upcoming_events: {
     definition: {
       name: 'list_upcoming_events',
-      description: 'List upcoming calendar events for the organization. Can also search for events by title. Returns event title, date, time, location, and status.',
+      description: 'List upcoming calendar events for the organization. Can also search for events by title. Returns full event details including description, attendees, equipment lists, AV/resource requests, and who created each event. Use this to answer questions about event logistics, AV needs, attendees, etc.',
       parameters: {
         type: 'object',
         properties: {
@@ -95,9 +177,12 @@ const tools: Record<string, ToolRegistryEntry> = {
       const calEvents = await prisma.calendarEvent.findMany({
         where: calWhere as any,
         select: {
-          id: true, title: true, startTime: true, endTime: true,
-          locationText: true, calendarStatus: true,
+          id: true, title: true, description: true, startTime: true, endTime: true,
+          locationText: true, calendarStatus: true, metadata: true,
           calendar: { select: { name: true } },
+          createdBy: { select: { name: true } },
+          attendees: { select: { user: { select: { name: true } }, responseStatus: true } },
+          resourceRequests: { select: { resourceType: true, requestStatus: true, details: true } },
         },
         orderBy: { startTime: 'asc' },
         take: limit,
@@ -122,10 +207,32 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       // Merge and sort
       const merged = [
-        ...calEvents.map((e: any) => ({
-          id: e.id, title: e.title, start: e.startTime, end: e.endTime,
-          location: e.locationText, status: e.calendarStatus, calendar: e.calendar?.name,
-        })),
+        ...calEvents.map((e: any) => {
+          // Extract equipment list from metadata if present
+          const meta = e.metadata as Record<string, unknown> | null
+          const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
+          // Summarize attendees
+          const attendeeNames = (e.attendees || []).map((a: any) => a.user?.name).filter(Boolean)
+          // Summarize resource requests
+          const resourceRequests = (e.resourceRequests || []).map((r: any) => ({
+            type: r.resourceType,
+            status: r.requestStatus,
+            details: r.details,
+          }))
+          const hasAV = resourceRequests.some((r: any) => r.type === 'AV_EQUIPMENT') ||
+            (equipmentList || []).some((eq: any) => /mic|speaker|projector|screen|sound|av|audio|video/i.test(eq.item))
+
+          return {
+            id: e.id, title: e.title, description: e.description || undefined,
+            start: e.startTime, end: e.endTime,
+            location: e.locationText, status: e.calendarStatus, calendar: e.calendar?.name,
+            createdBy: e.createdBy?.name || undefined,
+            attendees: attendeeNames.length > 0 ? attendeeNames : undefined,
+            equipmentList: equipmentList && equipmentList.length > 0 ? equipmentList : undefined,
+            resourceRequests: resourceRequests.length > 0 ? resourceRequests : undefined,
+            hasAV,
+          }
+        }),
         ...legacyEvents.map((e: any) => ({
           id: e.id, title: e.title, start: e.startsAt, end: e.endsAt,
           location: e.room, status: e.status, calendar: undefined,
