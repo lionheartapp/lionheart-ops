@@ -105,7 +105,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
       })
       .then((json) => {
         if (!json.ok) throw new Error('Not authenticated')
-        const { user, org } = json.data
+        const { user, org, isImpersonating, adminName } = json.data
 
         // Bridge: populate localStorage for backward compat with all existing pages
         localStorage.setItem('auth-token', 'cookie-auth') // sentinel — real JWT is in httpOnly cookie
@@ -120,6 +120,15 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         localStorage.setItem('org-school-type', org.schoolType || '')
         localStorage.setItem('org-logo-url', org.logoUrl || '')
 
+        // Impersonation state
+        if (isImpersonating) {
+          localStorage.setItem('is-impersonating', 'true')
+          localStorage.setItem('admin-name', adminName || '')
+        } else {
+          localStorage.removeItem('is-impersonating')
+          localStorage.removeItem('admin-name')
+        }
+
         setReady(true)
       })
       .catch(() => {
@@ -127,7 +136,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         ;[
           'auth-token', 'org-id', 'user-name', 'user-email', 'user-avatar',
           'user-team', 'user-school-scope', 'user-role', 'org-name',
-          'org-school-type', 'org-logo-url',
+          'org-school-type', 'org-logo-url', 'is-impersonating', 'admin-name',
         ].forEach((k) => localStorage.removeItem(k))
         setReady(true)
         // Individual pages will see empty localStorage and redirect to /login

@@ -4,12 +4,14 @@ import { ReactNode, useState, useEffect, useRef, useCallback, useMemo } from 're
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search } from 'lucide-react'
+import { ChevronDown, Search, Eye } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { dropdownVariants } from '@/lib/animations'
 import Sidebar, { type SidebarProps } from './Sidebar'
 import NotificationBell from './NotificationBell'
 import SearchCommand from './SearchCommand'
+import ImpersonationBanner from './ImpersonationBanner'
+import ViewAsDialog from './ViewAsDialog'
 import { syncOfflineData } from '@/lib/offline/sync'
 import { useConnectivity } from '@/hooks/useConnectivity'
 
@@ -42,6 +44,9 @@ export default function DashboardLayout({
   const isOnline = useConnectivity()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isViewAsOpen, setIsViewAsOpen] = useState(false)
+  const [isImpersonating, setIsImpersonating] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const prevOnlineRef = useRef(isOnline)
 
@@ -65,6 +70,12 @@ export default function DashboardLayout({
       router.push('/login')
     }
   }, [onLogoutProp, router])
+
+  // Detect impersonation state and super-admin role
+  useEffect(() => {
+    setIsImpersonating(localStorage.getItem('is-impersonating') === 'true')
+    setIsSuperAdmin(localStorage.getItem('user-role') === 'super-admin')
+  }, [pathname]) // re-check on navigation (catches reload after impersonate)
 
   // Cmd+K / Ctrl+K shortcut for search
   useEffect(() => {
@@ -140,8 +151,11 @@ export default function DashboardLayout({
 
   return (
     <div className="flex w-full h-screen bg-gray-50 flex-col overflow-hidden">
+      {/* Impersonation Banner */}
+      {isImpersonating && <ImpersonationBanner />}
+
       {/* Top Bar Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-navbar">
+      <header className={`fixed left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-navbar ${isImpersonating ? 'top-[40px]' : 'top-0'}`}>
         {/* Logo and Organization Name */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0 pl-14 lg:pl-0">
           {orgLogoUrl ? (
@@ -229,6 +243,18 @@ export default function DashboardLayout({
                 >
                   Settings
                 </Link>
+                {isSuperAdmin && !isImpersonating && (
+                  <button
+                    onClick={() => {
+                      setIsViewAsOpen(true)
+                      setIsDropdownOpen(false)
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4 text-gray-400" />
+                    View As...
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     onLogout()
@@ -246,7 +272,7 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      <div className="flex flex-1 pt-16 min-h-0">
+      <div className={`flex flex-1 min-h-0 ${isImpersonating ? 'pt-[104px]' : 'pt-16'}`}>
         {/* Sidebar */}
         <Sidebar
           userName={userName}
@@ -272,6 +298,8 @@ export default function DashboardLayout({
       <AnimatePresence>
         {isSearchOpen && <SearchCommand isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}
       </AnimatePresence>
+
+      <ViewAsDialog isOpen={isViewAsOpen} onClose={() => setIsViewAsOpen(false)} />
     </div>
   )
 }

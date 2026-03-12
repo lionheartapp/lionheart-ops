@@ -66,6 +66,23 @@ export async function GET(req: NextRequest) {
     })
     const teamName = firstMembership?.team?.name ?? null
 
+    // Check if currently impersonating (admin-token cookie present)
+    const adminToken = req.cookies.get('admin-token')?.value
+    let isImpersonating = false
+    let adminName: string | null = null
+
+    if (adminToken) {
+      const adminClaims = await verifyAuthToken(adminToken)
+      if (adminClaims) {
+        isImpersonating = true
+        const adminUser = await rawPrisma.user.findUnique({
+          where: { id: adminClaims.userId },
+          select: { name: true },
+        })
+        adminName = adminUser?.name ?? 'Admin'
+      }
+    }
+
     return NextResponse.json(
       ok({
         user: {
@@ -83,6 +100,8 @@ export async function GET(req: NextRequest) {
           schoolType: user.organization?.gradeLevel ?? null,
           logoUrl: user.organization?.logoUrl ?? null,
         },
+        isImpersonating,
+        adminName,
       })
     )
   } catch (error) {
