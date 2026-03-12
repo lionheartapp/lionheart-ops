@@ -128,12 +128,18 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
   create_event: {
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     execute: async (payload, ctx) => {
-      // Find the org's default or first GENERAL calendar
-      const calendar = await prisma.calendar.findFirst({
-        where: { isActive: true },
-        orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+      // Find the user's personal calendar first, fall back to org default
+      let calendar = await prisma.calendar.findFirst({
+        where: { isActive: true, calendarType: 'PERSONAL' as any, createdById: ctx.userId },
         select: { id: true },
       })
+      if (!calendar) {
+        calendar = await prisma.calendar.findFirst({
+          where: { isActive: true },
+          orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+          select: { id: true },
+        })
+      }
       if (!calendar) throw new Error('No calendar found. Please create a calendar first.')
 
       const { can } = await import('@/lib/auth/permissions')
