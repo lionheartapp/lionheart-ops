@@ -79,6 +79,12 @@ export interface RichConfirmationCardData {
     status: 'ok' | 'low' | 'unavailable'
   }>
   approvalChannels?: string[]  // e.g. ["Admin", "AV Production"]
+  attendees?: string[]             // names of invited attendees
+  equipmentList?: Array<{ item: string; quantity: number }>  // structured equipment/setup checklist
+  calendarName?: string            // name of the target calendar (e.g. "School Calendar")
+  calendarId?: string              // ID of the target calendar
+  conflictWarning?: string         // room/time conflict warning message
+  requiresApproval?: boolean       // true if this event will go through approval workflow
 }
 
 export interface TicketConfirmationCardData {

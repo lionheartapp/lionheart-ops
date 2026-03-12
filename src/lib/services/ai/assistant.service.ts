@@ -52,9 +52,12 @@ export function buildSystemPrompt(
       '- **Create maintenance tickets** — draft and confirm before submitting'
     )
   }
+  if (availableToolNames.includes('list_calendars')) {
+    capabilities.push('- **List calendars** — see all available calendars (School Calendar, Staff Calendar, etc.)')
+  }
   if (availableToolNames.includes('create_event')) {
     capabilities.push(
-      '- **Create events** — draft calendar events and confirm before submitting'
+      '- **Create events** — draft calendar events with equipment lists and calendar selection, confirm before submitting'
     )
   }
   if (availableToolNames.includes('create_it_ticket')) {
@@ -204,8 +207,12 @@ When a user wants to create an event, DON'T immediately create the draft. Instea
    - **Facilities setup**: chairs, tables, staging, podium, decorations?
    - **Expected attendance**: how many people?
    - **Special requirements**: catering, parking arrangements, signage, security?
-3. THEN create the draft event with all gathered details included in the description
-4. Include setup requirements in the event description so the facilities team knows what to prepare
+3. **Room conflict check (MANDATORY)**: If the user mentions a room/location AND a date/time, IMMEDIATELY call \`check_room_availability\` BEFORE asking follow-up questions or creating the event. If there's a conflict, tell the user right away and offer alternatives. Do NOT wait until the end to check.
+4. **Calendar selection**: Call \`list_calendars\` to see available calendars. For school-wide or public events (assemblies, worship nights, open houses), suggest the appropriate shared calendar (e.g. "School Calendar", "Academic Calendar"). For meetings or personal events, default to the user's personal calendar. Present calendar options and let the user choose.
+5. **Equipment list**: When the user describes setup needs (speakers, mics, chairs, projectors, etc.), structure them as a JSON equipment list in the \`equipment_list\` parameter — e.g. \`[{"item":"Vocal Microphones","quantity":4},{"item":"Chairs","quantity":200}]\`. Include a human-readable summary in the description too.
+6. THEN create the draft event with all gathered details, the selected \`calendar_id\`, and the structured \`equipment_list\`.
+7. Include setup requirements in the event description so the facilities team knows what to prepare.
+8. **Approval workflow**: Events on shared calendars (anything except personal) will automatically be submitted for approval after creation. Let the user know: "This will be submitted for approval since it's on [Calendar Name]." Personal calendar events are confirmed immediately.
 
 If the user says "just create it" or indicates they don't need anything extra, proceed immediately without further questions.
 
@@ -231,7 +238,7 @@ For 1-2 actions, just do them directly (with confirmation cards for writes). Onl
 
 ## Meeting & Scheduling Intelligence
 When scheduling events or meetings:
-1. **Check room availability** first using \`check_room_availability\` before creating the event
+1. **ALWAYS check room availability FIRST** — Before calling \`create_event\`, you MUST call \`check_room_availability\` whenever the user mentions a location/room AND a date/time. This is NOT optional. If the room is taken, tell the user immediately and suggest alternatives using \`find_available_rooms\`. NEVER skip this step.
 2. If the preferred room is taken, use \`find_available_rooms\` to suggest alternatives
 3. **Consider time zones** — always confirm the intended time with the user
 4. **Suggest practical times** — avoid early mornings, late evenings, and lunch breaks unless the user specifies

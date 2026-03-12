@@ -128,39 +128,134 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
   create_event: {
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     execute: async (payload, ctx) => {
-      // Find the user's personal calendar, auto-create if missing
-      let calendar = await prisma.calendar.findFirst({
-        where: { isActive: true, calendarType: 'PERSONAL' as any, createdById: ctx.userId },
-        select: { id: true },
-      })
-      if (!calendar) {
-        // Auto-create personal calendar for users who don't have one yet
-        calendar = await prisma.calendar.create({
-          data: {
-            name: 'My Schedule',
-            slug: `my-schedule-${ctx.userId.slice(-8)}`,
-            calendarType: 'PERSONAL' as any,
-            visibility: 'CAMPUS' as any,
-            createdById: ctx.userId,
-            color: '#6366f1',
-          } as any,
+      // Use the user-selected calendar if provided, otherwise fall back to personal calendar
+      let calendarId = payload.calendarId ? String(payload.calendarId) : undefined
+      let isPersonalCalendar = false
+
+      if (calendarId) {
+        // Verify the selected calendar exists and is active, and check its type
+        const selectedCal = await prisma.calendar.findFirst({
+          where: { id: calendarId, isActive: true },
+          select: { id: true, calendarType: true },
+        })
+        if (!selectedCal) {
+          calendarId = undefined // Fall back to personal
+        } else {
+          isPersonalCalendar = selectedCal.calendarType === 'PERSONAL'
+        }
+      }
+
+      if (!calendarId) {
+        // Find the user's personal calendar, auto-create if missing
+        let calendar = await prisma.calendar.findFirst({
+          where: { isActive: true, calendarType: 'PERSONAL' as any, createdById: ctx.userId },
           select: { id: true },
         })
+        if (!calendar) {
+          calendar = await prisma.calendar.create({
+            data: {
+              name: 'My Schedule',
+              slug: `my-schedule-${ctx.userId.slice(-8)}`,
+              calendarType: 'PERSONAL' as any,
+              visibility: 'CAMPUS' as any,
+              createdById: ctx.userId,
+              color: '#6366f1',
+            } as any,
+            select: { id: true },
+          })
+        }
+        if (!calendar) throw new Error('No calendar found. Please create a calendar first.')
+        calendarId = calendar.id
+        isPersonalCalendar = true
       }
-      if (!calendar) throw new Error('No calendar found. Please create a calendar first.')
 
-      const { can } = await import('@/lib/auth/permissions')
-      const canPublish = await can(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_APPROVE)
+      // Build metadata with equipment list if provided
+      let metadata: Record<string, unknown> | undefined
+      if (payload.equipmentList && Array.isArray(payload.equipmentList) && (payload.equipmentList as any[]).length > 0) {
+        metadata = { equipmentList: payload.equipmentList }
+      }
+
+      // Personal calendar events auto-confirm; shared calendar events go through approval
+      const canPublish = isPersonalCalendar
 
       const event = await createCalendarEvent({
-        calendarId: calendar.id,
+        calendarId,
         title: String(payload.title || ''),
         description: String(payload.description || '') || undefined,
         locationText: String(payload.room || '') || undefined,
         startTime: new Date(ensureISODate(String(payload.startsAt))),
         endTime: new Date(ensureISODate(String(payload.endsAt))),
+        metadata,
       }, ctx.userId, canPublish)
-      return { message: `Event created: "${event.title}" on ${new Date(event.startTime).toLocaleDateString('en-US', { dateStyle: 'medium' })}` }
+
+      // For non-personal calendars, auto-submit the draft for approval
+      let approvalMsg = ''
+      if (!isPersonalCalendar && event.calendarStatus === 'DRAFT') {
+        try {
+          const { submitForApproval } = await import('@/lib/services/calendarService')
+          await submitForApproval(event.id, ctx.userId)
+          approvalMsg = ' — submitted for approval'
+        } catch {
+          approvalMsg = ' — created as draft (submit for approval when ready)'
+        }
+      }
+
+      // Wire up attendees from @mentions
+      const attendeeNames = String(payload.attendees || '').split(',').map(s => s.trim()).filter(Boolean)
+      const addedNames: string[] = []
+      if (attendeeNames.length > 0) {
+        const { addAttendees } = await import('@/lib/services/calendarService')
+        const { createBulkNotifications } = await import('@/lib/services/notificationService')
+        const { sendEventInviteEmail } = await import('@/lib/services/emailService')
+
+        const userIds: string[] = []
+        const foundUsers: Array<{ id: string; name: string | null; email: string }> = []
+        for (const name of attendeeNames) {
+          const user = await prisma.user.findFirst({
+            where: { OR: [{ name: { contains: name, mode: 'insensitive' } }, { email: { contains: name, mode: 'insensitive' } }] },
+            select: { id: true, name: true, email: true },
+          })
+          if (user) {
+            userIds.push(user.id)
+            foundUsers.push(user)
+            addedNames.push(user.name || user.email)
+          }
+        }
+
+        if (userIds.length > 0) {
+          await addAttendees(event.id, userIds)
+
+          // Send notifications (fire-and-forget)
+          const startDate = new Date(event.startTime)
+          const eventDate = startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+          const eventTime = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+
+          createBulkNotifications(
+            foundUsers.map(u => ({
+              userId: u.id,
+              type: 'event_invite' as const,
+              title: `You're invited: ${event.title}`,
+              body: `${eventDate} at ${eventTime}`,
+              linkUrl: `/calendar?eventId=${event.id}`,
+            }))
+          ).catch(() => {})
+
+          // Send invite emails (fire-and-forget)
+          for (const u of foundUsers) {
+            sendEventInviteEmail({
+              to: u.email,
+              eventTitle: event.title,
+              eventDate,
+              eventTime,
+              orgName: '',
+              eventLink: `/calendar?eventId=${event.id}`,
+            }).catch(() => {})
+          }
+        }
+      }
+
+      const attendeeMsg = addedNames.length > 0 ? ` — invited ${addedNames.join(', ')}` : ''
+      return { message: `Event created: "${event.title}" on ${new Date(event.startTime).toLocaleDateString('en-US', { dateStyle: 'medium' })}${approvalMsg}${attendeeMsg}` }
     },
   },
 

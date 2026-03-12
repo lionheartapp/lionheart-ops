@@ -13,16 +13,50 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { checkRoomConflict } from '@/lib/services/eventService'
 
 const tools: Record<string, ToolRegistryEntry> = {
+  // ── GREEN: List Calendars ──────────────────────────────────────────────
+  list_calendars: {
+    definition: {
+      name: 'list_calendars',
+      description: 'List all active calendars for the organization. Use this before creating events to know which calendars are available (e.g. School Calendar, Staff Calendar, Personal).',
+      parameters: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    },
+    requiredPermission: null,
+    riskTier: 'GREEN',
+    execute: async () => {
+      const calendars = await prisma.calendar.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true, calendarType: true, color: true },
+        orderBy: { name: 'asc' },
+      })
+
+      return JSON.stringify({
+        calendars: calendars.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          type: c.calendarType,
+          color: c.color,
+        })),
+        count: calendars.length,
+      })
+    },
+  },
+
   // ── GREEN: List Upcoming Events ──────────────────────────────────────────
   list_upcoming_events: {
     definition: {
       name: 'list_upcoming_events',
-      description: 'List upcoming calendar events for the organization. Returns event title, date, time, location, and status.',
+      description: 'List upcoming calendar events for the organization. Can also search for events by title. Returns event title, date, time, location, and status.',
       parameters: {
         type: 'object',
         properties: {
-          days_ahead: { type: 'number', description: 'Number of days ahead to look (default: 7)' },
+          days_ahead: { type: 'number', description: 'Number of days ahead to look (default: 14, max: 90)' },
           limit: { type: 'number', description: 'Max events to return (default: 10)' },
+          search: { type: 'string', description: 'Search events by title (optional). Use this when looking for a specific event.' },
+          date: { type: 'string', description: 'Specific date to look up in YYYY-MM-DD format (optional). Overrides days_ahead.' },
         },
         required: [],
       },
@@ -30,24 +64,83 @@ const tools: Record<string, ToolRegistryEntry> = {
     requiredPermission: PERMISSIONS.EVENTS_READ,
     riskTier: 'GREEN',
     execute: async (input) => {
-      const daysAhead = Math.min((input.days_ahead as number) || 7, 30)
       const limit = Math.min((input.limit as number) || 10, 25)
-      const now = new Date()
-      const until = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000)
+      const searchQuery = input.search ? String(input.search).trim() : ''
+      const specificDate = input.date ? String(input.date).trim() : ''
 
-      const events = await prisma.event.findMany({
-        where: { startsAt: { gte: now, lte: until } },
+      let rangeStart: Date
+      let rangeEnd: Date
+
+      if (specificDate) {
+        // Look at the specific date (full day)
+        rangeStart = new Date(specificDate + 'T00:00:00')
+        rangeEnd = new Date(specificDate + 'T23:59:59')
+      } else {
+        const daysAhead = Math.min((input.days_ahead as number) || 14, 90)
+        rangeStart = new Date()
+        rangeEnd = new Date(rangeStart.getTime() + daysAhead * 24 * 60 * 60 * 1000)
+      }
+
+      // Query CalendarEvent (current model)
+      const calWhere: Record<string, unknown> = {
+        calendarStatus: { not: 'CANCELLED' as any },
+        startTime: { lte: rangeEnd },
+        endTime: { gte: rangeStart },
+      }
+      if (searchQuery) {
+        calWhere.title = { contains: searchQuery, mode: 'insensitive' }
+      }
+
+      const calEvents = await prisma.calendarEvent.findMany({
+        where: calWhere as any,
+        select: {
+          id: true, title: true, startTime: true, endTime: true,
+          locationText: true, calendarStatus: true,
+          calendar: { select: { name: true } },
+        },
+        orderBy: { startTime: 'asc' },
+        take: limit,
+      }).catch(() => [] as any[])
+
+      // Also check legacy Event table
+      const legacyWhere: Record<string, unknown> = {
+        status: { not: 'CANCELLED' },
+        startsAt: { lte: rangeEnd },
+        endsAt: { gte: rangeStart },
+      }
+      if (searchQuery) {
+        legacyWhere.title = { contains: searchQuery, mode: 'insensitive' }
+      }
+
+      const legacyEvents = await prisma.event.findMany({
+        where: legacyWhere as any,
         select: { id: true, title: true, startsAt: true, endsAt: true, room: true, status: true },
         orderBy: { startsAt: 'asc' },
         take: limit,
       }).catch(() => [] as any[])
 
-      return JSON.stringify({
-        events: events.map((e: any) => ({
-          id: e.id, title: e.title, start: e.startsAt, end: e.endsAt, location: e.room, status: e.status,
+      // Merge and sort
+      const merged = [
+        ...calEvents.map((e: any) => ({
+          id: e.id, title: e.title, start: e.startTime, end: e.endTime,
+          location: e.locationText, status: e.calendarStatus, calendar: e.calendar?.name,
         })),
-        count: events.length,
-        period: `Next ${daysAhead} days`,
+        ...legacyEvents.map((e: any) => ({
+          id: e.id, title: e.title, start: e.startsAt, end: e.endsAt,
+          location: e.room, status: e.status, calendar: undefined,
+        })),
+      ].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+       .slice(0, limit)
+
+      const periodLabel = specificDate
+        ? specificDate
+        : `Next ${input.days_ahead || 14} days`
+
+      return JSON.stringify({
+        events: merged,
+        count: merged.length,
+        period: periodLabel,
+        ...(searchQuery ? { searchQuery } : {}),
       })
     },
   },
@@ -75,8 +168,29 @@ const tools: Record<string, ToolRegistryEntry> = {
       const endStr = String(input.end_datetime || '')
       if (!roomName || !startStr || !endStr) return JSON.stringify({ error: 'Room name, start time, and end time are all required.' })
 
+      const startDt = new Date(startStr)
+      const endDt = new Date(endStr)
+
+      // Check CalendarEvent table (current model) first
       try {
-        await checkRoomConflict(roomName, new Date(startStr), new Date(endStr))
+        const calConflict = await prisma.calendarEvent.findFirst({
+          where: {
+            locationText: { equals: roomName, mode: 'insensitive' },
+            calendarStatus: { not: 'CANCELLED' as any },
+            startTime: { lt: endDt },
+            endTime: { gt: startDt },
+          },
+          select: { id: true, title: true, startTime: true, endTime: true },
+        })
+        if (calConflict) {
+          const conflictMsg = `Room "${roomName}" is already booked from ${calConflict.startTime.toISOString()} to ${calConflict.endTime.toISOString()} ("${calConflict.title}")`
+          return JSON.stringify({ available: false, room: roomName, conflict: conflictMsg, message: `${roomName} is not available -- ${conflictMsg}` })
+        }
+      } catch { /* Fall through to legacy check */ }
+
+      // Also check legacy Event table
+      try {
+        await checkRoomConflict(roomName, startDt, endDt)
         return JSON.stringify({ available: true, room: roomName, start: startStr, end: endStr, message: `${roomName} is available for that time.` })
       } catch (err: any) {
         if (err.code === 'ROOM_CONFLICT') {
@@ -197,6 +311,9 @@ const tools: Record<string, ToolRegistryEntry> = {
           start_date: { type: 'string', description: 'Start date and time in ISO format (e.g. "2026-03-15T14:00:00")' },
           end_date: { type: 'string', description: 'End date and time in ISO format (e.g. "2026-03-15T15:00:00")' },
           location: { type: 'string', description: 'Room or location name (optional)' },
+          attendees: { type: 'string', description: 'Comma-separated names of people to invite (from @mentions)' },
+          calendar_id: { type: 'string', description: 'ID of the calendar to create the event on (from list_calendars). If omitted, defaults to the user\'s personal calendar.' },
+          equipment_list: { type: 'string', description: 'JSON array of equipment/setup items, e.g. [{"item":"Vocal Microphones","quantity":4},{"item":"Projector","quantity":1}]. Use this when the user describes setup requirements.' },
         },
         required: ['title', 'start_date', 'end_date'],
       },
@@ -204,17 +321,53 @@ const tools: Record<string, ToolRegistryEntry> = {
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     riskTier: 'ORANGE',
     execute: async (input) => {
-      const draft = {
+      const calendarId = input.calendar_id ? String(input.calendar_id) : undefined
+      const equipmentListStr = input.equipment_list ? String(input.equipment_list) : undefined
+
+      // Parse equipment list if provided
+      let equipmentList: Array<{ item: string; quantity: number }> | undefined
+      if (equipmentListStr) {
+        try {
+          const parsed = JSON.parse(equipmentListStr)
+          if (Array.isArray(parsed)) {
+            equipmentList = parsed.map((e: any) => ({
+              item: String(e.item || e.name || ''),
+              quantity: Number(e.quantity || e.qty || 1),
+            })).filter(e => e.item)
+          }
+        } catch { /* Non-critical — equipment stays in description */ }
+      }
+
+      // Look up selected calendar name and type
+      let calendarName: string | undefined
+      let isPersonalCalendar = !calendarId // No calendar selected = personal fallback
+      if (calendarId) {
+        try {
+          const cal = await prisma.calendar.findUnique({
+            where: { id: calendarId },
+            select: { name: true, calendarType: true },
+          })
+          if (cal) {
+            calendarName = cal.name
+            isPersonalCalendar = cal.calendarType === 'PERSONAL'
+          }
+        } catch { /* Non-critical */ }
+      }
+
+      const draft: Record<string, unknown> = {
         action: 'create_event',
         title: String(input.title || ''),
         description: String(input.description || ''),
         startsAt: String(input.start_date || ''),
         endsAt: String(input.end_date || ''),
         room: String(input.location || ''),
+        attendees: String(input.attendees || ''),
       }
+      if (calendarId) draft.calendarId = calendarId
+      if (equipmentList && equipmentList.length > 0) draft.equipmentList = equipmentList
 
-      const startDate = draft.startsAt ? new Date(draft.startsAt) : null
-      const endDate = draft.endsAt ? new Date(draft.endsAt) : null
+      const startDate = draft.startsAt ? new Date(draft.startsAt as string) : null
+      const endDate = draft.endsAt ? new Date(draft.endsAt as string) : null
       const startDisplay = startDate
         ? startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' \u2022 ' +
           startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -225,7 +378,7 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       // Check resource availability from description/title keywords
       let resources: RichConfirmationCardData['resources'] = undefined
-      const descLower = (draft.description + ' ' + draft.title).toLowerCase()
+      const descLower = ((draft.description as string) + ' ' + (draft.title as string)).toLowerCase()
       const resourceKeywords = ['chair', 'table', 'projector', 'microphone', 'speaker', 'screen', 'laptop', 'whiteboard', 'easel', 'tent', 'podium', 'av setup']
       const matchedKeywords = resourceKeywords.filter(kw => descLower.includes(kw))
 
@@ -248,10 +401,57 @@ const tools: Record<string, ToolRegistryEntry> = {
         } catch { /* Non-critical */ }
       }
 
+      // ── Auto-check room conflicts (safety net) ───────────────────────────
+      let conflictWarning: string | undefined
+      const roomName = (draft.room as string || '').trim()
+      if (roomName && startDate && endDate) {
+        try {
+          // Check CalendarEvent table (current model)
+          const calConflict = await prisma.calendarEvent.findFirst({
+            where: {
+              locationText: { equals: roomName, mode: 'insensitive' },
+              calendarStatus: { not: 'CANCELLED' as any },
+              startTime: { lt: endDate },
+              endTime: { gt: startDate },
+            },
+            select: { id: true, title: true, startTime: true, endTime: true },
+          }).catch(() => null)
+
+          if (calConflict) {
+            const cStart = new Date(calConflict.startTime)
+            const cTime = cStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+            conflictWarning = `"${roomName}" is already booked for "${calConflict.title}" at ${cTime}. You may have a scheduling conflict.`
+          } else {
+            // Also check legacy Event table
+            const legacyConflict = await prisma.event.findFirst({
+              where: {
+                room: { equals: roomName, mode: 'insensitive' },
+                status: { not: 'CANCELLED' },
+                startsAt: { lt: endDate },
+                endsAt: { gt: startDate },
+              },
+              select: { id: true, title: true, startsAt: true },
+            }).catch(() => null)
+
+            if (legacyConflict) {
+              const lStart = new Date(legacyConflict.startsAt)
+              const lTime = lStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+              conflictWarning = `"${roomName}" is already booked for "${legacyConflict.title}" at ${lTime}. You may have a scheduling conflict.`
+            }
+          }
+        } catch { /* Non-critical — don't block event creation */ }
+      }
+
       const richCard: RichConfirmationCardData = {
-        title: draft.title, startDisplay, endDisplay,
-        location: draft.room || undefined, description: draft.description || undefined,
+        title: draft.title as string, startDisplay, endDisplay,
+        location: (draft.room as string) || undefined, description: (draft.description as string) || undefined,
         resources,
+        attendees: (draft.attendees as string) ? (draft.attendees as string).split(',').map((s: string) => s.trim()).filter(Boolean) : undefined,
+        equipmentList,
+        calendarName,
+        calendarId,
+        conflictWarning,
+        requiresApproval: !isPersonalCalendar,
       }
 
       return JSON.stringify({
