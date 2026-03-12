@@ -322,7 +322,7 @@ Plans:
   4. Leo can call `recall_context` to search organizational history and surface relevant past tickets, events, or conversations without the user specifying exact keywords
   5. After 5+ conversations, Leo's system prompt includes the user's learned preferences (frequent topics, communication style) — responses are noticeably personalized
   6. Conversations longer than 20 messages are automatically summarized into compressed summaries for efficient context window usage
-**Plans**: 6 plans
+**Plans**: 7 plans
 
 Plans:
 - [ ] 17-01-PLAN.md — Prisma models (Conversation, ConversationMessage, ConversationSummary, UserAssistantProfile, UserMemoryFact), pgvector setup, embedding service, conversation service (LEO-MEM-01, LEO-MEM-03)
@@ -331,6 +331,7 @@ Plans:
 - [ ] 17-04-PLAN.md — Memory extraction service, context assembly (4-layer), system prompt personalization (LEO-MEM-05, LEO-MEM-06)
 - [ ] 17-05-PLAN.md — Frontend: conversation history sidebar, feedback thumbs up/down buttons, load past conversations (LEO-MEM-01, LEO-MEM-02)
 - [ ] 17-06-PLAN.md — Conversation auto-summarization service, end-to-end human verification (LEO-MEM-07)
+- [ ] 17-07-PLAN.md — Gap closure: Fix API response data-shape parsing in ConversationSidebar and ChatPanel (LEO-MEM-01)
 
 ---
 
@@ -355,4 +356,4 @@ Plans:
 | 13. Infrastructure and Observability | 3/3 | Complete    | 2026-03-11 | - |
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
 | 16. Billing Permission & Observability Retrofit | 2/2 | Complete    | 2026-03-11 | - |
-| 17. Leo Memory & Learning | 6/6 | Complete   | 2026-03-12 | - |
+| 17. Leo Memory & Learning | 6/7 | Gap closure | 2026-03-12 | - |
