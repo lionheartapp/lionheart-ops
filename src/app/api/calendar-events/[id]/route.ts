@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import { LocationConflictError } from '@/lib/services/calendarService'
 import * as notificationService from '@/lib/services/notificationService'
 import { sendEventUpdateEmails } from '@/lib/services/emailService'
 import { prisma } from '@/lib/db'
@@ -28,6 +29,7 @@ const updateEventSchema = z.object({
   editMode: z.enum(['this', 'thisAndFollowing', 'all']).optional(),
   attendeeIds: z.array(z.string()).optional(),
   notify: z.boolean().optional(),
+  skipConflictCheck: z.boolean().optional(),
 })
 
 export async function GET(
@@ -82,7 +84,7 @@ export async function PUT(
     const body = await req.json()
     const data = updateEventSchema.parse(body)
 
-    const { editMode, startTime, endTime, attendeeIds, notify, ...rest } = data
+    const { editMode, startTime, endTime, attendeeIds, notify, skipConflictCheck, ...rest } = data
 
     return await runWithOrgContext(orgId, async () => {
       // Virtual recurring instances have compound IDs: "parentId_isoDatetime".
@@ -120,7 +122,8 @@ export async function PUT(
         },
         editMode || 'all',
         ctx.userId,
-        occurrenceStart
+        occurrenceStart,
+        skipConflictCheck
       )
 
       // Sync attendees if provided
@@ -184,6 +187,12 @@ export async function PUT(
       return NextResponse.json(ok(updated))
     })
   } catch (error) {
+    if (error instanceof LocationConflictError) {
+      return NextResponse.json(
+        fail('LOCATION_CONFLICT', error.message, error.details),
+        { status: 409 }
+      )
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }

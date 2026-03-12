@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Save, School, CheckCircle, XCircle, Pencil } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { Clock } from 'lucide-react'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import ImageDropZone from '@/components/settings/ImageDropZone'
@@ -106,6 +108,94 @@ type SchoolInfoTabProps = {
 
 function areFormsEqual(a: FormState, b: FormState) {
   return JSON.stringify(a) === JSON.stringify(b)
+}
+
+// ─── Standalone Event Buffer Section ────────────────────────────────────
+function EventBufferSection() {
+  const [bufferMinutes, setBufferMinutes] = useState<number | null>(null)
+  const [savedValue, setSavedValue] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetchApi<{ eventBufferMinutes: number }>('/api/settings/organization')
+      .then((data) => {
+        setBufferMinutes(data.eventBufferMinutes)
+        setSavedValue(data.eventBufferMinutes)
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleSave = async () => {
+    if (bufferMinutes === null || bufferMinutes === savedValue) return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/settings/organization', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ eventBufferMinutes: bufferMinutes }),
+      })
+      const json = await res.json()
+      if (json.ok) {
+        setSavedValue(bufferMinutes)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
+    } catch {
+      // silently fail
+    }
+    setSaving(false)
+  }
+
+  if (bufferMinutes === null) return null
+
+  const isDirty = bufferMinutes !== savedValue
+
+  return (
+    <section>
+      <h3 className="text-lg font-semibold text-gray-900">Event Settings</h3>
+      <div className="h-px bg-gray-200 mt-2 mb-4" />
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+          <Clock className="w-5 h-5 text-blue-600" />
+        </div>
+        <div className="flex-1 space-y-1">
+          <label htmlFor="event-buffer" className="text-sm font-medium text-gray-900">
+            Location buffer time
+          </label>
+          <p className="text-xs text-gray-500">
+            Minimum minutes between events at the same location. Set to 0 to disable.
+          </p>
+          <div className="flex items-center gap-3 mt-2">
+            <input
+              id="event-buffer"
+              type="number"
+              min={0}
+              max={480}
+              value={bufferMinutes}
+              onChange={(e) => setBufferMinutes(Math.max(0, Math.min(480, parseInt(e.target.value) || 0)))}
+              className="w-24 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+            />
+            <span className="text-sm text-gray-500">minutes</span>
+            {isDirty && (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            )}
+            {saved && (
+              <span className="text-xs text-green-600 font-medium">Saved</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegisterDiscard }: SchoolInfoTabProps) {
@@ -711,6 +801,9 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           </div>
         </div>
       </section>
+
+      {/* Event Buffer Settings — standalone, separate from school-info form */}
+      <EventBufferSection />
 
       <div className="flex flex-col sm:flex-row gap-3">
         <button

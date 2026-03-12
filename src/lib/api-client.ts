@@ -70,6 +70,11 @@ export async function fetchApi<T>(url: string, options?: RequestInit): Promise<T
   }
 
   const json = await res.json()
-  if (!json.ok) throw new Error(json.error?.message || 'API Error')
+  if (!json.ok) {
+    const err = new Error(json.error?.message || 'API Error') as Error & { code?: string; details?: unknown }
+    err.code = json.error?.code
+    err.details = json.error?.details
+    throw err
+  }
   return json.data
 }

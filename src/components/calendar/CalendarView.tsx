@@ -31,6 +31,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
 import CancellationNotifyDialog from './CancellationNotifyDialog'
 import NotifyAttendeesDialog from './NotifyAttendeesDialog'
+import LocationConflictDialog from './LocationConflictDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { useAthleticsCalendarEvents, useAthleticsSports } from '@/lib/hooks/useAthleticsCalendar'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
@@ -443,6 +444,19 @@ export default function CalendarView() {
 
   const [formError, setFormError] = useState<string | null>(null)
 
+  // Location conflict override flow
+  const [conflictWarning, setConflictWarning] = useState<{
+    conflictingEventTitle: string
+    conflictingStart: string
+    conflictingEnd: string
+    bufferMinutes: number
+    location: string
+  } | null>(null)
+  const [pendingConflictPayload, setPendingConflictPayload] = useState<{
+    type: 'create' | 'update'
+    payload: Record<string, unknown>
+  } | null>(null)
+
   const handleSubmitEvent = useCallback(async (data: EventFormData) => {
     setFormError(null)
     try {
@@ -457,7 +471,24 @@ export default function CalendarView() {
       }
       await createEvent.mutateAsync(payload)
       setIsCreateOpen(false)
-    } catch (err) {
+    } catch (err: unknown) {
+      const apiErr = err as Error & { code?: string; details?: Record<string, unknown> }
+      if (apiErr.code === 'LOCATION_CONFLICT' && apiErr.details) {
+        setConflictWarning(apiErr.details as typeof conflictWarning)
+        const { categoryId, rrule, buildingId, areaId, attendeeIds, ...rest } = data
+        setPendingConflictPayload({
+          type: 'create',
+          payload: {
+            ...rest,
+            ...(categoryId ? { categoryId } : {}),
+            ...(rrule ? { rrule } : {}),
+            ...(buildingId ? { buildingId } : {}),
+            ...(areaId ? { areaId } : {}),
+            ...(attendeeIds && attendeeIds.length > 0 ? { attendeeIds } : {}),
+          },
+        })
+        return
+      }
       const message = err instanceof Error ? err.message : 'Failed to create event'
       setFormError(message)
       console.error('Event creation failed:', err)
@@ -480,12 +511,52 @@ export default function CalendarView() {
       await updateEvent.mutateAsync(payload as { id: string } & Record<string, unknown>)
       setIsCreateOpen(false)
       setEditingEvent(null)
-    } catch (err) {
+    } catch (err: unknown) {
+      const apiErr = err as Error & { code?: string; details?: Record<string, unknown> }
+      if (apiErr.code === 'LOCATION_CONFLICT' && apiErr.details) {
+        setConflictWarning(apiErr.details as typeof conflictWarning)
+        const { categoryId, calendarId, rrule, buildingId, areaId, ...rest } = data
+        setPendingConflictPayload({
+          type: 'update',
+          payload: {
+            id: editingEvent.id,
+            ...rest,
+            ...(categoryId ? { categoryId } : {}),
+            ...(rrule ? { rrule } : {}),
+            ...(buildingId ? { buildingId } : {}),
+            ...(areaId ? { areaId } : {}),
+          },
+        })
+        return
+      }
       const message = err instanceof Error ? err.message : 'Failed to update event'
       setFormError(message)
       console.error('Event update failed:', err)
     }
   }, [updateEvent, editingEvent])
+
+  const handleOverrideConflict = useCallback(async () => {
+    if (!pendingConflictPayload) return
+    setConflictWarning(null)
+    try {
+      if (pendingConflictPayload.type === 'create') {
+        await createEvent.mutateAsync({ ...pendingConflictPayload.payload, skipConflictCheck: true })
+      } else {
+        await updateEvent.mutateAsync({ ...pendingConflictPayload.payload, skipConflictCheck: true } as unknown as { id: string } & Record<string, unknown>)
+      }
+      setIsCreateOpen(false)
+      setEditingEvent(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save event'
+      setFormError(message)
+    }
+    setPendingConflictPayload(null)
+  }, [pendingConflictPayload, createEvent, updateEvent])
+
+  const handleCancelConflict = useCallback(() => {
+    setConflictWarning(null)
+    setPendingConflictPayload(null)
+  }, [])
 
   // Delete flow state — multi-step for recurring events
   const [pendingDelete, setPendingDelete] = useState<CalendarEventData | null>(null)
@@ -1045,6 +1116,14 @@ export default function CalendarView() {
         onClose={cancelPendingChange}
         onSend={() => executePendingChange(true)}
         onDontSend={() => executePendingChange(false)}
+      />
+
+      {/* Location conflict warning — shown when event overlaps buffer at same location */}
+      <LocationConflictDialog
+        isOpen={!!conflictWarning}
+        conflict={conflictWarning}
+        onClose={handleCancelConflict}
+        onOverride={handleOverrideConflict}
       />
     </div>
     </MotionConfig>

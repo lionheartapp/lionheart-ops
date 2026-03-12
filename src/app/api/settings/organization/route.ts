@@ -23,6 +23,7 @@ const OrgUpdateSchema = z.object({
       'Slug can only contain lowercase letters, numbers, and hyphens'
     )
     .optional(),
+  eventBufferMinutes: z.number().int().min(0).max(480).optional(),
 })
 
 export async function GET(req: NextRequest) {
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const org = await rawPrisma.organization.findUnique({
       where: { id: orgId },
-      select: { name: true, slug: true },
+      select: { name: true, slug: true, eventBufferMinutes: true },
     })
 
     if (!org) {
@@ -77,11 +78,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Validation failed', details), { status: 400 })
     }
 
-    const { name, slug } = parsed.data
+    const { name, slug, eventBufferMinutes } = parsed.data
 
-    if (!name && !slug) {
+    if (!name && !slug && eventBufferMinutes === undefined) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'At least one of name or slug must be provided'),
+        fail('VALIDATION_ERROR', 'At least one field must be provided'),
         { status: 400 }
       )
     }
@@ -105,8 +106,9 @@ export async function PATCH(req: NextRequest) {
       data: {
         ...(name ? { name } : {}),
         ...(slug ? { slug } : {}),
+        ...(eventBufferMinutes !== undefined ? { eventBufferMinutes } : {}),
       },
-      select: { name: true, slug: true },
+      select: { name: true, slug: true, eventBufferMinutes: true },
     })
 
     await audit({

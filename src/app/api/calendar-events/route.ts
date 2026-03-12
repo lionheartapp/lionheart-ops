@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import { LocationConflictError } from '@/lib/services/calendarService'
 import { embedCalendarEvent } from '@/lib/services/ai/embeddingTriggers'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { z } from 'zod'
@@ -26,6 +27,7 @@ const createEventSchema = z.object({
   areaId: z.string().optional().nullable(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   attendeeIds: z.array(z.string()).optional(),
+  skipConflictCheck: z.boolean().optional(),
 })
 
 export async function GET(req: NextRequest) {
@@ -119,7 +121,7 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const canPublish = await can(ctx.userId, PERMISSIONS.CALENDAR_EVENTS_PUBLISH)
 
-      const { attendeeIds, ...eventData } = data
+      const { attendeeIds, skipConflictCheck, ...eventData } = data
       const event = await calendarService.createEvent(
         {
           ...eventData,
@@ -127,7 +129,8 @@ export async function POST(req: NextRequest) {
           endTime: new Date(data.endTime),
         },
         ctx.userId,
-        canPublish
+        canPublish,
+        skipConflictCheck
       )
 
       // Create attendee records if provided
@@ -147,6 +150,12 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       log.error({ err: error }, 'calendar-events POST validation error')
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
+    }
+    if (error instanceof LocationConflictError) {
+      return NextResponse.json(
+        fail('LOCATION_CONFLICT', error.message, error.details),
+        { status: 409 }
+      )
     }
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })

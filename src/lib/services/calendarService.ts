@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 import { expandRecurrence } from './recurrenceService'
+import { getOrgContextId } from '@/lib/org-context'
 import type {
   CalendarEventStatus,
   ApprovalChannel,
@@ -180,6 +182,111 @@ export async function deleteCalendar(id: string) {
   return prisma.calendar.delete({ where: { id } })
 }
 
+// ─── Location Conflict Detection ────────────────────────────────────────
+
+export class LocationConflictError extends Error {
+  code = 'LOCATION_CONFLICT' as const
+  details: {
+    conflictingEventId: string
+    conflictingEventTitle: string
+    conflictingStart: string
+    conflictingEnd: string
+    bufferMinutes: number
+    location: string
+  }
+  constructor(details: LocationConflictError['details']) {
+    super(`Location conflict with "${details.conflictingEventTitle}"`)
+    this.details = details
+  }
+}
+
+/**
+ * Check if an event at the given time + location conflicts with an existing event
+ * (including the org's configured buffer time on both sides).
+ */
+export async function checkLocationConflict(opts: {
+  startTime: Date
+  endTime: Date
+  buildingId?: string | null
+  areaId?: string | null
+  locationText?: string
+  excludeEventId?: string
+}): Promise<{ hasConflict: false } | { hasConflict: true; conflictingEvent: { id: string; title: string; startTime: Date; endTime: Date; location: string } ; bufferMinutes: number }> {
+  const { startTime, endTime, buildingId, areaId, locationText, excludeEventId } = opts
+
+  // No location data → skip check
+  if (!buildingId && !areaId && !locationText) {
+    return { hasConflict: false }
+  }
+
+  // Fetch org buffer setting
+  const orgId = getOrgContextId()
+  if (!orgId) return { hasConflict: false }
+
+  const org = await rawPrisma.organization.findUnique({
+    where: { id: orgId },
+    select: { eventBufferMinutes: true },
+  })
+  const bufferMinutes = org?.eventBufferMinutes ?? 60
+  if (bufferMinutes <= 0) return { hasConflict: false }
+
+  const bufferMs = bufferMinutes * 60_000
+  const windowStart = new Date(startTime.getTime() - bufferMs)
+  const windowEnd = new Date(endTime.getTime() + bufferMs)
+
+  // Build location match clause (tiered)
+  const locationWhere: Prisma.CalendarEventWhereInput = buildingId && areaId
+    ? { buildingId, areaId }
+    : buildingId
+      ? { buildingId, areaId: null }
+      : areaId
+        ? { areaId, buildingId: null }
+        : { locationText: { equals: locationText!, mode: 'insensitive' } }
+
+  const where: Prisma.CalendarEventWhereInput = {
+    ...locationWhere,
+    // Event overlaps with expanded window
+    startTime: { lt: windowEnd },
+    endTime: { gt: windowStart },
+    // Don't conflict with self
+    ...(excludeEventId ? { id: { not: excludeEventId } } : {}),
+    // Only check confirmed/pending events, not cancelled/draft
+    calendarStatus: { in: ['CONFIRMED', 'PENDING_APPROVAL'] },
+  }
+
+  const conflict = await prisma.calendarEvent.findFirst({
+    where,
+    select: {
+      id: true,
+      title: true,
+      startTime: true,
+      endTime: true,
+      locationText: true,
+      building: { select: { name: true } },
+      area: { select: { name: true } },
+    },
+    orderBy: { startTime: 'asc' },
+  })
+
+  if (!conflict) return { hasConflict: false }
+
+  const location = [conflict.building?.name, conflict.area?.name].filter(Boolean).join(' — ')
+    || conflict.locationText
+    || 'Same location'
+
+  return {
+    hasConflict: true,
+    conflictingEvent: {
+      id: conflict.id,
+      title: conflict.title,
+      startTime: conflict.startTime,
+      endTime: conflict.endTime,
+      location,
+    },
+    bufferMinutes,
+  }
+}
+
 // ─── Calendar Event CRUD ───────────────────────────────────────────────
 
 /**
@@ -189,8 +296,30 @@ export async function deleteCalendar(id: string) {
 export async function createEvent(
   input: CreateEventInput,
   userId: string,
-  canPublish: boolean
+  canPublish: boolean,
+  skipConflictCheck = false
 ) {
+  // Check for location conflicts before creating
+  if (!skipConflictCheck) {
+    const conflict = await checkLocationConflict({
+      startTime: input.startTime,
+      endTime: input.endTime,
+      buildingId: input.buildingId,
+      areaId: input.areaId,
+      locationText: input.locationText,
+    })
+    if (conflict.hasConflict) {
+      throw new LocationConflictError({
+        conflictingEventId: conflict.conflictingEvent.id,
+        conflictingEventTitle: conflict.conflictingEvent.title,
+        conflictingStart: conflict.conflictingEvent.startTime.toISOString(),
+        conflictingEnd: conflict.conflictingEvent.endTime.toISOString(),
+        bufferMinutes: conflict.bufferMinutes,
+        location: conflict.conflictingEvent.location,
+      })
+    }
+  }
+
   // Look up the calendar to check approval requirements
   const calendar = await prisma.calendar.findUnique({
     where: { id: input.calendarId },
@@ -512,13 +641,42 @@ export async function updateEvent(
   data: UpdateEventInput,
   editMode: EditMode,
   userId: string,
-  occurrenceStart?: Date
+  occurrenceStart?: Date,
+  skipConflictCheck = false
 ) {
   const event = await prisma.calendarEvent.findUnique({
     where: { id: eventId },
   })
 
   if (!event) throw new Error('Event not found')
+
+  // Check for location conflicts before updating
+  if (!skipConflictCheck) {
+    const checkStart = data.startTime || event.startTime
+    const checkEnd = data.endTime || event.endTime
+    const checkBuildingId = data.buildingId === undefined ? event.buildingId : data.buildingId
+    const checkAreaId = data.areaId === undefined ? event.areaId : data.areaId
+    const checkLocationText = data.locationText === undefined ? event.locationText : data.locationText
+
+    const conflict = await checkLocationConflict({
+      startTime: checkStart,
+      endTime: checkEnd,
+      buildingId: checkBuildingId,
+      areaId: checkAreaId,
+      locationText: checkLocationText || undefined,
+      excludeEventId: eventId,
+    })
+    if (conflict.hasConflict) {
+      throw new LocationConflictError({
+        conflictingEventId: conflict.conflictingEvent.id,
+        conflictingEventTitle: conflict.conflictingEvent.title,
+        conflictingStart: conflict.conflictingEvent.startTime.toISOString(),
+        conflictingEnd: conflict.conflictingEvent.endTime.toISOString(),
+        bufferMinutes: conflict.bufferMinutes,
+        location: conflict.conflictingEvent.location,
+      })
+    }
+  }
 
   // Non-recurring or 'all' mode: straightforward update
   if (!event.rrule || editMode === 'all') {
