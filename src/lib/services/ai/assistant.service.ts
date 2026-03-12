@@ -106,7 +106,8 @@ export function buildSystemPrompt(
   userName: string,
   userRole: string = 'member',
   currentDate: string = new Date().toISOString(),
-  assembledContext?: AssembledContext
+  assembledContext?: AssembledContext,
+  orgTimezone: string = 'America/Chicago'
 ): string {
   // Build capabilities list from available tools
   const capabilities: string[] = []
@@ -218,18 +219,39 @@ export function buildSystemPrompt(
     day: 'numeric',
   })
 
-  // Build this-week reference so the LLM doesn't miscalculate relative dates
-  const dayOfWeek = now.getDay() // 0=Sun
+  // Build next-7-days reference with explicit relative labels
   const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const weekDates: string[] = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(now)
-    d.setDate(d.getDate() + (i - dayOfWeek)) // start from Sunday of this week
-    const label = weekDays[i]
-    const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-    weekDates.push(`  - ${label}: ${formatted}`)
+    d.setDate(d.getDate() + i) // start from TODAY, go forward 7 days
+    const dayName = weekDays[d.getDay()]
+    const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    const relLabel = i === 0 ? ' ← TODAY' : i === 1 ? ' ← TOMORROW' : ''
+    weekDates.push(`  - ${dayName}, ${formatted}${relLabel}`)
   }
   const weekReference = weekDates.join('\n')
+
+  // Compute timezone offset string for instructing Leo to use in dates
+  // e.g., "America/Chicago" → "-05:00" or "-06:00" depending on DST
+  let tzOffsetStr = '-06:00' // fallback
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: orgTimezone, timeZoneName: 'shortOffset' })
+    const parts = formatter.formatToParts(now)
+    const tzPart = parts.find(p => p.type === 'timeZoneName')
+    if (tzPart?.value) {
+      // Convert "GMT-5" or "GMT-6" to "-05:00" or "-06:00"
+      const match = tzPart.value.match(/GMT([+-])(\d+)(?::(\d+))?/)
+      if (match) {
+        const sign = match[1]
+        const hours = match[2].padStart(2, '0')
+        const minutes = (match[3] || '0').padStart(2, '0')
+        tzOffsetStr = `${sign}${hours}:${minutes}`
+      }
+    }
+  } catch {
+    // Keep fallback
+  }
 
   const basePrompt = `You are **Leo**, the friendly AI assistant for Lionheart — a school facility and operations management platform.
 
@@ -244,8 +266,14 @@ export function buildSystemPrompt(
 - **Organization:** ${orgName}
 - **User:** ${userName} (${userRole})
 - **Today:** ${dateDisplay}
-- **This week's dates (use these for "this Monday", "this Friday", etc.):**
+- **Timezone:** ${orgTimezone} (UTC offset: ${tzOffsetStr})
+- **Next 7 days (use these for ALL relative date references — "tomorrow", "this Friday", etc.):**
 ${weekReference}
+
+**CRITICAL DATE/TIME RULES:**
+1. When the user says "tomorrow", ALWAYS use the date marked ← TOMORROW above. Do NOT calculate dates yourself.
+2. When outputting dates for tool calls (startsAt, endsAt, date parameters), ALWAYS include the timezone offset. Example: \`2026-03-12T14:00:00${tzOffsetStr}\` — NEVER output bare dates like \`2026-03-12T14:00:00\` without the offset.
+3. When checking availability with \`check_user_availability\`, use YYYY-MM-DD format from the dates listed above.
 
 ## Your Capabilities
 ${capabilitiesBlock}

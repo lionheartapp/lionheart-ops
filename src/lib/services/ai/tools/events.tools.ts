@@ -256,7 +256,7 @@ const tools: Record<string, ToolRegistryEntry> = {
     },
     requiredPermission: PERMISSIONS.CALENDAR_EVENTS_READ,
     riskTier: 'GREEN',
-    execute: async (input) => {
+    execute: async (input, ctx) => {
       const userName = String(input.user_name || '')
       const user = await prisma.user.findFirst({
         where: { OR: [{ name: { contains: userName, mode: 'insensitive' } }, { email: { contains: userName, mode: 'insensitive' } }] },
@@ -264,16 +264,42 @@ const tools: Record<string, ToolRegistryEntry> = {
       })
       if (!user) return JSON.stringify({ error: `Could not find user matching "${userName}"` })
 
+      // Fetch org timezone so date ranges use the correct local day boundaries
+      let orgTimezone = 'America/Chicago'
+      try {
+        const { rawPrisma } = await import('@/lib/db')
+        const org = await rawPrisma.organization.findUnique({
+          where: { id: ctx.organizationId },
+          select: { timezone: true },
+        })
+        if (org?.timezone) orgTimezone = org.timezone
+      } catch { /* keep default */ }
+
+      // Compute UTC offset for the org's timezone
+      let tzOffset = '-06:00'
+      try {
+        const refDate = new Date()
+        const formatter = new Intl.DateTimeFormat('en-US', { timeZone: orgTimezone, timeZoneName: 'shortOffset' })
+        const parts = formatter.formatToParts(refDate)
+        const tzPart = parts.find(p => p.type === 'timeZoneName')
+        if (tzPart?.value) {
+          const match = tzPart.value.match(/GMT([+-])(\d+)(?::(\d+))?/)
+          if (match) {
+            tzOffset = `${match[1]}${match[2].padStart(2, '0')}:${(match[3] || '0').padStart(2, '0')}`
+          }
+        }
+      } catch { /* keep default */ }
+
       const singleDate = input.date as string | undefined
       let start: Date, end: Date
       if (singleDate) {
-        start = new Date(singleDate + 'T00:00:00')
-        end = new Date(singleDate + 'T23:59:59')
+        start = new Date(singleDate + 'T00:00:00' + tzOffset)
+        end = new Date(singleDate + 'T23:59:59' + tzOffset)
       } else {
         const startStr = (input.start_date as string) || new Date().toISOString().split('T')[0]
         const endStr = (input.end_date as string) || startStr
-        start = new Date(startStr + 'T00:00:00')
-        end = new Date(endStr + 'T23:59:59')
+        start = new Date(startStr + 'T00:00:00' + tzOffset)
+        end = new Date(endStr + 'T23:59:59' + tzOffset)
       }
 
       const { getEventsForUser } = await import('@/lib/services/calendarService')

@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { rawPrisma } from '@/lib/db'
 import * as bcrypt from 'bcryptjs'
 import { DEFAULT_ROLES, DEFAULT_TEAMS } from '@/lib/permissions'
+import { timezoneFromAddress } from '@/lib/utils/timezone'
 
 /**
  * Slug validation schema
@@ -376,6 +377,9 @@ export async function createOrganization(input: CreateOrganizationInput) {
   // If any step fails the entire org creation rolls back — no orphaned orgs or users.
   return rawPrisma.$transaction(async (tx) => {
     // ── Step 1: Create the organization and its first admin user ──
+    // Auto-detect timezone from school address (US states)
+    const detectedTimezone = timezoneFromAddress(validated.physicalAddress)
+
     const org = await tx.organization.create({
       data: {
         name:            validated.name,
@@ -383,6 +387,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
         gradeLevel:      validated.gradeLevel,
         slug:            validated.slug.toLowerCase(),
         physicalAddress: validated.physicalAddress ?? null,
+        ...(detectedTimezone ? { timezone: detectedTimezone } : {}),
         district:        validated.district ?? null,
         website:         validated.website ?? null,
         phone:           validated.phone ?? null,

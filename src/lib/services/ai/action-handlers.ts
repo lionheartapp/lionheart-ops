@@ -22,10 +22,52 @@ interface ActionHandler {
   execute: (payload: Record<string, unknown>, ctx: ActionContext) => Promise<{ message: string }>
 }
 
-/** Ensure a date string is full ISO 8601 */
-function ensureISODate(dateStr: string): string {
+/** Compute the UTC offset string (e.g., "-05:00") for a given IANA timezone at a given instant. */
+function getTimezoneOffset(timezone: string, date: Date = new Date()): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
+    const parts = formatter.formatToParts(date)
+    const tzPart = parts.find(p => p.type === 'timeZoneName')
+    if (tzPart?.value) {
+      const match = tzPart.value.match(/GMT([+-])(\d+)(?::(\d+))?/)
+      if (match) {
+        return `${match[1]}${match[2].padStart(2, '0')}:${(match[3] || '0').padStart(2, '0')}`
+      }
+    }
+  } catch { /* fall through */ }
+  return '-06:00' // safe fallback (CST)
+}
+
+/** Fetch the org's IANA timezone from the database. */
+async function getOrgTimezone(organizationId: string): Promise<string> {
+  try {
+    const { rawPrisma } = await import('@/lib/db')
+    const org = await rawPrisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { timezone: true },
+    })
+    return org?.timezone || 'America/Chicago'
+  } catch {
+    return 'America/Chicago'
+  }
+}
+
+/** Ensure a date string is full ISO 8601.
+ *  If the string has no timezone info (no Z or ±HH:MM), treat it as being
+ *  in the org's timezone rather than the server's local time (UTC on Vercel).
+ *  This prevents "2pm" from becoming 2pm UTC instead of 2pm org-local. */
+function ensureISODate(dateStr: string, orgTimezone: string = 'America/Chicago'): string {
   if (!dateStr) return dateStr
+  // Already has timezone — pass through
   if (dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)) return dateStr
+  // Naive ISO string (e.g., "2026-03-12T14:00:00") — interpret in org timezone
+  const match = dateStr.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/)
+  if (match) {
+    const offset = getTimezoneOffset(orgTimezone, new Date(dateStr + 'Z'))
+    const withTz = dateStr + offset
+    const d = new Date(withTz)
+    if (!isNaN(d.getTime())) return d.toISOString()
+  }
   let d = new Date(dateStr)
   if (!isNaN(d.getTime())) return d.toISOString()
   const cleaned = dateStr.replace(/,/g, '').trim()
@@ -128,6 +170,9 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
   create_event: {
     requiredPermission: PERMISSIONS.EVENTS_CREATE,
     execute: async (payload, ctx) => {
+      // Fetch org timezone for date interpretation
+      const orgTz = await getOrgTimezone(ctx.organizationId)
+
       // Use the user-selected calendar if provided, otherwise fall back to personal calendar
       let calendarId = payload.calendarId ? String(payload.calendarId) : undefined
       let isPersonalCalendar = false
@@ -183,8 +228,9 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
         title: String(payload.title || ''),
         description: String(payload.description || '') || undefined,
         locationText: String(payload.room || '') || undefined,
-        startTime: new Date(ensureISODate(String(payload.startsAt))),
-        endTime: new Date(ensureISODate(String(payload.endsAt))),
+        startTime: new Date(ensureISODate(String(payload.startsAt), orgTz)),
+        endTime: new Date(ensureISODate(String(payload.endsAt), orgTz)),
+        timezone: orgTz,
         metadata,
       }, ctx.userId, canPublish)
 

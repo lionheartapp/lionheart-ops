@@ -177,16 +177,18 @@ export async function POST(req: NextRequest) {
     let orgName = 'your organization'
     let userName = ctx.email
     let userRole = 'member'
+    let orgTimezone = 'America/Chicago'
     try {
       const { rawPrisma } = await import('@/lib/db')
       const [org, user] = await Promise.all([
-        rawPrisma.organization.findUnique({ where: { id: orgId }, select: { name: true } }),
+        rawPrisma.organization.findUnique({ where: { id: orgId }, select: { name: true, timezone: true } }),
         rawPrisma.user.findUnique({
           where: { id: ctx.userId },
           select: { name: true, userRole: { select: { name: true } } },
         }),
       ])
       if (org?.name) orgName = org.name
+      if (org?.timezone) orgTimezone = org.timezone
       if (user?.name) userName = user.name
       if (user?.userRole?.name) userRole = user.userRole.name
     } catch {
@@ -202,7 +204,7 @@ export async function POST(req: NextRequest) {
       // Non-critical — proceed without personalized context
     }
 
-    const systemPrompt = buildSystemPrompt(toolNames, orgName, userName, userRole, new Date().toISOString(), assembledCtx)
+    const systemPrompt = buildSystemPrompt(toolNames, orgName, userName, userRole, new Date().toISOString(), assembledCtx, orgTimezone)
 
     // Build Gemini-format conversation from history
     const recentHistory = body.conversationHistory.slice(-CONVERSATION_CONTEXT_LIMIT)
