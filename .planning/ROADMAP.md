@@ -344,10 +344,10 @@ Plans:
   2. All 3 AI routes (`chat`, `generate-description`, `parse-event`) have `logger.child({ route, method })` Pino instrumentation and `Sentry.captureException(error)` in catch blocks
   3. `POST /api/auth/resend-verification` is included in the `publicApiRateLimiter` branch in middleware
   4. The E2E flow "Inventory Checkout → Low-Stock → Preference Check → Delivery" completes without bypassing user notification preferences
-**Plans**: 0 plans
+**Plans**: 1 plan
 
 Plans:
-_(none yet — run `/gsd:plan-phase 18`)_
+- [ ] 18-01-PLAN.md — Preference-filtered bulk notifications, AI route Pino/Sentry instrumentation, middleware rate limit for resend-verification (INV-04, SET-05, INFRA-03, INFRA-04, AUTH-03)
 
 ---
 
@@ -373,4 +373,4 @@ _(none yet — run `/gsd:plan-phase 18`)_
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
 | 16. Billing Permission & Observability Retrofit | 2/2 | Complete    | 2026-03-11 | - |
 | 17. Leo Memory & Learning | 7/7 | Complete    | 2026-03-12 | - |
-| 18. Integration Gap Closure | 0/0 | Not Started | - | - |
+| 18. Integration Gap Closure | 0/1 | In Progress | - | - |
