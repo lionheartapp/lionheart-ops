@@ -356,4 +356,4 @@ Plans:
 | 13. Infrastructure and Observability | 3/3 | Complete    | 2026-03-11 | - |
 | 15. Auth Security Gap Closure | 1/1 | Complete    | 2026-03-11 | - |
 | 16. Billing Permission & Observability Retrofit | 2/2 | Complete    | 2026-03-11 | - |
-| 17. Leo Memory & Learning | 7/7 | Complete   | 2026-03-12 | - |
+| 17. Leo Memory & Learning | 7/7 | Complete    | 2026-03-12 | - |
