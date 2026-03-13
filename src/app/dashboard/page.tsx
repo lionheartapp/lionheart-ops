@@ -410,28 +410,25 @@ export default function DashboardPage() {
           </h1>
         </motion.div>
         <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-center">
-          {/* Notification Bell — aurora gradient border on hover, bell rings */}
-          <motion.button
-            onClick={() => setIsNotificationsOpen(true)}
-            className="group/bell relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
-            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
-            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-            whileTap={buttonTap}
-          >
-            {/* Spinning aurora gradient border — visible on hover */}
+          {/* Notification Bell — aurora gradient ring on hover, bell rings */}
+          <div className="group/bell relative">
+            {/* Spinning aurora gradient ring — behind the button, visible on hover */}
             <span
-              className="absolute inset-[-2px] rounded-full opacity-0 group-hover/bell:opacity-100 transition-opacity duration-300 pointer-events-none"
-              style={{ background: 'conic-gradient(from 0deg, #3B82F6, #6366F1, #8B5CF6, #6366F1, #3B82F6)', animation: 'aurora-border-spin 2s linear infinite' }}
+              className="absolute -inset-[2.5px] rounded-full opacity-0 group-hover/bell:opacity-100 transition-opacity duration-300 pointer-events-none"
+              style={{ padding: '2.5px', background: 'conic-gradient(from 0deg, #3B82F6, #6366F1, #8B5CF6, #6366F1, #3B82F6)', WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', WebkitMaskComposite: 'xor', maskComposite: 'exclude', animation: 'aurora-border-spin 2s linear infinite' }}
             />
-            {/* Inner background to mask the gradient, leaving only the border visible */}
-            <span
-              className="absolute inset-[1px] rounded-full pointer-events-none"
-              style={{ background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(16px)' }}
-            />
-            <span className="relative group-hover/bell:animate-[bell-ring_0.6s_ease-in-out]" style={{ transformOrigin: 'top center' }}>
-              <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5 text-slate-800" />
-            </span>
-          </motion.button>
+            <motion.button
+              onClick={() => setIsNotificationsOpen(true)}
+              className="relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
+              style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+              whileTap={buttonTap}
+            >
+              <span className="group-hover/bell:animate-[bell-ring_0.6s_ease-in-out]" style={{ transformOrigin: 'top center' }}>
+                <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5 text-slate-800" />
+              </span>
+            </motion.button>
+          </div>
 
           {/* Create button — shimmer sweep + glow on hover */}
           <div className="relative">
