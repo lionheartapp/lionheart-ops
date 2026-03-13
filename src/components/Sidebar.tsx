@@ -864,6 +864,16 @@ export default function Sidebar({
         </button>
       </div>
 
+      {/* SVG gradient for active nav icons */}
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="sidebar-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#3B82F6" />
+            <stop offset="100%" stopColor="#6366F1" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       {/* Navigation Menu */}
       <nav className="p-4 pt-2 flex-1" role="navigation" aria-label="Main navigation">
         <ul className="space-y-2" role="list">
@@ -880,21 +890,14 @@ export default function Sidebar({
                     setIsOpen(false)
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
-                  className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                  className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
                     active && !settingsOpen && !athleticsOpen
-                      ? 'text-slate-900 font-semibold bg-white rounded-r-xl rounded-l-none'
-                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent rounded-xl'
+                      ? 'text-slate-900 font-semibold bg-white'
+                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                 >
-                  {/* Left accent bar */}
-                  {active && !settingsOpen && !athleticsOpen && (
-                    <span
-                      className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full"
-                      style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
-                    />
-                  )}
-                  <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen ? 'text-transparent' : ''}`} aria-hidden="true" style={active && !settingsOpen && !athleticsOpen ? { stroke: 'url(#sidebar-icon-gradient)' } : undefined} />
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
@@ -922,21 +925,14 @@ export default function Sidebar({
                   queryClient.prefetchQuery(queryOptions.modules()).catch(() => {})
                   queryClient.prefetchQuery(queryOptions.calendars()).catch(() => {})
                 }}
-                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
                   athleticsOpen
-                    ? 'text-slate-900 font-semibold bg-white rounded-r-xl rounded-l-none'
-                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent rounded-xl'
+                    ? 'text-slate-900 font-semibold bg-white'
+                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                 }`}
                 aria-current={athleticsOpen ? 'page' : undefined}
               >
-                {/* Left accent bar */}
-                {athleticsOpen && (
-                  <span
-                    className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full"
-                    style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
-                  />
-                )}
-                <Trophy className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-transparent' : ''}`} aria-hidden="true" style={athleticsOpen ? { stroke: 'url(#sidebar-icon-gradient)' } : undefined} />
                 <span className="text-sm">Athletics</span>
               </button>
             </li>
@@ -2001,7 +1997,7 @@ export default function Sidebar({
         {/* Main Navigation Sidebar — Aura glass panel */}
         <aside
           className="flex flex-col w-64 text-slate-700 h-full relative z-10 rounded-2xl"
-          style={{ background: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.55)' }}
+          style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.55)' }}
           aria-label="Sidebar navigation"
         >
           {mainNavContent}
@@ -2027,7 +2023,7 @@ export default function Sidebar({
         className={`lg:hidden fixed left-0 top-0 h-screen w-[85vw] max-w-[320px] text-slate-700 flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
-        style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRight: '1px solid rgba(255, 255, 255, 0.55)' }}
+        style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRight: '1px solid rgba(255, 255, 255, 0.55)' }}
         role="navigation"
         aria-label="Mobile navigation"
       >
