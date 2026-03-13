@@ -410,48 +410,36 @@ export default function DashboardPage() {
           </h1>
         </motion.div>
         <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-center">
-          {/* Notification Bell — aurora gradient ring on hover, bell rings */}
-          <div className="group/bell relative">
-            {/* Spinning aurora gradient ring — behind the button, visible on hover */}
-            <span
-              className="absolute -inset-[2.5px] rounded-full opacity-0 group-hover/bell:opacity-100 transition-opacity duration-300 pointer-events-none"
-              style={{ padding: '2.5px', background: 'conic-gradient(from 0deg, #3B82F6, #6366F1, #8B5CF6, #6366F1, #3B82F6)', WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', WebkitMaskComposite: 'xor', maskComposite: 'exclude', animation: 'aurora-border-spin 2s linear infinite' }}
-            />
-            <motion.button
-              onClick={() => setIsNotificationsOpen(true)}
-              className="relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
-              style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
-              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-              whileTap={buttonTap}
-            >
-              <span className="group-hover/bell:animate-[bell-ring_0.6s_ease-in-out]" style={{ transformOrigin: 'top center' }}>
-                <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5 text-slate-800" />
-              </span>
-            </motion.button>
-          </div>
+          {/* Notification Bell — scale + aurora glow + bell ring on hover */}
+          <motion.button
+            onClick={() => setIsNotificationsOpen(true)}
+            className="group/bell relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
+            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+            whileHover={{ scale: 1.1, boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.25), 0 0 40px rgba(59, 130, 246, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          >
+            <span className="group-hover/bell:animate-[bell-ring_0.6s_ease-in-out]" style={{ transformOrigin: 'top center', display: 'flex' }}>
+              <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5 text-slate-800" />
+            </span>
+          </motion.button>
 
-          {/* Create button — shimmer sweep + glow on hover */}
+          {/* Create button — scale + aurora gradient bg + glow on hover */}
           <div className="relative">
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
-            className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] text-slate-800 font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden hover:animate-[create-glow_2s_ease-in-out_infinite]"
-            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)', transition: 'border-color 0.3s, box-shadow 0.3s' }}
+            className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden"
+            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)', color: '#1e293b' }}
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
-            whileTap={buttonTap}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.4)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.6)' }}
+            whileHover={{ scale: 1.04, background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
           >
-            {/* Shimmer sweep — slides across on hover */}
-            <span className="absolute inset-0 opacity-0 group-hover/create:opacity-100 pointer-events-none">
-              <span
-                className="absolute inset-0 group-hover/create:animate-[shimmer-sweep_1.5s_ease-in-out_infinite]"
-                style={{ background: 'linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.08), rgba(59, 130, 246, 0.06), transparent)', width: '50%' }}
-              />
-            </span>
-            <Plus className="relative w-5 h-5 transition-transform duration-300 group-hover/create:rotate-90" aria-hidden="true" />
-            <span className="relative">Create</span>
-            <ChevronDown className={`relative w-4 h-4 transition-transform duration-300 ${isCreateDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+            <Plus className="w-5 h-5 transition-transform duration-300 group-hover/create:rotate-90" aria-hidden="true" />
+            Create
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCreateDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
           </motion.button>
 
           {/* Create Dropdown Menu */}
