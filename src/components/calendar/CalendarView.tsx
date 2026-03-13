@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   useCalendars,
@@ -58,7 +58,6 @@ const COLOR_PRESETS = [
 ]
 
 export default function CalendarView() {
-  const router = useRouter()
   const {
     currentDate,
     setCurrentDate,
@@ -70,10 +69,13 @@ export default function CalendarView() {
     getDateRange,
   } = useCalendarNavigation()
 
-  // Navigate to dashboard and open the Plan Event stepper
+  // Open the full event form directly on the calendar page
   const handlePlanEvent = useCallback(() => {
-    router.push('/dashboard?planEvent=1')
-  }, [router])
+    setCreateMode('event')
+    setCreateInitialStart(undefined)
+    setCreateInitialEnd(undefined)
+    setIsCreateOpen(true)
+  }, [])
 
   // Choice modal — shown when user clicks an empty calendar slot
   const [choiceModalOpen, setChoiceModalOpen] = useState(false)
@@ -96,8 +98,11 @@ export default function CalendarView() {
 
   const handleChoicePlanEvent = useCallback(() => {
     setChoiceModalOpen(false)
-    router.push('/dashboard?planEvent=1')
-  }, [router])
+    setCreateMode('event')
+    setCreateInitialStart(choiceModalStart)
+    setCreateInitialEnd(choiceModalEnd)
+    setIsCreateOpen(true)
+  }, [choiceModalStart, choiceModalEnd])
 
   // Detect mobile for auto-switching month → agenda
   const [isMobile, setIsMobile] = useState(false)
