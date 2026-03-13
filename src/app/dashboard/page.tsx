@@ -425,8 +425,12 @@ export default function DashboardPage() {
             </span>
           </motion.button>
 
-          {/* Create button — aurora gradient bg + glow on hover (no scale to avoid clipping) */}
-          <div className="relative">
+          {/* Create button — opens dropdown on hover */}
+          <div
+            className="relative"
+            onMouseEnter={() => setIsCreateDropdownOpen(true)}
+            onMouseLeave={() => setIsCreateDropdownOpen(false)}
+          >
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
             className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden"
