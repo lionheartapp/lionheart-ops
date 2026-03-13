@@ -319,8 +319,8 @@ export default function DashboardPage() {
 
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #e8eaf0, #d4dbe8, #c8d4e4, #d8dce8, #e4e6ec)' }}>
+        <div className="text-slate-500">Loading...</div>
       </div>
     )
   }
@@ -409,7 +409,8 @@ export default function DashboardPage() {
         <motion.div variants={fadeInUp} className="relative self-start sm:self-center">
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
-            className="px-4 sm:px-6 py-3 min-h-[44px] bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 transition flex items-center gap-2"
+            className="px-4 sm:px-6 py-3 min-h-[44px] text-slate-800 font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 transition flex items-center gap-2"
+            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
             whileTap={buttonTap}
@@ -530,65 +531,65 @@ export default function DashboardPage() {
           <div className="flex gap-3 mb-6">
             {user.dashboardMode === 'admin' && (
               <>
-                <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-primary-600">
                     <AnimatedCounter value={upcomingCalEvents.filter(e => new Date(e.startTime).toDateString() === new Date().toDateString()).length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Events Today</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Events Today</p>
                 </div>
-                <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-blue-600">
                     <AnimatedCounter value={upcomingCalEvents.length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Events Next 2 Weeks</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Events Next 2 Weeks</p>
                 </div>
               </>
             )}
             {user.dashboardMode === 'av' && (
               <>
-                <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-primary-600">
                     <AnimatedCounter value={events.length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Upcoming A/V Events</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Upcoming A/V Events</p>
                 </div>
-                <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-blue-600">
                     <AnimatedCounter value={events.filter(e => e.avEquipmentList && e.avEquipmentList.length > 0).length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Equipment Ready</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Equipment Ready</p>
                 </div>
               </>
             )}
             {(user.dashboardMode === 'maintenance' || user.dashboardMode === 'it') && (
               <>
-                <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-primary-600">
                     <AnimatedCounter value={tickets.filter(t => t.status === 'OPEN').length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Open Requests</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Open Requests</p>
                 </div>
-                <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-blue-600">
                     <AnimatedCounter value={tickets.filter(t => t.status === 'IN_PROGRESS').length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">In Progress</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">In Progress</p>
                 </div>
               </>
             )}
             {user.dashboardMode !== 'admin' && user.dashboardMode !== 'av' && user.dashboardMode !== 'maintenance' && user.dashboardMode !== 'it' && (
               <>
-                <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-primary-600">
                     <AnimatedCounter value={ticketCount} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Active Requests</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Active Requests</p>
                 </div>
-                <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
+                <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
                   <p className="text-2xl font-bold text-blue-600">
                     <AnimatedCounter value={tickets.length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Total Tasks</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Total Tasks</p>
                 </div>
               </>
             )}

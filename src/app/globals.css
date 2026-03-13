@@ -303,24 +303,48 @@ a:visited {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
 
-  /* Glassmorphism surface utilities */
+  /* ── Aura Glassmorphism surface utilities ── */
   .ui-glass {
-    @apply bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    @apply rounded-2xl;
   }
 
   .ui-glass-hover {
-    @apply bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    @apply rounded-2xl transition-all duration-200;
+  }
+  .ui-glass-hover:hover {
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.65);
   }
 
   .ui-glass-table {
-    @apply bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm overflow-hidden;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    @apply rounded-2xl overflow-hidden;
   }
 
   .ui-glass-overlay {
-    @apply bg-white border border-gray-200 shadow-heavy;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    @apply shadow-heavy;
   }
 
   .ui-glass-dropdown {
-    @apply bg-white/80 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-heavy;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    @apply rounded-xl shadow-heavy;
   }
 }

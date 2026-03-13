@@ -827,11 +827,13 @@ export default function Sidebar({
                     setIsOpen(false)
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
-                  className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                  className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                     active && !settingsOpen && !athleticsOpen
-                      ? 'bg-white/10 text-white font-medium border border-white/20'
-                      : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                      ? 'text-slate-900 font-medium'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent'
                   }`}
+                  style={active && !settingsOpen && !athleticsOpen ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : { }}
+
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
@@ -862,11 +864,12 @@ export default function Sidebar({
                   queryClient.prefetchQuery(queryOptions.modules()).catch(() => {})
                   queryClient.prefetchQuery(queryOptions.calendars()).catch(() => {})
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                   athleticsOpen
-                    ? 'bg-white/10 text-white font-medium border border-white/20'
-                    : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'text-slate-900 font-medium'
+                    : 'text-slate-600 hover:text-slate-900 border border-transparent'
                 }`}
+                style={athleticsOpen ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                 aria-current={athleticsOpen ? 'page' : undefined}
               >
                 <Trophy className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
@@ -880,7 +883,7 @@ export default function Sidebar({
         {((!maintenanceModuleLoading && maintenanceEnabled) || (!itHelpdeskModuleLoading && itHelpdeskEnabled)) && (
           <>
             <div className="px-1 mt-4 mb-1">
-              <span className="text-[11px] font-semibold tracking-wider text-gray-500 uppercase">Support</span>
+              <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Support</span>
             </div>
             <ul className="space-y-1" role="list">
               {/* Facilities — collapsible section (no landing page; child links have content) */}
@@ -896,18 +899,18 @@ export default function Sidebar({
                         return !prev
                       })
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
                     aria-expanded={facilitiesOpen}
                     aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
                   >
-                    <Wrench className="w-5 h-5 flex-shrink-0 text-gray-500" aria-hidden="true" />
-                    <span className="text-sm font-semibold text-gray-200">Maintenance</span>
+                    <Wrench className="w-5 h-5 flex-shrink-0 text-slate-400" aria-hidden="true" />
+                    <span className="text-sm font-semibold text-slate-700">Maintenance</span>
                     <motion.span
                       className="ml-auto block"
                       animate={{ rotate: facilitiesOpen ? 180 : 0 }}
                       transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                     >
-                      <ChevronDown className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                      <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
                     </motion.span>
                   </button>
                   {/* Child links — collapsible with animated gradient indicator.
@@ -924,7 +927,7 @@ export default function Sidebar({
                       }}
                     >
                           {/* Track line */}
-                          <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-slate-300/40" />
 
                           {/* Glow trail — fading afterimage that spans the travel path.
                               NOTE: All mutable styles (opacity, top, height, background) are
@@ -960,10 +963,10 @@ export default function Sidebar({
                               setAthleticsOpen(false)
                               setIsOpen(false)
                             }}
-                            className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                            className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                               pathname === '/maintenance'
-                                ? 'text-white font-medium'
-                                : 'text-gray-500 hover:text-gray-200'
+                                ? 'text-slate-900 font-medium'
+                                : 'text-slate-500 hover:text-slate-800'
                             }`}
                             aria-current={pathname === '/maintenance' ? 'page' : undefined}
                           >
@@ -979,10 +982,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/maintenance/work-orders'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                               >
                                 <span className="text-sm">Work Orders</span>
@@ -998,10 +1001,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname.includes('my-requests')
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                               >
                                 <span className="text-sm">My Requests</span>
@@ -1017,10 +1020,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/maintenance/assets'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                                 aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                               >
@@ -1037,10 +1040,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/maintenance/pm-calendar'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                                 aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
                               >
@@ -1057,10 +1060,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/maintenance/compliance'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                                 aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
                               >
@@ -1077,10 +1080,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname.startsWith('/maintenance/knowledge-base')
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                                 aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                               >
@@ -1097,10 +1100,10 @@ export default function Sidebar({
                                   setAthleticsOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                                 aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'page' : undefined}
                               >
@@ -1119,11 +1122,12 @@ export default function Sidebar({
                         setAthleticsOpen(false)
                         setIsOpen(false)
                       }}
-                      className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                      className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                         pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen
-                          ? 'bg-white/10 text-white font-medium border border-white/20'
-                          : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                          ? 'text-slate-900 font-medium'
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent'
                       }`}
+                      style={pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                       aria-current={pathname.startsWith('/maintenance') && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                     >
                       <Wrench className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
@@ -1146,18 +1150,18 @@ export default function Sidebar({
                         return !prev
                       })
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/10 hover:text-white border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
                     aria-expanded={itOpen}
                     aria-label={itOpen ? 'Collapse IT Help Desk' : 'Expand IT Help Desk'}
                   >
-                    <Monitor className="w-5 h-5 flex-shrink-0 text-gray-500" aria-hidden="true" />
-                    <span className="text-sm font-semibold text-gray-200">IT Help Desk</span>
+                    <Monitor className="w-5 h-5 flex-shrink-0 text-slate-400" aria-hidden="true" />
+                    <span className="text-sm font-semibold text-slate-700">IT Help Desk</span>
                     <motion.span
                       className="ml-auto block"
                       animate={{ rotate: itOpen ? 180 : 0 }}
                       transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                     >
-                      <ChevronDown className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                      <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
                     </motion.span>
                   </button>
                   {/* Child links with animated gradient indicator */}
@@ -1171,7 +1175,7 @@ export default function Sidebar({
                       }}
                     >
                           {/* Track line */}
-                          <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-white/10" />
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-slate-300/40" />
 
                           {/* Glow trail */}
                           <div
@@ -1203,10 +1207,10 @@ export default function Sidebar({
                               setFacilitiesOpen(false)
                               setIsOpen(false)
                             }}
-                            className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                            className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                               pathname === '/it'
-                                ? 'text-white font-medium'
-                                : 'text-gray-500 hover:text-gray-200'
+                                ? 'text-slate-900 font-medium'
+                                : 'text-slate-500 hover:text-slate-800'
                             }`}
                             aria-current={pathname === '/it' ? 'page' : undefined}
                           >
@@ -1223,10 +1227,10 @@ export default function Sidebar({
                                   setFacilitiesOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/it/devices'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                               >
                                 <span className="text-sm">Devices</span>
@@ -1243,10 +1247,10 @@ export default function Sidebar({
                                   setFacilitiesOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/it/lifecycle'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                               >
                                 <span className="text-sm">Lifecycle</span>
@@ -1263,10 +1267,10 @@ export default function Sidebar({
                                   setFacilitiesOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/it/security'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                               >
                                 <span className="text-sm">Security</span>
@@ -1283,10 +1287,10 @@ export default function Sidebar({
                                   setFacilitiesOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/it/admin'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                               >
                                 <span className="text-sm">Reports & Admin</span>
@@ -1303,10 +1307,10 @@ export default function Sidebar({
                                   setFacilitiesOpen(false)
                                   setIsOpen(false)
                                 }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
                                   pathname === '/inventory' && pageSearchParams.get('dept') === 'it'
-                                    ? 'text-white font-medium'
-                                    : 'text-gray-500 hover:text-gray-200'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
                                 }`}
                                 aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'page' : undefined}
                               >
@@ -1326,11 +1330,12 @@ export default function Sidebar({
                         setFacilitiesOpen(false)
                         setIsOpen(false)
                       }}
-                      className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                      className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                         pathname.startsWith('/it')
-                          ? 'bg-white/10 text-white font-medium border border-white/20'
-                          : 'text-gray-300 hover:bg-white/10 hover:text-white border border-transparent'
+                          ? 'text-slate-900 font-medium'
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent'
                       }`}
+                      style={pathname.startsWith('/it') ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                       aria-current={pathname.startsWith('/it') ? 'page' : undefined}
                     >
                       <Monitor className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
@@ -1345,10 +1350,10 @@ export default function Sidebar({
       </nav>
 
       {/* Help & Support — pinned to bottom */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-slate-200/30">
         <button
           onClick={() => setBugDialogOpen(true)}
-          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg text-gray-400 hover:bg-white/10 hover:text-white border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
           <HelpCircle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
           <span className="text-sm">Help & Support</span>
@@ -1358,9 +1363,9 @@ export default function Sidebar({
   )
 
   const settingsNavContent = (
-    <div className="flex flex-col h-full bg-[#f0f3f9]">
+    <div className="flex flex-col h-full">
       {/* Settings Header */}
-      <div className="px-5 py-4 border-b border-gray-200">
+      <div className="px-5 py-4 border-b border-white/30">
         <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase">Settings</h2>
       </div>
 
@@ -1379,8 +1384,8 @@ export default function Sidebar({
                 onClick={() => handleSettingsTabClick(tab.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                   isTabActive
-                    ? 'bg-[#dde6f5] text-primary-600 font-medium'
-                    : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
+                    ? 'bg-white/50 text-primary-600 font-medium'
+                    : 'text-gray-500 hover:bg-white/30 hover:text-gray-700'
                 }`}
               >
                 <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-gray-400'}`} />
@@ -1407,8 +1412,8 @@ export default function Sidebar({
                   onClick={() => handleSettingsTabClick(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     isTabActive
-                      ? 'bg-[#dde6f5] text-primary-600 font-medium'
-                      : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
+                      ? 'bg-white/50 text-primary-600 font-medium'
+                      : 'text-gray-500 hover:bg-white/30 hover:text-gray-700'
                   }`}
                 >
                   <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-gray-400'}`} />
@@ -1432,14 +1437,14 @@ export default function Sidebar({
   ]
 
   const calendarNavContent = (
-    <div className="flex flex-col h-full bg-[#f0f3f9]">
+    <div className="flex flex-col h-full">
       {/* Calendar Header */}
-      <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="px-5 py-4 border-b border-white/30 flex items-center justify-between">
         <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase">Calendars</h2>
         {canManageWorkspace && (
           <button
             onClick={handleCreateCalendar}
-            className="p-1 rounded-md hover:bg-[#dde6f5] text-gray-400 hover:text-primary-600 transition-colors"
+            className="p-1 rounded-md hover:bg-white/50 text-gray-400 hover:text-primary-600 transition-colors"
             title="Create calendar"
             aria-label="Create calendar"
           >
@@ -1583,8 +1588,8 @@ export default function Sidebar({
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition cursor-pointer ${
                               isVisible
-                                ? 'text-gray-700 hover:bg-[#e5eaf5]'
-                                : 'text-gray-400 hover:bg-[#e5eaf5]'
+                                ? 'text-gray-700 hover:bg-white/30'
+                                : 'text-gray-400 hover:bg-white/30'
                             }`}
                             title={cal.calendarType === 'PERSONAL' ? 'My Calendar' : cal.name}
                           >
@@ -1698,8 +1703,8 @@ export default function Sidebar({
                           }}
                           className={`flex items-center gap-2.5 pr-3 py-2 rounded-xl text-sm transition cursor-pointer ${
                             isAthVisible
-                              ? 'text-gray-700 hover:bg-[#e5eaf5]'
-                              : 'text-gray-400 hover:bg-[#e5eaf5]'
+                              ? 'text-gray-700 hover:bg-white/30'
+                              : 'text-gray-400 hover:bg-white/30'
                           }`}
                           title={`Athletics — ${cal.campus?.name || 'Campus'}`}
                         >
@@ -1810,9 +1815,9 @@ export default function Sidebar({
   )
 
   const athleticsNavContent = (
-    <div className="flex flex-col h-full bg-[#f0f3f9]">
+    <div className="flex flex-col h-full">
       {/* Athletics Header */}
-      <div className="px-5 py-4 border-b border-gray-200">
+      <div className="px-5 py-4 border-b border-white/30">
         <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase">Athletics</h2>
       </div>
 
@@ -1831,8 +1836,8 @@ export default function Sidebar({
                   onClick={() => handleAthleticsCampusClick(campus.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                     isActiveCampus
-                      ? 'bg-[#dde6f5] text-primary-600 font-medium'
-                      : 'text-gray-500 hover:bg-[#e5eaf5] hover:text-gray-700'
+                      ? 'bg-white/50 text-primary-600 font-medium'
+                      : 'text-gray-500 hover:bg-white/30 hover:text-gray-700'
                   }`}
                 >
                   <CampusShapeIndicator
@@ -1856,14 +1861,15 @@ export default function Sidebar({
       {/* Mobile Menu Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-lg bg-[#111827] border border-white/10 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+        style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.6)' }}
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
       >
         {isOpen ? (
-          <X className="w-6 h-6 text-white" aria-hidden="true" />
+          <X className="w-6 h-6 text-slate-700" aria-hidden="true" />
         ) : (
-          <Menu className="w-6 h-6 text-white" aria-hidden="true" />
+          <Menu className="w-6 h-6 text-slate-700" aria-hidden="true" />
         )}
       </button>
 
@@ -1877,20 +1883,22 @@ export default function Sidebar({
       )}
 
       {/* Desktop Layout: Main Nav + Settings Secondary Nav */}
-      <div className="hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)] z-sticky">
-        {/* Main Navigation Sidebar */}
+      <div className="hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)] z-sticky" style={{ padding: '12px 0 12px 12px' }}>
+        {/* Main Navigation Sidebar — Aura glass panel */}
         <aside
-          className="flex flex-col w-64 bg-gradient-to-b from-[#111827] to-[#1a1f3d] text-gray-100 border-r border-white/10 h-full relative z-10"
+          className="flex flex-col w-64 text-slate-700 h-full relative z-10 rounded-2xl"
+          style={{ background: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.55)' }}
           aria-label="Sidebar navigation"
         >
           {mainNavContent}
         </aside>
 
-        {/* Secondary Navigation - slides in from behind (settings or calendar) */}
+        {/* Secondary Navigation — Aura glass panel */}
         <aside
-          className={`flex flex-col w-60 bg-[#f0f3f9] border-r border-gray-200 h-full transition-all duration-300 ease-in-out overflow-hidden ${
-            secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
+          className={`flex flex-col w-60 h-full transition-all duration-300 ease-in-out overflow-hidden rounded-2xl ${
+            secondaryOpen ? 'max-w-60 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'
           }`}
+          style={{ background: 'rgba(255, 255, 255, 0.35)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: secondaryOpen ? '1px solid rgba(255, 255, 255, 0.5)' : 'none' }}
           aria-label={athleticsOpen ? 'Athletics navigation' : calendarOpen ? 'Calendar navigation' : 'Settings navigation'}
           aria-hidden={!secondaryOpen}
         >
@@ -1902,24 +1910,25 @@ export default function Sidebar({
 
       {/* Mobile Layout: Sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-gradient-to-b from-[#111827] to-[#1a1f3d] text-gray-100 border-r border-white/10 flex flex-col transition-transform duration-300 z-navbar ${
+        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-[85vw] max-w-[320px] text-slate-700 flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRight: '1px solid rgba(255, 255, 255, 0.55)' }}
         role="navigation"
         aria-label="Mobile navigation"
       >
         {mainNavContent}
         {(calendarOpen || settingsOpen || athleticsOpen) && (
-          <div className="flex-1 overflow-y-auto border-t border-white/10">
+          <div className="flex-1 overflow-y-auto border-t border-slate-200/30">
             {athleticsOpen ? athleticsNavContent : calendarOpen ? calendarNavContent : settingsNavContent}
           </div>
         )}
       </aside>
 
-      {/* Spacer for desktop layout - adjusts width based on secondary panel */}
+      {/* Spacer for desktop layout - adjusts width based on secondary panel (includes 12px sidebar padding + 12px gap) */}
       <div
         className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
-          secondaryOpen ? 'w-[496px]' : 'w-64'
+          secondaryOpen ? 'w-[532px]' : 'w-[280px]'
         }`}
       />
 

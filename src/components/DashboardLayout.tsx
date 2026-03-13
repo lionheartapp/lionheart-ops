@@ -151,16 +151,16 @@ export default function DashboardLayout({
   const subtitleParts = [formattedSchoolLabel, teamLabel].filter(Boolean)
 
   return (
-    <div className="flex w-full h-screen bg-gray-50 flex-col overflow-hidden">
+    <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: 'linear-gradient(135deg, #e8eaf0, #d4dbe8, #c8d4e4, #d8dce8, #e4e6ec)' }}>
       {/* Impersonation Banner */}
       {isImpersonating && <ImpersonationBanner />}
 
       {/* Top Bar Header */}
-      <header className={`fixed left-0 right-0 h-16 bg-[#111827] border-b border-white/10 px-6 flex items-center justify-between z-navbar ${isImpersonating ? 'top-[40px]' : 'top-0'}`}>
+      <header className={`fixed left-0 right-0 h-16 px-6 flex items-center justify-between z-navbar ${isImpersonating ? 'top-[40px]' : 'top-0'}`} style={{ background: 'rgba(255, 255, 255, 0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.6)' }}>
         {/* Logo and Organization Name */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0 pl-14 lg:pl-0">
           {orgLogoUrl ? (
-            <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center p-1.5 flex-shrink-0">
+            <div className="h-9 w-9 rounded-lg bg-white/60 flex items-center justify-center p-1.5 flex-shrink-0 border border-white/50">
               <img
                 src={orgLogoUrl}
                 alt={`${organizationName || 'School'} logo`}
@@ -172,7 +172,7 @@ export default function DashboardLayout({
               {(organizationName || 'S').charAt(0).toUpperCase()}
             </div>
           )}
-          <p className="text-sm font-semibold text-white truncate">
+          <p className="text-sm font-semibold text-slate-800 truncate">
             {organizationName || 'School'}
           </p>
         </div>
@@ -181,11 +181,11 @@ export default function DashboardLayout({
         <div className="hidden sm:block flex-1 pl-10 pr-6 max-w-md">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="w-full h-9 rounded-full border border-white/20 bg-white/10 px-4 flex items-center gap-2 text-sm text-slate-400 hover:bg-white/15 hover:border-white/30 transition cursor-pointer"
+            className="w-full h-9 rounded-full border border-white/60 bg-white/30 px-4 flex items-center gap-2 text-sm text-slate-500 hover:bg-white/50 hover:border-white/70 transition cursor-pointer"
           >
             <Search className="w-4 h-4 flex-shrink-0" />
             <span className="flex-1 text-left">Search...</span>
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/10 rounded border border-white/10">
+            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/40 rounded border border-white/50">
               &#8984;K
             </kbd>
           </button>
@@ -195,25 +195,25 @@ export default function DashboardLayout({
         <div className="flex items-center gap-3 flex-shrink-0">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="sm:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+            className="sm:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white/30 transition"
             aria-label="Search"
           >
             <Search className="w-5 h-5" />
           </button>
           <NotificationBell />
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-white">{userName || 'User'}</p>
-            <p className="text-xs text-slate-400 truncate">{subtitleParts.join(' • ')}</p>
+            <p className="text-sm font-semibold text-slate-800">{userName || 'User'}</p>
+            <p className="text-xs text-slate-500 truncate">{subtitleParts.join(' • ')}</p>
           </div>
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 p-1 hover:bg-white/10 rounded-lg transition"
+              className="flex items-center gap-2 p-1 hover:bg-white/30 rounded-lg transition"
               aria-label="User menu"
               aria-expanded={isDropdownOpen}
               aria-haspopup="true"
             >
-              <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm">
+              <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm ring-2 ring-white/50">
                 {userAvatar ? (
                   <img
                     src={userAvatar}
@@ -224,7 +224,7 @@ export default function DashboardLayout({
                   (userName || 'U').charAt(0).toUpperCase()
                 )}
               </div>
-              <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
+              <ChevronDown className="w-4 h-4 text-slate-500" aria-hidden="true" />
             </button>
 
             {/* Dropdown Menu */}
@@ -284,11 +284,11 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1 min-w-0 min-h-0 overflow-hidden relative flex flex-col">
-          {/* Ambient gradient blobs — gives glass cards depth */}
+          {/* Ambient gradient blobs — gives glass cards depth on Aura canvas */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
-            <div className="absolute -top-32 right-0 w-[500px] h-[500px] rounded-full blur-[120px] bg-blue-200/[0.08]" />
-            <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[120px] bg-violet-200/[0.06]" />
-            <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[100px] bg-amber-100/[0.06]" />
+            <div className="absolute -top-32 right-0 w-[500px] h-[500px] rounded-full blur-[140px] bg-blue-300/[0.15]" />
+            <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[140px] bg-violet-300/[0.12]" />
+            <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[120px] bg-indigo-200/[0.10]" />
           </div>
           <div className="relative py-4 sm:py-6 lg:py-8 px-4 sm:px-10 flex-1 flex flex-col min-h-0 overflow-hidden">
             {children}
