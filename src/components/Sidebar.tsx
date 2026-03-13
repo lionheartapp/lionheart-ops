@@ -829,14 +829,22 @@ export default function Sidebar({
                   }}
                   className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                     active && !settingsOpen && !athleticsOpen
-                      ? 'text-slate-900 font-medium'
+                      ? 'text-slate-900 font-semibold'
                       : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
-                  style={active && !settingsOpen && !athleticsOpen ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : { }}
-
+                  style={active && !settingsOpen && !athleticsOpen ? {} : {}}
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                 >
-                  <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                  {active && !settingsOpen && !athleticsOpen ? (
+                    <span
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-md"
+                      style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)' }}
+                    >
+                      <Icon className="w-4 h-4" aria-hidden="true" />
+                    </span>
+                  ) : (
+                    <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                  )}
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
