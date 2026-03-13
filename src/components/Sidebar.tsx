@@ -882,7 +882,7 @@ export default function Sidebar({
                   }}
                   className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                     active && !settingsOpen && !athleticsOpen
-                      ? 'text-blue-600 font-semibold bg-blue-50'
+                      ? 'text-slate-900 font-semibold bg-blue-50'
                       : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
@@ -894,7 +894,7 @@ export default function Sidebar({
                       style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)', boxShadow: '0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(99, 102, 241, 0.25)' }}
                     />
                   )}
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen ? 'text-blue-600' : ''}`} aria-hidden="true" />
+                  <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
@@ -924,7 +924,7 @@ export default function Sidebar({
                 }}
                 className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                   athleticsOpen
-                    ? 'text-blue-600 font-semibold bg-blue-50'
+                    ? 'text-slate-900 font-semibold bg-blue-50'
                     : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                 }`}
                 aria-current={athleticsOpen ? 'page' : undefined}
@@ -936,7 +936,7 @@ export default function Sidebar({
                     style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)', boxShadow: '0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(99, 102, 241, 0.25)' }}
                   />
                 )}
-                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-blue-600' : ''}`} aria-hidden="true" />
+                <Trophy className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                 <span className="text-sm">Athletics</span>
               </button>
             </li>
