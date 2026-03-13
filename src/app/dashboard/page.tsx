@@ -14,6 +14,8 @@ import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getAuthHeaders } from '@/lib/api-client'
 import AttendeePicker, { type AttendeeSelection } from '@/components/calendar/AttendeePicker'
+import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
+import { useCalendars, useCategories, useCreateEvent, useCreateCategory } from '@/lib/hooks/useCalendar'
 
 interface TicketData {
   id: string
@@ -44,6 +46,45 @@ export default function DashboardPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, org, isReady, logout } = useAuth()
+
+  // Calendar hooks — power the Schedule Meeting form (EventCreatePanel)
+  const { data: calendarList = [] } = useCalendars()
+  const { data: calendarCategories = [] } = useCategories()
+  const createCalendarEvent = useCreateEvent()
+  const createCalendarCategory = useCreateCategory()
+
+  // Schedule Meeting panel state (uses EventCreatePanel — same as calendar page)
+  const [meetingPanelOpen, setMeetingPanelOpen] = useState(false)
+  const [meetingPanelStart, setMeetingPanelStart] = useState<Date | undefined>()
+  const [meetingPanelEnd, setMeetingPanelEnd] = useState<Date | undefined>()
+  const [meetingPanelError, setMeetingPanelError] = useState<string | null>(null)
+
+  const openMeetingPanel = useCallback((start?: Date, end?: Date) => {
+    setMeetingPanelStart(start)
+    setMeetingPanelEnd(end)
+    setMeetingPanelError(null)
+    setIsCreateDropdownOpen(false)
+    setMeetingPanelOpen(true)
+  }, [])
+
+  const handleMeetingSubmit = useCallback(async (data: EventFormData) => {
+    setMeetingPanelError(null)
+    try {
+      const { categoryId, rrule, buildingId, areaId, attendeeIds, ...rest } = data
+      await createCalendarEvent.mutateAsync({
+        ...rest,
+        ...(categoryId ? { categoryId } : {}),
+        ...(rrule ? { rrule } : {}),
+        ...(buildingId ? { buildingId } : {}),
+        ...(areaId ? { areaId } : {}),
+        ...(attendeeIds && attendeeIds.length > 0 ? { attendeeIds } : {}),
+      })
+      setMeetingPanelOpen(false)
+    } catch (err: unknown) {
+      const msg = (err as Error)?.message ?? 'Something went wrong'
+      setMeetingPanelError(msg)
+    }
+  }, [createCalendarEvent])
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
@@ -480,7 +521,7 @@ export default function DashboardPage() {
               <div className="p-3 space-y-1">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-1">Meetings</p>
                 <button
-                  onClick={() => openEventStepper('quick')}
+                  onClick={() => openMeetingPanel()}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Users className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
@@ -959,13 +1000,9 @@ export default function DashboardPage() {
         </div>
       </DetailDrawer>
 
-      {/* ─── Event Stepper Drawer ─────────────────────────────────────────── */}
+      {/* ─── Plan Event Stepper Drawer ────────────────────────────────────── */}
       {(() => {
-        const isQuick = eventStepperMode === 'quick'
-        const totalSteps = isQuick ? 1 : 4
-        const stepLabels = isQuick
-          ? ['Details']
-          : ['Details', 'A/V Needs', 'Facility', 'Review']
+        const stepLabels = ['Details', 'A/V Needs', 'Facility', 'Review']
         const stepIcons = [Calendar, Video, Building2, CheckCircle]
 
         const canAdvance = () => {
@@ -988,7 +1025,7 @@ export default function DashboardPage() {
           }))
         }
 
-        const drawerTitle = isQuick ? 'Schedule Meeting' : `Plan Event${eventStep < 4 ? ` — Step ${eventStep} of 3` : ' — Review'}`
+        const drawerTitle = `Plan Event${eventStep < 4 ? ` — Step ${eventStep} of 3` : ' — Review'}`
 
         const footer = (
           <div className="space-y-3">
@@ -996,7 +1033,7 @@ export default function DashboardPage() {
               <p className="text-sm text-red-600 text-center">{eventStepperError}</p>
             )}
             <div className="flex items-center gap-3">
-              {eventStep > 1 && !isQuick ? (
+              {eventStep > 1 ? (
                 <button
                   onClick={() => { setEventStep(s => s - 1); setEventStepperError('') }}
                   className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
@@ -1012,14 +1049,14 @@ export default function DashboardPage() {
                   Cancel
                 </button>
               )}
-              {(isQuick || eventStep === 4) ? (
+              {eventStep === 4 ? (
                 <button
                   onClick={handleStepperSubmit}
                   disabled={eventStepperSaving || !canAdvance()}
                   className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
                 >
                   {eventStepperSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isQuick ? 'Schedule Meeting' : 'Submit for Approval'}
+                  Submit for Approval
                 </button>
               ) : (
                 <button
@@ -1044,51 +1081,40 @@ export default function DashboardPage() {
             footer={footer}
           >
             <div className="space-y-6">
-              {/* Step Progress Indicator — only for full stepper */}
-              {!isQuick && (
-                <div className="flex items-center gap-0">
-                  {stepLabels.map((label, i) => {
-                    const stepNum = i + 1
-                    const isComplete = eventStep > stepNum
-                    const isCurrent = eventStep === stepNum
-                    const StepIcon = stepIcons[i]
-                    return (
-                      <div key={label} className={`flex items-center ${i < stepLabels.length - 1 ? 'flex-1' : ''}`}>
-                        <div className="flex flex-col items-center gap-1">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isComplete ? 'bg-green-500 shadow-sm' : isCurrent ? 'bg-gray-900 shadow-md ring-4 ring-gray-900/10' : 'bg-gray-100'}`}>
-                            {isComplete ? (
-                              <Check className="w-4 h-4 text-white" />
-                            ) : (
-                              <StepIcon className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-gray-400'}`} />
-                            )}
-                          </div>
-                          <span className={`text-[10px] font-medium whitespace-nowrap ${isCurrent ? 'text-gray-900' : isComplete ? 'text-green-600' : 'text-gray-400'}`}>{label}</span>
+              {/* Step Progress Indicator */}
+              <div className="flex items-center gap-0">
+                {stepLabels.map((label, i) => {
+                  const stepNum = i + 1
+                  const isComplete = eventStep > stepNum
+                  const isCurrent = eventStep === stepNum
+                  const StepIcon = stepIcons[i]
+                  return (
+                    <div key={label} className={`flex items-center ${i < stepLabels.length - 1 ? 'flex-1' : ''}`}>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isComplete ? 'bg-green-500 shadow-sm' : isCurrent ? 'bg-gray-900 shadow-md ring-4 ring-gray-900/10' : 'bg-gray-100'}`}>
+                          {isComplete ? (
+                            <Check className="w-4 h-4 text-white" />
+                          ) : (
+                            <StepIcon className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-gray-400'}`} />
+                          )}
                         </div>
-                        {i < stepLabels.length - 1 && (
-                          <div className={`flex-1 h-0.5 mb-4 mx-1 transition-colors duration-300 ${eventStep > stepNum ? 'bg-green-400' : 'bg-gray-200'}`} />
-                        )}
+                        <span className={`text-[10px] font-medium whitespace-nowrap ${isCurrent ? 'text-gray-900' : isComplete ? 'text-green-600' : 'text-gray-400'}`}>{label}</span>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
+                      {i < stepLabels.length - 1 && (
+                        <div className={`flex-1 h-0.5 mb-4 mx-1 transition-colors duration-300 ${eventStep > stepNum ? 'bg-green-400' : 'bg-gray-200'}`} />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
 
               {/* ── Step 1: Event Details ─── */}
               {eventStep === 1 && (
                 <AnimatePresence mode="wait">
                   <motion.div key="step-1" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-4">
-                    {isQuick && (
-                      <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-2.5">
-                        <Users className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-blue-900">Schedule Meeting</p>
-                          <p className="text-xs text-blue-600 mt-0.5">Goes straight to your calendar — no approval needed.</p>
-                        </div>
-                      </div>
-                    )}
                     <FloatingInput
                       id="stepper-title"
-                      label={isQuick ? 'Meeting Title' : 'Event Title'}
+                      label="Event Title"
                       required
                       value={stepperForm.title}
                       onChange={(e) => setStepperForm(f => ({ ...f, title: e.target.value }))}
@@ -1348,6 +1374,21 @@ export default function DashboardPage() {
           <LeoItemDrawerContent type={leoDrawerType} item={leoDrawerItem} detail={leoDrawerDetail} />
         ) : null}
       </DetailDrawer>
+
+      {/* ─── Schedule Meeting Panel ──────────────────────────────────────── */}
+      {/* Uses the same EventCreatePanel as the Calendar page for consistency */}
+      <EventCreatePanel
+        isOpen={meetingPanelOpen}
+        onClose={() => { setMeetingPanelOpen(false); setMeetingPanelError(null) }}
+        onSubmit={handleMeetingSubmit}
+        isSubmitting={createCalendarEvent.isPending}
+        calendars={calendarList}
+        categories={calendarCategories}
+        onCreateCategory={(data) => createCalendarCategory.mutateAsync(data)}
+        initialStart={meetingPanelStart}
+        initialEnd={meetingPanelEnd}
+        error={meetingPanelError}
+      />
     </DashboardLayout>
   )
 }
