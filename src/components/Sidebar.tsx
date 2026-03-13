@@ -4,7 +4,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fra
 import { motion, AnimatePresence, useMotionValue, animate as fmAnimate } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   Home,
   Menu,
@@ -104,6 +104,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const pageSearchParams = useSearchParams()
   const queryClient = useQueryClient()
   const athleticsPrefetched = useRef(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -1086,6 +1087,26 @@ export default function Sidebar({
                                 <span className="text-sm">Knowledge Base</span>
                               </PrefetchLink>
                           )}
+                          {/* Supplies — inventory items for maintenance dept */}
+                          {canReadInventory && canManageMaintenance && (
+                              <PrefetchLink
+                                href="/inventory?dept=maintenance"
+                                data-facility-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                  pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
+                                }`}
+                                aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'page' : undefined}
+                              >
+                                <span className="text-sm">Supplies</span>
+                              </PrefetchLink>
+                          )}
                           </div>
                     </div>
                   </>
@@ -1269,6 +1290,27 @@ export default function Sidebar({
                                 }`}
                               >
                                 <span className="text-sm">Reports & Admin</span>
+                              </PrefetchLink>
+                          )}
+                          {/* Inventory — IT equipment and accessories */}
+                          {canReadInventory && canManageIT && (
+                              <PrefetchLink
+                                href="/inventory?dept=it"
+                                data-it-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setFacilitiesOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827] ${
+                                  pathname === '/inventory' && pageSearchParams.get('dept') === 'it'
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-500 hover:text-gray-200'
+                                }`}
+                                aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'page' : undefined}
+                              >
+                                <span className="text-sm">Inventory</span>
                               </PrefetchLink>
                           )}
                           </div>

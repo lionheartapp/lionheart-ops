@@ -23,15 +23,19 @@ export async function GET(req: NextRequest) {
     const { page, limit, skip } = parsePagination(searchParams)
     const search = searchParams.get('search') || undefined
     const category = searchParams.get('category') || undefined
+    // Multi-category filter: ?categories=AV Equipment,Cables & Adapters
+    const categoriesParam = searchParams.get('categories')
+    const categories = categoriesParam ? categoriesParam.split(',').map(c => c.trim()).filter(Boolean) : undefined
 
     return await runWithOrgContext(orgId, async () => {
       const where: Record<string, unknown> = {}
       if (search) where.name = { contains: search, mode: 'insensitive' }
-      if (category) where.category = category
+      if (categories && categories.length > 0) where.category = { in: categories }
+      else if (category) where.category = category
 
       const [total, items] = await Promise.all([
         prisma.inventoryItem.count({ where }),
-        listItems(orgId, { search, category, skip, take: limit }),
+        listItems(orgId, { search, category, categories, skip, take: limit }),
       ])
 
       return NextResponse.json(ok(items, paginationMeta(total, { page, limit, skip })))

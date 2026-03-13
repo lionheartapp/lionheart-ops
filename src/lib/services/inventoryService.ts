@@ -183,14 +183,16 @@ async function notifyLowStock(
  */
 export async function listItems(
   orgId: string,
-  filters?: { search?: string; category?: string; skip?: number; take?: number }
+  filters?: { search?: string; category?: string; categories?: string[]; skip?: number; take?: number }
 ) {
   return runWithOrgContext(orgId, async () => {
     const where: Record<string, unknown> = {}
     if (filters?.search) {
       where.name = { contains: filters.search, mode: 'insensitive' }
     }
-    if (filters?.category) {
+    if (filters?.categories && filters.categories.length > 0) {
+      where.category = { in: filters.categories }
+    } else if (filters?.category) {
       where.category = filters.category
     }
     return prisma.inventoryItem.findMany({

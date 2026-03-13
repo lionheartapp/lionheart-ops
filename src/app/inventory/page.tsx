@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -27,7 +27,7 @@ import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import AVEquipmentWizard from '@/components/inventory/AVEquipmentWizard'
 import { fetchApi } from '@/lib/api-client'
 import { fadeInUp, staggerContainer, listItem, cardEntrance } from '@/lib/animations'
-import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
+import { INVENTORY_CATEGORIES, INVENTORY_DEPT_CATEGORIES, INVENTORY_DEPT_CONFIG, type InventoryDept } from '@/lib/constants/inventory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -713,7 +713,14 @@ function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSuccess }: ItemDe
 
 export default function InventoryPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
+
+  // ── Dept context — drives title, categories, and default API filter ──
+  const rawDept = searchParams.get('dept')
+  const dept: InventoryDept = (rawDept === 'maintenance' || rawDept === 'it') ? rawDept : 'av'
+  const deptConfig = INVENTORY_DEPT_CONFIG[dept]
+  const deptCategories = INVENTORY_DEPT_CATEGORIES[dept]
 
   // ── Auth guard ──
   const [isClient, setIsClient] = useState(false)
@@ -735,6 +742,11 @@ export default function InventoryPage() {
   const [stockOpen, setStockOpen] = useState(false)
   const categoryRef = useRef<HTMLDivElement>(null)
   const stockRef = useRef<HTMLDivElement>(null)
+
+  // Reset category filter when dept changes (so AV categories don't bleed into Maintenance)
+  useEffect(() => {
+    setCategory('')
+  }, [dept])
 
   // Debounce search
   useEffect(() => {
@@ -767,11 +779,17 @@ export default function InventoryPage() {
 
   // ── Data fetching ──
   const { data: items = [], isLoading } = useQuery({
-    queryKey: inventoryKeys.list(search, category),
+    queryKey: [...inventoryKeys.list(search, category), dept],
     queryFn: () => {
       const params = new URLSearchParams()
       if (search) params.set('search', search)
-      if (category) params.set('category', category)
+      if (category) {
+        // Specific category selected — single filter
+        params.set('category', category)
+      } else {
+        // No specific category — filter to dept categories
+        params.set('categories', deptCategories.join(','))
+      }
       const qs = params.toString()
       return fetchApi<InventoryItem[]>(`/api/inventory${qs ? `?${qs}` : ''}`)
     },
@@ -876,10 +894,10 @@ export default function InventoryPage() {
           <div>
             <motion.div variants={fadeInUp} className="flex items-center gap-2 mb-0.5">
               <Package className="w-5 h-5 text-gray-400" aria-hidden="true" />
-              <h1 className="text-2xl font-semibold text-gray-900">AV Inventory</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">{deptConfig.title}</h1>
             </motion.div>
             <motion.p variants={fadeInUp} className="text-sm text-gray-500">
-              Track and manage your A/V equipment and supplies
+              {deptConfig.subtitle}
             </motion.p>
           </div>
           <motion.div variants={fadeInUp}>
@@ -891,7 +909,7 @@ export default function InventoryPage() {
               className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
-              Add Item
+              {deptConfig.addLabel}
             </button>
           </motion.div>
         </motion.div>
@@ -1000,7 +1018,7 @@ export default function InventoryPage() {
                   className="absolute top-full mt-1 left-0 ui-glass-dropdown z-20 min-w-[180px]"
                   role="listbox"
                 >
-                  {['', ...INVENTORY_CATEGORIES].map((cat) => (
+                  {['', ...deptCategories].map((cat) => (
                     <button
                       key={cat || '__all__'}
                       role="option"
