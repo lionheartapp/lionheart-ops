@@ -405,6 +405,7 @@ export default function CalendarView() {
   // Auto-open create panel when navigated with ?create=true
   useEffect(() => {
     if (searchParams.get('create') === 'true') {
+      setCreateMode('meeting')
       setIsCreateOpen(true)
       window.history.replaceState({}, '', '/calendar')
     }
@@ -463,7 +464,7 @@ export default function CalendarView() {
   }, [openChoiceModal])
 
   const handleCreateEvent = useCallback(() => {
-    setCreateMode('event')
+    setCreateMode('meeting')
     setCreateInitialStart(undefined)
     setCreateInitialEnd(undefined)
     setIsCreateOpen(true)
