@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Save, School, CheckCircle, XCircle, Pencil } from 'lucide-react'
+import { Save, School, CheckCircle, XCircle, Pencil, Users, Palette, Globe } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -476,16 +476,16 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
   }
 
   const renderSkeleton = () => (
-    <div className="space-y-8 animate-pulse py-2">
-      {/* Header skeleton */}
-      <div>
-        <div className="h-8 w-48 bg-gray-200 rounded mb-2" />
-        <div className="h-4 w-96 bg-gray-100 rounded" />
-      </div>
-
-      {/* School Info section */}
-      <div className="space-y-4 pb-6 border-b border-gray-200">
-        <div className="h-6 w-32 bg-gray-200 rounded" />
+    <div className="space-y-6 animate-pulse py-2">
+      {/* School Details card */}
+      <div className="ui-glass p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-28 bg-gray-200 rounded" />
+            <div className="h-3 w-48 bg-gray-100 rounded" />
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="h-10 bg-gray-200 rounded" />
           <div className="h-10 bg-gray-200 rounded" />
@@ -494,52 +494,49 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         </div>
       </div>
 
-      {/* Enrollment & Staffing section */}
-      <div className="space-y-4 pb-6 border-b border-gray-200">
-        <div className="h-6 w-44 bg-gray-200 rounded" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
+      {/* Enrollment & Staffing card */}
+      <div className="ui-glass p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-36 bg-gray-200 rounded" />
+            <div className="h-3 w-32 bg-gray-100 rounded" />
+          </div>
         </div>
-      </div>
-
-      {/* Branding section */}
-      <div className="space-y-4 pb-6 border-b border-gray-200">
-        <div className="h-6 w-32 bg-gray-200 rounded" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="h-10 bg-gray-200 rounded" />
           <div className="h-10 bg-gray-200 rounded" />
-          <div className="flex gap-2">
-            <div className="h-10 w-24 bg-gray-200 rounded" />
-            <div className="h-10 w-24 bg-gray-200 rounded" />
-          </div>
         </div>
       </div>
 
-      {/* Metadata section */}
-      <div className="rounded-lg bg-gray-50 p-4 space-y-3">
-        <div className="h-6 w-24 bg-gray-200 rounded" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
+      {/* Branding card */}
+      <div className="ui-glass p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="space-y-1.5">
             <div className="h-4 w-20 bg-gray-200 rounded" />
-            <div className="h-5 w-32 bg-gray-200 rounded" />
+            <div className="h-3 w-44 bg-gray-100 rounded" />
           </div>
-          <div className="space-y-2">
-            <div className="h-4 w-20 bg-gray-200 rounded" />
-            <div className="h-5 w-32 bg-gray-200 rounded" />
-          </div>
-          <div className="space-y-2">
-            <div className="h-4 w-20 bg-gray-200 rounded" />
-            <div className="h-5 w-32 bg-gray-200 rounded" />
-          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-24 bg-gray-200 rounded" />
+          <div className="h-24 bg-gray-200 rounded" />
         </div>
       </div>
 
-      {/* Action buttons skeleton */}
-      <div className="flex gap-2 pt-4">
-        <div className="h-10 w-24 bg-gray-200 rounded" />
-        <div className="h-10 w-24 bg-gray-200 rounded" />
+      {/* Workspace Metadata card */}
+      <div className="ui-glass p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-36 bg-gray-200 rounded" />
+            <div className="h-3 w-28 bg-gray-100 rounded" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-16 bg-gray-100 rounded-lg" />
+          <div className="h-16 bg-gray-100 rounded-lg" />
+        </div>
       </div>
     </div>
   )
@@ -564,16 +561,21 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
   }
 
   return (
-    <form onSubmit={handleSave} className="space-y-8 pb-24">
-      <section>
-        <h2 className="flex items-center gap-3 text-2xl font-semibold text-gray-900">
-          <School className="w-6 h-6 text-primary-600" />
-          School Information
-        </h2>
-        <div className="h-px bg-gray-200 mt-4 mb-6" />
+    <form onSubmit={handleSave} className="space-y-6 pb-24">
+      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {success && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>}
 
-        {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-        {success && <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>}
+      {/* Section 1 — School Details */}
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+            <School className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">School Details</h3>
+            <p className="text-xs text-gray-500">Basic information about your institution</p>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
           <FloatingInput id="si-schoolName" label="School Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
@@ -613,18 +615,35 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         </div>
       </section>
 
-      <section>
-        <h3 className="text-lg font-semibold text-gray-900">Enrollment & Staffing</h3>
-        <div className="h-px bg-gray-200 mt-4 mb-6" />
+      {/* Section 2 — Enrollment & Staffing */}
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+            <Users className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Enrollment & Staffing</h3>
+            <p className="text-xs text-gray-500">Student and staff counts</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
           <FloatingInput id="si-studentCount" label="Student Count" type="number" min={0} value={form.studentCount} onChange={(event) => setForm((prev) => ({ ...prev, studentCount: event.target.value }))} />
           <FloatingInput id="si-staffCount" label="Staff Count" type="number" min={0} value={form.staffCount} onChange={(event) => setForm((prev) => ({ ...prev, staffCount: event.target.value }))} />
         </div>
       </section>
 
-      <section>
-        <h3 className="text-lg font-semibold text-gray-900">Branding</h3>
-        <div className="h-px bg-gray-200 mt-4 mb-6" />
+      {/* Section 3 — Branding */}
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+            <Palette className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Branding</h3>
+            <p className="text-xs text-gray-500">Logo, login image, and subdomain</p>
+          </div>
+        </div>
 
         {/* Subdomain slug management */}
         <div className="mb-6">
@@ -758,25 +777,84 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             onImageChange={(url) => setForm((prev) => ({ ...prev, logoUrl: url || '' }))}
             aspectRatio="aspect-[3/2]"
             disabled={saving}
+            compact
           />
           <ImageDropZone
-            label="Hero Image"
+            label="Login Image"
             imageUrl={form.heroImageUrl}
             imageType="hero"
             onImageChange={(url) => setForm((prev) => ({ ...prev, heroImageUrl: url || '' }))}
-            aspectRatio="aspect-video"
+            aspectRatio="aspect-[3/2]"
             disabled={saving}
+            compact
           />
-          <FloatingDropdown id="si-imagePosition" label="Image Position" value={form.imagePosition} onChange={(v) => setForm((prev) => ({ ...prev, imagePosition: v as FormState['imagePosition'] }))} options={[
-            { value: 'LEFT', label: 'Left' },
-            { value: 'RIGHT', label: 'Right' },
-          ]} />
+
+          {/* Visual Layout Position Picker */}
+          <div className="md:col-span-2">
+            <label className="block text-xs text-gray-500 font-medium mb-2">Login Page Layout</label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, imagePosition: 'LEFT' }))}
+                className={`flex-1 rounded-xl border p-3 cursor-pointer transition-all ${
+                  form.imagePosition === 'LEFT'
+                    ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50/50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <svg viewBox="0 0 160 100" className="w-full h-auto mb-2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="1" width="158" height="98" rx="6" stroke="#E5E7EB" strokeWidth="1" fill="white" />
+                  <rect x="4" y="4" width="74" height="92" rx="4" fill="#E0E7FF" />
+                  <circle cx="120" cy="30" r="8" fill="#E5E7EB" />
+                  <rect x="100" y="44" width="40" height="4" rx="2" fill="#D1D5DB" />
+                  <rect x="105" y="52" width="30" height="4" rx="2" fill="#E5E7EB" />
+                  <rect x="100" y="64" width="40" height="8" rx="3" fill="#C7D2FE" />
+                  <rect x="100" y="76" width="40" height="8" rx="3" fill="#E5E7EB" />
+                </svg>
+                <span className={`text-xs font-medium ${form.imagePosition === 'LEFT' ? 'text-blue-700' : 'text-gray-500'}`}>
+                  Image Left
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, imagePosition: 'RIGHT' }))}
+                className={`flex-1 rounded-xl border p-3 cursor-pointer transition-all ${
+                  form.imagePosition === 'RIGHT'
+                    ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50/50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <svg viewBox="0 0 160 100" className="w-full h-auto mb-2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="1" width="158" height="98" rx="6" stroke="#E5E7EB" strokeWidth="1" fill="white" />
+                  <rect x="82" y="4" width="74" height="92" rx="4" fill="#E0E7FF" />
+                  <circle cx="40" cy="30" r="8" fill="#E5E7EB" />
+                  <rect x="20" y="44" width="40" height="4" rx="2" fill="#D1D5DB" />
+                  <rect x="25" y="52" width="30" height="4" rx="2" fill="#E5E7EB" />
+                  <rect x="20" y="64" width="40" height="8" rx="3" fill="#C7D2FE" />
+                  <rect x="20" y="76" width="40" height="8" rx="3" fill="#E5E7EB" />
+                </svg>
+                <span className={`text-xs font-medium ${form.imagePosition === 'RIGHT' ? 'text-blue-700' : 'text-gray-500'}`}>
+                  Image Right
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section>
-        <h3 className="text-lg font-semibold text-gray-900">Workspace Metadata</h3>
-        <div className="h-px bg-gray-200 mt-4 mb-6" />
+      {/* Section 4 — Workspace Metadata */}
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+            <Globe className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Workspace Metadata</h3>
+            <p className="text-xs text-gray-500">System information</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <p className="text-gray-500">Organization ID</p>

@@ -13,6 +13,7 @@ type ImageDropZoneProps = {
   onImageChange: (url: string | null) => void
   aspectRatio?: string
   disabled?: boolean
+  compact?: boolean
 }
 
 function getAuthHeaders() {
@@ -29,6 +30,7 @@ export default function ImageDropZone({
   onImageChange,
   aspectRatio = 'aspect-video',
   disabled = false,
+  compact = false,
 }: ImageDropZoneProps) {
   const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -160,7 +162,7 @@ export default function ImageDropZone({
         aria-label={!hasImage ? `Upload ${label}` : undefined}
         className={`
           relative overflow-hidden rounded-lg border-2 border-dashed transition-colors
-          ${aspectRatio}
+          ${compact ? 'aspect-[3/2]' : aspectRatio}
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           ${hasImage ? 'border-gray-200' : ''}
           ${!hasImage && !dragOver ? 'border-gray-300 hover:border-gray-400 cursor-pointer' : ''}
@@ -198,11 +200,13 @@ export default function ImageDropZone({
           </div>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400">
-            <Upload className="w-8 h-8" />
-            <span className="text-sm">
+            <Upload className={compact ? 'w-6 h-6' : 'w-8 h-8'} />
+            <span className={compact ? 'text-xs' : 'text-sm'}>
               {dragOver ? 'Drop image here' : 'Drag & drop or click to upload'}
             </span>
-            <span className="text-xs text-gray-400">JPEG, PNG, WebP, GIF up to 5MB</span>
+            {!compact && (
+              <span className="text-xs text-gray-400">JPEG, PNG, WebP, GIF up to 5MB</span>
+            )}
           </div>
         )}
       </div>
