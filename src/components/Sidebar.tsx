@@ -61,6 +61,8 @@ export interface SidebarProps {
   userName?: string
   userEmail?: string
   userAvatar?: string
+  organizationName?: string
+  organizationLogoUrl?: string
   onLogout?: () => void
 }
 
@@ -100,6 +102,8 @@ export default function Sidebar({
   userName = 'User',
   userEmail = 'user@school.edu',
   userAvatar,
+  organizationName,
+  organizationLogoUrl,
   onLogout,
 }: SidebarProps) {
   const pathname = usePathname()
@@ -811,8 +815,23 @@ export default function Sidebar({
 
   const mainNavContent = (
     <div className="flex flex-col h-full">
+      {/* Organization Logo */}
+      <div className="px-5 pt-5 pb-2 flex items-center">
+        {organizationLogoUrl ? (
+          <img
+            src={organizationLogoUrl}
+            alt={`${organizationName || 'Organization'} logo`}
+            className="h-10 max-w-[160px] object-contain"
+          />
+        ) : (
+          <span className="text-base font-semibold text-slate-800 truncate">
+            {organizationName || 'School'}
+          </span>
+        )}
+      </div>
+
       {/* Navigation Menu */}
-      <nav className="p-4 pt-8 flex-1" role="navigation" aria-label="Main navigation">
+      <nav className="p-4 pt-4 flex-1" role="navigation" aria-label="Main navigation">
         <ul className="space-y-2" role="list">
           {navItems.map((item) => {
             const Icon = item.icon

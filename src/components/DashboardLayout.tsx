@@ -156,29 +156,12 @@ export default function DashboardLayout({
       {isImpersonating && <ImpersonationBanner />}
 
       {/* Top Bar Header */}
-      <header className={`fixed left-0 right-0 h-16 px-6 flex items-center justify-between z-navbar ${isImpersonating ? 'top-[40px]' : 'top-0'}`} style={{ background: 'rgba(255, 255, 255, 0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.6)' }}>
-        {/* Logo and Organization Name */}
-        <div className="flex items-center gap-3 min-w-0 flex-shrink-0 pl-14 lg:pl-0">
-          {orgLogoUrl ? (
-            <div className="h-9 w-9 rounded-lg bg-white/60 flex items-center justify-center p-1.5 flex-shrink-0 border border-white/50">
-              <img
-                src={orgLogoUrl}
-                alt={`${organizationName || 'School'} logo`}
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-          ) : (
-            <div className="h-9 w-9 rounded-lg bg-primary-500 text-white flex items-center justify-center font-semibold text-sm flex-shrink-0">
-              {(organizationName || 'S').charAt(0).toUpperCase()}
-            </div>
-          )}
-          <p className="text-sm font-semibold text-slate-800 truncate">
-            {organizationName || 'School'}
-          </p>
-        </div>
+      <header className={`fixed left-0 right-0 h-16 px-6 lg:pl-[292px] flex items-center justify-between z-navbar ${isImpersonating ? 'top-[40px]' : 'top-0'}`} style={{ background: 'rgba(255, 255, 255, 0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.6)' }}>
+        {/* Mobile hamburger spacer (logo is in sidebar now) */}
+        <div className="w-10 lg:hidden" />
 
         {/* Global Search Trigger */}
-        <div className="hidden sm:block flex-1 pl-10 pr-6 max-w-md">
+        <div className="hidden sm:block flex-1 max-w-md">
           <button
             onClick={() => setIsSearchOpen(true)}
             className="w-full h-9 rounded-full border border-white/60 bg-white/30 px-4 flex items-center gap-2 text-sm text-slate-500 hover:bg-white/50 hover:border-white/70 transition cursor-pointer"
@@ -279,6 +262,8 @@ export default function DashboardLayout({
           userName={userName}
           userEmail={userEmail}
           userAvatar={userAvatar || undefined}
+          organizationName={organizationName}
+          organizationLogoUrl={orgLogoUrl}
           onLogout={onLogout}
         />
 
