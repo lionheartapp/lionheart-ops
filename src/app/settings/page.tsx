@@ -19,6 +19,7 @@ import AuditLogTab from '@/components/settings/AuditLogTab'
 import BillingTab from '@/components/settings/BillingTab'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { Camera, User, Shield, Lock, Mail, Bell } from 'lucide-react'
 
 type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'activity-log' | 'billing'
 
@@ -582,56 +583,80 @@ export default function SettingsPage() {
       <div className="flex-1 min-h-0 overflow-y-auto -mr-4 sm:-mr-10 pr-4 sm:pr-10">
               {activeTab === 'profile' && (
                 <motion.div
-                  className="space-y-8"
+                  className="space-y-6"
                   initial="hidden"
                   animate="visible"
                   variants={staggerContainer(0.08, 0.05)}
                 >
 
                   {/* ── My Profile ─────────────────────────────────────────── */}
-                  <motion.section variants={cardEntrance}>
-                    <h2 className="text-2xl font-semibold text-gray-900">My Profile</h2>
-                    <div className="h-px bg-gray-200 mt-4 mb-6" />
+                  <motion.section variants={cardEntrance} className="ui-glass p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900">My Profile</h2>
+                        <p className="text-sm text-gray-500">Manage your personal information</p>
+                      </div>
+                    </div>
 
                     {/* Avatar */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-                      <div className="w-14 h-14 rounded-full bg-primary-600 text-white flex items-center justify-center font-semibold text-lg overflow-hidden flex-shrink-0">
-                        {displayAvatar ? (
-                          <img src={displayAvatar} alt={userName || 'User'} className="w-14 h-14 rounded-full object-cover" />
-                        ) : (
-                          (firstName || userName || 'U').charAt(0).toUpperCase()
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-3">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="hidden"
-                          disabled={avatarUpdating}
-                        />
+                      <div className="relative group">
+                        <div className="w-20 h-20 rounded-full bg-primary-600 text-white flex items-center justify-center font-semibold text-2xl overflow-hidden flex-shrink-0 ring-4 ring-white shadow-md">
+                          {displayAvatar ? (
+                            <img src={displayAvatar} alt={userName || 'User'} className="w-20 h-20 rounded-full object-cover" />
+                          ) : (
+                            (firstName || userName || 'U').charAt(0).toUpperCase()
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={handleChangeImageClick}
                           disabled={avatarUpdating}
-                          className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          className="absolute inset-0 w-20 h-20 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
+                          aria-label="Change profile photo"
                         >
-                          {avatarUpdating ? 'Uploading...' : '+ Change Image'}
+                          <Camera className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={handleRemoveAvatar}
-                          disabled={avatarUpdating || !displayAvatar}
-                          className="px-5 py-2.5 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                        >
-                          Remove Image
-                        </button>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-1">Profile Photo</p>
+                        <p className="text-xs text-gray-400 mb-3">JPG, PNG or GIF. Max 5MB.</p>
+                        <div className="flex flex-wrap gap-2">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="hidden"
+                            disabled={avatarUpdating}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleChangeImageClick}
+                            disabled={avatarUpdating}
+                            className="ui-btn px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          >
+                            {avatarUpdating ? 'Uploading...' : 'Change Image'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleRemoveAvatar}
+                            disabled={avatarUpdating || !displayAvatar}
+                            className="ui-btn px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     </div>
                     {avatarError && (
                       <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{avatarError}</div>
                     )}
+
+                    <div className="border-t border-gray-100 my-6" />
 
                     {/* Name form */}
                     <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -662,7 +687,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={profileSaving}
-                          className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          className="ui-btn px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -671,27 +696,50 @@ export default function SettingsPage() {
                   </motion.section>
 
                   {/* ── Account Security ────────────────────────────────────── */}
-                  <motion.section variants={cardEntrance}>
-                    <h3 className="text-2xl font-semibold text-gray-900">Account Security</h3>
-                    <div className="h-px bg-gray-200 mt-4 mb-6" />
-                    <div className="space-y-6">
-                      <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
-                        <div className="flex-1">
-                          <FloatingInput id="email" label="Email" type="email" defaultValue={userEmail || ''} readOnly />
+                  <motion.section variants={cardEntrance} className="ui-glass p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-sm">
+                        <Shield className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Account Security</h3>
+                        <p className="text-sm text-gray-500">Manage your email and password</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-5">
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Mail className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email Address</span>
+                        </div>
+                        <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
+                          <div className="flex-1">
+                            <FloatingInput id="email" label="Email" type="email" defaultValue={userEmail || ''} readOnly />
+                          </div>
+                          <span className="text-xs text-gray-400 lg:pb-3 whitespace-nowrap">Contact admin to change</span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
-                        <div className="flex-1">
-                          <FloatingInput id="password" label="Password" type="password" value="••••••••••" readOnly />
+                      <div className="border-t border-gray-100" />
+
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Lock className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Password</span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={openChangePassword}
-                          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                        >
-                          Change password
-                        </button>
+                        <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
+                          <div className="flex-1">
+                            <FloatingInput id="password" label="Password" type="password" value="••••••••••" readOnly />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={openChangePassword}
+                            className="ui-btn px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          >
+                            Change password
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </motion.section>
@@ -773,9 +821,16 @@ export default function SettingsPage() {
                   </DetailDrawer>
 
                   {/* ── Notification Preferences ─────────────────────────────── */}
-                  <motion.section variants={cardEntrance}>
-                    <h3 className="text-2xl font-semibold text-gray-900">Notification Preferences</h3>
-                    <div className="h-px bg-gray-200 mt-4 mb-6" />
+                  <motion.section variants={cardEntrance} className="ui-glass p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm">
+                        <Bell className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Notification Preferences</h3>
+                        <p className="text-sm text-gray-500">Choose how you want to be notified</p>
+                      </div>
+                    </div>
                     <NotificationPreferences />
                   </motion.section>
                 </motion.div>

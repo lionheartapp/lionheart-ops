@@ -572,10 +572,13 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
     <div
       className={`relative flex flex-col ${
         isEmbedded
-          ? 'w-full h-full min-h-0 overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
-          : 'w-[384px] rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-2xl'
+          ? 'w-full h-full min-h-0 overflow-hidden rounded-2xl border border-slate-200/60 shadow-sm'
+          : 'w-[384px] rounded-2xl border border-slate-200/60 shadow-2xl'
       }`}
-      style={isEmbedded ? undefined : { height: '520px' }}
+      style={{
+        background: 'linear-gradient(rgb(255 255 255) 0%, rgb(249 252 255) 100%)',
+        ...(isEmbedded ? {} : { height: '520px' }),
+      }}
     >
       {/* Header — minimal glass style */}
       <div className="relative flex-shrink-0 flex items-center justify-between px-4 pt-2.5 pb-3">
