@@ -1430,7 +1430,9 @@ export default function Sidebar({
       </nav>
 
       {/* Footer — User Profile + 3-dot Menu + Logo */}
-      <div className="border-t border-slate-200/30 pt-2 pb-3 px-3">
+      <div className="pb-3 px-3">
+        {/* Divider above user profile */}
+        <div className="mx-3 mb-4 border-t border-slate-200/40" />
         {/* User Profile + 3-dot Menu */}
         <div className="relative" ref={userMenuRef}>
           <div className="flex items-center gap-3 px-3 py-2 min-w-0">
