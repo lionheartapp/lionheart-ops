@@ -880,22 +880,21 @@ export default function Sidebar({
                     setIsOpen(false)
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
-                  className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                  className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                     active && !settingsOpen && !athleticsOpen
-                      ? 'text-slate-900 font-semibold'
+                      ? 'text-blue-600 font-semibold bg-blue-50/60'
                       : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
-                  style={active && !settingsOpen && !athleticsOpen ? {} : {}}
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                 >
-                  <span
-                    className={`w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full ${
-                      active && !settingsOpen && !athleticsOpen ? 'w-7 h-7 -ml-1 text-white shadow-md' : ''
-                    }`}
-                    style={active && !settingsOpen && !athleticsOpen ? { background: '#3B82F6' } : {}}
-                  >
-                    <Icon className={active && !settingsOpen && !athleticsOpen ? 'w-3.5 h-3.5' : 'w-5 h-5'} aria-hidden="true" />
-                  </span>
+                  {/* Left accent bar — aurora gradient */}
+                  {active && !settingsOpen && !athleticsOpen && (
+                    <span
+                      className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+                      style={{ background: 'linear-gradient(180deg, #3B82F6, #6366F1)' }}
+                    />
+                  )}
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen ? 'text-blue-600' : ''}`} aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
@@ -923,22 +922,21 @@ export default function Sidebar({
                   queryClient.prefetchQuery(queryOptions.modules()).catch(() => {})
                   queryClient.prefetchQuery(queryOptions.calendars()).catch(() => {})
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                   athleticsOpen
-                    ? 'text-slate-900 font-semibold'
+                    ? 'text-blue-600 font-semibold bg-blue-50/60'
                     : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                 }`}
-                style={athleticsOpen ? {} : {}}
                 aria-current={athleticsOpen ? 'page' : undefined}
               >
-                <span
-                  className={`w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full ${
-                    athleticsOpen ? 'w-7 h-7 -ml-1 text-white shadow-md' : ''
-                  }`}
-                  style={athleticsOpen ? { background: '#3B82F6' } : {}}
-                >
-                  <Trophy className={athleticsOpen ? 'w-3.5 h-3.5' : 'w-5 h-5'} aria-hidden="true" />
-                </span>
+                {/* Left accent bar — aurora gradient */}
+                {athleticsOpen && (
+                  <span
+                    className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+                    style={{ background: 'linear-gradient(180deg, #3B82F6, #6366F1)' }}
+                  />
+                )}
+                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-blue-600' : ''}`} aria-hidden="true" />
                 <span className="text-sm">Athletics</span>
               </button>
             </li>
