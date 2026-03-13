@@ -892,7 +892,7 @@ export default function Sidebar({
                     className={`w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full ${
                       active && !settingsOpen && !athleticsOpen ? 'w-7 h-7 -ml-1 text-white shadow-md' : ''
                     }`}
-                    style={active && !settingsOpen && !athleticsOpen ? { background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)' } : {}}
+                    style={active && !settingsOpen && !athleticsOpen ? { background: '#3B82F6' } : {}}
                   >
                     <Icon className={active && !settingsOpen && !athleticsOpen ? 'w-3.5 h-3.5' : 'w-5 h-5'} aria-hidden="true" />
                   </span>
@@ -935,7 +935,7 @@ export default function Sidebar({
                   className={`w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full ${
                     athleticsOpen ? 'w-7 h-7 -ml-1 text-white shadow-md' : ''
                   }`}
-                  style={athleticsOpen ? { background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)' } : {}}
+                  style={athleticsOpen ? { background: '#3B82F6' } : {}}
                 >
                   <Trophy className={athleticsOpen ? 'w-3.5 h-3.5' : 'w-5 h-5'} aria-hidden="true" />
                 </span>
@@ -1420,7 +1420,7 @@ export default function Sidebar({
         {/* Settings */}
         <button
           onClick={() => {
-            setSettingsOpen(true)
+            handleSettingsClick()
             setIsOpen(false)
           }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
