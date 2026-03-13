@@ -119,6 +119,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         localStorage.setItem('org-name', org.name || '')
         localStorage.setItem('org-school-type', org.schoolType || '')
         localStorage.setItem('org-logo-url', org.logoUrl || '')
+        localStorage.setItem('dashboard-mode', user.dashboardMode || 'default')
 
         // Impersonation state
         if (isImpersonating) {
@@ -136,7 +137,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         ;[
           'auth-token', 'org-id', 'user-name', 'user-email', 'user-avatar',
           'user-team', 'user-school-scope', 'user-role', 'org-name',
-          'org-school-type', 'org-logo-url', 'is-impersonating', 'admin-name',
+          'org-school-type', 'org-logo-url', 'dashboard-mode', 'is-impersonating', 'admin-name',
         ].forEach((k) => localStorage.removeItem(k))
         setReady(true)
         // Individual pages will see empty localStorage and redirect to /login

@@ -94,7 +94,7 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
       team: localStorage.getItem('user-team') || null,
       schoolScope: localStorage.getItem('user-school-scope') || null,
       role: localStorage.getItem('user-role') || null,
-      dashboardMode: 'default', // Will be overwritten by /api/auth/me response
+      dashboardMode: localStorage.getItem('dashboard-mode') || 'default',
     }
   })
   const [org, setOrg] = useState<AuthOrg>(() => {
