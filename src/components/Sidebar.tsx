@@ -816,7 +816,7 @@ export default function Sidebar({
   const mainNavContent = (
     <div className="flex flex-col h-full">
       {/* Organization Logo */}
-      <div className="px-5 pt-5 pb-2 flex items-center">
+      <div className="px-5 pt-5 pb-2 flex items-center justify-center">
         {organizationLogoUrl ? (
           <img
             src={organizationLogoUrl}
