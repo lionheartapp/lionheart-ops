@@ -834,7 +834,7 @@ export default function Sidebar({
   const mainNavContent = (
     <div className="flex flex-col h-full">
       {/* Organization Logo */}
-      <div className="px-4 pt-5 pb-4 flex items-center justify-between">
+      <div className="px-4 pt-8 pb-8 flex items-center justify-between">
         <div className="flex-1 min-w-0 flex items-center justify-center">
           {organizationLogoUrl ? (
             <img
@@ -851,7 +851,7 @@ export default function Sidebar({
       </div>
 
       {/* Search Trigger */}
-      <div className="px-4 pb-2">
+      <div className="px-4 pb-8">
         <button
           onClick={onSearchOpen}
           className="w-full h-9 rounded-xl border border-slate-300/60 bg-white/40 px-3 flex items-center gap-2 text-sm text-slate-500 hover:bg-white/60 hover:border-slate-400/50 transition cursor-pointer"
@@ -897,7 +897,7 @@ export default function Sidebar({
                   }`}
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen ? 'text-transparent' : ''}`} aria-hidden="true" style={active && !settingsOpen && !athleticsOpen ? { stroke: 'url(#sidebar-icon-gradient)' } : undefined} />
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
@@ -932,7 +932,7 @@ export default function Sidebar({
                 }`}
                 aria-current={athleticsOpen ? 'page' : undefined}
               >
-                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-transparent' : ''}`} aria-hidden="true" style={athleticsOpen ? { stroke: 'url(#sidebar-icon-gradient)' } : undefined} />
+                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
                 <span className="text-sm">Athletics</span>
               </button>
             </li>
@@ -963,7 +963,7 @@ export default function Sidebar({
                     aria-expanded={facilitiesOpen}
                     aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
                   >
-                    <Wrench className="w-5 h-5 flex-shrink-0 text-slate-400" aria-hidden="true" />
+                    <Wrench className="w-5 h-5 flex-shrink-0 text-slate-600" aria-hidden="true" />
                     <span className="text-sm font-semibold text-slate-700">Maintenance</span>
                     <motion.span
                       className="ml-auto block"
@@ -1214,7 +1214,7 @@ export default function Sidebar({
                     aria-expanded={itOpen}
                     aria-label={itOpen ? 'Collapse IT Help Desk' : 'Expand IT Help Desk'}
                   >
-                    <Monitor className="w-5 h-5 flex-shrink-0 text-slate-400" aria-hidden="true" />
+                    <Monitor className="w-5 h-5 flex-shrink-0 text-slate-600" aria-hidden="true" />
                     <span className="text-sm font-semibold text-slate-700">IT Help Desk</span>
                     <motion.span
                       className="ml-auto block"
