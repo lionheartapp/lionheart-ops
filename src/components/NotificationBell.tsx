@@ -32,7 +32,7 @@ function getNotificationIcon(type: string) {
     case 'event_rejected':
       return <XCircle className="w-4 h-4 text-red-500" />
     default:
-      return <Bell className="w-4 h-4 text-gray-500" />
+      return <Bell className="w-4 h-4 text-slate-500" />
   }
 }
 
@@ -147,7 +147,7 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
       {/* Drawer — right side slide */}
       <div
         ref={drawerRef}
-        className={`fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:w-96 bg-white flex flex-col transition-transform duration-300 ease-out z-modal sm:rounded-2xl border border-gray-200 shadow-xl ${
+        className={`fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:w-96 bg-white flex flex-col transition-transform duration-300 ease-out z-modal sm:rounded-2xl border border-slate-200 shadow-xl ${
           shouldShow ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
@@ -156,7 +156,7 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-3 flex-shrink-0">
-          <h2 id="notification-drawer-title" className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+          <h2 id="notification-drawer-title" className="text-xs text-slate-400 uppercase tracking-wide font-medium">
             Notifications
           </h2>
           <div className="flex items-center gap-2">
@@ -171,10 +171,10 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
             )}
             <button
               onClick={handleClose}
-              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors flex-shrink-0"
               aria-label="Close notifications"
             >
-              <X className="w-5 h-5 text-gray-400" aria-hidden="true" />
+              <X className="w-5 h-5 text-slate-400" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -183,15 +183,15 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
         <div className="flex-1 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="py-16 text-center">
-              <Bell className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-400">No notifications</p>
+              <Bell className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+              <p className="text-sm text-slate-400">No notifications</p>
             </div>
           ) : (
             notifications.map((n) => (
               <button
                 key={n.id}
                 onClick={() => handleNotificationClick(n)}
-                className={`w-full text-left px-6 py-4 flex items-start gap-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset cursor-pointer ${
+                className={`w-full text-left px-6 py-4 flex items-start gap-3 hover:bg-slate-50 transition border-b border-slate-100 last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset cursor-pointer ${
                   !n.isRead ? 'bg-primary-50/40' : ''
                 }`}
               >
@@ -199,13 +199,13 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
                   {getNotificationIcon(n.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm leading-snug ${!n.isRead ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
+                  <p className={`text-sm leading-snug ${!n.isRead ? 'font-medium text-slate-900' : 'text-slate-700'}`}>
                     {n.title}
                   </p>
                   {n.body && (
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                  <p className="text-xs text-slate-400 mt-1">{timeAgo(n.createdAt)}</p>
                 </div>
                 {!n.isRead && (
                   <div className="w-2 h-2 rounded-full bg-primary-500 mt-1.5 flex-shrink-0" />
@@ -216,8 +216,8 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-gray-100 px-6 py-3">
-          <span className="text-xs text-gray-400">
+        <div className="flex-shrink-0 border-t border-slate-100 px-6 py-3">
+          <span className="text-xs text-slate-400">
             {notifications.length === 0 ? "You're all caught up" : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
           </span>
         </div>

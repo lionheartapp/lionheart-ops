@@ -74,7 +74,7 @@ input:-webkit-autofill:focus ~ label {
 /* Body styles: Light default — dark sections (sidebar, header) set their own text colors */
 @layer base {
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-white text-slate-900;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -244,6 +244,30 @@ a:visited {
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
+/* Dashboard events panel scrollbar */
+.dashboard-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Firefox */
+.dashboard-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
 /* Leo AI scrollbar */
 .leo-scrollbar::-webkit-scrollbar {
   width: 5px;
@@ -265,34 +289,34 @@ a:visited {
 
 @layer components {
   .ui-input {
-    @apply w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 outline-none transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-200;
+    @apply w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg bg-white focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 outline-none transition-colors disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200;
   }
 
   .ui-input-bordered {
-    @apply w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg text-gray-800 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent outline-none transition;
+    @apply w-full px-4 py-3 min-h-[44px] border border-slate-300 rounded-lg text-slate-800 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent outline-none transition;
   }
 
   .ui-select {
-    @apply w-full px-3.5 py-3.5 pr-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 outline-none appearance-none bg-no-repeat transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-200;
+    @apply w-full px-3.5 py-3.5 pr-10 text-sm text-slate-900 border border-slate-300 rounded-lg bg-white focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 outline-none appearance-none bg-no-repeat transition-colors disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236B7280' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
     background-size: 16px 16px;
     background-position: right 12px center;
   }
 
   .ui-icon-muted {
-    @apply text-gray-500 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition;
+    @apply text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition;
   }
 
   .settings-search-input {
-    @apply w-full pl-10 pr-4 py-3 border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 bg-white rounded-lg focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 outline-none transition-colors;
+    @apply w-full pl-10 pr-4 py-3 border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 bg-white rounded-lg focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 outline-none transition-colors;
   }
 
   .ui-label {
-    @apply block text-sm font-medium text-gray-700 mb-1.5;
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
   }
 
   .ui-btn {
-    @apply inline-flex items-center justify-center font-semibold rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] transform;
+    @apply inline-flex items-center justify-center font-semibold rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] transform;
   }
 
   .ui-btn-sm {
@@ -308,11 +332,11 @@ a:visited {
   }
 
   .ui-btn-primary {
-    @apply bg-gray-900 text-white hover:bg-gray-800;
+    @apply bg-slate-900 text-white hover:bg-slate-800;
   }
 
   .ui-btn-secondary {
-    @apply text-gray-500 hover:text-gray-700 bg-transparent;
+    @apply text-slate-500 hover:text-slate-700 bg-transparent;
   }
 
   .ui-btn-accent {
@@ -324,11 +348,11 @@ a:visited {
   }
 
   .ui-btn-outline {
-    @apply border border-gray-300 text-gray-700 hover:bg-gray-50;
+    @apply border border-slate-300 text-slate-700 hover:bg-slate-50;
   }
 
   .ui-btn-ghost {
-    @apply text-gray-600 hover:bg-gray-100;
+    @apply text-slate-600 hover:bg-slate-100;
   }
 
   .ui-badge {

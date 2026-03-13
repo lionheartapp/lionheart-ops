@@ -344,7 +344,7 @@ export default function DashboardPage() {
       case 'RESOLVED':
         return <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
       default:
-        return <Clock className="w-5 h-5 text-gray-400" aria-hidden="true" />
+        return <Clock className="w-5 h-5 text-slate-400" aria-hidden="true" />
     }
   }
 
@@ -368,7 +368,7 @@ export default function DashboardPage() {
       case 'LOW':
         return 'bg-green-100 text-green-700'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-slate-100 text-slate-700'
     }
   }
 
@@ -404,8 +404,8 @@ export default function DashboardPage() {
         variants={staggerContainer(0.08, 0.05)}
       >
         <motion.div variants={fadeInUp}>
-          <p className="text-gray-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+          <p className="text-slate-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
             {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
           </h1>
         </motion.div>
@@ -458,62 +458,62 @@ export default function DashboardPage() {
             >
               {/* Meetings Section */}
               <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-1">Meetings</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-1">Meetings</p>
                 <button
                   onClick={() => openMeetingPanel()}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Users className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Schedule Meeting</p>
-                    <p className="text-xs text-gray-600">Informal — added instantly, no approval</p>
+                    <p className="font-medium text-slate-900">Schedule Meeting</p>
+                    <p className="text-xs text-slate-600">Informal — added instantly, no approval</p>
                   </div>
                 </button>
               </div>
 
               {/* Divider */}
               <div className="px-3">
-                <div className="h-px bg-gray-200" />
+                <div className="h-px bg-slate-200" />
               </div>
 
               {/* Events Section */}
               <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-1">School Events</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-1">School Events</p>
                 <button
                   onClick={() => openEventStepper()}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Calendar className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Plan Event</p>
-                    <p className="text-xs text-gray-600">Formal — AV, facilities &amp; admin approval</p>
+                    <p className="font-medium text-slate-900">Plan Event</p>
+                    <p className="text-xs text-slate-600">Formal — AV, facilities &amp; admin approval</p>
                   </div>
                 </button>
                 <div className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed">
-                  <Sparkles className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <Sparkles className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-500">AI Event Planner <span className="ml-1 text-[10px] font-semibold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
-                    <p className="text-xs text-gray-400">Plan an event with AI assistance</p>
+                    <p className="font-medium text-slate-500">AI Event Planner <span className="ml-1 text-[10px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
+                    <p className="text-xs text-slate-400">Plan an event with AI assistance</p>
                   </div>
                 </div>
               </div>
 
               {/* Divider */}
               <div className="px-3">
-                <div className="h-px bg-gray-200" />
+                <div className="h-px bg-slate-200" />
               </div>
 
               {/* Support Section */}
               <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-2">Support</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-2">Support</p>
                 <button
                   onClick={() => openCreateDrawer('MAINTENANCE')}
                   className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Facilities Request</p>
-                    <p className="text-xs text-gray-600">Submit a facilities request</p>
+                    <p className="font-medium text-slate-900">Facilities Request</p>
+                    <p className="text-xs text-slate-600">Submit a facilities request</p>
                   </div>
                 </button>
                 <button
@@ -522,8 +522,8 @@ export default function DashboardPage() {
                 >
                   <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">IT Request</p>
-                    <p className="text-xs text-gray-600">Submit an IT support request</p>
+                    <p className="font-medium text-slate-900">IT Request</p>
+                    <p className="text-xs text-slate-600">Submit an IT support request</p>
                   </div>
                 </button>
               </div>
@@ -543,19 +543,21 @@ export default function DashboardPage() {
         variants={staggerContainer(0.1, 0.15)}
       >
         {/* Main Panel — My Tasks / Upcoming Events / Requests (mode-aware) */}
-        <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover p-6 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 min-h-0 overflow-y-auto overflow-x-hidden">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
-              {user.dashboardMode === 'admin' ? 'Upcoming Events' :
-               user.dashboardMode === 'maintenance' ? 'Maintenance Requests' :
-               user.dashboardMode === 'it' ? 'IT Requests' :
-               user.dashboardMode === 'av' ? 'Upcoming A/V Events' :
-               'My Tasks'}
-            </h2>
-          </div>
+        <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover flex flex-col focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 min-h-0">
+          {/* Sticky header — stays pinned while events scroll */}
+          <div className="flex-shrink-0 pt-6 px-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-slate-900">
+                {user.dashboardMode === 'admin' ? 'Upcoming Events' :
+                 user.dashboardMode === 'maintenance' ? 'Maintenance Requests' :
+                 user.dashboardMode === 'it' ? 'IT Requests' :
+                 user.dashboardMode === 'av' ? 'Upcoming A/V Events' :
+                 'My Tasks'}
+              </h2>
+            </div>
 
-          {/* Compact stats row — labels and values adapt per mode */}
-          <div className="flex gap-3 mb-6">
+            {/* Compact stats row — labels and values adapt per mode */}
+            <div className="flex gap-3 mb-6">
             {user.dashboardMode === 'admin' && (
               <>
                 <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.5)' }}>
@@ -621,7 +623,10 @@ export default function DashboardPage() {
               </>
             )}
           </div>
+          </div>
 
+          {/* Scrollable events area */}
+          <div className="flex-1 min-h-0 overflow-y-auto dashboard-scroll px-6 pb-6">
           {/* ── Admin Events Panel — uses CalendarEvents (same source as calendar page) ── */}
           {user.dashboardMode === 'admin' ? (
             upcomingCalLoading ? (
@@ -630,9 +635,9 @@ export default function DashboardPage() {
               </div>
             ) : upcomingCalEvents.length === 0 ? (
               <div className="text-center py-16">
-                <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-base font-semibold text-gray-700 mb-1">No upcoming events</p>
-                <p className="text-sm text-gray-500">Events on any calendar will appear here.</p>
+                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-base font-semibold text-slate-700 mb-1">No upcoming events</p>
+                <p className="text-sm text-slate-500">Events on any calendar will appear here.</p>
               </div>
             ) : (
               <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
@@ -654,16 +659,16 @@ export default function DashboardPage() {
                         <Calendar className="w-5 h-5" style={{ color: dotColor }} aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{event.title}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{dateLabel} · {timeStr}</p>
+                        <p className="font-medium text-slate-900 truncate">{event.title}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{dateLabel} · {timeStr}</p>
                         {event.locationText && (
-                          <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                          <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                             <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />{event.locationText}
                           </p>
                         )}
-                        <p className="text-xs text-gray-400 mt-0.5">{event.calendar.name}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{event.calendar.name}</p>
                       </div>
-                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                         {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     </motion.li>
@@ -679,9 +684,9 @@ export default function DashboardPage() {
               </div>
             ) : events.length === 0 ? (
               <div className="text-center py-16">
-                <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-base font-semibold text-gray-700 mb-1">No A/V events scheduled</p>
-                <p className="text-sm text-gray-500">Events that require A/V support will appear here.</p>
+                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-base font-semibold text-slate-700 mb-1">No A/V events scheduled</p>
+                <p className="text-sm text-slate-500">Events that require A/V support will appear here.</p>
               </div>
             ) : (
               <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
@@ -702,10 +707,10 @@ export default function DashboardPage() {
                         <Video className="w-5 h-5 text-primary-600" aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{event.title}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{dateLabel} · {timeStr}</p>
+                        <p className="font-medium text-slate-900 truncate">{event.title}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{dateLabel} · {timeStr}</p>
                         {event.room && (
-                          <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                          <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                             <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />{event.room}
                           </p>
                         )}
@@ -727,7 +732,7 @@ export default function DashboardPage() {
                           )}
                         </div>
                       </div>
-                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                         {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     </motion.li>
@@ -744,11 +749,11 @@ export default function DashboardPage() {
             ) : tickets.length === 0 ? (
               <div className="text-center py-16">
                 <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
-                <p className="text-base font-semibold text-gray-700 mb-1">No tasks yet</p>
-                <p className="text-sm text-gray-500 mb-4">Submit a maintenance request or create a task to get started.</p>
+                <p className="text-base font-semibold text-slate-700 mb-1">No tasks yet</p>
+                <p className="text-sm text-slate-500 mb-4">Submit a maintenance request or create a task to get started.</p>
                 <button
                   onClick={() => openCreateDrawer('MAINTENANCE')}
-                  className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
                 >
                   Create First Task
                 </button>
@@ -767,8 +772,8 @@ export default function DashboardPage() {
                         {getStatusIcon(ticket.status)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{ticket.title}</p>
-                        <p className="text-xs text-gray-500 mt-1">{formatDate(ticket.createdAt)}</p>
+                        <p className="font-medium text-slate-900 truncate">{ticket.title}</p>
+                        <p className="text-xs text-slate-500 mt-1">{formatDate(ticket.createdAt)}</p>
                       </div>
                       <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(ticket.priority)}`}>
                         {ticket.priority === 'NORMAL' ? 'Normal' : ticket.priority === 'CRITICAL' ? 'Critical' : ticket.priority}
@@ -786,6 +791,7 @@ export default function DashboardPage() {
               </>
             )
           )}
+          </div>
         </motion.div>
 
         {/* Right Rail — Embedded Leo AI Assistant */}
@@ -820,13 +826,13 @@ export default function DashboardPage() {
             <button
               onClick={handleSaveEdit}
               disabled={editSaving}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition active:scale-[0.97]"
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition active:scale-[0.97]"
             >
               {editSaving ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               onClick={() => setIsEditMode(false)}
-              className="flex-1 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition active:scale-[0.97]"
+              className="flex-1 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition active:scale-[0.97]"
             >
               Cancel
             </button>
@@ -837,29 +843,29 @@ export default function DashboardPage() {
           isEditMode ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
                 <input
                   type="text"
                   value={editForm.title}
                   onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
                 <select
                   value={editForm.priority}
                   onChange={(e) => setEditForm(prev => ({ ...prev, priority: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="LOW">Low</option>
                   <option value="NORMAL">Normal</option>
@@ -871,11 +877,11 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-6">
               {selectedTicket.description && (
-                <p className="text-gray-600 text-sm">{selectedTicket.description}</p>
+                <p className="text-slate-600 text-sm">{selectedTicket.description}</p>
               )}
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Status</p>
+                  <p className="text-sm font-medium text-slate-700 mb-1">Status</p>
                   <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                     selectedTicket.status === 'OPEN' ? 'bg-red-100 text-red-700' :
                     selectedTicket.status === 'IN_PROGRESS' ? 'bg-primary-100 text-primary-700' :
@@ -885,30 +891,30 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Priority</p>
+                  <p className="text-sm font-medium text-slate-700 mb-1">Priority</p>
                   <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(selectedTicket.priority)}`}>
                     {selectedTicket.priority}
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Category</p>
-                  <p className="text-gray-600">{selectedTicket.category}</p>
+                  <p className="text-sm font-medium text-slate-700 mb-1">Category</p>
+                  <p className="text-slate-600">{selectedTicket.category}</p>
                 </div>
                 {selectedTicket.locationText && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Location</p>
-                    <p className="text-gray-600">{selectedTicket.locationText}</p>
+                    <p className="text-sm font-medium text-slate-700 mb-1">Location</p>
+                    <p className="text-slate-600">{selectedTicket.locationText}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Created</p>
-                  <p className="text-gray-600">{new Date(selectedTicket.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="text-sm font-medium text-slate-700 mb-1">Created</p>
+                  <p className="text-slate-600">{new Date(selectedTicket.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
             </div>
           )
         ) : (
-          <p className="text-gray-400 text-sm">Select a task to view details.</p>
+          <p className="text-slate-400 text-sm">Select a task to view details.</p>
         )}
       </DetailDrawer>
 
@@ -922,14 +928,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCreateCategory(null)}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
             >
               Cancel
             </button>
             <button
               onClick={handleCreateSubmit}
               disabled={createSaving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
             >
               {createSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               Submit Request
@@ -1072,21 +1078,21 @@ function EventDrawerContent({ item, detail }: { item: Record<string, unknown>; d
     <div className="space-y-6">
       {/* Title */}
       <div>
-        <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+        <h3 className="text-xl font-bold text-slate-900">{title}</h3>
         {description && (
-          <p className="text-sm text-gray-600 mt-2 leading-relaxed">{description}</p>
+          <p className="text-sm text-slate-600 mt-2 leading-relaxed">{description}</p>
         )}
       </div>
 
       {/* Date & Time */}
       <div className="space-y-3">
         <div className="flex items-start gap-3">
-          <Calendar className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+          <Calendar className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-slate-900">
               {startTime ? formatEventDate(startTime) : date || 'Date not set'}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               {startTime && endTime
                 ? `${formatEventTime(startTime)} – ${formatEventTime(endTime)}`
                 : time || ''
@@ -1098,8 +1104,8 @@ function EventDrawerContent({ item, detail }: { item: Record<string, unknown>; d
         {/* Location */}
         {locationText && (
           <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-gray-900">{locationText}</p>
+            <MapPin className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-slate-900">{locationText}</p>
           </div>
         )}
 
@@ -1109,14 +1115,14 @@ function EventDrawerContent({ item, detail }: { item: Record<string, unknown>; d
             <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: calendarColor }} />
             </div>
-            <p className="text-sm text-gray-700">{calendarName}</p>
+            <p className="text-sm text-slate-700">{calendarName}</p>
           </div>
         )}
       </div>
 
       {hasOrganizer && (
-        <div className="pt-3 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Organizer</p>
+        <div className="pt-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Organizer</p>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               {createdBy
@@ -1125,14 +1131,14 @@ function EventDrawerContent({ item, detail }: { item: Record<string, unknown>; d
               }
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-slate-900">
                 {createdBy
                   ? String([createdBy.firstName, createdBy.lastName].filter(Boolean).join(' ') || createdBy.name || createdBy.email || '')
                   : (host || '')
                 }
               </p>
               {createdBy?.email != null && (
-                <p className="text-xs text-gray-500">{String(createdBy.email)}</p>
+                <p className="text-xs text-slate-500">{String(createdBy.email)}</p>
               )}
             </div>
           </div>
@@ -1141,8 +1147,8 @@ function EventDrawerContent({ item, detail }: { item: Record<string, unknown>; d
 
       {/* Attendees */}
       {attendees && attendees.length > 0 && (
-        <div className="pt-3 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+        <div className="pt-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
             Attendees ({attendees.length})
           </p>
           <div className="space-y-2">
@@ -1152,21 +1158,21 @@ function EventDrawerContent({ item, detail }: { item: Record<string, unknown>; d
               const status = att.responseStatus as string
               return (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {u.avatar ? (
                       <img src={String(u.avatar)} alt={name} className="w-7 h-7 rounded-full object-cover" />
                     ) : (
-                      <span className="text-[10px] font-bold text-gray-600">
+                      <span className="text-[10px] font-bold text-slate-600">
                         {name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
-                  <span className="text-sm text-gray-700 flex-1">{name}</span>
+                  <span className="text-sm text-slate-700 flex-1">{name}</span>
                   {status && status !== 'PENDING' && (
                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                       status === 'ACCEPTED' ? 'bg-green-100 text-green-700' :
                       status === 'DECLINED' ? 'bg-red-100 text-red-700' :
-                      'bg-gray-100 text-gray-500'
+                      'bg-slate-100 text-slate-500'
                     }`}>
                       {status.charAt(0) + status.slice(1).toLowerCase()}
                     </span>
@@ -1180,13 +1186,13 @@ function EventDrawerContent({ item, detail }: { item: Record<string, unknown>; d
 
       {/* Equipment / Metadata */}
       {!!(detail?.metadata && typeof detail.metadata === 'object' && (detail.metadata as Record<string, unknown>).equipment_list) && (
-        <div className="pt-3 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Equipment</p>
+        <div className="pt-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Equipment</p>
           <div className="space-y-1.5">
             {(((detail.metadata as Record<string, unknown>).equipment_list) as Array<Record<string, unknown>>).map((eq, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">{String(eq.item)}</span>
-                <span className="text-gray-400 font-medium">×{Number(eq.quantity)}</span>
+                <span className="text-slate-700">{String(eq.item)}</span>
+                <span className="text-slate-400 font-medium">×{Number(eq.quantity)}</span>
               </div>
             ))}
           </div>
@@ -1211,37 +1217,37 @@ function TicketDrawerContent({ item }: { item: Record<string, unknown> }) {
 
   return (
     <div className="space-y-5">
-      <h3 className="text-xl font-bold text-gray-900">{String(item.title)}</h3>
+      <h3 className="text-xl font-bold text-slate-900">{String(item.title)}</h3>
       <div className="flex flex-wrap gap-2">
         {!!item.status && (
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[String(item.status)] || 'bg-gray-100 text-gray-600'}`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[String(item.status)] || 'bg-slate-100 text-slate-600'}`}>
             {String(item.status).replace(/_/g, ' ')}
           </span>
         )}
         {!!item.priority && (
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${priorityColors[String(item.priority)] || 'bg-gray-100 text-gray-600'}`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${priorityColors[String(item.priority)] || 'bg-slate-100 text-slate-600'}`}>
             {String(item.priority)}
           </span>
         )}
       </div>
       <div className="space-y-3 text-sm">
         {!!item.category && (
-          <div><span className="font-medium text-gray-700">Category:</span> <span className="text-gray-600">{String(item.category)}</span></div>
+          <div><span className="font-medium text-slate-700">Category:</span> <span className="text-slate-600">{String(item.category)}</span></div>
         )}
         {!!item.location && (
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-600">{String(item.location)}</span>
+            <MapPin className="w-4 h-4 text-slate-400" />
+            <span className="text-slate-600">{String(item.location)}</span>
           </div>
         )}
         {!!item.assignee && (
-          <div><span className="font-medium text-gray-700">Assigned to:</span> <span className="text-gray-600">{String(item.assignee)}</span></div>
+          <div><span className="font-medium text-slate-700">Assigned to:</span> <span className="text-slate-600">{String(item.assignee)}</span></div>
         )}
         {!!item.created && (
-          <div><span className="font-medium text-gray-700">Created:</span> <span className="text-gray-600">{String(item.created)}</span></div>
+          <div><span className="font-medium text-slate-700">Created:</span> <span className="text-slate-600">{String(item.created)}</span></div>
         )}
         {!!item.id && (
-          <div><span className="font-medium text-gray-700">ID:</span> <span className="text-gray-400">{String(item.id)}</span></div>
+          <div><span className="font-medium text-slate-700">ID:</span> <span className="text-slate-400">{String(item.id)}</span></div>
         )}
       </div>
     </div>
@@ -1264,21 +1270,21 @@ function UserDrawerContent({ item }: { item: Record<string, unknown> }) {
           {initials}
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-900">{nameStr}</h3>
-          {!!item.email && <p className="text-sm text-gray-500">{String(item.email)}</p>}
+          <h3 className="text-xl font-bold text-slate-900">{nameStr}</h3>
+          {!!item.email && <p className="text-sm text-slate-500">{String(item.email)}</p>}
         </div>
       </div>
-      <div className="space-y-3 text-sm pt-2 border-t border-gray-100">
+      <div className="space-y-3 text-sm pt-2 border-t border-slate-100">
         {!!item.role && (
-          <div><span className="font-medium text-gray-700">Role:</span> <span className="text-gray-600">{String(item.role)}</span></div>
+          <div><span className="font-medium text-slate-700">Role:</span> <span className="text-slate-600">{String(item.role)}</span></div>
         )}
         {!!item.team && (
-          <div><span className="font-medium text-gray-700">Team:</span> <span className="text-gray-600">{String(item.team)}</span></div>
+          <div><span className="font-medium text-slate-700">Team:</span> <span className="text-slate-600">{String(item.team)}</span></div>
         )}
         {!!item.status && (
           <div>
-            <span className="font-medium text-gray-700">Status:</span>{' '}
-            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+            <span className="font-medium text-slate-700">Status:</span>{' '}
+            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
               {String(item.status)}
             </span>
           </div>
@@ -1295,30 +1301,30 @@ function InventoryDrawerContent({ item }: { item: Record<string, unknown> }) {
         <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200/50 flex items-center justify-center">
           <Package className="w-6 h-6 text-amber-600" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900">{String(item.name)}</h3>
+        <h3 className="text-xl font-bold text-slate-900">{String(item.name)}</h3>
       </div>
       <div className="flex gap-3">
         {item.quantity !== undefined && (
-          <div className="flex-1 bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-            <p className="text-2xl font-bold text-gray-900">{Number(item.quantity)}</p>
-            <p className="text-xs text-gray-500">Total</p>
+          <div className="flex-1 bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
+            <p className="text-2xl font-bold text-slate-900">{Number(item.quantity)}</p>
+            <p className="text-xs text-slate-500">Total</p>
           </div>
         )}
         {item.available !== undefined && (
           <div className="flex-1 bg-green-50 rounded-xl p-3 text-center border border-green-100">
             <p className="text-2xl font-bold text-green-700">{Number(item.available)}</p>
-            <p className="text-xs text-gray-500">Available</p>
+            <p className="text-xs text-slate-500">Available</p>
           </div>
         )}
       </div>
       <div className="space-y-3 text-sm">
         {!!item.category && (
-          <div><span className="font-medium text-gray-700">Category:</span> <span className="text-gray-600">{String(item.category)}</span></div>
+          <div><span className="font-medium text-slate-700">Category:</span> <span className="text-slate-600">{String(item.category)}</span></div>
         )}
         {!!item.location && (
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-600">{String(item.location)}</span>
+            <MapPin className="w-4 h-4 text-slate-400" />
+            <span className="text-slate-600">{String(item.location)}</span>
           </div>
         )}
       </div>
@@ -1329,11 +1335,11 @@ function InventoryDrawerContent({ item }: { item: Record<string, unknown> }) {
 function GenericDrawerContent({ item }: { item: Record<string, unknown> }) {
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-bold text-gray-900">{String(item.title ?? item.name ?? 'Details')}</h3>
-      {!!item.subtitle && <p className="text-sm text-gray-600">{String(item.subtitle)}</p>}
-      {!!item.detail && <p className="text-sm text-gray-500">{String(item.detail)}</p>}
+      <h3 className="text-xl font-bold text-slate-900">{String(item.title ?? item.name ?? 'Details')}</h3>
+      {!!item.subtitle && <p className="text-sm text-slate-600">{String(item.subtitle)}</p>}
+      {!!item.detail && <p className="text-sm text-slate-500">{String(item.detail)}</p>}
       {!!item.badge && (
-        <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+        <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
           {String(item.badge)}
         </span>
       )}
