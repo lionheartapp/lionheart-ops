@@ -16,6 +16,8 @@ export class OperationsEngine {
       this.checkTeacherSchedule(event),
     ])
 
+    const eventLocation = event.room || 'See event details'
+
     const shadowTickets = [
       ...inventoryAlerts.map((name) => ({
         title: `Inventory low: ${name}`,
@@ -23,6 +25,7 @@ export class OperationsEngine {
         category: 'MAINTENANCE' as const,
         priority: 'NORMAL' as const,
         source: 'SHADOW_EVENT_AUTOMATION' as const,
+        locationText: eventLocation,
       })),
       ...scheduleGaps.map((gap) => ({
         title: `Schedule gap: ${gap}`,
@@ -30,6 +33,7 @@ export class OperationsEngine {
         category: 'EVENT' as const,
         priority: 'NORMAL' as const,
         source: 'SHADOW_EVENT_AUTOMATION' as const,
+        locationText: eventLocation,
       })),
     ]
 
@@ -40,6 +44,7 @@ export class OperationsEngine {
         category: 'MAINTENANCE' as const,
         priority: 'NORMAL' as const,
         source: 'SHADOW_EVENT_AUTOMATION' as const,
+        locationText: eventLocation,
       })
     }
 
