@@ -23,6 +23,8 @@ interface EventCreatePanelProps {
   error?: string | null
   event?: CalendarEventData | null
   initialAttendees?: AttendeeSelection[]
+  /** Controls copy — 'meeting' swaps "event" language for "meeting" language */
+  mode?: 'event' | 'meeting'
 }
 
 export interface EventFormData {
@@ -336,8 +338,10 @@ export default function EventCreatePanel({
   error,
   event,
   initialAttendees,
+  mode = 'event',
 }: EventCreatePanelProps) {
   const isEditing = !!event
+  const isMeeting = mode === 'meeting'
   const focusTrapRef = useFocusTrap(isOpen)
 
   useEffect(() => {
@@ -530,7 +534,7 @@ export default function EventCreatePanel({
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-5 pb-3">
               <span id="create-panel-title" className="text-xs text-gray-400 uppercase tracking-wide font-medium">
-                {isEditing ? 'Edit Event' : 'Create New Event'}
+                {isEditing ? (isMeeting ? 'Edit Meeting' : 'Edit Event') : (isMeeting ? 'Schedule Meeting' : 'Create New Event')}
               </span>
               <button
                 onClick={onClose}
@@ -545,7 +549,7 @@ export default function EventCreatePanel({
               {/* Title */}
               <FloatingInput
                 id="event-title"
-                label="Event title"
+                label={isMeeting ? 'Meeting title' : 'Event title'}
                 value={form.title}
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
                 required
@@ -835,7 +839,7 @@ export default function EventCreatePanel({
                 className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isEditing ? 'Save Changes' : 'Create Event'}
+                {isEditing ? 'Save Changes' : (isMeeting ? 'Schedule Meeting' : 'Create Event')}
               </button>
               {!form.calendarId && form.title.trim() && (
                 <p className="text-xs text-amber-600 text-center">Please select a calendar</p>

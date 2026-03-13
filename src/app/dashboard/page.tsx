@@ -1388,6 +1388,7 @@ export default function DashboardPage() {
         initialStart={meetingPanelStart}
         initialEnd={meetingPanelEnd}
         error={meetingPanelError}
+        mode="meeting"
       />
     </DashboardLayout>
   )
