@@ -111,7 +111,7 @@ export default function DashboardLayout({
   }, [isOnline, queryClient])
 
   return (
-    <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #FBFCFE 0%, #CBCFE3 100%)' }}>
+    <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #FBFCFE 0%, #B0CFFB 100%)' }}>
       {/* Impersonation Banner */}
       {isImpersonating && <ImpersonationBanner />}
 
