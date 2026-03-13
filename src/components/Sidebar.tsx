@@ -38,6 +38,7 @@ import {
   Settings,
   LogOut,
   Eye,
+  MoreVertical,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import ViewAsDialog from '@/components/ViewAsDialog'
@@ -122,6 +123,8 @@ export default function Sidebar({
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [bugDialogOpen, setBugDialogOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const [isViewAsOpen, setIsViewAsOpen] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [isImpersonating, setIsImpersonating] = useState(false)
@@ -755,6 +758,23 @@ export default function Sidebar({
       window.removeEventListener('click', handleClickOutside)
     }
   }, [menuOpenId, colorEditId])
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside)
+    }, 0)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [userMenuOpen])
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
@@ -1409,64 +1429,106 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Footer — Actions & User Profile */}
-      <div className="border-t border-slate-200/30 pt-2 pb-3 px-3 space-y-0.5">
-        {/* Settings */}
-        <button
-          onClick={() => {
-            handleSettingsClick()
-            setIsOpen(false)
-          }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-        >
-          <Settings className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
-          <span className="text-sm">Settings</span>
-        </button>
+      {/* Footer — User Profile + 3-dot Menu + Logo */}
+      <div className="border-t border-slate-200/30 pt-2 pb-3 px-3">
+        {/* User Profile + 3-dot Menu */}
+        <div className="relative" ref={userMenuRef}>
+          <div className="flex items-center gap-3 px-3 py-2 min-w-0">
+            <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm flex-shrink-0 ring-2 ring-white/50">
+              {userAvatar ? (
+                <img src={userAvatar} alt={userName} className="w-9 h-9 rounded-full object-cover" />
+              ) : (
+                userName.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-800 truncate">{userName}</p>
+              <p className="text-xs text-slate-400 truncate">{userEmail}</p>
+            </div>
+            <button
+              onClick={() => setUserMenuOpen(prev => !prev)}
+              className="p-2 rounded-lg text-slate-400 hover:bg-white/30 hover:text-slate-700 transition-colors duration-200 cursor-pointer flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              aria-label="User menu"
+              title="More options"
+            >
+              <MoreVertical className="w-[18px] h-[18px]" aria-hidden="true" />
+            </button>
+          </div>
 
-        {/* View As — super-admin only */}
-        {isSuperAdmin && !isImpersonating && (
-          <button
-            onClick={() => setIsViewAsOpen(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-          >
-            <Eye className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
-            <span className="text-sm">View As</span>
-          </button>
-        )}
+          {/* Popup menu — opens upward */}
+          <AnimatePresence>
+            {userMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+                className="absolute bottom-full left-2 right-2 mb-2 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-50"
+              >
+                {/* Settings */}
+                <button
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    handleSettingsClick()
+                    setIsOpen(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                >
+                  <Settings className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  Settings
+                </button>
 
-        {/* Help & Support */}
-        <button
-          onClick={() => setBugDialogOpen(true)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-        >
-          <HelpCircle className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
-          <span className="text-sm">Help & Support</span>
-        </button>
+                {/* View As — super-admin only */}
+                {isSuperAdmin && !isImpersonating && (
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false)
+                      setIsViewAsOpen(true)
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                    View As
+                  </button>
+                )}
+
+                {/* Help & Support */}
+                <button
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    setBugDialogOpen(true)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                >
+                  <HelpCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  Help & Support
+                </button>
+
+                {/* Divider */}
+                <div className="border-t border-slate-100 my-1" />
+
+                {/* Log Out */}
+                <button
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    onLogout?.()
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors duration-150 cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  Log Out
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Divider */}
-        <div className="border-t border-slate-200/20 !my-2" />
+        <div className="border-t border-slate-200/20 my-2" />
 
-        {/* User Profile + Logout */}
-        <div className="flex items-center gap-3 px-3 py-2 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm flex-shrink-0 ring-2 ring-white/50">
-            {userAvatar ? (
-              <img src={userAvatar} alt={userName} className="w-9 h-9 rounded-full object-cover" />
-            ) : (
-              userName.charAt(0).toUpperCase()
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-800 truncate">{userName}</p>
-            <p className="text-xs text-slate-400 truncate">{userEmail}</p>
-          </div>
-          <button
-            onClick={onLogout}
-            className="p-2 rounded-lg text-slate-400 hover:bg-white/30 hover:text-red-500 transition-colors duration-200 cursor-pointer flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-            aria-label="Log out"
-            title="Log out"
-          >
-            <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
-          </button>
+        {/* Lionheart Logo */}
+        <div className="flex justify-center">
+          <img src="/logo.svg" alt="Lionheart" className="h-6 opacity-30" />
         </div>
       </div>
     </div>
