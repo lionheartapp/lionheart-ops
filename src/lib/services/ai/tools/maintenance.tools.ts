@@ -117,7 +117,7 @@ const tools: Record<string, ToolRegistryEntry> = {
   list_maintenance_tickets: {
     definition: {
       name: 'list_maintenance_tickets',
-      description: 'List maintenance tickets with optional filters. Returns ticket number, title, status, priority, category, assignee, and creation date.',
+      description: 'List maintenance tickets with optional filters. Supports date range filtering for questions like "tickets completed last week" or "tickets created this month". Returns ticket number, title, status, priority, category, assignee, and creation date.',
       parameters: {
         type: 'object',
         properties: {
@@ -125,6 +125,10 @@ const tools: Record<string, ToolRegistryEntry> = {
           priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'], description: 'Filter by priority' },
           category: { type: 'string', enum: ['ELECTRICAL', 'PLUMBING', 'HVAC', 'STRUCTURAL', 'CUSTODIAL_BIOHAZARD', 'IT_AV', 'GROUNDS', 'OTHER'], description: 'Filter by category' },
           assigned_to_me: { type: 'boolean', description: 'Only show tickets assigned to the current user' },
+          created_after: { type: 'string', description: 'ISO 8601 date string. Only return tickets created on or after this date (e.g. "2026-03-01T00:00:00")' },
+          created_before: { type: 'string', description: 'ISO 8601 date string. Only return tickets created before this date (e.g. "2026-03-08T00:00:00")' },
+          updated_after: { type: 'string', description: 'ISO 8601 date string. Only return tickets updated on or after this date — useful for finding tickets completed/changed in a date range' },
+          updated_before: { type: 'string', description: 'ISO 8601 date string. Only return tickets updated before this date' },
           limit: { type: 'number', description: 'Max tickets to return (default: 15)' },
         },
         required: [],
@@ -140,11 +144,25 @@ const tools: Record<string, ToolRegistryEntry> = {
       if (input.category) where.category = input.category
       if (input.assigned_to_me) where.assignedToId = ctx.userId
 
+      // Date range filters
+      if (input.created_after || input.created_before) {
+        const createdAt: Record<string, Date> = {}
+        if (input.created_after) createdAt.gte = new Date(String(input.created_after))
+        if (input.created_before) createdAt.lt = new Date(String(input.created_before))
+        where.createdAt = createdAt
+      }
+      if (input.updated_after || input.updated_before) {
+        const updatedAt: Record<string, Date> = {}
+        if (input.updated_after) updatedAt.gte = new Date(String(input.updated_after))
+        if (input.updated_before) updatedAt.lt = new Date(String(input.updated_before))
+        where.updatedAt = updatedAt
+      }
+
       const tickets = await prisma.maintenanceTicket.findMany({
         where,
         select: {
           id: true, ticketNumber: true, title: true, status: true, priority: true,
-          category: true, createdAt: true,
+          category: true, createdAt: true, updatedAt: true,
           assignedTo: { select: { name: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -155,7 +173,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         tickets: tickets.map(t => ({
           id: t.id, number: t.ticketNumber, title: t.title, status: t.status,
           priority: t.priority, category: t.category, assignedTo: t.assignedTo?.name || null,
-          created: t.createdAt,
+          created: t.createdAt, updated: t.updatedAt,
         })),
         count: tickets.length,
       })
