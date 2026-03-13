@@ -141,15 +141,15 @@ export default function ConversationSidebar({
 
           {/* Sliding panel */}
           <motion.div
-            className="absolute top-0 left-0 bottom-0 z-20 w-[280px] flex flex-col border-r border-gray-200/60 bg-white/95 backdrop-blur-sm rounded-l-2xl overflow-hidden"
+            className="absolute top-0 left-0 bottom-0 z-20 w-[280px] flex flex-col border-r border-slate-200/60 bg-white/95 backdrop-blur-sm rounded-l-2xl overflow-hidden"
             initial={{ x: -280, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -280, opacity: 0 }}
             transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
-              <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Conversations</span>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 flex-shrink-0">
+              <span className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Conversations</span>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={onNewConversation}
@@ -162,7 +162,7 @@ export default function ConversationSidebar({
                 </button>
                 <button
                   onClick={onClose}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
                   aria-label="Close sidebar"
                 >
                   <X className="h-4 w-4" />
@@ -176,25 +176,25 @@ export default function ConversationSidebar({
                 <div className="p-4 space-y-2.5">
                   {[0, 1, 2].map((i) => (
                     <div key={i} className="animate-pulse rounded-lg p-3">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                      <div className="h-3 bg-gray-100 rounded w-1/2" />
+                      <div className="h-4 bg-slate-200 rounded w-3/4 mb-2" />
+                      <div className="h-3 bg-slate-100 rounded w-1/2" />
                     </div>
                   ))}
                 </div>
               ) : conversations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full py-10 px-4 text-center">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
-                    <MessageSquare className="h-6 w-6 text-gray-400" />
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
+                    <MessageSquare className="h-6 w-6 text-slate-400" />
                   </div>
-                  <p className="text-sm text-gray-500">No conversations yet</p>
-                  <p className="text-xs text-gray-400 mt-1">Start chatting to see history</p>
+                  <p className="text-sm text-slate-500">No conversations yet</p>
+                  <p className="text-xs text-slate-400 mt-1">Start chatting to see history</p>
                 </div>
               ) : (
                 <div className="py-1.5">
                   {groups.map(({ label, items }) => (
                     <div key={label}>
                       <div className="px-4 pt-4 pb-1.5">
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</span>
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</span>
                       </div>
                       {items.map((conv) => {
                         const isActive = conv.id === activeConversationId
@@ -212,7 +212,7 @@ export default function ConversationSidebar({
                             className={`group relative mx-2 mb-1 rounded-lg cursor-pointer transition-colors duration-200 ${
                               isActive
                                 ? 'bg-primary-50'
-                                : 'hover:bg-gray-50'
+                                : 'hover:bg-slate-50'
                             } ${deletingId === conv.id ? 'opacity-50' : ''}`}
                             onClick={() => !isConfirming && onSelectConversation(conv.id)}
                           >
@@ -226,7 +226,7 @@ export default function ConversationSidebar({
 
                             <div className="px-3 py-3 pl-4">
                               <div className="flex items-start justify-between gap-2">
-                                <p className={`text-sm font-medium leading-snug flex-1 min-w-0 truncate ${isActive ? 'text-primary-700' : 'text-gray-800'}`}>
+                                <p className={`text-sm font-medium leading-snug flex-1 min-w-0 truncate ${isActive ? 'text-primary-700' : 'text-slate-800'}`}>
                                   {title}
                                 </p>
 
@@ -240,7 +240,7 @@ export default function ConversationSidebar({
                                       Delete?
                                     </button>
                                     <button
-                                      className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer min-h-[28px]"
+                                      className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer min-h-[28px]"
                                       onClick={handleCancelDelete}
                                     >
                                       Cancel
@@ -248,7 +248,7 @@ export default function ConversationSidebar({
                                   </div>
                                 ) : (
                                   <button
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 flex-shrink-0 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-slate-300 hover:text-slate-500 hover:bg-slate-100 flex-shrink-0 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
                                     onClick={(e) => handleDelete(conv.id, e)}
                                     aria-label="Delete conversation"
                                   >
@@ -259,9 +259,9 @@ export default function ConversationSidebar({
 
                               <div className="flex items-center gap-2 mt-1">
                                 {dateLabel && (
-                                  <span className="text-xs text-gray-400">{dateLabel}</span>
+                                  <span className="text-xs text-slate-400">{dateLabel}</span>
                                 )}
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-xs text-gray-500">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-xs text-slate-500">
                                   {conv.messageCount} {conv.messageCount === 1 ? 'msg' : 'msgs'}
                                 </span>
                               </div>

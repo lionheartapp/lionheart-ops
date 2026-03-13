@@ -20,7 +20,7 @@ const PRIORITY_STYLES: Record<string, { bg: string; text: string }> = {
   URGENT: { bg: 'bg-red-100', text: 'text-red-700' },
   HIGH: { bg: 'bg-orange-100', text: 'text-orange-700' },
   MEDIUM: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  LOW: { bg: 'bg-gray-100', text: 'text-gray-600' },
+  LOW: { bg: 'bg-slate-100', text: 'text-slate-600' },
 }
 
 interface RichConfirmationCardProps {
@@ -67,11 +67,11 @@ export default function RichConfirmationCard({
     return (
       <>
         {/* Header */}
-        <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-gray-100">
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-slate-100">
           <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50">
             <Wrench className="h-4 w-4 text-amber-600" />
           </div>
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Create Maintenance Ticket
           </span>
         </div>
@@ -92,7 +92,7 @@ export default function RichConfirmationCard({
                     setIsEditingTitle(false)
                   }
                 }}
-                className="w-full text-sm font-semibold text-gray-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                className="w-full text-sm font-semibold text-slate-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
               />
             ) : (
               <button
@@ -100,10 +100,10 @@ export default function RichConfirmationCard({
                 onClick={() => setIsEditingTitle(true)}
                 title="Click to edit title"
               >
-                <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors duration-200">
                   {editedTitle || card.title}
                 </span>
-                <span className="ml-1.5 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="ml-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   edit
                 </span>
               </button>
@@ -112,15 +112,15 @@ export default function RichConfirmationCard({
 
           {/* Category */}
           <div className="flex items-start gap-2">
-            <Tag className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-            <span className="text-xs text-gray-600">
+            <Tag className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+            <span className="text-xs text-slate-600">
               {CATEGORY_LABELS[card.category] || card.category}
             </span>
           </div>
 
           {/* Priority */}
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
             <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${priorityStyle.bg} ${priorityStyle.text}`}>
               {card.priority}
             </span>
@@ -129,14 +129,14 @@ export default function RichConfirmationCard({
           {/* Location */}
           {card.location && (
             <div className="flex items-start gap-2">
-              <MapPin className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-              <span className="text-xs text-gray-600">{card.location}</span>
+              <MapPin className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-slate-600">{card.location}</span>
             </div>
           )}
 
           {/* Description */}
           {card.description && (
-            <p className="text-xs text-gray-500 line-clamp-2 pl-0.5">
+            <p className="text-xs text-slate-500 line-clamp-2 pl-0.5">
               {card.description}
             </p>
           )}
@@ -150,11 +150,11 @@ export default function RichConfirmationCard({
     return (
       <>
         {/* Header */}
-        <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-gray-100">
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-slate-100">
           <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
             <CalendarPlus className="h-4 w-4 text-blue-600" />
           </div>
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Create Event
           </span>
           {(card as any).calendarName && (
@@ -181,7 +181,7 @@ export default function RichConfirmationCard({
                     setIsEditingTitle(false)
                   }
                 }}
-                className="w-full text-sm font-semibold text-gray-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                className="w-full text-sm font-semibold text-slate-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
               />
             ) : (
               <button
@@ -189,10 +189,10 @@ export default function RichConfirmationCard({
                 onClick={() => setIsEditingTitle(true)}
                 title="Click to edit title"
               >
-                <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors duration-200">
                   {editedTitle || card.title}
                 </span>
-                <span className="ml-1.5 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="ml-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   edit
                 </span>
               </button>
@@ -201,8 +201,8 @@ export default function RichConfirmationCard({
 
           {/* Date/Time */}
           <div className="flex items-start gap-2">
-            <Clock className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-            <span className="text-xs text-gray-600">
+            <Clock className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+            <span className="text-xs text-slate-600">
               {card.startDisplay}
               {card.endDisplay && card.endDisplay !== 'Not set' && (
                 <> &mdash; {card.endDisplay}</>
@@ -213,8 +213,8 @@ export default function RichConfirmationCard({
           {/* Location */}
           {card.location && (
             <div className="flex items-start gap-2">
-              <MapPin className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-              <span className="text-xs text-gray-600">{card.location}</span>
+              <MapPin className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-slate-600">{card.location}</span>
             </div>
           )}
 
@@ -230,7 +230,7 @@ export default function RichConfirmationCard({
 
           {/* Description */}
           {card.description && (
-            <p className="text-xs text-gray-500 line-clamp-2 pl-0.5">
+            <p className="text-xs text-slate-500 line-clamp-2 pl-0.5">
               {card.description}
             </p>
           )}
@@ -238,8 +238,8 @@ export default function RichConfirmationCard({
           {/* Attendees */}
           {(card as any).attendees && (card as any).attendees.length > 0 && (
             <div className="flex items-start gap-2">
-              <Users className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-              <span className="text-xs text-gray-600">
+              <Users className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-slate-600">
                 {(card as any).attendees.join(', ')}
               </span>
             </div>
@@ -249,14 +249,14 @@ export default function RichConfirmationCard({
           {(card as any).equipmentList && (card as any).equipmentList.length > 0 && (
             <div className="pt-1">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <ClipboardList className="h-3.5 w-3.5 text-gray-500" />
-                <p className="text-xs font-medium text-gray-700">Equipment Needed</p>
+                <ClipboardList className="h-3.5 w-3.5 text-slate-500" />
+                <p className="text-xs font-medium text-slate-700">Equipment Needed</p>
               </div>
               <div className="space-y-0.5 pl-0.5">
                 {(card as any).equipmentList.map((eq: { item: string; quantity: number }, idx: number) => (
                   <div key={idx} className="flex items-center gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-slate-600">
                       {eq.quantity > 1 ? `${eq.quantity}x ` : ''}{eq.item}
                     </span>
                   </div>
@@ -268,7 +268,7 @@ export default function RichConfirmationCard({
           {/* Resources */}
           {card.resources && card.resources.length > 0 && (
             <div className="pt-1">
-              <p className="text-xs font-medium text-gray-700 mb-1.5">Resources</p>
+              <p className="text-xs font-medium text-slate-700 mb-1.5">Resources</p>
               <div className="space-y-1">
                 {card.resources.map((resource, idx) => (
                   <div key={idx} className="flex items-center gap-2">
@@ -281,10 +281,10 @@ export default function RichConfirmationCard({
                     {resource.status === 'unavailable' && (
                       <X className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
                     )}
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-slate-600">
                       {resource.name}
                       {resource.status === 'ok' && (
-                        <span className="text-gray-400 ml-1">({resource.available} available)</span>
+                        <span className="text-slate-400 ml-1">({resource.available} available)</span>
                       )}
                       {resource.status === 'low' && (
                         <span className="text-amber-600 ml-1">({resource.available} available &mdash; low stock)</span>
@@ -302,12 +302,12 @@ export default function RichConfirmationCard({
           {/* Approval Channels */}
           {card.approvalChannels && card.approvalChannels.length > 0 && (
             <div className="pt-1">
-              <p className="text-xs font-medium text-gray-700 mb-1.5">Approvals needed</p>
+              <p className="text-xs font-medium text-slate-700 mb-1.5">Approvals needed</p>
               <div className="space-y-0.5">
                 {card.approvalChannels.map((channel, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                    <span className="text-xs text-gray-600">{channel}</span>
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-400 flex-shrink-0" />
+                    <span className="text-xs text-slate-600">{channel}</span>
                   </div>
                 ))}
               </div>
@@ -338,7 +338,7 @@ export default function RichConfirmationCard({
         onClick={onCancel}
       >
         <motion.div
-          className="mx-4 w-full max-w-sm rounded-xl bg-white border border-gray-200 shadow-lg"
+          className="mx-4 w-full max-w-sm rounded-xl bg-white border border-slate-200 shadow-lg"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
@@ -351,14 +351,14 @@ export default function RichConfirmationCard({
           <div className="flex gap-2 px-4 pb-4 pt-1">
             <button
               onClick={onCancel}
-              className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
+              className="flex-1 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
               style={{ minHeight: '44px' }}
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
-              className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
+              className="flex-1 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
               style={{ minHeight: '44px' }}
             >
               Confirm

@@ -24,7 +24,7 @@ const STATUS_ICON = {
 } as const
 
 const STATUS_STYLE = {
-  pending: 'text-gray-400 bg-gray-50 border-gray-200',
+  pending: 'text-slate-400 bg-slate-50 border-slate-200',
   running: 'text-blue-500 bg-blue-50 border-blue-200',
   done: 'text-green-600 bg-green-50 border-green-200',
   failed: 'text-red-500 bg-red-50 border-red-200',
@@ -52,7 +52,7 @@ export default function WorkflowPlanCard({
         onClick={isExecuting ? undefined : onCancel}
       >
         <motion.div
-          className="mx-4 w-full max-w-sm rounded-xl bg-white border border-gray-200 shadow-lg overflow-hidden"
+          className="mx-4 w-full max-w-sm rounded-xl bg-white border border-slate-200 shadow-lg overflow-hidden"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
@@ -60,23 +60,23 @@ export default function WorkflowPlanCard({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-slate-100">
             <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50">
               <ListChecks className="h-4 w-4 text-indigo-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Workflow Plan
               </span>
             </div>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-slate-400">
               {plan.stepCount} steps
             </span>
           </div>
 
           {/* Title */}
           <div className="px-4 pt-3 pb-1">
-            <p className="text-sm font-semibold text-gray-900">{plan.title}</p>
+            <p className="text-sm font-semibold text-slate-900">{plan.title}</p>
           </div>
 
           {/* Steps */}
@@ -104,8 +104,8 @@ export default function WorkflowPlanCard({
 
                   {/* Step description */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs leading-relaxed ${status === 'done' ? 'text-gray-500' : 'text-gray-700'}`}>
-                      <span className="font-medium text-gray-900">
+                    <p className={`text-xs leading-relaxed ${status === 'done' ? 'text-slate-500' : 'text-slate-700'}`}>
+                      <span className="font-medium text-slate-900">
                         {step.stepNumber}.
                       </span>{' '}
                       {step.description}
@@ -127,7 +127,7 @@ export default function WorkflowPlanCard({
             <button
               onClick={onCancel}
               disabled={isExecuting}
-              className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ minHeight: '44px' }}
             >
               {isExecuting ? 'Running...' : 'Cancel'}
@@ -135,7 +135,7 @@ export default function WorkflowPlanCard({
             <button
               onClick={onApprove}
               disabled={isExecuting}
-              className="flex-1 flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ minHeight: '44px' }}
             >
               {isExecuting ? (

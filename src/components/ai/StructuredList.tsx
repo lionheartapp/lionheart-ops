@@ -69,10 +69,10 @@ const STATUS_COLORS: Record<string, string> = {
   OPEN: 'bg-red-100 text-red-700',
   IN_PROGRESS: 'bg-blue-100 text-blue-700',
   RESOLVED: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-gray-100 text-gray-700',
+  CLOSED: 'bg-slate-100 text-slate-700',
   PENDING: 'bg-yellow-100 text-yellow-700',
   ACTIVE: 'bg-green-100 text-green-700',
-  INACTIVE: 'bg-gray-100 text-gray-500',
+  INACTIVE: 'bg-slate-100 text-slate-500',
   confirmed: 'bg-green-100 text-green-700',
   pending: 'bg-yellow-100 text-yellow-700',
   cancelled: 'bg-red-100 text-red-700',
@@ -182,14 +182,14 @@ function EventsList({ items, onItemClick }: { items: EventItem[]; onItemClick?: 
               return (
                 <div
                   key={idx}
-                  className={`flex items-stretch gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+                  className={`flex items-stretch gap-3 py-3 border-t border-slate-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
                     onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
                   }`}
                   onClick={onItemClick ? () => onItemClick('events', event) : undefined}
                 >
                   {/* Time column */}
                   <div className="w-16 flex-shrink-0 text-right pr-1 pt-0.5">
-                    <span className="text-sm font-semibold text-gray-700">{time}</span>
+                    <span className="text-sm font-semibold text-slate-700">{time}</span>
                   </div>
 
                   {/* Timeline bar */}
@@ -199,21 +199,21 @@ function EventsList({ items, onItemClick }: { items: EventItem[]; onItemClick?: 
 
                   {/* Content */}
                   <div className="flex-1 min-w-0 py-0.5">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{event.title}</p>
+                    <p className="text-sm font-semibold text-slate-900 truncate">{event.title}</p>
                     {event.location && (
                       <div className="flex items-center gap-1.5 mt-1">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-gray-500 truncate">{event.location}</span>
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                        <span className="text-xs text-slate-500 truncate">{event.location}</span>
                       </div>
                     )}
                     {event.calendar && (
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-gray-500 truncate">{event.calendar}</span>
+                        <Calendar className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                        <span className="text-xs text-slate-500 truncate">{event.calendar}</span>
                       </div>
                     )}
                     {event.host && (
-                      <span className="text-xs text-gray-400">Host: {event.host}</span>
+                      <span className="text-xs text-slate-400">Host: {event.host}</span>
                     )}
                   </div>
                 </div>
@@ -231,13 +231,13 @@ function TicketsList({ items, onItemClick }: { items: TicketItem[]; onItemClick?
     <div className="space-y-0">
       {items.map((ticket, idx) => {
         const StatusIcon = STATUS_ICONS[ticket.status || ''] || AlertCircle
-        const statusColor = STATUS_COLORS[ticket.status || ''] || 'bg-gray-100 text-gray-600'
-        const priorityColor = PRIORITY_COLORS[ticket.priority || ''] || 'bg-gray-300'
+        const statusColor = STATUS_COLORS[ticket.status || ''] || 'bg-slate-100 text-slate-600'
+        const priorityColor = PRIORITY_COLORS[ticket.priority || ''] || 'bg-slate-300'
 
         return (
           <div
             key={idx}
-            className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+            className={`flex items-center gap-3 py-3 border-t border-slate-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
               onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
             }`}
             onClick={onItemClick ? () => onItemClick('tickets', ticket) : undefined}
@@ -249,26 +249,26 @@ function TicketsList({ items, onItemClick }: { items: TicketItem[]; onItemClick?
             <StatusIcon className={`w-4.5 h-4.5 flex-shrink-0 ${
               ticket.status === 'OPEN' ? 'text-red-500' :
               ticket.status === 'IN_PROGRESS' ? 'text-blue-500' :
-              ticket.status === 'RESOLVED' ? 'text-green-500' : 'text-gray-400'
+              ticket.status === 'RESOLVED' ? 'text-green-500' : 'text-slate-400'
             }`} />
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-gray-900 truncate">{ticket.title}</p>
+                <p className="text-sm font-semibold text-slate-900 truncate">{ticket.title}</p>
               </div>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 {ticket.category && (
-                  <span className="text-xs text-gray-500">{ticket.category}</span>
+                  <span className="text-xs text-slate-500">{ticket.category}</span>
                 )}
                 {ticket.location && (
-                  <span className="text-xs text-gray-400">• {ticket.location}</span>
+                  <span className="text-xs text-slate-400">• {ticket.location}</span>
                 )}
                 {ticket.assignee && (
-                  <span className="text-xs text-gray-400">• {ticket.assignee}</span>
+                  <span className="text-xs text-slate-400">• {ticket.assignee}</span>
                 )}
                 {ticket.created && (
-                  <span className="text-xs text-gray-400">• {ticket.created}</span>
+                  <span className="text-xs text-slate-400">• {ticket.created}</span>
                 )}
               </div>
             </div>
@@ -305,7 +305,7 @@ function UsersList({ items, onItemClick }: { items: UserItem[]; onItemClick?: On
         return (
           <div
             key={idx}
-            className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+            className={`flex items-center gap-3 py-3 border-t border-slate-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
               onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
             }`}
             onClick={onItemClick ? () => onItemClick('users', user) : undefined}
@@ -317,13 +317,13 @@ function UsersList({ items, onItemClick }: { items: UserItem[]; onItemClick?: On
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+              <p className="text-sm font-semibold text-slate-900 truncate">{user.name}</p>
               <div className="flex items-center gap-2 mt-1">
                 {user.email && (
-                  <span className="text-xs text-gray-500 truncate">{user.email}</span>
+                  <span className="text-xs text-slate-500 truncate">{user.email}</span>
                 )}
                 {user.team && (
-                  <span className="text-xs text-gray-400">• {user.team}</span>
+                  <span className="text-xs text-slate-400">• {user.team}</span>
                 )}
               </div>
             </div>
@@ -347,7 +347,7 @@ function InventoryList({ items, onItemClick }: { items: InventoryItem[]; onItemC
       {items.map((item, idx) => (
         <div
           key={idx}
-          className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+          className={`flex items-center gap-3 py-3 border-t border-slate-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
             onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
           }`}
           onClick={onItemClick ? () => onItemClick('inventory', item) : undefined}
@@ -359,13 +359,13 @@ function InventoryList({ items, onItemClick }: { items: InventoryItem[]; onItemC
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+            <p className="text-sm font-semibold text-slate-900 truncate">{item.name}</p>
             <div className="flex items-center gap-2 mt-1">
               {item.category && (
-                <span className="text-xs text-gray-500">{item.category}</span>
+                <span className="text-xs text-slate-500">{item.category}</span>
               )}
               {item.location && (
-                <span className="text-xs text-gray-400">• {item.location}</span>
+                <span className="text-xs text-slate-400">• {item.location}</span>
               )}
             </div>
           </div>
@@ -373,10 +373,10 @@ function InventoryList({ items, onItemClick }: { items: InventoryItem[]; onItemC
           {/* Quantity */}
           {(item.available !== undefined || item.quantity !== undefined) && (
             <div className="text-right flex-shrink-0">
-              <p className="text-sm font-bold text-gray-900">
+              <p className="text-sm font-bold text-slate-900">
                 {item.available !== undefined ? item.available : item.quantity}
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-slate-400">
                 {item.available !== undefined ? 'available' : 'total'}
               </p>
             </div>
@@ -393,7 +393,7 @@ function GenericList({ items, onItemClick }: { items: GenericItem[]; onItemClick
       {items.map((item, idx) => (
         <div
           key={idx}
-          className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
+          className={`flex items-center gap-3 py-3 border-t border-slate-100 first:border-t-0 rounded-lg transition-colors duration-150 ${
             onItemClick ? 'cursor-pointer hover:bg-primary-50/60 -mx-1.5 px-1.5' : ''
           }`}
           onClick={onItemClick ? () => onItemClick('generic', item) : undefined}
@@ -403,18 +403,18 @@ function GenericList({ items, onItemClick }: { items: GenericItem[]; onItemClick
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{item.title}</p>
+            <p className="text-sm font-semibold text-slate-900 truncate">{item.title}</p>
             {item.subtitle && (
-              <span className="text-xs text-gray-500">{item.subtitle}</span>
+              <span className="text-xs text-slate-500">{item.subtitle}</span>
             )}
             {item.detail && (
-              <span className="text-xs text-gray-400 block mt-0.5">{item.detail}</span>
+              <span className="text-xs text-slate-400 block mt-0.5">{item.detail}</span>
             )}
           </div>
 
           {/* Badge */}
           {item.badge && (
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 flex-shrink-0">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 flex-shrink-0">
               {item.badge}
             </span>
           )}
@@ -440,11 +440,11 @@ export default function StructuredList({ data, onItemClick }: { data: Structured
   const Icon = listTypeIcon[data.type] || Building2
 
   return (
-    <div className="mt-1.5 -mx-1 rounded-lg bg-gray-50/80 border border-gray-100 overflow-hidden">
+    <div className="mt-1.5 -mx-1 rounded-lg bg-slate-50/80 border border-slate-100 overflow-hidden">
       {/* List header bar */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
-        <Icon className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100">
+        <Icon className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
           {data.items.length} {data.type === 'generic' ? 'items' : data.type}
         </span>
       </div>

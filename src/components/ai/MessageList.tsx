@@ -136,7 +136,7 @@ function ChatMarkdownWithLists({ text, isStreaming = false, onItemClick }: { tex
         }
         if (seg.pendingBlock) {
           return (
-            <div key={idx} className="flex items-center gap-2 py-2 text-gray-400">
+            <div key={idx} className="flex items-center gap-2 py-2 text-slate-400">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span className="text-xs">Preparing list...</span>
             </div>
@@ -179,7 +179,7 @@ function renderInline(text: string): React.ReactNode {
     if (codeMatch) {
       if (codeMatch[1]) parts.push(<span key={key++}>{codeMatch[1]}</span>)
       parts.push(
-        <code key={key++} className="px-1 py-0.5 bg-gray-100 rounded text-xs font-mono">
+        <code key={key++} className="px-1 py-0.5 bg-slate-100 rounded text-xs font-mono">
           {codeMatch[2]}
         </code>
       )
@@ -226,7 +226,7 @@ export default function MessageList({
   }, [])
 
   return (
-    <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar overflow-x-hidden ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%)' }}>
+    <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar overflow-x-hidden ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)' }}>
       {/* Empty state — animated orb */}
       {conversation.length === 0 && !isLoading && (
         <motion.div
@@ -236,10 +236,10 @@ export default function MessageList({
           transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
         >
           <AnimatedOrb state={aiState} size={80} className="mb-5" />
-          <p className="text-sm font-medium text-gray-700 mb-1">
+          <p className="text-sm font-medium text-slate-700 mb-1">
             Hi! I&apos;m Leo, your AI Assistant
           </p>
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <p className="text-xs text-slate-500 leading-relaxed">
             Ask me anything about your school — tickets, events, campus info, or analytics.
           </p>
         </motion.div>
@@ -265,7 +265,7 @@ export default function MessageList({
               className={`max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
                 turn.role === 'user'
                   ? 'text-white rounded-br-sm shadow-md'
-                  : 'bg-white/90 backdrop-blur-sm text-gray-900 border border-gray-200/50 rounded-bl-sm shadow-sm'
+                  : 'bg-white/90 backdrop-blur-sm text-slate-900 border border-slate-200/50 rounded-bl-sm shadow-sm'
               }`}
               style={turn.role === 'user' ? { background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' } : undefined}
             >
@@ -279,7 +279,7 @@ export default function MessageList({
                 turn.content || (showCursor ? '' : '')
               )}
               {showCursor && (
-                <span className="inline-block w-[2px] h-[14px] bg-gray-400 ml-0.5 align-middle animate-blink" />
+                <span className="inline-block w-[2px] h-[14px] bg-slate-400 ml-0.5 align-middle animate-blink" />
               )}
               {/* Image thumbnails on user messages */}
               {turn.role === 'user' && turn.images && turn.images.length > 0 && (
@@ -321,7 +321,7 @@ export default function MessageList({
                   className={`p-1.5 rounded-lg transition-colors duration-150 cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center ${
                     turn.feedbackScore === 5
                       ? 'text-green-500 bg-green-50'
-                      : 'text-gray-300 hover:text-gray-500 hover:bg-gray-100'
+                      : 'text-slate-300 hover:text-slate-500 hover:bg-slate-100'
                   }`}
                   aria-label="Thumbs up"
                   title="Helpful"
@@ -336,7 +336,7 @@ export default function MessageList({
                   className={`p-1.5 rounded-lg transition-colors duration-150 cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center ${
                     turn.feedbackScore === 1
                       ? 'text-red-400 bg-red-50'
-                      : 'text-gray-300 hover:text-gray-500 hover:bg-gray-100'
+                      : 'text-slate-300 hover:text-slate-500 hover:bg-slate-100'
                   }`}
                   aria-label="Thumbs down"
                   title="Not helpful"
@@ -347,7 +347,7 @@ export default function MessageList({
             )}
 
             {!showCursor && (
-              <span className="text-xs text-gray-400 px-1">
+              <span className="text-xs text-slate-400 px-1">
                 {formatTime(turn.timestamp)}
               </span>
             )}
@@ -403,8 +403,8 @@ export default function MessageList({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className="bg-white border border-gray-200 rounded-xl rounded-bl-sm px-3 py-2 shadow-sm">
-            <div className="flex items-center gap-2 text-gray-500">
+          <div className="bg-white border border-slate-200 rounded-xl rounded-bl-sm px-3 py-2 shadow-sm">
+            <div className="flex items-center gap-2 text-slate-500">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span className="text-xs">Thinking...</span>
             </div>

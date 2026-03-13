@@ -379,7 +379,7 @@ export default function InputForm({
 
   if (!isAvailable) {
     return (
-      <div className="px-4 py-3 bg-amber-50 border-t border-gray-200">
+      <div className="px-4 py-3 bg-amber-50 border-t border-slate-200">
         <p className="text-xs text-amber-700 text-center">
           AI Assistant is not available right now. Please try again later.
         </p>
@@ -390,7 +390,7 @@ export default function InputForm({
   const acceptTypes = [...ALLOWED_IMAGE_TYPES].join(',')
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-gray-200/40 bg-white/60 backdrop-blur-sm px-3 py-3 rounded-b-2xl">
+    <form onSubmit={handleSubmit} className="border-t border-slate-200/40 bg-white/60 backdrop-blur-sm px-3 py-3 rounded-b-2xl">
       {/* Image previews */}
       {images.length > 0 && (
         <div className="flex gap-2 mb-2 px-0.5">
@@ -399,12 +399,12 @@ export default function InputForm({
               <img
                 src={`data:${img.mimeType};base64,${img.data}`}
                 alt={img.name}
-                className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                className="w-12 h-12 rounded-lg object-cover border border-slate-200"
               />
               <button
                 type="button"
                 onClick={() => removeImage(idx)}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-gray-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 aria-label={`Remove ${img.name}`}
               >
                 <X className="w-2.5 h-2.5" />
@@ -440,7 +440,7 @@ export default function InputForm({
           type="button"
           onClick={handleImageButtonClick}
           disabled={isLoading || images.length >= MAX_IMAGES}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gray-100/80 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-40 cursor-pointer"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-slate-100/80 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600 disabled:opacity-40 cursor-pointer"
           aria-label="Attach image"
           title={images.length >= MAX_IMAGES ? `Max ${MAX_IMAGES} images` : 'Attach image'}
         >
@@ -460,16 +460,16 @@ export default function InputForm({
             placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : isFocused ? 'Ask anything...' : undefined}
             disabled={isLoading}
             rows={1}
-            className={`w-full resize-none rounded-2xl border bg-gray-50/80 px-4 py-2.5 text-sm leading-relaxed overflow-hidden placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
+            className={`w-full resize-none rounded-2xl border bg-slate-50/80 px-4 py-2.5 text-sm leading-relaxed overflow-hidden placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
               isListening
                 ? 'border-indigo-300 focus:border-indigo-400 focus:ring-indigo-400'
-                : 'border-gray-200/80 focus:border-indigo-400 focus:ring-indigo-400'
+                : 'border-slate-200/80 focus:border-indigo-400 focus:ring-indigo-400'
             }`}
           />
           {/* Animated "Try:" placeholder with vertical scroll */}
           {!input && !isFocused && !isListening && !isDragging && (
             <div className="pointer-events-none absolute inset-0 flex items-start px-4 py-2.5 overflow-hidden">
-              <span className="text-sm leading-relaxed text-gray-400 flex-shrink-0">Try:&nbsp;</span>
+              <span className="text-sm leading-relaxed text-slate-400 flex-shrink-0">Try:&nbsp;</span>
               <div className="relative overflow-hidden flex-1" style={{ height: '1.625em', fontSize: '0.875rem' }}>
                 <div
                   style={{
@@ -479,12 +479,12 @@ export default function InputForm({
                   }}
                 >
                   {PLACEHOLDER_EXAMPLES.map((example, i) => (
-                    <div key={i} className="text-sm leading-relaxed text-gray-400 truncate" style={{ height: '1.625em' }}>
+                    <div key={i} className="text-sm leading-relaxed text-slate-400 truncate" style={{ height: '1.625em' }}>
                       {example}
                     </div>
                   ))}
                   {/* Clone of first item for seamless wrap */}
-                  <div className="text-sm leading-relaxed text-gray-400 truncate" style={{ height: '1.625em' }}>
+                  <div className="text-sm leading-relaxed text-slate-400 truncate" style={{ height: '1.625em' }}>
                     {PLACEHOLDER_EXAMPLES[0]}
                   </div>
                 </div>
@@ -518,7 +518,7 @@ export default function InputForm({
               type="button"
               onClick={handleMicClick}
               disabled={isLoading}
-              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gray-100/80 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-all cursor-pointer disabled:opacity-40"
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-slate-100/80 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-all cursor-pointer disabled:opacity-40"
               aria-label="Start voice input"
               title="Voice input"
             >
@@ -538,7 +538,7 @@ export default function InputForm({
           <Send className="h-4 w-4" />
         </button>
       </div>
-      <p className="mt-1.5 text-center text-[10px] text-gray-400">
+      <p className="mt-1.5 text-center text-[10px] text-slate-400">
         {isDragging ? 'Drop to attach' : isListening ? 'Speak now — tap stop when done' : 'Shift+Enter for new line · Paste or drop images'}
       </p>
     </form>

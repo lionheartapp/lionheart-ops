@@ -77,10 +77,10 @@ export default function ActionConfirmation({
               <AlertTriangle className={`h-4.5 w-4.5 ${isRed ? 'text-red-600' : 'text-amber-600'}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-sm font-semibold text-slate-900">
                 {actionLabels[action.type] || 'Confirm Action'}
               </h3>
-              <p className="mt-1 text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">
+              <p className="mt-1 text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">
                 {action.description}
               </p>
             </div>
@@ -90,7 +90,7 @@ export default function ActionConfirmation({
           <div className="flex gap-2 mt-4">
             <button
               onClick={onCancel}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
             >
               <X className="h-3.5 w-3.5" />
               Cancel

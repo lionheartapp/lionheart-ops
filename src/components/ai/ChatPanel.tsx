@@ -572,8 +572,8 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
     <div
       className={`relative flex flex-col ${
         isEmbedded
-          ? 'w-full h-full min-h-0 overflow-hidden rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
-          : 'w-[384px] rounded-2xl border border-gray-200/60 bg-white/80 backdrop-blur-sm shadow-2xl'
+          ? 'w-full h-full min-h-0 overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm'
+          : 'w-[384px] rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-2xl'
       }`}
       style={isEmbedded ? undefined : { height: '520px' }}
     >
@@ -589,7 +589,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
             <Sparkles className="h-3 w-3 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Leo</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Leo</h3>
             {isAiActive && (
               <p className="text-[10px] text-indigo-500 font-medium -mt-0.5">
                 {isListening ? 'Listening...' : isLoading ? 'Thinking...' : 'Responding...'}
@@ -600,7 +600,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowSidebar((prev) => !prev)}
-            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
             aria-label="Conversation history"
             title="Conversation history"
           >
@@ -609,7 +609,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
           {conversation.length > 0 && (
             <button
               onClick={handleClearChat}
-              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
+              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
               aria-label="Clear conversation"
               title="New conversation"
             >
@@ -619,7 +619,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
           {!isEmbedded && onClose && (
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
+              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
               aria-label="Close"
             >
               <span className="text-lg leading-none">&times;</span>

@@ -399,7 +399,7 @@ export default function DashboardPage() {
       <div className="flex flex-col flex-1 min-h-0 overflow-x-clip overflow-y-auto">
       {/* Greeting Section with Create Dropdown Button — pt/pb for hover glow breathing room */}
       <motion.div
-        className="mb-8 pt-2 pb-2 -mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0 overflow-visible"
+        className="mb-6 pt-6 pb-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-shrink-0 overflow-visible"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.08, 0.05)}
@@ -410,7 +410,7 @@ export default function DashboardPage() {
             {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
           </h1>
         </motion.div>
-        <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-center overflow-visible">
+        <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-end overflow-visible">
           {/* Notification Bell — aurora glow + bell ring on hover */}
           <motion.button
             onClick={() => setIsNotificationsOpen(true)}
