@@ -395,10 +395,10 @@ export default function DashboardPage() {
       onLogout={logout}
     >
       <MotionConfig reducedMotion="user">
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-      {/* Greeting Section with Create Dropdown Button */}
+      <div className="flex flex-col flex-1 min-h-0 overflow-x-hidden overflow-y-auto">
+      {/* Greeting Section with Create Dropdown Button — overflow-visible so hover glow isn't clipped */}
       <motion.div
-        className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0"
+        className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0 overflow-visible"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.08, 0.05)}
@@ -409,7 +409,7 @@ export default function DashboardPage() {
             {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
           </h1>
         </motion.div>
-        <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-center">
+        <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-center overflow-visible">
           {/* Notification Bell — scale + aurora glow + bell ring on hover */}
           <motion.button
             onClick={() => setIsNotificationsOpen(true)}
