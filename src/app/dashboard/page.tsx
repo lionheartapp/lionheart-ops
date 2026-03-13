@@ -434,14 +434,18 @@ export default function DashboardPage() {
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
             className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden"
-            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)', color: '#1e293b' }}
+            style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
+            animate={isCreateDropdownOpen
+              ? { background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }
+              : { background: 'rgba(255, 255, 255, 0.5)', color: '#1e293b', borderColor: 'rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }
+            }
             whileHover={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
           >
-            <Plus className="w-5 h-5 transition-transform duration-300 group-hover/create:rotate-90" aria-hidden="true" />
+            <Plus className={`w-5 h-5 transition-transform duration-300 ${isCreateDropdownOpen ? 'rotate-90' : ''} group-hover/create:rotate-90`} aria-hidden="true" />
             Create
             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCreateDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
           </motion.button>
@@ -545,7 +549,7 @@ export default function DashboardPage() {
         {/* Main Panel — My Tasks / Upcoming Events / Requests (mode-aware) */}
         <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover flex flex-col focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 min-h-0">
           {/* Sticky header — stays pinned while events scroll */}
-          <div className="flex-shrink-0 pt-6 px-6">
+          <div className="relative z-10 flex-shrink-0 pt-6 px-6 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-slate-900">
                 {user.dashboardMode === 'admin' ? 'Upcoming Events' :
