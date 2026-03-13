@@ -480,8 +480,18 @@ function cleanListArtifacts(text: string): string {
   cleaned = cleaned.replace(/```(?:json)?\s*\n(:::list)/g, '$1')
   cleaned = cleaned.replace(/(:::)\s*\n\s*```/g, '$1')
 
-  // Remove backtick-quoted list blocks: `:::list{...}:::`
+  // Remove backtick-quoted list blocks: `:::list{...}:::` (with closing :::)
   cleaned = cleaned.replace(/`(:::list[\s\S]*?:::)`/g, '$1')
+
+  // Also handle backtick-wrapped blocks that LACK a closing ::: (model often omits it)
+  // e.g., `:::list{...}` or `::::list{...}`  → :::list{...}:::
+  cleaned = cleaned.replace(/`(:{3,4}list[\s\S]*?)`/g, (_match, inner) => {
+    const body = inner.replace(/^:{4}list/, ':::list').trim()
+    return body.endsWith(':::') ? body : body + ':::'
+  })
+
+  // Normalize 4-colon openers: ::::list → :::list (LLM sometimes outputs extra colon)
+  cleaned = cleaned.replace(/::::list/g, ':::list')
 
   return cleaned
 }
@@ -549,7 +559,26 @@ export function parseStructuredLists(
         if (beforeDelim) segments.push({ text: beforeDelim })
         segments.push({ pendingBlock: true })
       } else {
-        segments.push({ text: remaining })
+        // Not streaming — check if remaining text contains an unterminated :::list block
+        // (model emitted :::list{...} but forgot the closing :::)
+        const unterminatedMatch = remaining.match(/^([\s\S]*?):::list([\s\S]*)$/)
+        if (unterminatedMatch) {
+          const beforeBlock = unterminatedMatch[1].trim()
+          const jsonBody = unterminatedMatch[2].trim()
+          if (beforeBlock) segments.push({ text: beforeBlock })
+          try {
+            const data = JSON.parse(jsonBody) as StructuredListData
+            if (data && data.type && Array.isArray(data.items)) {
+              segments.push({ listData: data })
+            } else {
+              segments.push({ text: remaining })
+            }
+          } catch {
+            segments.push({ text: remaining })
+          }
+        } else {
+          segments.push({ text: remaining })
+        }
       }
     }
   }
