@@ -410,22 +410,22 @@ export default function DashboardPage() {
           </h1>
         </motion.div>
         <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-center overflow-visible">
-          {/* Notification Bell — scale + aurora glow + bell ring on hover */}
+          {/* Notification Bell — aurora glow + bell ring on hover */}
           <motion.button
             onClick={() => setIsNotificationsOpen(true)}
             className="group/bell relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
             style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
             aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-            whileHover={{ scale: 1.1, boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.25), 0 0 40px rgba(59, 130, 246, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            whileHover={{ boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
             whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            transition={{ duration: 0.2 }}
           >
             <span className="group-hover/bell:animate-[bell-ring_0.6s_ease-in-out]" style={{ transformOrigin: 'top center', display: 'flex' }}>
               <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5 text-slate-800" />
             </span>
           </motion.button>
 
-          {/* Create button — scale + aurora gradient bg + glow on hover */}
+          {/* Create button — aurora gradient bg + glow on hover (no scale to avoid clipping) */}
           <div className="relative">
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
@@ -433,7 +433,7 @@ export default function DashboardPage() {
             style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)', color: '#1e293b' }}
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
-            whileHover={{ scale: 1.04, background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }}
+            whileHover={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
           >
