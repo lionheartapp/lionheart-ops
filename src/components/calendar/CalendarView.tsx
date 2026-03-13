@@ -26,6 +26,7 @@ import AgendaView from './AgendaView'
 import MobileMonthView from './MobileMonthView'
 import EventDetailPanel from './EventDetailPanel'
 import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
+import PlanEventDrawer from './PlanEventDrawer'
 import type { AttendeeSelection } from './AttendeePicker'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
@@ -69,12 +70,16 @@ export default function CalendarView() {
     getDateRange,
   } = useCalendarNavigation()
 
-  // Open the full event form directly on the calendar page
+  // Plan Event stepper state
+  const [planEventOpen, setPlanEventOpen] = useState(false)
+  const [planEventInitialStart, setPlanEventInitialStart] = useState<Date | undefined>()
+  const [planEventInitialEnd, setPlanEventInitialEnd] = useState<Date | undefined>()
+
+  // Open the Plan Event stepper (from toolbar or choice modal)
   const handlePlanEvent = useCallback(() => {
-    setCreateMode('event')
-    setCreateInitialStart(undefined)
-    setCreateInitialEnd(undefined)
-    setIsCreateOpen(true)
+    setPlanEventInitialStart(undefined)
+    setPlanEventInitialEnd(undefined)
+    setPlanEventOpen(true)
   }, [])
 
   // Choice modal — shown when user clicks an empty calendar slot
@@ -98,10 +103,9 @@ export default function CalendarView() {
 
   const handleChoicePlanEvent = useCallback(() => {
     setChoiceModalOpen(false)
-    setCreateMode('event')
-    setCreateInitialStart(choiceModalStart)
-    setCreateInitialEnd(choiceModalEnd)
-    setIsCreateOpen(true)
+    setPlanEventInitialStart(choiceModalStart)
+    setPlanEventInitialEnd(choiceModalEnd)
+    setPlanEventOpen(true)
   }, [choiceModalStart, choiceModalEnd])
 
   // Detect mobile for auto-switching month → agenda
@@ -1160,6 +1164,14 @@ export default function CalendarView() {
         conflict={conflictWarning}
         onClose={handleCancelConflict}
         onOverride={handleOverrideConflict}
+      />
+
+      {/* Plan Event multi-step drawer */}
+      <PlanEventDrawer
+        isOpen={planEventOpen}
+        onClose={() => setPlanEventOpen(false)}
+        initialStart={planEventInitialStart}
+        initialEnd={planEventInitialEnd}
       />
 
       {/* Create choice modal — shown when user clicks an empty calendar slot */}
