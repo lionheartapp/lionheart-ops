@@ -550,7 +550,7 @@ export default function DashboardPage() {
         {/* Main Panel — My Tasks / Upcoming Events / Requests (mode-aware) */}
         <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover flex flex-col focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 min-h-0">
           {/* Sticky header — stays pinned while events scroll */}
-          <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]' : ''}`}>
+          <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-slate-900">
                 {user.dashboardMode === 'admin' ? 'Upcoming Events' :

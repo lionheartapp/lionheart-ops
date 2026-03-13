@@ -230,18 +230,18 @@ a:visited {
 }
 
 .calendar-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgb(226, 233, 242);
   border-radius: 3px;
 }
 
 .calendar-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgb(200, 212, 228);
 }
 
 /* Firefox */
 .calendar-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  scrollbar-color: rgb(226, 233, 242) transparent;
 }
 
 /* Dashboard events panel scrollbar */
@@ -254,18 +254,18 @@ a:visited {
 }
 
 .dashboard-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgb(226, 233, 242);
   border-radius: 2px;
 }
 
 .dashboard-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgb(200, 212, 228);
 }
 
 /* Firefox */
 .dashboard-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+  scrollbar-color: rgb(226, 233, 242) transparent;
 }
 
 /* Leo AI scrollbar */
@@ -276,15 +276,15 @@ a:visited {
   background: transparent;
 }
 .leo-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.2);
+  background: rgb(226, 233, 242);
   border-radius: 9999px;
 }
 .leo-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgb(200, 212, 228);
 }
 .leo-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.2) transparent;
+  scrollbar-color: rgb(226, 233, 242) transparent;
 }
 
 @layer components {
