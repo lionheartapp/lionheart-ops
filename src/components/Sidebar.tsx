@@ -35,8 +35,12 @@ import {
   Package,
   ScrollText,
   CreditCard,
+  Settings,
+  LogOut,
+  Eye,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
+import ViewAsDialog from '@/components/ViewAsDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { useModuleEnabled, useModules } from '@/lib/hooks/useModuleEnabled'
@@ -118,6 +122,16 @@ export default function Sidebar({
   const [isOpen, setIsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [bugDialogOpen, setBugDialogOpen] = useState(false)
+  const [isViewAsOpen, setIsViewAsOpen] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [isImpersonating, setIsImpersonating] = useState(false)
+
+  // Detect super-admin role and impersonation state
+  useEffect(() => {
+    const role = (localStorage.getItem('user-role') || '').toLowerCase().replace(/\s+/g, '-')
+    setIsSuperAdmin(role === 'super-admin')
+    setIsImpersonating(localStorage.getItem('is-impersonating') === 'true')
+  }, [pathname])
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -819,8 +833,8 @@ export default function Sidebar({
 
   const mainNavContent = (
     <div className="flex flex-col h-full">
-      {/* Organization Logo + Notification Bell */}
-      <div className="px-4 pt-5 pb-2 flex items-center justify-between">
+      {/* Organization Logo */}
+      <div className="px-4 pt-5 pb-4 flex items-center justify-between">
         <div className="flex-1 min-w-0 flex items-center justify-center">
           {organizationLogoUrl ? (
             <img
@@ -1401,19 +1415,45 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Footer — Help & User Profile */}
-      <div className="border-t border-slate-200/30">
+      {/* Footer — Actions & User Profile */}
+      <div className="border-t border-slate-200/30 pt-2 pb-3 px-3 space-y-0.5">
+        {/* Settings */}
+        <button
+          onClick={() => {
+            setSettingsOpen(true)
+            setIsOpen(false)
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+        >
+          <Settings className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
+          <span className="text-sm">Settings</span>
+        </button>
+
+        {/* View As — super-admin only */}
+        {isSuperAdmin && !isImpersonating && (
+          <button
+            onClick={() => setIsViewAsOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          >
+            <Eye className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
+            <span className="text-sm">View As</span>
+          </button>
+        )}
+
+        {/* Help & Support */}
         <button
           onClick={() => setBugDialogOpen(true)}
-          className="w-full flex items-center gap-3 px-4 py-2.5 mx-4 mt-2 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-          style={{ width: 'calc(100% - 2rem)' }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
         >
-          <HelpCircle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+          <HelpCircle className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
           <span className="text-sm">Help & Support</span>
         </button>
 
-        {/* User Profile */}
-        <div className="px-4 py-3 flex items-center gap-3 min-w-0">
+        {/* Divider */}
+        <div className="border-t border-slate-200/20 !my-2" />
+
+        {/* User Profile + Logout */}
+        <div className="flex items-center gap-3 px-3 py-2 min-w-0">
           <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm flex-shrink-0 ring-2 ring-white/50">
             {userAvatar ? (
               <img src={userAvatar} alt={userName} className="w-9 h-9 rounded-full object-cover" />
@@ -1425,6 +1465,14 @@ export default function Sidebar({
             <p className="text-sm font-medium text-slate-800 truncate">{userName}</p>
             <p className="text-xs text-slate-400 truncate">{userEmail}</p>
           </div>
+          <button
+            onClick={onLogout}
+            className="p-2 rounded-lg text-slate-400 hover:bg-white/30 hover:text-red-500 transition-colors duration-200 cursor-pointer flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </div>
@@ -2013,6 +2061,9 @@ export default function Sidebar({
 
       {/* Bug report dialog */}
       <ReportBugDialog isOpen={bugDialogOpen} onClose={() => setBugDialogOpen(false)} />
+
+      {/* View As dialog — super-admin only */}
+      <ViewAsDialog isOpen={isViewAsOpen} onClose={() => setIsViewAsOpen(false)} />
     </>
   )
 }
