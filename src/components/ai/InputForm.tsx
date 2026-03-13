@@ -95,6 +95,14 @@ export default function InputForm({
     textareaRef.current?.focus()
   }, [])
 
+  // Auto-focus textarea when Leo finishes responding (desktop only —
+  // on mobile, auto-focus would pop up the keyboard unexpectedly)
+  useEffect(() => {
+    if (!isLoading && window.matchMedia('(pointer: fine)').matches) {
+      textareaRef.current?.focus()
+    }
+  }, [isLoading])
+
   // Cycle placeholder examples when not focused and empty
   // Uses a clone of the first item at end of list for seamless wrap
   useEffect(() => {

@@ -396,7 +396,7 @@ export default function DashboardPage() {
       onLogout={logout}
     >
       <MotionConfig reducedMotion="user">
-      <div className="flex flex-col flex-1 min-h-0 overflow-x-clip overflow-y-auto">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* Greeting Section with Create Dropdown Button — pt/pb for hover glow breathing room */}
       <motion.div
         className="mb-6 pt-6 pb-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-shrink-0 overflow-visible"
@@ -435,7 +435,7 @@ export default function DashboardPage() {
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
             className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden"
-            style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+            style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgb(167, 202, 241)' }}
             aria-label="Create new request"
             aria-expanded={isCreateDropdownOpen}
             animate={isCreateDropdownOpen
@@ -802,7 +802,7 @@ export default function DashboardPage() {
         {/* Right Rail — Embedded Leo AI Assistant */}
         <motion.div
           variants={cardEntrance}
-          className="min-h-0 overflow-hidden"
+          className="min-h-0 overflow-hidden h-full"
         >
           <ChatPanel variant="embedded" />
         </motion.div>
