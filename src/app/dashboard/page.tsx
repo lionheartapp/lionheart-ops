@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, type ReactNode } from 'react'
+import { useEffect, useState, useCallback, useMemo, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -15,7 +15,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { getAuthHeaders } from '@/lib/api-client'
 import AttendeePicker, { type AttendeeSelection } from '@/components/calendar/AttendeePicker'
 import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
-import { useCalendars, useCategories, useCreateEvent, useCreateCategory } from '@/lib/hooks/useCalendar'
+import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
 
 interface TicketData {
   id: string
@@ -50,6 +50,21 @@ export default function DashboardPage() {
   // Calendar hooks — power the Schedule Meeting form (EventCreatePanel)
   const { data: calendarList = [] } = useCalendars()
   const { data: calendarCategories = [] } = useCategories()
+
+  // Upcoming calendar events — used for admin dashboard mode (same source as the calendar page)
+  const upcomingStart = useMemo(() => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); return d
+  }, [])
+  const upcomingEnd = useMemo(() => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 14); d.setHours(23, 59, 59, 999); return d
+  }, [])
+  const calendarIds = useMemo(() => calendarList.map(c => c.id), [calendarList])
+  const { data: upcomingCalEvents = [], isLoading: upcomingCalLoading } = useCalendarEvents(
+    calendarIds,
+    upcomingStart,
+    upcomingEnd,
+    isReady && user.dashboardMode === 'admin' && calendarIds.length > 0
+  )
   const createCalendarEvent = useCreateEvent()
   const createCalendarCategory = useCreateCategory()
 
@@ -221,9 +236,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isReady || !org.id) return
     const mode = user.dashboardMode
-    if (mode === 'admin' || mode === 'av') {
+    if (mode === 'av') {
+      // AV mode: formal Events with requiresAV flag (not in CalendarEvents)
       fetchEvents(mode)
-    } else {
+    } else if (mode !== 'admin') {
+      // admin mode uses useCalendarEvents (reactive hook, no manual fetch)
       fetchTickets(mode)
     }
   }, [isReady, org.id, user.dashboardMode, fetchTickets, fetchEvents])
@@ -620,15 +637,15 @@ export default function DashboardPage() {
               <>
                 <div className="flex-1 bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm rounded-xl p-3 border border-primary-200/30 shadow-sm text-center">
                   <p className="text-2xl font-bold text-primary-600">
-                    <AnimatedCounter value={events.filter(e => new Date(e.startsAt).toDateString() === new Date().toDateString()).length} duration={0.8} />
+                    <AnimatedCounter value={upcomingCalEvents.filter(e => new Date(e.startTime).toDateString() === new Date().toDateString()).length} duration={0.8} />
                   </p>
                   <p className="text-[10px] text-gray-600 mt-0.5">Events Today</p>
                 </div>
                 <div className="flex-1 bg-gradient-to-br from-blue-50/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 shadow-sm text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    <AnimatedCounter value={events.length} duration={0.8} />
+                    <AnimatedCounter value={upcomingCalEvents.length} duration={0.8} />
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Events This Week</p>
+                  <p className="text-[10px] text-gray-600 mt-0.5">Events Next 2 Weeks</p>
                 </div>
               </>
             )}
@@ -682,8 +699,57 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* ── Events Panel (admin or av mode) ── */}
-          {(user.dashboardMode === 'admin' || user.dashboardMode === 'av') ? (
+          {/* ── Admin Events Panel — uses CalendarEvents (same source as calendar page) ── */}
+          {user.dashboardMode === 'admin' ? (
+            upcomingCalLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
+              </div>
+            ) : upcomingCalEvents.length === 0 ? (
+              <div className="text-center py-16">
+                <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-base font-semibold text-gray-700 mb-1">No upcoming events</p>
+                <p className="text-sm text-gray-500">Events on any calendar will appear here.</p>
+              </div>
+            ) : (
+              <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
+                {upcomingCalEvents.map((event: CalendarEventData) => {
+                  const startDate = new Date(event.startTime)
+                  const endDate = new Date(event.endTime)
+                  const isToday = startDate.toDateString() === new Date().toDateString()
+                  const timeStr = `${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} – ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+                  const dateLabel = isToday ? 'Today' : startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                  const dotColor = event.category?.color || event.calendar.color || '#6366f1'
+
+                  return (
+                    <motion.li
+                      key={event.id}
+                      variants={listItem}
+                      className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition"
+                    >
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: dotColor + '20' }}>
+                        <Calendar className="w-5 h-5" style={{ color: dotColor }} aria-hidden="true" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{event.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{dateLabel} · {timeStr}</p>
+                        {event.locationText && (
+                          <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                            <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />{event.locationText}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400 mt-0.5">{event.calendar.name}</p>
+                      </div>
+                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                        {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </motion.li>
+                  )
+                })}
+              </motion.ul>
+            )
+          ) : user.dashboardMode === 'av' ? (
+            /* ── AV Events Panel — formal Events with requiresAV flag ── */
             eventsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
@@ -691,14 +757,8 @@ export default function DashboardPage() {
             ) : events.length === 0 ? (
               <div className="text-center py-16">
                 <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-base font-semibold text-gray-700 mb-1">
-                  {user.dashboardMode === 'av' ? 'No A/V events scheduled' : 'No upcoming events'}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {user.dashboardMode === 'av'
-                    ? 'Events that require A/V support will appear here.'
-                    : 'Upcoming confirmed events will appear here.'}
-                </p>
+                <p className="text-base font-semibold text-gray-700 mb-1">No A/V events scheduled</p>
+                <p className="text-sm text-gray-500">Events that require A/V support will appear here.</p>
               </div>
             ) : (
               <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
@@ -716,9 +776,7 @@ export default function DashboardPage() {
                       className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition"
                     >
                       <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
-                        {user.dashboardMode === 'av'
-                          ? <Video className="w-5 h-5 text-primary-600" aria-hidden="true" />
-                          : <Calendar className="w-5 h-5 text-primary-600" aria-hidden="true" />}
+                        <Video className="w-5 h-5 text-primary-600" aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate">{event.title}</p>
@@ -728,26 +786,23 @@ export default function DashboardPage() {
                             <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />{event.room}
                           </p>
                         )}
-                        {/* AV mode: show parsed equipment list or pending badge */}
-                        {user.dashboardMode === 'av' && (
-                          <div className="mt-2">
-                            {event.avEquipmentList && event.avEquipmentList.length > 0 ? (
-                              <div className="flex flex-wrap gap-1">
-                                {event.avEquipmentList.map((eq, i) => (
-                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
-                                    <Zap className="w-2.5 h-2.5" aria-hidden="true" />
-                                    {eq.quantity > 1 ? `${eq.quantity}× ` : ''}{eq.item}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-700">
-                                <Loader2 className="w-2.5 h-2.5 animate-spin" aria-hidden="true" />
-                                Equipment list pending AI parsing…
-                              </span>
-                            )}
-                          </div>
-                        )}
+                        <div className="mt-2">
+                          {event.avEquipmentList && event.avEquipmentList.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {event.avEquipmentList.map((eq, i) => (
+                                <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
+                                  <Zap className="w-2.5 h-2.5" aria-hidden="true" />
+                                  {eq.quantity > 1 ? `${eq.quantity}× ` : ''}{eq.item}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-700">
+                              <Loader2 className="w-2.5 h-2.5 animate-spin" aria-hidden="true" />
+                              Equipment list pending AI parsing…
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                         {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
