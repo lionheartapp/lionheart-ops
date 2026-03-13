@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   useCalendars,
@@ -38,7 +38,7 @@ import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
-import { Calendar as CalendarIcon, Loader2, Check, X, Download } from 'lucide-react'
+import { Calendar as CalendarIcon, Loader2, Check, X, Download, Users, CalendarDays } from 'lucide-react'
 import { IllustrationCalendar } from '@/components/illustrations'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
@@ -58,6 +58,7 @@ const COLOR_PRESETS = [
 ]
 
 export default function CalendarView() {
+  const router = useRouter()
   const {
     currentDate,
     setCurrentDate,
@@ -68,6 +69,34 @@ export default function CalendarView() {
     goPrev,
     getDateRange,
   } = useCalendarNavigation()
+
+  // Navigate to dashboard and open the Plan Event stepper
+  const handlePlanEvent = useCallback(() => {
+    router.push('/dashboard?planEvent=1')
+  }, [router])
+
+  // Choice modal — shown when user clicks an empty calendar slot
+  const [choiceModalOpen, setChoiceModalOpen] = useState(false)
+  const [choiceModalStart, setChoiceModalStart] = useState<Date | undefined>()
+  const [choiceModalEnd, setChoiceModalEnd] = useState<Date | undefined>()
+
+  const openChoiceModal = useCallback((start?: Date, end?: Date) => {
+    setChoiceModalStart(start)
+    setChoiceModalEnd(end)
+    setChoiceModalOpen(true)
+  }, [])
+
+  const handleChoiceMeeting = useCallback(() => {
+    setChoiceModalOpen(false)
+    setCreateInitialStart(choiceModalStart)
+    setCreateInitialEnd(choiceModalEnd)
+    setIsCreateOpen(true)
+  }, [choiceModalStart, choiceModalEnd])
+
+  const handleChoicePlanEvent = useCallback(() => {
+    setChoiceModalOpen(false)
+    router.push('/dashboard?planEvent=1')
+  }, [router])
 
   // Detect mobile for auto-switching month → agenda
   const [isMobile, setIsMobile] = useState(false)
@@ -421,20 +450,15 @@ export default function CalendarView() {
 
   const handleDateClick = useCallback((date: Date) => {
     if (view === 'month') {
-      // Open event creation pre-populated with clicked date
       const start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), new Date().getHours() + 1, 0)
       const end = new Date(start.getTime() + 60 * 60 * 1000)
-      setCreateInitialStart(start)
-      setCreateInitialEnd(end)
-      setIsCreateOpen(true)
+      openChoiceModal(start, end)
     }
-  }, [view])
+  }, [view, openChoiceModal])
 
   const handleSlotClick = useCallback((slotStart: Date, slotEnd: Date) => {
-    setCreateInitialStart(slotStart)
-    setCreateInitialEnd(slotEnd)
-    setIsCreateOpen(true)
-  }, [])
+    openChoiceModal(slotStart, slotEnd)
+  }, [openChoiceModal])
 
   const handleCreateEvent = useCallback(() => {
     setCreateInitialStart(undefined)
@@ -835,6 +859,7 @@ export default function CalendarView() {
           onNavigateForward={goNext}
           onToday={goToToday}
           onCreateEvent={handleCreateEvent}
+          onPlanEvent={handlePlanEvent}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           categories={categories}
@@ -1125,6 +1150,82 @@ export default function CalendarView() {
         onClose={handleCancelConflict}
         onOverride={handleOverrideConflict}
       />
+
+      {/* Create choice modal — shown when user clicks an empty calendar slot */}
+      <AnimatePresence>
+        {choiceModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-50"
+              onClick={() => setChoiceModalOpen(false)}
+            />
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 8 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/80 w-80 overflow-hidden pointer-events-auto">
+                {/* Header */}
+                <div className="px-5 pt-5 pb-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900">What are you creating?</h3>
+                      {choiceModalStart && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {choiceModalStart.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setChoiceModalOpen(false)}
+                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Options */}
+                <div className="p-3 space-y-2">
+                  <button
+                    onClick={handleChoiceMeeting}
+                    className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all text-left group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Schedule Meeting</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Informal — added instantly, no approval</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleChoicePlanEvent}
+                    className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-primary-50 border border-transparent hover:border-primary-100 transition-all text-left group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 transition-colors">
+                      <CalendarDays className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Plan Event</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Formal — AV, facilities &amp; admin approval</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
     </MotionConfig>
   )
