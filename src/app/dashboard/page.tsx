@@ -415,7 +415,7 @@ export default function DashboardPage() {
           <motion.button
             onClick={() => setIsNotificationsOpen(true)}
             className="group/bell relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
-            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgb(167, 202, 241)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
             aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
             whileHover={{ boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
             whileTap={{ scale: 0.95 }}
@@ -440,7 +440,7 @@ export default function DashboardPage() {
             aria-expanded={isCreateDropdownOpen}
             animate={isCreateDropdownOpen
               ? { background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }
-              : { background: 'rgba(255, 255, 255, 0.5)', color: '#1e293b', borderColor: 'rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }
+              : { background: 'rgba(255, 255, 255, 0.5)', color: '#1e293b', borderColor: 'rgb(167, 202, 241)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }
             }
             whileHover={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }}
             whileTap={{ scale: 0.97 }}

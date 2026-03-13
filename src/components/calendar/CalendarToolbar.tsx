@@ -205,7 +205,7 @@ export default function CalendarToolbar({
           <div ref={createBtnRef} className="relative flex items-center">
             <button
               onClick={() => setCreateDropdownOpen(o => !o)}
-              className="flex items-center gap-2 pl-3 sm:pl-4 pr-3 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+              className={`flex items-center gap-2 pl-3 sm:pl-4 pr-3 py-2 text-white text-sm font-semibold rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 ${createDropdownOpen ? 'bg-gray-800' : 'bg-gray-900 hover:bg-gray-800'}`}
               aria-label="Create"
               aria-expanded={createDropdownOpen}
             >
@@ -221,9 +221,9 @@ export default function CalendarToolbar({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-200/80 z-50 overflow-hidden"
+                  className="absolute right-0 top-full pt-2 w-60 z-50"
                 >
-                  <div className="p-1.5 space-y-0.5">
+                  <div className="bg-white rounded-2xl shadow-xl border border-gray-200/80 overflow-hidden p-1.5 space-y-0.5">
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 py-1.5">Meetings</p>
                     <button
                       onClick={() => { onCreateEvent(); setCreateDropdownOpen(false) }}
