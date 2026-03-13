@@ -34,6 +34,15 @@ export function usePeopleSearch(query: string) {
   })
 }
 
+/** Fetches all org members — used for the attendee dropdown in meeting mode */
+export function useAllPeople() {
+  return useQuery<PeopleSearchResult[]>({
+    queryKey: ['people-all'],
+    queryFn: () => fetchApi('/api/calendar/people-search'),
+    staleTime: 60_000,
+  })
+}
+
 export function useUserSchedule(userId: string | null, start: Date, end: Date) {
   return useQuery<CalendarEventData[]>({
     queryKey: ['user-schedule', userId, start.toISOString(), end.toISOString()],

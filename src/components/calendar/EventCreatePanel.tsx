@@ -418,8 +418,10 @@ export default function EventCreatePanel({
       } else {
         const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
         const end = initialEnd || new Date(start.getTime() + 60 * 60 * 1000)
+        // In meeting mode, always use the personal calendar
+        const personalCalendar = calendars.find((c) => c.calendarType === 'PERSONAL')
         setForm({
-          calendarId: calendars[0]?.id || '',
+          calendarId: (isMeeting ? personalCalendar?.id : undefined) ?? calendars[0]?.id ?? '',
           categoryId: '',
           title: '',
           description: '',
@@ -556,23 +558,25 @@ export default function EventCreatePanel({
                 autoFocus
               />
 
-              {/* Calendar selector */}
-              <FloatingDropdown
-                id="event-calendar"
-                label="Calendar"
-                value={form.calendarId}
-                onChange={(v) => setForm((p) => ({ ...p, calendarId: v }))}
-                required
-                options={calendars.map((cal) => ({
-                  value: cal.id,
-                  label: cal.name,
-                  color: cal.color,
-                  group: cal.calendarType === 'PERSONAL' ? 'My Calendar' : 'Calendars',
-                }))}
-              />
+              {/* Calendar selector — hidden in meeting mode (always personal calendar) */}
+              {!isMeeting && (
+                <FloatingDropdown
+                  id="event-calendar"
+                  label="Calendar"
+                  value={form.calendarId}
+                  onChange={(v) => setForm((p) => ({ ...p, calendarId: v }))}
+                  required
+                  options={calendars.map((cal) => ({
+                    value: cal.id,
+                    label: cal.name,
+                    color: cal.color,
+                    group: cal.calendarType === 'PERSONAL' ? 'My Calendar' : 'Calendars',
+                  }))}
+                />
+              )}
 
-              {/* Category selector */}
-              {(categories.length > 0 || onCreateCategory) && (
+              {/* Category selector — hidden in meeting mode */}
+              {!isMeeting && (categories.length > 0 || onCreateCategory) && (
                 <div>
                   {!showNewCategory ? (
                     <FloatingDropdown
@@ -808,10 +812,11 @@ export default function EventCreatePanel({
                 }
               />
 
-              {/* Attendees */}
+              {/* Attendees — dropdown variant in meeting mode */}
               <AttendeePicker
                 value={attendees}
                 onChange={setAttendees}
+                variant={isMeeting ? 'dropdown' : 'search'}
               />
 
               {/* Description */}

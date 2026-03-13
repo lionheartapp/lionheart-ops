@@ -14,21 +14,20 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const q = searchParams.get('q')?.trim()
-
-    if (!q || q.length < 2) {
-      return NextResponse.json(ok([]))
-    }
+    const fetchAll = !q || q.length < 2
 
     return await runWithOrgContext(orgId, async () => {
       const users = await prisma.user.findMany({
         where: {
           id: { not: ctx.userId },
           status: 'ACTIVE',
-          OR: [
-            { firstName: { contains: q, mode: 'insensitive' } },
-            { lastName: { contains: q, mode: 'insensitive' } },
-            { email: { contains: q, mode: 'insensitive' } },
-          ],
+          ...(fetchAll ? {} : {
+            OR: [
+              { firstName: { contains: q, mode: 'insensitive' } },
+              { lastName: { contains: q, mode: 'insensitive' } },
+              { email: { contains: q, mode: 'insensitive' } },
+            ],
+          }),
         },
         select: {
           id: true,
@@ -38,7 +37,7 @@ export async function GET(req: NextRequest) {
           avatar: true,
           jobTitle: true,
         },
-        take: 10,
+        take: fetchAll ? 100 : 10,
         orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
       })
 
