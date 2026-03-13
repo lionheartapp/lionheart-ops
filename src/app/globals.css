@@ -333,18 +333,14 @@ a:visited {
   }
 
   .ui-glass-overlay {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
     @apply shadow-heavy;
   }
 
   .ui-glass-dropdown {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
     @apply rounded-xl shadow-heavy;
   }
 }

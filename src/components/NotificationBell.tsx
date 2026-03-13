@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2 } from 'lucide-react'
+import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2, X } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
-import { badgePop, dropdownVariants, listItem, staggerContainer } from '@/lib/animations'
+import { badgePop } from '@/lib/animations'
 
 interface NotificationData {
   id: string
@@ -49,21 +50,19 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString()
 }
 
-export default function NotificationBell() {
-  const [isOpen, setIsOpen] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
+interface NotificationDrawerProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+/** Notification drawer — slides in from the right, controlled by parent */
+export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps) {
+  const drawerRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
+  const [shouldShow, setShouldShow] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
 
-  // Unread count — poll every 30 seconds
-  const { data: unreadData } = useQuery<{ count: number }>({
-    queryKey: queryKeys.notifications.unreadCount,
-    queryFn: () => fetchApi('/api/notifications/unread-count'),
-    refetchInterval: 30_000,
-    staleTime: 15_000,
-  })
-  const unreadCount = unreadData?.count ?? 0
-
-  // Notification list — only fetch when dropdown is open
+  // Notification list — only fetch when drawer is open
   const { data: listData } = useQuery<{ notifications: NotificationData[]; nextCursor: string | null }>({
     queryKey: queryKeys.notifications.all,
     queryFn: () => fetchApi('/api/notifications?limit=20'),
@@ -92,26 +91,37 @@ export default function NotificationBell() {
     },
   })
 
-  // Close on click outside or Escape
-  const close = useCallback(() => setIsOpen(false), [])
+  const unreadInList = notifications.filter(n => !n.isRead).length
 
   useEffect(() => {
-    if (!isOpen) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        close()
-      }
-    }
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close()
+      if (e.key === 'Escape') handleClose()
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscape)
+
+    if (isOpen) {
+      setIsAnimating(true)
+      document.addEventListener('keydown', handleEscape)
+      document.body.style.overflowY = 'hidden'
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setShouldShow(true))
+      })
+    } else if (isAnimating) {
+      setShouldShow(false)
+    }
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflowY = 'unset'
     }
-  }, [isOpen, close])
+  }, [isOpen, isAnimating])
+
+  const handleClose = useCallback(() => {
+    setShouldShow(false)
+    setTimeout(() => {
+      setIsAnimating(false)
+      onClose()
+    }, 300)
+  }, [onClose])
 
   const handleNotificationClick = (notification: NotificationData) => {
     if (!notification.isRead) {
@@ -120,102 +130,152 @@ export default function NotificationBell() {
     if (notification.linkUrl) {
       window.location.href = notification.linkUrl
     }
-    close()
+    handleClose()
   }
 
-  return (
-    <div className="relative" ref={panelRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-white/30 transition"
-        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-      >
-        <Bell className="w-5 h-5 text-slate-500" />
-        <AnimatePresence>
-          {unreadCount > 0 && (
-            <motion.span
-              key="badge"
-              variants={badgePop}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full"
-            >
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </button>
+  if (!isOpen && !isAnimating) return null
 
-      <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="absolute left-0 mt-2 w-80 sm:w-96 ui-glass-dropdown z-dropdown overflow-hidden"
-          variants={dropdownVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-            {unreadCount > 0 && (
+  return createPortal(
+    <div className="fixed inset-0 z-modal overflow-hidden" role="presentation" aria-hidden={!isOpen}>
+      {/* Overlay */}
+      <div
+        className={`absolute inset-0 bg-black/30 transition-opacity duration-300 cursor-pointer ${shouldShow ? 'opacity-100' : 'opacity-0'}`}
+        onClick={handleClose}
+        role="presentation"
+      />
+
+      {/* Drawer — right side slide */}
+      <div
+        ref={drawerRef}
+        className={`fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:w-96 bg-white flex flex-col transition-transform duration-300 ease-out z-modal sm:rounded-2xl border border-gray-200 shadow-xl ${
+          shouldShow ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        role="dialog"
+        aria-labelledby="notification-drawer-title"
+        aria-modal="true"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-3 flex-shrink-0">
+          <h2 id="notification-drawer-title" className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+            Notifications
+          </h2>
+          <div className="flex items-center gap-2">
+            {unreadInList > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
                 disabled={markAllRead.isPending}
                 className="text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
-                Mark all as read
+                Mark all read
               </button>
             )}
+            <button
+              onClick={handleClose}
+              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+              aria-label="Close notifications"
+            >
+              <X className="w-5 h-5 text-gray-400" aria-hidden="true" />
+            </button>
           </div>
+        </div>
 
-          {/* Notification list */}
-          <div className="max-h-[400px] overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="py-10 text-center text-sm text-gray-400">
-                No notifications
-              </div>
-            ) : (
-              notifications.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => handleNotificationClick(n)}
-                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition border-b border-gray-50 last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                    !n.isRead ? 'bg-primary-50/50' : ''
-                  }`}
-                >
-                  <div className="mt-0.5 flex-shrink-0">
-                    {getNotificationIcon(n.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${!n.isRead ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
-                      {n.title}
-                    </p>
-                    {n.body && (
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">{timeAgo(n.createdAt)}</p>
-                  </div>
-                  {!n.isRead && (
-                    <div className="w-2 h-2 rounded-full bg-primary-500 mt-1.5 flex-shrink-0" />
+        {/* Notification list — scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          {notifications.length === 0 ? (
+            <div className="py-16 text-center">
+              <Bell className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-400">No notifications</p>
+            </div>
+          ) : (
+            notifications.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => handleNotificationClick(n)}
+                className={`w-full text-left px-6 py-4 flex items-start gap-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset cursor-pointer ${
+                  !n.isRead ? 'bg-primary-50/40' : ''
+                }`}
+              >
+                <div className="mt-0.5 flex-shrink-0">
+                  {getNotificationIcon(n.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm leading-snug ${!n.isRead ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
+                    {n.title}
+                  </p>
+                  {n.body && (
+                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
                   )}
-                </button>
-              ))
-            )}
-          </div>
+                  <p className="text-xs text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                </div>
+                {!n.isRead && (
+                  <div className="w-2 h-2 rounded-full bg-primary-500 mt-1.5 flex-shrink-0" />
+                )}
+              </button>
+            ))
+          )}
+        </div>
 
-          {/* Footer */}
-          <div className="border-t border-gray-100 px-4 py-2.5">
-            <span className="text-xs text-gray-400">
-              {notifications.length === 0 ? "You're all caught up" : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
-            </span>
-          </div>
-        </motion.div>
-      )}
+        {/* Footer */}
+        <div className="flex-shrink-0 border-t border-gray-100 px-6 py-3">
+          <span className="text-xs text-gray-400">
+            {notifications.length === 0 ? "You're all caught up" : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
+          </span>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+/** Unread badge hook — returns the unread count, polled every 30s */
+export function useUnreadCount() {
+  const { data } = useQuery<{ count: number }>({
+    queryKey: queryKeys.notifications.unreadCount,
+    queryFn: () => fetchApi('/api/notifications/unread-count'),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  })
+  return data?.count ?? 0
+}
+
+/** The bell icon with unread badge — render wherever you need the trigger */
+export function NotificationBellIcon({ unreadCount, className }: { unreadCount: number; className?: string }) {
+  return (
+    <span className="relative inline-flex">
+      <Bell className={className || 'w-5 h-5 text-slate-800'} />
+      <AnimatePresence>
+        {unreadCount > 0 && (
+          <motion.span
+            key="badge"
+            variants={badgePop}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full"
+          >
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </motion.span>
+        )}
       </AnimatePresence>
-    </div>
+    </span>
+  )
+}
+
+/** Legacy default export — self-contained bell button + dropdown (kept for backward compatibility) */
+export default function NotificationBell() {
+  const [isOpen, setIsOpen] = useState(false)
+  const unreadCount = useUnreadCount()
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="relative p-2 rounded-lg hover:bg-white/30 transition"
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+      >
+        <NotificationBellIcon unreadCount={unreadCount} />
+      </button>
+      <NotificationDrawer isOpen={isOpen} onClose={() => setIsOpen(false)} />
+    </>
   )
 }

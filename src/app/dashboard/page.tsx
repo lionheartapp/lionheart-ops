@@ -10,6 +10,7 @@ import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import { Plus, Clock, AlertCircle, CheckCircle, ChevronDown, ChevronRight, Calendar, Sparkles, Building2, Headphones, Loader2, MapPin, Users, Package, Wrench, Monitor, Video, Zap, Check, ArrowLeft } from 'lucide-react'
+import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getAuthHeaders } from '@/lib/api-client'
@@ -102,6 +103,8 @@ export default function DashboardPage() {
   }, [createCalendarEvent])
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const unreadCount = useUnreadCount()
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
 
   // Create ticket form state
@@ -406,7 +409,20 @@ export default function DashboardPage() {
             {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
           </h1>
         </motion.div>
-        <motion.div variants={fadeInUp} className="relative self-start sm:self-center">
+        <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-center">
+          {/* Notification Bell — glass pill matching Create */}
+          <motion.button
+            onClick={() => setIsNotificationsOpen(true)}
+            className="relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 transition flex items-center justify-center cursor-pointer"
+            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+            whileTap={buttonTap}
+          >
+            <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5 text-slate-800" />
+          </motion.button>
+
+          {/* Create button */}
+          <div className="relative">
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
             className="px-4 sm:px-6 py-3 min-h-[44px] text-slate-800 font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 transition flex items-center gap-2"
@@ -504,6 +520,7 @@ export default function DashboardPage() {
             </motion.div>
           )}
           </AnimatePresence>
+          </div>
         </motion.div>
       </motion.div>
 
@@ -988,6 +1005,9 @@ export default function DashboardPage() {
         error={meetingPanelError}
         mode="meeting"
       />
+
+      {/* Notification Drawer */}
+      <NotificationDrawer isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
     </DashboardLayout>
   )
 }

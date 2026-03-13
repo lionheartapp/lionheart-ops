@@ -4,7 +4,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fra
 import { motion, AnimatePresence, useMotionValue, animate as fmAnimate } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import NotificationBell from '@/components/NotificationBell'
+// NotificationBell moved to dashboard page, next to Create button
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   Home,
@@ -29,6 +29,7 @@ import {
   Palette,
   Trash2,
   HelpCircle,
+  Search,
   Wrench,
   Monitor,
   Package,
@@ -65,6 +66,7 @@ export interface SidebarProps {
   organizationName?: string
   organizationLogoUrl?: string
   onLogout?: () => void
+  onSearchOpen?: () => void
 }
 
 export interface CalendarSidebarData {
@@ -106,6 +108,7 @@ export default function Sidebar({
   organizationName,
   organizationLogoUrl,
   onLogout,
+  onSearchOpen,
 }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -816,24 +819,35 @@ export default function Sidebar({
 
   const mainNavContent = (
     <div className="flex flex-col h-full">
-      {/* Organization Logo */}
-      <div className="px-5 pt-5 pb-2 flex items-center justify-center">
-        {organizationLogoUrl ? (
-          <img
-            src={organizationLogoUrl}
-            alt={`${organizationName || 'Organization'} logo`}
-            className="h-10 max-w-[160px] object-contain"
-          />
-        ) : (
-          <span className="text-base font-semibold text-slate-800 truncate">
-            {organizationName || 'School'}
-          </span>
-        )}
+      {/* Organization Logo + Notification Bell */}
+      <div className="px-4 pt-5 pb-2 flex items-center justify-between">
+        <div className="flex-1 min-w-0 flex items-center justify-center">
+          {organizationLogoUrl ? (
+            <img
+              src={organizationLogoUrl}
+              alt={`${organizationName || 'Organization'} logo`}
+              className="h-10 max-w-[140px] object-contain"
+            />
+          ) : (
+            <span className="text-base font-semibold text-slate-800 truncate">
+              {organizationName || 'School'}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Notification Bell — between logo and nav */}
-      <div className="px-4 pb-1 flex items-center justify-end">
-        <NotificationBell />
+      {/* Search Trigger */}
+      <div className="px-4 pb-2">
+        <button
+          onClick={onSearchOpen}
+          className="w-full h-9 rounded-xl border border-slate-200/40 bg-white/30 px-3 flex items-center gap-2 text-sm text-slate-400 hover:bg-white/50 hover:border-slate-300/50 transition cursor-pointer"
+        >
+          <Search className="w-4 h-4 flex-shrink-0" />
+          <span className="flex-1 text-left">Search...</span>
+          <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-400 bg-white/40 rounded border border-white/50">
+            &#8984;K
+          </kbd>
+        </button>
       </div>
 
       {/* Navigation Menu */}
@@ -1387,15 +1401,31 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Help & Support — pinned to bottom */}
-      <div className="p-4 border-t border-slate-200/30">
+      {/* Footer — Help & User Profile */}
+      <div className="border-t border-slate-200/30">
         <button
           onClick={() => setBugDialogOpen(true)}
-          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+          className="w-full flex items-center gap-3 px-4 py-2.5 mx-4 mt-2 rounded-xl text-slate-500 hover:bg-white/30 hover:text-slate-800 border border-transparent transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+          style={{ width: 'calc(100% - 2rem)' }}
         >
           <HelpCircle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
           <span className="text-sm">Help & Support</span>
         </button>
+
+        {/* User Profile */}
+        <div className="px-4 py-3 flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm flex-shrink-0 ring-2 ring-white/50">
+            {userAvatar ? (
+              <img src={userAvatar} alt={userName} className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              userName.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-800 truncate">{userName}</p>
+            <p className="text-xs text-slate-400 truncate">{userEmail}</p>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -1921,7 +1951,7 @@ export default function Sidebar({
       )}
 
       {/* Desktop Layout: Main Nav + Settings Secondary Nav */}
-      <div className="hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)] z-sticky" style={{ padding: '12px 0 12px 12px' }}>
+      <div className="hidden lg:flex fixed left-0 top-0 h-screen z-sticky" style={{ padding: '12px 0 12px 12px' }}>
         {/* Main Navigation Sidebar — Aura glass panel */}
         <aside
           className="flex flex-col w-64 text-slate-700 h-full relative z-10 rounded-2xl"
@@ -1948,7 +1978,7 @@ export default function Sidebar({
 
       {/* Mobile Layout: Sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-16 h-[calc(100vh-64px)] w-[85vw] max-w-[320px] text-slate-700 flex flex-col transition-transform duration-300 z-navbar ${
+        className={`lg:hidden fixed left-0 top-0 h-screen w-[85vw] max-w-[320px] text-slate-700 flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRight: '1px solid rgba(255, 255, 255, 0.55)' }}

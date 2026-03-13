@@ -1,16 +1,12 @@
 'use client'
 
-import { ReactNode, useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import Link from 'next/link'
+import { ReactNode, useState, useEffect, useRef, useMemo } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, Eye } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
-import { dropdownVariants } from '@/lib/animations'
 import Sidebar, { type SidebarProps } from './Sidebar'
 import SearchCommand from './SearchCommand'
 import ImpersonationBanner from './ImpersonationBanner'
-import ViewAsDialog from './ViewAsDialog'
 import { syncOfflineData } from '@/lib/offline/sync'
 import { useConnectivity } from '@/hooks/useConnectivity'
 
@@ -41,12 +37,8 @@ export default function DashboardLayout({
   const router = useRouter()
   const queryClient = useQueryClient()
   const isOnline = useConnectivity()
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [isViewAsOpen, setIsViewAsOpen] = useState(false)
   const [isImpersonating, setIsImpersonating] = useState(false)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const prevOnlineRef = useRef(isOnline)
 
   // Resolve user/org data: prefer explicit props, fall back to localStorage
@@ -70,11 +62,9 @@ export default function DashboardLayout({
     }
   }, [onLogoutProp, router])
 
-  // Detect impersonation state and super-admin role
+  // Detect impersonation state
   useEffect(() => {
     setIsImpersonating(localStorage.getItem('is-impersonating') === 'true')
-    const role = (localStorage.getItem('user-role') || '').toLowerCase().replace(/\s+/g, '-')
-    setIsSuperAdmin(role === 'super-admin')
   }, [pathname]) // re-check on navigation (catches reload after impersonate)
 
   // Cmd+K / Ctrl+K shortcut for search
@@ -88,27 +78,6 @@ export default function DashboardLayout({
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
-
-  // Close dropdown on click outside or Escape
-  const closeDropdown = useCallback(() => setIsDropdownOpen(false), [])
-
-  useEffect(() => {
-    if (!isDropdownOpen) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        closeDropdown()
-      }
-    }
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDropdown()
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscape)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [isDropdownOpen, closeDropdown])
 
   useEffect(() => {
     setUserAvatar(initialUserAvatar || null)
@@ -141,120 +110,12 @@ export default function DashboardLayout({
     }
   }, [isOnline, queryClient])
 
-  const formattedSchoolLabel = (schoolLabel || organizationName || 'School')
-    .toString()
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase())
-
-  const subtitleParts = [formattedSchoolLabel, teamLabel].filter(Boolean)
-
   return (
     <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: 'linear-gradient(135deg, #e8eaf0, #d4dbe8, #c8d4e4, #d8dce8, #e4e6ec)' }}>
       {/* Impersonation Banner */}
       {isImpersonating && <ImpersonationBanner />}
 
-      {/* Top Bar Header */}
-      <header className={`fixed left-0 right-0 h-16 px-6 lg:pl-[292px] flex items-center justify-between z-navbar ${isImpersonating ? 'top-[40px]' : 'top-0'}`} style={{ background: 'rgba(255, 255, 255, 0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.6)' }}>
-        {/* Mobile hamburger spacer (logo is in sidebar now) */}
-        <div className="w-10 lg:hidden" />
-
-        {/* Global Search Trigger */}
-        <div className="hidden sm:block flex-1 max-w-md">
-          <button
-            onClick={() => setIsSearchOpen(true)}
-            className="w-full h-9 rounded-full border border-white/60 bg-white/30 px-4 flex items-center gap-2 text-sm text-slate-500 hover:bg-white/50 hover:border-white/70 transition cursor-pointer"
-          >
-            <Search className="w-4 h-4 flex-shrink-0" />
-            <span className="flex-1 text-left">Search...</span>
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/40 rounded border border-white/50">
-              &#8984;K
-            </kbd>
-          </button>
-        </div>
-
-        {/* Notifications + User Profile */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <button
-            onClick={() => setIsSearchOpen(true)}
-            className="sm:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white/30 transition"
-            aria-label="Search"
-          >
-            <Search className="w-5 h-5" />
-          </button>
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-slate-800">{userName || 'User'}</p>
-            <p className="text-xs text-slate-500 truncate">{subtitleParts.join(' • ')}</p>
-          </div>
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 p-1 hover:bg-white/30 rounded-lg transition"
-              aria-label="User menu"
-              aria-expanded={isDropdownOpen}
-              aria-haspopup="true"
-            >
-              <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm ring-2 ring-white/50">
-                {userAvatar ? (
-                  <img
-                    src={userAvatar}
-                    alt={userName || 'User'}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
-                ) : (
-                  (userName || 'U').charAt(0).toUpperCase()
-                )}
-              </div>
-              <ChevronDown className="w-4 h-4 text-slate-500" aria-hidden="true" />
-            </button>
-
-            {/* Dropdown Menu */}
-            <AnimatePresence>
-            {isDropdownOpen && (
-              <motion.div
-                className="absolute right-0 mt-2 w-48 ui-glass-dropdown z-dropdown overflow-hidden text-gray-800"
-                variants={dropdownVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <Link
-                  href="/settings"
-                  onClick={() => setIsDropdownOpen(false)}
-                  className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 transition"
-                >
-                  Settings
-                </Link>
-                {isSuperAdmin && !isImpersonating && (
-                  <button
-                    onClick={() => {
-                      setIsViewAsOpen(true)
-                      setIsDropdownOpen(false)
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Eye className="w-4 h-4 text-gray-400" />
-                    View As...
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    onLogout()
-                    setIsDropdownOpen(false)
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
-                  aria-label="Log out"
-                >
-                  Log Out
-                </button>
-              </motion.div>
-            )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </header>
-
-      <div className={`flex flex-1 min-h-0 ${isImpersonating ? 'pt-[104px]' : 'pt-16'}`}>
+      <div className={`flex flex-1 min-h-0 ${isImpersonating ? 'pt-[40px]' : ''}`}>
         {/* Sidebar */}
         <Sidebar
           userName={userName}
@@ -263,6 +124,7 @@ export default function DashboardLayout({
           organizationName={organizationName}
           organizationLogoUrl={orgLogoUrl}
           onLogout={onLogout}
+          onSearchOpen={() => setIsSearchOpen(true)}
         />
 
         {/* Main Content */}
@@ -283,7 +145,6 @@ export default function DashboardLayout({
         {isSearchOpen && <SearchCommand isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}
       </AnimatePresence>
 
-      <ViewAsDialog isOpen={isViewAsOpen} onClose={() => setIsViewAsOpen(false)} />
     </div>
   )
 }
