@@ -4,6 +4,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, Fra
 import { motion, AnimatePresence, useMotionValue, animate as fmAnimate } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import NotificationBell from '@/components/NotificationBell'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   Home,
@@ -830,8 +831,13 @@ export default function Sidebar({
         )}
       </div>
 
+      {/* Notification Bell — between logo and nav */}
+      <div className="px-4 pb-1 flex items-center justify-end">
+        <NotificationBell />
+      </div>
+
       {/* Navigation Menu */}
-      <nav className="p-4 pt-4 flex-1" role="navigation" aria-label="Main navigation">
+      <nav className="p-4 pt-2 flex-1" role="navigation" aria-label="Main navigation">
         <ul className="space-y-2" role="list">
           {navItems.map((item) => {
             const Icon = item.icon

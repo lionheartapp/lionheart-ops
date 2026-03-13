@@ -8,7 +8,6 @@ import { ChevronDown, Search, Eye } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { dropdownVariants } from '@/lib/animations'
 import Sidebar, { type SidebarProps } from './Sidebar'
-import NotificationBell from './NotificationBell'
 import SearchCommand from './SearchCommand'
 import ImpersonationBanner from './ImpersonationBanner'
 import ViewAsDialog from './ViewAsDialog'
@@ -183,7 +182,6 @@ export default function DashboardLayout({
           >
             <Search className="w-5 h-5" />
           </button>
-          <NotificationBell />
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-slate-800">{userName || 'User'}</p>
             <p className="text-xs text-slate-500 truncate">{subtitleParts.join(' • ')}</p>

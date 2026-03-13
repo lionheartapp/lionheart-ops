@@ -127,12 +127,12 @@ export default function NotificationBell() {
     <div className="relative" ref={panelRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-white/10 transition"
+        className="relative p-2 rounded-lg hover:bg-white/30 transition"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <Bell className="w-5 h-5 text-slate-200" />
+        <Bell className="w-5 h-5 text-slate-500" />
         <AnimatePresence>
           {unreadCount > 0 && (
             <motion.span
@@ -152,7 +152,7 @@ export default function NotificationBell() {
       <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="absolute right-0 mt-2 w-80 sm:w-96 ui-glass-dropdown z-dropdown overflow-hidden"
+          className="absolute left-0 mt-2 w-80 sm:w-96 ui-glass-dropdown z-dropdown overflow-hidden"
           variants={dropdownVariants}
           initial="hidden"
           animate="visible"
