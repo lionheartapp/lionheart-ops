@@ -88,6 +88,7 @@ export default function CalendarView() {
 
   const handleChoiceMeeting = useCallback(() => {
     setChoiceModalOpen(false)
+    setCreateMode('meeting')
     setCreateInitialStart(choiceModalStart)
     setCreateInitialEnd(choiceModalEnd)
     setIsCreateOpen(true)
@@ -374,6 +375,7 @@ export default function CalendarView() {
   // Event interaction state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [createMode, setCreateMode] = useState<'event' | 'meeting'>('event')
   const [createInitialStart, setCreateInitialStart] = useState<Date | undefined>()
   const [createInitialEnd, setCreateInitialEnd] = useState<Date | undefined>()
 
@@ -461,6 +463,7 @@ export default function CalendarView() {
   }, [openChoiceModal])
 
   const handleCreateEvent = useCallback(() => {
+    setCreateMode('event')
     setCreateInitialStart(undefined)
     setCreateInitialEnd(undefined)
     setIsCreateOpen(true)
@@ -965,6 +968,7 @@ export default function CalendarView() {
         onEdit={(event) => {
           setSelectedEvent(null)
           setEditingEvent(event)
+          setCreateMode('event')
           setFormError(null)
           setIsCreateOpen(true)
         }}
@@ -973,7 +977,8 @@ export default function CalendarView() {
 
       <EventCreatePanel
         isOpen={isCreateOpen}
-        onClose={() => { setIsCreateOpen(false); setEditingEvent(null); setFormError(null) }}
+        mode={editingEvent ? 'event' : createMode}
+        onClose={() => { setIsCreateOpen(false); setEditingEvent(null); setFormError(null); setCreateMode('event') }}
         onSubmit={editingEvent ? handleUpdateEvent : handleSubmitEvent}
         isSubmitting={editingEvent ? updateEvent.isPending : createEvent.isPending}
         calendars={calendars}
