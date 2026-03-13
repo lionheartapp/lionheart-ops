@@ -892,7 +892,7 @@ export default function Sidebar({
                   }}
                   className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
                     active && !settingsOpen && !athleticsOpen
-                      ? 'text-white font-semibold bg-slate-900'
+                      ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
                       : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
@@ -927,7 +927,7 @@ export default function Sidebar({
                 }}
                 className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
                   athleticsOpen
-                    ? 'text-white font-semibold bg-slate-900'
+                    ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
                     : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                 }`}
                 aria-current={athleticsOpen ? 'page' : undefined}
