@@ -830,7 +830,7 @@ export default function Sidebar({
                   className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                     active && !settingsOpen && !athleticsOpen
                       ? 'text-slate-900 font-medium'
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
                   style={active && !settingsOpen && !athleticsOpen ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : { }}
 
@@ -867,7 +867,7 @@ export default function Sidebar({
                 className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                   athleticsOpen
                     ? 'text-slate-900 font-medium'
-                    : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                 }`}
                 style={athleticsOpen ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                 aria-current={athleticsOpen ? 'page' : undefined}
