@@ -337,30 +337,30 @@ a:visited {
 
   /* ── Aura Glassmorphism surface utilities ── */
   .ui-glass {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     @apply rounded-2xl;
   }
 
   .ui-glass-hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     @apply rounded-2xl transition-all duration-200;
   }
   .ui-glass-hover:hover {
-    background: rgba(255, 255, 255, 0.55);
-    border-color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.82);
+    border-color: rgba(255, 255, 255, 0.8);
   }
 
   .ui-glass-table {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     @apply rounded-2xl overflow-hidden;
   }
 
