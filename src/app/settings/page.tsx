@@ -579,7 +579,7 @@ export default function SettingsPage() {
       onLogout={handleLogout}
     >
       <MotionConfig reducedMotion="user">
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto -mr-4 sm:-mr-10 pr-4 sm:pr-10">
               {activeTab === 'profile' && (
                 <motion.div
                   className="space-y-8"
