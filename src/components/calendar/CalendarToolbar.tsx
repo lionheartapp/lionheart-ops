@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Plus, Search, X, SlidersHorizontal } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users, Calendar } from 'lucide-react'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
 import CalendarFilterPopover, { type CalendarFilter } from './CalendarFilterPopover'
@@ -32,6 +32,7 @@ interface CalendarToolbarProps {
   onNavigateForward: () => void
   onToday: () => void
   onCreateEvent: () => void
+  onPlanEvent?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
   categories: CategoryChip[]
@@ -91,6 +92,7 @@ export default function CalendarToolbar({
   onNavigateForward,
   onToday,
   onCreateEvent,
+  onPlanEvent,
   searchQuery,
   onSearchChange,
   categories,
@@ -112,6 +114,21 @@ export default function CalendarToolbar({
     calendarFilter.schoolLevels.size +
     calendarFilter.sportIds.size +
     calendarFilter.teamLevels.size
+
+  const [createDropdownOpen, setCreateDropdownOpen] = useState(false)
+  const createBtnRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!createDropdownOpen) return
+    const handler = (e: MouseEvent) => {
+      if (createBtnRef.current && !createBtnRef.current.contains(e.target as Node)) {
+        setCreateDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [createDropdownOpen])
 
   return (
     <div className="pb-2">
@@ -184,13 +201,62 @@ export default function CalendarToolbar({
             </button>
           </div>
 
-          <button
-            onClick={onCreateEvent}
-            className="flex items-center gap-2 px-3 sm:px-5 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Event</span>
-          </button>
+          {/* Create button with dropdown */}
+          <div ref={createBtnRef} className="relative flex items-center">
+            <button
+              onClick={() => setCreateDropdownOpen(o => !o)}
+              className="flex items-center gap-2 pl-3 sm:pl-4 pr-3 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+              aria-label="Create"
+              aria-expanded={createDropdownOpen}
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Create</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${createDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {createDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-200/80 z-50 overflow-hidden"
+                >
+                  <div className="p-1.5 space-y-0.5">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 py-1.5">Meetings</p>
+                    <button
+                      onClick={() => { onCreateEvent(); setCreateDropdownOpen(false) }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-3.5 h-3.5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Schedule Meeting</p>
+                        <p className="text-xs text-gray-500">Informal, added instantly</p>
+                      </div>
+                    </button>
+
+                    <div className="h-px bg-gray-100 mx-3 my-1" />
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 py-1.5">School Events</p>
+                    <button
+                      onClick={() => { onPlanEvent?.(); setCreateDropdownOpen(false) }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-3.5 h-3.5 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Plan Event</p>
+                        <p className="text-xs text-gray-500">Formal — AV, facilities &amp; approval</p>
+                      </div>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
