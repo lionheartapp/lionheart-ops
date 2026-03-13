@@ -880,18 +880,18 @@ export default function Sidebar({
                     setIsOpen(false)
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
-                  className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                  className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                     active && !settingsOpen && !athleticsOpen
-                      ? 'text-slate-900 font-semibold bg-white'
-                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                      ? 'text-slate-900 font-semibold bg-white rounded-r-xl rounded-l-none'
+                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent rounded-xl'
                   }`}
                   aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
                 >
-                  {/* Left accent bar — matches maintenance/IT indicator style */}
+                  {/* Left accent bar */}
                   {active && !settingsOpen && !athleticsOpen && (
                     <span
-                      className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full"
-                      style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)', boxShadow: '0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(99, 102, 241, 0.25)' }}
+                      className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full"
+                      style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
                     />
                   )}
                   <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
@@ -922,18 +922,18 @@ export default function Sidebar({
                   queryClient.prefetchQuery(queryOptions.modules()).catch(() => {})
                   queryClient.prefetchQuery(queryOptions.calendars()).catch(() => {})
                 }}
-                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                   athleticsOpen
-                    ? 'text-slate-900 font-semibold bg-white'
-                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                    ? 'text-slate-900 font-semibold bg-white rounded-r-xl rounded-l-none'
+                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent rounded-xl'
                 }`}
                 aria-current={athleticsOpen ? 'page' : undefined}
               >
-                {/* Left accent bar — matches maintenance/IT indicator style */}
+                {/* Left accent bar */}
                 {athleticsOpen && (
                   <span
-                    className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full"
-                    style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)', boxShadow: '0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(99, 102, 241, 0.25)' }}
+                    className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full"
+                    style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
                   />
                 )}
                 <Trophy className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
