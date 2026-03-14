@@ -2057,22 +2057,22 @@ export default function Sidebar({
       )}
 
       {/* Desktop Layout: Main Nav + Settings Secondary Nav */}
-      <div className="hidden lg:flex fixed left-0 top-0 h-screen z-sticky" style={{ padding: '12px 0 12px 12px' }}>
+      <div className={`hidden lg:flex fixed left-0 top-0 h-screen z-sticky transition-shadow duration-300 ${secondaryOpen ? 'shadow-[4px_0_24px_-4px_rgba(100,116,139,0.18)]' : ''}`}>
         {/* Main Navigation Sidebar — Aura glass panel */}
         <aside
-          className="flex flex-col w-64 text-slate-700 h-full relative z-10 rounded-2xl"
-          style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.55)' }}
+          className="flex flex-col w-64 text-slate-700 h-full relative z-10"
+          style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: secondaryOpen ? 'none' : '1px solid rgba(200, 210, 225, 0.5)' }}
           aria-label="Sidebar navigation"
         >
           {mainNavContent}
         </aside>
 
-        {/* Secondary Navigation — Aura glass panel */}
+        {/* Secondary Navigation — attached panel */}
         <aside
-          className={`flex flex-col w-60 h-full transition-all duration-300 ease-in-out overflow-hidden rounded-2xl ${
-            secondaryOpen ? 'max-w-60 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'
+          className={`flex flex-col w-60 h-full transition-all duration-300 ease-in-out overflow-hidden ${
+            secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
           }`}
-          style={{ background: 'rgba(255, 255, 255, 0.35)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: secondaryOpen ? '1px solid rgba(255, 255, 255, 0.5)' : 'none' }}
+          style={{ background: 'rgba(245, 247, 250, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.5)' : 'none', borderLeft: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.3)' : 'none' }}
           aria-label={athleticsOpen ? 'Athletics navigation' : calendarOpen ? 'Calendar navigation' : 'Settings navigation'}
           aria-hidden={!secondaryOpen}
         >
@@ -2099,10 +2099,10 @@ export default function Sidebar({
         )}
       </aside>
 
-      {/* Spacer for desktop layout - adjusts width based on secondary panel (includes 12px sidebar padding + 12px gap) */}
+      {/* Spacer for desktop layout - adjusts width based on secondary panel */}
       <div
         className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
-          secondaryOpen ? 'w-[532px]' : 'w-[280px]'
+          secondaryOpen ? 'w-[496px]' : 'w-[256px]'
         }`}
       />
 
