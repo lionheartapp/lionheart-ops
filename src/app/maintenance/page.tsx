@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, MotionConfig, AnimatePresence } from 'framer-motion'
-import { usePermissions } from '@/lib/hooks/usePermissions'
+import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -96,8 +96,9 @@ function MaintenanceContent() {
   const { data: perms } = usePermissions()
   const canManageMaintenance = perms?.canManageMaintenance ?? false
   const canClaimMaintenance = perms?.canClaimMaintenance ?? false
-  // Show full dashboard + tabs for admins and technicians; My Requests only for submit-only users
-  const showDashboardTabs = canManageMaintenance || canClaimMaintenance
+  const isOnMaintenanceTeam = isOnTeam(perms, 'maintenance')
+  // Show full dashboard + tabs for team members, admins, and technicians; My Requests only for submit-only users
+  const showDashboardTabs = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance
   const campusFilter = useCampusFilter()
   const dataLoading = campusFilter.isLoading
   const queryClient = useQueryClient()

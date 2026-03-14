@@ -57,12 +57,14 @@ function ITContent() {
     }
   }, [searchParams, router])
 
+  const canSeeManageTabs = p.isOnITTeam || p.canManage
+
   const getDefaultTab = (): HelpDeskTab => {
     const paramTab = searchParams?.get('tab') as HelpDeskTab | null
     if (paramTab && ['dashboard', 'board', 'tickets', 'magic-links'].includes(paramTab)) {
       return paramTab
     }
-    if (p.canManage) return 'dashboard'
+    if (canSeeManageTabs) return 'dashboard'
     return 'tickets'
   }
 
@@ -86,11 +88,11 @@ function ITContent() {
   }, [searchParams])
 
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.requiresManage) return p.canManage
+    if (tab.requiresManage) return p.isOnITTeam || p.canManage
     return true
   })
 
-  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [p.canManage])
+  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [canSeeManageTabs])
 
   // Fetch members for assignment dropdown
   const { data: members = [] } = useQuery({
@@ -102,7 +104,7 @@ function ITContent() {
 
   const handleTabChange = (tab: HelpDeskTab) => {
     setActiveTab(tab)
-    const defaultTab = p.canManage ? 'dashboard' : 'tickets'
+    const defaultTab = canSeeManageTabs ? 'dashboard' : 'tickets'
     const url = tab === defaultTab ? '/it' : `/it?tab=${tab}`
     window.history.replaceState(null, '', url)
   }
@@ -147,7 +149,7 @@ function ITContent() {
       </div>
 
       {/* Tab content */}
-      {p.canManage && (
+      {canSeeManageTabs && (
         <div
           className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'dashboard'}
@@ -159,7 +161,7 @@ function ITContent() {
         </div>
       )}
 
-      {p.canManage && (
+      {canSeeManageTabs && (
         <div
           className={activeTab === 'board' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'board'}
@@ -179,7 +181,7 @@ function ITContent() {
         />
       </div>
 
-      {p.canManage && (
+      {canSeeManageTabs && (
         <div
           className={activeTab === 'magic-links' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'magic-links'}

@@ -205,6 +205,23 @@ export async function getUserTeams(userId: string): Promise<string[]> {
 }
 
 /**
+ * Get team details (id, slug, name) for a user — used by the permissions API
+ * to expose team membership to the client for UI visibility decisions.
+ */
+export async function getUserTeamDetails(userId: string): Promise<Array<{ id: string; slug: string; name: string }>> {
+  const memberships = await prisma.userTeam.findMany({
+    where: { userId },
+    include: {
+      team: {
+        select: { id: true, slug: true, name: true },
+      },
+    },
+  })
+
+  return memberships.map((m) => m.team)
+}
+
+/**
  * Check if user is a member of the team identified by slug
  */
 export async function isOnTeam(userId: string, teamSlug: string): Promise<boolean> {

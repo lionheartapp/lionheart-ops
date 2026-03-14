@@ -45,7 +45,7 @@ import ViewAsDialog from '@/components/ViewAsDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { useModuleEnabled, useModules } from '@/lib/hooks/useModuleEnabled'
-import { usePermissions } from '@/lib/hooks/usePermissions'
+import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 import MeetWithSection from '@/components/calendar/MeetWithSection'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -378,6 +378,10 @@ export default function Sidebar({
   const canSeeITLifecycle = canAccessDeployment || canAccessProvisioning || canManageIT
   const canSeeITSecurity = canViewContentFilters || canViewSecurityIncidents || canViewIntelligence
   const canSeeITAdmin = canViewITAnalytics || canViewITBoardReports || canViewERate || canManageSync
+
+  // Team membership — controls UI visibility (Team = what you SEE, Permissions = what you DO)
+  const isOnMaintenanceTeam = isOnTeam(perms, 'maintenance')
+  const isOnITTeam = isOnTeam(perms, 'it-support')
 
   // Measure and position the facilities indicator.
   //
@@ -973,9 +977,9 @@ export default function Sidebar({
             </div>
             <ul className="space-y-1" role="list">
               {/* Facilities — collapsible section (no landing page; child links have content) */}
-              {(canManageMaintenance || canClaimMaintenance || canSubmitMaintenance) && (
+              {(isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance || canSubmitMaintenance) && (
                 <li>
-                  {(canManageMaintenance || canClaimMaintenance) ? (
+                  {(isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance) ? (
                   <>
                   {/* Section header — toggle only, no navigation */}
                   <button
@@ -1058,8 +1062,8 @@ export default function Sidebar({
                           >
                             <span className="text-sm">Maintenance Hub</span>
                           </PrefetchLink>
-                          {/* Work Orders — for Head/Admin */}
-                          {canManageMaintenance && (
+                          {/* Work Orders — visible to team members and admins with manage permission */}
+                          {(isOnMaintenanceTeam || canManageMaintenance) && (
                               <PrefetchLink
                                 href="/maintenance/work-orders"
                                 data-facility-active={pathname === '/maintenance/work-orders' ? 'true' : undefined}
@@ -1077,8 +1081,8 @@ export default function Sidebar({
                                 <span className="text-sm">Work Orders</span>
                               </PrefetchLink>
                           )}
-                          {/* Inventory — inventory items for maintenance dept */}
-                          {canReadInventory && canManageMaintenance && (
+                          {/* Inventory — visible to team members and admins with manage + read permission */}
+                          {canReadInventory && (isOnMaintenanceTeam || canManageMaintenance) && (
                               <PrefetchLink
                                 href="/inventory?dept=maintenance"
                                 data-facility-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'true' : undefined}
@@ -1097,8 +1101,8 @@ export default function Sidebar({
                                 <span className="text-sm">Inventory</span>
                               </PrefetchLink>
                           )}
-                          {/* Assets */}
-                          {canManageMaintenance && (
+                          {/* Assets — visible to team members and admins with manage permission */}
+                          {(isOnMaintenanceTeam || canManageMaintenance) && (
                               <PrefetchLink
                                 href="/maintenance/assets"
                                 data-facility-active={pathname === '/maintenance/assets' ? 'true' : undefined}
@@ -1117,8 +1121,8 @@ export default function Sidebar({
                                 <span className="text-sm">Assets</span>
                               </PrefetchLink>
                           )}
-                          {/* Knowledge Base */}
-                          {(canManageMaintenance || canClaimMaintenance) && (
+                          {/* Knowledge Base — visible to team members and admins */}
+                          {(isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance) && (
                               <PrefetchLink
                                 href="/maintenance/knowledge-base"
                                 data-facility-active={pathname.startsWith('/maintenance/knowledge-base') ? 'true' : undefined}
@@ -1165,9 +1169,9 @@ export default function Sidebar({
               )}
 
               {/* IT Help Desk — collapsible section (mirrors Maintenance pattern) */}
-              {!itHelpdeskModuleLoading && itHelpdeskEnabled && (canManageIT || canSubmitIT) && (
+              {!itHelpdeskModuleLoading && itHelpdeskEnabled && (isOnITTeam || canManageIT || canSubmitIT) && (
                 <li>
-                  {canManageIT ? (
+                  {(isOnITTeam || canManageIT) ? (
                   <>
                   {/* Section header — toggle only, no navigation */}
                   <button
@@ -1243,8 +1247,8 @@ export default function Sidebar({
                           >
                             <span className="text-sm">Help Desk</span>
                           </PrefetchLink>
-                          {/* Devices */}
-                          {canSeeITDevices && (
+                          {/* Devices — visible to IT team members or users with device permissions */}
+                          {(isOnITTeam || canSeeITDevices) && (
                               <PrefetchLink
                                 href="/it/devices"
                                 data-it-active={pathname === '/it/devices' ? 'true' : undefined}
@@ -1263,8 +1267,8 @@ export default function Sidebar({
                                 <span className="text-sm">Devices</span>
                               </PrefetchLink>
                           )}
-                          {/* Lifecycle */}
-                          {canSeeITLifecycle && (
+                          {/* Lifecycle — visible to IT team members or users with lifecycle permissions */}
+                          {(isOnITTeam || canSeeITLifecycle) && (
                               <PrefetchLink
                                 href="/it/lifecycle"
                                 data-it-active={pathname === '/it/lifecycle' ? 'true' : undefined}
@@ -1283,8 +1287,8 @@ export default function Sidebar({
                                 <span className="text-sm">Lifecycle</span>
                               </PrefetchLink>
                           )}
-                          {/* Security */}
-                          {canSeeITSecurity && (
+                          {/* Security — visible to IT team members or users with security permissions */}
+                          {(isOnITTeam || canSeeITSecurity) && (
                               <PrefetchLink
                                 href="/it/security"
                                 data-it-active={pathname === '/it/security' ? 'true' : undefined}
@@ -1303,8 +1307,8 @@ export default function Sidebar({
                                 <span className="text-sm">Security</span>
                               </PrefetchLink>
                           )}
-                          {/* Reports & Admin */}
-                          {canSeeITAdmin && (
+                          {/* Reports & Admin — visible to IT team members or users with admin permissions */}
+                          {(isOnITTeam || canSeeITAdmin) && (
                               <PrefetchLink
                                 href="/it/admin"
                                 data-it-active={pathname === '/it/admin' ? 'true' : undefined}
@@ -1323,8 +1327,8 @@ export default function Sidebar({
                                 <span className="text-sm">Reports & Admin</span>
                               </PrefetchLink>
                           )}
-                          {/* Inventory — IT equipment and accessories */}
-                          {canReadInventory && canManageIT && (
+                          {/* Inventory — visible to IT team members or users with read+manage permissions */}
+                          {canReadInventory && (isOnITTeam || canManageIT) && (
                               <PrefetchLink
                                 href="/inventory?dept=it"
                                 data-it-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'true' : undefined}

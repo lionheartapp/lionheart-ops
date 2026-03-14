@@ -3,6 +3,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 
+interface UserTeam {
+  id: string
+  slug: string
+  name: string
+}
+
 interface Permissions {
   canManageWorkspace: boolean
   canWriteAthletics: boolean
@@ -54,6 +60,14 @@ interface Permissions {
   canReadInventory: boolean
   canWriteInventory: boolean
   legacyRole: string | null
+  userTeams: UserTeam[]
+}
+
+/**
+ * Check if user is on a team by slug (client-side, no DB call)
+ */
+export function isOnTeam(perms: Permissions | undefined, slug: string): boolean {
+  return perms?.userTeams?.some((t) => t.slug === slug) ?? false
 }
 
 export function usePermissions() {

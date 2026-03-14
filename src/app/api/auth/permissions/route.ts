@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
-import { getUserPermissions, canSync, canAnySync } from '@/lib/auth/permissions'
+import { getUserPermissions, getUserTeamDetails, canSync, canAnySync } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { matchesPermission } from '@/lib/permissions'
 
@@ -32,7 +32,10 @@ export async function GET(req: NextRequest) {
     const userContext = await getUserContext(req)
 
     // Single DB query — all permission checks run in-memory against this array
-    const perms = await getUserPermissions(userContext.userId)
+    const [perms, userTeams] = await Promise.all([
+      getUserPermissions(userContext.userId),
+      getUserTeamDetails(userContext.userId),
+    ])
 
     // Helper for legacy role (runs against same array, no extra DB call)
     let legacyRole = 'VIEWER'
@@ -104,6 +107,7 @@ export async function GET(req: NextRequest) {
         canReadInventory: canSync(perms, PERMISSIONS.INVENTORY_READ),
         canWriteInventory: canSync(perms, PERMISSIONS.INVENTORY_CREATE),
         legacyRole,
+        userTeams,
       })
     )
   } catch (error) {

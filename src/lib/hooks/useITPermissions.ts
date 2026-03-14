@@ -1,9 +1,10 @@
 'use client'
 
-import { usePermissions } from '@/lib/hooks/usePermissions'
+import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 
 export function useITPermissions() {
   const { data: perms } = usePermissions()
+  const onITTeam = isOnTeam(perms, 'it-support')
 
   const canManageLoaners = perms?.canManageLoaners ?? false
   const canCheckoutLoaner = perms?.canCheckoutLoaner ?? false
@@ -28,6 +29,8 @@ export function useITPermissions() {
 
   return {
     loaded: !!perms,
+    // Team membership — controls UI visibility
+    isOnITTeam: onITTeam,
     // Core IT
     canManage: perms?.canManageIT ?? false,
     canSubmit: perms?.canSubmitIT ?? false,
