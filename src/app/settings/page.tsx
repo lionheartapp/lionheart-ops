@@ -392,26 +392,9 @@ export default function SettingsPage() {
     setCanManageWorkspace(true)
   }, [optimisticCanManageWorkspace])
 
-  // As soon as we know the user can manage the workspace, pre-mount all
-  // workspace tabs as hidden so their data fetches run in the background
-  // while the user is still on the Profile tab.
-  useEffect(() => {
-    if (!canManageWorkspace) return
-    setVisitedTabs((prev) => {
-      const next = new Set(prev)
-      next.add('school-info')
-      next.add('roles')
-      next.add('teams')
-      next.add('users')
-      next.add('campus')
-      next.add('academic-calendar')
-      next.add('approval-config')
-      next.add('add-ons')
-      next.add('activity-log')
-      next.add('billing')
-      return next
-    })
-  }, [canManageWorkspace])
+  // Lazy-load tabs: only mount a tab when the user first clicks on it.
+  // This avoids 10+ simultaneous API calls on page load.
+  // The activeTab is always added to visitedTabs when selected.
 
   useEffect(() => {
     if (!token) return

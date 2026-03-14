@@ -10,7 +10,7 @@ import { matchesPermission } from '../permissions'
 
 // Simple in-memory cache for permission checks (30 second TTL)
 const permissionCache = new Map<string, { permissions: string[]; expires: number }>()
-const CACHE_TTL = 30 * 1000 // 30 seconds
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 /**
  * Convert a permission record to its string representation
@@ -133,9 +133,25 @@ export function clearAllPermissionCaches(): void {
  */
 export async function can(userId: string, permission: string): Promise<boolean> {
   const userPermissions = await getUserPermissions(userId)
-  
-  return userPermissions.some((userPerm) => 
+
+  return userPermissions.some((userPerm) =>
     matchesPermission(userPerm, permission)
+  )
+}
+
+/**
+ * Check a permission against a pre-fetched permissions array (no DB call)
+ */
+export function canSync(userPermissions: string[], permission: string): boolean {
+  return userPermissions.some((userPerm) => matchesPermission(userPerm, permission))
+}
+
+/**
+ * Check if ANY of the specified permissions match a pre-fetched array (no DB call)
+ */
+export function canAnySync(userPermissions: string[], permissions: string[]): boolean {
+  return permissions.some((reqPerm) =>
+    userPermissions.some((userPerm) => matchesPermission(userPerm, reqPerm))
   )
 }
 
@@ -144,7 +160,7 @@ export async function can(userId: string, permission: string): Promise<boolean> 
  */
 export async function canAny(userId: string, permissions: string[]): Promise<boolean> {
   const userPermissions = await getUserPermissions(userId)
-  
+
   return permissions.some((reqPerm) =>
     userPermissions.some((userPerm) => matchesPermission(userPerm, reqPerm))
   )
