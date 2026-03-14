@@ -150,8 +150,15 @@ export default function Sidebar({
 
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
-  const [facilitiesOpen, setFacilitiesOpen] = useState(() => pathname.startsWith('/maintenance'))
-  const [itOpen, setItOpen] = useState(() => pathname.startsWith('/it'))
+  // Helper: is this path in the maintenance context? (includes /inventory?dept=maintenance)
+  const isMaintenancePath = (p: string, params?: URLSearchParams) =>
+    p.startsWith('/maintenance') || (p === '/inventory' && params?.get('dept') === 'maintenance')
+  // Helper: is this path in the IT context? (includes /inventory?dept=it)
+  const isITPath = (p: string, params?: URLSearchParams) =>
+    p.startsWith('/it') || (p === '/inventory' && params?.get('dept') === 'it')
+
+  const [facilitiesOpen, setFacilitiesOpen] = useState(() => isMaintenancePath(pathname, pageSearchParams))
+  const [itOpen, setItOpen] = useState(() => isITPath(pathname, pageSearchParams))
 
   // ── Facilities nav indicator ──
   // Uses Framer Motion's useMotionValue + animate() for the indicator position.
@@ -329,21 +336,21 @@ export default function Sidebar({
     }
   }, [pathname])
 
-  // Auto-expand facilities section when on a maintenance route
+  // Auto-expand facilities section when on a maintenance route (includes /inventory?dept=maintenance)
   useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/maintenance')) {
+    if (isMaintenancePath(pathname, pageSearchParams)) {
       setFacilitiesOpen(true)
       setItOpen(false)
     }
-  }, [pathname])
+  }, [pathname, pageSearchParams])
 
-  // Auto-expand IT section when on an IT route
+  // Auto-expand IT section when on an IT route (includes /inventory?dept=it)
   useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/it')) {
+    if (isITPath(pathname, pageSearchParams)) {
       setItOpen(true)
       setFacilitiesOpen(false)
     }
-  }, [pathname])
+  }, [pathname, pageSearchParams])
 
   // Permissions — declared here (before the indicator effect) so the effect
   // can include them in its dependency array without a temporal dead zone error.
@@ -470,15 +477,13 @@ export default function Sidebar({
     }
 
     // Try immediately (useLayoutEffect runs before paint, so no flash).
-    // Fallback timeouts catch edge cases where DOM isn't ready yet
-    // (e.g., async permission checks haven't rendered nav items).
     const immediateSuccess = positionIndicator(alreadyMeasured)
     if (immediateSuccess) {
       _facilityMeasured = true
-      return
     }
 
-    // Fallback: try again after the CSS max-height transition completes
+    // Always set fallback timeouts — even if immediate succeeded with "no active element",
+    // permission-gated links may appear shortly after (async permission load).
     const t1 = setTimeout(() => {
       if (positionIndicator(alreadyMeasured)) _facilityMeasured = true
     }, 80)
@@ -493,7 +498,7 @@ export default function Sidebar({
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [facilitiesOpen, facilityContainerMounted, pathname, canManageMaintenance, canClaimMaintenance, indicatorTop, indicatorHeight, indicatorOpacity])
+  }, [facilitiesOpen, facilityContainerMounted, pathname, pageSearchParams, canManageMaintenance, canClaimMaintenance, indicatorTop, indicatorHeight, indicatorOpacity])
 
   // ── IT indicator positioning (mirrors facilities indicator) ──
   useLayoutEffect(() => {
@@ -574,9 +579,10 @@ export default function Sidebar({
     const immediateSuccess = positionIndicator(alreadyMeasured)
     if (immediateSuccess) {
       _itMeasured = true
-      return
     }
 
+    // Always set fallback timeouts — even if immediate succeeded with "no active element",
+    // permission-gated links may appear shortly after (async permission load).
     const t1 = setTimeout(() => {
       if (positionIndicator(alreadyMeasured)) _itMeasured = true
     }, 80)
@@ -591,7 +597,7 @@ export default function Sidebar({
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [itOpen, itContainerMounted, pathname, canManageIT, canSubmitIT, itIndicatorTop, itIndicatorHeight, itIndicatorOpacity])
+  }, [itOpen, itContainerMounted, pathname, pageSearchParams, canManageIT, canSubmitIT, itIndicatorTop, itIndicatorHeight, itIndicatorOpacity])
 
   // Listen for calendar data from the calendar page
   useEffect(() => {
