@@ -176,7 +176,6 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
                 style={{
                   left: viewIndicatorStyle.left,
                   width: viewIndicatorStyle.width,
-                  opacity: viewIndicatorStyle.opacity,
                 }}
               />
               {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
@@ -238,7 +237,6 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
             style={{
               left: mobileIndicatorStyle.left,
               width: mobileIndicatorStyle.width,
-              opacity: mobileIndicatorStyle.opacity,
             }}
           />
           {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
