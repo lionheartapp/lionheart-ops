@@ -135,7 +135,7 @@ export default function DashboardLayout({
             <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[140px] bg-violet-300/[0.12]" />
             <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[120px] bg-indigo-200/[0.10]" />
           </div>
-          <div className="relative pt-4 sm:pt-6 lg:pt-8 px-4 sm:px-10 flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="relative pt-4 sm:pt-6 lg:pt-8 pb-0 px-4 sm:px-10 flex-1 flex flex-col min-h-0 overflow-hidden">
             {children}
           </div>
         </main>
