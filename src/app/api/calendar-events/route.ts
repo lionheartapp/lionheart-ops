@@ -59,32 +59,24 @@ export async function GET(req: NextRequest) {
 
       const { page, limit, skip } = parsePagination(searchParams, 100, 500)
 
-      const [events, total] = await Promise.all([
-        calendarService.getEventsInRange(
-          calendarIds,
-          new Date(start),
-          new Date(end),
-          {
-            categoryId: searchParams.get('categoryId') || undefined,
-            calendarStatus: searchParams.get('status')?.split(',') as any || undefined,
-            createdById: searchParams.get('createdById') || undefined,
-            skip,
-            take: limit,
-          }
-        ),
-        calendarService.countEventsInRange(
-          calendarIds,
-          new Date(start),
-          new Date(end),
-          {
-            categoryId: searchParams.get('categoryId') || undefined,
-            calendarStatus: searchParams.get('status')?.split(',') as any || undefined,
-            createdById: searchParams.get('createdById') || undefined,
-          }
-        ),
-      ])
+      const eventFilters = {
+        categoryId: searchParams.get('categoryId') || undefined,
+        calendarStatus: searchParams.get('status')?.split(',') as any || undefined,
+        createdById: searchParams.get('createdById') || undefined,
+      }
+      const startDate = new Date(start)
+      const endDate = new Date(end)
 
-      return NextResponse.json(ok(events, paginationMeta(total, { page, limit, skip })), {
+      // Fetch events — skip the separate count query since the client doesn't paginate
+      // and the count adds an extra DB roundtrip
+      const events = await calendarService.getEventsInRange(
+        calendarIds,
+        startDate,
+        endDate,
+        { ...eventFilters, skip, take: limit }
+      )
+
+      return NextResponse.json(ok(events, paginationMeta(events.length, { page, limit, skip })), {
         headers: {
           'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
         },

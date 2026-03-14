@@ -224,11 +224,12 @@ export default function CalendarView() {
     }
   }, [toggleCalendar, updateCalendar, deleteCalendarMutation])
 
-  // Fetch ALL events for the date range (API returns all active calendars when no IDs given)
-  // then filter client-side by visible calendars — avoids waterfall waiting for calendars to load
+  // Pass calendar IDs to the API when available (avoids server-side getCalendars waterfall).
+  // While calendars are still loading, pass [] so the API fetches all active calendars.
   const { start, end } = getDateRange()
+  const allCalendarIds = calendars.length > 0 ? calendars.filter((c) => c.isActive).map((c) => c.id) : []
   const { data: allEvents = [], isLoading: eventsLoading, isFetching: eventsFetching } = useCalendarEvents(
-    [],
+    allCalendarIds,
     start,
     end,
     true
