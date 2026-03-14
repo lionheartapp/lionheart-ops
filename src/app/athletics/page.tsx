@@ -259,25 +259,25 @@ export default function AthleticsPage() {
             <AthleticsTableSkeleton columns={5} rows={5} />
           ) : (
             <>
-              <div className={activeTab === 'overview' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
+              <div className={activeTab === 'overview' ? '' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
                 <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={setActiveTab} />
               </div>
-              <div className={activeTab === 'sports' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'sports'}>
+              <div className={activeTab === 'sports' ? '' : 'hidden'} aria-hidden={activeTab !== 'sports'}>
                 <SportsSection canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'teams' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
+              <div className={activeTab === 'teams' ? '' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
                 <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'schedule' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
+              <div className={activeTab === 'schedule' ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
                 <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'roster' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'roster'}>
+              <div className={activeTab === 'roster' ? '' : 'hidden'} aria-hidden={activeTab !== 'roster'}>
                 <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />
               </div>
-              <div className={activeTab === 'tournaments' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'tournaments'}>
+              <div className={activeTab === 'tournaments' ? '' : 'hidden'} aria-hidden={activeTab !== 'tournaments'}>
                 <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'stats' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
+              <div className={activeTab === 'stats' ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
                 <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
             </>
