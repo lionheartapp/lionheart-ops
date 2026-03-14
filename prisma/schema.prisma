@@ -143,6 +143,7 @@ model Organization {
   // Leo memory module relations
   conversations               Conversation[]
   conversationMessages        ConversationMessage[]
+  maintenanceTicketWatchers   MaintenanceTicketWatcher[]
 
   @@index([onboardingStatus])
 }
@@ -240,6 +241,7 @@ model User {
   conversations             Conversation[]
   assistantProfile          UserAssistantProfile?
   memoryFacts               UserMemoryFact[]
+  maintenanceTicketWatches  MaintenanceTicketWatcher[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -2225,6 +2227,7 @@ model MaintenanceTicket {
   costEntries   MaintenanceCostEntry[]
   complianceRecord ComplianceRecord?      @relation("ComplianceTicket")
   complianceRemediationRecord ComplianceRecord? @relation("RemediationTicket")
+  watchers    MaintenanceTicketWatcher[]
 
   @@unique([organizationId, ticketNumber])
   @@unique([pmScheduleId, pmScheduledDueDate])  // Idempotency: one ticket per PM schedule per due date
@@ -2251,6 +2254,22 @@ model MaintenanceCounter {
   lastTicketNumber Int          @default(0)
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model MaintenanceTicketWatcher {
+  id             String   @id @default(cuid())
+  organizationId String
+  ticketId       String
+  userId         String
+  createdAt      DateTime @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket       MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, userId])
+  @@index([organizationId])
+  @@index([ticketId])
 }
 
 model TechnicianProfile {

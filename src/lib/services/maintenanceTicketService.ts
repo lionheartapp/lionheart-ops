@@ -240,6 +240,15 @@ export async function createMaintenanceTicket(
     },
   })
 
+  // Auto-add submitter as watcher
+  await rawPrisma.maintenanceTicketWatcher.create({
+    data: {
+      organizationId: orgId,
+      ticketId: ticket.id,
+      userId,
+    },
+  }).catch(() => {}) // Ignore if already exists
+
   // Fire-and-forget notifications
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketSubmitted, notifyUrgentTicket }) => {
     notifyTicketSubmitted(ticket as any, orgId).catch((err: unknown) =>
@@ -529,6 +538,13 @@ export async function assignTicket(
     },
   })
 
+  // Auto-add assignee as watcher
+  await rawPrisma.maintenanceTicketWatcher.upsert({
+    where: { ticketId_userId: { ticketId, userId: assigneeId } },
+    create: { organizationId: orgId, ticketId, userId: assigneeId },
+    update: {},
+  }).catch(() => {})
+
   // Fire-and-forget
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketAssigned }) => {
     notifyTicketAssigned(updated as any, assigneeId, orgId).catch((err: unknown) =>
@@ -559,6 +575,11 @@ export async function getTicketDetail(ticketId: string, userId: string) {
           assignedTo: { select: { id: true, firstName: true, lastName: true } },
         },
         orderBy: { createdAt: 'asc' },
+      },
+      watchers: {
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
       },
     },
   })

@@ -44,6 +44,7 @@ const orgScopedModels = new Set([
 	'SportStatConfig',
 	// Maintenance module
 	'MaintenanceTicket',
+	'MaintenanceTicketWatcher',
 	'TechnicianProfile',
 	'MaintenanceTicketActivity',
 	'MaintenanceLaborEntry',
