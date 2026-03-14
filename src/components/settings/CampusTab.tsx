@@ -789,20 +789,24 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     <div className="space-y-8">
 
       {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-gray-900">
-            <Building2 className="w-6 h-6 text-primary-600" />
-            Campus
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">Manage buildings, outdoor spaces, and rooms</p>
+      <div className="ui-glass p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Campus</h3>
+              <p className="text-xs text-gray-500">Manage buildings, areas, and rooms</p>
+            </div>
+          </div>
+          <button
+            onClick={openAddCampusModal}
+            className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition"
+          >
+            <Plus className="w-4 h-4" /> Add Campus
+          </button>
         </div>
-        <button
-          onClick={openAddCampusModal}
-          className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition"
-        >
-          <Plus className="w-4 h-4" /> Add Campus
-        </button>
       </div>
 
       {error && (

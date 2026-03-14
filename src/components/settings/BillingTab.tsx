@@ -357,8 +357,16 @@ export default function BillingTab() {
     <div className="space-y-8">
 
       {/* ── Current Plan ─────────────────────────────────────────────────────── */}
-      <section>
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Current Plan</h2>
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Current Plan</h3>
+            <p className="text-xs text-gray-500">Your active subscription details</p>
+          </div>
+        </div>
 
         {subscription ? (
           <div className="bg-gradient-to-br from-primary-50/80 to-primary-100/80 backdrop-blur-sm border border-primary-200/30 rounded-2xl p-6">
@@ -412,8 +420,16 @@ export default function BillingTab() {
 
       {/* ── Plan Comparison ───────────────────────────────────────────────────── */}
       {plans.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Available Plans</h2>
+        <section className="ui-glass p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+              <Star className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Available Plans</h3>
+              <p className="text-xs text-gray-500">Compare and switch between plans</p>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {plans.map((plan) => {
               const isCurrent = plan.id === currentPlanId
@@ -495,17 +511,20 @@ export default function BillingTab() {
       )}
 
       {/* ── Payment Method ────────────────────────────────────────────────────── */}
-      <section>
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Payment Method</h2>
-        <div className="ui-glass p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Manage your payment method securely</p>
-              <p className="text-sm text-gray-500">Update card details, billing address, and more via Stripe.</p>
-            </div>
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-gray-500 flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Payment Method</h3>
+            <p className="text-xs text-gray-500">Manage your billing details</p>
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-gray-900">Manage your payment method securely</p>
+            <p className="text-sm text-gray-500">Update card details, billing address, and more via Stripe.</p>
           </div>
           <div className="flex flex-col items-end gap-2 shrink-0">
             <button
@@ -528,8 +547,16 @@ export default function BillingTab() {
       </section>
 
       {/* ── Invoice History ───────────────────────────────────────────────────── */}
-      <section>
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Invoice History</h2>
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+            <Download className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Invoice History</h3>
+            <p className="text-xs text-gray-500">View and download past invoices</p>
+          </div>
+        </div>
 
         {invoicesLoading ? (
           <div className="ui-glass-table">

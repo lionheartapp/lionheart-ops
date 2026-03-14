@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { CalendarDays } from 'lucide-react'
 import { IllustrationCalendar } from '@/components/illustrations'
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -222,10 +223,16 @@ export default function AcademicCalendarTab() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">Academic Calendar</h2>
-        <p className="text-sm text-gray-500 mt-1">Manage academic years, bell schedules, and special days</p>
-      </div>
+      <div className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+            <CalendarDays className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Academic Calendar</h3>
+            <p className="text-xs text-gray-500">Manage academic years, bell schedules, and special days</p>
+          </div>
+        </div>
 
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
@@ -496,6 +503,7 @@ export default function AcademicCalendarTab() {
           )}
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -225,11 +225,16 @@ export default function AddOnsTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold text-gray-900">Add-ons</h2>
-      <p className="mt-1 text-sm text-gray-500">
-        Enable optional modules to extend your workspace.
-      </p>
-      <div className="h-px bg-gray-200 mt-4 mb-6" />
+      <div className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+            <Settings2 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Add-ons</h3>
+            <p className="text-xs text-gray-500">Enable optional modules to extend your workspace</p>
+          </div>
+        </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -332,6 +337,8 @@ export default function AddOnsTab() {
           })}
         </div>
       )}
+
+      </div>
 
       {mutation.isError && (
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

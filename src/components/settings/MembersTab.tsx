@@ -530,15 +530,18 @@ const MembersTab = (_props: MembersTabProps) => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-        <div>
-          <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-gray-900">
-            <UserCog className="w-6 h-6 text-primary-600" />
-            Members
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">Manage your organization&apos;s users and their roles</p>
-        </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
+      <div className="ui-glass p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+              <UserCog className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Members</h3>
+              <p className="text-xs text-gray-500">Manage organization members</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
           <button
             onClick={() => {
               const params = new URLSearchParams()
@@ -604,6 +607,7 @@ const MembersTab = (_props: MembersTabProps) => {
             </span>
           </button>
         ))}
+      </div>
       </div>
 
       {/* Table */}

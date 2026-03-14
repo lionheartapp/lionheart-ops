@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { ShieldCheck } from 'lucide-react'
 
 interface ApprovalConfig {
   id: string
@@ -98,21 +99,27 @@ export default function ApprovalConfigTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Approval Channels</h2>
-          <p className="text-sm text-gray-500 mt-1">Configure how event approvals are routed</p>
+      <div className="ui-glass p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Approval Channels</h3>
+              <p className="text-xs text-gray-500">Configure how event approvals are routed</p>
+            </div>
+          </div>
+          {hasChanges && (
+            <button
+              onClick={handleSave}
+              disabled={saveMutation.isPending}
+              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 disabled:opacity-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+            >
+              {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </button>
+          )}
         </div>
-        {hasChanges && (
-          <button
-            onClick={handleSave}
-            disabled={saveMutation.isPending}
-            className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 disabled:opacity-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-          >
-            {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
-          </button>
-        )}
-      </div>
 
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />)}</div>
@@ -185,6 +192,7 @@ export default function ApprovalConfigTab() {
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }
