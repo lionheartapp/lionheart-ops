@@ -112,7 +112,7 @@ export default function KanbanColumn({
     <div
       className={[
         'flex flex-col min-w-[280px] max-w-[320px] flex-shrink-0 rounded-xl transition-all duration-150',
-        'bg-[#f7f7f6]',
+        'bg-slate-100/80',
         highlightValid ? 'bg-primary-50/60 ring-1 ring-primary-300' : '',
         highlightInvalid ? 'bg-red-50/40 ring-1 ring-red-300 opacity-70' : '',
         isDragInProgress && !isOver && isValidTarget
@@ -126,10 +126,10 @@ export default function KanbanColumn({
       {/* Column header — Linear style: dot · label · count */}
       <div className="flex items-center gap-2 px-3 py-2.5">
         <StatusDot color={config.color} dot={config.dot} />
-        <span className="text-[13px] font-medium text-slate-700">
+        <span className="text-[13px] font-semibold text-slate-800">
           {config.label}
         </span>
-        <span className="text-xs text-slate-400 tabular-nums">{tickets.length}</span>
+        <span className="text-xs font-medium text-slate-400 tabular-nums">{tickets.length}</span>
       </div>
 
       {/* Card list */}

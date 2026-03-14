@@ -124,8 +124,8 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
       {...listeners}
       onClick={handleClick}
       className={[
-        'bg-white border border-slate-200/80 rounded-lg p-3 cursor-grab active:cursor-grabbing select-none',
-        'hover:border-slate-300 transition-colors duration-100',
+        'bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-grab active:cursor-grabbing select-none',
+        'hover:border-slate-300 hover:shadow-md transition-all duration-100',
         isDragging && !isOverlay ? 'opacity-30 scale-[0.98]' : '',
         isPending ? 'ring-2 ring-amber-300 ring-offset-1' : '',
         isOverlay ? 'cursor-grabbing' : '',
@@ -135,7 +135,7 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
     >
       {/* Row 1: ticket ID + assignee avatar */}
       <div className="flex items-center justify-between mb-1">
-        <span className="font-mono text-xs text-slate-400 leading-none">
+        <span className="font-mono text-xs text-slate-500 leading-none">
           {ticket.ticketNumber}
         </span>
         {ticket.assignedTo ? (
@@ -156,7 +156,7 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
       {/* Row 3: metadata badges */}
       <div className="flex items-center gap-1.5 flex-wrap">
         {/* Category with colored dot */}
-        <span className="inline-flex items-center gap-1.5 px-2 py-[3px] rounded border border-slate-200 text-[11px] text-slate-600 font-medium leading-none">
+        <span className="inline-flex items-center gap-1.5 px-2 py-[3px] rounded bg-slate-50 border border-slate-200 text-[11px] text-slate-600 font-medium leading-none">
           <span
             className="w-[7px] h-[7px] rounded-full flex-shrink-0"
             style={{ backgroundColor: CATEGORY_DOT[ticket.category] ?? '#9CA3AF' }}
@@ -165,7 +165,7 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
         </span>
 
         {/* Age badge with clock icon */}
-        <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded border border-slate-200 text-[11px] text-slate-500 leading-none">
+        <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-none">
           <svg
             className="w-3 h-3 flex-shrink-0"
             viewBox="0 0 16 16"
@@ -181,7 +181,7 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
 
         {/* Scheduled date */}
         {ticket.scheduledDate && (
-          <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded border border-slate-200 text-[11px] text-slate-500 leading-none">
+          <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-none">
             <Calendar className="w-3 h-3 flex-shrink-0" />
             {formatShortDate(ticket.scheduledDate)}
           </span>
@@ -189,7 +189,7 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
 
         {/* Photo indicator */}
         {hasPhotos && (
-          <span className="inline-flex items-center px-1.5 py-[3px] rounded border border-slate-200 text-slate-400">
+          <span className="inline-flex items-center px-1.5 py-[3px] rounded bg-slate-50 border border-slate-200 text-slate-400">
             <Camera className="w-3 h-3" />
           </span>
         )}
