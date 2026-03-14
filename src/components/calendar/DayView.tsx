@@ -56,15 +56,27 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
       sdDate.getDate() === currentDate.getDate()
   })
 
+  // Filter events to only those that overlap with currentDate
+  // (guards against stale placeholder data from keepPreviousData when switching views)
+  const dayEvents = useMemo(() => {
+    const dayStartMs = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()).getTime()
+    const dayEndMs = dayStartMs + 86400000 // +24h
+    return events.filter((e) => {
+      const s = new Date(e.startTime).getTime()
+      const eEnd = new Date(e.endTime).getTime()
+      return s < dayEndMs && eEnd > dayStartMs
+    })
+  }, [events, currentDate])
+
   const { allDayEvents, timedEvents } = useMemo(() => {
     const allDay: CalendarEventData[] = []
     const timed: CalendarEventData[] = []
-    for (const event of events) {
+    for (const event of dayEvents) {
       if (event.isAllDay) allDay.push(event)
       else timed.push(event)
     }
     return { allDayEvents: allDay, timedEvents: timed }
-  }, [events])
+  }, [dayEvents])
 
   useEffect(() => {
     if (scrollRef.current) {
