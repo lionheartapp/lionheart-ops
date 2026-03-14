@@ -92,9 +92,10 @@ export default function KanbanBoard({
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
-  // Board view tab state — default to team-board for managers, my-board for technicians
-  // Only show My Board for technicians (canClaim but not managers) — not for admins who happen to have wildcard perms
-  const showMyBoard = canClaim && !canManage
+  // My Board should only show for users actually on the maintenance team —
+  // super-admins get canClaim via wildcard but aren't maintenance techs
+  const isOnMaintenanceTeam = technicians.some((t) => t.id === currentUserId)
+  const showMyBoard = isOnMaintenanceTeam
   const [boardView, setBoardView] = useState<BoardViewTab>(showMyBoard ? 'my-board' : 'team-board')
 
   // Animated tab indicator
@@ -317,8 +318,8 @@ export default function KanbanBoard({
 
   return (
     <div className="space-y-3">
-      {/* View tabs — show for maintenance team members (technicians see both, managers see both) */}
-      {(showMyBoard || (canManage && canClaim)) && <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200">
+      {/* View tabs — only for actual maintenance team members */}
+      {showMyBoard && <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200">
         {(
           [
             { key: 'team-board' as BoardViewTab, label: 'Team Board', icon: Users, count: teamTicketCount },
