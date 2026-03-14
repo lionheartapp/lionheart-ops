@@ -47,7 +47,7 @@ function getActionBadgeClass(action: string): string {
   if (action.startsWith('role.') || action.startsWith('team.')) {
     return 'bg-purple-100 text-purple-700'
   }
-  return 'bg-gray-100 text-gray-700'
+  return 'bg-slate-100 text-slate-700'
 }
 
 // ─── Relative time helper ─────────────────────────────────────────────────
@@ -86,8 +86,8 @@ function ChangesDisplay({ changes }: { changes: unknown }) {
     <div className="space-y-1.5">
       {entries.map(([key, value]) => (
         <div key={key} className="flex gap-2 text-xs">
-          <span className="font-medium text-gray-500 w-28 flex-shrink-0">{key}:</span>
-          <span className="text-gray-700 break-all">{JSON.stringify(value)}</span>
+          <span className="font-medium text-slate-500 w-28 flex-shrink-0">{key}:</span>
+          <span className="text-slate-700 break-all">{JSON.stringify(value)}</span>
         </div>
       ))}
     </div>
@@ -102,19 +102,19 @@ function AuditRow({ log }: { log: AuditLog }) {
   return (
     <>
       <tr
-        className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+        className="hover:bg-slate-50 cursor-pointer transition-colors duration-150"
         onClick={() => setExpanded((v) => !v)}
       >
         <td className="px-4 py-3 text-left whitespace-nowrap">
           <span
-            className="text-xs text-gray-700"
+            className="text-xs text-slate-700"
             title={absoluteTime(log.createdAt)}
           >
             {relativeTime(log.createdAt)}
           </span>
         </td>
         <td className="px-4 py-3 text-left">
-          <span className="text-xs text-gray-800">{log.userEmail ?? 'System'}</span>
+          <span className="text-xs text-slate-800">{log.userEmail ?? 'System'}</span>
         </td>
         <td className="px-4 py-3 text-left">
           <span
@@ -124,7 +124,7 @@ function AuditRow({ log }: { log: AuditLog }) {
           </span>
         </td>
         <td className="px-4 py-3 text-left">
-          <span className="text-xs text-gray-600">
+          <span className="text-xs text-slate-600">
             {log.resourceType
               ? `${log.resourceType}${log.resourceLabel ? ` — ${log.resourceLabel}` : ''}`
               : '—'}
@@ -132,8 +132,8 @@ function AuditRow({ log }: { log: AuditLog }) {
         </td>
         <td className="px-4 py-3 text-right">
           {expanded
-            ? <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-auto" />
-            : <ChevronRight className="w-3.5 h-3.5 text-gray-400 ml-auto" />
+            ? <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-auto" />
+            : <ChevronRight className="w-3.5 h-3.5 text-slate-400 ml-auto" />
           }
         </td>
       </tr>
@@ -150,29 +150,29 @@ function AuditRow({ log }: { log: AuditLog }) {
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="overflow-hidden"
               >
-                <div className="px-4 py-4 bg-gray-50 border-t border-gray-100 space-y-3">
+                <div className="px-4 py-4 bg-slate-50 border-t border-slate-100 space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div>
-                      <span className="font-medium text-gray-500">Full Timestamp</span>
-                      <p className="text-gray-700 mt-0.5">{absoluteTime(log.createdAt)}</p>
+                      <span className="font-medium text-slate-500">Full Timestamp</span>
+                      <p className="text-slate-700 mt-0.5">{absoluteTime(log.createdAt)}</p>
                     </div>
                     {log.resourceId && (
                       <div>
-                        <span className="font-medium text-gray-500">Resource ID</span>
-                        <p className="text-gray-700 mt-0.5 font-mono text-[11px] break-all">{log.resourceId}</p>
+                        <span className="font-medium text-slate-500">Resource ID</span>
+                        <p className="text-slate-700 mt-0.5 font-mono text-[11px] break-all">{log.resourceId}</p>
                       </div>
                     )}
                     {log.ipAddress && (
                       <div>
-                        <span className="font-medium text-gray-500">IP Address</span>
-                        <p className="text-gray-700 mt-0.5">{log.ipAddress}</p>
+                        <span className="font-medium text-slate-500">IP Address</span>
+                        <p className="text-slate-700 mt-0.5">{log.ipAddress}</p>
                       </div>
                     )}
                   </div>
                   {log.changes != null && typeof log.changes === 'object' && !Array.isArray(log.changes) && Object.keys(log.changes as Record<string, unknown>).length > 0 && (
                     <div>
-                      <span className="text-xs font-medium text-gray-500 block mb-1.5">Changes</span>
-                      <div className="bg-white rounded-lg border border-gray-200 p-3">
+                      <span className="text-xs font-medium text-slate-500 block mb-1.5">Changes</span>
+                      <div className="bg-white rounded-lg border border-slate-200 p-3">
                         <ChangesDisplay changes={log.changes} />
                       </div>
                     </div>
@@ -315,8 +315,8 @@ export default function AuditLogTab() {
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Activity Log</h3>
-            <p className="text-xs text-gray-500">Track actions performed by organization members</p>
+            <h3 className="text-base font-semibold text-slate-900">Activity Log</h3>
+            <p className="text-xs text-slate-500">Track actions performed by organization members</p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -340,28 +340,28 @@ export default function AuditLogTab() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">From date</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">From date</label>
             <input
               type="date"
               value={fromFilter}
               onChange={(e) => setFromFilter(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">To date</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">To date</label>
             <input
               type="date"
               value={toFilter}
               onChange={(e) => setToFilter(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
             />
           </div>
         </div>
         <div className="flex justify-end mt-3">
           <button
             onClick={handleApplyFilters}
-            className="px-5 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors duration-200"
+            className="px-5 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors duration-200"
           >
             Apply Filters
           </button>
@@ -381,10 +381,10 @@ export default function AuditLogTab() {
           <div className="animate-pulse space-y-px">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex gap-4 px-4 py-3.5">
-                <div className="h-3 bg-gray-100 rounded w-20 flex-shrink-0" />
-                <div className="h-3 bg-gray-100 rounded w-32" />
-                <div className="h-3 bg-gray-100 rounded w-24" />
-                <div className="h-3 bg-gray-100 rounded w-28" />
+                <div className="h-3 bg-slate-100 rounded w-20 flex-shrink-0" />
+                <div className="h-3 bg-slate-100 rounded w-32" />
+                <div className="h-3 bg-slate-100 rounded w-24" />
+                <div className="h-3 bg-slate-100 rounded w-28" />
               </div>
             ))}
           </div>
@@ -393,23 +393,23 @@ export default function AuditLogTab() {
             <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mb-3">
               <Shield className="w-7 h-7 text-primary-400" />
             </div>
-            <p className="text-sm font-medium text-gray-600 mb-1">No activity recorded yet</p>
-            <p className="text-xs text-gray-400 max-w-xs">
+            <p className="text-sm font-medium text-slate-600 mb-1">No activity recorded yet</p>
+            <p className="text-xs text-slate-400 max-w-xs">
               Actions performed by your team will appear here once they occur.
             </p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Timestamp</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Actor</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Target</th>
+              <tr className="border-b border-slate-100">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Timestamp</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Actor</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Target</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-50">
               {logs.map((log) => (
                 <AuditRow key={log.id} log={log} />
               ))}
@@ -421,24 +421,24 @@ export default function AuditLogTab() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4 px-1">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             {total} total {total === 1 ? 'entry' : 'entries'}
           </p>
           <div className="flex items-center gap-3">
             <button
               onClick={handlePrev}
               disabled={page <= 1}
-              className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200"
+              className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200"
             >
               Previous
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-slate-600">
               Page {page} of {totalPages}
             </span>
             <button
               onClick={handleNext}
               disabled={page >= totalPages}
-              className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200"
+              className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200"
             >
               Next
             </button>

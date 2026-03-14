@@ -126,7 +126,7 @@ function CampusConfigModal({
         {/* Campus list */}
         <div className="px-6 py-4">
           {activeCampuses.length === 0 ? (
-            <p className="text-sm text-gray-400 py-4 text-center">
+            <p className="text-sm text-slate-400 py-4 text-center">
               No campuses configured. Add campuses in Campus settings first.
             </p>
           ) : (
@@ -144,28 +144,28 @@ function CampusConfigModal({
                     className={`w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-200 disabled:opacity-60 ${
                       campusEnabled
                         ? 'bg-amber-50 border border-amber-200 hover:bg-amber-100/80'
-                        : 'bg-gray-50 border border-transparent hover:bg-gray-100'
+                        : 'bg-slate-50 border border-transparent hover:bg-slate-100'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        campusEnabled ? 'bg-amber-100' : 'bg-gray-200/70'
+                        campusEnabled ? 'bg-amber-100' : 'bg-slate-200/70'
                       }`}>
-                        <Building2 className={`w-4 h-4 ${campusEnabled ? 'text-amber-600' : 'text-gray-400'}`} />
+                        <Building2 className={`w-4 h-4 ${campusEnabled ? 'text-amber-600' : 'text-slate-400'}`} />
                       </div>
-                      <span className={`text-sm font-medium ${campusEnabled ? 'text-gray-900' : 'text-gray-600'}`}>
+                      <span className={`text-sm font-medium ${campusEnabled ? 'text-slate-900' : 'text-slate-600'}`}>
                         {campus.name}
                       </span>
                     </div>
                     <div className="flex-shrink-0">
                       {isToggling ? (
-                        <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                        <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
                       ) : campusEnabled ? (
                         <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
                           <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full border-2 border-gray-300" />
+                        <div className="w-6 h-6 rounded-full border-2 border-slate-300" />
                       )}
                     </div>
                   </button>
@@ -176,8 +176,8 @@ function CampusConfigModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-          <p className="text-xs text-gray-400 text-center">
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+          <p className="text-xs text-slate-400 text-center">
             {enabledCampusIds.length} of {activeCampuses.length} campus{activeCampuses.length !== 1 ? 'es' : ''} enabled
           </p>
         </div>
@@ -231,20 +231,20 @@ export default function AddOnsTab() {
             <Settings2 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Add-ons</h3>
-            <p className="text-xs text-gray-500">Enable optional modules to extend your workspace</p>
+            <h3 className="text-base font-semibold text-slate-900">Add-ons</h3>
+            <p className="text-xs text-slate-500">Enable optional modules to extend your workspace</p>
           </div>
         </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse rounded-2xl border border-gray-200 p-5">
-              <div className="w-12 h-12 rounded-xl bg-gray-200 mb-4" />
-              <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
-              <div className="h-3 w-full bg-gray-100 rounded mb-1" />
-              <div className="h-3 w-2/3 bg-gray-100 rounded mb-6" />
-              <div className="h-9 w-full bg-gray-100 rounded-lg" />
+            <div key={i} className="animate-pulse rounded-2xl border border-slate-200 p-5">
+              <div className="w-12 h-12 rounded-xl bg-slate-200 mb-4" />
+              <div className="h-4 w-24 bg-slate-200 rounded mb-2" />
+              <div className="h-3 w-full bg-slate-100 rounded mb-1" />
+              <div className="h-3 w-2/3 bg-slate-100 rounded mb-6" />
+              <div className="h-9 w-full bg-slate-100 rounded-lg" />
             </div>
           ))}
         </div>
@@ -264,8 +264,8 @@ export default function AddOnsTab() {
                 key={mod.id}
                 className={`group rounded-2xl border transition-all duration-200 ${
                   isAdded
-                    ? 'border-gray-200 bg-white shadow-sm hover:shadow-md'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                    ? 'border-slate-200 bg-white shadow-sm hover:shadow-md'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
                 }`}
               >
                 <div className="p-5">
@@ -278,7 +278,7 @@ export default function AddOnsTab() {
 
                   {/* Name + badge */}
                   <div className="flex items-center gap-2 mb-1.5">
-                    <h3 className="text-sm font-semibold text-gray-900">{mod.name}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900">{mod.name}</h3>
                     {isAdded && (
                       <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                         Added
@@ -287,7 +287,7 @@ export default function AddOnsTab() {
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-5">
+                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-5">
                     {mod.description}
                   </p>
 
@@ -296,7 +296,7 @@ export default function AddOnsTab() {
                     isAdded ? (
                       <button
                         onClick={() => setConfigModuleId(mod.id)}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
                       >
                         <Settings2 className="w-4 h-4" />
                         Configuration
@@ -304,7 +304,7 @@ export default function AddOnsTab() {
                     ) : (
                       <button
                         onClick={() => setConfigModuleId(mod.id)}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
                       >
                         <Plus className="w-4 h-4" />
                         Add to workspace
@@ -315,7 +315,7 @@ export default function AddOnsTab() {
                     isOrgEnabled ? (
                       <a
                         href="/settings?tab=members"
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
                       >
                         <Users className="w-4 h-4" />
                         Configure Roles
@@ -324,7 +324,7 @@ export default function AddOnsTab() {
                       <button
                         onClick={() => handleToggle(mod.id, false)}
                         disabled={togglingKey === mod.id}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors disabled:opacity-50"
                       >
                         <Plus className="w-4 h-4" />
                         Add to workspace
@@ -354,27 +354,27 @@ export default function AddOnsTab() {
               <Info className="w-4 h-4 text-blue-600" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-gray-900">IT Help Desk — Next Steps</h4>
-              <p className="text-xs text-gray-500 mt-0.5">Roles have been automatically updated with IT permissions.</p>
+              <h4 className="text-sm font-semibold text-slate-900">IT Help Desk — Next Steps</h4>
+              <p className="text-xs text-slate-500 mt-0.5">Roles have been automatically updated with IT permissions.</p>
             </div>
           </div>
           <div className="space-y-2 ml-11">
             <div className="flex items-start gap-2">
               <Shield className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-gray-700">Assign the IT Coordinator role</span> to your IT staff via Settings &gt; Members
+              <p className="text-sm text-slate-600">
+                <span className="font-medium text-slate-700">Assign the IT Coordinator role</span> to your IT staff via Settings &gt; Members
               </p>
             </div>
             <div className="flex items-start gap-2">
               <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-gray-700">Members and teachers</span> can already submit IT tickets
+              <p className="text-sm text-slate-600">
+                <span className="font-medium text-slate-700">Members and teachers</span> can already submit IT tickets
               </p>
             </div>
             <div className="flex items-start gap-2">
               <Users className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-gray-700">Secretary / Front Office role</span> can submit tickets and generate magic links for substitutes
+              <p className="text-sm text-slate-600">
+                <span className="font-medium text-slate-700">Secretary / Front Office role</span> can submit tickets and generate magic links for substitutes
               </p>
             </div>
           </div>

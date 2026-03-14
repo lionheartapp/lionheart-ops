@@ -86,11 +86,11 @@ function getStatusConfig(status: Subscription['status']) {
     case 'PAST_DUE':
       return { label: 'Past Due', className: 'bg-red-100 text-red-700', icon: AlertCircle }
     case 'CANCELED':
-      return { label: 'Canceled', className: 'bg-gray-100 text-gray-700', icon: XCircle }
+      return { label: 'Canceled', className: 'bg-slate-100 text-slate-700', icon: XCircle }
     case 'PAUSED':
       return { label: 'Paused', className: 'bg-yellow-100 text-yellow-700', icon: Clock }
     default:
-      return { label: status, className: 'bg-gray-100 text-gray-700', icon: Clock }
+      return { label: status, className: 'bg-slate-100 text-slate-700', icon: Clock }
   }
 }
 
@@ -103,9 +103,9 @@ function getInvoiceStatusConfig(status: string) {
     case 'PENDING':
       return { label: 'Pending', className: 'bg-yellow-100 text-yellow-700' }
     case 'REFUNDED':
-      return { label: 'Refunded', className: 'bg-gray-100 text-gray-700' }
+      return { label: 'Refunded', className: 'bg-slate-100 text-slate-700' }
     default:
-      return { label: status, className: 'bg-gray-100 text-gray-700' }
+      return { label: status, className: 'bg-slate-100 text-slate-700' }
   }
 }
 
@@ -131,22 +131,22 @@ function BillingTabSkeleton() {
       <div className="bg-gradient-to-br from-primary-50/80 to-primary-100/80 border border-primary-200/30 rounded-2xl p-6 h-36" />
       {/* Plan cards skeleton */}
       <div>
-        <div className="h-6 w-40 bg-gray-200 rounded mb-4" />
+        <div className="h-6 w-40 bg-slate-200 rounded mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-2xl p-6 h-52" />
+            <div key={i} className="bg-white border border-slate-200 rounded-2xl p-6 h-52" />
           ))}
         </div>
       </div>
       {/* Invoice table skeleton */}
       <div>
-        <div className="h-6 w-40 bg-gray-200 rounded mb-4" />
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <div className="h-6 w-40 bg-slate-200 rounded mb-4" />
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 border-b border-gray-100 px-6 flex items-center gap-4">
-              <div className="h-4 w-24 bg-gray-200 rounded" />
-              <div className="h-4 flex-1 bg-gray-100 rounded" />
-              <div className="h-4 w-16 bg-gray-200 rounded" />
+            <div key={i} className="h-14 border-b border-slate-100 px-6 flex items-center gap-4">
+              <div className="h-4 w-24 bg-slate-200 rounded" />
+              <div className="h-4 flex-1 bg-slate-100 rounded" />
+              <div className="h-4 w-16 bg-slate-200 rounded" />
             </div>
           ))}
         </div>
@@ -334,11 +334,11 @@ export default function BillingTab() {
   if (!stripeConfigured) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-          <CreditCard className="w-8 h-8 text-gray-400" />
+        <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+          <CreditCard className="w-8 h-8 text-slate-400" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Billing Not Configured</h3>
-        <p className="text-gray-500 max-w-sm">
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Billing Not Configured</h3>
+        <p className="text-slate-500 max-w-sm">
           Billing is not yet configured for this organization. Contact your administrator.
         </p>
       </div>
@@ -363,8 +363,8 @@ export default function BillingTab() {
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Current Plan</h3>
-            <p className="text-xs text-gray-500">Your active subscription details</p>
+            <h3 className="text-base font-semibold text-slate-900">Current Plan</h3>
+            <p className="text-xs text-slate-500">Your active subscription details</p>
           </div>
         </div>
 
@@ -373,7 +373,7 @@ export default function BillingTab() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-bold text-gray-900">{subscription.plan.name}</h3>
+                  <h3 className="text-xl font-bold text-slate-900">{subscription.plan.name}</h3>
                   {statusConfig && StatusIcon && (
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.className}`}>
                       <StatusIcon className="w-3.5 h-3.5" />
@@ -382,7 +382,7 @@ export default function BillingTab() {
                   )}
                 </div>
 
-                <div className="text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-slate-900">
                   {subscription.plan.monthlyPrice > 0
                     ? `${formatCents(subscription.plan.monthlyPrice)}/mo`
                     : 'Free'}
@@ -396,23 +396,23 @@ export default function BillingTab() {
                 )}
 
                 {subscription.currentPeriodEnd && subscription.status !== 'CANCELED' && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-600">
                     {subscription.cancelAtPeriodEnd ? 'Cancels' : 'Renews'} on{' '}
                     <span className="font-medium">{formatDate(subscription.currentPeriodEnd)}</span>
                   </p>
                 )}
               </div>
 
-              <div className="text-sm text-gray-500 shrink-0">
-                Billing cycle: <span className="font-medium text-gray-700">Monthly</span>
+              <div className="text-sm text-slate-500 shrink-0">
+                Billing cycle: <span className="font-medium text-slate-700">Monthly</span>
               </div>
             </div>
           </div>
         ) : (
           <div className="ui-glass p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="font-semibold text-gray-900">No active plan</h3>
-              <p className="text-sm text-gray-500 mt-1">Select a plan below to get started.</p>
+              <h3 className="font-semibold text-slate-900">No active plan</h3>
+              <p className="text-sm text-slate-500 mt-1">Select a plan below to get started.</p>
             </div>
           </div>
         )}
@@ -426,8 +426,8 @@ export default function BillingTab() {
               <Star className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900">Available Plans</h3>
-              <p className="text-xs text-gray-500">Compare and switch between plans</p>
+              <h3 className="text-base font-semibold text-slate-900">Available Plans</h3>
+              <p className="text-xs text-slate-500">Compare and switch between plans</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -443,7 +443,7 @@ export default function BillingTab() {
                   className={`relative bg-white rounded-2xl p-6 flex flex-col gap-4 transition-all duration-200 ${
                     isCurrent
                       ? 'border-2 border-primary-500 shadow-md'
-                      : 'border border-gray-200 hover:shadow-md hover:border-gray-300'
+                      : 'border border-slate-200 hover:shadow-md hover:border-slate-300'
                   }`}
                 >
                   {isCurrent && (
@@ -456,17 +456,17 @@ export default function BillingTab() {
                   )}
 
                   <div>
-                    <h3 className="font-bold text-gray-900 text-lg">{plan.name}</h3>
+                    <h3 className="font-bold text-slate-900 text-lg">{plan.name}</h3>
                     <div className="mt-1">
-                      <span className="text-2xl font-bold text-gray-900">
+                      <span className="text-2xl font-bold text-slate-900">
                         {plan.monthlyPrice > 0 ? formatCents(plan.monthlyPrice) : 'Free'}
                       </span>
                       {plan.monthlyPrice > 0 && (
-                        <span className="text-sm text-gray-500">/mo</span>
+                        <span className="text-sm text-slate-500">/mo</span>
                       )}
                     </div>
                     {plan.annualPrice && (
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-slate-400 mt-0.5">
                         {formatCents(plan.annualPrice)}/yr (save {Math.round((1 - plan.annualPrice / (plan.monthlyPrice * 12)) * 100)}%)
                       </p>
                     )}
@@ -475,7 +475,7 @@ export default function BillingTab() {
                   {featureList.length > 0 && (
                     <ul className="flex-1 space-y-1.5">
                       {featureList.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                        <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
                           <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                           {feature}
                         </li>
@@ -493,10 +493,10 @@ export default function BillingTab() {
                         onClick={() => handlePlanSelect(plan)}
                         className={`w-full py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                           isUpgrade
-                            ? 'bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.97]'
+                            ? 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97]'
                             : isDowngrade
-                            ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-[0.97]'
-                            : 'bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.97]'
+                            ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-[0.97]'
+                            : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97]'
                         }`}
                       >
                         {isUpgrade ? 'Upgrade' : isDowngrade ? 'Downgrade' : 'Select Plan'}
@@ -513,24 +513,24 @@ export default function BillingTab() {
       {/* ── Payment Method ────────────────────────────────────────────────────── */}
       <section className="ui-glass p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-gray-500 flex items-center justify-center">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-500 flex items-center justify-center">
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Payment Method</h3>
-            <p className="text-xs text-gray-500">Manage your billing details</p>
+            <h3 className="text-base font-semibold text-slate-900">Payment Method</h3>
+            <p className="text-xs text-slate-500">Manage your billing details</p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="font-medium text-gray-900">Manage your payment method securely</p>
-            <p className="text-sm text-gray-500">Update card details, billing address, and more via Stripe.</p>
+            <p className="font-medium text-slate-900">Manage your payment method securely</p>
+            <p className="text-sm text-slate-500">Update card details, billing address, and more via Stripe.</p>
           </div>
           <div className="flex flex-col items-end gap-2 shrink-0">
             <button
               onClick={handleManagePayment}
               disabled={portalLoading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             >
               {portalLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -553,8 +553,8 @@ export default function BillingTab() {
             <Download className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Invoice History</h3>
-            <p className="text-xs text-gray-500">View and download past invoices</p>
+            <h3 className="text-base font-semibold text-slate-900">Invoice History</h3>
+            <p className="text-xs text-slate-500">View and download past invoices</p>
           </div>
         </div>
 
@@ -562,54 +562,54 @@ export default function BillingTab() {
           <div className="ui-glass-table">
             <div className="animate-pulse">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-14 border-b border-gray-100 px-6 flex items-center gap-4">
-                  <div className="h-4 w-24 bg-gray-200 rounded" />
-                  <div className="h-4 flex-1 bg-gray-100 rounded" />
-                  <div className="h-4 w-16 bg-gray-200 rounded" />
+                <div key={i} className="h-14 border-b border-slate-100 px-6 flex items-center gap-4">
+                  <div className="h-4 w-24 bg-slate-200 rounded" />
+                  <div className="h-4 flex-1 bg-slate-100 rounded" />
+                  <div className="h-4 w-16 bg-slate-200 rounded" />
                 </div>
               ))}
             </div>
           </div>
         ) : invoices.length === 0 ? (
           <div className="ui-glass p-12 text-center">
-            <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-              <CreditCard className="w-6 h-6 text-gray-400" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+              <CreditCard className="w-6 h-6 text-slate-400" />
             </div>
-            <p className="text-gray-500 font-medium">No invoices yet</p>
-            <p className="text-gray-400 text-sm mt-1">Your billing history will appear here.</p>
+            <p className="text-slate-500 font-medium">No invoices yet</p>
+            <p className="text-slate-400 text-sm mt-1">Your billing history will appear here.</p>
           </div>
         ) : (
           <div className="ui-glass-table">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Description
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {invoices.map((invoice) => {
                   const invoiceStatus = getInvoiceStatusConfig(invoice.status)
                   return (
-                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                    <tr key={invoice.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 text-slate-700 whitespace-nowrap">
                         {formatDate(invoice.date)}
                       </td>
-                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
+                      <td className="px-6 py-4 text-slate-600 max-w-xs truncate">
                         {invoice.description || '—'}
                       </td>
-                      <td className="px-6 py-4 text-gray-900 font-medium whitespace-nowrap">
+                      <td className="px-6 py-4 text-slate-900 font-medium whitespace-nowrap">
                         {formatCents(invoice.amount, invoice.currency)}
                       </td>
                       <td className="px-6 py-4">
@@ -623,13 +623,13 @@ export default function BillingTab() {
                             href={invoice.pdfUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors text-xs font-medium cursor-pointer"
+                            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-700 transition-colors text-xs font-medium cursor-pointer"
                           >
                             <Download className="w-3.5 h-3.5" />
                             PDF
                           </a>
                         ) : (
-                          <span className="text-gray-300 text-xs">—</span>
+                          <span className="text-slate-300 text-xs">—</span>
                         )}
                       </td>
                     </tr>

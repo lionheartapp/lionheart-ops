@@ -30,7 +30,7 @@ const CHANNELS = [
 const MODES = [
   { value: 'REQUIRED', label: 'Required', color: 'bg-red-100 text-red-700' },
   { value: 'NOTIFICATION', label: 'Notification', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'DISABLED', label: 'Disabled', color: 'bg-gray-100 text-gray-500' },
+  { value: 'DISABLED', label: 'Disabled', color: 'bg-slate-100 text-slate-500' },
 ]
 
 function authHeaders() {
@@ -106,15 +106,15 @@ export default function ApprovalConfigTab() {
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900">Approval Channels</h3>
-              <p className="text-xs text-gray-500">Configure how event approvals are routed</p>
+              <h3 className="text-base font-semibold text-slate-900">Approval Channels</h3>
+              <p className="text-xs text-slate-500">Configure how event approvals are routed</p>
             </div>
           </div>
           {hasChanges && (
             <button
               onClick={handleSave}
               disabled={saveMutation.isPending}
-              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 disabled:opacity-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 disabled:opacity-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             >
               {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
             </button>
@@ -122,9 +122,9 @@ export default function ApprovalConfigTab() {
         </div>
 
       {isLoading ? (
-        <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+        <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse" />)}</div>
       ) : (
-        <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+        <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
           {CHANNELS.map((channel) => {
             const config = getConfig(channel.type)
             const modeInfo = MODES.find((m) => m.value === config.mode) || MODES[2]
@@ -133,10 +133,10 @@ export default function ApprovalConfigTab() {
                 <div className="flex flex-col lg:flex-row lg:items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-gray-900">{channel.label}</span>
+                      <span className="text-sm font-semibold text-slate-900">{channel.label}</span>
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${modeInfo.color}`}>{modeInfo.label}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">{channel.description}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{channel.description}</p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
@@ -144,7 +144,7 @@ export default function ApprovalConfigTab() {
                       aria-label="Approval mode"
                       value={config.mode}
                       onChange={(e) => updateConfig(channel.type, 'mode', e.target.value)}
-                      className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10"
+                      className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10"
                     >
                       {MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
@@ -155,7 +155,7 @@ export default function ApprovalConfigTab() {
                           aria-label="Assigned team"
                           value={config.assignedTeamId || ''}
                           onChange={(e) => updateConfig(channel.type, 'assignedTeamId', e.target.value || null)}
-                          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10"
+                          className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10"
                         >
                           <option value="">No team assigned</option>
                           {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -169,12 +169,12 @@ export default function ApprovalConfigTab() {
                             onChange={(e) => updateConfig(channel.type, 'escalationHours', parseInt(e.target.value) || 72)}
                             min={1}
                             max={720}
-                            className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10"
+                            className="w-16 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10"
                           />
-                          <span className="text-xs text-gray-500">hrs</span>
+                          <span className="text-xs text-slate-500">hrs</span>
                         </div>
 
-                        <label className="flex items-center gap-1.5 text-xs text-gray-600">
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600">
                           <input
                             type="checkbox"
                             checked={config.autoApproveIfNoResource}

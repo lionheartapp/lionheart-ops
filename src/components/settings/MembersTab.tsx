@@ -65,12 +65,12 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     ACTIVE: 'bg-green-100 text-green-700',
     PENDING: 'bg-yellow-100 text-yellow-700',
-    INACTIVE: 'bg-gray-100 text-gray-500',
+    INACTIVE: 'bg-slate-100 text-slate-500',
     SUSPENDED: 'bg-red-100 text-red-700',
   }
   const label = status.charAt(0) + status.slice(1).toLowerCase()
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${map[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${map[status] ?? 'bg-slate-100 text-slate-600'}`}>
       {label}
     </span>
   )
@@ -142,8 +142,8 @@ function TeamMultiSelect({
         type="button"
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
-        className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-left text-sm focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:bg-gray-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 ${
-          selectedIds.length === 0 ? 'text-gray-400' : 'text-gray-900'
+        className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-left text-sm focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:bg-slate-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 ${
+          selectedIds.length === 0 ? 'text-slate-400' : 'text-slate-900'
         }`}
         style={{ minHeight: '40px' }}
       >
@@ -152,7 +152,7 @@ function TeamMultiSelect({
             ? 'Select teams…'
             : `${selectedIds.length} team${selectedIds.length !== 1 ? 's' : ''} selected`}
         </span>
-        <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
       </button>
 
       {/* Selected team chips */}
@@ -181,18 +181,18 @@ function TeamMultiSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-modal mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-modal mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
           {/* Search input */}
-          <div className="p-2 border-b border-gray-100">
+          <div className="p-2 border-b border-slate-100">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 ref={searchRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search teams…"
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-300 rounded-md focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 style={{ minHeight: 'auto' }}
               />
             </div>
@@ -201,7 +201,7 @@ function TeamMultiSelect({
           {/* Options */}
           <div className="max-h-48 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <p className="px-3 py-2 text-sm text-gray-400">No teams found</p>
+              <p className="px-3 py-2 text-sm text-slate-400">No teams found</p>
             ) : (
               filtered.map((team) => {
                 const isSelected = selectedIds.includes(team.id)
@@ -210,8 +210,8 @@ function TeamMultiSelect({
                     key={team.id}
                     type="button"
                     onClick={() => toggleTeam(team.id)}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-gray-50 transition ${
-                      isSelected ? 'text-primary-700 bg-primary-50/50' : 'text-gray-700'
+                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-slate-50 transition ${
+                      isSelected ? 'text-primary-700 bg-primary-50/50' : 'text-slate-700'
                     }`}
                     style={{ minHeight: 'auto' }}
                   >
@@ -219,7 +219,7 @@ function TeamMultiSelect({
                       className={`flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center ${
                         isSelected
                           ? 'bg-primary-600 border-primary-600'
-                          : 'border-gray-300'
+                          : 'border-slate-300'
                       }`}
                     >
                       {isSelected && (
@@ -537,8 +537,8 @@ const MembersTab = (_props: MembersTabProps) => {
               <UserCog className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900">Members</h3>
-              <p className="text-xs text-gray-500">Manage organization members</p>
+              <h3 className="text-base font-semibold text-slate-900">Members</h3>
+              <p className="text-xs text-slate-500">Manage organization members</p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
@@ -549,14 +549,14 @@ const MembersTab = (_props: MembersTabProps) => {
               const qs = params.toString()
               window.open(`/api/settings/export/users${qs ? `?${qs}` : ''}`, '_blank')
             }}
-            className="px-4 py-2.5 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-2"
+            className="px-4 py-2.5 rounded-full border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             Export CSV
           </button>
           <button
             onClick={openInvite}
-            className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition"
+            className="bg-slate-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-semibold transition"
           >
             <Plus className="w-4 h-4" /> Invite user
           </button>
@@ -577,7 +577,7 @@ const MembersTab = (_props: MembersTabProps) => {
       )}
 
       {/* Status Tabs — sliding pill via Framer Motion layoutId */}
-      <div className="mb-4 inline-flex gap-1 rounded-full bg-gray-100 p-1">
+      <div className="mb-4 inline-flex gap-1 rounded-full bg-slate-100 p-1">
         {STATUS_TABS.map((t) => (
           <button
             key={t.value}
@@ -585,13 +585,13 @@ const MembersTab = (_props: MembersTabProps) => {
             className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
               statusTab === t.value
                 ? 'text-white'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {statusTab === t.value && (
               <motion.div
                 layoutId="memberStatusPill"
-                className="absolute inset-0 rounded-full bg-gray-900"
+                className="absolute inset-0 rounded-full bg-slate-900"
                 transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
               />
             )}
@@ -599,7 +599,7 @@ const MembersTab = (_props: MembersTabProps) => {
               {t.label}
               {t.value !== 'all' && (
                 <span className={`ml-1.5 text-xs transition-colors duration-200 ${
-                  statusTab === t.value ? 'text-gray-300' : 'text-gray-400'
+                  statusTab === t.value ? 'text-slate-300' : 'text-slate-400'
                 }`}>
                   ({users.filter((u) => u.status === t.value).length})
                 </span>
@@ -612,7 +612,7 @@ const MembersTab = (_props: MembersTabProps) => {
 
       {/* Table */}
       <div className="ui-glass-table overflow-x-auto">
-        <div className="flex items-center gap-2 p-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 p-4 border-b border-slate-100">
           <input
             className="flex-1 ui-input"
             placeholder="Search by name, email or role…"
@@ -626,23 +626,23 @@ const MembersTab = (_props: MembersTabProps) => {
           <div className="animate-pulse space-y-3 p-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-4 px-4 py-3">
-                <div className="w-9 h-9 rounded-full bg-gray-200" />
+                <div className="w-9 h-9 rounded-full bg-slate-200" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-32 bg-gray-200 rounded" />
-                  <div className="h-3 w-48 bg-gray-200 rounded" />
+                  <div className="h-4 w-32 bg-slate-200 rounded" />
+                  <div className="h-3 w-48 bg-slate-200 rounded" />
                 </div>
-                <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                <div className="h-5 w-16 bg-slate-200 rounded-full" />
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 text-sm">
+          <div className="py-16 text-center text-slate-400 text-sm">
             {search ? 'No members match your search.' : 'No members found.'}
           </div>
         ) : (
           <>
             {/* Mobile card list */}
-            <div className="sm:hidden divide-y divide-gray-100">
+            <div className="sm:hidden divide-y divide-slate-100">
               {filtered.map((u) => (
                 <div key={u.id} className="flex items-center gap-3 px-4 py-3">
                   {u.avatar ? (
@@ -653,12 +653,12 @@ const MembersTab = (_props: MembersTabProps) => {
                     </span>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm truncate">
+                    <div className="font-medium text-slate-900 text-sm truncate">
                       {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">{u.email}</div>
+                    <div className="text-xs text-slate-500 truncate">{u.email}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-600 capitalize">{u.userRole?.name ?? '—'}</span>
+                      <span className="text-xs text-slate-600 capitalize">{u.userRole?.name ?? '—'}</span>
                       <StatusBadge status={u.status} />
                     </div>
                   </div>
@@ -677,7 +677,7 @@ const MembersTab = (_props: MembersTabProps) => {
             {/* Desktop table */}
             <table className="min-w-full text-sm hidden sm:table">
               <thead>
-                <tr className="text-gray-500 border-b bg-gray-50">
+                <tr className="text-slate-500 border-b bg-slate-50">
                   <th className="py-3 px-4 text-left font-medium">Name</th>
                   <th className="py-3 px-4 text-left font-medium">Role</th>
                   <th className="py-3 px-4 text-left font-medium">Status</th>
@@ -688,7 +688,7 @@ const MembersTab = (_props: MembersTabProps) => {
               </thead>
               <tbody>
                 {filtered.map((u) => (
-                  <tr key={u.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                  <tr key={u.id} className="border-b last:border-b-0 hover:bg-slate-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         {u.avatar ? (
@@ -703,25 +703,25 @@ const MembersTab = (_props: MembersTabProps) => {
                           </span>
                         )}
                         <div>
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-slate-900">
                             {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}
                           </div>
-                          <div className="text-xs text-gray-500">{u.email}</div>
+                          <div className="text-xs text-slate-500">{u.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-gray-700 capitalize">
-                      {u.userRole?.name ?? <span className="text-gray-400">—</span>}
+                    <td className="py-3 px-4 text-slate-700 capitalize">
+                      {u.userRole?.name ?? <span className="text-slate-400">—</span>}
                     </td>
                     <td className="py-3 px-4">
                       <StatusBadge status={u.status} />
                     </td>
-                    <td className="py-3 px-4 text-gray-600 hidden md:table-cell">
+                    <td className="py-3 px-4 text-slate-600 hidden md:table-cell">
                       {u.teams.length > 0
                         ? u.teams.map((t) => t.team.name).join(', ')
-                        : <span className="text-gray-400">—</span>}
+                        : <span className="text-slate-400">—</span>}
                     </td>
-                    <td className="py-3 px-4 text-gray-600 hidden lg:table-cell">{formatDate(u.createdAt)}</td>
+                    <td className="py-3 px-4 text-slate-600 hidden lg:table-cell">{formatDate(u.createdAt)}</td>
                     <td className="py-3 pl-4 pr-10">
                       <div className="flex justify-end">
                         <RowActionMenu
@@ -774,7 +774,7 @@ const MembersTab = (_props: MembersTabProps) => {
             <button
               type="submit"
               form="edit-member-form"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={editSaving}
             >
               {editSaving ? 'Saving...' : 'Save Changes'}
@@ -782,7 +782,7 @@ const MembersTab = (_props: MembersTabProps) => {
             <button
               type="button"
               onClick={closeEditUser}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1"
               disabled={editSaving}
             >
               Cancel
@@ -798,7 +798,7 @@ const MembersTab = (_props: MembersTabProps) => {
           )}
 
           <section className="space-y-5">
-            <p className="text-sm text-gray-500">Update how this member appears across the platform.</p>
+            <p className="text-sm text-slate-500">Update how this member appears across the platform.</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FloatingInput
@@ -828,10 +828,10 @@ const MembersTab = (_props: MembersTabProps) => {
           </section>
 
           <section className="space-y-5">
-            <p className="text-sm text-gray-500">Control this member&apos;s role and account status.</p>
+            <p className="text-sm text-slate-500">Control this member&apos;s role and account status.</p>
 
             {rolesLoading ? (
-              <div className="h-12 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
+              <div className="h-12 rounded-lg border border-slate-200 bg-slate-50 animate-pulse" />
             ) : (
               <FloatingDropdown
                 id="edit-roleId"
@@ -861,11 +861,11 @@ const MembersTab = (_props: MembersTabProps) => {
             />
 
             <div>
-              <label htmlFor="edit-teamIds" className="block text-xs text-gray-500 font-medium mb-1.5">Teams</label>
+              <label htmlFor="edit-teamIds" className="block text-xs text-slate-500 font-medium mb-1.5">Teams</label>
               {rolesLoading ? (
-                <div className="h-12 rounded-lg border border-gray-200 bg-gray-50 animate-pulse" />
+                <div className="h-12 rounded-lg border border-slate-200 bg-slate-50 animate-pulse" />
               ) : availableTeams.length === 0 ? (
-                <p className="text-sm text-gray-400">No teams available</p>
+                <p className="text-sm text-slate-400">No teams available</p>
               ) : (
                 <TeamMultiSelect
                   teams={availableTeams}
@@ -891,7 +891,7 @@ const MembersTab = (_props: MembersTabProps) => {
             <button
               type="button"
               onClick={saveManagePermissions}
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={permSaving || permLoading}
             >
               {permSaving ? 'Saving...' : 'Save Changes'}
@@ -899,7 +899,7 @@ const MembersTab = (_props: MembersTabProps) => {
             <button
               type="button"
               onClick={closeManagePermissions}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1"
               disabled={permSaving}
             >
               Cancel
@@ -923,10 +923,10 @@ const MembersTab = (_props: MembersTabProps) => {
                 </span>
               )}
               <div>
-                <p className="text-base font-semibold text-gray-900">
+                <p className="text-base font-semibold text-slate-900">
                   {[permUser.firstName, permUser.lastName].filter(Boolean).join(' ') || permUser.email}
                 </p>
-                <p className="text-sm text-gray-500">{permUser.email}</p>
+                <p className="text-sm text-slate-500">{permUser.email}</p>
               </div>
             </div>
           )}
@@ -1002,7 +1002,7 @@ const MembersTab = (_props: MembersTabProps) => {
               type="submit"
               form="invite-member-form"
               disabled={inviteSaving || !inviteForm.email.trim()}
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
               {inviteSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
               Send Invite
@@ -1010,7 +1010,7 @@ const MembersTab = (_props: MembersTabProps) => {
             <button
               type="button"
               onClick={() => setShowInvite(false)}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1"
             >
               Cancel
             </button>

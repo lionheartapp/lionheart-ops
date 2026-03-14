@@ -766,7 +766,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
   // ─── Render helpers ───────────────────────────────────────────────────────
   const renderStatusBadge = (isActive: boolean) => (
-    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
       {isActive ? 'Active' : 'Inactive'}
     </span>
   )
@@ -775,10 +775,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     <div className="ui-glass-table animate-pulse p-4 space-y-3">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 py-2">
-          <div className="h-4 w-40 bg-gray-200 rounded" />
-          <div className="h-4 w-24 bg-gray-200 rounded" />
-          <div className="h-4 w-16 bg-gray-200 rounded" />
-          <div className="h-4 w-12 bg-gray-200 rounded flex-1" />
+          <div className="h-4 w-40 bg-slate-200 rounded" />
+          <div className="h-4 w-24 bg-slate-200 rounded" />
+          <div className="h-4 w-16 bg-slate-200 rounded" />
+          <div className="h-4 w-12 bg-slate-200 rounded flex-1" />
         </div>
       ))}
     </div>
@@ -796,13 +796,13 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <Building2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900">Campus</h3>
-              <p className="text-xs text-gray-500">Manage buildings, areas, and rooms</p>
+              <h3 className="text-base font-semibold text-slate-900">Campus</h3>
+              <p className="text-xs text-slate-500">Manage buildings, areas, and rooms</p>
             </div>
           </div>
           <button
             onClick={openAddCampusModal}
-            className="bg-gray-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-800 text-sm font-semibold transition"
+            className="bg-slate-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-semibold transition"
           >
             <Plus className="w-4 h-4" /> Add Campus
           </button>
@@ -824,7 +824,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                     setLastCreatedBuilding(null)
                     setPlaceOnMapBuilding(lastCreatedBuilding)
                   }}
-                  className="inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white hover:bg-gray-800 transition-colors"
+                  className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 transition-colors"
                 >
                   <MapPin className="h-3.5 w-3.5" />
                   Place on Map
@@ -847,7 +847,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       )}
 
       {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
-      <div ref={campusTabContainerRef} className="relative flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
+      <div ref={campusTabContainerRef} className="relative flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
         {campuses.length >= 1 && campuses.map((campus) => (
           <div key={campus.id} className="relative flex items-center">
             <button
@@ -855,8 +855,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               onClick={() => setSelectedCampusId(campus.id)}
               className={`px-4 py-3 text-sm font-medium transition whitespace-nowrap ${
                 selectedCampusId === campus.id
-                  ? 'text-gray-900'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-slate-900'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {campus.name}
@@ -873,7 +873,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   setCampusMenuOpen(campus.id)
                 }
               }}
-              className={`p-2.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition ${
+              className={`p-2.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition ${
                 selectedCampusId === campus.id ? 'visible' : 'invisible'
               }`}
               tabIndex={selectedCampusId === campus.id ? 0 : -1}
@@ -890,7 +890,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 >
                   <button
                     onClick={() => openEditCampus(campus)}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                     style={{ minHeight: 'auto' }}
                   >
                     <Edit2 className="w-3.5 h-3.5" /> Edit Campus
@@ -1065,12 +1065,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Buildings</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Physical structures on campus</p>
+            <h3 className="text-base font-semibold text-slate-900">Buildings</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Physical structures on campus</p>
           </div>
           <button
             onClick={openAddBuilding}
-            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
           >
             <Plus className="w-4 h-4" />
             Add Building
@@ -1082,11 +1082,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             {buildings.length === 0 ? (
               <div className="text-center py-14">
                 <IllustrationCampus className="w-48 h-40 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-600 mb-1">No buildings yet</p>
-                <p className="text-xs text-gray-400 mb-4">Add your campus buildings to manage rooms and areas.</p>
+                <p className="text-sm font-medium text-slate-600 mb-1">No buildings yet</p>
+                <p className="text-xs text-slate-400 mb-4">Add your campus buildings to manage rooms and areas.</p>
                 <button
                   onClick={openAddBuilding}
-                  className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
                 >
                   Add First Building
                 </button>
@@ -1094,7 +1094,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             ) : (
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 border-b bg-gray-50">
+                  <tr className="text-slate-500 border-b bg-slate-50">
                     <th className="py-3 px-4 text-left font-medium">Building</th>
                     <th className="py-3 px-4 text-left font-medium">Type</th>
                     <th className="py-3 px-4 text-left font-medium">Rooms</th>
@@ -1113,10 +1113,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                               style={{ background: getGroupColor(group) }}
                             />
-                            <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                            <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
                               {DIVISION_LABELS[group.division] || group.division}
                             </span>
-                            <span className="text-xs text-gray-400">({group.buildings.length})</span>
+                            <span className="text-xs text-slate-400">({group.buildings.length})</span>
                           </div>
                         </td>
                       </tr>
@@ -1124,13 +1124,13 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                       {group.buildings.map((b) => {
                         const roomCount = rooms.filter((r) => r.buildingId === b.id).length
                         return (
-                          <tr key={b.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                          <tr key={b.id} className="border-b last:border-b-0 hover:bg-slate-50">
                             <td className="py-3 pl-9 pr-4">
-                              <div className="font-medium text-gray-900">{b.name}</div>
-                              {b.code && <div className="text-xs text-gray-400 mt-0.5">{b.code}</div>}
+                              <div className="font-medium text-slate-900">{b.name}</div>
+                              {b.code && <div className="text-xs text-slate-400 mt-0.5">{b.code}</div>}
                             </td>
-                            <td className="py-3 px-4 text-gray-500 text-xs">{BUILDING_TYPE_LABELS[b.buildingType] || 'General'}</td>
-                            <td className="py-3 px-4 text-gray-500">{roomCount}</td>
+                            <td className="py-3 px-4 text-slate-500 text-xs">{BUILDING_TYPE_LABELS[b.buildingType] || 'General'}</td>
+                            <td className="py-3 px-4 text-slate-500">{roomCount}</td>
                             <td className="py-3 px-4">{renderStatusBadge(b.isActive)}</td>
                             <td className="py-3 pl-4 pr-10">
                               <div className="flex justify-end">
@@ -1172,12 +1172,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Outdoor Spaces</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Fields, courts, gathering areas, and other outdoor locations</p>
+            <h3 className="text-base font-semibold text-slate-900">Outdoor Spaces</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Fields, courts, gathering areas, and other outdoor locations</p>
           </div>
           <button
             onClick={openAddOutdoor}
-            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
           >
             <Plus className="w-4 h-4" />
             Add Outdoor Space
@@ -1189,11 +1189,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             {outdoorSpaces.length === 0 ? (
               <div className="text-center py-14">
                 <IllustrationCampus className="w-48 h-40 mx-auto mb-2" />
-                <p className="text-base font-semibold text-gray-700 mb-1">No outdoor spaces yet</p>
-                <p className="text-sm text-gray-500 mb-4">Add fields, courts, and other outdoor areas to your campus.</p>
+                <p className="text-base font-semibold text-slate-700 mb-1">No outdoor spaces yet</p>
+                <p className="text-sm text-slate-500 mb-4">Add fields, courts, and other outdoor areas to your campus.</p>
                 <button
                   onClick={openAddOutdoor}
-                  className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
                 >
                   Add First Outdoor Space
                 </button>
@@ -1201,7 +1201,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             ) : (
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 border-b bg-gray-50">
+                  <tr className="text-slate-500 border-b bg-slate-50">
                     <th className="py-3 px-4 text-left font-medium">Space</th>
                     <th className="py-3 px-4 text-left font-medium">Type</th>
                     <th className="py-3 px-4 text-left font-medium">Status</th>
@@ -1210,9 +1210,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                 </thead>
                 <tbody>
                   {outdoorSpaces.map((a) => (
-                    <tr key={a.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium text-gray-900">{a.name}</td>
-                      <td className="py-3 px-4 text-gray-600">{OUTDOOR_TYPE_LABELS[a.areaType] || a.areaType}</td>
+                    <tr key={a.id} className="border-b last:border-b-0 hover:bg-slate-50">
+                      <td className="py-3 px-4 font-medium text-slate-900">{a.name}</td>
+                      <td className="py-3 px-4 text-slate-600">{OUTDOOR_TYPE_LABELS[a.areaType] || a.areaType}</td>
                       <td className="py-3 px-4">{renderStatusBadge(a.isActive)}</td>
                       <td className="py-3 pl-4 pr-10">
                         <div className="flex justify-end">
@@ -1250,10 +1250,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         width="lg"
         footer={
           <div className="space-y-3">
-            <button type="submit" form="building-form" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={buildingFormSaving}>
+            <button type="submit" form="building-form" className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={buildingFormSaving}>
               {buildingFormSaving ? 'Saving...' : editingBuilding ? 'Save Changes' : 'Add Building'}
             </button>
-            <button type="button" onClick={closeBuildingDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={buildingFormSaving}>Cancel</button>
+            <button type="button" onClick={closeBuildingDrawer} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1" disabled={buildingFormSaving}>Cancel</button>
           </div>
         }
       >
@@ -1262,8 +1262,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{buildingFormError}</div>
           )}
           <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Building Details</h3>
+            <div className="border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Building Details</h3>
             </div>
             <FloatingInput
               id="ct-buildingName"
@@ -1317,7 +1317,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
           {/* Photos section — only for existing buildings */}
           {editingBuilding && (
-            <section className="border-t border-gray-200 pt-4">
+            <section className="border-t border-slate-200 pt-4">
               <ImageUpload
                 entityType="building"
                 entityId={editingBuilding.id}
@@ -1343,10 +1343,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         width="lg"
         footer={
           <div className="space-y-3">
-            <button type="submit" form="outdoor-form" className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={outdoorFormSaving}>
+            <button type="submit" form="outdoor-form" className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={outdoorFormSaving}>
               {outdoorFormSaving ? 'Saving...' : editingOutdoor ? 'Save Changes' : 'Add Space'}
             </button>
-            <button type="button" onClick={closeOutdoorDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1" disabled={outdoorFormSaving}>Cancel</button>
+            <button type="button" onClick={closeOutdoorDrawer} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1" disabled={outdoorFormSaving}>Cancel</button>
           </div>
         }
       >
@@ -1355,9 +1355,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{outdoorFormError}</div>
           )}
           <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Space Details</h3>
-              <p className="mt-1 text-sm text-gray-500">Name it the way your staff and students already know it.</p>
+            <div className="border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Space Details</h3>
+              <p className="mt-1 text-sm text-slate-500">Name it the way your staff and students already know it.</p>
             </div>
             <FloatingInput
               id="ct-areaName"
@@ -1392,7 +1392,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
           {/* Photos section — only for existing outdoor spaces */}
           {editingOutdoor && (
-            <section className="border-t border-gray-200 pt-4">
+            <section className="border-t border-slate-200 pt-4">
               <ImageUpload
                 entityType="area"
                 entityId={editingOutdoor.id}
@@ -1419,8 +1419,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         <div className="p-8 space-y-6">
 
           {/* Inline add form — always visible */}
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 space-y-4">
-            <p className="text-sm font-semibold text-gray-700">Add a room</p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+            <p className="text-sm font-semibold text-slate-700">Add a room</p>
             {addRoomError && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{addRoomError}</div>
             )}
@@ -1452,7 +1452,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-5 py-2 min-h-[38px] bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-5 py-2 min-h-[38px] bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={addRoomSaving}
                 >
                   <Plus className="w-4 h-4" />
@@ -1468,15 +1468,15 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           )}
 
           {buildingRooms.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
-              <DoorOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+            <div className="text-center py-10 text-slate-400">
+              <DoorOpen className="w-8 h-8 mx-auto mb-2 text-slate-300" />
               <p className="text-sm">No rooms yet — add one above.</p>
             </div>
           ) : (
             <div className="ui-glass-table">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 border-b bg-gray-50">
+                  <tr className="text-slate-500 border-b bg-slate-50">
                     <th className="py-3 px-4 text-left font-medium">Room</th>
                     <th className="py-3 px-4 text-left font-medium">Display name</th>
                     <th className="py-3 px-4 text-left font-medium">Floor</th>
@@ -1494,7 +1494,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                             aria-label="Room number"
                             value={editRoomData.roomNumber}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, roomNumber: e.target.value }))}
-                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
+                            className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
                             disabled={editRoomSaving}
                             autoFocus
                           />
@@ -1505,7 +1505,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                             value={editRoomData.displayName}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, displayName: e.target.value }))}
                             placeholder="optional"
-                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
+                            className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
                             disabled={editRoomSaving}
                           />
                         </td>
@@ -1515,7 +1515,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                             value={editRoomData.floor}
                             onChange={(e) => setEditRoomData((p) => ({ ...p, floor: e.target.value }))}
                             placeholder="optional"
-                            className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
+                            className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
                             disabled={editRoomSaving}
                           />
                         </td>
@@ -1534,7 +1534,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                             <button
                               onClick={cancelEditRoom}
                               disabled={editRoomSaving}
-                              className="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition"
+                              className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition"
                               title="Cancel"
                               aria-label="Cancel"
                             >
@@ -1546,10 +1546,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                     ) : (
                       /* ── Normal row ── */
                       <React.Fragment key={r.id}>
-                      <tr className="border-b last:border-b-0 hover:bg-gray-50">
-                        <td className="py-3 px-4 font-medium text-gray-900">{r.roomNumber}</td>
-                        <td className="py-3 px-4 text-gray-600">{r.displayName || <span className="text-gray-400">—</span>}</td>
-                        <td className="py-3 px-4 text-gray-600">{r.floor || <span className="text-gray-400">—</span>}</td>
+                      <tr className="border-b last:border-b-0 hover:bg-slate-50">
+                        <td className="py-3 px-4 font-medium text-slate-900">{r.roomNumber}</td>
+                        <td className="py-3 px-4 text-slate-600">{r.displayName || <span className="text-slate-400">—</span>}</td>
+                        <td className="py-3 px-4 text-slate-600">{r.floor || <span className="text-slate-400">—</span>}</td>
                         <td className="py-3 px-4">{renderStatusBadge(r.isActive)}</td>
                         <td className="py-3 pl-4 pr-10">
                           <div className="flex justify-end">
@@ -1577,7 +1577,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                         </td>
                       </tr>
                       {roomImagesId === r.id && (
-                        <tr className="border-b last:border-b-0 bg-gray-50">
+                        <tr className="border-b last:border-b-0 bg-slate-50">
                           <td colSpan={5} className="px-4 py-4">
                             <ImageUpload
                               entityType="room"
@@ -1616,17 +1616,17 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <div className="space-y-2">
                 {building.code && (
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-gray-500">Code:</span>
-                    <span className="font-medium text-gray-900">{building.code}</span>
+                    <span className="text-slate-500">Code:</span>
+                    <span className="font-medium text-slate-900">{building.code}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500">Division:</span>
-                  <span className="font-medium text-gray-900">{DIVISION_LABELS[building.schoolDivision] || building.schoolDivision}</span>
+                  <span className="text-slate-500">Division:</span>
+                  <span className="font-medium text-slate-900">{DIVISION_LABELS[building.schoolDivision] || building.schoolDivision}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500">Status:</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${building.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                  <span className="text-slate-500">Status:</span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${building.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}`}>
                     {building.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -1635,14 +1635,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               {/* Photos */}
               {building.images && building.images.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Photos</h4>
+                  <h4 className="text-sm font-semibold text-slate-900 mb-3">Photos</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {building.images.map((url: string, idx: number) => (
                       <button
                         key={url}
                         type="button"
                         onClick={() => openLightbox(building.images!, idx)}
-                        className="aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200 hover:ring-2 hover:ring-primary-400 transition cursor-pointer"
+                        className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 border border-slate-200 hover:ring-2 hover:ring-primary-400 transition cursor-pointer"
                         style={{ minHeight: 'auto' }}
                       >
                         <img src={url} alt={`Building photo ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
@@ -1653,25 +1653,25 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               )}
 
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                <h4 className="text-sm font-semibold text-slate-900 mb-3">
                   Rooms ({buildingRooms.length})
                 </h4>
                 {buildingRooms.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic">No rooms added to this building yet.</p>
+                  <p className="text-sm text-slate-500 italic">No rooms added to this building yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {buildingRooms.map((room) => (
-                      <div key={room.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                      <div key={room.id} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
                         <div>
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-slate-900">
                             {room.displayName || `Room ${room.roomNumber}`}
                           </span>
                           {room.displayName && (
-                            <span className="text-xs text-gray-500 ml-2">#{room.roomNumber}</span>
+                            <span className="text-xs text-slate-500 ml-2">#{room.roomNumber}</span>
                           )}
                         </div>
                         {room.floor && (
-                          <span className="text-xs text-gray-500">Floor {room.floor}</span>
+                          <span className="text-xs text-slate-500">Floor {room.floor}</span>
                         )}
                       </div>
                     ))}
@@ -1691,7 +1691,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   })
                   setBuildingDrawerOpen(true)
                 }}
-                className="w-full px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+                className="w-full px-4 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
               >
                 Edit Building
               </button>
@@ -1711,12 +1711,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <button
               type="submit"
               form="add-campus-form"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               disabled={addCampusSaving}
             >
               {addCampusSaving ? 'Adding...' : 'Add Campus'}
             </button>
-            <button type="button" onClick={closeAddCampusModal} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
+            <button type="button" onClick={closeAddCampusModal} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1">
               Cancel
             </button>
           </div>
@@ -1740,9 +1740,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               value={addCampusForm.address}
               onChange={(val) => setAddCampusForm((p) => ({ ...p, address: val }))}
               placeholder=" "
-              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10"
+              className="peer w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder-transparent outline-none border border-slate-300 rounded-lg bg-white transition-colors focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
             />
-            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none">
+            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-slate-500 font-medium pointer-events-none">
               Address (optional)
             </label>
           </div>
@@ -1772,12 +1772,12 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <button
               type="submit"
               form="edit-campus-form"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
               disabled={editCampusSaving}
             >
               {editCampusSaving ? 'Saving...' : 'Save Changes'}
             </button>
-            <button type="button" onClick={closeEditCampusDrawer} className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1">
+            <button type="button" onClick={closeEditCampusDrawer} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1">
               Cancel
             </button>
           </div>
@@ -1801,9 +1801,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               value={editCampusForm.address}
               onChange={(val) => setEditCampusForm((p) => ({ ...p, address: val }))}
               placeholder=" "
-              className="peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none border border-gray-300 rounded-lg bg-white transition-colors focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10"
+              className="peer w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder-transparent outline-none border border-slate-300 rounded-lg bg-white transition-colors focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
             />
-            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none">
+            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-slate-500 font-medium pointer-events-none">
               Address (optional)
             </label>
           </div>
@@ -1829,14 +1829,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Campus?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to delete <span className="font-medium text-gray-700">{deleteCampusConfirm.name}</span>? This cannot be undone. Campuses with schools or buildings cannot be deleted.
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Delete Campus?</h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Are you sure you want to delete <span className="font-medium text-slate-700">{deleteCampusConfirm.name}</span>? This cannot be undone. Campuses with schools or buildings cannot be deleted.
             </p>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => setDeleteCampusConfirm(null)}
-                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-full hover:bg-slate-50 transition"
                 disabled={deleteCampusLoading}
               >
                 Cancel
@@ -1862,14 +1862,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
               <MapPin className="w-6 h-6 text-primary-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Place on Map?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Would you like to place <span className="font-medium text-gray-700">{placeOnMapBuilding.name}</span> on the campus map? You can click a spot on the map to set its location.
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Place on Map?</h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Would you like to place <span className="font-medium text-slate-700">{placeOnMapBuilding.name}</span> on the campus map? You can click a spot on the map to set its location.
             </p>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => setPlaceOnMapBuilding(null)}
-                className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-full hover:bg-slate-50 transition"
               >
                 Skip for Now
               </button>
@@ -1882,7 +1882,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
                   const mapEl = document.querySelector('.leaflet-container')
                   if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
                 }}
-                className="px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+                className="px-4 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
               >
                 Place on Map
               </button>

@@ -387,13 +387,13 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900">Roles</h3>
-              <p className="text-xs text-gray-500">Define roles and permissions</p>
+              <h3 className="text-base font-semibold text-slate-900">Roles</h3>
+              <p className="text-xs text-slate-500">Define roles and permissions</p>
             </div>
           </div>
           <button
             onClick={openCreateDrawer}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-full hover:bg-gray-800 transition self-start sm:self-auto flex-shrink-0"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-full hover:bg-slate-800 transition self-start sm:self-auto flex-shrink-0"
           >
             <Plus className="w-4 h-4" />
             Create Role
@@ -410,22 +410,22 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       <div className="ui-glass-table overflow-x-auto">
         {loading ? (
           <div className="animate-pulse">
-            <div className="flex items-center gap-4 p-4 border-b border-gray-100 bg-gray-50">
+            <div className="flex items-center gap-4 p-4 border-b border-slate-100 bg-slate-50">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-4 bg-gray-200 rounded flex-1" />
+                <div key={i} className="h-4 bg-slate-200 rounded flex-1" />
               ))}
             </div>
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-gray-100 last:border-b-0">
+              <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-slate-100 last:border-b-0">
                 <div className="flex-1">
-                  <div className="h-4 w-32 bg-gray-200 rounded" />
-                  <div className="h-3 w-20 bg-gray-100 rounded mt-1.5" />
+                  <div className="h-4 w-32 bg-slate-200 rounded" />
+                  <div className="h-3 w-20 bg-slate-100 rounded mt-1.5" />
                 </div>
-                <div className="h-4 w-10 bg-gray-200 rounded flex-1" />
-                <div className="h-4 w-10 bg-gray-200 rounded flex-1" />
+                <div className="h-4 w-10 bg-slate-200 rounded flex-1" />
+                <div className="h-4 w-10 bg-slate-200 rounded flex-1" />
                 <div className="flex gap-2 flex-1 justify-end">
-                  <div className="h-8 w-8 bg-gray-200 rounded" />
-                  <div className="h-8 w-8 bg-gray-200 rounded" />
+                  <div className="h-8 w-8 bg-slate-200 rounded" />
+                  <div className="h-8 w-8 bg-slate-200 rounded" />
                 </div>
               </div>
             ))}
@@ -433,11 +433,11 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         ) : roles.length === 0 ? (
           <div className="text-center py-16">
             <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
-            <p className="text-base font-semibold text-gray-700 mb-1">No roles found</p>
-            <p className="text-sm text-gray-500 mb-4">Define roles to control what your team members can access.</p>
+            <p className="text-base font-semibold text-slate-700 mb-1">No roles found</p>
+            <p className="text-sm text-slate-500 mb-4">Define roles to control what your team members can access.</p>
             <button
               onClick={openCreateDrawer}
-              className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+              className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
             >
               Create First Role
             </button>
@@ -445,17 +445,17 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         ) : (
           <>
             {/* Mobile card list */}
-            <div className="sm:hidden divide-y divide-gray-100">
+            <div className="sm:hidden divide-y divide-slate-100">
               {roles.map((role) => (
                 <div key={role.id} className="flex items-center gap-3 px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 text-sm">{role.name}</span>
+                      <span className="font-medium text-slate-900 text-sm">{role.name}</span>
                       {role.isSystem && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">System</span>
+                        <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">System</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                       <span>{role._count?.permissions || 0} permissions</span>
                       <span>{role._count?.users || 0} members</span>
                     </div>
@@ -475,7 +475,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             {/* Desktop table */}
             <table className="min-w-full text-sm hidden sm:table">
               <thead>
-                <tr className="text-gray-500 border-b bg-gray-50">
+                <tr className="text-slate-500 border-b bg-slate-50">
                   <th className="py-3 px-4 text-left font-medium">Role</th>
                   <th className="py-3 px-4 text-left font-medium">Permissions</th>
                   <th className="py-3 px-4 text-left font-medium">Members</th>
@@ -484,20 +484,20 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               </thead>
               <tbody>
                 {roles.map((role) => (
-                  <tr key={role.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                  <tr key={role.id} className="border-b last:border-b-0 hover:bg-slate-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{role.name}</span>
+                        <span className="font-medium text-slate-900">{role.name}</span>
                         {role.isSystem && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">
                             System
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-400 mt-0.5">@{role.slug}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">@{role.slug}</div>
                     </td>
-                    <td className="py-3 px-4 text-gray-600">{role._count?.permissions || 0}</td>
-                    <td className="py-3 px-4 text-gray-600">{role._count?.users || 0}</td>
+                    <td className="py-3 px-4 text-slate-600">{role._count?.permissions || 0}</td>
+                    <td className="py-3 px-4 text-slate-600">{role._count?.users || 0}</td>
                     <td className="py-3 pl-4 pr-10">
                       <div className="flex justify-end">
                         {!role.isSystem && (
@@ -538,7 +538,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             <button
               type="submit"
               form="create-role-form"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               disabled={createLoading}
             >
               {createLoading ? 'Creating...' : 'Create Role'}
@@ -546,7 +546,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             <button
               type="button"
               onClick={closeCreateDrawer}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1"
               disabled={createLoading}
             >
               Cancel
@@ -562,7 +562,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
           )}
 
           <section className="space-y-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               This name appears in user profiles, filters, and activity logs.
             </p>
 
@@ -578,10 +578,10 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
 
           <section className="space-y-4">
             <div>
-              <h3 className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+              <h3 className="text-xs text-slate-400 uppercase tracking-wide font-medium">
                 Permissions
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-slate-500">
                 Choose what this role can do. You can update permissions later.
               </p>
             </div>
@@ -615,7 +615,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               <button
                 type="submit"
                 form="edit-role-form"
-                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 disabled={editSaving}
               >
                 {editSaving ? 'Saving...' : 'Save Changes'}
@@ -623,7 +623,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               <button
                 type="button"
                 onClick={closeEditDrawer}
-                className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+                className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1"
                 disabled={editSaving}
               >
                 Cancel
@@ -635,7 +635,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         {editLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-16 rounded-lg border border-gray-200 bg-gray-50" />
+              <div key={index} className="h-16 rounded-lg border border-slate-200 bg-slate-50" />
             ))}
           </div>
         ) : (
@@ -647,7 +647,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
             )}
 
             <section className="space-y-4">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 Update how this role appears across the platform.
               </p>
 
@@ -663,10 +663,10 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
 
             <section className="space-y-4">
               <div>
-                <h3 className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+                <h3 className="text-xs text-slate-400 uppercase tracking-wide font-medium">
                   Permissions
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-slate-500">
                   Adjust what this role can access.
                 </p>
               </div>
@@ -721,7 +721,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                   id="reassign-role"
                   value={reassignRoleId}
                   onChange={(event) => setReassignRoleId(event.target.value)}
-                  className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-400 focus:outline-none"
+                  className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none"
                 >
                   <option value="">Select a role</option>
                   {availableReassignRoles.map((role) => (
@@ -767,7 +767,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                                   [user.id]: event.target.value,
                                 }))
                               }
-                              className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-400 focus:outline-none sm:w-56"
+                              className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none sm:w-56"
                             >
                               <option value="">Use bulk role</option>
                               {availableReassignRoles.map((role) => (
