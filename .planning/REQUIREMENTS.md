@@ -1,218 +1,133 @@
-# Requirements: Lionheart Platform
+# Requirements: Lionheart v3.0 — Events Are the Product
 
-**Defined:** 2026-03-05 (v1.0), 2026-03-08 (v2.0)
-**Core Value:** Schools can manage their entire operational workflow in one unified platform with role-based access, multi-campus support, and AI-assisted features.
+**Defined:** 2026-03-14
+**Core Value:** Lionheart helps schools plan and run everything that happens — from weekly staff meetings to week-long camps — with registration, forms, signatures, logistics, communication, budget tracking, and day-of execution, all in one place, all branded as the school.
 
-## v2.0 Requirements
+## v3.0 Requirements
 
-Requirements for Launch Readiness milestone. Each maps to roadmap phases.
+### Event Foundation
 
-### Authentication & Security
+- [ ] **EVNT-01**: Staff can create an EventProject from an approved planning season submission
+- [ ] **EVNT-02**: Staff can create a recurring EventSeries with default schedule, location, and resource needs
+- [ ] **EVNT-03**: Staff can submit a direct event request (mid-year) for admin approval that becomes an EventProject
+- [ ] **EVNT-04**: Staff can view an EventProject page with 8 tabbed sections (Overview, Schedule, People, Documents, Logistics, Budget, Tasks, Comms)
+- [ ] **EVNT-05**: Staff can build a multi-day event schedule with time blocks (session, activity, meal, free time, travel, setup)
+- [ ] **EVNT-06**: Staff can create and manage tasks within an event (assignee, due date, priority, status, category)
+- [ ] **EVNT-07**: System automatically logs all changes and milestones on an event activity log
+- [ ] **EVNT-08**: Calendar view reads from EventProject data via a CalendarEvent bridge (sourceModule='event-project')
+- [ ] **EVNT-09**: Sidebar navigation shows Events as primary item with Calendar and Planning nested under it
+- [ ] **EVNT-10**: Dashboard shows AI-prioritized action items across all active events with one-tap resolution
 
-- [x] **AUTH-01**: User can reset their password via a "Forgot Password" email link with secure token
-- [x] **AUTH-02**: Login endpoint enforces rate limiting (max 5 attempts per 15 minutes per IP)
-- [x] **AUTH-03**: All public endpoints enforce rate limiting (configurable per-route)
-- [x] **AUTH-04**: JWT tokens are stored in httpOnly secure cookies instead of localStorage
-- [x] **AUTH-05**: All state-changing API requests include CSRF protection
-- [x] **AUTH-06**: All user-submitted text fields are sanitized against XSS before storage
-- [x] **AUTH-07**: Stripe webhook endpoint verifies request signatures before processing
-- [x] **AUTH-08**: Clever and ClassLink webhook endpoints verify request signatures
-- [x] **AUTH-09**: User receives email verification link after signup and must verify before full access
-- [x] **AUTH-10**: Password creation enforces complexity rules (uppercase, number, special character, 8+ chars)
-- [x] **AUTH-11**: File uploads validate file size limits and MIME types before processing
+### Registration & Forms
 
-### Landing & Marketing Pages
+- [ ] **REG-01**: Staff can configure a registration form with toggleable common fields (name, grade, emergency contacts, dietary, allergies, medications, t-shirt size, etc.)
+- [ ] **REG-02**: Staff can add custom form fields (text, dropdown, checkbox, number, date, file upload) with label, help text, and required toggle
+- [ ] **REG-03**: Staff can organize form fields into named sections that become pages in the parent-facing form with a progress indicator
+- [ ] **REG-04**: Parents can register for an event on a public page branded with school logo and cover image (zero Lionheart branding)
+- [ ] **REG-05**: Parents can pay event fees via Stripe (credit card, Apple Pay, Google Pay) with deposit, payment plan, and discount code options
+- [ ] **REG-06**: Parents can sign required documents (permission slips, waivers, medical releases) with finger on mobile or typed name on desktop
+- [ ] **REG-07**: Parents receive a confirmation email with event details and a unique QR code after registration
+- [ ] **REG-08**: Parents can access their registration portal via magic link (no Lionheart account needed) to view schedule, groups, announcements, and outstanding documents
+- [ ] **REG-09**: Staff can publish an event via a Share hub with link copy, QR code for flyers, email distribution, branding controls, and registration open/close dates
+- [ ] **REG-10**: System manages registration capacity with automatic waitlist promotion when spots open
+- [ ] **REG-11**: Parents can upload a student photo during registration that appears on rosters, check-in screens, and printed materials
+- [ ] **REG-12**: Public registration forms are protected by CAPTCHA (Cloudflare Turnstile) and rate limiting
+- [ ] **REG-13**: Medical and emergency contact data is stored in a separate table with distinct permission (events:medical:read) for FERPA/COPPA compliance
 
-- [x] **PAGE-01**: Visitors can view a Privacy Policy page compliant with COPPA/FERPA for K-12 schools
-- [x] **PAGE-02**: Visitors can view a Terms of Service page governing platform usage
-- [x] **PAGE-03**: Visitors can view a Pricing page showing plans and costs before signup
-- [x] **PAGE-04**: Visitors can view an About page with company information and a Contact form
-- [x] **PAGE-05**: All footer links navigate to real pages (Features, Pricing, About, Contact, Privacy, Terms)
-- [x] **PAGE-06**: "Coming soon" OAuth buttons on signup are hidden or replaced with a clean non-OAuth flow
+### Documents & Signatures
 
-### Inventory System
+- [ ] **DOC-01**: Staff can define required documents per event (permission slip, waiver, medical release, photo release, custom)
+- [ ] **DOC-02**: Staff can view per-participant document completion status and send targeted reminders to incomplete families
+- [ ] **DOC-03**: Staff can manage a compliance checklist for off-campus events (insurance certificates, vendor contracts, background checks)
 
-- [x] **INV-01**: Admin can create, update, and delete inventory items with name, category, SKU, and quantity
-- [x] **INV-02**: Staff can check out an inventory item and the system records who, when, and expected return
-- [x] **INV-03**: Staff can check in a returned inventory item and the system updates available quantity
-- [x] **INV-04**: Admin can view full transaction history (checkout/checkin log) for any inventory item
-- [x] **INV-05**: System alerts admin when item quantity falls below configured reorder threshold
-- [x] **INV-06**: Admin can view and manage inventory through a dedicated UI page with search and filters
+### Groups & Logistics
 
-### Calendar & Events
+- [ ] **GRP-01**: Staff can create groups by type (bus, cabin, small group, activity) with name, capacity, and assigned leader
+- [ ] **GRP-02**: Staff can assign participants to groups via drag-and-drop interface
+- [ ] **GRP-03**: Staff can generate printable PDFs: bus manifests (with medical flags), cabin rosters (with photos), medical summaries, emergency contact sheets, activity rosters, check-in sheets
+- [ ] **GRP-04**: Staff can manage elective activity signups with real-time capacity tracking
+- [ ] **GRP-05**: Staff can view aggregated dietary and medical reports from registration data
+- [ ] **GRP-06**: Parents can see their student's group assignments on the participant dashboard
 
-- [x] **CAL-01**: Admin can GET, PUT, and DELETE individual draft events via `/api/draft-events/[id]`
-- [x] **CAL-02**: System prevents booking two events for the same room at the same time (conflict detection)
+### QR & Day-Of Operations
 
-### Tickets
+- [ ] **QR-01**: Staff can scan participant QR codes for check-in with a real-time counter showing checked-in vs. total
+- [ ] **QR-02**: Authorized staff can scan a QR code to view participant info (name, photo, groups, medical flags based on role permissions)
+- [ ] **QR-03**: Participants can scan their QR code to view personal schedule, group assignments, and event announcements
+- [ ] **QR-04**: Day-of tools (QR scanning, rosters, headcount, incident logging) work offline via PWA with automatic sync on reconnect
+- [ ] **QR-05**: Staff can log incidents during events (medical, behavioral) with involved participants, actions taken, and follow-up needs
 
-- [x] **TIX-01**: Dashboard ticket drawer edit button navigates to ticket edit view
-- [x] **TIX-02**: Generic tickets support comments and file attachments
-- [x] **TIX-03**: Users can search tickets by keyword across title and description
+### Budget & Financials
 
-### Settings & Admin
+- [ ] **BUD-01**: Staff can create a line-item budget with categories (venue, transportation, food, supplies, insurance) and budgeted amounts
+- [ ] **BUD-02**: Staff can log actual expenses with receipt uploads and track revenue (registration fees, sponsorships, fundraising)
+- [ ] **BUD-03**: Staff can view budget vs. actual reporting with per-participant cost analysis
 
-- [x] **SET-01**: Admin can view audit log history through a dedicated UI in Settings
-- [x] **SET-02**: Org admin can view and manage their billing/subscription plan
-- [x] **SET-03**: Admin can export users, tickets, and events as CSV files
-- [x] **SET-04**: Admin can edit organization name and subdomain slug after initial signup
-- [x] **SET-05**: Users can configure which email/in-app notifications they receive
+### Communication
 
-### Infrastructure
+- [ ] **COM-01**: Staff can post targeted announcements to specific audiences (all registrants, specific group, incomplete-docs families, paid-only)
+- [ ] **COM-02**: Parents see announcements on the public event page and participant dashboard in real time
+- [ ] **COM-03**: Staff can set up an automated notification timeline with date-based and condition-based triggers with AI-drafted messages
+- [ ] **COM-04**: Staff can collect post-event feedback via surveys at the registration URL
+- [ ] **COM-05**: Multiple staff can collaborate on an event project with real-time updates and presence indicators
 
-- [x] **INFRA-01**: Critical API routes have Vitest unit tests covering happy path and error cases
-- [x] **INFRA-02**: GitHub Actions CI pipeline runs tests, linting, and type-check on every PR
-- [x] **INFRA-03**: Application uses structured JSON logging (Pino) with log levels instead of console.error
-- [x] **INFRA-04**: Runtime errors are captured and reported to Sentry with context
-- [x] **INFRA-05**: All list API endpoints support cursor-based or offset pagination with configurable page size
-- [x] **INFRA-06**: Complex multi-model operations use database transactions instead of sequential awaits
+### AI Features
 
-## v1.0 Requirements (Complete)
+- [ ] **AI-01**: Staff can create an event from a natural language description (auto-fills details, required docs, starter task list, budget range)
+- [ ] **AI-02**: AI generates a registration form based on event type and parameters
+- [ ] **AI-03**: AI generates initial group assignments based on constraints (gender, grade, friend requests, counselor ratios)
+- [ ] **AI-04**: AI detects scheduling conflicts beyond date/room overlap (weather risk, testing schedules, audience overlap)
+- [ ] **AI-05**: AI generates multi-day event schedules from a natural language description
+- [ ] **AI-06**: AI estimates budgets based on historical event data and current event parameters
+- [ ] **AI-07**: AI drafts communication messages with full event context
+- [ ] **AI-08**: AI generates status summaries on the event Overview
+- [ ] **AI-09**: AI analyzes post-event feedback surveys and surfaces actionable themes
+- [ ] **AI-10**: Staff can save any event as a template and create new events from templates
+- [ ] **AI-11**: AI enhances templates by auto-updating dates, adjusting budgets, and surfacing lessons learned
 
-All 101 requirements from v1.0 Maintenance & Facilities Module — completed 2026-03-06.
+### External Integrations
 
-<details>
-<summary>v1.0 requirement categories (all complete)</summary>
+- [ ] **INT-01**: Staff can sync worship sets, team assignments, and people data with Planning Center
+- [ ] **INT-02**: Staff can sync events to Google Calendar
+- [ ] **INT-03**: System can send SMS notifications via Twilio for day-of updates and deadline reminders
 
-- Schema & Foundation (SCHEMA-01 through SCHEMA-07) — Phase 1
-- Module & Navigation (NAV-01 through NAV-04) — Phase 1
-- Ticket Submission (SUBMIT-01 through SUBMIT-11) — Phase 2
-- Ticket Lifecycle (LIFE-01 through LIFE-08) — Phase 2
-- Ticket Detail (DETAIL-01 through DETAIL-05) — Phase 2
-- Specialty Routing (ROUTE-01 through ROUTE-05) — Phase 2
-- Notifications (NOTIF-01 through NOTIF-11) — Phase 2
-- Kanban Board (BOARD-01 through BOARD-08) — Phase 3
-- AI Diagnostics (AI-01 through AI-08) — Phase 3
-- Asset Register (ASSET-01 through ASSET-06) — Phase 4
-- QR Codes (QR-01 through QR-05) — Phase 4
-- Preventive Maintenance (PM-01 through PM-10) — Phase 4
-- Labor & Cost Tracking (LABOR-01 through LABOR-07) — Phase 4
-- Analytics Dashboard (ANALYTICS-01 through ANALYTICS-08) — Phase 5
-- Repeat Repair Detection (REPAIR-01 through REPAIR-04) — Phase 5
-- Compliance Calendar (COMPLY-01 through COMPLY-08) — Phase 6
-- Board Reporting (REPORT-01 through REPORT-10) — Phase 6
-- Knowledge Base (KB-01 through KB-06) — Phase 7
-- Offline PWA (OFFLINE-01 through OFFLINE-09) — Phase 7
+## Future Requirements (v3.1+)
 
-</details>
-
-## v2.0 Requirements (Continued)
-
-### AI Assistant Memory & Learning
-
-- [x] **LEO-MEM-01**: Leo conversations are persisted to the database — users can resume past conversations from a sidebar list
-- [x] **LEO-MEM-02**: Users can give thumbs up/down feedback on Leo's messages and feedback is stored per message
-- [x] **LEO-MEM-03**: pgvector extension is enabled and embeddings are generated for tickets, events, and inventory items using Gemini Embedding API
-- [x] **LEO-MEM-04**: Leo has a `recall_context` tool that performs semantic search over organizational data (tickets, events, conversations) and returns relevant history
-- [x] **LEO-MEM-05**: Leo maintains a per-user profile with learned preferences, frequent topics, common actions, and communication style — extracted automatically after conversations
-- [x] **LEO-MEM-06**: Leo's system prompt incorporates user profile and semantically relevant memory facts for personalized responses
-- [x] **LEO-MEM-07**: Long conversations are automatically summarized and compressed into ConversationSummary records for efficient context assembly
-
-## v2.1 Requirements
-
-Deferred to next minor release. Tracked but not in current roadmap.
-
-### Authentication & Identity
-
-- **AUTH-20**: User can enable 2FA/MFA via TOTP authenticator app
-- **AUTH-21**: User can sign in with Google OAuth
-- **AUTH-22**: User can sign in with Microsoft OAuth
-- **AUTH-23**: User can view active sessions and revoke any session
-- **AUTH-24**: User can choose "Remember Me" for extended session vs. shorter default
-- **AUTH-25**: User can request account deletion (GDPR compliance)
-
-### Scalability
-
-- **SCALE-01**: Permission cache uses distributed store (Redis) instead of in-memory
-- **SCALE-02**: Email, AI, and sync operations run via async job queue (not synchronous)
-- **SCALE-03**: API documentation auto-generated via OpenAPI/Swagger spec
-
-### Module Polish
-
-- **MOD-01**: Athletics supports CSV roster import
-- **MOD-02**: Athletics has embeddable public schedule widget
-- **MOD-03**: Maintenance work orders have print-friendly view
-- **MOD-04**: Bulk user import via CSV upload
-- **MOD-05**: IT device lifecycle has formal state machine engine
+- **DEFER-01**: Conditional form logic (branching, calculated fields)
+- **DEFER-02**: DocuSign/HelloSign legal e-signature integration
+- **DEFER-03**: Native iOS/Android app
+- **DEFER-04**: SIS integration (PowerSchool, Clever, Infinite Campus)
+- **DEFER-05**: Budget integration with financial systems (Munis/Tyler)
+- **DEFER-06**: Complex multi-step approval workflows
+- **DEFER-07**: Public event discovery / school-wide event calendar
+- **DEFER-08**: Participant-to-participant social features
+- **DEFER-09**: Automated payment reconciliation
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Vendor portal / contractor login | Deferred to post-v2; new role type needed |
-| SIS integration / auto-provisioning | Depends on OAuth/SSO work in v2.1 |
-| Budget integration (Munis/Tyler) | ERP integration is significant effort; future milestone |
-| Dashboard widget customization | Low priority — fixed layout serves current needs |
-| Weather widget location fix | Low priority — cosmetic issue |
-| Custom fields per event category | Low complexity benefit |
-| SLA tracking for tickets | Requires baseline metrics first — defer to v2.1+ |
-| API documentation (OpenAPI) | Deferred to v2.1 with formal API versioning |
-| Smart Event AI feature | Deferred until core event model stabilized |
-| Native mobile app | PWA covers mobile needs |
+| Conditional form logic | Exponential complexity — Jotform embed covers edge cases |
+| DocuSign/HelloSign | Built-in signatures handle 95% of school waivers |
+| Native mobile app | PWA achieves 90% of native experience without App Store overhead |
+| Video streaming | Different infrastructure — embed YouTube/Zoom links |
+| SIS integration | Each SIS has different OAuth; CSV import sufficient for v3.0 |
+| Multi-step approvals | Single admin gate covers 95% of schools |
+| Participant social features | COPPA risk for under-13; group announcements suffice |
 
 ## Traceability
 
+Updated during roadmap creation.
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 8 | Complete |
-| AUTH-02 | Phase 8 | Complete |
-| AUTH-03 | Phase 8 | Complete |
-| AUTH-04 | Phase 8 | Complete |
-| AUTH-05 | Phase 8 | Complete |
-| AUTH-06 | Phase 8 | Complete |
-| AUTH-07 | Phase 8 | Complete |
-| AUTH-08 | Phase 8 | Complete |
-| AUTH-09 | Phase 8 | Complete |
-| AUTH-10 | Phase 8 | Complete |
-| AUTH-11 | Phase 8 | Complete |
-| PAGE-01 | Phase 9 | Complete |
-| PAGE-02 | Phase 9 | Complete |
-| PAGE-03 | Phase 9 | Complete |
-| PAGE-04 | Phase 9 | Complete |
-| PAGE-05 | Phase 9 | Complete |
-| PAGE-06 | Phase 9 | Complete |
-| INV-01 | Phase 10 | Complete |
-| INV-02 | Phase 10 | Complete |
-| INV-03 | Phase 10 | Complete |
-| INV-04 | Phase 10 | Complete |
-| INV-05 | Phase 10 | Complete |
-| INV-06 | Phase 10 | Complete |
-| CAL-01 | Phase 11 | Complete |
-| CAL-02 | Phase 11 | Complete |
-| TIX-01 | Phase 11 | Complete |
-| TIX-02 | Phase 11 | Complete |
-| TIX-03 | Phase 11 | Complete |
-| SET-01 | Phase 12 | Complete |
-| SET-02 | Phase 12 | Complete |
-| SET-03 | Phase 12 | Complete |
-| SET-04 | Phase 12 | Complete |
-| SET-05 | Phase 12 | Complete |
-| INFRA-01 | Phase 13 | Complete |
-| INFRA-02 | Phase 13 | Complete |
-| INFRA-03 | Phase 13 | Complete |
-| INFRA-04 | Phase 13 | Complete |
-| INFRA-05 | Phase 13 | Complete |
-| INFRA-06 | Phase 13 | Complete |
-
-| AI-UX-01 | Phase 14 | Complete |
-| AI-UX-02 | Phase 14 | Complete |
-| AI-UX-03 | Phase 14 | Complete |
-| AI-UX-04 | Phase 14 | Complete |
-| AI-UX-05 | Phase 14 | Complete |
-
-| LEO-MEM-01 | Phase 17 | Complete |
-| LEO-MEM-02 | Phase 17 | Complete |
-| LEO-MEM-03 | Phase 17 | Complete |
-| LEO-MEM-04 | Phase 17 | Complete |
-| LEO-MEM-05 | Phase 17 | Complete |
-| LEO-MEM-06 | Phase 17 | Complete |
-| LEO-MEM-07 | Phase 17 | Complete |
+| (populated by roadmapper) | | |
 
 **Coverage:**
-- v2.0 requirements: 45 total
-- Mapped to phases: 45
-- Unmapped: 0
+- v3.0 requirements: 56 total
+- Mapped to phases: 0
+- Unmapped: 56
 
 ---
-*Requirements defined: 2026-03-05 (v1.0), 2026-03-08 (v2.0)*
-*Last updated: 2026-03-08 after v2.0 roadmap creation*
+*Requirements defined: 2026-03-14*
+*Last updated: 2026-03-14 after initial definition*
