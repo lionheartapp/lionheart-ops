@@ -93,9 +93,9 @@ export default function KanbanBoard({
   const { toast } = useToast()
 
   // Board view tab state — default to team-board for managers, my-board for technicians
-  // Only show my-board for users who can claim tickets (on maintenance team)
-  const showMyBoard = canClaim || canManage
-  const [boardView, setBoardView] = useState<BoardViewTab>(canManage ? 'team-board' : showMyBoard ? 'my-board' : 'team-board')
+  // Only show My Board for technicians (canClaim but not managers) — not for admins who happen to have wildcard perms
+  const showMyBoard = canClaim && !canManage
+  const [boardView, setBoardView] = useState<BoardViewTab>(showMyBoard ? 'my-board' : 'team-board')
 
   // Animated tab indicator
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(boardView, [canManage])
@@ -307,8 +307,8 @@ export default function KanbanBoard({
 
   return (
     <div className="space-y-3">
-      {/* View tabs — only show when there are multiple tabs */}
-      {(canManage && showMyBoard) && <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200">
+      {/* View tabs — show for maintenance team members (technicians see both, managers see both) */}
+      {(showMyBoard || (canManage && canClaim)) && <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200">
         {(
           [
             { key: 'team-board' as BoardViewTab, label: 'Team Board', icon: Users, count: teamTicketCount },
