@@ -117,17 +117,73 @@
 
 ## Traceability
 
-Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| EVNT-01 | Phase 19 | Pending |
+| EVNT-02 | Phase 19 | Pending |
+| EVNT-03 | Phase 19 | Pending |
+| EVNT-04 | Phase 19 | Pending |
+| EVNT-05 | Phase 19 | Pending |
+| EVNT-06 | Phase 19 | Pending |
+| EVNT-07 | Phase 19 | Pending |
+| EVNT-08 | Phase 19 | Pending |
+| EVNT-09 | Phase 19 | Pending |
+| EVNT-10 | Phase 19 | Pending |
+| REG-01 | Phase 20 | Pending |
+| REG-02 | Phase 20 | Pending |
+| REG-03 | Phase 20 | Pending |
+| REG-04 | Phase 20 | Pending |
+| REG-05 | Phase 20 | Pending |
+| REG-06 | Phase 20 | Pending |
+| REG-07 | Phase 20 | Pending |
+| REG-08 | Phase 20 | Pending |
+| REG-09 | Phase 20 | Pending |
+| REG-10 | Phase 20 | Pending |
+| REG-11 | Phase 20 | Pending |
+| REG-12 | Phase 20 | Pending |
+| REG-13 | Phase 20 | Pending |
+| DOC-01 | Phase 21 | Pending |
+| DOC-02 | Phase 21 | Pending |
+| DOC-03 | Phase 21 | Pending |
+| GRP-01 | Phase 21 | Pending |
+| GRP-02 | Phase 21 | Pending |
+| GRP-03 | Phase 21 | Pending |
+| GRP-04 | Phase 21 | Pending |
+| GRP-05 | Phase 21 | Pending |
+| GRP-06 | Phase 21 | Pending |
+| QR-01 | Phase 21 | Pending |
+| QR-02 | Phase 21 | Pending |
+| QR-03 | Phase 21 | Pending |
+| QR-04 | Phase 21 | Pending |
+| QR-05 | Phase 21 | Pending |
+| COM-01 | Phase 21 | Pending |
+| COM-02 | Phase 21 | Pending |
+| COM-03 | Phase 22 | Pending |
+| COM-04 | Phase 21 | Pending |
+| COM-05 | Phase 21 | Pending |
+| BUD-01 | Phase 22 | Pending |
+| BUD-02 | Phase 22 | Pending |
+| BUD-03 | Phase 22 | Pending |
+| AI-01 | Phase 22 | Pending |
+| AI-02 | Phase 22 | Pending |
+| AI-03 | Phase 22 | Pending |
+| AI-04 | Phase 22 | Pending |
+| AI-05 | Phase 22 | Pending |
+| AI-06 | Phase 22 | Pending |
+| AI-07 | Phase 22 | Pending |
+| AI-08 | Phase 22 | Pending |
+| AI-09 | Phase 22 | Pending |
+| AI-10 | Phase 22 | Pending |
+| AI-11 | Phase 22 | Pending |
+| INT-01 | Phase 22 | Pending |
+| INT-02 | Phase 22 | Pending |
+| INT-03 | Phase 22 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 56 total
-- Mapped to phases: 0
-- Unmapped: 56
+- Mapped to phases: 56
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-14*
-*Last updated: 2026-03-14 after initial definition*
+*Last updated: 2026-03-14 — traceability populated after roadmap creation*
