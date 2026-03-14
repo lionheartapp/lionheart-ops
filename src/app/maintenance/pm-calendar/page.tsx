@@ -81,8 +81,8 @@ function PmCalendarContent() {
 
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -109,34 +109,38 @@ function PmCalendarContent() {
               variants={staggerContainer(0.08, 0.05)}
             >
               <div>
-                <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">
+                <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-slate-900">
                   PM Calendar
                 </motion.h1>
-                <motion.p variants={fadeInUp} className="text-sm text-gray-500">
+                <motion.p variants={fadeInUp} className="text-sm text-slate-500">
                   Preventive maintenance schedules and upcoming tasks
                 </motion.p>
               </div>
 
               <motion.div variants={fadeInUp} className="flex items-center gap-2">
                 {/* View toggle */}
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1" role="tablist" aria-label="View mode">
                   <button
+                    role="tab"
+                    aria-selected={viewMode === 'calendar'}
                     onClick={() => setViewMode('calendar')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                       viewMode === 'calendar'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
                     <CalendarDays className="w-4 h-4" />
                     Calendar
                   </button>
                   <button
+                    role="tab"
+                    aria-selected={viewMode === 'list'}
                     onClick={() => setViewMode('list')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                       viewMode === 'list'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
                     <LayoutList className="w-4 h-4" />
@@ -178,12 +182,12 @@ function PmCalendarContent() {
                 >
                   {/* Wizard header with close */}
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <h2 className="text-sm font-semibold text-gray-700">New PM Schedule</h2>
+                    <h2 className="text-sm font-semibold text-slate-700">New PM Schedule</h2>
                     <button
                       onClick={() => setShowWizard(false)}
-                      className="p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                      className="p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                     >
-                      <X className="w-4 h-4 text-gray-500" />
+                      <X className="w-4 h-4 text-slate-500" />
                     </button>
                   </div>
                   <PmScheduleWizard
@@ -220,8 +224,8 @@ function PmCalendarContent() {
 export default function PmCalendarPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     }>
       <PmCalendarContent />

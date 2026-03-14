@@ -291,19 +291,21 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="pm-name" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Schedule Name <span className="text-red-500">*</span>
               </label>
               <input
+                id="pm-name"
                 type="text"
+                aria-required="true"
                 value={formData.name}
                 onChange={(e) => update({ name: e.target.value })}
                 placeholder="e.g. HVAC Filter Replacement"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Description
               </label>
               <textarea
@@ -311,7 +313,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 onChange={(e) => update({ description: e.target.value })}
                 placeholder="Optional — describe what this PM task involves"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
               />
             </div>
           </div>
@@ -333,22 +335,24 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
 
             {formData.recurrenceType === 'CUSTOM' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="pm-interval" className="block text-sm font-medium text-slate-700 mb-1.5">
                   Interval (days) <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="pm-interval"
                   type="number"
                   min="1"
+                  aria-required="true"
                   value={formData.intervalDays}
                   onChange={(e) => update({ intervalDays: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
                 />
               </div>
             )}
 
             {formData.recurrenceType === 'MONTHLY' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Specific Months (optional — leave blank for every month)
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -359,8 +363,8 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                       onClick={() => toggleMonth(m.value)}
                       className={`py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                         formData.months.includes(m.value)
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
                       {m.label}
@@ -371,17 +375,19 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="pm-advance-notice" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Advance Notice (days)
               </label>
               <input
+                id="pm-advance-notice"
                 type="number"
                 min="0"
+                aria-describedby="pm-advance-notice-help"
                 value={formData.advanceNoticeDays}
                 onChange={(e) => update({ advanceNoticeDays: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p id="pm-advance-notice-help" className="text-xs text-slate-500 mt-1">
                 How many days before the due date to show this task as upcoming
               </p>
             </div>
@@ -391,11 +397,11 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 type="checkbox"
                 checked={formData.avoidSchoolYear}
                 onChange={(e) => update({ avoidSchoolYear: e.target.checked })}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400"
+                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400"
               />
               <div>
-                <span className="text-sm font-medium text-gray-700">Avoid School Year</span>
-                <p className="text-xs text-gray-500">
+                <span className="text-sm font-medium text-slate-700">Avoid School Year</span>
+                <p className="text-xs text-slate-500">
                   Skip scheduling during active school periods{' '}
                   <span className="text-amber-600">(enforcement coming soon)</span>
                 </p>
@@ -407,7 +413,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
       case 2:
         return (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               Add checklist items that technicians must complete for this PM task. Optional.
             </p>
 
@@ -424,7 +430,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                   }
                 }}
                 placeholder="e.g. Replace air filter, Check belt tension"
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors"
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
               />
               <button
                 type="button"
@@ -439,7 +445,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
 
             {/* Checklist items */}
             {formData.checklistItems.length === 0 ? (
-              <div className="py-6 text-center text-sm text-gray-400">
+              <div className="py-6 text-center text-sm text-slate-400">
                 No checklist items yet. Add items above.
               </div>
             ) : (
@@ -449,16 +455,16 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                     key={`${item}-${idx}`}
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2"
+                    className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
                   >
                     <CheckSquare className="w-4 h-4 text-primary-500 flex-shrink-0" />
-                    <span className="flex-1 text-sm text-gray-700">{item}</span>
+                    <span className="flex-1 text-sm text-slate-700">{item}</span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => moveChecklistItem(idx, 'up')}
                         disabled={idx === 0}
-                        className="p-1 rounded text-gray-400 hover:text-gray-600 disabled:opacity-30 transition-colors cursor-pointer"
+                        className="p-1 rounded text-slate-400 hover:text-slate-600 disabled:opacity-30 transition-colors cursor-pointer"
                         title="Move up"
                       >
                         <ArrowUp className="w-3.5 h-3.5" />
@@ -467,7 +473,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                         type="button"
                         onClick={() => moveChecklistItem(idx, 'down')}
                         disabled={idx === formData.checklistItems.length - 1}
-                        className="p-1 rounded text-gray-400 hover:text-gray-600 disabled:opacity-30 transition-colors cursor-pointer"
+                        className="p-1 rounded text-slate-400 hover:text-slate-600 disabled:opacity-30 transition-colors cursor-pointer"
                         title="Move down"
                       >
                         <ArrowDown className="w-3.5 h-3.5" />
@@ -475,7 +481,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                       <button
                         type="button"
                         onClick={() => removeChecklistItem(idx)}
-                        className="p-1 rounded text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                        className="p-1 rounded text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
                         title="Remove"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -491,7 +497,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
       case 3:
         return (
           <div className="space-y-5">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               Optionally link this PM schedule to a specific asset or location.
             </p>
 
@@ -583,29 +589,29 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                   })),
                 ]}
               />
-              <p className="text-xs text-gray-500">
+              <p id="pm-technician-help" className="text-xs text-slate-500">
                 This technician will be assigned when PM tickets are generated
               </p>
             </div>
 
             {/* Review summary */}
             <div className="ui-glass p-4 space-y-3">
-              <h4 className="text-sm font-semibold text-gray-800">Review</h4>
+              <h4 className="text-sm font-semibold text-slate-800">Review</h4>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <span className="text-gray-500">Name</span>
-                <span className="text-gray-800 font-medium truncate">{formData.name}</span>
-                <span className="text-gray-500">Recurrence</span>
-                <span className="text-gray-800">{getRecurrenceLabel(formData.recurrenceType)}</span>
+                <span className="text-slate-500">Name</span>
+                <span className="text-slate-800 font-medium truncate">{formData.name}</span>
+                <span className="text-slate-500">Recurrence</span>
+                <span className="text-slate-800">{getRecurrenceLabel(formData.recurrenceType)}</span>
                 {formData.recurrenceType === 'CUSTOM' && (
                   <>
-                    <span className="text-gray-500">Interval</span>
-                    <span className="text-gray-800">{formData.intervalDays} days</span>
+                    <span className="text-slate-500">Interval</span>
+                    <span className="text-slate-800">{formData.intervalDays} days</span>
                   </>
                 )}
                 {formData.recurrenceType === 'MONTHLY' && formData.months.length > 0 && (
                   <>
-                    <span className="text-gray-500">Months</span>
-                    <span className="text-gray-800">
+                    <span className="text-slate-500">Months</span>
+                    <span className="text-slate-800">
                       {formData.months
                         .sort((a, b) => a - b)
                         .map((m) => MONTHS.find((mo) => mo.value === m)?.label)
@@ -613,24 +619,24 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                     </span>
                   </>
                 )}
-                <span className="text-gray-500">Checklist Items</span>
-                <span className="text-gray-800">{formData.checklistItems.length} items</span>
+                <span className="text-slate-500">Checklist Items</span>
+                <span className="text-slate-800">{formData.checklistItems.length} items</span>
                 {formData.assetName && (
                   <>
-                    <span className="text-gray-500">Asset</span>
-                    <span className="text-gray-800 truncate">{formData.assetName}</span>
+                    <span className="text-slate-500">Asset</span>
+                    <span className="text-slate-800 truncate">{formData.assetName}</span>
                   </>
                 )}
                 {formData.locationLabel && (
                   <>
-                    <span className="text-gray-500">Location</span>
-                    <span className="text-gray-800 truncate">{formData.locationLabel}</span>
+                    <span className="text-slate-500">Location</span>
+                    <span className="text-slate-800 truncate">{formData.locationLabel}</span>
                   </>
                 )}
                 {formData.technicianName && (
                   <>
-                    <span className="text-gray-500">Technician</span>
-                    <span className="text-gray-800">{formData.technicianName}</span>
+                    <span className="text-slate-500">Technician</span>
+                    <span className="text-slate-800">{formData.technicianName}</span>
                   </>
                 )}
               </div>
@@ -656,10 +662,10 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                     isCompleted
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-slate-900 text-white'
                       : isActive
-                      ? 'bg-primary-100 text-primary-700 border-2 border-gray-900'
-                      : 'bg-gray-100 text-gray-400'
+                      ? 'bg-primary-100 text-primary-700 border-2 border-slate-900'
+                      : 'bg-slate-100 text-slate-400'
                   }`}
                 >
                   {isCompleted ? (
@@ -670,7 +676,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 </div>
                 <span
                   className={`text-xs font-medium ${
-                    isActive ? 'text-gray-700' : 'text-gray-400'
+                    isActive ? 'text-slate-700' : 'text-slate-400'
                   }`}
                 >
                   {step.label}
@@ -679,7 +685,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
               {idx < STEPS.length - 1 && (
                 <div
                   className={`h-px flex-1 mx-2 mb-5 transition-colors ${
-                    idx < currentStep ? 'bg-gray-900' : 'bg-gray-200'
+                    idx < currentStep ? 'bg-slate-900' : 'bg-slate-200'
                   }`}
                   style={{ minWidth: '20px' }}
                 />
@@ -691,7 +697,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
 
       {/* Step title */}
       <div className="mb-5">
-        <h3 className="text-base font-semibold text-gray-900">
+        <h3 className="text-base font-semibold text-slate-900">
           Step {currentStep + 1}: {STEPS[currentStep].label}
         </h3>
       </div>
@@ -725,13 +731,13 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
       )}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+      <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
         <div className="flex gap-2">
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -740,7 +746,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
             <button
               type="button"
               onClick={goBack}
-              className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
               Back

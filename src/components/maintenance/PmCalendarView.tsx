@@ -159,7 +159,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
         {/* Zone 1: Navigation bar */}
         <div className="flex items-center justify-between gap-2 pb-4 relative">
           {/* Left: Title */}
-          <h2 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight min-w-0 truncate">
+          <h2 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight min-w-0 truncate">
             {formatTitle(currentDate, view)}
           </h2>
 
@@ -167,12 +167,12 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
           <div className="absolute left-1/2 -translate-x-1/2 hidden sm:block">
             <div
               ref={viewTabsRef}
-              className="relative flex bg-gray-100 rounded-full p-1"
+              className="relative flex bg-slate-100 rounded-full p-1"
               role="tablist"
               aria-label="PM Calendar view"
             >
               <motion.div
-                className="absolute top-1 bottom-1 rounded-full bg-gray-900 shadow-sm pointer-events-none"
+                className="absolute top-1 bottom-1 rounded-full bg-slate-900 shadow-sm pointer-events-none"
                 style={{
                   left: viewIndicatorStyle.left,
                   width: viewIndicatorStyle.width,
@@ -189,7 +189,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
                   className={`relative z-10 px-5 py-1.5 text-sm font-semibold transition-colors duration-200 rounded-full cursor-pointer ${
                     view === v
                       ? 'text-white'
-                      : 'text-gray-400 hover:text-gray-600'
+                      : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   {VIEW_LABELS[v]}
@@ -200,27 +200,27 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
 
           {/* Right: Nav pill */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+            <div className="flex items-center border border-slate-200 rounded-full overflow-hidden">
               <button
                 onClick={goPrev}
-                className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors cursor-pointer"
+                className="px-2 sm:px-3 py-2 hover:bg-slate-50 transition-colors cursor-pointer"
                 aria-label="Previous"
               >
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
+                <ChevronLeft className="w-4 h-4 text-slate-600" />
               </button>
               <button
                 onClick={goToToday}
-                className="px-3 sm:px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors border-l border-r border-gray-200 cursor-pointer"
+                className="px-3 sm:px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition-colors border-l border-r border-slate-200 cursor-pointer"
               >
                 <span className="hidden sm:inline">Today</span>
                 <span className="sm:hidden text-xs">Now</span>
               </button>
               <button
                 onClick={goNext}
-                className="px-2 sm:px-3 py-2 hover:bg-gray-50 transition-colors cursor-pointer"
+                className="px-2 sm:px-3 py-2 hover:bg-slate-50 transition-colors cursor-pointer"
                 aria-label="Next"
               >
-                <ChevronRight className="w-4 h-4 text-gray-600" />
+                <ChevronRight className="w-4 h-4 text-slate-600" />
               </button>
             </div>
           </div>
@@ -229,12 +229,12 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
         {/* Mobile view switcher */}
         <div
           ref={mobileTabsRef}
-          className="relative flex sm:hidden bg-gray-100 rounded-full p-1"
+          className="relative flex sm:hidden bg-slate-100 rounded-full p-1"
           role="tablist"
           aria-label="PM Calendar view"
         >
           <motion.div
-            className="absolute top-1 bottom-1 rounded-full bg-gray-900 shadow-sm pointer-events-none"
+            className="absolute top-1 bottom-1 rounded-full bg-slate-900 shadow-sm pointer-events-none"
             style={{
               left: mobileIndicatorStyle.left,
               width: mobileIndicatorStyle.width,
@@ -251,7 +251,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
               className={`relative z-10 flex-1 text-center py-2 text-xs font-semibold transition-colors duration-200 rounded-full cursor-pointer ${
                 view === v
                   ? 'text-white'
-                  : 'text-gray-400 hover:text-gray-600'
+                  : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               {VIEW_LABELS[v]}
@@ -269,13 +269,14 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
                   const today = isToday(date)
                   return (
                     <div key={i} className="flex flex-col items-center gap-0.5">
-                      <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-gray-400'}`}>
+                      <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-slate-400'}`}>
                         {DAY_NAMES[date.getDay()]}
                       </span>
                       <span
                         className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-full ${
-                          today ? 'bg-primary-600 text-white' : 'text-gray-900'
+                          today ? 'bg-primary-600 text-white' : 'text-slate-900'
                         }`}
+                        {...(today ? { 'aria-current': 'date' as const } : {})}
                       >
                         {date.getDate()}
                       </span>
@@ -288,13 +289,14 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
               const today = isToday(currentDate)
               return (
                 <div className="flex flex-col items-center gap-0.5">
-                  <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-primary-600' : 'text-slate-400'}`}>
                     {DAY_NAMES[currentDate.getDay()]}
                   </span>
                   <span
                     className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-full ${
-                      today ? 'bg-primary-600 text-white' : 'text-gray-900'
+                      today ? 'bg-primary-600 text-white' : 'text-slate-900'
                     }`}
+                    {...(today ? { 'aria-current': 'date' as const } : {})}
                   >
                     {currentDate.getDate()}
                   </span>
@@ -306,7 +308,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex-shrink-0 flex items-center gap-4 text-xs text-gray-500 py-3">
+      <div className="flex-shrink-0 flex items-center gap-4 text-xs text-slate-500 py-3">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
           Upcoming
@@ -324,7 +326,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
       {/* Calendar view — fills remaining height */}
       {isLoading ? (
         <div className="flex-1 min-h-0 ui-glass p-8 animate-pulse">
-          <div className="h-full bg-gray-100 rounded-xl" />
+          <div className="h-full bg-slate-100 rounded-xl" />
         </div>
       ) : (
         <motion.div
