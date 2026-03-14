@@ -25,9 +25,6 @@ export default function CampusFilterChip({ campusFilter }: CampusFilterChipProps
   const listRef = useRef<HTMLUListElement>(null)
   const [focusedIndex, setFocusedIndex] = useState(-1)
 
-  // Don't render if only one campus (no filter needed)
-  if (!isMultiCampus) return null
-
   // All options: "All Campuses" + each enabled campus
   const options = [
     { id: '', name: 'All Campuses' },
@@ -105,6 +102,10 @@ export default function CampusFilterChip({ campusFilter }: CampusFilterChipProps
       items[focusedIndex]?.scrollIntoView({ block: 'nearest' })
     }
   }, [focusedIndex, open])
+
+  // Don't render if only one campus (no filter needed)
+  // NOTE: This must come AFTER all hooks to satisfy React's Rules of Hooks
+  if (!isMultiCampus) return null
 
   return (
     <div ref={containerRef} className="relative inline-flex" onKeyDown={handleKeyDown}>
