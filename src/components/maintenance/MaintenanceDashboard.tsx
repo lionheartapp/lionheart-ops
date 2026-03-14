@@ -69,8 +69,8 @@ function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-6 text-center">
       <IllustrationMaintenance className="w-40 h-32 mb-2" />
-      <p className="text-sm font-medium text-gray-500 mb-1">{heading}</p>
-      <p className="text-xs text-gray-400 max-w-[200px] leading-relaxed">{description}</p>
+      <p className="text-sm font-medium text-slate-500 mb-1">{heading}</p>
+      <p className="text-xs text-slate-400 max-w-[200px] leading-relaxed">{description}</p>
     </div>
   )
 }
@@ -78,8 +78,8 @@ function EmptyState({
 function PanelHeader({ title }: { title: string }) {
   return (
     <div className="flex items-center justify-between mb-4">
-      <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-      <span className="text-xs text-gray-300 cursor-not-allowed">View all</span>
+      <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+      <span className="text-xs text-slate-300 cursor-not-allowed">View all</span>
     </div>
   )
 }
@@ -165,8 +165,8 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
     return (
       <div className="ui-glass rounded-2xl p-10 flex flex-col items-center justify-center text-center">
         <AlertTriangle className="w-8 h-8 text-red-400 mb-3" />
-        <p className="text-sm font-medium text-gray-600 mb-1">Unable to load dashboard data</p>
-        <p className="text-xs text-gray-400 mb-4">Check your connection and try again.</p>
+        <p className="text-sm font-medium text-slate-600 mb-1">Unable to load dashboard data</p>
+        <p className="text-xs text-slate-400 mb-4">Check your connection and try again.</p>
         <button
           onClick={() => refetch()}
           className="ui-btn-sm ui-btn-primary"
@@ -186,9 +186,9 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="ui-glass p-5 rounded-2xl">
-              <div className="w-9 h-9 rounded-xl bg-gray-100 mb-3" />
-              <div className="h-8 bg-gray-100 rounded w-16 mb-2" />
-              <div className="h-3 bg-gray-100 rounded w-24" />
+              <div className="w-9 h-9 rounded-xl bg-slate-100 mb-3" />
+              <div className="h-8 bg-slate-100 rounded w-16 mb-2" />
+              <div className="h-3 bg-slate-100 rounded w-24" />
             </div>
           ))}
         </div>
@@ -218,7 +218,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
             const qs = params.toString()
             window.open(`/api/settings/export/tickets${qs ? `?${qs}` : ''}`, '_blank')
           }}
-          className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-2"
+          className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-2"
         >
           <Download className="w-4 h-4" />
           Export CSV
@@ -245,10 +245,10 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
                   <Icon className={`w-5 h-5 ${card.iconColor}`} />
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">
+              <div className="text-3xl font-bold text-slate-900 mb-1">
                 <AnimatedCounter value={card.value} />
               </div>
-              <p className="text-xs text-gray-500">{card.label}</p>
+              <p className="text-xs text-slate-500">{card.label}</p>
             </motion.div>
           )
         })}
@@ -267,14 +267,14 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
                 const pct = Math.round((count / maxStatusCount) * 100)
                 return (
                   <div key={status.label} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-20 flex-shrink-0">{status.label}</span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <span className="text-xs text-slate-500 w-20 flex-shrink-0">{status.label}</span>
+                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-700"
                         style={{ width: `${pct}%`, backgroundColor: status.color }}
                       />
                     </div>
-                    <span className="text-xs text-gray-400 w-5 text-right flex-shrink-0">
+                    <span className="text-xs text-slate-400 w-5 text-right flex-shrink-0">
                       {count}
                     </span>
                   </div>
@@ -292,10 +292,10 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
                   <Clock className="w-6 h-6 text-primary-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-slate-900">
                     {formatResolutionTime(stats?.avgResolutionHours ?? null)}
                   </p>
-                  <p className="text-xs text-gray-400">average across completed tickets</p>
+                  <p className="text-xs text-slate-400">average across completed tickets</p>
                 </div>
               </div>
             ) : (
@@ -368,10 +368,10 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
                   <Wrench className="w-6 h-6 text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-slate-900">
                     <AnimatedCounter value={stats?.unassignedCount ?? 0} />
                   </p>
-                  <p className="text-xs text-gray-400">tickets need a technician</p>
+                  <p className="text-xs text-slate-400">tickets need a technician</p>
                 </div>
               </div>
             ) : (

@@ -114,8 +114,8 @@ export default function CampusFilterChip({ campusFilter }: CampusFilterChipProps
         onClick={() => setOpen((o) => !o)}
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
           isActive
-            ? 'bg-gray-900 text-white border border-gray-900'
-            : 'text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100'
+            ? 'bg-slate-900 text-white border border-slate-900'
+            : 'text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100'
         }`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -158,12 +158,12 @@ export default function CampusFilterChip({ campusFilter }: CampusFilterChipProps
                     }}
                     onMouseEnter={() => setFocusedIndex(i)}
                     className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${
-                      isFocused ? 'bg-gray-100' : ''
-                    } ${isSelected ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
+                      isFocused ? 'bg-slate-100' : ''
+                    } ${isSelected ? 'text-slate-900 font-medium' : 'text-slate-600'}`}
                   >
-                    <Building2 className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                     <span className="flex-1 truncate">{opt.name}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-gray-900 flex-shrink-0" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 text-slate-900 flex-shrink-0" />}
                   </li>
                 )
               })}

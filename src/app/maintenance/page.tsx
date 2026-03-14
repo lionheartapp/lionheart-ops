@@ -153,8 +153,8 @@ function MaintenanceContent() {
   // Loading screen during hydration
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -181,21 +181,21 @@ function MaintenanceContent() {
               variants={staggerContainer(0.08, 0.05)}
             >
               <motion.div variants={fadeInUp} className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-2xl font-semibold text-slate-900">
                   Maintenance
                 </h1>
                 <CampusFilterChip campusFilter={campusFilter} />
                 {canManageMaintenance && (
                   <Link
                     href="/maintenance/board-report"
-                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 cursor-pointer"
+                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors duration-200 cursor-pointer"
                   >
                     <FileBarChart className="w-4 h-4" />
                     Board Report
                   </Link>
                 )}
               </motion.div>
-              <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
+              <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
                 {campusFilter.selectedCampusName === 'All Campuses'
                   ? 'Work orders, assets, and facility operations'
                   : campusFilter.selectedCampusName}
@@ -205,7 +205,7 @@ function MaintenanceContent() {
             {/* Sub-navigation tabs — for admins and technicians */}
             {showDashboardTabs ? (
               <>
-                <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+                <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
                   {SUB_TABS.map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
@@ -213,8 +213,8 @@ function MaintenanceContent() {
                       onClick={() => setActiveTab(key)}
                       className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                         activeTab === key
-                          ? 'text-gray-900'
-                          : 'text-gray-500 hover:text-gray-700'
+                          ? 'text-slate-900'
+                          : 'text-slate-500 hover:text-slate-700'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -240,104 +240,111 @@ function MaintenanceContent() {
                       className={activeTab === 'pm-calendar' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
                       aria-hidden={activeTab !== 'pm-calendar'}
                     >
-                      {/* PM Calendar header controls */}
-                      <div className="flex items-center justify-between mb-6">
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Preventive maintenance schedules and upcoming tasks
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {/* View toggle */}
-                          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                            <button
-                              onClick={() => setPmViewMode('calendar')}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-                                pmViewMode === 'calendar'
-                                  ? 'bg-white text-gray-900 shadow-sm'
-                                  : 'text-gray-500 hover:text-gray-700'
-                              }`}
-                            >
-                              <CalendarDays className="w-4 h-4" />
-                              Calendar
-                            </button>
-                            <button
-                              onClick={() => setPmViewMode('list')}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-                                pmViewMode === 'list'
-                                  ? 'bg-white text-gray-900 shadow-sm'
-                                  : 'text-gray-500 hover:text-gray-700'
-                              }`}
-                            >
-                              <LayoutList className="w-4 h-4" />
-                              List
-                            </button>
+                      {/* PM Calendar section card */}
+                      <section className="ui-glass p-6">
+                        {/* Gradient icon-tile header */}
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                              <CalendarClock className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="text-base font-semibold text-slate-900">PM Calendar</h3>
+                              <p className="text-xs text-slate-500">Preventive maintenance schedules and upcoming tasks</p>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => setShowPmWizard(true)}
-                            className="ui-btn-md ui-btn-primary"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Create PM Schedule
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Success toast */}
-                      {pmSuccessMessage && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          className="mb-4 px-4 py-3 bg-primary-50 border border-primary-200 rounded-xl text-sm text-primary-700 font-medium"
-                        >
-                          {pmSuccessMessage}
-                        </motion.div>
-                      )}
-
-                      {/* Wizard */}
-                      <AnimatePresence>
-                        {showPmWizard && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -12 }}
-                            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                            className="mb-6"
-                          >
-                            <div className="flex items-center justify-between mb-3 px-1">
-                              <h2 className="text-sm font-semibold text-gray-700">New PM Schedule</h2>
+                          <div className="flex items-center gap-2">
+                            {/* View toggle */}
+                            <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
                               <button
-                                onClick={() => setShowPmWizard(false)}
-                                className="p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                                onClick={() => setPmViewMode('calendar')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                                  pmViewMode === 'calendar'
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700'
+                                }`}
                               >
-                                <X className="w-4 h-4 text-gray-500" />
+                                <CalendarDays className="w-4 h-4" />
+                                Calendar
+                              </button>
+                              <button
+                                onClick={() => setPmViewMode('list')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                                  pmViewMode === 'list'
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                              >
+                                <LayoutList className="w-4 h-4" />
+                                List
                               </button>
                             </div>
-                            <PmScheduleWizard
-                              onComplete={handlePmWizardComplete}
-                              onCancel={() => setShowPmWizard(false)}
-                            />
+                            <button
+                              onClick={() => setShowPmWizard(true)}
+                              className="ui-btn-md ui-btn-primary"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Create PM Schedule
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Success toast */}
+                        {pmSuccessMessage && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            className="mb-4 px-4 py-3 bg-primary-50 border border-primary-200 rounded-xl text-sm text-primary-700 font-medium"
+                          >
+                            {pmSuccessMessage}
                           </motion.div>
                         )}
-                      </AnimatePresence>
 
-                      {/* Calendar / List view */}
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={pmViewMode}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                        >
-                          {pmViewMode === 'calendar' ? (
-                            <PmCalendarView />
-                          ) : (
-                            <PmScheduleList />
+                        {/* Wizard */}
+                        <AnimatePresence>
+                          {showPmWizard && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -12 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -12 }}
+                              transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                              className="mb-6"
+                            >
+                              <div className="flex items-center justify-between mb-3 px-1">
+                                <h2 className="text-sm font-semibold text-slate-700">New PM Schedule</h2>
+                                <button
+                                  onClick={() => setShowPmWizard(false)}
+                                  className="p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                                >
+                                  <X className="w-4 h-4 text-slate-500" />
+                                </button>
+                              </div>
+                              <PmScheduleWizard
+                                onComplete={handlePmWizardComplete}
+                                onCancel={() => setShowPmWizard(false)}
+                              />
+                            </motion.div>
                           )}
-                        </motion.div>
-                      </AnimatePresence>
+                        </AnimatePresence>
+
+                        {/* Calendar / List view */}
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={pmViewMode}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                          >
+                            {pmViewMode === 'calendar' ? (
+                              <PmCalendarView />
+                            ) : (
+                              <PmScheduleList />
+                            )}
+                          </motion.div>
+                        </AnimatePresence>
+                      </section>
                     </div>
                   </>
                 )}
@@ -364,8 +371,8 @@ function MaintenanceContent() {
 export default function MaintenancePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     }>
       <MaintenanceContent />
