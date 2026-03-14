@@ -1,853 +1,651 @@
-# Architecture Patterns — Lionheart Maintenance & Facilities Module
+# Architecture Research — Event Planning Integration (v3.0)
 
-**Domain:** K-12 CMMS / Facilities Management, added to existing multi-tenant SaaS
-**Researched:** 2026-03-05
-**Overall confidence:** HIGH (based on direct codebase inspection + established CMMS patterns)
-
----
-
-## Context: What Already Exists
-
-The platform provides all infrastructure this module needs:
-
-| Infrastructure | Location | How Maintenance Uses It |
-|---|---|---|
-| Org-scoped Prisma client | `src/lib/db/index.ts` | All new models register in `orgScopedModels` Set |
-| AsyncLocalStorage org context | `src/lib/org-context.ts` | `runWithOrgContext` wraps all route handlers — unchanged |
-| JWT auth + permission check | `src/lib/auth/permissions.ts` | `assertCan(userId, PERMISSIONS.MAINTENANCE_*)` |
-| Campus → Building → Area → Room hierarchy | `prisma/schema.prisma` | `MaintenanceTicket` FKs to `buildingId`, `areaId`, `roomId` directly |
-| In-app notification system | `src/lib/services/notificationService.ts` | Ticket lifecycle emits both in-app + email notifications |
-| Email service (Resend + SMTP fallback) | `src/lib/services/emailService.ts` | New email templates for all 10 ticket lifecycle events |
-| Module feature gating | `TenantModule` model + `useModuleEnabled` hook | `moduleId: 'maintenance'` in `TenantModule` |
-| Supabase Storage | `src/lib/services/storageService.ts` | Photos, receipts, compliance documents |
-| Existing `Ticket` model | `prisma/schema.prisma` | Kept untouched; new `MaintenanceTicket` model is separate |
-
-The existing `Ticket` model (OPEN/IN_PROGRESS/RESOLVED, simple 3-status) is **not extended**. The spec explicitly calls for a separate `MaintenanceTicket` model. The existing model serves OperationsEngine auto-generated tickets from calendar events — a different concern.
+**Domain:** Comprehensive event planning system added to existing K-12 SaaS platform
+**Researched:** 2026-03-14
+**Confidence:** HIGH (based on direct codebase inspection, verified against current docs)
 
 ---
 
-## Recommended Architecture
+## Standard Architecture
 
-### Module Namespace
+### System Overview
 
-All new code lives under a dedicated namespace, following the Athletics module pattern:
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       PUBLIC TIER (no auth)                                  │
+│  ┌──────────────────────┐  ┌───────────────────┐  ┌───────────────────────┐ │
+│  │ /events/[slug]/public│  │ /api/public/events │  │ /api/webhooks/stripe  │ │
+│  │   School-branded     │  │ rate-limited, CAPTCHA│ │ Stripe signature verify│ │
+│  └────────┬─────────────┘  └────────┬──────────┘  └────────────┬──────────┘ │
+└───────────┼────────────────────────┼──────────────────────────┼────────────┘
+            │                        │                          │
+┌───────────┼────────────────────────┼──────────────────────────┼────────────┐
+│                AUTHENTICATED APP TIER (JWT + org-scoped)                    │
+│  ┌─────────────────────┐  ┌────────────────────┐  ┌──────────────────────┐ │
+│  │  /events (primary   │  │ /events/[id]/project│  │ SSE endpoint         │ │
+│  │   nav, list/create) │  │  Hub: 8 section tabs│  │ /api/events/[id]/sse │ │
+│  └──────────┬──────────┘  └─────────┬──────────┘  └──────────────────────┘ │
+│             │                        │                                        │
+│  ┌──────────┴──────────────────────┐ │                                        │
+│  │       EVENT PROJECT API LAYER   │ │                                        │
+│  │  /api/event-projects/*          │◄┘                                        │
+│  │  /api/event-registrations/*                                                │
+│  │  /api/event-forms/*                                                        │
+│  │  /api/event-groups/*                                                       │
+│  │  /api/event-budget/*                                                       │
+│  │  /api/event-documents/*                                                    │
+│  │  /api/event-comms/*                                                        │
+│  └──────────┬──────────────────────┘                                          │
+└─────────────┼──────────────────────────────────────────────────────────────┘
+              │
+┌─────────────┼──────────────────────────────────────────────────────────────┐
+│                       SERVICE + DATA TIER                                    │
+│  ┌───────────────────┐  ┌──────────────────┐  ┌────────────────────────┐   │
+│  │ eventProjectService│  │ stripeService.ts │  │ notificationOrch.ts    │   │
+│  │ registrationService│  │ (event payments) │  │ (scheduled + triggers) │   │
+│  │ formBuilderService │  └──────────────────┘  └────────────────────────┘   │
+│  └─────────┬─────────┘                                                       │
+│            │                                                                  │
+│  ┌─────────┴──────────────────────────────────────────────────────────────┐  │
+│  │                  org-scoped Prisma + PostgreSQL                          │  │
+│  │  EventProject | EventRegistration | EventForm | EventGroup              │  │
+│  │  EventDocument | EventBudgetLine | EventCommunication | EventIncident   │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     OFFLINE / SYNC TIER (extended)                           │
+│  ┌───────────────────────────────────────────────────────────────────────┐   │
+│  │  Dexie (IndexedDB) extended:                                          │   │
+│  │  offlineEvents | offlineRosters | offlineIncidents | mutationQueue    │   │
+│  └───────────────────────────────────────────────────────────────────────┘   │
+│  ┌────────────────────┐  ┌───────────────────────────────────────────────┐   │
+│  │  sw.js (enhanced)  │  │ Service Worker: QR scan + incident log cache  │   │
+│  └────────────────────┘  └───────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Component Responsibilities
+
+| Component | Responsibility | Implementation Location |
+|-----------|---------------|------------------------|
+| EventProject hub model | Central entity connecting all event data | `prisma/schema.prisma` (new model) |
+| Event Project page | 8-section tabbed workspace for staff | `src/app/events/[id]/page.tsx` |
+| Public event page | Branding + registration for parents (no auth) | `src/app/events/[slug]/public/page.tsx` |
+| Form builder service | Dynamic JSON schema forms with multi-page | `src/lib/services/formBuilderService.ts` |
+| Registration service | Registrant state machine, payment tracking | `src/lib/services/registrationService.ts` |
+| Stripe event payments | PCI-compliant payment processing | `src/lib/services/stripeEventService.ts` |
+| QR pipeline | Generate per-registration codes, scan check-in | `src/lib/services/qrService.ts` |
+| Notification orchestrator | Scheduled + condition-based communication | `src/lib/services/notificationOrchestrator.ts` |
+| PDF generation | Server-side printable manifests, rosters, etc. | `src/lib/services/pdfService.ts` |
+| SSE endpoint | Real-time project updates / presence | `src/app/api/event-projects/[id]/sse/route.ts` |
+| Offline event layer | Extend Dexie DB for day-of operations | `src/lib/offline/db.ts` (extended) |
+| Nav reorientation | Events as primary item in Sidebar.tsx | `src/components/Sidebar.tsx` (modified) |
+| Calendar bridge | CalendarEvent.sourceId → EventProject.id | CalendarEvent.sourceModule = 'event-project' |
+
+---
+
+## Integration Map: New vs Modified
+
+### Existing Components That Must Be Modified
+
+| Component | Required Change | Why |
+|-----------|----------------|-----|
+| `src/components/Sidebar.tsx` | Add Events as top-level nav item; nest Calendar + Planning under it | Navigation reorientation — Events become primary product |
+| `src/middleware.ts` | Add `/api/public/events/*` and `/events/*/public` to public path list; add Stripe webhook path | Public-facing pages and payments bypass auth |
+| `src/lib/db/index.ts` | Add 15+ new EventProject models to `orgScopedModels` and `softDeleteModels` sets | All new models must auto-inject organizationId |
+| `src/lib/permissions.ts` | Add new permission strings: `events:project:read`, `events:register:manage`, `events:budget:manage`, `events:comms:send` | Granular permissions for the new event workspace |
+| `src/lib/offline/db.ts` | Add new Dexie tables: `offlineEventRosters`, `offlineQRScans`, `offlineIncidents` | Day-of offline operations for event staff |
+| `public/sw.js` | Extend cached routes to include event roster and check-in endpoints | QR scanning works offline |
+| `src/app/api/webhooks/` | Add `stripe-events/` sub-directory for payment webhooks distinct from platform Stripe webhooks | Event payment webhooks are different from platform subscription webhooks |
+| `src/lib/services/calendarService.ts` | Add EventProject-to-CalendarEvent bridge: when an EventProject is published, auto-create/link a CalendarEvent | CalendarEvent.sourceModule = 'event-project', CalendarEvent.sourceId = eventProject.id |
+| `src/lib/services/ai/gemini.service.ts` | Extend with event creation assistance, form generation, group assignment, conflict detection | All new AI features use existing Gemini client |
+| `src/app/api/cron/` | Add `event-notifications/` cron for scheduled communication delivery | Notification orchestration requires scheduled jobs |
+
+### New Components Required
+
+| Component | Path | Notes |
+|-----------|------|-------|
+| EventProject models | `prisma/schema.prisma` | 15+ new models (see Data Model section) |
+| Event project API routes | `src/app/api/event-projects/` | Full CRUD + sub-resources |
+| Registration API routes | `src/app/api/event-registrations/` | Public + authenticated variants |
+| Form builder API | `src/app/api/event-forms/` | Schema CRUD + submission handling |
+| Group management API | `src/app/api/event-groups/` | Bus/cabin/activity group assignment |
+| Budget API | `src/app/api/event-budget/` | Line items + per-participant analysis |
+| Documents API | `src/app/api/event-documents/` | Document tracking + signature capture |
+| Communications API | `src/app/api/event-comms/` | Audience targeting + delivery |
+| QR API | `src/app/api/event-qr/` | Generate + scan endpoints |
+| Public events API | `src/app/api/public/events/` | No-auth registration + branding |
+| Stripe events webhook | `src/app/api/webhooks/stripe-events/route.ts` | Separate from platform Stripe webhook |
+| SSE endpoint | `src/app/api/event-projects/[id]/sse/route.ts` | ReadableStream, no WebSocket needed |
+| External integrations API | `src/app/api/integrations/` | Planning Center, Google Calendar, Twilio |
+| Events pages | `src/app/events/` | List, detail (project hub), public page |
+| Event project page | `src/app/events/[id]/page.tsx` + sections/ | 8-tab workspace component tree |
+| Public event page | `src/app/events/[slug]/public/page.tsx` | School-branded, no auth, mobile-first |
+| Form builder components | `src/components/events/forms/` | Multi-page form UI |
+| Group drag-and-drop UI | `src/components/events/groups/` | dnd-kit for bus/cabin assignment |
+| PDF service | `src/lib/services/pdfService.ts` | @react-pdf/renderer server-side |
+| QR service | `src/lib/services/qrService.ts` | qrcode library for generation |
+| Registration service | `src/lib/services/registrationService.ts` | State machine: pending→paid→checked-in |
+| Notification orchestrator | `src/lib/services/notificationOrchestrator.ts` | Timeline + condition evaluation |
+| Form builder service | `src/lib/services/formBuilderService.ts` | JSON schema + validation |
+| Stripe event service | `src/lib/services/stripeEventService.ts` | Payment intent creation, refunds |
+| Integration services | `src/lib/services/integrations/` | Planning Center, GCal, Twilio adapters |
+| Magic link auth | `src/lib/auth/magic-link.ts` | Code-based parent access (no account) |
+| Event offline layer | Extend `src/lib/offline/db.ts` | New Dexie tables for event day-of |
+| Event notification preferences | Extend existing notification prefs | Per-event opt-in/out for parents |
+
+---
+
+## Recommended Project Structure (New Files Only)
 
 ```
 src/
   app/
+    events/
+      page.tsx                    # Events list / primary nav landing
+      layout.tsx                  # Events section layout
+      new/
+        page.tsx                  # Create EventProject (3 entry paths)
+      [id]/
+        page.tsx                  # EventProject hub (8-tab workspace)
+        sections/
+          OverviewSection.tsx
+          ScheduleSection.tsx
+          PeopleSection.tsx
+          DocumentsSection.tsx
+          LogisticsSection.tsx
+          BudgetSection.tsx
+          TasksSection.tsx
+          CommsSection.tsx
+      [slug]/
+        public/
+          page.tsx                # Public-facing registration page (no auth)
+          register/
+            page.tsx              # Multi-page form flow
+          confirm/
+            [token]/
+              page.tsx            # Post-registration confirmation
     api/
-      maintenance/
-        tickets/
-          route.ts                  GET list, POST create
-          [id]/
-            route.ts                GET detail
-            status/route.ts         PATCH status transition
-            assign/route.ts         PATCH assign
-            claim/route.ts          POST self-claim
-            comments/route.ts       GET/POST activity feed
-            photos/route.ts         POST photo upload
-            ai-analysis/route.ts    POST trigger AI diagnosis
-            split/route.ts          POST split ticket
-            labor/route.ts          POST log labor (Phase 2)
-            costs/route.ts          POST log cost entry (Phase 2)
-        board/
-          route.ts                  GET kanban board data
-        assets/
-          route.ts                  GET/POST asset register (Phase 2)
-          [id]/route.ts             GET/PATCH/DELETE asset (Phase 2)
-          qr/[code]/route.ts        GET resolve QR (Phase 2)
-        pm-schedules/
-          route.ts                  GET/POST PM schedules (Phase 2)
-          [id]/route.ts             GET/PATCH/DELETE (Phase 2)
-          [id]/trigger/route.ts     POST manual PM generation (Phase 2)
-        analytics/
-          route.ts                  GET operational metrics (Phase 2)
-        compliance/
-          route.ts                  GET/POST compliance records (Phase 3)
-          [id]/route.ts             GET/PATCH compliance record (Phase 3)
-        reports/
-          board/route.ts            GET board-ready report (Phase 3)
-          fci/route.ts              GET FCI score (Phase 3)
-        knowledge/
-          route.ts                  GET/POST articles (Phase 3)
-          [id]/route.ts             GET/PATCH article (Phase 3)
-    [tenant]/
-      maintenance/
-        page.tsx                    Module shell (ModuleGate wrapper)
+      event-projects/
+        route.ts                  # GET (list) / POST (create)
+        [id]/
+          route.ts                # GET / PATCH / DELETE
+          sse/
+            route.ts              # SSE: ReadableStream for real-time updates
+          publish/
+            route.ts              # POST: publish → creates CalendarEvent bridge
+          template/
+            route.ts              # POST: save as template / create from template
+      event-registrations/
+        route.ts                  # POST (create, public + authenticated)
+        [id]/
+          route.ts                # GET / PATCH (status update, cancel)
+          check-in/
+            route.ts              # POST: QR scan check-in
+      event-forms/
+        route.ts                  # POST (create form schema)
+        [id]/
+          route.ts                # GET / PATCH / DELETE
+          submit/
+            route.ts              # POST (public, with CAPTCHA validation)
+      event-groups/
+        route.ts                  # GET (list for event) / POST (create group)
+        [id]/
+          route.ts                # PATCH / DELETE
+          assignments/
+            route.ts              # POST bulk assign / DELETE remove
+      event-budget/
+        [eventId]/
+          route.ts                # GET summary / POST line item
+          lines/
+            [lineId]/
+              route.ts            # PATCH / DELETE
+      event-documents/
+        route.ts                  # GET / POST
+        [id]/
+          route.ts                # PATCH / DELETE
+          sign/
+            route.ts              # POST: capture signature
+      event-comms/
+        route.ts                  # GET / POST (create communication)
+        [id]/
+          send/
+            route.ts              # POST: send now or schedule
+      event-qr/
+        generate/
+          route.ts                # POST: generate QR code for registration
+        scan/
+          route.ts                # POST: process QR scan (check-in / headcount)
+      public/
+        events/
+          [slug]/
+            route.ts              # GET: branding + event details (no auth)
+            register/
+              route.ts            # POST: submit registration (no auth)
+      webhooks/
+        stripe-events/
+          route.ts                # POST: Stripe payment events (raw body required)
+      integrations/
+        planning-center/
+          route.ts                # GET connection status / POST sync
+          webhook/
+            route.ts              # POST: PCO webhooks
+        google-calendar/
+          route.ts                # GET / POST sync
+        twilio/
+          route.ts                # POST: SMS delivery status callback
+      cron/
+        event-notifications/
+          route.ts                # POST: process scheduled communications
+  components/
+    events/
+      EventProjectCard.tsx        # Card for events list
+      EventProjectHeader.tsx      # Hub page header (title, status, actions)
+      EventStatusBadge.tsx        # Status pill
+      forms/
+        FormBuilder.tsx           # Drag-drop form field builder (staff)
+        FormRenderer.tsx          # Public-facing form display
+        FormPageNavigator.tsx     # Multi-page progress indicator
+        FieldTypes/               # Input, Select, Signature, Photo, Payment
+      groups/
+        GroupBoard.tsx            # Drag-drop assignment board (dnd-kit)
+        GroupCard.tsx             # Bus/cabin/activity group card
+        AssigneeChip.tsx          # Participant chip for drag
+      budget/
+        BudgetSummaryCard.tsx     # Revenue vs. expense overview
+        BudgetLineTable.tsx       # Line-item table with edit
+      documents/
+        DocumentTracker.tsx       # Per-participant completion grid
+        SignatureCapture.tsx      # Mobile finger / desktop typed
+      comms/
+        CommsTimeline.tsx         # Chronological communication schedule
+        AudienceSelector.tsx      # Target: all, registered, groups
+      qr/
+        QRCodeDisplay.tsx         # Show QR for printing / sharing
+        QRScanner.tsx             # Camera-based check-in scanner (PWA)
+      ai/
+        SmartEventCreator.tsx     # Natural language → EventProject
+        FormGeneratorModal.tsx    # AI-generated form from event type
+      public/
+        PublicEventPage.tsx       # School-branded event landing
+        RegistrationFlow.tsx      # Multi-step registration wizard
+        ParticipantDashboard.tsx  # Post-registration participant view
   lib/
     services/
-      maintenance/
-        ticketService.ts            Core ticket CRUD + state machine
-        boardService.ts             Kanban board queries
-        aiDiagnosticService.ts      Claude Sonnet integration
-        pmEngine.ts                 PM schedule runner (Phase 2)
-        assetService.ts             Asset register (Phase 2)
-        laborService.ts             Labor + cost tracking (Phase 2)
-        analyticsService.ts         Metrics aggregation (Phase 2)
-        complianceService.ts        Compliance calendar (Phase 3)
-        reportingService.ts         FCI + board reports (Phase 3)
-        knowledgeService.ts         Knowledge base (Phase 3)
-        maintenanceEmailService.ts  Maintenance-specific email templates
-        maintenanceNotificationService.ts  Ticket lifecycle notifications
-  components/
-    maintenance/
-      TicketSubmissionForm.tsx      Mobile-first multi-step form
-      KanbanBoard.tsx               Drag-and-drop board
-      TicketCard.tsx                Board card component
-      TicketDetailDrawer.tsx        Full ticket detail panel
-      AiDiagnosticPanel.tsx         Claude analysis display
-      ActivityFeed.tsx              Status history + comments
-      TechnicianProfileSetup.tsx    Specialty configuration
-      HeadDashboard.tsx             HoM overview
-      AssetRegister.tsx             Asset list/detail (Phase 2)
-      PmCalendar.tsx                PM schedule calendar (Phase 2)
-      ComplianceCalendar.tsx        Compliance domains (Phase 3)
-      BoardReport.tsx               Board-ready report (Phase 3)
+      eventProjectService.ts      # EventProject CRUD + state management
+      registrationService.ts      # Registration state machine
+      formBuilderService.ts       # JSON schema validation + rendering
+      stripeEventService.ts       # Payment intent, refund, payout logic
+      qrService.ts                # qrcode library wrapper
+      pdfService.ts               # @react-pdf/renderer server-side rendering
+      notificationOrchestrator.ts # Timeline + condition trigger evaluation
+      integrations/
+        planningCenterService.ts  # PCO API client (OAuth + webhooks)
+        googleCalendarSyncService.ts # GCal two-way sync
+        twilioService.ts          # SMS via Twilio REST API
+    auth/
+      magic-link.ts               # Code-based magic link for parents
+    offline/
+      eventSync.ts                # Event-specific offline cache + sync logic
 ```
 
 ---
 
-## Component Boundaries
+## Architectural Patterns
 
-### Who Talks to Whom
+### Pattern 1: EventProject as Hub Model
 
-```
-Browser (Client Components)
-  ├── TicketSubmissionForm.tsx
-  │     → POST /api/maintenance/tickets
-  │     → POST /api/maintenance/tickets/[id]/photos (Supabase Storage upload)
-  │     → POST /api/maintenance/tickets/[id]/ai-analysis (lazy, on first tech view)
-  │
-  ├── KanbanBoard.tsx
-  │     → GET /api/maintenance/board?campusId=&view=my|campus|all
-  │     → PATCH /api/maintenance/tickets/[id]/status (drag-and-drop)
-  │     → Real-time: 30s poll (no websockets; consistent with notification bell pattern)
-  │
-  ├── TicketDetailDrawer.tsx
-  │     → GET /api/maintenance/tickets/[id]
-  │     → POST /api/maintenance/tickets/[id]/comments
-  │     → PATCH /api/maintenance/tickets/[id]/assign
-  │     → POST /api/maintenance/tickets/[id]/claim
-  │     → POST /api/maintenance/tickets/[id]/split
-  │
-  └── AiDiagnosticPanel.tsx
-        → POST /api/maintenance/tickets/[id]/ai-analysis
-        → Reads cached aiAnalysis from ticket detail response
+**What:** A single `EventProject` record acts as the central entity connecting all event-related records. Related models (forms, registrations, groups, budget lines, documents, communications, incidents) all carry an `eventProjectId` foreign key. The `EventProject` itself holds status, metadata, and counts denormalized for performance.
 
-API Route Layer (Next.js App Router)
-  ├── Validates JWT (getUserContext)
-  ├── Validates permissions (assertCan)
-  ├── Validates input (Zod schemas in service layer)
-  └── Calls service functions inside runWithOrgContext
+**When to use:** Always. Every event planning action routes through the EventProject. The existing `CalendarEvent` and legacy `Event` models do NOT get extended — they remain separate and are linked via `CalendarEvent.sourceModule = 'event-project'` and `CalendarEvent.sourceId = eventProject.id`.
 
-Service Layer
-  ├── ticketService.ts         → prisma.maintenanceTicket (org-scoped)
-  ├── boardService.ts          → prisma.maintenanceTicket (multi-filter query)
-  ├── aiDiagnosticService.ts   → Anthropic API + prisma.maintenanceTicket (cache update)
-  ├── pmEngine.ts              → prisma.pmSchedule + prisma.maintenanceTicket (create)
-  └── maintenanceEmailService  → emailService.sendBrandedEmail (new templates)
+**Trade-offs:** Slightly more migration work upfront, but avoids the "one model bloated to 60 fields" anti-pattern that would make the existing CalendarEvent unusable. Clean separation means the calendar still works independently.
 
-Side Effects (fired after state transitions)
-  ├── maintenanceNotificationService  → createNotification / createBulkNotifications
-  └── maintenanceEmailService         → sendBrandedEmail (non-blocking, fire-and-forget)
-```
-
-### Component Isolation Rules
-
-- Service functions **never call each other directly** across domain boundaries. `ticketService.ts` does not import `pmEngine.ts`. The PM engine calls `ticketService.createMaintenanceTicket` as its only cross-service dependency.
-- AI analysis is **always lazy**: called only when a technician first opens a ticket with photos. Results are cached in `MaintenanceTicket.aiAnalysis` (JSON field). Subsequent opens read from cache, not from Anthropic API.
-- Notifications and emails are **always fire-and-forget**: they cannot fail a status transition. Use the same pattern as `notificationService.ts` — wrapped in try/catch, logged on error.
-- The Kanban board endpoint is a **read-only projection**: it never mutates state. Status changes go through the dedicated `/status` endpoint with its state machine validation.
-
----
-
-## Data Flow: Ticket Lifecycle
-
-### Submission Flow
-
-```
-Staff submits form (mobile)
-  → TicketSubmissionForm validates client-side (Zod)
-  → POST /api/maintenance/tickets
-      → getUserContext (JWT decode)
-      → assertCan(userId, PERMISSIONS.MAINTENANCE_SUBMIT)
-      → runWithOrgContext(orgId, async () => {
-          → ticketService.createMaintenanceTicket(input, userId)
-              → prisma.maintenanceTicket.create({ status: BACKLOG })
-              → Assign ticketNumber (MT-XXXX, sequential per org)
-          → maintenanceNotificationService.onTicketCreated(ticket)
-              → createNotification for HoM if URGENT
-          → maintenanceEmailService.sendTicketConfirmation(submitter)
-          → if photos: initiate background AI pre-analysis
-        })
-  → 201 { ok: true, data: { id, ticketNumber, status: 'BACKLOG' } }
-```
-
-### Status Transition Flow
-
-```
-Technician drags card on Kanban (or updates via detail drawer)
-  → PATCH /api/maintenance/tickets/[id]/status
-      → getUserContext
-      → assertCan(userId, PERMISSIONS.MAINTENANCE_UPDATE_STATUS)
-      → runWithOrgContext(orgId, async () => {
-          → ticketService.transitionStatus(id, newStatus, userId, metadata)
-              → validateTransition(currentStatus, newStatus, userId, role)
-                  → THROWS if transition invalid per state machine
-              → validateTransitionRequirements(newStatus, metadata)
-                  → ON_HOLD: requires holdReason
-                  → QA: requires completionPhoto + completionNote
-                  → DONE: Head/Admin only
-                  → CANCELLED: requires cancellationReason, Head/Admin only
-              → prisma.maintenanceTicket.update({ status, ...timestamps })
-              → prisma.ticketActivity.create({ type: STATUS_CHANGE, fromStatus, toStatus, actorId })
-          → [fire-and-forget]:
-              → maintenanceNotificationService.onStatusChange(ticket, newStatus)
-              → maintenanceEmailService.sendStatusChangeEmail(ticket, newStatus)
-        })
-  → 200 { ok: true, data: updatedTicket }
-```
-
-### PM Auto-Generation Flow (Phase 2)
-
-```
-Cron job / API trigger → POST /api/maintenance/pm-schedules/[id]/trigger (internal or scheduled)
-  OR
-App startup check: pmEngine.checkAndGenerateDueTickets()
-  → pmEngine.getSchedulesDue(today + advanceNoticeDays)
-  → For each due schedule:
-      → ticketService.createMaintenanceTicket({
-            isPmGenerated: true,
-            pmScheduleId: schedule.id,
-            title: schedule.title,
-            status: TODO,                     ← PM tickets skip BACKLOG
-            assignedToId: schedule.assignedToId,
-          })
-      → pmSchedule.update({ nextDueDate: calculateNext(completionDate, recurrenceType) })
-      → maintenanceEmailService.sendPmGeneratedEmail(assignedTech)
-```
-
----
-
-## State Machine: Ticket Lifecycle
-
-### Valid States
-
-```
-BACKLOG     — Submitted, unassigned
-TODO        — Assigned or self-claimed, not yet started
-IN_PROGRESS — Actively being worked
-ON_HOLD     — Paused (requires holdReason)
-QA          — Work complete, pending Head/Admin sign-off (requires completionPhoto)
-DONE        — Fully resolved
-SCHEDULED   — Future-dated; invisible to backlog until scheduledDate
-CANCELLED   — Terminal; requires cancellationReason
-```
-
-### Valid Transitions
-
+**Example:**
 ```typescript
-// Implemented as a lookup map in ticketService.ts
-
-const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  BACKLOG:     ['TODO', 'SCHEDULED', 'CANCELLED'],
-  TODO:        ['IN_PROGRESS', 'BACKLOG', 'CANCELLED'],
-  IN_PROGRESS: ['ON_HOLD', 'QA', 'CANCELLED'],
-  ON_HOLD:     ['IN_PROGRESS', 'CANCELLED'],
-  QA:          ['DONE', 'IN_PROGRESS', 'CANCELLED'],   // IN_PROGRESS = failed inspection
-  DONE:        [],                                       // Terminal (can reopen via new ticket)
-  SCHEDULED:   ['BACKLOG', 'CANCELLED'],                 // System auto-transitions on scheduledDate
-  CANCELLED:   [],                                       // Terminal
+// Bridge creation: when EventProject is published, auto-create linked CalendarEvent
+async function publishEventProject(id: string, userId: string) {
+  const project = await prisma.eventProject.update({
+    where: { id },
+    data: { status: 'PUBLISHED' }
+  })
+  // Create CalendarEvent bridge — links project to calendar display
+  await prisma.calendarEvent.create({
+    data: {
+      calendarId: project.defaultCalendarId,
+      title: project.title,
+      startTime: project.startDate,
+      endTime: project.endDate,
+      sourceModule: 'event-project',
+      sourceId: project.id,
+      calendarStatus: 'CONFIRMED',
+    }
+  })
+  return project
 }
 ```
 
-### Role-Gated Transitions
+### Pattern 2: Public Routes with Org-Context via Slug
 
+**What:** Public-facing pages (no JWT) resolve the org from the URL slug rather than the `x-org-id` header. `getOrgIdFromSlug(slug)` is called first, then `runWithOrgContext(orgId, ...)` wraps the handler — the same scoping mechanism, different resolution path.
+
+**When to use:** All `/api/public/events/*` routes and the `app/events/[slug]/public/` pages. Rate limiting + CAPTCHA must wrap these endpoints (middleware or route-level).
+
+**Trade-offs:** Requires that every public endpoint can resolve orgId without JWT. Magic links for returning parents store a signed token with both userId and orgId to bypass this lookup.
+
+**Example:**
 ```typescript
-// Some transitions require specific roles regardless of permission string
+// Public route: no assertCan(), but still org-scoped
+export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
+  const org = await rawPrisma.organization.findUnique({ where: { slug: params.slug } })
+  if (!org) return NextResponse.json(fail('NOT_FOUND', 'Event not found'), { status: 404 })
 
-const TRANSITION_ROLE_GATES: Partial<Record<TicketStatus, { roles: string[] }>> = {
-  DONE:      { roles: ['head-of-maintenance', 'admin', 'super-admin'] },
-  CANCELLED: { roles: ['head-of-maintenance', 'admin', 'super-admin'] },
-}
-
-// Self-claim gate: BACKLOG → TODO via /claim
-// Only allowed if user's TechnicianProfile.specialties includes ticket.specialtyTag
-// OR ticket.specialtyTag === 'GENERAL'
-// Head of Maintenance can always claim/assign
-```
-
-### Transition Metadata Requirements
-
-```typescript
-interface TransitionMetadata {
-  holdReason?: HoldReasonType       // Required: IN_PROGRESS → ON_HOLD
-  holdReasonNote?: string           // Optional: free text
-  completionPhoto?: string          // Required: IN_PROGRESS → QA (Supabase Storage URL)
-  completionNote?: string           // Required: IN_PROGRESS → QA
-  cancellationReason?: string       // Required: any → CANCELLED
-  failedInspectionReason?: string   // Optional: QA → IN_PROGRESS
-  scheduledDate?: Date              // Required: any → SCHEDULED
+  return await runWithOrgContext(org.id, async () => {
+    const event = await prisma.eventProject.findFirst({
+      where: { publicSlug: params.slug, status: 'PUBLISHED' }
+    })
+    return NextResponse.json(ok(event))
+  })
 }
 ```
 
-### State Machine Implementation Pattern
+### Pattern 3: Form Builder as JSON Schema
 
+**What:** EventForm records store their field definitions as JSON (following a `FormSchema` TypeScript type). The form builder UI writes this JSON; the public form renderer reads and renders it. Submissions are stored as JSON blobs in `EventFormSubmission`. No separate field tables — the schema lives in a single JSONB column.
+
+**When to use:** All registration forms and custom forms attached to EventProjects.
+
+**Trade-offs:** Simpler schema, but requires careful Zod validation of the JSON schema on both write (builder) and read (renderer). Cannot do relational queries on field values. Acceptable because form submissions are accessed by eventProjectId, not by individual field values.
+
+**Example schema shape:**
 ```typescript
-// src/lib/services/maintenance/ticketService.ts
-
-export async function transitionStatus(
-  ticketId: string,
-  newStatus: TicketStatus,
-  actorId: string,
-  actorRole: string,
-  metadata: TransitionMetadata
-): Promise<MaintenanceTicket> {
-  const ticket = await prisma.maintenanceTicket.findUnique({ where: { id: ticketId } })
-  if (!ticket) throw new Error('Ticket not found')
-
-  // 1. Validate transition is allowed from current status
-  const allowed = ALLOWED_TRANSITIONS[ticket.status] ?? []
-  if (!allowed.includes(newStatus)) {
-    throw new Error(`Cannot transition from ${ticket.status} to ${newStatus}`)
-  }
-
-  // 2. Validate role gates
-  const roleGate = TRANSITION_ROLE_GATES[newStatus]
-  if (roleGate && !roleGate.roles.includes(actorRole)) {
-    throw new Error(`Role ${actorRole} cannot set status to ${newStatus}`)
-  }
-
-  // 3. Validate metadata requirements
-  validateTransitionMetadata(newStatus, metadata)  // throws on missing required fields
-
-  // 4. Build update payload
-  const updateData = buildUpdatePayload(newStatus, metadata)
-
-  // 5. Atomic update + activity log
-  const [updated] = await rawPrisma.$transaction([
-    rawPrisma.maintenanceTicket.update({ where: { id: ticketId }, data: updateData }),
-    rawPrisma.ticketActivity.create({
-      data: {
-        ticketId,
-        organizationId: ticket.organizationId,
-        actorId,
-        type: 'STATUS_CHANGE',
-        fromStatus: ticket.status,
-        toStatus: newStatus,
-        metadata: metadata as any,
-      }
-    }),
-  ])
-
-  return updated
+interface FormSchema {
+  pages: FormPage[]
+  settings: { allowPartialSave: boolean; requirePayment: boolean }
+}
+interface FormPage {
+  id: string
+  title: string
+  fields: FormField[]
+}
+interface FormField {
+  id: string
+  type: 'text' | 'select' | 'checkbox' | 'signature' | 'photo' | 'payment'
+  label: string
+  required: boolean
+  options?: string[]  // for select
+  paymentAmount?: number  // for payment field (cents)
 }
 ```
 
-Note: Use `rawPrisma.$transaction` here (not the org-scoped `prisma.$transaction`) per the existing CLAUDE.md warning about interactive transactions on extended clients.
+### Pattern 4: SSE for Real-Time (Not WebSocket)
 
----
+**What:** Use Server-Sent Events via Next.js Route Handlers returning a `ReadableStream` with `Content-Type: text/event-stream`. No WebSocket upgrade, no separate WebSocket server. Client uses `EventSource` with reconnect.
 
-## PM Scheduling Engine Integration
+**When to use:** Event project page presence indicators and live update feeds. SSE is sufficient because updates are server→client only. The client sends mutations via normal API calls; SSE broadcasts the results back.
 
-### Design: Pull-Based, Not Push-Based
+**Trade-offs:** Unidirectional only (server→client). Works seamlessly on Vercel. Requires streaming-compatible deployment (Vercel Edge or Node.js runtime with `export const runtime = 'nodejs'`). Background Sync in Safari is unavailable — fall back to polling every 30s for Safari users.
 
-The PM engine uses a **pull pattern**: it queries for schedules whose `nextDueDate` is within `advanceNoticeDays` of today. It does not register event listeners or use a message queue. This matches the platform's existing style (no background job infrastructure, no BullMQ, no cron server).
-
-### Trigger Mechanism Options
-
-The platform has no dedicated cron infrastructure. Two viable options:
-
-**Option A (recommended for Phase 2 MVP):** API-triggered on app load.
-- `pmEngine.checkAndGenerateDueTickets()` is called from an internal cron route `POST /api/maintenance/pm-schedules/run-due` protected by a shared secret. Run via Vercel Cron or external scheduler (cron-job.org).
-- Simple, observable, zero infrastructure.
-
-**Option B (Phase 3 enhancement):** Trigger on Kanban board load.
-- When Head loads the board, silently call PM check in background.
-- No external dependency, but only triggers when someone opens the board.
-
-The PM engine must run **inside a `runWithOrgContext`** wrapper. Since it processes multiple orgs, it iterates `Organization.id` list (via `rawPrisma`) and calls `runWithOrgContext(orgId, ...)` for each.
-
-### PM Engine Architecture
-
+**Example:**
 ```typescript
-// src/lib/services/maintenance/pmEngine.ts
-
-export async function checkAndGenerateDueTickets(orgId?: string): Promise<void> {
-  // If orgId provided, run for one org (API-triggered for specific tenant)
-  // If not provided, run for all orgs (cron-triggered global sweep)
-
-  const orgs = orgId
-    ? [{ id: orgId }]
-    : await rawPrisma.organization.findMany({ select: { id: true } })
-
-  for (const org of orgs) {
-    await runWithOrgContext(org.id, async () => {
-      const dueSchedules = await prisma.pmSchedule.findMany({
-        where: {
-          isActive: true,
-          nextDueDate: { lte: addDays(new Date(), MAX_ADVANCE_DAYS) },
-          // Prevent duplicate generation: no open ticket already linked
-          maintenanceTickets: { none: { status: { notIn: ['DONE', 'CANCELLED'] } } },
-        },
+// Route: /api/event-projects/[id]/sse/route.ts
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    start(controller) {
+      const heartbeat = setInterval(() => {
+        controller.enqueue(encoder.encode(': heartbeat\n\n'))
+      }, 25000)
+      // Subscribe to in-process event bus (Redis Pub/Sub in production)
+      const unsub = eventBus.subscribe(params.id, (payload) => {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`))
       })
+      req.signal.addEventListener('abort', () => {
+        clearInterval(heartbeat)
+        unsub()
+        controller.close()
+      })
+    }
+  })
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+  })
+}
+```
 
-      for (const schedule of dueSchedules) {
-        await createMaintenanceTicket({
-          organizationId: org.id,
-          title: schedule.title,
-          specialtyTag: schedule.specialtyTag,
-          assignedToId: schedule.assignedToId,
-          status: 'TODO',
-          isPmGenerated: true,
-          pmScheduleId: schedule.id,
-          checklistItems: schedule.checklistItems,
-        })
-      }
+### Pattern 5: Stripe Event Payments (Separate from Platform Billing)
+
+**What:** Event registration payments use `Stripe Elements` on the client (card data never touches Lionheart servers). The server creates a `PaymentIntent` via a dedicated `stripeEventService.ts`. A separate webhook route at `/api/webhooks/stripe-events/` handles payment confirmation and updates `EventRegistration.paymentStatus`. This is entirely separate from the existing platform subscription billing (`/api/platform/webhooks/stripe`).
+
+**When to use:** Any EventProject that has a payment-type form field. Payment collection is optional per event.
+
+**Critical:** Webhook handler must use `req.text()` (not `req.json()`) to get the raw body for Stripe signature verification. The webhook signing secret for event payments is stored separately from the platform billing secret.
+
+**Trade-offs:** Two Stripe webhook secrets to manage. The separation is intentional — mixing event revenue and platform subscriptions creates accounting and permission complexity.
+
+### Pattern 6: Offline Layer Extension (Dexie)
+
+**What:** Extend the existing `lionheart-offline-v1` Dexie database (used for maintenance tickets) with a new schema version that adds event-specific object stores. The existing `OfflineDatabase` class in `src/lib/offline/db.ts` is extended to version 2.
+
+**When to use:** Day-of operations: QR check-in scanning, headcounts, incident logging. Staff need these to work without connectivity in gymnasiums and remote camp locations.
+
+**Trade-offs:** Safari Background Sync is not supported. The fallback is a manual "sync when online" button. Conflict resolution strategy: server wins for roster data; client wins for incidents created offline (merge, not overwrite).
+
+**Example:**
+```typescript
+// Extend existing Dexie class with event tables
+class OfflineDatabase extends Dexie {
+  // ... existing tables ...
+  offlineEventRosters!: Table<OfflineEventRoster>    // new v2
+  offlineQRScans!: Table<OfflineQRScan>              // new v2
+  offlineIncidents!: Table<OfflineIncident>          // new v2
+
+  constructor() {
+    super('lionheart-offline-v1')
+    this.version(1).stores({ /* existing */ })
+    this.version(2).stores({
+      offlineEventRosters: '++id, eventProjectId, cachedAt',
+      offlineQRScans: '++id, eventProjectId, qrToken, status, scannedAt',
+      offlineIncidents: '++id, eventProjectId, status, createdAt',
     })
   }
 }
 ```
 
-### PM Completion and Recurrence Calculation
+---
 
-```typescript
-// When a PM-generated ticket transitions to DONE:
-// → pmEngine.onPmTicketCompleted(ticket) is called (fire-and-forget from ticketService)
+## Data Flow
 
-async function onPmTicketCompleted(ticket: MaintenanceTicket): Promise<void> {
-  if (!ticket.pmScheduleId) return
-  const schedule = await prisma.pmSchedule.findUnique({ where: { id: ticket.pmScheduleId } })
-  if (!schedule) return
+### Staff Event Creation Flow
 
-  const completionDate = ticket.resolvedAt ?? new Date()
-  const nextDueDate = calculateNextDueDate(
-    completionDate,
-    schedule.recurrenceType,
-    schedule.recurrenceInterval,
-    schedule.avoidSchoolYear
-  )
+```
+Staff clicks "New Event"
+  → SmartEventCreator (AI NLP) OR manual form with 3 entry paths
+  → POST /api/event-projects (creates EventProject, status=DRAFT)
+  → Event project page loads with 8 empty section tabs
+  → Staff fills sections: schedule, people, forms, groups, budget, docs, comms
+  → POST /api/event-projects/[id]/publish
+      → Creates CalendarEvent bridge (sourceModule='event-project', sourceId=id)
+      → Updates PlanningSeason submission status if from planning season
+      → Triggers notification orchestrator for communication timeline
+  → CalendarView auto-shows event (reads CalendarEvents, sourceModule filter)
+```
 
-  await prisma.pmSchedule.update({
-    where: { id: schedule.id },
-    data: { nextDueDate },
-  })
-}
+### Public Registration Flow
+
+```
+Parent receives link / scans QR
+  → GET /api/public/events/[slug] (rate-limited, no auth, org resolved via slug)
+  → Public event page renders (school branding, event details)
+  → Parent fills multi-page registration form (FormRenderer)
+  → POST /api/public/events/[slug]/register
+      → Rate limiter + CAPTCHA validation
+      → Stripe PaymentIntent created (if payment required)
+      → EventRegistration created (status=PENDING_PAYMENT or CONFIRMED)
+      → Confirmation email sent (Resend) with QR code PNG
+  → Stripe Elements confirm payment client-side → /api/webhooks/stripe-events/
+      → EventRegistration.paymentStatus → PAID
+      → Registration QR code email delivered
+```
+
+### Day-Of Check-In Flow
+
+```
+Staff opens PWA (cached offline)
+  → Event roster cached to IndexedDB (offlineEventRosters)
+  → QRScanner component opens camera
+  → Parent presents QR code (PNG in email / wristband)
+  → POST /api/event-qr/scan (online) OR enqueue to offlineQRScans (offline)
+      → EventRegistration status → CHECKED_IN, checkedInAt stamped
+      → If offline: added to offlineQRScans with status=pending
+      → Background: replayed on reconnect via sync.ts pattern
+  → Real-time headcount updates via SSE to all staff on event page
+```
+
+### Calendar Bridge Data Flow
+
+```
+CalendarView reads CalendarEvent records
+  → Existing: all events with calendarId in subscribed calendars
+  → New bridge: CalendarEvents with sourceModule='event-project'
+  → EventProject data (registration count, budget status) visible
+    via CalendarEvent.metadata JSON field (denormalized summary)
+  → Click EventProject CalendarEvent → deep link to /events/[id]
+    (not the old event detail panel)
 ```
 
 ---
 
-## Asset-Ticket Relationship
+## Scaling Considerations
 
-### Phase 2 Data Structure
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 0-50 schools | Single Supabase instance, SSE on Vercel Node.js runtime, no Redis needed — in-process event bus for SSE via Map |
+| 50-500 schools | Add Redis (Upstash) for SSE Pub/Sub so multiple Vercel instances share the same event stream; index EventProject by status + campusId |
+| 500+ schools | Supabase connection pooler (PgBouncer) already in use via DATABASE_URL; consider read replicas for registration count queries during high-traffic events |
 
-```
-Asset (1) ──── (many) MaintenanceTicket    -- via MaintenanceTicket.assetId FK
-Asset (1) ──── (many) PmSchedule           -- via PmSchedule.assetId FK
-```
+### First Bottleneck
 
-Assets are a **reference table** that tickets optionally link to. The asset record does not hold tickets — tickets hold the asset reference. This preserves the ticket as the unit of work.
+Registration surges: when a large event (500+ expected) opens registration, concurrent form submissions overwhelm a single PostgreSQL write path. Mitigation: queue registrations via a lightweight pending table; background worker confirms them. This is not needed at current Linfield scale but should be noted for the architecture.
 
-### Repeat Repair Detection
+### Second Bottleneck
 
-```typescript
-// In analyticsService.ts — runs as part of Phase 2 analytics
-
-async function detectRepeatRepairs(assetId: string): Promise<RepeatRepairFlag | null> {
-  const twelveMonthsAgo = subMonths(new Date(), 12)
-  const tickets = await prisma.maintenanceTicket.findMany({
-    where: {
-      assetId,
-      status: 'DONE',
-      resolvedAt: { gte: twelveMonthsAgo },
-    },
-    include: { costEntries: true, laborEntries: true },
-  })
-
-  if (tickets.length >= 3) {
-    const totalCost = sumCosts(tickets)      // labor + materials
-    const asset = await prisma.asset.findUnique({ where: { id: assetId } })
-    const threshold = (asset?.replacementCostUSD ?? 0) * (asset?.repairThresholdPct ?? 0.5)
-
-    return {
-      ticketCount: tickets.length,
-      totalRepairCost: totalCost,
-      replacementCost: asset?.replacementCostUSD,
-      exceedsThreshold: totalCost > threshold,
-      recommendation: totalCost > threshold ? 'REPLACE' : 'CONTINUE_REPAIR',
-    }
-  }
-  return null
-}
-```
+PDF generation: server-side @react-pdf/renderer is CPU-intensive for large manifests (200+ participants). Mitigation: generate PDFs on demand and cache in Supabase Storage with a TTL; invalidate when roster changes.
 
 ---
 
-## How New Models Register in the Org-Scoped Extension
+## Anti-Patterns
 
-Every new Prisma model must be added to the two Sets in `src/lib/db/index.ts`:
+### Anti-Pattern 1: Extending CalendarEvent for Event Planning Data
 
-```typescript
-// Models that get auto-injected organizationId and auto-filtered on reads
-const orgScopedModels = new Set([
-  // ... existing models ...
-  // Maintenance module — Phase 1
-  'MaintenanceTicket',
-  'TicketActivity',
-  'TechnicianProfile',
-  // Maintenance module — Phase 2
-  'Asset',
-  'PmSchedule',
-  'TicketLaborEntry',
-  'TicketCostEntry',
-  // Maintenance module — Phase 3
-  'ComplianceRecord',
-  'KnowledgeArticle',
-])
+**What people do:** Add `registrationFormId`, `groupIds`, `budgetTotal` fields to the existing `CalendarEvent` model to avoid creating a new model.
 
-// Models that use soft-delete (deletedAt stamps instead of hard delete)
-const softDeleteModels = new Set([
-  // ... existing models ...
-  'MaintenanceTicket',   // Soft-delete tickets (never hard-delete work history)
-  'Asset',               // Soft-delete assets (preserve history)
-])
-```
+**Why it's wrong:** CalendarEvent already has 25+ fields and handles RRULE recurrence, attendees, approval workflows, and Google Calendar sync. Adding registration and planning data turns it into a god model with conflicting concerns. The existing codebase explicitly decided: "EventProject as hub model (not extending CalendarEvent) — events need fundamentally different data."
 
-`TicketActivity`, `TechnicianProfile`, `TicketLaborEntry`, `TicketCostEntry` are **org-scoped but NOT soft-deleted** — they are child records of soft-deletable parents and do not need independent soft-delete behavior.
+**Do this instead:** Create the `EventProject` model and link it back to `CalendarEvent` via `sourceModule`/`sourceId`. The CalendarEvent becomes a read-only calendar entry; all mutable event planning state lives in EventProject.
 
-`ComplianceRecord` and `KnowledgeArticle` are org-scoped. Add soft-delete only to `KnowledgeArticle` (compliance records should be archived/closed, not deleted, per audit requirements).
+### Anti-Pattern 2: Putting Public Route Logic Inside Authenticated Route Handlers
 
----
+**What people do:** Add `if (!token) return publicFallback()` branching inside existing authenticated API route handlers.
 
-## Compliance Calendar Architecture (Phase 3)
+**Why it's wrong:** Authenticated routes carry `runWithOrgContext` driven by the JWT-injected `x-org-id` header. Public routes must resolve orgId via URL slug, which requires different middleware handling and rate limiting. Mixing the two creates security surface — a forgotten `assertCan` check in a branch means unauthenticated access to scoped data.
 
-### Design: Config-Driven Compliance Domains
+**Do this instead:** Create entirely separate routes under `/api/public/events/`. These routes call `rawPrisma.organization.findUnique({ where: { slug } })` first, then `runWithOrgContext`. Never share a handler function between authenticated and public callers.
 
-The compliance calendar is a **configuration table** that drives automatic deadline generation. Admins enable/disable domains per org, then the system populates the compliance calendar.
+### Anti-Pattern 3: Using rawPrisma Inside Event Planning Route Handlers
 
-```
-ComplianceDomainConfig (per org, per domain)
-  ├── domain: AHERA | FIRE_SAFETY | PLAYGROUND | LEAD_WATER | BOILER | ...
-  ├── isEnabled: boolean
-  ├── lastInspectionDate: DateTime?
-  └── nextDueDate: DateTime? (computed from domain's regulatory interval)
+**What people do:** Use `rawPrisma.eventProject.findMany()` inside route handlers because it "seems simpler."
 
-ComplianceRecord (one per inspection event)
-  ├── domain: ComplianceDomain enum
-  ├── scheduledDate: DateTime
-  ├── completedDate: DateTime?
-  ├── status: UPCOMING | IN_PROGRESS | PASSED | FAILED | OVERDUE
-  ├── inspector: String?
-  ├── findings: String?
-  ├── documents: String[]        -- Supabase Storage URLs
-  └── remediationTicketId: String?  -- auto-generated on FAILED
-```
+**Why it's wrong:** All 15+ new EventProject-related models must be in `orgScopedModels` in `src/lib/db/index.ts`. Using rawPrisma bypasses organizationId injection silently, allowing cross-tenant data leakage. This is the most dangerous footgun in the codebase per the existing CLAUDE.md.
 
-**Failed inspection flow:**
-```
-ComplianceRecord.status → FAILED
-  → complianceService.onInspectionFailed(record)
-      → ticketService.createMaintenanceTicket({
-            title: `Compliance Remediation: ${domain} — ${finding}`,
-            priority: 'HIGH',
-            status: 'BACKLOG',
-          })
-      → complianceRecord.update({ remediationTicketId: newTicket.id })
-      → email to Head of Maintenance + Admin
-```
+**Do this instead:** Add every new model to `orgScopedModels` before writing a single route. `rawPrisma` is only for public routes that resolve orgId via slug before calling `runWithOrgContext`.
+
+### Anti-Pattern 4: Storing Raw Card Data or Processing Payments Server-Side
+
+**What people do:** Attempt to pass card numbers through the Lionheart server to avoid Stripe Elements complexity.
+
+**Why it's wrong:** Immediate PCI DSS scope expansion requiring SAQ D compliance, security audits, and quarterly penetration testing. The PROJECT.md constraint is explicit: "Stripe Elements only — never store or transmit raw card numbers."
+
+**Do this instead:** Stripe Elements on the client creates the PaymentIntent client-side. The server only creates a `paymentIntentClientSecret` and receives confirmation webhooks. Card data never touches Lionheart servers.
+
+### Anti-Pattern 5: Single Stripe Webhook for Both Platform Billing and Event Payments
+
+**What people do:** Add `case 'payment_intent.succeeded':` handlers to the existing `/api/platform/webhooks/stripe` route.
+
+**Why it's wrong:** Platform billing webhooks carry `Subscription` and `Invoice` objects for platform SaaS billing. Event payment webhooks carry `PaymentIntent` objects tied to `EventRegistration`. Conflating them means shared error handling, ambiguous objects, and inability to use separate Stripe signing secrets.
+
+**Do this instead:** Create `/api/webhooks/stripe-events/route.ts` with its own `STRIPE_EVENTS_WEBHOOK_SECRET` env variable. Add this path to `isPublicPath()` in middleware.
 
 ---
 
-## Board Report and FCI Architecture (Phase 3)
+## Integration Points
 
-### FCI Calculation
+### External Services
 
-```
-FCI = Σ(deferred maintenance costs) / Σ(current replacement value of all assets)
-```
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Stripe Events | Stripe Elements (client) + PaymentIntent API (server) + webhook | `STRIPE_EVENTS_SECRET_KEY` and `STRIPE_EVENTS_WEBHOOK_SECRET` are separate from platform Stripe keys |
+| Planning Center | REST API client with OAuth 2.0 + inbound webhooks (HMAC-SHA256 `x-pco-signature`) | PCO supports People, Services, Check-Ins modules; retry up to 16x with exponential backoff |
+| Google Calendar | Existing `CalendarFeedConnection` model and sync infrastructure already present; extend for EventProject published events | Use existing `EventSyncMapping` table |
+| Twilio SMS | REST API for outbound SMS; inbound delivery status webhooks | Used for notification orchestrator SMS channel; store `twilioMessageSid` on EventCommunication |
+| Resend (existing) | Already integrated for welcome emails; extend for event confirmation emails with QR code PNG inline | QR code as base64 PNG in email |
+| Supabase Storage | Already used for photos; extend for PDF storage (bus manifests, rosters) | Store generated PDFs under `/event-pdfs/[orgId]/[eventId]/` prefix |
+| Google Gemini (existing) | Already integrated; extend with event AI features: NLP creation, form generation, conflict detection, group AI assignment | All use existing `gemini.service.ts` client |
 
-**Deferred maintenance** = sum of `TicketCostEntry.amountUSD` + `TicketLaborEntry.loadedCostUSD` for all DONE tickets in the reporting period.
+### Internal Boundaries
 
-**Replacement value** = sum of `Asset.replacementCostUSD` for all ACTIVE assets.
-
-FCI is computed on-demand (not cached) because replacement values change as assets are added/updated. For board reports (monthly cadence), acceptable latency. Add database-level caching if query becomes slow.
-
-### Report Generation Pattern
-
-```typescript
-// src/lib/services/maintenance/reportingService.ts
-
-export async function generateBoardReport(orgId: string, period: ReportPeriod) {
-  // All queries inside runWithOrgContext called by the route handler
-  const [fci, pmCompliance, responseMetrics, topCostAssets, complianceStatus] =
-    await Promise.all([
-      calculateFCI(),
-      calculatePmComplianceRate(period),
-      calculateResponseMetrics(period),
-      getTopCostAssets(period, 10),
-      getComplianceSnapshot(),
-    ])
-
-  // AI narrative — Claude Sonnet, fire only on explicit request
-  // Never block report generation on AI availability
-  const narrative = await aiDiagnosticService.generateExecutiveSummary({
-    fci, pmCompliance, responseMetrics,
-  }).catch(() => null)  // graceful degradation
-
-  return { fci, pmCompliance, responseMetrics, topCostAssets, complianceStatus, narrative }
-}
-```
-
----
-
-## Offline PWA Architecture (Phase 3)
-
-Phase 3 requires true offline capability. This is the most architecturally significant addition in the entire module and is the **only place where the existing Next.js App Router architecture needs extension**.
-
-### Required additions:
-
-| Addition | Why |
-|---|---|
-| Service Worker (via `next-pwa` or manual) | Cache-first strategy for ticket data |
-| IndexedDB (via `idb` library) | Local mutation queue for offline creates/updates |
-| Background Sync API | Flush IndexedDB queue when connection restores |
-| Conflict resolution strategy | Server wins on status (most authoritative), client wins on comments/labor entries |
-
-### PWA is Phase 3 only. Do not over-design for it in Phase 1 or 2.
-
-The key architectural decision: **all Phase 1 and 2 API routes must be idempotent** so that retried requests from the offline queue do not create duplicate records. Use client-generated `idempotencyKey` (UUID) on create operations, stored in `MaintenanceTicket` as an optional unique field.
-
----
-
-## AI Diagnostic Service Architecture
-
-### Claude API Integration
-
-```typescript
-// src/lib/services/maintenance/aiDiagnosticService.ts
-// Uses Anthropic API, NOT Gemini (per PROJECT.md decision)
-
-import Anthropic from '@anthropic-ai/sdk'
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-export async function analyzeTicketPhotos(
-  ticketId: string,
-  photos: string[],          // Supabase Storage URLs
-  category: MaintenanceCategory,
-  description: string
-): Promise<AiAnalysis> {
-  // Check cache first
-  const existing = await prisma.maintenanceTicket.findUnique({
-    where: { id: ticketId },
-    select: { aiAnalysis: true },
-  })
-  if (existing?.aiAnalysis) return existing.aiAnalysis as AiAnalysis
-
-  // Fetch image bytes from Supabase Storage for Vision API
-  const imageContents = await Promise.all(
-    photos.map(url => fetchImageAsBase64(url))
-  )
-
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-5',
-    max_tokens: 1024,
-    messages: [{
-      role: 'user',
-      content: [
-        ...imageContents.map(img => ({ type: 'image', source: { type: 'base64', ...img } })),
-        {
-          type: 'text',
-          text: buildDiagnosticPrompt(category, description),
-        },
-      ],
-    }],
-  })
-
-  const analysis = parseAnalysisResponse(response)
-
-  // Cache result on ticket
-  await prisma.maintenanceTicket.update({
-    where: { id: ticketId },
-    data: { aiAnalysis: analysis as any },
-  })
-
-  return analysis
-}
-```
-
-**Important**: `ANTHROPIC_API_KEY` is a new environment variable. It is not the same as `GEMINI_API_KEY`. Add to both `.env` and `.env.local`.
-
----
-
-## Kanban Board Data Layer
-
-### Query Design
-
-The Kanban board is a **read-heavy, multi-filter query** that needs to be fast. Design the query to avoid N+1:
-
-```typescript
-// src/lib/services/maintenance/boardService.ts
-
-export async function getBoardData(params: BoardQueryParams): Promise<BoardData> {
-  const where = buildBoardWhere(params)  // role-based, campus-based, status-based
-
-  const tickets = await prisma.maintenanceTicket.findMany({
-    where,
-    include: {
-      submittedBy: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-      assignedTo: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-      building: { select: { id: true, name: true } },
-      room: { select: { id: true, roomNumber: true, displayName: true } },
-      _count: { select: { photos: true, comments: true } },
-    },
-    orderBy: [
-      { priority: 'desc' },    // URGENT first
-      { createdAt: 'asc' },    // Oldest first within priority
-    ],
-  })
-
-  // Group by status for board columns
-  return groupByStatus(tickets)
-}
-```
-
-### Board Column Grouping
-
-```typescript
-function groupByStatus(tickets: TicketWithIncludes[]): BoardData {
-  const columns: Record<TicketStatus, TicketWithIncludes[]> = {
-    BACKLOG: [], TODO: [], IN_PROGRESS: [], ON_HOLD: [],
-    QA: [], DONE: [], SCHEDULED: [], CANCELLED: [],
-  }
-  for (const ticket of tickets) {
-    columns[ticket.status].push(ticket)
-  }
-  // CANCELLED is typically hidden from board; DONE is limited to recent (7 days)
-  return columns
-}
-```
-
-### SLA Age Calculation
-
-SLA age is computed **client-side** from `ticket.createdAt` to avoid database-level timestamp math on every render. The ticket card component calculates the age and applies red styling if past SLA threshold. SLA thresholds are a future configurable setting; hardcode `72h URGENT, 48h HIGH, 7d MEDIUM, 14d LOW` for Phase 1.
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| EventProject → CalendarEvent | One-way bridge via `sourceModule`/`sourceId` | EventProject publish creates CalendarEvent; CalendarEvent deletion does NOT delete EventProject |
+| EventProject → PlanningSeason | PlanningSubmission.eventProjectId (new FK) | When a PlanningSubmission is approved and published, it links to the EventProject it created |
+| EventProject → Notification | Extend existing Notification model with `eventProjectId` | Participant notifications route through existing notification system |
+| EventProject → AuditLog | AuditLog entries with `resourceType='EventProject'` | Reuse existing audit logging infrastructure |
+| Public Pages → Branding | `/api/branding` already public (in middleware) | Public event pages fetch org branding from this existing endpoint |
+| Offline layer → EventProject API | Same mutation queue pattern as maintenance tickets | `MutationQueueEntry.type` extended with event-specific mutation types |
+| Notification Orchestrator → Email/SMS | Delegates to `emailService.ts` (Resend) and `twilioService.ts` | Orchestrator evaluates timing + conditions; services handle delivery |
 
 ---
 
 ## Suggested Build Order
 
-Build order is driven by three constraints:
-1. Downstream components depend on upstream ones (no orphaned FK references)
-2. Permissions must exist before routes use them
-3. The notification/email side-effect infrastructure is shared and built once
+Based on dependency analysis, the correct build order is:
 
-### Phase 1 Build Sequence
+1. **Data models first** — Add all 15+ Prisma models to `schema.prisma`, update `orgScopedModels` and `softDeleteModels` in `db/index.ts`, add permissions to `permissions.ts`. Everything downstream depends on this.
 
-```
-1. Schema: Add MaintenanceTicket, TicketActivity, TechnicianProfile to schema.prisma
-   Register new models in orgScopedModels / softDeleteModels in db/index.ts
+2. **EventProject CRUD + event project page (empty sections)** — Get the hub model working with create, read, update, delete, and the 8-tab workspace rendering empty states. Navigation reorientation (Sidebar.tsx) happens here.
 
-2. Permissions: Add all maintenance:* permission strings to src/lib/permissions.ts
-   Update DEFAULT_ROLES to seed maintenance permissions for relevant roles
+3. **Calendar bridge** — Connect EventProject publish action to CalendarEvent creation. Existing CalendarView starts showing event projects. Validate that existing calendar functionality is unbroken.
 
-3. Services (core): ticketService.ts — state machine + CRUD
-   Services (side effects): maintenanceNotificationService.ts, maintenanceEmailService.ts
+4. **Form builder + public pages** — Multi-page form builder (staff) and public registration page (parents). This is the first public-facing page. Requires magic link auth, rate limiting additions to middleware.
 
-4. API routes: /tickets (CRUD), /tickets/[id]/status, /tickets/[id]/assign,
-   /tickets/[id]/claim, /tickets/[id]/comments, /tickets/[id]/photos
+5. **Registrations + payments** — EventRegistration model, Stripe Elements integration, Stripe webhook. Requires form builder to exist (a form is required before registration can happen).
 
-5. Board API: boardService.ts + /api/maintenance/board route
+6. **QR codes + day-of tools** — QR generation (confirmation emails), QR scanning (check-in), offline Dexie extension, PWA service worker update. Requires registrations to exist.
 
-6. AI service: aiDiagnosticService.ts + /api/maintenance/tickets/[id]/ai-analysis
+7. **Groups, documents, budget, communications** — The remaining EventProject sections. These are parallel and independent once the EventProject hub exists.
 
-7. Frontend: TicketSubmissionForm → KanbanBoard → TicketDetailDrawer → AiDiagnosticPanel
+8. **Notification orchestrator** — Scheduled + condition-based communication delivery. Depends on communications API existing and cron infrastructure.
 
-8. Module gate: Add 'maintenance' to TenantModule toggle in AddOnsTab
-   Sidebar nav entry behind ModuleGate
-```
+9. **AI features** — Smart event creation, form generation, conflict detection. Depends on all data models existing (AI features call into existing services).
 
-### Phase 2 Build Sequence (depends on Phase 1 complete)
+10. **External integrations** — Planning Center, Google Calendar sync extension, Twilio. These are additive and can be deferred without blocking core functionality.
 
-```
-1. Schema: Asset, PmSchedule, TicketLaborEntry, TicketCostEntry
-   Add assetId FK to MaintenanceTicket
-
-2. Services: assetService.ts, pmEngine.ts, laborService.ts, analyticsService.ts
-
-3. API routes: /assets, /pm-schedules, /tickets/[id]/labor, /tickets/[id]/costs,
-   /assets/qr/[code], /analytics, /pm-schedules/run-due (cron endpoint)
-
-4. Frontend: AssetRegister, PmCalendar, QR code generation/scanner, analytics dashboard
-```
-
-### Phase 3 Build Sequence (depends on Phase 2 complete)
-
-```
-1. Schema: ComplianceDomainConfig, ComplianceRecord, KnowledgeArticle
-   Add idempotencyKey to MaintenanceTicket (for PWA offline queue)
-
-2. Services: complianceService.ts, reportingService.ts, knowledgeService.ts
-   PWA: service worker, IndexedDB queue, background sync
-
-3. API routes: /compliance, /reports/board, /reports/fci, /knowledge
-
-4. Frontend: ComplianceCalendar, BoardReport, FCI dashboard, KnowledgeBase
-   next-pwa configuration
-```
-
----
-
-## Scalability Considerations
-
-| Concern | At current scale (Linfield ~500 users) | At 100-org scale | At 1000-org scale |
-|---|---|---|---|
-| Board query | Single org, 50-200 tickets — fast | Add org index, already present | Paginate DONE column (7-day default) |
-| AI analysis | Per-ticket cache prevents re-calls | Supabase Storage serves images — CDN | Rate limit Anthropic calls per org |
-| PM engine | Single org sweep takes <100ms | Org-by-org loop — add batch size limit | Move to queued background job (BullMQ) |
-| Photo storage | Supabase Storage — unlimited | Enforce 5-photo limit per ticket | Add per-org storage quota via TenantModule |
-| FCI calculation | On-demand — fast with indexes | Cache in Redis or materialised view | Scheduled pre-computation job |
-| Compliance calendar | 10 domains × ~40 deadlines/year per org | Efficient; ComplianceRecord is small | No change |
-
----
-
-## Integration Points With Existing Platform
-
-### Existing Ticket Model — Coexistence Strategy
-
-The existing `Ticket` model (used by OperationsEngine for calendar event automation) and the new `MaintenanceTicket` model coexist without conflict. They serve different purposes:
-
-- `Ticket`: auto-generated from calendar events, simple 3-status lifecycle, tracks facilities prep
-- `MaintenanceTicket`: manually submitted or PM-generated, 8-status lifecycle, tracks repair work
-
-**No migration or rename of the existing `Ticket` model is needed.**
-
-The global search endpoint at `/api/search` currently searches `Ticket`. It should be extended in Phase 1 to also search `MaintenanceTicket` — a one-line addition to the parallel search in `searchRoute.ts`.
-
-### Campus Hierarchy — Direct FK References
-
-`MaintenanceTicket` references `buildingId`, `areaId`, `roomId` directly as optional FKs to existing `Building`, `Area`, `Room` models. The `InteractiveCampusMap` component's room photos are already stored on `Room.images` — these can be surfaced in ticket submission without any new data work.
-
-### Notification Bell — No Changes Required
-
-The existing notification bell polls `/api/notifications/unread-count` every 30 seconds and supports any notification `type` string. Maintenance notifications just use new type strings: `'maintenance_ticket_submitted'`, `'maintenance_status_changed'`, etc. The `Notification.type` column is a plain string — no schema change needed.
-
-### Module Toggle — One Addition Required
-
-```typescript
-// src/components/settings/AddOnsTab.tsx
-// Add to the module registry array:
-
-{ id: 'maintenance', name: 'Maintenance & Facilities', description: '...' }
-```
-
-The `TenantModule` model and toggle API already handle this. No other changes to the add-ons system.
+11. **PDF generation** — Printable manifests and rosters. Depends on groups and registrations existing. Server-side @react-pdf/renderer; deferred from critical path.
 
 ---
 
 ## Sources
 
-- Direct codebase inspection: `src/lib/db/index.ts`, `src/lib/org-context.ts`, `src/lib/services/ticketService.ts`, `src/lib/permissions.ts`, `src/lib/services/notificationService.ts`, `src/lib/services/athleticsService.ts`, `prisma/schema.prisma`
-- `.planning/PROJECT.md` — requirements, constraints, key decisions
-- `.planning/maintenance-spec-v1.1.md` — full feature specification
-- `CLAUDE.md` — platform conventions (confirmed: rawPrisma for transactions, org-scoped prisma for routes, fire-and-forget notifications)
-- Established CMMS state machine patterns (HIGH confidence — industry standard for work order systems)
+- Direct codebase inspection: `prisma/schema.prisma`, `src/lib/db/index.ts`, `src/middleware.ts`, `src/lib/offline/db.ts`, `src/components/Sidebar.tsx` (confidence: HIGH)
+- [Real-Time Updates with SSE in Next.js 15](https://damianhodgkiss.com/tutorials/real-time-updates-sse-nextjs) (confidence: HIGH — aligns with Next.js 15 ReadableStream pattern)
+- [Stripe + Next.js 15: The Complete 2025 Guide](https://www.pedroalonso.net/blog/stripe-nextjs-complete-guide-2025/) — `req.text()` for webhook raw body (confidence: HIGH)
+- [Offline-first frontend apps in 2025: IndexedDB and SQLite](https://blog.logrocket.com/offline-first-frontend-apps-2025-indexeddb-sqlite/) — Dexie + Background Sync patterns (confidence: HIGH)
+- [Planning Center API Documentation](https://developer.planning.center/docs/) — HMAC-SHA256 `x-pco-signature` verification, 16-retry backoff (confidence: HIGH)
+- [7 Best QR Code Libraries for Developers in 2025](https://qrcode.fun/blog/best-qr-code-libraries-2025) — `qrcode` package for server-side SVG/PNG generation (confidence: MEDIUM)
+- PROJECT.md constraints: EventProject as hub, Stripe Elements PCI, PWA offline, magic link for parents (confidence: HIGH — authoritative project spec)
+
+---
+
+*Architecture research for: Lionheart v3.0 Event Planning Integration*
+*Researched: 2026-03-14*
