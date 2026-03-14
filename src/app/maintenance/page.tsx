@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion, MotionConfig } from 'framer-motion'
+import { motion, MotionConfig, AnimatePresence } from 'framer-motion'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
@@ -12,21 +12,24 @@ import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import MaintenanceSkeleton from '@/components/maintenance/MaintenanceSkeleton'
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
 import MyRequestsView from '@/components/maintenance/MyRequestsView'
-import { LayoutDashboard, FileText, FileBarChart } from 'lucide-react'
+import PmCalendarView from '@/components/maintenance/PmCalendarView'
+import PmScheduleList from '@/components/maintenance/PmScheduleList'
+import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
+import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X } from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import TabIndicator from '@/components/ui/TabIndicator'
+import { useQueryClient } from '@tanstack/react-query'
 
 const SUB_TABS: {
   key: MaintenanceTab
   label: string
   icon: typeof LayoutDashboard
-  requiresManage?: boolean
 }[] = [
-  { key: 'dashboard', label: 'Maintenance Hub', icon: LayoutDashboard, requiresManage: true },
-  { key: 'my-requests', label: 'My Requests', icon: FileText },
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { key: 'pm-calendar', label: 'PM Calendar', icon: CalendarClock },
 ]
 
 /**
@@ -92,20 +95,23 @@ function MaintenanceContent() {
 
   const { data: perms } = usePermissions()
   const canManageMaintenance = perms?.canManageMaintenance ?? false
+  const canClaimMaintenance = perms?.canClaimMaintenance ?? false
+  // Show full dashboard + tabs for admins and technicians; My Requests only for submit-only users
+  const showDashboardTabs = canManageMaintenance || canClaimMaintenance
   const campusFilter = useCampusFilter()
   const dataLoading = campusFilter.isLoading
+  const queryClient = useQueryClient()
 
   // Determine default tab based on URL param then permissions
   const getDefaultTab = (): MaintenanceTab => {
     const paramTab = searchParams?.get('tab') as MaintenanceTab | null
-    if (paramTab && ['dashboard', 'my-requests'].includes(paramTab)) {
+    if (paramTab && ['dashboard', 'pm-calendar'].includes(paramTab)) {
       return paramTab
     }
-    if (canManageMaintenance) return 'dashboard'
-    return 'my-requests'
+    return 'dashboard'
   }
 
-  const [activeTab, setActiveTab] = useState<MaintenanceTab>('my-requests')
+  const [activeTab, setActiveTab] = useState<MaintenanceTab>('dashboard')
 
   // Set default tab once permissions load
   useEffect(() => {
@@ -114,13 +120,20 @@ function MaintenanceContent() {
     }
   }, [perms]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Visible tabs based on permissions
-  const visibleTabs = SUB_TABS.filter((tab) => {
-    if (tab.requiresManage) return canManageMaintenance
-    return true
-  })
+  // PM Calendar state
+  const [pmViewMode, setPmViewMode] = useState<'calendar' | 'list'>('calendar')
+  const [showPmWizard, setShowPmWizard] = useState(false)
+  const [pmSuccessMessage, setPmSuccessMessage] = useState('')
 
-  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [canManageMaintenance])
+  const handlePmWizardComplete = () => {
+    setShowPmWizard(false)
+    setPmSuccessMessage('PM schedule created successfully')
+    setTimeout(() => setPmSuccessMessage(''), 4000)
+    queryClient.invalidateQueries({ queryKey: ['pm-calendar-events'] })
+    queryClient.invalidateQueries({ queryKey: ['pm-schedules-list'] })
+  }
+
+  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [showDashboardTabs])
 
   const handleLogout = () => {
     localStorage.removeItem('auth-token')
@@ -189,45 +202,153 @@ function MaintenanceContent() {
               </motion.p>
             </motion.div>
 
-            {/* Sub-navigation tabs */}
-            <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
-              {visibleTabs.map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  ref={(el) => setTabRef(key, el)}
-                  onClick={() => setActiveTab(key)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
-                    activeTab === key
-                      ? 'text-gray-900'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-              <TabIndicator style={indicatorStyle} />
-            </div>
-
-            {/* Tab content */}
-            {dataLoading ? (
-              <MaintenanceSkeleton />
-            ) : (
+            {/* Sub-navigation tabs — for admins and technicians */}
+            {showDashboardTabs ? (
               <>
-                <div
-                  className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-                  aria-hidden={activeTab !== 'dashboard'}
-                >
-                  <MaintenanceDashboard activeCampusId={campusFilter.selectedCampusId || null} />
+                <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+                  {SUB_TABS.map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      ref={(el) => setTabRef(key, el)}
+                      onClick={() => setActiveTab(key)}
+                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                        activeTab === key
+                          ? 'text-gray-900'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {label}
+                    </button>
+                  ))}
+                  <TabIndicator style={indicatorStyle} />
                 </div>
 
-                <div
-                  className={activeTab === 'my-requests' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-                  aria-hidden={activeTab !== 'my-requests'}
-                >
-                  <MyRequestsView />
-                </div>
+                {/* Tab content */}
+                {dataLoading ? (
+                  <MaintenanceSkeleton />
+                ) : (
+                  <>
+                    <div
+                      className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
+                      aria-hidden={activeTab !== 'dashboard'}
+                    >
+                      <MaintenanceDashboard activeCampusId={campusFilter.selectedCampusId || null} />
+                    </div>
+
+                    <div
+                      className={activeTab === 'pm-calendar' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
+                      aria-hidden={activeTab !== 'pm-calendar'}
+                    >
+                      {/* PM Calendar header controls */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Preventive maintenance schedules and upcoming tasks
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {/* View toggle */}
+                          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                            <button
+                              onClick={() => setPmViewMode('calendar')}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                                pmViewMode === 'calendar'
+                                  ? 'bg-white text-gray-900 shadow-sm'
+                                  : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              <CalendarDays className="w-4 h-4" />
+                              Calendar
+                            </button>
+                            <button
+                              onClick={() => setPmViewMode('list')}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                                pmViewMode === 'list'
+                                  ? 'bg-white text-gray-900 shadow-sm'
+                                  : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              <LayoutList className="w-4 h-4" />
+                              List
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => setShowPmWizard(true)}
+                            className="ui-btn-md ui-btn-primary"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Create PM Schedule
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Success toast */}
+                      {pmSuccessMessage && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          className="mb-4 px-4 py-3 bg-primary-50 border border-primary-200 rounded-xl text-sm text-primary-700 font-medium"
+                        >
+                          {pmSuccessMessage}
+                        </motion.div>
+                      )}
+
+                      {/* Wizard */}
+                      <AnimatePresence>
+                        {showPmWizard && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -12 }}
+                            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                            className="mb-6"
+                          >
+                            <div className="flex items-center justify-between mb-3 px-1">
+                              <h2 className="text-sm font-semibold text-gray-700">New PM Schedule</h2>
+                              <button
+                                onClick={() => setShowPmWizard(false)}
+                                className="p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                              >
+                                <X className="w-4 h-4 text-gray-500" />
+                              </button>
+                            </div>
+                            <PmScheduleWizard
+                              onComplete={handlePmWizardComplete}
+                              onCancel={() => setShowPmWizard(false)}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Calendar / List view */}
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={pmViewMode}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                        >
+                          {pmViewMode === 'calendar' ? (
+                            <PmCalendarView />
+                          ) : (
+                            <PmScheduleList />
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                  </>
+                )}
               </>
+            ) : (
+              /* Submit-only users see My Requests (to track tickets they've submitted) */
+              dataLoading ? (
+                <MaintenanceSkeleton />
+              ) : (
+                <MyRequestsView />
+              )
             )}
           </div>
         </MotionConfig>

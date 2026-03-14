@@ -86,7 +86,7 @@ export interface CalendarSidebarData {
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons' | 'activity-log' | 'billing'
 export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
-export type MaintenanceTab = 'dashboard' | 'my-requests'
+export type MaintenanceTab = 'dashboard' | 'pm-calendar'
 
 interface AthleticsCampus {
   id: string
@@ -1075,25 +1075,6 @@ export default function Sidebar({
                                 }`}
                               >
                                 <span className="text-sm">Work Orders</span>
-                              </PrefetchLink>
-                          )}
-                          {/* My Requests — for Technicians */}
-                          {canClaimMaintenance && !canManageMaintenance && (
-                              <PrefetchLink
-                                href="/maintenance?tab=my-requests"
-                                data-facility-active={pathname.includes('my-requests') ? 'true' : undefined}
-                                onClick={() => {
-                                  setSettingsOpen(false)
-                                  setAthleticsOpen(false)
-                                  setIsOpen(false)
-                                }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
-                                  pathname.includes('my-requests')
-                                    ? 'text-slate-900 font-medium'
-                                    : 'text-slate-500 hover:text-slate-800'
-                                }`}
-                              >
-                                <span className="text-sm">My Requests</span>
                               </PrefetchLink>
                           )}
                           {/* Inventory — inventory items for maintenance dept */}
