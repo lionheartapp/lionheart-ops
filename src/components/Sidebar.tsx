@@ -1090,6 +1090,26 @@ export default function Sidebar({
                                 <span className="text-sm">My Requests</span>
                               </PrefetchLink>
                           )}
+                          {/* Inventory — inventory items for maintenance dept */}
+                          {canReadInventory && canManageMaintenance && (
+                              <PrefetchLink
+                                href="/inventory?dept=maintenance"
+                                data-facility-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
+                                  pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
+                                }`}
+                                aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'page' : undefined}
+                              >
+                                <span className="text-sm">Inventory</span>
+                              </PrefetchLink>
+                          )}
                           {/* Assets */}
                           {canManageMaintenance && (
                               <PrefetchLink
@@ -1110,46 +1130,6 @@ export default function Sidebar({
                                 <span className="text-sm">Assets</span>
                               </PrefetchLink>
                           )}
-                          {/* PM Calendar */}
-                          {canManageMaintenance && (
-                              <PrefetchLink
-                                href="/maintenance/pm-calendar"
-                                data-facility-active={pathname === '/maintenance/pm-calendar' ? 'true' : undefined}
-                                onClick={() => {
-                                  setSettingsOpen(false)
-                                  setAthleticsOpen(false)
-                                  setIsOpen(false)
-                                }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
-                                  pathname === '/maintenance/pm-calendar'
-                                    ? 'text-slate-900 font-medium'
-                                    : 'text-slate-500 hover:text-slate-800'
-                                }`}
-                                aria-current={pathname === '/maintenance/pm-calendar' ? 'page' : undefined}
-                              >
-                                <span className="text-sm">PM Calendar</span>
-                              </PrefetchLink>
-                          )}
-                          {/* Compliance */}
-                          {canManageMaintenance && (
-                              <PrefetchLink
-                                href="/maintenance/compliance"
-                                data-facility-active={pathname === '/maintenance/compliance' ? 'true' : undefined}
-                                onClick={() => {
-                                  setSettingsOpen(false)
-                                  setAthleticsOpen(false)
-                                  setIsOpen(false)
-                                }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
-                                  pathname === '/maintenance/compliance'
-                                    ? 'text-slate-900 font-medium'
-                                    : 'text-slate-500 hover:text-slate-800'
-                                }`}
-                                aria-current={pathname === '/maintenance/compliance' ? 'page' : undefined}
-                              >
-                                <span className="text-sm">Compliance</span>
-                              </PrefetchLink>
-                          )}
                           {/* Knowledge Base */}
                           {(canManageMaintenance || canClaimMaintenance) && (
                               <PrefetchLink
@@ -1168,26 +1148,6 @@ export default function Sidebar({
                                 aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                               >
                                 <span className="text-sm">Knowledge Base</span>
-                              </PrefetchLink>
-                          )}
-                          {/* Supplies — inventory items for maintenance dept */}
-                          {canReadInventory && canManageMaintenance && (
-                              <PrefetchLink
-                                href="/inventory?dept=maintenance"
-                                data-facility-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'true' : undefined}
-                                onClick={() => {
-                                  setSettingsOpen(false)
-                                  setAthleticsOpen(false)
-                                  setIsOpen(false)
-                                }}
-                                className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-2 ${
-                                  pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance'
-                                    ? 'text-slate-900 font-medium'
-                                    : 'text-slate-500 hover:text-slate-800'
-                                }`}
-                                aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'page' : undefined}
-                              >
-                                <span className="text-sm">Supplies</span>
                               </PrefetchLink>
                           )}
                           </div>

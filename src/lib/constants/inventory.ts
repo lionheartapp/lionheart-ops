@@ -35,9 +35,9 @@ export const INVENTORY_DEPT_CONFIG: Record<InventoryDept, { title: string; subti
     addLabel: 'Add Item',
   },
   maintenance: {
-    title: 'Supplies',
+    title: 'Maintenance Inventory',
     subtitle: 'Track and manage maintenance supplies and materials',
-    addLabel: 'Add Supply',
+    addLabel: 'Add Item',
   },
   it: {
     title: 'IT Inventory',
