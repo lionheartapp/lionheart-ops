@@ -75,8 +75,8 @@ function WorkOrdersContent() {
 
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -103,12 +103,12 @@ function WorkOrdersContent() {
               variants={staggerContainer(0.08, 0.05)}
             >
               <motion.div variants={fadeInUp} className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-2xl font-semibold text-slate-900">
                   Work Orders
                 </h1>
                 <CampusFilterChip campusFilter={campusFilter} />
               </motion.div>
-              <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
+              <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
                 {campusFilter.selectedCampusName === 'All Campuses'
                   ? 'Manage and track maintenance work orders'
                   : campusFilter.selectedCampusName}
@@ -129,8 +129,8 @@ function WorkOrdersContent() {
 export default function WorkOrdersPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     }>
       <WorkOrdersContent />

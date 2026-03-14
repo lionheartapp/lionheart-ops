@@ -12,7 +12,7 @@ const PRIORITY_BADGE: Record<string, string> = {
   URGENT: 'bg-red-100 text-red-700 font-semibold',
   HIGH: 'bg-orange-100 text-orange-700',
   MEDIUM: 'bg-amber-100 text-amber-700',
-  LOW: 'bg-gray-100 text-gray-500',
+  LOW: 'bg-slate-100 text-slate-500',
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -104,29 +104,29 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
     >
       {/* Top row: ticket number + priority badge */}
       <div className="flex items-start justify-between gap-1 mb-1.5">
-        <span className="font-mono text-[11px] text-gray-400 leading-tight">{ticket.ticketNumber}</span>
+        <span className="font-mono text-[11px] text-slate-400 leading-tight">{ticket.ticketNumber}</span>
         <span
-          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap ${PRIORITY_BADGE[ticket.priority] ?? 'bg-gray-100 text-gray-500'}`}
+          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap ${PRIORITY_BADGE[ticket.priority] ?? 'bg-slate-100 text-slate-500'}`}
         >
           {ticket.priority}
         </span>
       </div>
 
       {/* Title */}
-      <p className="text-sm font-medium text-gray-800 leading-snug line-clamp-2 mb-1.5">
+      <p className="text-sm font-medium text-slate-800 leading-snug line-clamp-2 mb-1.5">
         {ticket.title}
       </p>
 
       {/* Category tag */}
       <div className="mb-1.5">
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[10px] font-medium border border-gray-200">
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-medium border border-slate-200">
           {CATEGORY_LABEL[ticket.category] ?? ticket.category}
         </span>
       </div>
 
       {/* Location */}
       {location && (
-        <p className="text-[11px] text-gray-400 truncate mb-1.5">{location}</p>
+        <p className="text-[11px] text-slate-400 truncate mb-1.5">{location}</p>
       )}
 
       {/* Footer: tech avatar + age + indicators */}
@@ -137,23 +137,23 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
             <div className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
               {getInitials(ticket.assignedTo.firstName, ticket.assignedTo.lastName)}
             </div>
-            <span className="text-[10px] text-gray-500 truncate">
+            <span className="text-[10px] text-slate-500 truncate">
               {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
             </span>
           </div>
         ) : (
-          <span className="text-[10px] text-gray-300 italic">Unassigned</span>
+          <span className="text-[10px] text-slate-300 italic">Unassigned</span>
         )}
 
         {/* Right side: icons + age */}
         <div className="flex items-center gap-1 flex-shrink-0">
           {hasPhotos && (
-            <Camera className="w-3 h-3 text-gray-300" />
+            <Camera className="w-3 h-3 text-slate-300" />
           )}
           {hasAI && (
             <Bot className="w-3 h-3 text-blue-300" />
           )}
-          <span className="text-[10px] text-gray-300">{formatAge(ticket.createdAt)}</span>
+          <span className="text-[10px] text-slate-300">{formatAge(ticket.createdAt)}</span>
         </div>
       </div>
     </div>

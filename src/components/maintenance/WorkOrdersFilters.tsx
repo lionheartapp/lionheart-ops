@@ -194,7 +194,7 @@ export default function WorkOrdersFilters({
     return (
       <div className="group relative pb-2 max-w-[768px]">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5" style={{ top: 0, bottom: '0.5rem' }}>
-          <Search className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
+          <Search className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
         </div>
         <input
           id="wo-search"
@@ -203,14 +203,14 @@ export default function WorkOrdersFilters({
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}
           placeholder="Search tickets..."
-          className="w-full h-[52px] pl-14 pr-12 text-base text-gray-800 placeholder:text-gray-400 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
+          className="w-full h-[52px] pl-14 pr-12 text-base text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
           aria-label="Search work orders"
         />
         {filters.search && (
           <button
             type="button"
             onClick={handleSearchClear}
-            className="absolute right-0 flex items-center pr-5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            className="absolute right-0 flex items-center pr-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
             style={{ top: 0, bottom: '0.5rem', display: 'flex', alignItems: 'center' }}
             aria-label="Clear search"
           >
@@ -230,7 +230,7 @@ export default function WorkOrdersFilters({
           {/* KB-style search bar */}
           <div className="group relative flex-1 max-w-[768px]">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
-              <Search className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
+              <Search className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
             </div>
             <input
               id="wo-search"
@@ -239,14 +239,14 @@ export default function WorkOrdersFilters({
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
               placeholder="Search tickets..."
-              className="w-full h-[52px] pl-14 pr-12 text-base text-gray-800 placeholder:text-gray-400 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
+              className="w-full h-[52px] pl-14 pr-12 text-base text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
               aria-label="Search work orders"
             />
             {filters.search && (
               <button
                 type="button"
                 onClick={handleSearchClear}
-                className="absolute inset-y-0 right-0 flex items-center pr-5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 aria-label="Clear search"
               >
                 <X className="w-4 h-4" />
@@ -261,14 +261,14 @@ export default function WorkOrdersFilters({
               onClick={() => setFilterPopoverOpen((o) => !o)}
               className={`inline-flex items-center gap-2 h-[52px] px-5 text-sm font-medium rounded-full border transition-all duration-200 cursor-pointer ${
                 filterPopoverOpen || dropdownFilterCount > 0
-                  ? 'bg-gray-900 text-white border-gray-900'
-                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
               Filters
               {dropdownFilterCount > 0 && (
-                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold bg-white text-gray-900 rounded-full">
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold bg-white text-slate-900 rounded-full">
                   {dropdownFilterCount}
                 </span>
               )}
@@ -278,15 +278,15 @@ export default function WorkOrdersFilters({
             {filterPopoverOpen && (
               <div
                 ref={filterPopoverRef}
-                className="absolute right-0 top-full mt-2 w-[320px] bg-white border border-gray-200 rounded-2xl shadow-xl z-50 p-5 space-y-4"
+                className="absolute right-0 top-full mt-2 w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-5 space-y-4"
               >
                 {/* Status */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Status</label>
+                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
                   <select
                     value={filters.status}
                     onChange={(e) => update({ status: e.target.value as MaintenanceStatus | '' })}
-                    className="w-full h-10 px-3 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+                    className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
                   >
                     <option value="">All Statuses</option>
                     {STATUS_OPTIONS.map((o) => (
@@ -297,11 +297,11 @@ export default function WorkOrdersFilters({
 
                 {/* Priority */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Priority</label>
+                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Priority</label>
                   <select
                     value={filters.priority}
                     onChange={(e) => update({ priority: e.target.value as MaintenancePriority | '' })}
-                    className="w-full h-10 px-3 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+                    className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
                   >
                     <option value="">All Priorities</option>
                     {PRIORITY_OPTIONS.map((o) => (
@@ -312,11 +312,11 @@ export default function WorkOrdersFilters({
 
                 {/* Category */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Category</label>
+                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
                   <select
                     value={filters.category}
                     onChange={(e) => update({ category: e.target.value as MaintenanceCategory | '' })}
-                    className="w-full h-10 px-3 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+                    className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
                   >
                     <option value="">All Categories</option>
                     {CATEGORY_OPTIONS.map((o) => (
@@ -328,11 +328,11 @@ export default function WorkOrdersFilters({
                 {/* Technician */}
                 {technicians.length > 0 && (
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Technician</label>
+                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Technician</label>
                     <select
                       value={filters.assignedToId}
                       onChange={(e) => update({ assignedToId: e.target.value })}
-                      className="w-full h-10 px-3 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+                      className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
                     >
                       <option value="">All Technicians</option>
                       {technicians.map((t) => (
@@ -343,22 +343,22 @@ export default function WorkOrdersFilters({
                 )}
 
                 {/* Unassigned only toggle */}
-                <label className="flex items-center gap-2.5 pt-1 text-sm text-gray-700 cursor-pointer select-none">
+                <label className="flex items-center gap-2.5 pt-1 text-sm text-slate-700 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={filters.unassigned}
                     onChange={(e) => update({ unassigned: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400 cursor-pointer"
+                    className="w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
                   />
                   Unassigned only
                 </label>
 
                 {/* Clear / Apply row */}
                 {dropdownFilterCount > 0 && (
-                  <div className="pt-2 border-t border-gray-100">
+                  <div className="pt-2 border-t border-slate-100">
                     <button
                       onClick={clearDropdownFilters}
-                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                      className="text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
                     >
                       Clear all filters
                     </button>
@@ -373,7 +373,7 @@ export default function WorkOrdersFilters({
         <div className="flex lg:hidden items-center gap-2 pb-3">
           <div className="group relative flex-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <Search className="w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
+              <Search className="w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
             </div>
             <input
               type="search"
@@ -381,17 +381,17 @@ export default function WorkOrdersFilters({
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
               placeholder="Search tickets..."
-              className="w-full h-10 pl-10 pr-10 text-sm text-gray-800 placeholder:text-gray-400 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-all duration-200"
+              className="w-full h-10 pl-10 pr-10 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-all duration-200"
               aria-label="Search work orders"
             />
           </div>
           <button
             onClick={() => setBottomSheetOpen(true)}
-            className="inline-flex items-center gap-1.5 h-10 px-3 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-full hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+            className="inline-flex items-center gap-1.5 h-10 px-3 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-full hover:bg-slate-100 transition-colors cursor-pointer flex-shrink-0"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             {dropdownFilterCount > 0 && (
-              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-gray-900 rounded-full">
+              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-slate-900 rounded-full">
                 {dropdownFilterCount}
               </span>
             )}
@@ -468,7 +468,7 @@ export default function WorkOrdersFilters({
           />
         )}
         <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <input
             id="wo-search"
             type="text"
@@ -479,19 +479,19 @@ export default function WorkOrdersFilters({
             aria-label="Search work orders"
           />
         </div>
-        <label className="flex items-center gap-1.5 pb-2.5 text-sm text-gray-600 cursor-pointer select-none whitespace-nowrap">
+        <label className="flex items-center gap-1.5 pb-2.5 text-sm text-slate-600 cursor-pointer select-none whitespace-nowrap">
           <input
             type="checkbox"
             checked={filters.unassigned}
             onChange={(e) => update({ unassigned: e.target.checked })}
-            className="w-3.5 h-3.5 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400 cursor-pointer"
+            className="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
           />
           Unassigned only
         </label>
         {active && (
           <button
             onClick={clearFilters}
-            className="flex items-center gap-1 px-3 py-2 mb-0.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-3 py-2 mb-0.5 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             aria-label="Clear all filters"
           >
             <X className="w-3.5 h-3.5" />
@@ -504,12 +504,12 @@ export default function WorkOrdersFilters({
       <div className="flex lg:hidden items-center gap-2 pb-3 overflow-x-auto">
         <button
           onClick={() => setBottomSheetOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer flex-shrink-0"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           Filters
           {activeCount > 0 && (
-            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-gray-900 rounded-full">
+            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-slate-900 rounded-full">
               {activeCount}
             </span>
           )}
@@ -517,7 +517,7 @@ export default function WorkOrdersFilters({
         {activeLabels.map((label) => (
           <span
             key={label}
-            className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-700 bg-gray-100 rounded-full flex-shrink-0"
+            className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-700 bg-slate-100 rounded-full flex-shrink-0"
           >
             {label}
             <button
@@ -529,7 +529,7 @@ export default function WorkOrdersFilters({
                 else if (label === 'Unassigned') update({ unassigned: false })
                 else if (label.startsWith('"')) update({ search: '' })
               }}
-              className="hover:text-gray-900 cursor-pointer"
+              className="hover:text-slate-900 cursor-pointer"
               aria-label={`Remove ${label} filter`}
             >
               <X className="w-3 h-3" />
@@ -537,7 +537,7 @@ export default function WorkOrdersFilters({
           </span>
         ))}
         {active && (
-          <button onClick={clearFilters} className="text-xs text-gray-400 hover:text-gray-600 flex-shrink-0 cursor-pointer">
+          <button onClick={clearFilters} className="text-xs text-slate-400 hover:text-slate-600 flex-shrink-0 cursor-pointer">
             Clear all
           </button>
         )}

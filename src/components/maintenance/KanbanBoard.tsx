@@ -282,16 +282,16 @@ export default function KanbanBoard({
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 bg-gray-100 rounded-xl animate-pulse w-64" />
+        <div className="h-10 bg-slate-100 rounded-xl animate-pulse w-64" />
         <div className="flex gap-3 overflow-hidden">
           {BOARD_COLUMNS.map((col) => (
-            <div key={col} className="min-w-[280px] bg-gray-50/60 rounded-2xl p-3 space-y-2 flex-shrink-0">
-              <div className="h-6 bg-gray-100 rounded animate-pulse w-24 mb-3" />
+            <div key={col} className="min-w-[280px] bg-slate-50/60 rounded-2xl p-3 space-y-2 flex-shrink-0">
+              <div className="h-6 bg-slate-100 rounded animate-pulse w-24 mb-3" />
               {[1, 2].map((i) => (
                 <div key={i} className="bg-white/80 rounded-xl p-3 animate-pulse space-y-1.5">
-                  <div className="h-3 bg-gray-100 rounded w-16" />
-                  <div className="h-4 bg-gray-100 rounded w-full" />
-                  <div className="h-3 bg-gray-100 rounded w-2/3" />
+                  <div className="h-3 bg-slate-100 rounded w-16" />
+                  <div className="h-4 bg-slate-100 rounded w-full" />
+                  <div className="h-3 bg-slate-100 rounded w-2/3" />
                 </div>
               ))}
             </div>
@@ -304,7 +304,7 @@ export default function KanbanBoard({
   return (
     <div className="space-y-3">
       {/* View tabs — animated underline style */}
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200">
+      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200">
         {(
           [
             ...(canManage ? [{ key: 'team-board' as BoardViewTab, label: 'Team Board', icon: Users, count: teamTicketCount }] : []),
@@ -317,16 +317,16 @@ export default function KanbanBoard({
             onClick={() => setBoardView(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
               boardView === key
-                ? 'text-gray-900'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-slate-900'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <Icon className="w-4 h-4" />
             {label}
             <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full ${
               boardView === key
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-500'
+                ? 'bg-slate-900 text-white'
+                : 'bg-slate-100 text-slate-500'
             }`}>
               {count}
             </span>
@@ -348,8 +348,8 @@ export default function KanbanBoard({
       {filteredByView.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <IllustrationTickets className="w-48 h-40 mb-2" />
-          <p className="text-base font-semibold text-gray-700 mb-1">No tickets yet</p>
-          <p className="text-sm text-gray-500 max-w-sm">
+          <p className="text-base font-semibold text-slate-700 mb-1">No tickets yet</p>
+          <p className="text-sm text-slate-500 max-w-sm">
             {boardView === 'my-board'
               ? 'No tickets are assigned to you right now. Check the Team Board for unassigned work.'
               : 'Create a work order from the maintenance hub or submit a ticket to get started.'}
@@ -358,7 +358,7 @@ export default function KanbanBoard({
       ) : (
       <>
       {/* Mobile notice */}
-      <p className="lg:hidden text-xs text-gray-400 text-center py-1">
+      <p className="lg:hidden text-xs text-slate-400 text-center py-1">
         Swipe between columns. Tap a ticket to manage it.
       </p>
 
@@ -413,7 +413,7 @@ export default function KanbanBoard({
       {holdPending && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="ui-glass-overlay w-full max-w-md rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-base font-semibold text-gray-900 mb-3">Place Ticket On Hold</h3>
+            <h3 className="text-base font-semibold text-slate-900 mb-3">Place Ticket On Hold</h3>
             <HoldReasonInlineForm
               ticketId={holdPending.ticketId}
               onComplete={handleHoldComplete}

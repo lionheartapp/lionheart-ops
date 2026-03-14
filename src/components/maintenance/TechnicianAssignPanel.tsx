@@ -39,7 +39,7 @@ function TechAvatar({ tech, isDragging }: { tech: Technician; isDragging: boolea
             ? 'bg-primary-500 text-white ring-2 ring-primary-400 ring-offset-1 scale-110'
             : isDragging
             ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200'
-            : 'bg-gray-100 text-gray-600',
+            : 'bg-slate-100 text-slate-600',
         ]
           .filter(Boolean)
           .join(' ')}
@@ -49,7 +49,7 @@ function TechAvatar({ tech, isDragging }: { tech: Technician; isDragging: boolea
       <span
         className={[
           'text-[10px] truncate max-w-[56px] transition-colors duration-150',
-          isOver ? 'text-primary-700 font-semibold' : 'text-gray-400',
+          isOver ? 'text-primary-700 font-semibold' : 'text-slate-400',
         ]
           .filter(Boolean)
           .join(' ')}
@@ -74,22 +74,26 @@ export default function TechnicianAssignPanel({
         'flex items-center gap-4 px-4 py-2.5 rounded-xl border transition-all duration-200',
         isDragging
           ? 'bg-primary-50/60 border-primary-200 shadow-sm'
-          : 'bg-white border-gray-200',
+          : 'bg-white border-slate-200',
       ]
         .filter(Boolean)
         .join(' ')}
     >
       <span
         className={`text-xs font-medium whitespace-nowrap transition-colors ${
-          isDragging ? 'text-primary-700' : 'text-gray-400'
+          isDragging ? 'text-primary-700' : 'text-slate-400'
         }`}
       >
         Drag to assign:
       </span>
-      <div className="flex items-center gap-3 overflow-x-auto pb-0.5">
-        {technicians.map((tech) => (
-          <TechAvatar key={tech.id} tech={tech} isDragging={isDragging} />
-        ))}
+      <div className="relative flex-1 min-w-0">
+        {/* Fade shadow on right edge to hint at horizontal scroll */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white/90 to-transparent z-10 rounded-r-xl" />
+        <div className="flex items-center gap-3 overflow-x-auto pb-0.5 pr-8 scrollbar-hide">
+          {technicians.map((tech) => (
+            <TechAvatar key={tech.id} tech={tech} isDragging={isDragging} />
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -145,8 +145,8 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
     queryFn: async () => {
       const members = await fetchApi<
         { id: string; firstName: string; lastName: string; canClaimMaintenance?: boolean }[]
-      >('/api/settings/users')
-      // For simplicity, show all members as potential assignees
+      >('/api/settings/users?teamSlug=maintenance')
+      // Only show maintenance / facility team members as potential assignees
       return members.map((m) => ({
         id: m.id,
         firstName: m.firstName,
@@ -252,19 +252,19 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
         <div className="flex items-center gap-3">
           {/* Specialty toggle — shown only for technicians (canClaim but not canManage) */}
           {canClaim && !canManage && (
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={showAll}
                 onChange={(e) => setShowAll(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
               />
               Show all (including other specialties)
             </label>
           )}
 
           {viewMode === 'table' && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-slate-500">
               {mainLoading
                 ? 'Loading tickets...'
                 : `${displayedTickets.length} ticket${displayedTickets.length !== 1 ? 's' : ''}`}
@@ -273,14 +273,14 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
         </div>
 
         {/* Board / Table toggle */}
-        <div className="flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-lg">
+        <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg">
           <button
             onClick={() => setViewMode('board')}
             title="Board view"
             className={`p-1.5 rounded-md transition-colors cursor-pointer ${
               viewMode === 'board'
-                ? 'bg-white shadow-sm text-gray-900'
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'bg-white shadow-sm text-slate-900'
+                : 'text-slate-400 hover:text-slate-600'
             }`}
           >
             <LayoutGrid className="w-4 h-4" />
@@ -290,8 +290,8 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
             title="Table view"
             className={`p-1.5 rounded-md transition-colors cursor-pointer ${
               viewMode === 'table'
-                ? 'bg-white shadow-sm text-gray-900'
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'bg-white shadow-sm text-slate-900'
+                : 'text-slate-400 hover:text-slate-600'
             }`}
           >
             <List className="w-4 h-4" />
@@ -352,20 +352,20 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
           {scheduledTickets.length > 0 && (
             <motion.div variants={fadeInUp} className="ui-glass rounded-2xl overflow-hidden">
               <button
-                className="w-full flex items-center justify-between px-5 py-4 text-left cursor-pointer hover:bg-gray-50/50 transition-colors"
+                className="w-full flex items-center justify-between px-5 py-4 text-left cursor-pointer hover:bg-slate-50/50 transition-colors"
                 onClick={() => setScheduledOpen((o) => !o)}
                 aria-expanded={scheduledOpen}
               >
                 <div className="flex items-center gap-2">
                   {scheduledOpen ? (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
                   )}
-                  <span className="text-sm font-semibold text-gray-700">
+                  <span className="text-sm font-semibold text-slate-700">
                     Scheduled ({scheduledTickets.length})
                   </span>
-                  <span className="text-xs text-gray-400">— sorted by scheduled date</span>
+                  <span className="text-xs text-slate-400">— sorted by scheduled date</span>
                 </div>
               </button>
 
@@ -377,7 +377,7 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
                     initial="collapsed"
                     animate="expanded"
                     exit="collapsed"
-                    className="overflow-hidden border-t border-gray-100"
+                    className="overflow-hidden border-t border-slate-100"
                   >
                     <div className="p-1">
                       <ScheduledTicketsTable tickets={scheduledTickets} />
@@ -392,12 +392,12 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
           {!mainLoading && scheduledTickets.length === 0 && (
             <motion.div variants={fadeInUp}>
               <button
-                className="w-full flex items-center gap-2 px-5 py-3 ui-glass rounded-2xl text-left cursor-pointer hover:bg-gray-50/50 transition-colors opacity-50"
+                className="w-full flex items-center gap-2 px-5 py-3 ui-glass rounded-2xl text-left cursor-pointer hover:bg-slate-50/50 transition-colors opacity-50"
                 onClick={() => setScheduledOpen((o) => !o)}
                 aria-expanded={scheduledOpen}
               >
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-400">Scheduled (0)</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-400">Scheduled (0)</span>
               </button>
             </motion.div>
           )}
