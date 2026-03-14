@@ -289,13 +289,23 @@ export default function KanbanBoard({
         <div className="h-10 bg-slate-100 rounded-xl animate-pulse w-64" />
         <div className="flex gap-3 overflow-hidden">
           {BOARD_COLUMNS.map((col) => (
-            <div key={col} className="min-w-[280px] bg-slate-50/60 rounded-2xl p-3 space-y-2 flex-shrink-0">
-              <div className="h-6 bg-slate-100 rounded animate-pulse w-24 mb-3" />
+            <div key={col} className="min-w-[280px] bg-[#f7f7f6] rounded-xl p-1.5 space-y-[6px] flex-shrink-0">
+              <div className="flex items-center gap-2 px-1.5 py-2">
+                <div className="w-4 h-4 rounded-full bg-slate-200 animate-pulse" />
+                <div className="h-4 bg-slate-200 rounded animate-pulse w-20" />
+              </div>
               {[1, 2].map((i) => (
-                <div key={i} className="bg-white/80 rounded-xl p-3 animate-pulse space-y-1.5">
-                  <div className="h-3 bg-slate-100 rounded w-16" />
-                  <div className="h-4 bg-slate-100 rounded w-full" />
-                  <div className="h-3 bg-slate-100 rounded w-2/3" />
+                <div key={i} className="bg-white rounded-lg border border-slate-200/80 p-3 animate-pulse">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="h-3 bg-slate-100 rounded w-14" />
+                    <div className="w-6 h-6 rounded-full bg-slate-100" />
+                  </div>
+                  <div className="h-4 bg-slate-100 rounded w-full mb-1" />
+                  <div className="h-3.5 bg-slate-100 rounded w-3/4 mb-2.5" />
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-5 bg-slate-100 rounded w-16" />
+                    <div className="h-5 bg-slate-100 rounded w-10" />
+                  </div>
                 </div>
               ))}
             </div>
