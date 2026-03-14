@@ -13,9 +13,10 @@ interface CampusCount {
 
 interface CampusComparisonWidgetProps {
   data: CampusCount[]
+  onCampusClick?: (schoolId: string) => void
 }
 
-export default function CampusComparisonWidget({ data }: CampusComparisonWidgetProps) {
+export default function CampusComparisonWidget({ data, onCampusClick }: CampusComparisonWidgetProps) {
   if (!data || data.length === 0) {
     return (
       <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
@@ -41,7 +42,11 @@ export default function CampusComparisonWidget({ data }: CampusComparisonWidgetP
           const pct = Math.round((campus.count / maxCount) * 100)
 
           return (
-            <div key={campus.schoolId} className="flex items-center gap-3">
+            <div
+              key={campus.schoolId}
+              className={`flex items-center gap-3 ${onCampusClick ? 'cursor-pointer rounded-lg px-1 -mx-1 py-0.5 hover:bg-slate-50 transition-colors' : ''}`}
+              onClick={onCampusClick ? () => onCampusClick(campus.schoolId) : undefined}
+            >
               <div className="flex items-center gap-2 w-32 flex-shrink-0">
                 <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                 <span className="text-xs text-slate-600 truncate">{campus.schoolName}</span>

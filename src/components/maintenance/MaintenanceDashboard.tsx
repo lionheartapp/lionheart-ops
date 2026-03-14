@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import {
   ClipboardList,
   AlertTriangle,
@@ -13,6 +14,7 @@ import {
   DollarSign,
   RefreshCw,
   Download,
+  ChevronRight,
 } from 'lucide-react'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
@@ -75,11 +77,21 @@ function EmptyState({
   )
 }
 
-function PanelHeader({ title }: { title: string }) {
+function PanelHeader({ title, href }: { title: string; href?: string }) {
   return (
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      <span className="text-xs text-slate-300 cursor-not-allowed">View all</span>
+      {href ? (
+        <a
+          href={href}
+          className="text-xs text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-0.5"
+        >
+          View all
+          <ChevronRight className="w-3 h-3" />
+        </a>
+      ) : (
+        <span className="text-xs text-slate-300">—</span>
+      )}
     </div>
   )
 }
@@ -94,6 +106,16 @@ function formatResolutionTime(hours: number | null): string {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDashboardProps) {
+  const router = useRouter()
+
+  // Navigate to work orders with filter query params
+  const goToWorkOrders = (params?: Record<string, string>) => {
+    const qs = new URLSearchParams(params)
+    if (activeCampusId) qs.set('schoolId', activeCampusId)
+    const query = qs.toString()
+    router.push(`/maintenance/work-orders${query ? `?${query}` : ''}`)
+  }
+
   const { data: stats, isLoading, isError, refetch } = useQuery<DashboardStats>({
     queryKey: ['maintenance-dashboard', activeCampusId ?? 'all'],
     queryFn: async () => {
@@ -129,6 +151,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
       accent: false,
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-50',
+      onClick: () => goToWorkOrders(),
     },
     {
       label: 'Urgent / Overdue',
@@ -137,6 +160,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
       accent: true,
       iconColor: 'text-red-500',
       bgColor: 'bg-red-50',
+      onClick: () => goToWorkOrders({ priority: 'URGENT' }),
     },
     {
       label: 'In Progress',
@@ -145,6 +169,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
       accent: false,
       iconColor: 'text-amber-500',
       bgColor: 'bg-amber-50',
+      onClick: () => goToWorkOrders({ status: 'IN_PROGRESS' }),
     },
     {
       label: 'Completed (Total)',
@@ -153,6 +178,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
       accent: false,
       iconColor: 'text-primary-500',
       bgColor: 'bg-primary-50',
+      onClick: () => goToWorkOrders({ status: 'DONE' }),
     },
   ]
 
@@ -234,11 +260,12 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
               key={card.label}
               variants={cardEntrance}
               custom={i}
-              className={
+              onClick={card.onClick}
+              className={`cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.97] ${
                 card.accent
                   ? 'bg-gradient-to-br from-red-50/80 to-red-100/80 backdrop-blur-sm border border-red-200/30 rounded-2xl p-5 shadow-sm'
                   : 'ui-glass p-5'
-              }
+              }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-9 h-9 rounded-xl ${card.bgColor} flex items-center justify-center`}>
@@ -260,13 +287,17 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
         <div className="space-y-4">
           {/* Tickets by Status */}
           <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="Tickets by Status" />
+            <PanelHeader title="Tickets by Status" href="/maintenance/work-orders" />
             <div className="space-y-2.5">
               {TICKET_STATUSES.map((status) => {
                 const count = byStatus[status.key] ?? 0
                 const pct = Math.round((count / maxStatusCount) * 100)
                 return (
-                  <div key={status.label} className="flex items-center gap-3">
+                  <div
+                    key={status.label}
+                    className="flex items-center gap-3 cursor-pointer rounded-lg px-1 -mx-1 py-0.5 hover:bg-slate-50 transition-colors"
+                    onClick={() => goToWorkOrders({ status: status.key })}
+                  >
                     <span className="text-xs text-slate-500 w-20 flex-shrink-0">{status.label}</span>
                     <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
@@ -285,7 +316,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
 
           {/* Avg Resolution Time */}
           <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="Avg. Resolution Time" />
+            <PanelHeader title="Avg. Resolution Time" href="/maintenance/work-orders?status=DONE" />
             {stats?.avgResolutionHours !== null ? (
               <div className="flex items-center gap-3 py-2">
                 <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
@@ -309,7 +340,10 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
 
           {/* Campus Comparison — only shown when viewing all campuses */}
           {!activeCampusId && (
-            <CampusComparisonWidget data={stats?.byCampus ?? []} />
+            <CampusComparisonWidget
+              data={stats?.byCampus ?? []}
+              onCampusClick={(schoolId) => router.push(`/maintenance/work-orders?schoolId=${schoolId}`)}
+            />
           )}
         </div>
 
@@ -320,29 +354,37 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
             variants={fadeInUp}
             className="bg-gradient-to-br from-red-50/80 to-red-100/80 backdrop-blur-sm border border-red-200/30 rounded-2xl p-5 shadow-sm"
           >
-            <PanelHeader title="Urgent / Overdue Alerts" />
+            <PanelHeader title="Urgent / Overdue Alerts" href="/maintenance/work-orders?priority=URGENT" />
             {urgentCount > 0 ? (
               <div className="space-y-2">
                 {(stats?.overdueCount ?? 0) > 0 && (
-                  <div className="flex items-center gap-2 p-3 bg-white/60 rounded-xl">
+                  <div
+                    className="flex items-center gap-2 p-3 bg-white/60 rounded-xl cursor-pointer hover:bg-white/80 transition-colors"
+                    onClick={() => goToWorkOrders({ priority: 'URGENT' })}
+                  >
                     <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-red-700">
                         {stats?.overdueCount} overdue ticket{(stats?.overdueCount ?? 0) !== 1 ? 's' : ''}
                       </p>
                       <p className="text-xs text-red-400">In backlog for over 48 hours unassigned</p>
                     </div>
+                    <ChevronRight className="w-4 h-4 text-red-300 flex-shrink-0" />
                   </div>
                 )}
                 {(byPriority['URGENT'] ?? 0) > 0 && (
-                  <div className="flex items-center gap-2 p-3 bg-white/60 rounded-xl">
+                  <div
+                    className="flex items-center gap-2 p-3 bg-white/60 rounded-xl cursor-pointer hover:bg-white/80 transition-colors"
+                    onClick={() => goToWorkOrders({ priority: 'URGENT' })}
+                  >
                     <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-red-700">
                         {byPriority['URGENT']} urgent ticket{(byPriority['URGENT'] ?? 0) !== 1 ? 's' : ''}
                       </p>
                       <p className="text-xs text-red-400">Marked as urgent priority</p>
                     </div>
+                    <ChevronRight className="w-4 h-4 text-red-300 flex-shrink-0" />
                   </div>
                 )}
               </div>
@@ -361,18 +403,22 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
 
           {/* Unassigned Count */}
           <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="Unassigned Tickets" />
+            <PanelHeader title="Unassigned Tickets" href="/maintenance/work-orders?unassigned=true" />
             {(stats?.unassignedCount ?? 0) > 0 ? (
-              <div className="flex items-center gap-3 py-2">
+              <div
+                className="flex items-center gap-3 py-2 cursor-pointer rounded-xl hover:bg-slate-50 px-2 -mx-2 transition-colors"
+                onClick={() => goToWorkOrders({ unassigned: 'true' })}
+              >
                 <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
                   <Wrench className="w-6 h-6 text-amber-400" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-2xl font-bold text-slate-900">
                     <AnimatedCounter value={stats?.unassignedCount ?? 0} />
                   </p>
                   <p className="text-xs text-slate-400">tickets need a technician</p>
                 </div>
+                <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
               </div>
             ) : (
               <EmptyState
@@ -386,6 +432,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
           {/* PM Calendar Preview */}
           <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
             <PanelHeader title="PM Calendar Preview" />
+            {/* No href — PM not yet implemented */}
             <EmptyState
               icon={CalendarClock}
               heading="No PM schedules configured"

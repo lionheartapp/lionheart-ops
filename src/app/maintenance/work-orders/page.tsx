@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
@@ -12,6 +12,7 @@ import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
 
 function WorkOrdersContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
@@ -118,6 +119,10 @@ function WorkOrdersContent() {
             {/* Work Orders content */}
             <WorkOrdersView
               schoolIdFilter={campusFilter.selectedCampusId}
+              initialStatus={searchParams.get('status') || undefined}
+              initialPriority={searchParams.get('priority') || undefined}
+              initialUnassigned={searchParams.get('unassigned') === 'true'}
+              initialSchoolId={searchParams.get('schoolId') || undefined}
             />
           </div>
         </MotionConfig>

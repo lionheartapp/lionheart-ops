@@ -15,6 +15,7 @@ import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getAuthHeaders } from '@/lib/api-client'
 import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
+import EventDetailPanel from '@/components/calendar/EventDetailPanel'
 import PlanEventDrawer from '@/components/calendar/PlanEventDrawer'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
 
@@ -105,6 +106,7 @@ export default function DashboardPage() {
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [eventsScrolled, setEventsScrolled] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
   const unreadCount = useUnreadCount()
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
 
@@ -658,7 +660,11 @@ export default function DashboardPage() {
                     <motion.li
                       key={event.id}
                       variants={listItem}
-                      className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition"
+                      className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition cursor-pointer"
+                      onClick={() => setSelectedEvent(event)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedEvent(event) } }}
                     >
                       <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: dotColor + '20' }}>
                         <Calendar className="w-5 h-5" style={{ color: dotColor }} aria-hidden="true" />
@@ -1025,6 +1031,14 @@ export default function DashboardPage() {
         initialEnd={meetingPanelEnd}
         error={meetingPanelError}
         mode="meeting"
+      />
+
+      {/* Event Detail Panel — opens when clicking an event in the Upcoming Events list */}
+      <EventDetailPanel
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onEdit={(event) => { setSelectedEvent(null); router.push('/calendar') }}
+        onDelete={(event) => { setSelectedEvent(null); router.push('/calendar') }}
       />
 
       {/* Notification Drawer */}

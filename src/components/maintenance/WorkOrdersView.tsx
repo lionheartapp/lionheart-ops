@@ -29,6 +29,10 @@ interface Technician {
 
 interface WorkOrdersViewProps {
   schoolIdFilter: string  // '' = all campuses
+  initialStatus?: string
+  initialPriority?: string
+  initialUnassigned?: boolean
+  initialSchoolId?: string
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -76,7 +80,7 @@ async function changeStatusApi(
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) {
+export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialPriority, initialUnassigned, initialSchoolId }: WorkOrdersViewProps) {
   const queryClient = useQueryClient()
   const { data: perms } = usePermissions()
 
@@ -85,13 +89,17 @@ export default function WorkOrdersView({ schoolIdFilter }: WorkOrdersViewProps) 
   const canAssign = canManage
   const canChangeStatus = canManage || canClaim
 
-  // View mode: board (Kanban) or table
-  const [viewMode, setViewMode] = useState<'board' | 'table'>('board')
+  // View mode: board (Kanban) or table — default to table when pre-filtered
+  const hasInitialFilter = !!(initialStatus || initialPriority || initialUnassigned)
+  const [viewMode, setViewMode] = useState<'board' | 'table'>(hasInitialFilter ? 'table' : 'board')
 
-  // Filter state
+  // Filter state — merge URL-provided initial filters
   const [filters, setFilters] = useState<WorkOrdersFilterState>({
     ...DEFAULT_FILTERS,
-    schoolId: schoolIdFilter,
+    schoolId: initialSchoolId || schoolIdFilter,
+    ...(initialStatus ? { status: initialStatus as WorkOrdersFilterState['status'] } : {}),
+    ...(initialPriority ? { priority: initialPriority as WorkOrdersFilterState['priority'] } : {}),
+    ...(initialUnassigned ? { unassigned: true } : {}),
   })
 
   // Sync schoolId filter when campus chip changes
