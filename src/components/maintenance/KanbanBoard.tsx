@@ -51,6 +51,7 @@ interface KanbanBoardProps {
   technicians: Technician[]
   currentUserId: string
   canManage: boolean
+  canClaim: boolean
   /** Called after a successful optimistic status change so parent can invalidate */
   queryKeys: unknown[][]
 }
@@ -84,6 +85,7 @@ export default function KanbanBoard({
   technicians,
   currentUserId,
   canManage,
+  canClaim,
   queryKeys,
 }: KanbanBoardProps) {
   const router = useRouter()
@@ -91,7 +93,9 @@ export default function KanbanBoard({
   const { toast } = useToast()
 
   // Board view tab state — default to team-board for managers, my-board for technicians
-  const [boardView, setBoardView] = useState<BoardViewTab>(canManage ? 'team-board' : 'my-board')
+  // Only show my-board for users who can claim tickets (on maintenance team)
+  const showMyBoard = canClaim || canManage
+  const [boardView, setBoardView] = useState<BoardViewTab>(canManage ? 'team-board' : showMyBoard ? 'my-board' : 'team-board')
 
   // Animated tab indicator
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(boardView, [canManage])
@@ -303,11 +307,11 @@ export default function KanbanBoard({
 
   return (
     <div className="space-y-3">
-      {/* View tabs — animated underline style */}
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200">
+      {/* View tabs — only show when there are multiple tabs */}
+      {(canManage && showMyBoard) && <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200">
         {(
           [
-            ...(canManage ? [{ key: 'team-board' as BoardViewTab, label: 'Team Board', icon: Users, count: teamTicketCount }] : []),
+            { key: 'team-board' as BoardViewTab, label: 'Team Board', icon: Users, count: teamTicketCount },
             { key: 'my-board' as BoardViewTab, label: 'My Board', icon: User, count: myTicketCount },
           ]
         ).map(({ key, label, icon: Icon, count }) => (
@@ -334,7 +338,7 @@ export default function KanbanBoard({
         ))}
 
         <TabIndicator style={indicatorStyle} />
-      </div>
+      </div>}
 
       {/* Filters */}
       <WorkOrdersFilters

@@ -318,6 +318,7 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
             technicians={technicians}
             currentUserId={currentUserId}
             canManage={canManage}
+            canClaim={canClaim}
             queryKeys={[['maintenance-tickets'], scheduledQueryKey]}
           />
         </motion.div>
