@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { createEventProject } from './eventProjectService'
 
 const db = prisma as any
 
@@ -294,6 +295,16 @@ export async function getConflicts(seasonId: string) {
 
 // ── Bulk Publish ───────────────────────────────────────────────────────
 
+/**
+ * Publishes all APPROVED submissions in a season by creating EventProject records
+ * (which in turn create CalendarEvent bridge records via confirmEventProject).
+ *
+ * This replaces the old pattern of creating CalendarEvents directly.
+ * Each submission becomes an EventProject with source=PLANNING_SUBMISSION.
+ *
+ * Resource requests maintain backward compatibility by referencing the CalendarEvent
+ * created by the bridge. EventProject ID is stored in request metadata for traceability.
+ */
 export async function bulkPublish(seasonId: string, calendarId: string) {
   const submissions = await db.planningSubmission.findMany({
     where: {
@@ -308,28 +319,39 @@ export async function bulkPublish(seasonId: string, calendarId: string) {
 
   const results = []
   for (const sub of submissions) {
-    const event = await db.calendarEvent.create({
-      data: {
-        calendarId,
+    // Create EventProject (source=PLANNING_SUBMISSION auto-confirms and creates CalendarEvent bridge)
+    const project = await createEventProject(
+      {
         title: sub.title,
-        description: sub.description || null,
-        startTime: sub.preferredDate,
-        endTime: new Date(sub.preferredDate.getTime() + sub.duration * 60000),
-        isAllDay: false,
-        calendarStatus: 'CONFIRMED',
-        createdById: sub.submittedBy.id,
-        metadata: { planningSubmissionId: sub.id },
+        description: sub.description || undefined,
+        startsAt: sub.preferredDate,
+        endsAt: new Date(sub.preferredDate.getTime() + sub.duration * 60000),
+        calendarId,
+        isMultiDay: false,
       },
+      sub.submittedBy.id,
+      'PLANNING_SUBMISSION',
+      sub.id,
+    )
+
+    // Find the CalendarEvent bridge record created by confirmEventProject
+    // so we can attach resource requests to it (backward compatible)
+    const bridgeEvent = await db.calendarEvent.findFirst({
+      where: { sourceModule: 'event-project', sourceId: project.id },
+      select: { id: true },
     })
 
     // Create resource requests from planning needs
-    if (sub.resourceNeeds.length > 0) {
+    // If bridge event exists, attach to it; otherwise skip (no calendar available)
+    if (sub.resourceNeeds.length > 0 && bridgeEvent) {
       for (const need of sub.resourceNeeds) {
         await db.eventResourceRequest.create({
           data: {
-            eventId: event.id,
+            eventId: bridgeEvent.id,
             resourceType: need.resourceType,
-            details: need.details ? { description: need.details } : null,
+            details: need.details
+              ? { description: need.details, eventProjectId: project.id, planningSubmissionId: sub.id }
+              : { eventProjectId: project.id, planningSubmissionId: sub.id },
             requestStatus: 'PENDING',
           },
         })
@@ -341,7 +363,11 @@ export async function bulkPublish(seasonId: string, calendarId: string) {
       data: { submissionStatus: 'PUBLISHED' },
     })
 
-    results.push({ submissionId: sub.id, eventId: event.id })
+    results.push({
+      submissionId: sub.id,
+      eventProjectId: project.id,
+      calendarEventId: bridgeEvent?.id ?? null,
+    })
   }
 
   return results
