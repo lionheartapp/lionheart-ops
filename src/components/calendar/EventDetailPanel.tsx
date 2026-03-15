@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle } from 'lucide-react'
+import Link from 'next/link'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -365,6 +366,18 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 pb-6">
+              {/* Event Project deep-link */}
+              {event.sourceModule === 'event-project' && event.sourceId && (
+                <div className="mb-4 pb-4 border-b border-gray-100">
+                  <Link href={`/events/${event.sourceId}`}>
+                    <button className="w-full px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer flex items-center justify-center gap-2">
+                      <ExternalLink className="w-4 h-4" />
+                      View Event Project
+                    </button>
+                  </Link>
+                </div>
+              )}
+
               {/* Athletics-specific info */}
               {isAthletics && athleticsMeta && (
                 <div className="mb-4 pb-4 border-b border-gray-100">

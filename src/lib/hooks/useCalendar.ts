@@ -23,6 +23,8 @@ export interface CalendarEventData {
   locationText?: string | null
   categoryId?: string | null
   metadata?: Record<string, unknown> | null
+  sourceModule?: string | null
+  sourceId?: string | null
   calendar: {
     id: string
     name: string
