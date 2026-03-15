@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
@@ -17,6 +18,14 @@ import { ok, fail, isAuthError } from '@/lib/api-response'
 import { PERMISSIONS } from '@/lib/permissions'
 import { rawPrisma } from '@/lib/db'
 import { RegistrationStatus } from '@prisma/client'
+import { cancelRegistration } from '@/lib/services/registrationService'
+
+// ─── POST (Cancel action) ──────────────────────────────────────────────────────
+
+const actionSchema = z.object({
+  action: z.literal('cancel'),
+  registrationId: z.string().min(1),
+})
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
@@ -123,6 +132,63 @@ export async function GET(
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
     console.error('[registrations GET]', error)
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  }
+}
+
+// ─── POST ─────────────────────────────────────────────────────────────────────
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: eventProjectId } = await params
+    const orgId = getOrgIdFromRequest(req)
+    const ctx = await getUserContext(req)
+    await assertCan(ctx.userId, PERMISSIONS.EVENTS_REGISTRATION_MANAGE)
+
+    const body = await req.json()
+    const parsed = actionSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'Invalid action', parsed.error.issues),
+        { status: 400 },
+      )
+    }
+
+    return await runWithOrgContext(orgId, async () => {
+      if (parsed.data.action === 'cancel') {
+        const { registrationId } = parsed.data
+
+        // Verify the registration belongs to this event project
+        const reg = await rawPrisma.eventRegistration.findUnique({
+          where: { id: registrationId },
+          select: { eventProjectId: true },
+        })
+
+        if (!reg || reg.eventProjectId !== eventProjectId) {
+          return NextResponse.json(
+            fail('NOT_FOUND', 'Registration not found'),
+            { status: 404 },
+          )
+        }
+
+        await cancelRegistration(registrationId)
+        return NextResponse.json(ok({ cancelled: true }))
+      }
+
+      return NextResponse.json(fail('BAD_REQUEST', 'Unknown action'), { status: 400 })
+    })
+  } catch (error) {
+    if (isAuthError(error)) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
+    }
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    console.error('[registrations POST]', error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

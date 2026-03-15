@@ -1,12 +1,15 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ClipboardList, Users, Clock, Link as LinkIcon, Loader2 } from 'lucide-react'
-import { fadeInUp } from '@/lib/animations'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ClipboardList, Users, Share2, Loader2 } from 'lucide-react'
+import { fadeInUp, tabContent } from '@/lib/animations'
 import { useRegistrationForm, useCreateRegistrationForm } from '@/lib/hooks/useRegistrationForm'
 import { FormBuilder } from '@/components/registration/FormBuilder'
 import { useToast } from '@/components/Toast'
 import { COMMON_FIELDS } from '@/components/registration/CommonFieldPicker'
+import { RegistrationManagement } from './RegistrationManagement'
+import { ShareHub } from './ShareHub'
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
 
@@ -14,9 +17,20 @@ interface RegistrationTabProps {
   eventProjectId: string
 }
 
+// ─── Sub-tab types ─────────────────────────────────────────────────────────────
+
+type SubTab = 'form' | 'registrations' | 'share'
+
+const SUB_TABS: Array<{ id: SubTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { id: 'form', label: 'Form Design', icon: ClipboardList },
+  { id: 'registrations', label: 'Registrations', icon: Users },
+  { id: 'share', label: 'Share & Publish', icon: Share2 },
+]
+
 // ─── Default section with always-on fields ────────────────────────────────────
 
-function buildDefaultSections() {
+// Keep this for compatibility with existing create flow
+export function buildDefaultSections() {
   const alwaysOnFields = COMMON_FIELDS
     .filter((f) => f.alwaysOn)
     .map((f, i) => ({
@@ -42,71 +56,17 @@ function buildDefaultSections() {
   ]
 }
 
-// ─── Stats row ─────────────────────────────────────────────────────────────────
-
-interface StatsRowProps {
-  shareSlug: string
-  formId: string
-}
-
-function StatsRow({ shareSlug, formId: _formId }: StatsRowProps) {
-  const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/events/${shareSlug}`
-    : `/events/${shareSlug}`
-
-  function copyLink() {
-    navigator.clipboard.writeText(shareUrl).catch(() => {})
-  }
-
-  return (
-    <div className="mt-6 pt-6 border-t border-gray-100">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Registration Info</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-gray-50 rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Users className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Registrations</span>
-          </div>
-          <span className="text-2xl font-semibold text-gray-900">—</span>
-        </div>
-        <div className="bg-gray-50 rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Waitlisted</span>
-          </div>
-          <span className="text-2xl font-semibold text-gray-900">—</span>
-        </div>
-        <div className="bg-gray-50 rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <LinkIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Share Link</span>
-          </div>
-          <button
-            type="button"
-            onClick={copyLink}
-            className="text-xs text-indigo-600 hover:text-indigo-700 font-medium truncate block w-full text-left cursor-pointer transition-colors duration-200"
-            title={shareUrl}
-          >
-            Copy link
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 export function RegistrationTab({ eventProjectId }: RegistrationTabProps) {
   const { data: formData, isLoading } = useRegistrationForm(eventProjectId)
   const createMutation = useCreateRegistrationForm(eventProjectId)
   const { toast } = useToast()
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>('form')
 
   async function handleSetUpRegistration() {
     try {
       await createMutation.mutateAsync({})
-      // After form is created, the query will refetch — but we also need to seed sections
-      // We do a follow-up PUT to add the default section
       toast('Registration form created — configure it below', 'success')
     } catch {
       toast('Failed to create registration form', 'error')
@@ -155,13 +115,51 @@ export function RegistrationTab({ eventProjectId }: RegistrationTabProps) {
     )
   }
 
-  // Form exists — show builder + stats row
+  // Form exists — show sub-tabs
   return (
     <div>
-      <FormBuilder eventProjectId={eventProjectId} />
-      {formData.form && (
-        <StatsRow shareSlug={formData.form.shareSlug} formId={formData.form.id} />
-      )}
+      {/* Sub-tab bar */}
+      <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1 w-fit">
+        {SUB_TABS.map((tab) => {
+          const Icon = tab.icon
+          const isActive = tab.id === activeSubTab
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveSubTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Sub-tab content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeSubTab}
+          variants={tabContent}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          {activeSubTab === 'form' && (
+            <FormBuilder eventProjectId={eventProjectId} />
+          )}
+          {activeSubTab === 'registrations' && (
+            <RegistrationManagement eventProjectId={eventProjectId} />
+          )}
+          {activeSubTab === 'share' && (
+            <ShareHub eventProjectId={eventProjectId} />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }
