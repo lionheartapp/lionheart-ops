@@ -14,9 +14,9 @@
 - [x] **EVNT-05**: Staff can build a multi-day event schedule with time blocks (session, activity, meal, free time, travel, setup)
 - [x] **EVNT-06**: Staff can create and manage tasks within an event (assignee, due date, priority, status, category)
 - [x] **EVNT-07**: System automatically logs all changes and milestones on an event activity log
-- [ ] **EVNT-08**: Calendar view reads from EventProject data via a CalendarEvent bridge (sourceModule='event-project')
-- [ ] **EVNT-09**: Sidebar navigation shows Events as primary item with Calendar and Planning nested under it
-- [ ] **EVNT-10**: Dashboard shows AI-prioritized action items across all active events with one-tap resolution
+- [x] **EVNT-08**: Calendar view reads from EventProject data via a CalendarEvent bridge (sourceModule='event-project')
+- [x] **EVNT-09**: Sidebar navigation shows Events as primary item with Calendar and Planning nested under it
+- [x] **EVNT-10**: Dashboard shows AI-prioritized action items across all active events with one-tap resolution
 
 ### Registration & Forms
 
@@ -126,9 +126,9 @@
 | EVNT-05 | Phase 19 | Complete |
 | EVNT-06 | Phase 19 | Complete |
 | EVNT-07 | Phase 19 | Complete |
-| EVNT-08 | Phase 19 | Pending |
-| EVNT-09 | Phase 19 | Pending |
-| EVNT-10 | Phase 19 | Pending |
+| EVNT-08 | Phase 19 | Complete |
+| EVNT-09 | Phase 19 | Complete |
+| EVNT-10 | Phase 19 | Complete |
 | REG-01 | Phase 20 | Pending |
 | REG-02 | Phase 20 | Pending |
 | REG-03 | Phase 20 | Pending |
