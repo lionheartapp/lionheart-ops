@@ -95,6 +95,8 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/registration/')) return true
   // Participant self-service QR endpoint — no auth, registrationId is the access token (Phase 21 QR-03)
   if (pathname.startsWith('/api/events/check-in/')) return true
+  // Survey response submission — public POST (parent portal). GET requires auth and enforces it internally.
+  if (pathname.match(/^\/api\/events\/projects\/[^/]+\/surveys\/[^/]+\/responses$/)) return true
   return false
 }
 

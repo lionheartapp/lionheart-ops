@@ -13,6 +13,7 @@ import {
   DollarSign,
   CheckSquare,
   MessageSquare,
+  QrCode,
 } from 'lucide-react'
 import { tabContent } from '@/lib/animations'
 import { EventOverviewTab } from './EventOverviewTab'
@@ -67,6 +68,17 @@ function useAnimatedTabIndicator(activeTab: TabId, containerRef: React.RefObject
   }, [activeTab, containerRef])
 
   return indicatorStyle
+}
+
+// ─── Day-Of visibility helper ─────────────────────────────────────────────────
+
+function shouldShowDayOfButton(project: EventProject): boolean {
+  if (project.status === 'IN_PROGRESS') return true
+  if (!project.startsAt) return false
+  const startsAt = new Date(project.startsAt)
+  const now = new Date()
+  const hoursUntilStart = (startsAt.getTime() - now.getTime()) / (1000 * 60 * 60)
+  return hoursUntilStart >= 0 && hoursUntilStart <= 24
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -171,6 +183,19 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
                 currentUserId={currentUserId}
                 activeTab={activeTab}
               />
+            </div>
+          )}
+
+          {/* Day-Of Mode button — visible when event is imminent or in progress */}
+          {shouldShowDayOfButton(project) && (
+            <div className="flex-shrink-0 ml-3 mb-1 pb-1">
+              <button
+                onClick={() => router.push(`/events/${project.id}/dayof`)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                Launch Day-Of Mode
+              </button>
             </div>
           )}
         </div>
