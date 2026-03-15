@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 19-06-PLAN.md (Task 3 human-verify approved — Phase 19 fully complete)
-last_updated: "2026-03-15T04:22:00.347Z"
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-03-15T12:27:58.464Z"
 last_activity: 2026-03-15 — Phase 19 Plan 06 verified and approved by user — Phase 19 done
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 13
+  completed_plans: 7
   percent: 100
 ---
 
@@ -74,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 19]: Deterministic action item IDs (overdue_task_taskId) enable optimistic removal without ID lookup
 - [Phase 19]: EventProjectTabs persists active tab via URL searchParams so deep-links work
 - [Phase 19]: EventSeriesDrawer inlines its own mutation hook rather than creating separate useEventSeries hook
+- [Phase 20-registration-and-public-pages]: RegistrationSensitiveData has no organizationId by design — FERPA/COPPA data accessed only through registration relation
+- [Phase 20-registration-and-public-pages]: events:medical:read and events:registration:manage added to ADMIN role only — medical access restricted from MEMBER and VIEWER
 
 ### Pending Todos
 
@@ -94,7 +96,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T04:30:00.000Z
-Stopped at: Completed 19-06-PLAN.md (Task 3 human-verify approved — Phase 19 fully complete)
+Last session: 2026-03-15T12:27:58.463Z
+Stopped at: Completed 20-01-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`

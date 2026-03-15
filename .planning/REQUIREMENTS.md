@@ -31,8 +31,8 @@
 - [ ] **REG-09**: Staff can publish an event via a Share hub with link copy, QR code for flyers, email distribution, branding controls, and registration open/close dates
 - [ ] **REG-10**: System manages registration capacity with automatic waitlist promotion when spots open
 - [ ] **REG-11**: Parents can upload a student photo during registration that appears on rosters, check-in screens, and printed materials
-- [ ] **REG-12**: Public registration forms are protected by CAPTCHA (Cloudflare Turnstile) and rate limiting
-- [ ] **REG-13**: Medical and emergency contact data is stored in a separate table with distinct permission (events:medical:read) for FERPA/COPPA compliance
+- [x] **REG-12**: Public registration forms are protected by CAPTCHA (Cloudflare Turnstile) and rate limiting
+- [x] **REG-13**: Medical and emergency contact data is stored in a separate table with distinct permission (events:medical:read) for FERPA/COPPA compliance
 
 ### Documents & Signatures
 
@@ -140,8 +140,8 @@
 | REG-09 | Phase 20 | Pending |
 | REG-10 | Phase 20 | Pending |
 | REG-11 | Phase 20 | Pending |
-| REG-12 | Phase 20 | Pending |
-| REG-13 | Phase 20 | Pending |
+| REG-12 | Phase 20 | Complete |
+| REG-13 | Phase 20 | Complete |
 | DOC-01 | Phase 21 | Pending |
 | DOC-02 | Phase 21 | Pending |
 | DOC-03 | Phase 21 | Pending |
