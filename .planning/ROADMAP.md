@@ -79,7 +79,16 @@ Plans:
   4. A parent can re-access their registration portal via a magic link (no account required) and view their schedule stubs, group assignments, announcements, and any outstanding documents — magic link tokens are single-use, expire in 48 hours, and rate-limited to 3 requests per email per hour
   5. Staff can publish an event via the Share hub with link copy, QR code for flyers, email distribution, branding controls, and registration open/close dates; the system enforces capacity limits and automatically promotes waitlisted participants when spots open
   6. All public registration forms pass CAPTCHA validation (Cloudflare Turnstile) and rate limiting; medical and emergency contact data is stored in a separate RegistrationSensitiveData table accessible only to users with the events:medical:read permission; participants under 13 require explicit parental consent before any personal data field is shown
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — Prisma schema (9 models, 4 enums), org-scope/soft-delete registration, permissions, middleware, Turnstile utility
+- [ ] 20-02-PLAN.md — Service layer (registrationService, paymentService, emailService) + staff config API + public registration/payment APIs
+- [ ] 20-03-PLAN.md — Staff form builder UI (CommonFieldPicker, SectionEditor, FormFieldEditor, FormBuilder, RegistrationTab)
+- [ ] 20-04-PLAN.md — Public event page (white-label layout), multi-step registration wizard, Stripe Payment Element, SignatureField, TurnstileWidget
+- [ ] 20-05-PLAN.md — Magic link service, portal JWT, confirmation email with QR, parent portal page and PortalView
+- [ ] 20-06-PLAN.md — Share hub (link copy, QR code, registration window, capacity), registration management list, medical data endpoint
+- [ ] 20-07-PLAN.md — Stripe webhook wiring, EventProjectTabs integration, smoke tests, human verification
 
 ### Phase 21: Documents, Groups, Communication, and Day-Of Tools
 **Goal**: Staff can track document completion, assign participants to groups, communicate with targeted audiences, and run day-of operations (QR check-in, incident logging, headcounts) from a PWA that works offline
@@ -112,6 +121,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 19. Event Foundation | 6/6 | Complete    | 2026-03-15 |
-| 20. Registration and Public Pages | 0/TBD | Not started | - |
+| 20. Registration and Public Pages | 0/7 | Not started | - |
 | 21. Documents, Groups, Communication, and Day-Of Tools | 0/TBD | Not started | - |
 | 22. AI, Budget, Notifications, and External Integrations | 0/TBD | Not started | - |
