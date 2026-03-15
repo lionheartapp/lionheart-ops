@@ -41,6 +41,33 @@ const serwist = new Serwist({
         cacheName: 'knowledge-base-api',
       }),
     },
+    // Event check-in API — NetworkFirst with 5s timeout (day-of operations)
+    {
+      matcher: /^https?:\/\/.*\/api\/events\/projects\/[^/]+\/check-in/,
+      handler: new NetworkFirst({
+        cacheName: 'event-checkin-api',
+        networkTimeoutSeconds: 5,
+        matchOptions: { ignoreVary: true },
+      }),
+    },
+    // Event incidents API — NetworkFirst with 5s timeout (day-of incident logging)
+    {
+      matcher: /^https?:\/\/.*\/api\/events\/projects\/[^/]+\/incidents/,
+      handler: new NetworkFirst({
+        cacheName: 'event-incidents-api',
+        networkTimeoutSeconds: 5,
+        matchOptions: { ignoreVary: true },
+      }),
+    },
+    // Participant self-service QR endpoint — NetworkFirst with 5s timeout (QR-03)
+    {
+      matcher: /^https?:\/\/.*\/api\/events\/check-in\//,
+      handler: new NetworkFirst({
+        cacheName: 'event-participant-api',
+        networkTimeoutSeconds: 5,
+        matchOptions: { ignoreVary: true },
+      }),
+    },
     // All other API routes — NetworkFirst (no offline fallback, just try network)
     {
       matcher: /^https?:\/\/.*\/api\//,
