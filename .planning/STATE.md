@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 20-03-PLAN.md
-last_updated: "2026-03-15T12:49:03.218Z"
+stopped_at: Completed 20-06-PLAN.md
+last_updated: "2026-03-15T12:51:33.774Z"
 last_activity: 2026-03-15 — Phase 19 Plan 06 verified and approved by user — Phase 19 done
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 100
 ---
 
@@ -83,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 20]: useRegistrationForm returns null on 404 — allows RegistrationTab empty state without treating missing form as an error
 - [Phase 20]: COMMON_FIELDS exported from CommonFieldPicker for reuse in RegistrationTab default section building
 - [Phase 20]: useToast (project custom hook) used for form builder save feedback instead of sonner (not installed)
+- [Phase 20-registration-and-public-pages]: staggerContainer is a factory function — must be called as staggerContainer() not used as value
+- [Phase 20-registration-and-public-pages]: Registration sub-tabs (Form Design / Registrations / Share & Publish) live within RegistrationTab to keep EventProjectTabs clean
 
 ### Pending Todos
 
@@ -103,7 +105,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T12:49:03.216Z
-Stopped at: Completed 20-03-PLAN.md
+Last session: 2026-03-15T12:51:33.772Z
+Stopped at: Completed 20-06-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`

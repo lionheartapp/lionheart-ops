@@ -121,6 +121,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 19. Event Foundation | 6/6 | Complete    | 2026-03-15 |
-| 20. Registration and Public Pages | 4/7 | In Progress|  |
+| 20. Registration and Public Pages | 5/7 | In Progress|  |
 | 21. Documents, Groups, Communication, and Day-Of Tools | 0/TBD | Not started | - |
 | 22. AI, Budget, Notifications, and External Integrations | 0/TBD | Not started | - |
