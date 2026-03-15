@@ -52,8 +52,8 @@
 ### QR & Day-Of Operations
 
 - [x] **QR-01**: Staff can scan participant QR codes for check-in with a real-time counter showing checked-in vs. total
-- [ ] **QR-02**: Authorized staff can scan a QR code to view participant info (name, photo, groups, medical flags based on role permissions)
-- [ ] **QR-03**: Participants can scan their QR code to view personal schedule, group assignments, and event announcements
+- [x] **QR-02**: Authorized staff can scan a QR code to view participant info (name, photo, groups, medical flags based on role permissions)
+- [x] **QR-03**: Participants can scan their QR code to view personal schedule, group assignments, and event announcements
 - [ ] **QR-04**: Day-of tools (QR scanning, rosters, headcount, incident logging) work offline via PWA with automatic sync on reconnect
 - [x] **QR-05**: Staff can log incidents during events (medical, behavioral) with involved participants, actions taken, and follow-up needs
 
@@ -66,7 +66,7 @@
 ### Communication
 
 - [x] **COM-01**: Staff can post targeted announcements to specific audiences (all registrants, specific group, incomplete-docs families, paid-only)
-- [ ] **COM-02**: Parents see announcements on the public event page and participant dashboard in real time
+- [x] **COM-02**: Parents see announcements on the public event page and participant dashboard in real time
 - [ ] **COM-03**: Staff can set up an automated notification timeline with date-based and condition-based triggers with AI-drafted messages
 - [x] **COM-04**: Staff can collect post-event feedback via surveys at the registration URL
 - [x] **COM-05**: Multiple staff can collaborate on an event project with real-time updates and presence indicators
@@ -152,12 +152,12 @@
 | GRP-05 | Phase 21 | Complete |
 | GRP-06 | Phase 21 | Pending |
 | QR-01 | Phase 21 | Complete |
-| QR-02 | Phase 21 | Pending |
-| QR-03 | Phase 21 | Pending |
+| QR-02 | Phase 21 | Complete |
+| QR-03 | Phase 21 | Complete |
 | QR-04 | Phase 21 | Pending |
 | QR-05 | Phase 21 | Complete |
 | COM-01 | Phase 21 | Complete |
-| COM-02 | Phase 21 | Pending |
+| COM-02 | Phase 21 | Complete |
 | COM-03 | Phase 22 | Pending |
 | COM-04 | Phase 21 | Complete |
 | COM-05 | Phase 21 | Complete |

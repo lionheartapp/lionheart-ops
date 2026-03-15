@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 21-06-PLAN.md
-last_updated: "2026-03-15T23:21:08.819Z"
+stopped_at: Completed 21-08-PLAN.md
+last_updated: "2026-03-15T23:21:14.469Z"
 last_activity: 2026-03-15 — Phase 20 Plan 07 verified and approved by user — Phase 20 done
 progress:
   total_phases: 4
@@ -96,6 +96,7 @@ Recent decisions affecting current work:
 - [Phase 21-06]: Survey response POST is public — registration ID is access credential, validated against survey.eventProjectId to prevent cross-event injection
 - [Phase 21-06]: Announcement emails are fire-and-forget via Promise.allSettled — Resend errors logged but do not fail create operation
 - [Phase 21-08]: Medical data gated by can(userId, EVENTS_MEDICAL_READ) inside route — boolean includeMedical param passed to service keeps service layer pure
+- [Phase 21-08]: Public participant self-service endpoint uses registrationId cuid as access token — non-guessable, FERPA-safe, no auth complexity for QR-03
 
 ### Pending Todos
 
@@ -116,7 +117,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:21:01.811Z
-Stopped at: Completed 21-06-PLAN.md
+Last session: 2026-03-15T23:21:14.468Z
+Stopped at: Completed 21-08-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
