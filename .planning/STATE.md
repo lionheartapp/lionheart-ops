@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
-status: verifying
-stopped_at: Completed 21-01-PLAN.md
-last_updated: "2026-03-15T23:13:11.708Z"
-last_activity: 2026-03-15 — Phase 20 Plan 07 verified and approved by user — Phase 20 done
+status: in_progress
+stopped_at: Completed 21-02-PLAN.md
+last_updated: "2026-03-15T23:20:26.707Z"
+last_activity: 2026-03-15 — Phase 21 Plan 02 complete — document tracking and compliance backend shipped
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 23
-  completed_plans: 14
+  completed_plans: 15
   percent: 100
 ---
 
@@ -91,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 20-registration-and-public-pages]: Dynamic import used for registration services in Stripe webhook — isolates from subscription event code path
 - [Phase 21-01]: EventIncidentSeverity/EventIncidentType prefixed with Event to avoid enum collision with existing Security module enums
 - [Phase 21-01]: EventIncidentParticipant excluded from orgScopedModels — pure junction table with no organizationId (consistent with UserTeam pattern)
+- [Phase 21-02]: rawPrisma used in sendDocumentReminder for cross-context email sends; email helper inlined to avoid circular dependency
+- [Phase 21-02]: getDefaultComplianceChecklist is a pure function — no DB, callable before runWithOrgContext, supports ?defaults=true pattern
 
 ### Pending Todos
 
@@ -111,7 +113,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:13:11.706Z
-Stopped at: Completed 21-01-PLAN.md
+Last session: 2026-03-15T23:20:26.704Z
+Stopped at: Completed 21-02-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
