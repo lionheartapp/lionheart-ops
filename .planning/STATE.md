@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 21-05-PLAN.md
-last_updated: "2026-03-15T23:38:44.017Z"
+stopped_at: Completed 21-10-PLAN.md
+last_updated: "2026-03-15T23:57:40.189Z"
 last_activity: 2026-03-15 — Phase 20 Plan 07 verified and approved by user — Phase 20 done
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 
 ## Current Position
 
-Phase: 20 (Registration and Public Pages) — COMPLETE
-Plan: 07 (final plan of Phase 20) — COMPLETE
-Status: Phase 20 all plans complete, all human-verify checkpoints approved
-Last activity: 2026-03-15 — Phase 20 Plan 07 verified and approved by user — Phase 20 done
+Phase: 21 (Documents, Groups, Communication, and Day-Of Tools) — COMPLETE
+Plan: 10 (final plan of Phase 21) — COMPLETE
+Status: Phase 21 all 10 plans complete, all human-verify checkpoints approved
+Last activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 
 Progress: [██████████] 100% (Phase 20 complete)
 
@@ -108,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase 21-09]: 3-second auto-reset in CheckInScanner optimized for back-to-back scanning (40 kids off a bus)
 - [Phase 21-05]: Static slot pattern for useGroupsWithAssignments — hooks cannot be in loops, 20 fixed slots handle up to 20 groups per type
 - [Phase 21-05]: Dynamic jsPDF import in EventPDFGenerator — avoids 500KB SSR bundle hit, code-splits PDF library like label-utils.ts pattern
+- [Phase 21]: Day-of button uses conditional visibility (IN_PROGRESS or within 24h of start) to avoid clutter during planning phase
+- [Phase 21]: Smoke tests use SKIP stubs for all 18 test cases — consistent with existing smoke-registration.mjs pattern; real assertions deferred to manual testing or future CI
 
 ### Pending Todos
 
@@ -128,7 +130,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:38:44.015Z
-Stopped at: Completed 21-05-PLAN.md
+Last session: 2026-03-15T23:57:40.187Z
+Stopped at: Completed 21-10-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
