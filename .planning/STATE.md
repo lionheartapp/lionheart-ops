@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: planning
-stopped_at: Completed 19-04-PLAN.md
-last_updated: "2026-03-15T04:01:41.271Z"
+stopped_at: Completed 19-06-PLAN.md (awaiting human-verify checkpoint)
+last_updated: "2026-03-15T04:09:29.322Z"
 last_activity: 2026-03-14 — v3.0 roadmap written (4 phases, 56 requirements mapped)
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -70,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 19]: Series DELETE uses deactivation (isActive=false) not hard delete — existing projects unaffected
 - [Phase 19]: Events nav panel auto-opens on /calendar and /planning (not just /events) — users on existing routes see Events as primary framing
 - [Phase 19]: Planning CTA card moved from calendarNavContent to eventsNavContent — Events is the top-level frame for calendar and planning
+- [Phase 19]: Two-phase fetch for event dashboard: ?skipAI=true for immediate display, then full AI scoring as second query
+- [Phase 19]: Deterministic action item IDs (overdue_task_taskId) enable optimistic removal without ID lookup
 
 ### Pending Todos
 
@@ -90,7 +92,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T04:01:41.269Z
-Stopped at: Completed 19-04-PLAN.md
+Last session: 2026-03-15T04:09:29.320Z
+Stopped at: Completed 19-06-PLAN.md (awaiting human-verify checkpoint)
 Resume file: None
 Next action: `/gsd:plan-phase 19`
