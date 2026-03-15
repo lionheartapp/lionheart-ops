@@ -125,6 +125,38 @@ export async function POST(req: NextRequest) {
         break
       }
 
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object
+        const { registrationId } = paymentIntent.metadata ?? {}
+        if (registrationId) {
+          // This is a registration payment, not a subscription payment
+          const { handlePaymentSuccess } = await import('@/lib/services/registrationPaymentService')
+          await handlePaymentSuccess(paymentIntent.id)
+          // Send confirmation email after payment succeeds
+          try {
+            const { sendConfirmationEmail } = await import('@/lib/services/registrationEmailService')
+            await sendConfirmationEmail(registrationId)
+          } catch (emailErr) {
+            // Non-fatal: log but don't fail the webhook
+            console.error('[Stripe webhook] Confirmation email failed:', emailErr)
+          }
+        }
+        break
+      }
+
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object
+        const { registrationId } = paymentIntent.metadata ?? {}
+        if (registrationId) {
+          // Update RegistrationPayment status to failed
+          await rawPrisma.registrationPayment.updateMany({
+            where: { stripePaymentIntentId: paymentIntent.id },
+            data: { status: 'failed' },
+          })
+        }
+        break
+      }
+
       default:
         console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`)
     }
