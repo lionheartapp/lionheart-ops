@@ -44,10 +44,10 @@
 
 - [x] **GRP-01**: Staff can create groups by type (bus, cabin, small group, activity) with name, capacity, and assigned leader
 - [x] **GRP-02**: Staff can assign participants to groups via drag-and-drop interface
-- [ ] **GRP-03**: Staff can generate printable PDFs: bus manifests (with medical flags), cabin rosters (with photos), medical summaries, emergency contact sheets, activity rosters, check-in sheets
+- [x] **GRP-03**: Staff can generate printable PDFs: bus manifests (with medical flags), cabin rosters (with photos), medical summaries, emergency contact sheets, activity rosters, check-in sheets
 - [x] **GRP-04**: Staff can manage elective activity signups with real-time capacity tracking
 - [x] **GRP-05**: Staff can view aggregated dietary and medical reports from registration data
-- [ ] **GRP-06**: Parents can see their student's group assignments on the participant dashboard
+- [x] **GRP-06**: Parents can see their student's group assignments on the participant dashboard
 
 ### QR & Day-Of Operations
 
@@ -147,10 +147,10 @@
 | DOC-03 | Phase 21 | Complete |
 | GRP-01 | Phase 21 | Complete |
 | GRP-02 | Phase 21 | Complete |
-| GRP-03 | Phase 21 | Pending |
+| GRP-03 | Phase 21 | Complete |
 | GRP-04 | Phase 21 | Complete |
 | GRP-05 | Phase 21 | Complete |
-| GRP-06 | Phase 21 | Pending |
+| GRP-06 | Phase 21 | Complete |
 | QR-01 | Phase 21 | Complete |
 | QR-02 | Phase 21 | Complete |
 | QR-03 | Phase 21 | Complete |

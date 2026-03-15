@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 21-09-PLAN.md
-last_updated: "2026-03-15T23:34:44.577Z"
+stopped_at: Completed 21-05-PLAN.md
+last_updated: "2026-03-15T23:38:44.017Z"
 last_activity: 2026-03-15 — Phase 20 Plan 07 verified and approved by user — Phase 20 done
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
   percent: 100
 ---
 
@@ -106,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase 21-09]: Separate Dexie database (lionheart-events-v1) for event offline tables to prevent version conflicts with maintenance DB
 - [Phase 21-09]: Web Audio API + navigator.vibrate() for QR scan feedback — no external dependency, graceful fallback
 - [Phase 21-09]: 3-second auto-reset in CheckInScanner optimized for back-to-back scanning (40 kids off a bus)
+- [Phase 21-05]: Static slot pattern for useGroupsWithAssignments — hooks cannot be in loops, 20 fixed slots handle up to 20 groups per type
+- [Phase 21-05]: Dynamic jsPDF import in EventPDFGenerator — avoids 500KB SSR bundle hit, code-splits PDF library like label-utils.ts pattern
 
 ### Pending Todos
 
@@ -126,7 +128,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:34:44.575Z
-Stopped at: Completed 21-09-PLAN.md
+Last session: 2026-03-15T23:38:44.015Z
+Stopped at: Completed 21-05-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
