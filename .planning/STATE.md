@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: planning
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-03-15T03:43:44.640Z"
+stopped_at: Completed 19-02-PLAN.md
+last_updated: "2026-03-15T03:49:20.293Z"
 last_activity: 2026-03-14 — v3.0 roadmap written (4 phases, 56 requirements mapped)
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -62,6 +62,9 @@ Recent decisions affecting current work:
 - [v3.0]: Phase 20 opens first public API surface — multi-tenant isolation, CAPTCHA, FERPA/COPPA must be complete before any parent sees a form
 - [Phase 19]: EventProject uses separate seriesId FK and sourceId String for series vs planning submission source references
 - [Phase 19]: EventActivityLog has no updatedAt — rows are immutable append-only audit trail
+- [Phase 19]: DIRECT_REQUEST source creates PENDING_APPROVAL; SERIES/PLANNING_SUBMISSION auto-confirm via confirmEventProject
+- [Phase 19]: bulkPublish now returns eventProjectId + calendarEventId instead of eventId; resource requests attach to CalendarEvent bridge for backward compat
+- [Phase 19]: confirmEventProject creates CalendarEvent with sourceModule=event-project — canonical bridge record pattern for all EventProjects
 
 ### Pending Todos
 
@@ -82,7 +85,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T03:43:44.638Z
-Stopped at: Completed 19-01-PLAN.md
+Last session: 2026-03-15T03:49:20.291Z
+Stopped at: Completed 19-02-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 19`
