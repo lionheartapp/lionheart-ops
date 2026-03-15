@@ -44,7 +44,7 @@ const formDataSchema = z.object({
   requiresCoppaConsent: z.boolean().optional(),
   openAt: z.string().datetime().optional().nullable(),
   closeAt: z.string().datetime().optional().nullable(),
-  brandingOverride: z.record(z.unknown()).optional().nullable(),
+  brandingOverride: z.record(z.string(), z.unknown()).optional().nullable(),
   discountCodes: z.array(discountCodeSchema).optional().nullable(),
 })
 
@@ -120,7 +120,7 @@ export async function POST(
 
     if (!parsed.success) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.errors),
+        fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.issues),
         { status: 400 },
       )
     }
@@ -179,7 +179,7 @@ export async function PUT(
 
     if (!parsed.success) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.errors),
+        fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.issues),
         { status: 400 },
       )
     }

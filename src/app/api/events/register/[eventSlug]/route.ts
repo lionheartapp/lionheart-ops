@@ -155,7 +155,7 @@ export async function POST(
     const parsed = submitSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid registration data', parsed.error.errors),
+        fail('VALIDATION_ERROR', 'Invalid registration data', parsed.error.issues),
         { status: 400 },
       )
     }

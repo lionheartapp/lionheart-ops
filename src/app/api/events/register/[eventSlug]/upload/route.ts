@@ -74,7 +74,7 @@ export async function POST(
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid request data', parsed.error.errors),
+        fail('VALIDATION_ERROR', 'Invalid request data', parsed.error.issues),
         { status: 400 },
       )
     }
