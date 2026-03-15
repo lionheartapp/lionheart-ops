@@ -61,12 +61,12 @@
 **Plans**: 6 plans
 
 Plans:
-- [ ] 19-01-PLAN.md — Prisma schema (5 models, 6 enums), org-scope/soft-delete registration, permissions, seed
-- [ ] 19-02-PLAN.md — Service layer (eventProjectService, eventSeriesService, activity log, bulkPublish modification)
-- [ ] 19-03-PLAN.md — API routes (11 endpoints: project CRUD, schedule, tasks, series, approve, from-submission)
-- [ ] 19-04-PLAN.md — Sidebar refactor (Events top-level), events list page, 8-tab project workspace, activity log UI
-- [ ] 19-05-PLAN.md — Schedule builder tab (day-by-day blocks) and Tasks tab (status toggle, filters, priority)
-- [ ] 19-06-PLAN.md — AI-prioritized action dashboard (Gemini scoring, one-tap resolve, summary stats)
+- [x] 19-01-PLAN.md — Prisma schema (5 models, 6 enums), org-scope/soft-delete registration, permissions, seed
+- [x] 19-02-PLAN.md — Service layer (eventProjectService, eventSeriesService, activity log, bulkPublish modification)
+- [x] 19-03-PLAN.md — API routes (11 endpoints: project CRUD, schedule, tasks, series, approve, from-submission)
+- [x] 19-04-PLAN.md — Sidebar refactor (Events top-level), events list page, 8-tab project workspace, activity log UI
+- [x] 19-05-PLAN.md — Schedule builder tab (day-by-day blocks) and Tasks tab (status toggle, filters, priority)
+- [x] 19-06-PLAN.md — AI-prioritized action dashboard (Gemini scoring, one-tap resolve, summary stats)
 
 ### Phase 20: Registration and Public Pages
 **Goal**: Parents can discover, register for, and pay for school events on a branded public page without a Lionheart account, and staff can publish events via a share hub with full control over registration, branding, and access
