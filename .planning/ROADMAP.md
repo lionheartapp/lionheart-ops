@@ -111,7 +111,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 19. Event Foundation | 2/6 | In Progress|  |
+| 19. Event Foundation | 3/6 | In Progress|  |
 | 20. Registration and Public Pages | 0/TBD | Not started | - |
 | 21. Documents, Groups, Communication, and Day-Of Tools | 0/TBD | Not started | - |
 | 22. AI, Budget, Notifications, and External Integrations | 0/TBD | Not started | - |
