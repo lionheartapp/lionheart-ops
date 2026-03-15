@@ -54,7 +54,7 @@
 - [x] **QR-01**: Staff can scan participant QR codes for check-in with a real-time counter showing checked-in vs. total
 - [x] **QR-02**: Authorized staff can scan a QR code to view participant info (name, photo, groups, medical flags based on role permissions)
 - [x] **QR-03**: Participants can scan their QR code to view personal schedule, group assignments, and event announcements
-- [ ] **QR-04**: Day-of tools (QR scanning, rosters, headcount, incident logging) work offline via PWA with automatic sync on reconnect
+- [x] **QR-04**: Day-of tools (QR scanning, rosters, headcount, incident logging) work offline via PWA with automatic sync on reconnect
 - [x] **QR-05**: Staff can log incidents during events (medical, behavioral) with involved participants, actions taken, and follow-up needs
 
 ### Budget & Financials
@@ -154,7 +154,7 @@
 | QR-01 | Phase 21 | Complete |
 | QR-02 | Phase 21 | Complete |
 | QR-03 | Phase 21 | Complete |
-| QR-04 | Phase 21 | Pending |
+| QR-04 | Phase 21 | Complete |
 | QR-05 | Phase 21 | Complete |
 | COM-01 | Phase 21 | Complete |
 | COM-02 | Phase 21 | Complete |
