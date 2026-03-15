@@ -20,9 +20,9 @@
 
 ### Registration & Forms
 
-- [ ] **REG-01**: Staff can configure a registration form with toggleable common fields (name, grade, emergency contacts, dietary, allergies, medications, t-shirt size, etc.)
-- [ ] **REG-02**: Staff can add custom form fields (text, dropdown, checkbox, number, date, file upload) with label, help text, and required toggle
-- [ ] **REG-03**: Staff can organize form fields into named sections that become pages in the parent-facing form with a progress indicator
+- [x] **REG-01**: Staff can configure a registration form with toggleable common fields (name, grade, emergency contacts, dietary, allergies, medications, t-shirt size, etc.)
+- [x] **REG-02**: Staff can add custom form fields (text, dropdown, checkbox, number, date, file upload) with label, help text, and required toggle
+- [x] **REG-03**: Staff can organize form fields into named sections that become pages in the parent-facing form with a progress indicator
 - [ ] **REG-04**: Parents can register for an event on a public page branded with school logo and cover image (zero Lionheart branding)
 - [x] **REG-05**: Parents can pay event fees via Stripe (credit card, Apple Pay, Google Pay) with deposit, payment plan, and discount code options
 - [ ] **REG-06**: Parents can sign required documents (permission slips, waivers, medical releases) with finger on mobile or typed name on desktop
@@ -129,9 +129,9 @@
 | EVNT-08 | Phase 19 | Complete |
 | EVNT-09 | Phase 19 | Complete |
 | EVNT-10 | Phase 19 | Complete |
-| REG-01 | Phase 20 | Pending |
-| REG-02 | Phase 20 | Pending |
-| REG-03 | Phase 20 | Pending |
+| REG-01 | Phase 20 | Complete |
+| REG-02 | Phase 20 | Complete |
+| REG-03 | Phase 20 | Complete |
 | REG-04 | Phase 20 | Pending |
 | REG-05 | Phase 20 | Complete |
 | REG-06 | Phase 20 | Pending |
