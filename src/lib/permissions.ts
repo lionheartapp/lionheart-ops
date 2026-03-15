@@ -232,6 +232,15 @@ export const PERMISSIONS = {
   EVENTS_MEDICAL_READ: 'events:medical:read',               // View medical/emergency data for registrations
   EVENTS_REGISTRATION_MANAGE: 'events:registration:manage', // Configure registration forms, view registrations
 
+  // Event Documents, Groups, Communication, Day-of Tools — Phase 21
+  EVENTS_DOCUMENTS_MANAGE: 'events:documents:manage',       // Create/edit document requirements, send reminders
+  EVENTS_COMPLIANCE_MANAGE: 'events:compliance:manage',     // Manage compliance checklist items
+  EVENTS_GROUPS_MANAGE: 'events:groups:manage',             // Create groups, assign participants, manage activities
+  EVENTS_CHECKIN_MANAGE: 'events:checkin:manage',           // Scan QR codes, perform check-ins
+  EVENTS_ANNOUNCEMENTS_MANAGE: 'events:announcements:manage', // Post announcements to participants
+  EVENTS_INCIDENTS_MANAGE: 'events:incidents:manage',       // Log and view day-of incidents
+  EVENTS_SURVEYS_MANAGE: 'events:surveys:manage',           // Create and manage post-event surveys
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -407,6 +416,14 @@ export const DEFAULT_ROLES = {
       // Registration permissions (Phase 20)
       PERMISSIONS.EVENTS_MEDICAL_READ,
       PERMISSIONS.EVENTS_REGISTRATION_MANAGE,
+      // Phase 21: Documents, Groups, Communication, Day-of Tools
+      PERMISSIONS.EVENTS_DOCUMENTS_MANAGE,
+      PERMISSIONS.EVENTS_COMPLIANCE_MANAGE,
+      PERMISSIONS.EVENTS_GROUPS_MANAGE,
+      PERMISSIONS.EVENTS_CHECKIN_MANAGE,
+      PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE,
+      PERMISSIONS.EVENTS_INCIDENTS_MANAGE,
+      PERMISSIONS.EVENTS_SURVEYS_MANAGE,
     ],
     isSystem: true,
   },
@@ -453,6 +470,12 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.EVENT_PROJECT_CREATE,
       PERMISSIONS.EVENT_PROJECT_READ,
       PERMISSIONS.EVENT_PROJECT_UPDATE_OWN,
+      // Phase 21: Documents, Groups, Communication, Day-of Tools (member subset)
+      PERMISSIONS.EVENTS_DOCUMENTS_MANAGE,
+      PERMISSIONS.EVENTS_GROUPS_MANAGE,
+      PERMISSIONS.EVENTS_CHECKIN_MANAGE,
+      PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE,
+      PERMISSIONS.EVENTS_INCIDENTS_MANAGE,
     ],
     isSystem: true,
   },

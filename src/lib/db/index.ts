@@ -99,6 +99,20 @@ const orgScopedModels = new Set([
 	// Registration module (Phase 20)
 	'EventRegistration',
 	'RegistrationForm',
+	// Phase 21: Documents, Groups, Communication, and Day-of Tools
+	'EventDocumentRequirement',
+	'EventDocumentCompletion',
+	'EventComplianceItem',
+	'EventGroup',
+	'EventGroupAssignment',
+	'EventActivityOption',
+	'EventActivitySignup',
+	'EventAnnouncement',
+	'EventCheckIn',
+	'EventIncident',
+	'EventSurvey',
+	'EventSurveyResponse',
+	'EventPresenceSession',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
