@@ -17,7 +17,7 @@ export const CreateEventProjectSchema = z.object({
   campusId: z.string().optional(),
   schoolId: z.string().optional(),
   calendarId: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type CreateEventProjectInput = z.infer<typeof CreateEventProjectSchema>
@@ -37,7 +37,7 @@ export const UpdateEventProjectSchema = z.object({
   campusId: z.string().nullable().optional(),
   schoolId: z.string().nullable().optional(),
   calendarId: z.string().nullable().optional(),
-  metadata: z.record(z.unknown()).nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 
 export type UpdateEventProjectInput = z.infer<typeof UpdateEventProjectSchema>
@@ -53,7 +53,7 @@ export const CreateScheduleBlockSchema = z.object({
   locationText: z.string().max(500).optional(),
   leadId: z.string().optional(),
   sortOrder: z.number().int().min(0).optional().default(0),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type CreateScheduleBlockInput = z.infer<typeof CreateScheduleBlockSchema>
@@ -67,7 +67,7 @@ export const UpdateScheduleBlockSchema = z.object({
   locationText: z.string().max(500).nullable().optional(),
   leadId: z.string().nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),
-  metadata: z.record(z.unknown()).nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 
 export type UpdateScheduleBlockInput = z.infer<typeof UpdateScheduleBlockSchema>
@@ -109,7 +109,7 @@ export const CreateEventSeriesSchema = z.object({
   defaultLocationText: z.string().max(500).optional(),
   defaultBuildingId: z.string().optional(),
   defaultRoomId: z.string().optional(),
-  resourceNeeds: z.record(z.unknown()).optional(),
+  resourceNeeds: z.record(z.string(), z.unknown()).optional(),
   campusId: z.string().optional(),
 })
 
@@ -124,7 +124,7 @@ export const UpdateEventSeriesSchema = z.object({
   defaultLocationText: z.string().max(500).nullable().optional(),
   defaultBuildingId: z.string().nullable().optional(),
   defaultRoomId: z.string().nullable().optional(),
-  resourceNeeds: z.record(z.unknown()).nullable().optional(),
+  resourceNeeds: z.record(z.string(), z.unknown()).nullable().optional(),
   isActive: z.boolean().optional(),
 })
 
