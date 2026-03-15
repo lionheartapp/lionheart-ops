@@ -58,7 +58,15 @@
   4. Staff can build a multi-day schedule with time blocks and create/assign tasks with due date, priority, and status — all changes automatically append an entry to the event activity log
   5. The calendar view shows events sourced from EventProject data via the CalendarEvent bridge, and clicking a bridged calendar entry deep-links to the correct EventProject page
   6. The dashboard shows AI-prioritized action items across all active events with one-tap resolution
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 19-01-PLAN.md — Prisma schema (5 models, 6 enums), org-scope/soft-delete registration, permissions, seed
+- [ ] 19-02-PLAN.md — Service layer (eventProjectService, eventSeriesService, activity log, bulkPublish modification)
+- [ ] 19-03-PLAN.md — API routes (11 endpoints: project CRUD, schedule, tasks, series, approve, from-submission)
+- [ ] 19-04-PLAN.md — Sidebar refactor (Events top-level), events list page, 8-tab project workspace, activity log UI
+- [ ] 19-05-PLAN.md — Schedule builder tab (day-by-day blocks) and Tasks tab (status toggle, filters, priority)
+- [ ] 19-06-PLAN.md — AI-prioritized action dashboard (Gemini scoring, one-tap resolve, summary stats)
 
 ### Phase 20: Registration and Public Pages
 **Goal**: Parents can discover, register for, and pay for school events on a branded public page without a Lionheart account, and staff can publish events via a share hub with full control over registration, branding, and access
@@ -103,7 +111,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 19. Event Foundation | 0/TBD | Not started | - |
+| 19. Event Foundation | 0/6 | Planned | - |
 | 20. Registration and Public Pages | 0/TBD | Not started | - |
 | 21. Documents, Groups, Communication, and Day-Of Tools | 0/TBD | Not started | - |
 | 22. AI, Budget, Notifications, and External Integrations | 0/TBD | Not started | - |
