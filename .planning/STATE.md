@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 21-03-PLAN.md
-last_updated: "2026-03-15T23:31:53.871Z"
+stopped_at: Completed 21-07-PLAN.md
+last_updated: "2026-03-15T23:33:42.003Z"
 last_activity: 2026-03-15 — Phase 20 Plan 07 verified and approved by user — Phase 20 done
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 23
-  completed_plans: 19
+  completed_plans: 20
   percent: 100
 ---
 
@@ -101,6 +101,8 @@ Recent decisions affecting current work:
 - [Phase 21-documents-groups-communication-and-day-of-tools]: dietary-medical route uses EVENTS_MEDICAL_READ not EVENTS_GROUPS_MANAGE — FERPA gate isolates medical aggregation from routine group management access
 - [Phase 21-03]: useToggleCompletion uses optimistic update pattern: cancelQueries + setQueryData immediately, revert on error
 - [Phase 21-03]: UpsertComplianceItemInput extended with eventProjectId for create path, Lucide icons use aria-label not title prop
+- [Phase 21-07]: userId for PresenceBar read from localStorage 'user-id' key — consistent with existing maintenance/IT components pattern
+- [Phase 21-07]: PortalView announcements use native fetch + setInterval (no TanStack Query) — portal page has no QueryProvider wrapper
 
 ### Pending Todos
 
@@ -121,7 +123,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:31:53.869Z
-Stopped at: Completed 21-03-PLAN.md
+Last session: 2026-03-15T23:33:42.001Z
+Stopped at: Completed 21-07-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
