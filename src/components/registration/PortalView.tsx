@@ -15,7 +15,9 @@ import {
   Mail,
   User,
   AlertCircle,
-  Loader2,
+  Bus,
+  Home,
+  Users,
 } from 'lucide-react'
 import type { EventAnnouncementWithAuthor } from '@/lib/types/events-phase21'
 
@@ -81,6 +83,15 @@ type RegistrationInfo = {
   paymentStatus: PaymentStatus
   submittedAt: string | null
   promotedAt: string | null
+}
+
+type GroupAssignment = {
+  groupId: string
+  groupName: string
+  groupType: 'BUS' | 'CABIN' | 'SMALL_GROUP' | string
+  description: string | null
+  leaderName: string | null
+  assignedAt: string
 }
 
 export type PortalViewProps = {
@@ -172,6 +183,29 @@ function PaymentBadge({ status }: { status: PaymentStatus }) {
   )
 }
 
+// ─── Group Type Helpers ────────────────────────────────────────────────────────
+
+const GROUP_TYPE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  BUS: { label: 'Bus', icon: Bus, color: 'bg-blue-50 text-blue-600 border-blue-100' },
+  CABIN: { label: 'Cabin', icon: Home, color: 'bg-green-50 text-green-600 border-green-100' },
+  SMALL_GROUP: { label: 'Group', icon: Users, color: 'bg-purple-50 text-purple-600 border-purple-100' },
+}
+
+function GroupTypeBadge({ type }: { type: string }) {
+  const config = GROUP_TYPE_CONFIG[type] ?? {
+    label: type,
+    icon: Users,
+    color: 'bg-gray-50 text-gray-600 border-gray-100',
+  }
+  const Icon = config.icon
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${config.color}`}>
+      <Icon className="w-3 h-3" />
+      {config.label}
+    </span>
+  )
+}
+
 // ─── QR Code Display ──────────────────────────────────────────────────────────
 
 function RegistrationQRCode({ registrationId }: { registrationId: string }) {
@@ -205,6 +239,80 @@ function RegistrationQRCode({ registrationId }: { registrationId: string }) {
       />
       <p className="text-xs text-gray-400 mt-2">Present at check-in</p>
     </div>
+  )
+}
+
+// ─── Group Assignments Section ─────────────────────────────────────────────────
+
+function GroupAssignmentsSection({ registrationId }: { registrationId: string }) {
+  const [groups, setGroups] = useState<GroupAssignment[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`/api/registration/${registrationId}/groups`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok && Array.isArray(json.data)) {
+          setGroups(json.data)
+        }
+      })
+      .catch(() => {
+        // Non-fatal — groups may not be assigned yet
+      })
+      .finally(() => setLoading(false))
+  }, [registrationId])
+
+  return (
+    <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">
+      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <Users className="w-4 h-4" />
+        Your Groups
+      </h2>
+
+      {loading ? (
+        <div className="space-y-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : groups.length === 0 ? (
+        <div className="text-center py-6">
+          <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">Groups haven&apos;t been assigned yet.</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Check back closer to the event date.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {groups.map((group) => (
+            <div
+              key={group.groupId}
+              className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <GroupTypeBadge type={group.groupType} />
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {group.groupName}
+                  </p>
+                </div>
+                {group.leaderName && (
+                  <p className="text-xs text-gray-500">
+                    Leader: {group.leaderName}
+                  </p>
+                )}
+                {group.description && (
+                  <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
+                    {group.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
   )
 }
 
@@ -477,6 +585,11 @@ export default function PortalView({
             </div>
           )}
         </motion.div>
+
+        {/* ─── Your Groups Section ──────────────────────────────────────── */}
+        {registration.status === 'REGISTERED' && (
+          <GroupAssignmentsSection registrationId={registration.id} />
+        )}
 
         {/* ─── Documents / Signatures Section ──────────────────────────── */}
         <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">

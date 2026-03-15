@@ -120,7 +120,7 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
       case 'documents':
         return <EventDocumentsTab eventProjectId={project.id} />
       case 'logistics':
-        return <EventLogisticsTab eventProjectId={project.id} />
+        return <EventLogisticsTab eventProjectId={project.id} project={project} />
       case 'budget':
         return <EventBudgetTab eventProjectId={project.id} />
       case 'tasks':
