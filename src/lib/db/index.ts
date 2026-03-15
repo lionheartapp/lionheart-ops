@@ -96,6 +96,9 @@ const orgScopedModels = new Set([
 	'EventScheduleBlock',
 	'EventTask',
 	'EventActivityLog',
+	// Registration module (Phase 20)
+	'EventRegistration',
+	'RegistrationForm',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -134,6 +137,8 @@ const softDeleteModels = new Set([
 	'Conversation',
 	// Event Project module
 	'EventProject',
+	// Registration module (Phase 20)
+	'EventRegistration',
 ])
 
 /**

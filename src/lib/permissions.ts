@@ -228,6 +228,10 @@ export const PERMISSIONS = {
   EVENT_PROJECT_APPROVE: 'events:project:approve',             // Approve/reject PENDING_APPROVAL projects
   EVENT_SERIES_MANAGE: 'events:series:manage',                 // Create/update/delete EventSeries
 
+  // Registration (Medical/FERPA) — Phase 20
+  EVENTS_MEDICAL_READ: 'events:medical:read',               // View medical/emergency data for registrations
+  EVENTS_REGISTRATION_MANAGE: 'events:registration:manage', // Configure registration forms, view registrations
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -400,6 +404,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.EVENT_PROJECT_DELETE,
       PERMISSIONS.EVENT_PROJECT_APPROVE,
       PERMISSIONS.EVENT_SERIES_MANAGE,
+      // Registration permissions (Phase 20)
+      PERMISSIONS.EVENTS_MEDICAL_READ,
+      PERMISSIONS.EVENTS_REGISTRATION_MANAGE,
     ],
     isSystem: true,
   },

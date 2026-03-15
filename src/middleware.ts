@@ -89,6 +89,10 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/it/student-password/lookup')) return true
   if (pathname.startsWith('/api/it/student-password/request')) return true
   if (pathname.startsWith('/api/it/student-password/reset')) return true
+  // Public event registration pages and APIs (Phase 20)
+  if (pathname.startsWith('/events/')) return true
+  if (pathname.startsWith('/api/events/register/')) return true
+  if (pathname.startsWith('/api/registration/')) return true
   return false
 }
 
