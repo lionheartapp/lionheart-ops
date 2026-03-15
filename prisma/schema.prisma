@@ -154,6 +154,20 @@ model Organization {
   registrationForms           RegistrationForm[]
   eventRegistrations          EventRegistration[]
   registrationMagicLinks      RegistrationMagicLink[]
+  // Phase 21 relations
+  eventDocumentRequirements   EventDocumentRequirement[]
+  eventDocumentCompletions    EventDocumentCompletion[]
+  eventComplianceItems        EventComplianceItem[]
+  eventGroups                 EventGroup[]
+  eventGroupAssignments       EventGroupAssignment[]
+  eventActivityOptions        EventActivityOption[]
+  eventActivitySignups        EventActivitySignup[]
+  eventAnnouncements          EventAnnouncement[]
+  eventCheckIns               EventCheckIn[]
+  eventIncidents              EventIncident[]
+  eventSurveys                EventSurvey[]
+  eventSurveyResponses        EventSurveyResponse[]
+  eventPresenceSessions       EventPresenceSession[]
 
   @@index([onboardingStatus])
 }
@@ -260,6 +274,14 @@ model User {
   eventTasksAssigned        EventTask[]         @relation("EventTaskAssignee")
   eventTasksCreated         EventTask[]         @relation("EventTaskCreator")
   eventActivitiesPerformed  EventActivityLog[]  @relation("EventActivityActor")
+  // Phase 21 relations
+  complianceItemsAssigned   EventComplianceItem[]    @relation("ComplianceItemAssignee")
+  groupsLed                 EventGroup[]             @relation("GroupLeader")
+  groupAssignmentsMade      EventGroupAssignment[]   @relation("GroupAssigner")
+  checkInsPerformed         EventCheckIn[]           @relation("CheckInStaff")
+  incidentsReported         EventIncident[]          @relation("IncidentReporter")
+  announcementsCreated      EventAnnouncement[]      @relation("AnnouncementAuthor")
+  presenceSessions          EventPresenceSession[]   @relation("PresenceUser")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -3769,11 +3791,19 @@ model EventProject {
   series         EventSeries?        @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdBy      User                @relation("EventProjectCreator", fields: [createdById], references: [id], onDelete: Restrict)
   approvedBy     User?               @relation("EventProjectApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  scheduleBlocks   EventScheduleBlock[]
-  tasks            EventTask[]
-  activityLog      EventActivityLog[]
-  registrationForm RegistrationForm?
-  registrations    EventRegistration[]
+  scheduleBlocks        EventScheduleBlock[]
+  tasks                 EventTask[]
+  activityLog           EventActivityLog[]
+  registrationForm      RegistrationForm?
+  registrations         EventRegistration[]
+  // Phase 21 relations
+  documentRequirements  EventDocumentRequirement[]
+  complianceItems       EventComplianceItem[]
+  groups                EventGroup[]
+  activityOptions       EventActivityOption[]
+  announcements         EventAnnouncement[]
+  incidents             EventIncident[]
+  surveys               EventSurvey[]
 
   @@index([organizationId, status])
   @@index([organizationId, startsAt])
@@ -3938,6 +3968,7 @@ model RegistrationForm {
   sections      RegistrationFormSection[]
   fields        RegistrationFormField[]
   registrations EventRegistration[]
+  surveys       EventSurvey[]
 
   @@index([organizationId])
 }
@@ -4016,6 +4047,13 @@ model EventRegistration {
   signatures     RegistrationSignature[]
   payments       RegistrationPayment[]
   magicLinks     RegistrationMagicLink[]
+  // Phase 21 relations
+  documentCompletions   EventDocumentCompletion[]
+  groupAssignments      EventGroupAssignment[]
+  activitySignups       EventActivitySignup[]
+  checkIns              EventCheckIn[]
+  incidentInvolvements  EventIncidentParticipant[]
+  surveyResponses       EventSurveyResponse[]
 
   @@index([organizationId, eventProjectId])
   @@index([status])
@@ -4103,4 +4141,334 @@ model RegistrationMagicLink {
   @@index([email])
   @@index([expiresAt])
   @@index([registrationId])
+}
+
+// ─── Phase 21: Documents, Groups, Communication, and Day-of Tools ────────────
+
+enum EventGroupType {
+  BUS
+  CABIN
+  SMALL_GROUP
+  ACTIVITY
+}
+
+enum ComplianceItemStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+}
+
+enum EventIncidentSeverity {
+  MINOR
+  MODERATE
+  SERIOUS
+}
+
+enum EventIncidentType {
+  MEDICAL
+  BEHAVIORAL
+  SAFETY
+  OTHER
+}
+
+enum AnnouncementAudience {
+  ALL
+  GROUP
+  INCOMPLETE_DOCS
+  PAID_ONLY
+}
+
+enum SurveyStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+/// Required document definition per event (e.g., permission slip, waiver).
+model EventDocumentRequirement {
+  id             String    @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  label          String
+  description    String?
+  documentType   String    // permission_slip | waiver | medical_release | photo_release | custom
+  isRequired     Boolean   @default(true)
+  dueDate        DateTime?
+  sortOrder      Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject   EventProject               @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  completions    EventDocumentCompletion[]
+
+  @@index([eventProjectId])
+  @@index([organizationId])
+}
+
+/// Per-participant document completion tracking.
+model EventDocumentCompletion {
+  id             String    @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  registrationId String
+  requirementId  String
+  isComplete     Boolean   @default(false)
+  completedAt    DateTime?
+  signatureId    String?   // optional FK — reference to a RegistrationSignature id
+  fileUrl        String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  registration   EventRegistration         @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  requirement    EventDocumentRequirement  @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, requirementId])
+  @@index([eventProjectId, isComplete])
+  @@index([organizationId])
+}
+
+/// Off-campus event compliance checklist item.
+model EventComplianceItem {
+  id             String               @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  label          String
+  description    String?
+  status         ComplianceItemStatus @default(NOT_STARTED)
+  assigneeId     String?
+  dueDate        DateTime?
+  fileUrl        String?
+  sortOrder      Int                  @default(0)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  assignee     User?        @relation("ComplianceItemAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([eventProjectId])
+  @@index([organizationId])
+  @@index([assigneeId])
+}
+
+/// Group definition for an event (bus, cabin, small group, activity group).
+model EventGroup {
+  id             String         @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  name           String
+  type           EventGroupType
+  capacity       Int?
+  leaderId       String?
+  description    String?
+  sortOrder      Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization  Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject  EventProject          @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  leader        User?                 @relation("GroupLeader", fields: [leaderId], references: [id], onDelete: SetNull)
+  assignments   EventGroupAssignment[]
+  announcements EventAnnouncement[]   @relation("AnnouncementTargetGroup")
+
+  @@index([eventProjectId])
+  @@index([organizationId])
+}
+
+/// Participant-to-group assignment.
+model EventGroupAssignment {
+  id             String   @id @default(cuid())
+  organizationId String
+  registrationId String
+  groupId        String
+  assignedAt     DateTime @default(now())
+  assignedById   String?
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  group        EventGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  assignedBy   User?             @relation("GroupAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@unique([registrationId, groupId])
+  @@index([groupId])
+  @@index([organizationId])
+}
+
+/// Elective activity option for signup during registration.
+model EventActivityOption {
+  id              String    @id @default(cuid())
+  organizationId  String
+  eventProjectId  String
+  name            String
+  description     String?
+  capacity        Int?
+  scheduledAt     DateTime?
+  durationMinutes Int?
+  locationText    String?
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject          @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  signups      EventActivitySignup[]
+
+  @@index([eventProjectId])
+  @@index([organizationId])
+}
+
+/// Participant signup for an elective activity.
+model EventActivitySignup {
+  id             String   @id @default(cuid())
+  organizationId String
+  registrationId String
+  activityId     String
+  signedUpAt     DateTime @default(now())
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  registration EventRegistration   @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  activity     EventActivityOption @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, activityId])
+  @@index([activityId])
+  @@index([organizationId])
+}
+
+/// Targeted announcement sent to event participants.
+model EventAnnouncement {
+  id              String               @id @default(cuid())
+  organizationId  String
+  eventProjectId  String
+  title           String
+  body            String
+  audience        AnnouncementAudience @default(ALL)
+  targetGroupId   String?
+  sentAt          DateTime?
+  createdById     String
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject  EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  targetGroup   EventGroup?  @relation("AnnouncementTargetGroup", fields: [targetGroupId], references: [id], onDelete: SetNull)
+  createdBy     User         @relation("AnnouncementAuthor", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([eventProjectId])
+  @@index([organizationId])
+}
+
+/// QR code check-in record for event attendance.
+model EventCheckIn {
+  id             String   @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  registrationId String
+  checkedInAt    DateTime @default(now())
+  checkedInById  String?
+  method         String   @default("QR_SCAN") // QR_SCAN | MANUAL
+  syncedAt       DateTime?                     // null if created offline
+  createdAt      DateTime @default(now())
+
+  organization  Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  registration  EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  checkedInBy   User?             @relation("CheckInStaff", fields: [checkedInById], references: [id], onDelete: SetNull)
+
+  @@unique([registrationId, eventProjectId])
+  @@index([eventProjectId, checkedInAt])
+  @@index([organizationId])
+}
+
+/// Day-of incident log for events.
+model EventIncident {
+  id               String                @id @default(cuid())
+  organizationId   String
+  eventProjectId   String
+  type             EventIncidentType
+  severity         EventIncidentSeverity
+  description      String
+  actionsTaken     String?
+  followUpNeeded   Boolean          @default(false)
+  followUpNotes    String?
+  photoUrl         String?
+  reportedById     String
+  syncedAt         DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  organization  Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject  EventProject               @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  reportedBy    User                       @relation("IncidentReporter", fields: [reportedById], references: [id], onDelete: Restrict)
+  participants  EventIncidentParticipant[]
+
+  @@index([eventProjectId])
+  @@index([organizationId])
+}
+
+/// Junction: incident to involved participants.
+model EventIncidentParticipant {
+  id             String @id @default(cuid())
+  registrationId String
+  incidentId     String
+
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  incident     EventIncident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, incidentId])
+}
+
+/// Post-event feedback survey (reuses RegistrationForm builder).
+model EventSurvey {
+  id             String       @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  formId         String
+  status         SurveyStatus @default(DRAFT)
+  opensAt        DateTime?
+  closesAt       DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject          @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  form         RegistrationForm      @relation(fields: [formId], references: [id], onDelete: Restrict)
+  responses    EventSurveyResponse[]
+
+  @@index([eventProjectId])
+  @@index([organizationId])
+}
+
+/// Individual survey submission.
+model EventSurveyResponse {
+  id             String   @id @default(cuid())
+  organizationId String
+  surveyId       String
+  registrationId String
+  responses      Json
+  submittedAt    DateTime @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  survey       EventSurvey       @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@unique([surveyId, registrationId])
+  @@index([organizationId])
+}
+
+/// Real-time presence session tracking (for audit; actual presence via Supabase Realtime).
+model EventPresenceSession {
+  id             String   @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  userId         String
+  activeTab      String?
+  lastSeenAt     DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("PresenceUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventProjectId, userId])
+  @@index([organizationId])
 }
