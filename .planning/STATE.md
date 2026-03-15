@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 20-06-PLAN.md
-last_updated: "2026-03-15T12:51:33.774Z"
+stopped_at: Completed 20-04-PLAN.md
+last_updated: "2026-03-15T13:02:28.053Z"
 last_activity: 2026-03-15 — Phase 19 Plan 06 verified and approved by user — Phase 19 done
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 100
 ---
 
@@ -85,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 20]: useToast (project custom hook) used for form builder save feedback instead of sonner (not installed)
 - [Phase 20-registration-and-public-pages]: staggerContainer is a factory function — must be called as staggerContainer() not used as value
 - [Phase 20-registration-and-public-pages]: Registration sub-tabs (Form Design / Registrations / Share & Publish) live within RegistrationTab to keep EventProjectTabs clean
+- [Phase 20]: Public layout fetches org by shareSlug then validates org.slug matches URL param — prevents URL spoofing
+- [Phase 20]: PaymentStep two-phase: amount selection UI first, then payment-intent creation when user confirms — avoids creating intents for unconfirmed amounts
 
 ### Pending Todos
 
@@ -105,7 +107,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T12:51:33.772Z
-Stopped at: Completed 20-06-PLAN.md
+Last session: 2026-03-15T13:02:28.051Z
+Stopped at: Completed 20-04-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`

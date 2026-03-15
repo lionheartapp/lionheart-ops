@@ -23,12 +23,12 @@
 - [x] **REG-01**: Staff can configure a registration form with toggleable common fields (name, grade, emergency contacts, dietary, allergies, medications, t-shirt size, etc.)
 - [x] **REG-02**: Staff can add custom form fields (text, dropdown, checkbox, number, date, file upload) with label, help text, and required toggle
 - [x] **REG-03**: Staff can organize form fields into named sections that become pages in the parent-facing form with a progress indicator
-- [ ] **REG-04**: Parents can register for an event on a public page branded with school logo and cover image (zero Lionheart branding)
+- [x] **REG-04**: Parents can register for an event on a public page branded with school logo and cover image (zero Lionheart branding)
 - [x] **REG-05**: Parents can pay event fees via Stripe (credit card, Apple Pay, Google Pay) with deposit, payment plan, and discount code options
-- [ ] **REG-06**: Parents can sign required documents (permission slips, waivers, medical releases) with finger on mobile or typed name on desktop
+- [x] **REG-06**: Parents can sign required documents (permission slips, waivers, medical releases) with finger on mobile or typed name on desktop
 - [x] **REG-07**: Parents receive a confirmation email with event details and a unique QR code after registration
 - [x] **REG-08**: Parents can access their registration portal via magic link (no Lionheart account needed) to view schedule, groups, announcements, and outstanding documents
-- [ ] **REG-09**: Staff can publish an event via a Share hub with link copy, QR code for flyers, email distribution, branding controls, and registration open/close dates
+- [x] **REG-09**: Staff can publish an event via a Share hub with link copy, QR code for flyers, email distribution, branding controls, and registration open/close dates
 - [x] **REG-10**: System manages registration capacity with automatic waitlist promotion when spots open
 - [x] **REG-11**: Parents can upload a student photo during registration that appears on rosters, check-in screens, and printed materials
 - [x] **REG-12**: Public registration forms are protected by CAPTCHA (Cloudflare Turnstile) and rate limiting
@@ -132,12 +132,12 @@
 | REG-01 | Phase 20 | Complete |
 | REG-02 | Phase 20 | Complete |
 | REG-03 | Phase 20 | Complete |
-| REG-04 | Phase 20 | Pending |
+| REG-04 | Phase 20 | Complete |
 | REG-05 | Phase 20 | Complete |
-| REG-06 | Phase 20 | Pending |
+| REG-06 | Phase 20 | Complete |
 | REG-07 | Phase 20 | Complete |
 | REG-08 | Phase 20 | Complete |
-| REG-09 | Phase 20 | Pending |
+| REG-09 | Phase 20 | Complete |
 | REG-10 | Phase 20 | Complete |
 | REG-11 | Phase 20 | Complete |
 | REG-12 | Phase 20 | Complete |
