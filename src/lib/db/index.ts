@@ -90,6 +90,12 @@ const orgScopedModels = new Set([
 	// Leo memory module
 	'Conversation',
 	'ConversationMessage',
+	// Event Project module
+	'EventProject',
+	'EventSeries',
+	'EventScheduleBlock',
+	'EventTask',
+	'EventActivityLog',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -126,6 +132,8 @@ const softDeleteModels = new Set([
 	'ITERateTask',
 	// Leo memory module
 	'Conversation',
+	// Event Project module
+	'EventProject',
 ])
 
 /**

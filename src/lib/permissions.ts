@@ -219,6 +219,15 @@ export const PERMISSIONS = {
   IT_INCIDENT_CREATE: 'it:incident:create',                    // Report new security incidents
   IT_INCIDENT_MANAGE: 'it:incident:manage',                    // Manage incidents (severity, responders, close)
 
+  // Event Projects
+  EVENT_PROJECT_CREATE: 'events:project:create',               // Create a new EventProject (direct request path)
+  EVENT_PROJECT_READ: 'events:project:read',                   // View EventProject details and children
+  EVENT_PROJECT_UPDATE_OWN: 'events:project:update:own',       // Update own EventProject (creator or assignee)
+  EVENT_PROJECT_UPDATE_ALL: 'events:project:update:all',       // Update any EventProject (admin)
+  EVENT_PROJECT_DELETE: 'events:project:delete',               // Soft-delete EventProject (admin)
+  EVENT_PROJECT_APPROVE: 'events:project:approve',             // Approve/reject PENDING_APPROVAL projects
+  EVENT_SERIES_MANAGE: 'events:series:manage',                 // Create/update/delete EventSeries
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -383,6 +392,14 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_INCIDENT_READ,
       PERMISSIONS.IT_INCIDENT_CREATE,
       PERMISSIONS.IT_INCIDENT_MANAGE,
+      // Event Projects
+      PERMISSIONS.EVENT_PROJECT_CREATE,
+      PERMISSIONS.EVENT_PROJECT_READ,
+      PERMISSIONS.EVENT_PROJECT_UPDATE_OWN,
+      PERMISSIONS.EVENT_PROJECT_UPDATE_ALL,
+      PERMISSIONS.EVENT_PROJECT_DELETE,
+      PERMISSIONS.EVENT_PROJECT_APPROVE,
+      PERMISSIONS.EVENT_SERIES_MANAGE,
     ],
     isSystem: true,
   },
@@ -425,6 +442,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER,
       // MDM
       PERMISSIONS.IT_DEVICE_READ,
+      // Event Projects
+      PERMISSIONS.EVENT_PROJECT_CREATE,
+      PERMISSIONS.EVENT_PROJECT_READ,
+      PERMISSIONS.EVENT_PROJECT_UPDATE_OWN,
     ],
     isSystem: true,
   },
