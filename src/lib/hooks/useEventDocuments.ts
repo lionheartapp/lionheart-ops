@@ -99,6 +99,9 @@ export interface UpsertComplianceItemInput {
   assigneeId?: string | null
   dueDate?: string | null
   fileUrl?: string | null
+  /** Used for create (when id is absent). Passed through to the API for the eventProjectId field. */
+  eventProjectId?: string
+  sortOrder?: number
 }
 
 // ─── Document Requirements Hooks ───────────────────────────────────────
