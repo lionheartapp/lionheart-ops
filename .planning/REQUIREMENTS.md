@@ -7,13 +7,13 @@
 
 ### Event Foundation
 
-- [ ] **EVNT-01**: Staff can create an EventProject from an approved planning season submission
-- [ ] **EVNT-02**: Staff can create a recurring EventSeries with default schedule, location, and resource needs
-- [ ] **EVNT-03**: Staff can submit a direct event request (mid-year) for admin approval that becomes an EventProject
-- [ ] **EVNT-04**: Staff can view an EventProject page with 8 tabbed sections (Overview, Schedule, People, Documents, Logistics, Budget, Tasks, Comms)
-- [ ] **EVNT-05**: Staff can build a multi-day event schedule with time blocks (session, activity, meal, free time, travel, setup)
-- [ ] **EVNT-06**: Staff can create and manage tasks within an event (assignee, due date, priority, status, category)
-- [ ] **EVNT-07**: System automatically logs all changes and milestones on an event activity log
+- [x] **EVNT-01**: Staff can create an EventProject from an approved planning season submission
+- [x] **EVNT-02**: Staff can create a recurring EventSeries with default schedule, location, and resource needs
+- [x] **EVNT-03**: Staff can submit a direct event request (mid-year) for admin approval that becomes an EventProject
+- [x] **EVNT-04**: Staff can view an EventProject page with 8 tabbed sections (Overview, Schedule, People, Documents, Logistics, Budget, Tasks, Comms)
+- [x] **EVNT-05**: Staff can build a multi-day event schedule with time blocks (session, activity, meal, free time, travel, setup)
+- [x] **EVNT-06**: Staff can create and manage tasks within an event (assignee, due date, priority, status, category)
+- [x] **EVNT-07**: System automatically logs all changes and milestones on an event activity log
 - [ ] **EVNT-08**: Calendar view reads from EventProject data via a CalendarEvent bridge (sourceModule='event-project')
 - [ ] **EVNT-09**: Sidebar navigation shows Events as primary item with Calendar and Planning nested under it
 - [ ] **EVNT-10**: Dashboard shows AI-prioritized action items across all active events with one-tap resolution
@@ -119,13 +119,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVNT-01 | Phase 19 | Pending |
-| EVNT-02 | Phase 19 | Pending |
-| EVNT-03 | Phase 19 | Pending |
-| EVNT-04 | Phase 19 | Pending |
-| EVNT-05 | Phase 19 | Pending |
-| EVNT-06 | Phase 19 | Pending |
-| EVNT-07 | Phase 19 | Pending |
+| EVNT-01 | Phase 19 | Complete |
+| EVNT-02 | Phase 19 | Complete |
+| EVNT-03 | Phase 19 | Complete |
+| EVNT-04 | Phase 19 | Complete |
+| EVNT-05 | Phase 19 | Complete |
+| EVNT-06 | Phase 19 | Complete |
+| EVNT-07 | Phase 19 | Complete |
 | EVNT-08 | Phase 19 | Pending |
 | EVNT-09 | Phase 19 | Pending |
 | EVNT-10 | Phase 19 | Pending |

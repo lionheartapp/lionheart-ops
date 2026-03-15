@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
-status: roadmap-complete
-stopped_at: null
-last_updated: "2026-03-14"
-last_activity: 2026-03-14 — Roadmap created for v3.0 (Phases 19-22)
+status: planning
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-03-15T03:43:44.640Z"
+last_activity: 2026-03-14 — v3.0 roadmap written (4 phases, 56 requirements mapped)
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 6
+  completed_plans: 1
   percent: 0
 ---
 
@@ -60,6 +60,8 @@ Recent decisions affecting current work:
 - [v3.0]: 4 phases (19-22) driven by hard data dependencies per research recommendation
 - [v3.0]: Phase 19 is staff-only — no public routes, establishes hub model before any security surface opens
 - [v3.0]: Phase 20 opens first public API surface — multi-tenant isolation, CAPTCHA, FERPA/COPPA must be complete before any parent sees a form
+- [Phase 19]: EventProject uses separate seriesId FK and sourceId String for series vs planning submission source references
+- [Phase 19]: EventActivityLog has no updatedAt — rows are immutable append-only audit trail
 
 ### Pending Todos
 
@@ -80,7 +82,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-14
-Stopped at: v3.0 roadmap written — Phases 19-22 defined, 56/56 requirements mapped
+Last session: 2026-03-15T03:43:44.638Z
+Stopped at: Completed 19-01-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 19`
