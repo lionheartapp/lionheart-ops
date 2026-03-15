@@ -36,26 +36,26 @@
 
 ### Documents & Signatures
 
-- [ ] **DOC-01**: Staff can define required documents per event (permission slip, waiver, medical release, photo release, custom)
-- [ ] **DOC-02**: Staff can view per-participant document completion status and send targeted reminders to incomplete families
-- [ ] **DOC-03**: Staff can manage a compliance checklist for off-campus events (insurance certificates, vendor contracts, background checks)
+- [x] **DOC-01**: Staff can define required documents per event (permission slip, waiver, medical release, photo release, custom)
+- [x] **DOC-02**: Staff can view per-participant document completion status and send targeted reminders to incomplete families
+- [x] **DOC-03**: Staff can manage a compliance checklist for off-campus events (insurance certificates, vendor contracts, background checks)
 
 ### Groups & Logistics
 
-- [ ] **GRP-01**: Staff can create groups by type (bus, cabin, small group, activity) with name, capacity, and assigned leader
-- [ ] **GRP-02**: Staff can assign participants to groups via drag-and-drop interface
+- [x] **GRP-01**: Staff can create groups by type (bus, cabin, small group, activity) with name, capacity, and assigned leader
+- [x] **GRP-02**: Staff can assign participants to groups via drag-and-drop interface
 - [ ] **GRP-03**: Staff can generate printable PDFs: bus manifests (with medical flags), cabin rosters (with photos), medical summaries, emergency contact sheets, activity rosters, check-in sheets
-- [ ] **GRP-04**: Staff can manage elective activity signups with real-time capacity tracking
-- [ ] **GRP-05**: Staff can view aggregated dietary and medical reports from registration data
+- [x] **GRP-04**: Staff can manage elective activity signups with real-time capacity tracking
+- [x] **GRP-05**: Staff can view aggregated dietary and medical reports from registration data
 - [ ] **GRP-06**: Parents can see their student's group assignments on the participant dashboard
 
 ### QR & Day-Of Operations
 
-- [ ] **QR-01**: Staff can scan participant QR codes for check-in with a real-time counter showing checked-in vs. total
+- [x] **QR-01**: Staff can scan participant QR codes for check-in with a real-time counter showing checked-in vs. total
 - [ ] **QR-02**: Authorized staff can scan a QR code to view participant info (name, photo, groups, medical flags based on role permissions)
 - [ ] **QR-03**: Participants can scan their QR code to view personal schedule, group assignments, and event announcements
 - [ ] **QR-04**: Day-of tools (QR scanning, rosters, headcount, incident logging) work offline via PWA with automatic sync on reconnect
-- [ ] **QR-05**: Staff can log incidents during events (medical, behavioral) with involved participants, actions taken, and follow-up needs
+- [x] **QR-05**: Staff can log incidents during events (medical, behavioral) with involved participants, actions taken, and follow-up needs
 
 ### Budget & Financials
 
@@ -65,11 +65,11 @@
 
 ### Communication
 
-- [ ] **COM-01**: Staff can post targeted announcements to specific audiences (all registrants, specific group, incomplete-docs families, paid-only)
+- [x] **COM-01**: Staff can post targeted announcements to specific audiences (all registrants, specific group, incomplete-docs families, paid-only)
 - [ ] **COM-02**: Parents see announcements on the public event page and participant dashboard in real time
 - [ ] **COM-03**: Staff can set up an automated notification timeline with date-based and condition-based triggers with AI-drafted messages
-- [ ] **COM-04**: Staff can collect post-event feedback via surveys at the registration URL
-- [ ] **COM-05**: Multiple staff can collaborate on an event project with real-time updates and presence indicators
+- [x] **COM-04**: Staff can collect post-event feedback via surveys at the registration URL
+- [x] **COM-05**: Multiple staff can collaborate on an event project with real-time updates and presence indicators
 
 ### AI Features
 
@@ -142,25 +142,25 @@
 | REG-11 | Phase 20 | Complete |
 | REG-12 | Phase 20 | Complete |
 | REG-13 | Phase 20 | Complete |
-| DOC-01 | Phase 21 | Pending |
-| DOC-02 | Phase 21 | Pending |
-| DOC-03 | Phase 21 | Pending |
-| GRP-01 | Phase 21 | Pending |
-| GRP-02 | Phase 21 | Pending |
+| DOC-01 | Phase 21 | Complete |
+| DOC-02 | Phase 21 | Complete |
+| DOC-03 | Phase 21 | Complete |
+| GRP-01 | Phase 21 | Complete |
+| GRP-02 | Phase 21 | Complete |
 | GRP-03 | Phase 21 | Pending |
-| GRP-04 | Phase 21 | Pending |
-| GRP-05 | Phase 21 | Pending |
+| GRP-04 | Phase 21 | Complete |
+| GRP-05 | Phase 21 | Complete |
 | GRP-06 | Phase 21 | Pending |
-| QR-01 | Phase 21 | Pending |
+| QR-01 | Phase 21 | Complete |
 | QR-02 | Phase 21 | Pending |
 | QR-03 | Phase 21 | Pending |
 | QR-04 | Phase 21 | Pending |
-| QR-05 | Phase 21 | Pending |
-| COM-01 | Phase 21 | Pending |
+| QR-05 | Phase 21 | Complete |
+| COM-01 | Phase 21 | Complete |
 | COM-02 | Phase 21 | Pending |
 | COM-03 | Phase 22 | Pending |
-| COM-04 | Phase 21 | Pending |
-| COM-05 | Phase 21 | Pending |
+| COM-04 | Phase 21 | Complete |
+| COM-05 | Phase 21 | Complete |
 | BUD-01 | Phase 22 | Pending |
 | BUD-02 | Phase 22 | Pending |
 | BUD-03 | Phase 22 | Pending |
