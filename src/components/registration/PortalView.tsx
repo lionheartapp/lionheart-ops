@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import QRCode from 'qrcode'
 import {
@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react'
+import type { EventAnnouncementWithAuthor } from '@/lib/types/events-phase21'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -209,6 +210,8 @@ function RegistrationQRCode({ registrationId }: { registrationId: string }) {
 
 // ─── Main PortalView Component ────────────────────────────────────────────────
 
+const ANNOUNCEMENTS_REFETCH_INTERVAL = 30_000
+
 export default function PortalView({
   registration,
   event,
@@ -234,6 +237,31 @@ export default function PortalView({
   const eventStartTime = formatTime(event?.startsAt)
   const eventEndTime = formatTime(event?.endsAt)
   const timeStr = eventStartTime && eventEndTime ? `${eventStartTime} – ${eventEndTime}` : eventStartTime
+
+  // ─── Live announcements (auto-refresh every 30s) ──────────────────────────
+  const [announcements, setAnnouncements] = useState<EventAnnouncementWithAuthor[]>([])
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true)
+
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/registration/${registration.id}/announcements`)
+      if (!res.ok) return
+      const json = await res.json()
+      if (json.ok && Array.isArray(json.data)) {
+        setAnnouncements(json.data)
+      }
+    } catch {
+      // Non-fatal — parent portal announcements are optional
+    } finally {
+      setAnnouncementsLoading(false)
+    }
+  }, [registration.id])
+
+  useEffect(() => {
+    fetchAnnouncements()
+    const timer = setInterval(fetchAnnouncements, ANNOUNCEMENTS_REFETCH_INTERVAL)
+    return () => clearInterval(timer)
+  }, [fetchAnnouncements])
 
   return (
     <motion.div
@@ -579,13 +607,52 @@ export default function PortalView({
             <Megaphone className="w-4 h-4" />
             Announcements
           </h2>
-          <div className="text-center py-6">
-            <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No announcements yet.</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Important updates will appear here as the event approaches.
-            </p>
-          </div>
+
+          {announcementsLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="animate-pulse h-16 bg-gray-50 rounded-xl" />
+              ))}
+            </div>
+          ) : announcements.length === 0 ? (
+            <div className="text-center py-6">
+              <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No announcements yet.</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Important updates will appear here as the event approaches.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {announcements.map((ann) => (
+                <div
+                  key={ann.id}
+                  className="p-4 bg-blue-50 border border-blue-100 rounded-xl"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                      <Megaphone className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{ann.title}</p>
+                      <p className="text-sm text-gray-700 mt-1 leading-relaxed whitespace-pre-wrap">
+                        {ann.body}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {new Date(ann.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* ─── Actions Row ─────────────────────────────────────────────── */}

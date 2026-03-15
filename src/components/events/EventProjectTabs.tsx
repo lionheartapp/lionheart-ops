@@ -24,6 +24,7 @@ import { EventLogisticsTab } from './EventLogisticsTab'
 import { EventBudgetTab } from './EventBudgetTab'
 import { EventCommsTab } from './EventCommsTab'
 import { RegistrationTab } from './project/RegistrationTab'
+import { PresenceBar } from './comms/PresenceBar'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
@@ -84,6 +85,14 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
     TABS.some((t) => t.id === initialTab) ? initialTab : 'overview'
   )
 
+  // Read current user ID from localStorage (set by server auth flow)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentUserId(localStorage.getItem('user-id'))
+    }
+  }, [])
+
   const tabsContainerRef = useRef<HTMLDivElement>(null)
   const indicatorStyle = useAnimatedTabIndicator(activeTab, tabsContainerRef)
 
@@ -125,31 +134,45 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
 
   return (
     <div>
-      {/* Tab bar */}
+      {/* Tab bar with PresenceBar */}
       <div className="relative border-b border-gray-200 mb-6">
-        {/* Scrollable tab list */}
-        <div
-          ref={tabsContainerRef}
-          className="flex overflow-x-auto scrollbar-none -mb-px"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {TABS.map((tab) => {
-            const Icon = tab.icon
-            const isActive = tab.id === activeTab
-            return (
-              <button
-                key={tab.id}
-                data-tab={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-shrink-0 ${
-                  isActive ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : 'text-gray-400'}`} />
-                {tab.label}
-              </button>
-            )
-          })}
+        {/* Tab row with presence bar at right */}
+        <div className="flex items-center">
+          {/* Scrollable tab list */}
+          <div
+            ref={tabsContainerRef}
+            className="flex flex-1 overflow-x-auto scrollbar-none -mb-px"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {TABS.map((tab) => {
+              const Icon = tab.icon
+              const isActive = tab.id === activeTab
+              return (
+                <button
+                  key={tab.id}
+                  data-tab={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-shrink-0 ${
+                    isActive ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Presence bar — active collaborators */}
+          {currentUserId && (
+            <div className="flex-shrink-0 ml-4 mb-1 pb-1">
+              <PresenceBar
+                eventProjectId={project.id}
+                currentUserId={currentUserId}
+                activeTab={activeTab}
+              />
+            </div>
+          )}
         </div>
 
         {/* Animated aurora gradient indicator */}
