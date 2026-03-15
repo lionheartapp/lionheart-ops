@@ -88,6 +88,12 @@ export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users
 export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
 export type MaintenanceTab = 'dashboard' | 'pm-calendar'
 
+export interface EventProjectSummary {
+  id: string
+  title: string
+  status: string
+}
+
 interface AthleticsCampus {
   id: string
   name: string
@@ -147,6 +153,9 @@ export default function Sidebar({
   }, [isOpen])
 
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
+
+  // Events sidebar state
+  const [eventsOpen, setEventsOpen] = useState(false)
 
   // Athletics sidebar state
   const [athleticsOpen, setAthleticsOpen] = useState(false)
@@ -248,6 +257,7 @@ export default function Sidebar({
     if (pathname.startsWith('/settings')) {
       setSettingsOpen(true)
       setAthleticsOpen(false)
+      setEventsOpen(false)
     }
   }, [pathname])
 
@@ -314,7 +324,16 @@ export default function Sidebar({
   const [colorEditId, setColorEditId] = useState<string | null>(null)
   const [deleteCalendar, setDeleteCalendar] = useState<CalendarSidebarData | null>(null)
 
-  // Open calendar panel when navigating to /calendar
+  // Open events panel when navigating to /events, /calendar, or /planning
+  useIsomorphicLayoutEffect(() => {
+    if (pathname.startsWith('/events') || pathname.startsWith('/calendar') || pathname.startsWith('/planning')) {
+      setEventsOpen(true)
+      setSettingsOpen(false)
+      setAthleticsOpen(false)
+    }
+  }, [pathname])
+
+  // Open calendar panel when navigating to /calendar (kept for backward compat — calendarOpen is still used for calendar checkbox data)
   useIsomorphicLayoutEffect(() => {
     if (pathname.startsWith('/calendar')) {
       setCalendarOpen(true)
@@ -331,6 +350,7 @@ export default function Sidebar({
       setAthleticsOpen(true)
       setSettingsOpen(false)
       setCalendarOpen(false)
+      setEventsOpen(false)
     } else {
       setAthleticsOpen(false)
     }
@@ -796,15 +816,28 @@ export default function Sidebar({
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
-    { icon: Calendar, label: 'Calendar', href: '/calendar' },
     ...(canReadInventory ? [{ icon: Package, label: 'AV Inventory', href: '/inventory' }] : []),
   ]
+
+  const handleEventsClick = () => {
+    if (!eventsOpen) {
+      setEventsOpen(true)
+      setSettingsOpen(false)
+      setAthleticsOpen(false)
+      setCalendarOpen(false)
+      router.push('/events')
+    } else {
+      setEventsOpen(false)
+      router.push('/dashboard')
+    }
+  }
 
   const handleAthleticsClick = () => {
     if (!athleticsOpen) {
       setAthleticsOpen(true)
       setSettingsOpen(false)
       setCalendarOpen(false)
+      setEventsOpen(false)
       router.push('/athletics')
     } else {
       setAthleticsOpen(false)
@@ -824,6 +857,7 @@ export default function Sidebar({
       setSettingsOpen(true)
       setCalendarOpen(false)
       setAthleticsOpen(false)
+      setEventsOpen(false)
       // Keep the last-used settings tab (stored in localStorage) instead of resetting
       router.push('/settings')
     } else {
@@ -859,7 +893,7 @@ export default function Sidebar({
     { id: 'activity-log' as SettingsTab, label: 'Activity Log', icon: ScrollText },
   ]
 
-  const secondaryOpen = settingsOpen || calendarOpen || athleticsOpen
+  const secondaryOpen = settingsOpen || calendarOpen || athleticsOpen || eventsOpen
 
   const mainNavContent = (
     <div className="flex flex-col h-full">
@@ -917,22 +951,41 @@ export default function Sidebar({
                   onClick={() => {
                     setSettingsOpen(false)
                     setAthleticsOpen(false)
+                    setEventsOpen(false)
                     setIsOpen(false)
                     // calendarOpen is managed by route detection in useIsomorphicLayoutEffect
                   }}
                   className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
-                    active && !settingsOpen && !athleticsOpen
+                    active && !settingsOpen && !athleticsOpen && !eventsOpen
                       ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
                       : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
-                  aria-current={active && !settingsOpen && !athleticsOpen ? 'page' : undefined}
+                  aria-current={active && !settingsOpen && !athleticsOpen && !eventsOpen ? 'page' : undefined}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen && !eventsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
             )
           })}
+          {/* Events — toggle secondary sidebar showing Dashboard, Calendar, Planning */}
+          <li>
+            <button
+              onClick={() => {
+                handleEventsClick()
+                setIsOpen(false)
+              }}
+              className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                eventsOpen
+                  ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                  : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+              }`}
+              aria-current={eventsOpen ? 'page' : undefined}
+            >
+              <CalendarClock className={`w-5 h-5 flex-shrink-0 ${eventsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+              <span className="text-sm">Events</span>
+            </button>
+          </li>
           {/* Athletics — toggle secondary sidebar (like Settings) */}
           {athleticsModuleLoading ? (
             <li>
@@ -1939,6 +1992,206 @@ export default function Sidebar({
     </div>
   )
 
+  // Fetch active event projects for sidebar display (only when events panel is open)
+  const { data: sidebarEventProjects } = useQuery<EventProjectSummary[]>({
+    queryKey: ['event-projects', { status: 'CONFIRMED,DRAFT', limit: 5 }],
+    queryFn: async () => {
+      const { fetchApi } = await import('@/lib/api-client')
+      return fetchApi<EventProjectSummary[]>('/api/events/projects?limit=5')
+    },
+    enabled: eventsOpen,
+    staleTime: 2 * 60_000,
+  })
+
+  const eventStatusColor = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'bg-green-100 text-green-700'
+      case 'PENDING_APPROVAL': return 'bg-yellow-100 text-yellow-700'
+      case 'DRAFT': return 'bg-slate-100 text-slate-600'
+      case 'CANCELLED': return 'bg-red-100 text-red-700'
+      default: return 'bg-slate-100 text-slate-500'
+    }
+  }
+
+  const eventStatusLabel = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'Confirmed'
+      case 'PENDING_APPROVAL': return 'Pending'
+      case 'DRAFT': return 'Draft'
+      case 'CANCELLED': return 'Cancelled'
+      default: return status
+    }
+  }
+
+  const eventsNavContent = (
+    <div className="flex flex-col h-full">
+      {/* Events Header */}
+      <div className="px-5 py-4 border-b border-white/30 flex items-center gap-2">
+        <CalendarClock className="w-4 h-4 text-primary-500 flex-shrink-0" aria-hidden="true" />
+        <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Events</h2>
+      </div>
+
+      {/* Navigation Links */}
+      <div className="px-3 pt-4 flex-shrink-0">
+        <nav className="space-y-0.5" aria-label="Events navigation">
+          {/* Dashboard link — first, ready for Plan 06 AI dashboard */}
+          <PrefetchLink
+            href="/events/dashboard"
+            onClick={() => setIsOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+              pathname.startsWith('/events/dashboard')
+                ? 'bg-white/50 text-primary-600 font-medium'
+                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+            }`}
+            aria-current={pathname.startsWith('/events/dashboard') ? 'page' : undefined}
+          >
+            <Home className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
+            Dashboard
+          </PrefetchLink>
+
+          {/* Calendar link */}
+          <PrefetchLink
+            href="/calendar"
+            onClick={() => setIsOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+              pathname.startsWith('/calendar')
+                ? 'bg-white/50 text-primary-600 font-medium'
+                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+            }`}
+            aria-current={pathname.startsWith('/calendar') ? 'page' : undefined}
+          >
+            <Calendar className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
+            Calendar
+          </PrefetchLink>
+
+          {/* Planning link */}
+          <PrefetchLink
+            href="/planning"
+            onClick={() => setIsOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+              pathname.startsWith('/planning')
+                ? 'bg-white/50 text-primary-600 font-medium'
+                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+            }`}
+            aria-current={pathname.startsWith('/planning') ? 'page' : undefined}
+          >
+            <ScrollText className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
+            Planning
+          </PrefetchLink>
+        </nav>
+      </div>
+
+      {/* Active Events Section */}
+      <div className="px-3 pt-5 flex-1 overflow-y-auto">
+        <div className="flex items-center justify-between px-2 mb-2">
+          <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase">Active Events</p>
+          <PrefetchLink
+            href="/events"
+            onClick={() => setIsOpen(false)}
+            className="text-xs text-primary-500 hover:text-primary-700 transition-colors duration-200 cursor-pointer"
+          >
+            View all
+          </PrefetchLink>
+        </div>
+
+        {eventsOpen && !sidebarEventProjects && (
+          <div className="space-y-2 px-1 animate-pulse">
+            <div className="h-8 bg-slate-200/60 rounded-lg" />
+            <div className="h-8 bg-slate-200/60 rounded-lg" />
+            <div className="h-8 bg-slate-200/60 rounded-lg" />
+          </div>
+        )}
+
+        {sidebarEventProjects && sidebarEventProjects.length === 0 && (
+          <div className="px-2 py-3 text-center">
+            <p className="text-xs text-slate-400">No active events</p>
+          </div>
+        )}
+
+        {sidebarEventProjects && sidebarEventProjects.length > 0 && (
+          <nav className="space-y-0.5" aria-label="Active event projects">
+            {sidebarEventProjects.map((project) => (
+              <PrefetchLink
+                key={project.id}
+                href={`/events/${project.id}`}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+                  pathname === `/events/${project.id}`
+                    ? 'bg-white/50 text-primary-600 font-medium'
+                    : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+                }`}
+              >
+                <span className="truncate text-xs">{project.title}</span>
+                <span className={`flex-shrink-0 px-1.5 py-0.5 text-[10px] font-medium rounded-full ${eventStatusColor(project.status)}`}>
+                  {eventStatusLabel(project.status)}
+                </span>
+              </PrefetchLink>
+            ))}
+          </nav>
+        )}
+      </div>
+
+      {/* Planning CTA — pinned to bottom (moved from calendarNavContent) */}
+      <div className="px-3 pb-3 pt-2 flex-shrink-0">
+        {/* Outer border wrapper — clips the rotating gradient */}
+        <div className="relative rounded-2xl p-[1.5px] overflow-hidden">
+          {/* Spinning gradient disc behind the card — creates animated border */}
+          <div
+            className="absolute inset-[-50%] animate-[cta-border-spin_6s_linear_infinite]"
+            style={{
+              background: 'conic-gradient(from 0deg, #93c5fd, #c4b5fd, #e8a854, transparent, transparent, #c4b5fd, #93c5fd)',
+            }}
+          />
+          {/* Glow layer */}
+          <div
+            className="absolute inset-[-50%] animate-[cta-border-spin_6s_linear_infinite_reverse] opacity-30 blur-[3px]"
+            style={{
+              background: 'conic-gradient(from 180deg, #93c5fd, #e8a854, transparent, transparent, #c4b5fd, #93c5fd)',
+            }}
+          />
+
+          {/* Inner card */}
+          <PrefetchLink
+            href="/planning"
+            onClick={() => setIsOpen(false)}
+            className="block relative overflow-hidden rounded-[14px] group hover:shadow-lg transition-all duration-200"
+          >
+            {/* Background image */}
+            <img
+              src="/planning-cta-bg.webp"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+
+            <div className="relative p-4 pb-5 flex flex-col" style={{ aspectRatio: '1' }}>
+              {/* Orange circle with icon */}
+              <div className="w-8 h-8 rounded-full bg-[#e8a854] flex items-center justify-center mb-3">
+                <CalendarClock className="w-4 h-4 text-white" />
+              </div>
+
+              {/* Heading */}
+              <h3 className="text-[15px] font-bold text-slate-900 leading-tight">
+                Start planning<br />your calendar
+              </h3>
+
+              {/* Subtitle */}
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                Collect &amp; coordinate events<br />for the year
+              </p>
+
+              {/* Button — pushed to bottom */}
+              <div className="mt-auto pt-3">
+                <span className="inline-flex items-center justify-center px-5 py-2 bg-[#1e293b] text-white text-xs font-semibold rounded-full group-hover:bg-[#334155] transition-colors">
+                  Open Planning
+                </span>
+              </div>
+            </div>
+          </PrefetchLink>
+        </div>
+      </div>
+    </div>
+  )
+
   const athleticsNavContent = (
     <div className="flex flex-col h-full">
       {/* Athletics Header */}
@@ -2024,11 +2277,11 @@ export default function Sidebar({
             secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
           }`}
           style={{ background: 'rgba(245, 247, 250, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.5)' : 'none', borderLeft: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.3)' : 'none' }}
-          aria-label={athleticsOpen ? 'Athletics navigation' : calendarOpen ? 'Calendar navigation' : 'Settings navigation'}
+          aria-label={eventsOpen ? 'Events navigation' : athleticsOpen ? 'Athletics navigation' : calendarOpen ? 'Calendar navigation' : 'Settings navigation'}
           aria-hidden={!secondaryOpen}
         >
           <div className="w-60 h-full">
-            {athleticsOpen ? athleticsNavContent : calendarOpen ? calendarNavContent : settingsNavContent}
+            {eventsOpen ? eventsNavContent : athleticsOpen ? athleticsNavContent : calendarOpen ? calendarNavContent : settingsNavContent}
           </div>
         </aside>
       </div>
@@ -2043,9 +2296,9 @@ export default function Sidebar({
         aria-label="Mobile navigation"
       >
         {mainNavContent}
-        {(calendarOpen || settingsOpen || athleticsOpen) && (
+        {(eventsOpen || calendarOpen || settingsOpen || athleticsOpen) && (
           <div className="flex-1 overflow-y-auto border-t border-slate-200/30">
-            {athleticsOpen ? athleticsNavContent : calendarOpen ? calendarNavContent : settingsNavContent}
+            {eventsOpen ? eventsNavContent : athleticsOpen ? athleticsNavContent : calendarOpen ? calendarNavContent : settingsNavContent}
           </div>
         )}
       </aside>
