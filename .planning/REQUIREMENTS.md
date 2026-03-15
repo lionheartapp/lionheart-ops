@@ -26,8 +26,8 @@
 - [ ] **REG-04**: Parents can register for an event on a public page branded with school logo and cover image (zero Lionheart branding)
 - [x] **REG-05**: Parents can pay event fees via Stripe (credit card, Apple Pay, Google Pay) with deposit, payment plan, and discount code options
 - [ ] **REG-06**: Parents can sign required documents (permission slips, waivers, medical releases) with finger on mobile or typed name on desktop
-- [ ] **REG-07**: Parents receive a confirmation email with event details and a unique QR code after registration
-- [ ] **REG-08**: Parents can access their registration portal via magic link (no Lionheart account needed) to view schedule, groups, announcements, and outstanding documents
+- [x] **REG-07**: Parents receive a confirmation email with event details and a unique QR code after registration
+- [x] **REG-08**: Parents can access their registration portal via magic link (no Lionheart account needed) to view schedule, groups, announcements, and outstanding documents
 - [ ] **REG-09**: Staff can publish an event via a Share hub with link copy, QR code for flyers, email distribution, branding controls, and registration open/close dates
 - [x] **REG-10**: System manages registration capacity with automatic waitlist promotion when spots open
 - [x] **REG-11**: Parents can upload a student photo during registration that appears on rosters, check-in screens, and printed materials
@@ -135,8 +135,8 @@
 | REG-04 | Phase 20 | Pending |
 | REG-05 | Phase 20 | Complete |
 | REG-06 | Phase 20 | Pending |
-| REG-07 | Phase 20 | Pending |
-| REG-08 | Phase 20 | Pending |
+| REG-07 | Phase 20 | Complete |
+| REG-08 | Phase 20 | Complete |
 | REG-09 | Phase 20 | Pending |
 | REG-10 | Phase 20 | Complete |
 | REG-11 | Phase 20 | Complete |

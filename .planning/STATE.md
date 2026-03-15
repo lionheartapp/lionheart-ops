@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 20-02-PLAN.md
-last_updated: "2026-03-15T12:40:44.090Z"
+stopped_at: Completed 20-05-PLAN.md
+last_updated: "2026-03-15T12:48:19.197Z"
 last_activity: 2026-03-15 — Phase 19 Plan 06 verified and approved by user — Phase 19 done
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
   percent: 100
 ---
 
@@ -78,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase 20-registration-and-public-pages]: events:medical:read and events:registration:manage added to ADMIN role only — medical access restricted from MEMBER and VIEWER
 - [Phase 20-registration-and-public-pages]: Balance-intent resolves orgId from registration record not x-org-id header — middleware marks /api/registration/* public so header is not injected
 - [Phase 20-registration-and-public-pages]: Public registration APIs resolve organizationId from form.shareSlug lookup never from URL params to prevent cross-tenant injection
+- [Phase 20-registration-and-public-pages]: Magic link tokens stored only as SHA-256 hash — raw token never persisted, even DB compromise does not expose tokens
+- [Phase 20-registration-and-public-pages]: Portal JWT uses explicit 'portal' type claim to distinguish from staff JWTs; verifyPortalToken rejects staff tokens with 403
 
 ### Pending Todos
 
@@ -98,7 +100,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T12:40:44.088Z
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-03-15T12:48:19.195Z
+Stopped at: Completed 20-05-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
