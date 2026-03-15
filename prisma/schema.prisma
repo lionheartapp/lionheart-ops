@@ -150,6 +150,10 @@ model Organization {
   eventScheduleBlocks         EventScheduleBlock[]
   eventTasks                  EventTask[]
   eventActivityLogs           EventActivityLog[]
+  // Registration module relations (Phase 20)
+  registrationForms           RegistrationForm[]
+  eventRegistrations          EventRegistration[]
+  registrationMagicLinks      RegistrationMagicLink[]
 
   @@index([onboardingStatus])
 }
@@ -3765,9 +3769,11 @@ model EventProject {
   series         EventSeries?        @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdBy      User                @relation("EventProjectCreator", fields: [createdById], references: [id], onDelete: Restrict)
   approvedBy     User?               @relation("EventProjectApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  scheduleBlocks EventScheduleBlock[]
-  tasks          EventTask[]
-  activityLog    EventActivityLog[]
+  scheduleBlocks   EventScheduleBlock[]
+  tasks            EventTask[]
+  activityLog      EventActivityLog[]
+  registrationForm RegistrationForm?
+  registrations    EventRegistration[]
 
   @@index([organizationId, status])
   @@index([organizationId, startsAt])
@@ -3869,4 +3875,232 @@ model EventActivityLog {
 
   @@index([eventProjectId, createdAt])
   @@index([organizationId])
+}
+
+// ─── Registration Module (Phase 20) ──────────────────────────────────────────
+
+enum RegistrationStatus {
+  DRAFT
+  REGISTERED
+  WAITLISTED
+  CANCELLED
+}
+
+enum FieldType {
+  COMMON
+  CUSTOM
+}
+
+enum FieldInputType {
+  TEXT
+  DROPDOWN
+  CHECKBOX
+  NUMBER
+  DATE
+  FILE
+  SIGNATURE
+}
+
+enum SignatureType {
+  DRAWN
+  TYPED
+}
+
+enum RegistrationPaymentStatus {
+  UNPAID
+  DEPOSIT_PAID
+  PAID
+  REFUNDED
+}
+
+/// One registration form per EventProject. Controls capacity, payment, consent requirements.
+model RegistrationForm {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  eventProjectId      String    @unique
+  title               String?
+  requiresPayment     Boolean   @default(false)
+  basePrice           Int?      // cents
+  depositPercent      Int?      // 0-100
+  maxCapacity         Int?
+  waitlistEnabled     Boolean   @default(true)
+  requiresCoppaConsent Boolean  @default(false)
+  openAt              DateTime?
+  closeAt             DateTime?
+  shareSlug           String    @unique
+  brandingOverride    Json?     // { logoUrl, primaryColor, ... }
+  discountCodes       Json?     // array of { code, percentOff, amountOff, maxUses, usedCount }
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  organization  Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject  EventProject            @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  sections      RegistrationFormSection[]
+  fields        RegistrationFormField[]
+  registrations EventRegistration[]
+
+  @@index([organizationId])
+}
+
+/// Logical sections within a registration form for multi-step wizards.
+model RegistrationFormSection {
+  id          String   @id @default(cuid())
+  formId      String
+  title       String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  form   RegistrationForm        @relation(fields: [formId], references: [id], onDelete: Cascade)
+  fields RegistrationFormField[]
+
+  @@index([formId])
+}
+
+/// Individual fields within a registration form section.
+model RegistrationFormField {
+  id          String         @id @default(cuid())
+  sectionId   String
+  formId      String         // denormalized for efficient form-level queries
+  fieldType   FieldType
+  fieldKey    String?        // for COMMON fields: 'first_name', 'last_name', 'grade', etc.
+  inputType   FieldInputType
+  label       String
+  helpText    String?
+  placeholder String?
+  required    Boolean        @default(false)
+  enabled     Boolean        @default(true)
+  options     Json?          // for DROPDOWN/CHECKBOX: array of { label, value }
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  section   RegistrationFormSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  form      RegistrationForm        @relation(fields: [formId], references: [id], onDelete: Cascade)
+  responses RegistrationResponse[]
+
+  @@index([formId])
+  @@index([sectionId])
+}
+
+/// A parent-submitted registration for a student attending an event.
+model EventRegistration {
+  id              String                    @id @default(cuid())
+  organizationId  String
+  eventProjectId  String
+  formId          String
+  firstName       String
+  lastName        String
+  email           String
+  phone           String?
+  grade           String?
+  photoUrl        String?
+  tshirtSize      String?
+  dietaryNeeds    String?
+  status          RegistrationStatus        @default(DRAFT)
+  coppaConsentAt  DateTime?
+  coppaConsentIp  String?
+  promotedAt      DateTime?                 // when promoted from waitlist to REGISTERED
+  paymentStatus   RegistrationPaymentStatus @default(UNPAID)
+  submittedAt     DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject   EventProject              @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  form           RegistrationForm          @relation(fields: [formId], references: [id], onDelete: Restrict)
+  responses      RegistrationResponse[]
+  sensitiveData  RegistrationSensitiveData?
+  signatures     RegistrationSignature[]
+  payments       RegistrationPayment[]
+  magicLinks     RegistrationMagicLink[]
+
+  @@index([organizationId, eventProjectId])
+  @@index([status])
+  @@index([email, organizationId])
+  @@index([deletedAt])
+}
+
+/// Answers to custom form fields (key-value store per registration).
+model RegistrationResponse {
+  id             String   @id @default(cuid())
+  registrationId String
+  fieldId        String
+  value          String?
+  values         Json?    // for multi-select fields
+  fileUrl        String?
+  createdAt      DateTime @default(now())
+
+  registration EventRegistration     @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  field        RegistrationFormField @relation(fields: [fieldId], references: [id], onDelete: Restrict)
+}
+
+/// FERPA/COPPA-gated sensitive data — separate table for access control.
+/// No organizationId by design: access is only through the parent registration record.
+model RegistrationSensitiveData {
+  id                      String   @id @default(cuid())
+  registrationId          String   @unique
+  allergies               String?
+  medications             String?
+  medicalNotes            String?
+  emergencyName           String?
+  emergencyPhone          String?
+  emergencyRelationship   String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+}
+
+/// Electronic signatures (drawn or typed) for waiver/consent documents.
+model RegistrationSignature {
+  id              String        @id @default(cuid())
+  registrationId  String
+  documentLabel   String
+  signatureType   SignatureType
+  signatureData   String        // Base64 PNG (DRAWN) or typed name (TYPED)
+  signedAt        DateTime      @default(now())
+  ipAddress       String?
+  userAgent       String?
+  createdAt       DateTime      @default(now())
+
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+}
+
+/// Stripe payment tracking per registration.
+model RegistrationPayment {
+  id                      String   @id @default(cuid())
+  registrationId          String
+  stripePaymentIntentId   String   @unique
+  amount                  Int      // cents
+  currency                String   @default("usd")
+  status                  String   // 'succeeded' | 'requires_action' | 'canceled'
+  paymentType             String   @default("FULL") // FULL | DEPOSIT | BALANCE
+  discountCode            String?
+  discountAmount          Int?     // cents
+  paidAt                  DateTime?
+  createdAt               DateTime @default(now())
+
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+}
+
+/// Passwordless magic links for parent portal access.
+model RegistrationMagicLink {
+  id             String    @id @default(cuid())
+  organizationId String
+  email          String
+  registrationId String
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([registrationId])
 }
