@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 21-08-PLAN.md
-last_updated: "2026-03-15T23:21:14.469Z"
+stopped_at: Completed 21-04-PLAN.md
+last_updated: "2026-03-15T23:22:15.119Z"
 last_activity: 2026-03-15 — Phase 20 Plan 07 verified and approved by user — Phase 20 done
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 23
-  completed_plans: 17
+  completed_plans: 18
   percent: 100
 ---
 
@@ -97,6 +97,8 @@ Recent decisions affecting current work:
 - [Phase 21-06]: Announcement emails are fire-and-forget via Promise.allSettled — Resend errors logged but do not fail create operation
 - [Phase 21-08]: Medical data gated by can(userId, EVENTS_MEDICAL_READ) inside route — boolean includeMedical param passed to service keeps service layer pure
 - [Phase 21-08]: Public participant self-service endpoint uses registrationId cuid as access token — non-guessable, FERPA-safe, no auth complexity for QR-03
+- [Phase 21-documents-groups-communication-and-day-of-tools]: prisma-as-any cast used for Phase 21 org-scoped models — Prisma extension client TS types incompatible with newer models; rawPrisma used for RegistrationSensitiveData (FERPA isolation)
+- [Phase 21-documents-groups-communication-and-day-of-tools]: dietary-medical route uses EVENTS_MEDICAL_READ not EVENTS_GROUPS_MANAGE — FERPA gate isolates medical aggregation from routine group management access
 
 ### Pending Todos
 
@@ -117,7 +119,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:21:14.468Z
-Stopped at: Completed 21-08-PLAN.md
+Last session: 2026-03-15T23:22:15.117Z
+Stopped at: Completed 21-04-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
