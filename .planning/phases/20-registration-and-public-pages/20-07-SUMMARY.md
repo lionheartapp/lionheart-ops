@@ -79,7 +79,7 @@ completed: 2026-03-15
 ## Task Commits
 
 1. **Task 1: Wire registration payment webhook and smoke tests** — `76694dd` (feat)
-2. **Task 2: Human verification** — pending checkpoint
+2. **Task 2: Human verification** — approved by user (human-verify checkpoint passed)
 
 ## Files Created/Modified
 
