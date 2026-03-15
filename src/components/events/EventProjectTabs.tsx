@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   Users,
+  ClipboardList,
   FileText,
   Truck,
   DollarSign,
@@ -22,11 +23,12 @@ import { EventDocumentsTab } from './EventDocumentsTab'
 import { EventLogisticsTab } from './EventLogisticsTab'
 import { EventBudgetTab } from './EventBudgetTab'
 import { EventCommsTab } from './EventCommsTab'
+import { RegistrationTab } from './project/RegistrationTab'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
-type TabId = 'overview' | 'schedule' | 'people' | 'documents' | 'logistics' | 'budget' | 'tasks' | 'comms'
+type TabId = 'overview' | 'schedule' | 'people' | 'registration' | 'documents' | 'logistics' | 'budget' | 'tasks' | 'comms'
 
 interface TabDef {
   id: TabId
@@ -38,6 +40,7 @@ const TABS: TabDef[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'schedule', label: 'Schedule', icon: CalendarDays },
   { id: 'people', label: 'People', icon: Users },
+  { id: 'registration', label: 'Registration', icon: ClipboardList },
   { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'logistics', label: 'Logistics', icon: Truck },
   { id: 'budget', label: 'Budget', icon: DollarSign },
@@ -103,6 +106,8 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
         return <EventScheduleTab eventProjectId={project.id} defaultDate={defaultDate} />
       case 'people':
         return <EventPeopleTab eventProjectId={project.id} />
+      case 'registration':
+        return <RegistrationTab eventProjectId={project.id} />
       case 'documents':
         return <EventDocumentsTab eventProjectId={project.id} />
       case 'logistics':
