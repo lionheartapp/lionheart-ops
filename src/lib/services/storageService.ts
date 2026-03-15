@@ -273,6 +273,113 @@ export async function deleteFile(orgId: string, fileName: string): Promise<void>
 }
 
 /**
+ * Upload a student registration photo to Supabase Storage.
+ * Uses a private 'student-photos' bucket. Access is via signed URLs only (1-hour TTL).
+ *
+ * @param orgId - Organization ID
+ * @param registrationId - Registration ID (used in storage path)
+ * @param fileBuffer - File buffer to upload
+ * @param contentType - MIME type (e.g., 'image/jpeg')
+ * @returns Storage path (not public URL — bucket is private)
+ */
+export async function uploadRegistrationPhoto(
+  orgId: string,
+  registrationId: string,
+  fileBuffer: Buffer,
+  contentType: string,
+): Promise<string> {
+  try {
+    const config = getStorageConfig()
+    if (!config) throw new Error('Supabase storage not configured')
+
+    const client = getSupabaseClient()
+    const ext = contentType.split('/')[1] || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const path = `${orgId}/${registrationId}/${fileName}`
+
+    const { error } = await client.storage.from('student-photos').upload(path, fileBuffer, {
+      contentType,
+      upsert: false,
+    })
+
+    if (error) throw new Error(`Upload failed: ${error.message}`)
+
+    // Return the storage path — callers use getSignedPhotoUrl to generate access URLs
+    return path
+  } catch (error) {
+    console.error('Student photo upload error:', error instanceof Error ? error.message : error)
+    throw error
+  }
+}
+
+/**
+ * Generate a signed URL for viewing a student photo (private bucket).
+ * Default TTL: 1 hour.
+ *
+ * @param photoPath - Storage path returned by uploadRegistrationPhoto
+ * @param expiresIn - Expiry seconds (default 3600)
+ * @returns Temporary signed URL
+ */
+export async function getSignedPhotoUrl(photoPath: string, expiresIn = 3600): Promise<string> {
+  try {
+    const client = getSupabaseClient()
+    const { data, error } = await client.storage
+      .from('student-photos')
+      .createSignedUrl(photoPath, expiresIn)
+
+    if (error || !data) throw new Error(`Signed URL failed: ${error?.message}`)
+
+    return data.signedUrl
+  } catch (error) {
+    console.error('Signed photo URL error:', error instanceof Error ? error.message : error)
+    throw error
+  }
+}
+
+/**
+ * Generate a signed upload URL for direct client-to-Supabase uploads.
+ * Returns the signed URL and the storage path for the upload.
+ * Used by the public registration upload endpoint.
+ *
+ * @param orgId - Organization ID
+ * @param registrationId - Registration ID
+ * @param fileName - Original file name (used to derive extension)
+ * @param contentType - MIME type
+ * @returns { signedUrl, path }
+ */
+export async function createSignedPhotoUploadUrl(
+  orgId: string,
+  registrationId: string,
+  fileName: string,
+  contentType: string,
+): Promise<{ signedUrl: string; path: string; token: string }> {
+  try {
+    const client = getSupabaseClient()
+    const config = getStorageConfig()
+    if (!config) throw new Error('Supabase storage not configured')
+
+    const ext = fileName.split('.').pop() || contentType.split('/')[1] || 'jpg'
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const path = `${orgId}/${registrationId}/${uniqueName}`
+
+    const { data, error } = await client.storage
+      .from('student-photos')
+      .createSignedUploadUrl(path)
+
+    if (error || !data) throw new Error(`Signed upload URL failed: ${error?.message}`)
+
+    return {
+      signedUrl: data.signedUrl,
+      path,
+      token: data.token,
+    }
+  } catch (error) {
+    console.error('Signed upload URL error:', error instanceof Error ? error.message : error)
+    throw error
+  }
+}
+
+/**
  * Get the public URL for a file in storage
  *
  * @param orgId - Organization ID
