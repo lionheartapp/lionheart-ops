@@ -82,18 +82,18 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 20-01-PLAN.md — Prisma schema (9 models, 4 enums), org-scope/soft-delete registration, permissions, middleware, Turnstile utility
-- [ ] 20-02-PLAN.md — Service layer (registrationService, paymentService, emailService) + staff config API + public registration/payment APIs
-- [ ] 20-03-PLAN.md — Staff form builder UI (CommonFieldPicker, SectionEditor, FormFieldEditor, FormBuilder, RegistrationTab)
-- [ ] 20-04-PLAN.md — Public event page (white-label layout), multi-step registration wizard, Stripe Payment Element, SignatureField, TurnstileWidget
-- [ ] 20-05-PLAN.md — Magic link service, portal JWT, confirmation email with QR, parent portal page and PortalView
-- [ ] 20-06-PLAN.md — Share hub (link copy, QR code, registration window, capacity), registration management list, medical data endpoint
-- [ ] 20-07-PLAN.md — Stripe webhook wiring, EventProjectTabs integration, smoke tests, human verification
+- [x] 20-01-PLAN.md — Prisma schema (9 models, 4 enums), org-scope/soft-delete registration, permissions, middleware, Turnstile utility
+- [x] 20-02-PLAN.md — Service layer (registrationService, paymentService, emailService) + staff config API + public registration/payment APIs
+- [x] 20-03-PLAN.md — Staff form builder UI (CommonFieldPicker, SectionEditor, FormFieldEditor, FormBuilder, RegistrationTab)
+- [x] 20-04-PLAN.md — Public event page (white-label layout), multi-step registration wizard, Stripe Payment Element, SignatureField, TurnstileWidget
+- [x] 20-05-PLAN.md — Magic link service, portal JWT, confirmation email with QR, parent portal page and PortalView
+- [x] 20-06-PLAN.md — Share hub (link copy, QR code, registration window, capacity), registration management list, medical data endpoint
+- [x] 20-07-PLAN.md — Stripe webhook wiring, EventProjectTabs integration, smoke tests, human verification
 
 ### Phase 21: Documents, Groups, Communication, and Day-Of Tools
 **Goal**: Staff can track document completion, assign participants to groups, communicate with targeted audiences, and run day-of operations (QR check-in, incident logging, headcounts) from a PWA that works offline
 **Depends on**: Phase 20
-**Requirements**: DOC-01, DOC-02, DOC-03, GRP-01, GRP-02, GRP-03, GRP-04, GRP-05, GRP-06, QR-01, QR-02, QR-03, QR-04, QR-05, COM-01, COM-02, COM-03, COM-04, COM-05
+**Requirements**: DOC-01, DOC-02, DOC-03, GRP-01, GRP-02, GRP-03, GRP-04, GRP-05, GRP-06, QR-01, QR-02, QR-03, QR-04, QR-05, COM-01, COM-02, COM-04, COM-05
 **Success Criteria** (what must be TRUE):
   1. Staff can define required documents per event, view per-participant completion status at a glance, and send targeted reminders only to families with incomplete documents; a compliance checklist covers all off-campus event requirements (insurance, vendor contracts, background checks)
   2. Staff can create groups by type (bus, cabin, small group, activity) with capacity and assigned leader, drag and drop participants between groups, and generate printable PDFs for bus manifests (with medical flags), cabin rosters (with photos), medical summaries, emergency contact sheets, activity rosters, and check-in sheets
@@ -101,7 +101,19 @@ Plans:
   4. Staff can post announcements targeted to specific audiences (all registrants, specific group, incomplete-docs families, paid-only), and parents see announcements in real time on the public event page and participant dashboard; multiple staff can collaborate on the event project simultaneously with presence indicators showing who is active
   5. Staff can scan participant QR codes on a PWA for check-in with a real-time counter (checked-in vs. total), log incidents with involved participants and actions taken, and all day-of tools (QR scanning, rosters, headcounts, incident logging) continue working offline with automatic sync on reconnect
   6. Participants can scan their QR code to view personal schedule, group assignments, and event announcements without staff assistance
-**Plans**: TBD
+**Plans**: 10 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — Prisma schema (14 models, 6 enums), org-scope/soft-delete registration, permissions, shared types
+- [ ] 21-02-PLAN.md — Document service layer and API routes (requirements CRUD, completion matrix, reminders, compliance)
+- [ ] 21-03-PLAN.md — Documents tab UI (matrix view, compliance checklist, requirement drawer)
+- [ ] 21-04-PLAN.md — Group service layer and API routes (groups CRUD, assignments, auto-assign, activities, dietary/medical)
+- [ ] 21-05-PLAN.md — Logistics tab UI (drag-and-drop groups, activity manager, PDF generator, portal groups)
+- [ ] 21-06-PLAN.md — Communication service layer and API routes (announcements, surveys, presence)
+- [ ] 21-07-PLAN.md — Comms tab UI (announcement composer/feed, survey manager, presence bar)
+- [ ] 21-08-PLAN.md — Day-of service layer and API routes (check-in, incidents, participant self-service)
+- [ ] 21-09-PLAN.md — Day-of UI (QR scanner, incident form, offline PWA, participant self-service page)
+- [ ] 21-10-PLAN.md — Integration wiring, middleware updates, smoke tests, human verification
 
 ### Phase 22: AI, Budget, Notifications, and External Integrations
 **Goal**: Staff can manage event budgets with line-item detail, configure automated notification timelines, use AI to generate forms, schedules, group assignments, and status summaries, save events as templates, and sync events with Planning Center, Google Calendar, and Twilio SMS
@@ -122,5 +134,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 19. Event Foundation | 6/6 | Complete    | 2026-03-15 |
 | 20. Registration and Public Pages | 7/7 | Complete    | 2026-03-15 |
-| 21. Documents, Groups, Communication, and Day-Of Tools | 0/TBD | Not started | - |
+| 21. Documents, Groups, Communication, and Day-Of Tools | 0/10 | Planning complete | - |
 | 22. AI, Budget, Notifications, and External Integrations | 0/TBD | Not started | - |
