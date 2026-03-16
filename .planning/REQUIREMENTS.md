@@ -87,9 +87,9 @@
 
 ### External Integrations
 
-- [ ] **INT-01**: Staff can sync worship sets, team assignments, and people data with Planning Center
-- [ ] **INT-02**: Staff can sync events to Google Calendar
-- [ ] **INT-03**: System can send SMS notifications via Twilio for day-of updates and deadline reminders
+- [x] **INT-01**: Staff can sync worship sets, team assignments, and people data with Planning Center
+- [x] **INT-02**: Staff can sync events to Google Calendar
+- [x] **INT-03**: System can send SMS notifications via Twilio for day-of updates and deadline reminders
 
 ## Future Requirements (v3.1+)
 
@@ -175,9 +175,9 @@
 | AI-09 | Phase 22 | Complete |
 | AI-10 | Phase 22 | Complete |
 | AI-11 | Phase 22 | Complete |
-| INT-01 | Phase 22 | Pending |
-| INT-02 | Phase 22 | Pending |
-| INT-03 | Phase 22 | Pending |
+| INT-01 | Phase 22 | Complete |
+| INT-02 | Phase 22 | Complete |
+| INT-03 | Phase 22 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 56 total

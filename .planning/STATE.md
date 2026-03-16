@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 22-07-PLAN.md
-last_updated: "2026-03-16T02:22:12.540Z"
+stopped_at: Completed 22-09-PLAN.md
+last_updated: "2026-03-16T02:23:00.574Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 33
-  completed_plans: 31
+  completed_plans: 32
   percent: 100
 ---
 
@@ -130,6 +130,9 @@ Recent decisions affecting current work:
 - [Phase 22-04]: Zod ZodError uses .issues not .errors — fixed TS2339 error in budget form components
 - [Phase 22]: estimateBudgetFromHistory requires 3+ completed events with budget data — AI fallback otherwise
 - [Phase 22]: RegistrationTab AI modal creates form first if none exists then opens modal — prevents AI generating for non-existent form
+- [Phase 22]: IntegrationCredential userId=null for org-level credentials (PCO, Twilio) — @@unique([organizationId, provider, userId]) uses null as valid Postgres unique key
+- [Phase 22]: Google Calendar is per-user OAuth — each staff member connects own account, not org-wide; credentials stored in IntegrationCredential with userId set
+- [Phase 22]: Twilio credentials stored in IntegrationCredential.config JSON field — supports multi-org SaaS without env vars per org
 
 ### Pending Todos
 
@@ -150,7 +153,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:22:12.538Z
-Stopped at: Completed 22-07-PLAN.md
+Last session: 2026-03-16T02:23:00.571Z
+Stopped at: Completed 22-09-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
