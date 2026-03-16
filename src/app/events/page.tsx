@@ -4,11 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
-import { Plus, CalendarRange, RefreshCw, Layers } from 'lucide-react'
+import { Plus, CalendarRange, RefreshCw, Layers, LayoutTemplate } from 'lucide-react'
 import { staggerContainer, cardEntrance, fadeInUp } from '@/lib/animations'
 import { useEventProjects, type EventProject } from '@/lib/hooks/useEventProject'
 import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
 import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
+import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
+import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -134,6 +136,12 @@ export default function EventsPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
+  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
+
+  function handleTemplateSelect(templateId: string) {
+    setSelectedTemplateId(templateId)
+  }
 
   const { data: projects, isLoading } = useEventProjects(
     statusFilter ? { status: statusFilter } : undefined
@@ -151,6 +159,13 @@ export default function EventsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setTemplateDrawerOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+            >
+              <LayoutTemplate className="w-4 h-4" />
+              From Template
+            </button>
             <button
               onClick={() => setSeriesDrawerOpen(true)}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
@@ -217,6 +232,18 @@ export default function EventsPage() {
         isOpen={seriesDrawerOpen}
         onClose={() => setSeriesDrawerOpen(false)}
       />
+      <TemplateListDrawer
+        isOpen={templateDrawerOpen}
+        onClose={() => setTemplateDrawerOpen(false)}
+        onSelect={handleTemplateSelect}
+      />
+      {selectedTemplateId && (
+        <CreateFromTemplateWizard
+          templateId={selectedTemplateId}
+          isOpen={!!selectedTemplateId}
+          onClose={() => setSelectedTemplateId(null)}
+        />
+      )}
     </div>
   )
 }
