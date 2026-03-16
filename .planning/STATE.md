@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Phase 22 context gathered
-last_updated: "2026-03-16T00:48:35.506Z"
+stopped_at: Completed 22-02-PLAN.md
+last_updated: "2026-03-16T02:03:10.527Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 23
-  completed_plans: 23
+  total_plans: 33
+  completed_plans: 24
   percent: 100
 ---
 
@@ -110,6 +110,9 @@ Recent decisions affecting current work:
 - [Phase 21-05]: Dynamic jsPDF import in EventPDFGenerator — avoids 500KB SSR bundle hit, code-splits PDF library like label-utils.ts pattern
 - [Phase 21]: Day-of button uses conditional visibility (IN_PROGRESS or within 24h of start) to avoid clutter during planning phase
 - [Phase 21]: Smoke tests use SKIP stubs for all 18 test cases — consistent with existing smoke-registration.mjs pattern; real assertions deferred to manual testing or future CI
+- [Phase 22]: EventNotificationLog uses hard delete — immutable audit records, status cancellation on rule not log row
+- [Phase 22]: dispatchPendingNotifications uses rawPrisma — cron runs cross-org without org context
+- [Phase 22]: recalculateRulesForEvent only adjusts DATE_BASED rules — CONDITION_BASED and ACTION_TRIGGERED have no scheduledAt
 
 ### Pending Todos
 
@@ -130,7 +133,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16T00:48:35.504Z
-Stopped at: Phase 22 context gathered
-Resume file: .planning/phases/22-ai-budget-notifications-and-external-integrations/22-CONTEXT.md
+Last session: 2026-03-16T02:03:10.525Z
+Stopped at: Completed 22-02-PLAN.md
+Resume file: None
 Next action: `/gsd:plan-phase 20`

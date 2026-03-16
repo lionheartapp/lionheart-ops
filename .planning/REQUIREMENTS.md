@@ -67,7 +67,7 @@
 
 - [x] **COM-01**: Staff can post targeted announcements to specific audiences (all registrants, specific group, incomplete-docs families, paid-only)
 - [x] **COM-02**: Parents see announcements on the public event page and participant dashboard in real time
-- [ ] **COM-03**: Staff can set up an automated notification timeline with date-based and condition-based triggers with AI-drafted messages
+- [x] **COM-03**: Staff can set up an automated notification timeline with date-based and condition-based triggers with AI-drafted messages
 - [x] **COM-04**: Staff can collect post-event feedback via surveys at the registration URL
 - [x] **COM-05**: Multiple staff can collaborate on an event project with real-time updates and presence indicators
 
@@ -158,7 +158,7 @@
 | QR-05 | Phase 21 | Complete |
 | COM-01 | Phase 21 | Complete |
 | COM-02 | Phase 21 | Complete |
-| COM-03 | Phase 22 | Pending |
+| COM-03 | Phase 22 | Complete |
 | COM-04 | Phase 21 | Complete |
 | COM-05 | Phase 21 | Complete |
 | BUD-01 | Phase 22 | Pending |
