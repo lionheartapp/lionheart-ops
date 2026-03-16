@@ -168,6 +168,14 @@ model Organization {
   eventSurveys                EventSurvey[]
   eventSurveyResponses        EventSurveyResponse[]
   eventPresenceSessions       EventPresenceSession[]
+  // Phase 22 relations (AI, Budget, Templates, Notifications)
+  eventTemplates              EventTemplate[]
+  eventNotificationRules      EventNotificationRule[]
+  eventNotificationLogs       EventNotificationLog[]
+  // Phase 22: Budget models
+  budgetCategories            BudgetCategory[]
+  budgetLineItems             BudgetLineItem[]
+  budgetRevenue               BudgetRevenue[]
 
   @@index([onboardingStatus])
 }
@@ -282,6 +290,13 @@ model User {
   incidentsReported         EventIncident[]          @relation("IncidentReporter")
   announcementsCreated      EventAnnouncement[]      @relation("AnnouncementAuthor")
   presenceSessions          EventPresenceSession[]   @relation("PresenceUser")
+  // Phase 22 relations
+  eventTemplatesCreated     EventTemplate[]          @relation("EventTemplateCreator")
+  notificationRulesCreated  EventNotificationRule[]  @relation("NotificationRuleCreator")
+  notificationRulesApproved EventNotificationRule[]  @relation("NotificationRuleApprover")
+  // Phase 22: Budget relations
+  budgetLineItemsCreated    BudgetLineItem[]         @relation("BudgetLineItemCreator")
+  budgetRevenueCreated      BudgetRevenue[]          @relation("BudgetRevenueCreator")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -3804,6 +3819,13 @@ model EventProject {
   announcements         EventAnnouncement[]
   incidents             EventIncident[]
   surveys               EventSurvey[]
+  // Phase 22 relations
+  notificationRules     EventNotificationRule[]
+  templates             EventTemplate[]
+  // Phase 22: Budget relations
+  budgetCategories      BudgetCategory[]
+  budgetLineItems       BudgetLineItem[]
+  budgetRevenue         BudgetRevenue[]
 
   @@index([organizationId, status])
   @@index([organizationId, startsAt])
@@ -3837,6 +3859,32 @@ model EventSeries {
 
   @@index([organizationId, isActive])
   @@index([createdById])
+}
+
+// Phase 22: Event Template — serialized structure for reusable event scaffolding
+model EventTemplate {
+  id                   String    @id @default(cuid())
+  organizationId       String
+  name                 String
+  description          String?
+  sourceEventProjectId String?   // The EventProject this template was saved from
+  templateData         Json      // { schedule, budgetCategories, taskTemplates, documentTypes, groupStructure, notificationRules }
+  eventType            String?   // Categorization hint: "camp", "field_trip", "retreat", etc.
+  expectedAttendance   Int?
+  durationDays         Int?
+  isMultiDay           Boolean   @default(false)
+  usageCount           Int       @default(0)
+  lastUsedAt           DateTime?
+  createdById          String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  organization       Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceEventProject EventProject? @relation(fields: [sourceEventProjectId], references: [id], onDelete: SetNull)
+  createdBy          User          @relation("EventTemplateCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([organizationId, eventType])
 }
 
 model EventScheduleBlock {
@@ -4471,4 +4519,164 @@ model EventPresenceSession {
 
   @@unique([eventProjectId, userId])
   @@index([organizationId])
+}
+
+// ─── Phase 22: Budget Models ───────────────────────────────────────────────────
+
+/// Reusable budget category per event project (preset or custom).
+model BudgetCategory {
+  id             String   @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  name           String
+  sortOrder      Int      @default(0)
+  isPreset       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject     @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  lineItems    BudgetLineItem[]
+
+  @@unique([eventProjectId, name])
+  @@index([organizationId])
+  @@index([eventProjectId])
+}
+
+/// Individual expense line in the event budget.
+model BudgetLineItem {
+  id              String    @id @default(cuid())
+  organizationId  String
+  eventProjectId  String
+  categoryId      String
+  description     String
+  budgetedAmount  Decimal   @db.Decimal(10, 2)
+  actualAmount    Decimal?  @db.Decimal(10, 2)
+  vendor          String?
+  receiptUrl      String?
+  expenseDate     DateTime?
+  notes           String?
+  createdById     String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject    @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  category     BudgetCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdBy    User            @relation("BudgetLineItemCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([eventProjectId])
+  @@index([categoryId])
+}
+
+/// Revenue entries for an event — auto-populated from Stripe or entered manually.
+model BudgetRevenue {
+  id              String              @id @default(cuid())
+  organizationId  String
+  eventProjectId  String
+  source          BudgetRevenueSource
+  description     String
+  amount          Decimal             @db.Decimal(10, 2)
+  receivedDate    DateTime?
+  notes           String?
+  isAutoPopulated Boolean             @default(false)
+  createdById     String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("BudgetRevenueCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([eventProjectId])
+}
+
+enum BudgetRevenueSource {
+  REGISTRATION_FEE
+  SPONSORSHIP
+  FUNDRAISING
+  DONATION
+  GRANT
+  OTHER
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 22: Notification Orchestration
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum NotificationTriggerType {
+  DATE_BASED        // offsetDays relative to event startsAt
+  CONDITION_BASED   // checks a condition N days before event
+  ACTION_TRIGGERED  // fires when a specific action occurs
+}
+
+enum NotificationRuleStatus {
+  DRAFT            // not yet submitted for approval
+  PENDING_APPROVAL // submitted, awaiting staff approval
+  APPROVED         // approved, will send at scheduledAt
+  SENT             // sent successfully
+  CANCELLED        // cancelled by staff
+}
+
+/// A scheduled notification rule for an EventProject.
+model EventNotificationRule {
+  id                      String                   @id @default(cuid())
+  organizationId          String
+  eventProjectId          String
+
+  triggerType             NotificationTriggerType
+  label                   String                   // human-readable name e.g. "14-day reminder"
+
+  // DATE_BASED: negative = before event, positive = after
+  offsetDays              Int?
+  // CONDITION_BASED
+  conditionType           String?                  // e.g. "registration_incomplete", "documents_incomplete", "payment_pending"
+  conditionThresholdDays  Int?                     // days before event to check condition
+  // ACTION_TRIGGERED
+  actionType              String?                  // e.g. "on_registration", "on_group_assignment", "on_checkin"
+
+  targetAudience          String                   @default("all") // "all", "registered", "group:{groupId}", "incomplete_docs", "unpaid"
+  subject                 String
+  messageBody             String
+  isAIDrafted             Boolean                  @default(false)
+
+  scheduledAt             DateTime?                // computed send time for DATE_BASED rules
+  sentAt                  DateTime?                // when notification was actually sent
+
+  status                  NotificationRuleStatus   @default(DRAFT)
+  approvedById            String?
+  approvedAt              DateTime?
+  createdById             String
+
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+
+  organization  Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject  EventProject            @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  approvedBy    User?                   @relation("NotificationRuleApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  createdBy     User                    @relation("NotificationRuleCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  logs          EventNotificationLog[]
+
+  @@index([organizationId])
+  @@index([eventProjectId])
+  @@index([status, scheduledAt])
+}
+
+/// Log entry for each dispatch of a notification rule.
+model EventNotificationLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  ruleId         String
+
+  recipientCount Int
+  channel        String   // "in_app", "email", "sms"
+  sentAt         DateTime @default(now())
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rule         EventNotificationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([ruleId])
 }

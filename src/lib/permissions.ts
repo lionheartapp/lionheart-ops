@@ -241,6 +241,14 @@ export const PERMISSIONS = {
   EVENTS_INCIDENTS_MANAGE: 'events:incidents:manage',       // Log and view day-of incidents
   EVENTS_SURVEYS_MANAGE: 'events:surveys:manage',           // Create and manage post-event surveys
 
+  // Event Templates and AI — Phase 22
+  EVENTS_TEMPLATES_MANAGE: 'events:templates:manage',       // Save/create/delete event templates
+  EVENTS_NOTIFICATIONS_MANAGE: 'events:notifications:manage', // Create, approve, and dispatch event notification rules
+
+  // Event Budget — Phase 22
+  EVENTS_BUDGET_MANAGE: 'events:budget:manage',             // Create/edit/delete budget line items, revenue entries
+  EVENTS_BUDGET_READ: 'events:budget:read',                 // View budget data and reports
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -424,6 +432,12 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE,
       PERMISSIONS.EVENTS_INCIDENTS_MANAGE,
       PERMISSIONS.EVENTS_SURVEYS_MANAGE,
+      // Phase 22: Event Templates, AI, and Notification Orchestration
+      PERMISSIONS.EVENTS_TEMPLATES_MANAGE,
+      PERMISSIONS.EVENTS_NOTIFICATIONS_MANAGE,
+      // Phase 22: Budget
+      PERMISSIONS.EVENTS_BUDGET_MANAGE,
+      PERMISSIONS.EVENTS_BUDGET_READ,
     ],
     isSystem: true,
   },
@@ -476,6 +490,10 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.EVENTS_CHECKIN_MANAGE,
       PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE,
       PERMISSIONS.EVENTS_INCIDENTS_MANAGE,
+      // Phase 22: Event Templates (members can use templates)
+      PERMISSIONS.EVENTS_TEMPLATES_MANAGE,
+      // Phase 22: Budget (members can view budget reports)
+      PERMISSIONS.EVENTS_BUDGET_READ,
     ],
     isSystem: true,
   },

@@ -96,6 +96,8 @@ const orgScopedModels = new Set([
 	'EventScheduleBlock',
 	'EventTask',
 	'EventActivityLog',
+	// Phase 22: Event Templates
+	'EventTemplate',
 	// Registration module (Phase 20)
 	'EventRegistration',
 	'RegistrationForm',
@@ -113,6 +115,13 @@ const orgScopedModels = new Set([
 	'EventSurvey',
 	'EventSurveyResponse',
 	'EventPresenceSession',
+	// Phase 22: Notification Orchestration
+	'EventNotificationRule',
+	'EventNotificationLog',
+	// Phase 22: Budget models (hard delete — no soft delete for clean accounting)
+	'BudgetCategory',
+	'BudgetLineItem',
+	'BudgetRevenue',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
