@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 import { Plus, CalendarRange, RefreshCw, Layers, LayoutTemplate } from 'lucide-react'
+import DashboardLayout from '@/components/DashboardLayout'
 import { staggerContainer, cardEntrance, fadeInUp } from '@/lib/animations'
 import { useEventProjects, type EventProject } from '@/lib/hooks/useEventProject'
 import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
@@ -148,6 +149,7 @@ export default function EventsPage() {
   )
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen">
       {/* Header */}
       <div className="mb-6">
@@ -245,5 +247,6 @@ export default function EventsPage() {
         />
       )}
     </div>
+    </DashboardLayout>
   )
 }

@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { staggerContainer, listItem } from '@/lib/animations'
+import DashboardLayout from '@/components/DashboardLayout'
 import { useEventProject } from '@/lib/hooks/useEventProject'
 import DayOfDashboard from '@/components/events/dayof/DayOfDashboard'
 
@@ -72,23 +73,28 @@ export default function DayOfPage({ params }: DayOfPageProps) {
 
   if (isLoading) {
     return (
+      <DashboardLayout>
       <div className="min-h-screen">
         <DayOfSkeleton />
       </div>
+      </DashboardLayout>
     )
   }
 
   if (error || !project) {
     return (
+      <DashboardLayout>
       <div className="min-h-screen">
         <EventNotFound onBack={() => router.push('/events')} />
       </div>
+      </DashboardLayout>
     )
   }
 
   const eventDate = project.startsAt ? project.startsAt.split('T')[0] : undefined
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen">
       <motion.div
         variants={staggerContainer(0.05)}
@@ -116,5 +122,6 @@ export default function DayOfPage({ params }: DayOfPageProps) {
         </motion.div>
       </motion.div>
     </div>
+    </DashboardLayout>
   )
 }

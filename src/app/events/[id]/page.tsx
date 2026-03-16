@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 import { ArrowLeft, CalendarDays, MapPin, Loader2, AlertCircle } from 'lucide-react'
+import DashboardLayout from '@/components/DashboardLayout'
 import { fadeInUp, staggerContainer, listItem } from '@/lib/animations'
 import { useEventProject, useApproveEventProject } from '@/lib/hooks/useEventProject'
 import { EventProjectTabs } from '@/components/events/EventProjectTabs'
@@ -90,17 +91,21 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
 
   if (isLoading) {
     return (
+      <DashboardLayout>
       <div className="min-h-screen">
         <EventProjectSkeleton />
       </div>
+      </DashboardLayout>
     )
   }
 
   if (error || !project) {
     return (
+      <DashboardLayout>
       <div className="min-h-screen">
         <EventNotFound onBack={() => router.push('/events')} />
       </div>
+      </DashboardLayout>
     )
   }
 
@@ -117,6 +122,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
     : project.createdBy?.email
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen">
       <motion.div
         variants={staggerContainer(0.05)}
@@ -185,5 +191,6 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
         </motion.div>
       </motion.div>
     </div>
+    </DashboardLayout>
   )
 }

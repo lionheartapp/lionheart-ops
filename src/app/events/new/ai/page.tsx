@@ -1,5 +1,6 @@
 'use client'
 
+import DashboardLayout from '@/components/DashboardLayout'
 import { AIEventWizard } from '@/components/events/ai/AIEventWizard'
 
 /**
@@ -12,5 +13,9 @@ import { AIEventWizard } from '@/components/events/ai/AIEventWizard'
  * Permission check (EVENT_PROJECT_CREATE) is enforced by the API route.
  */
 export default function AIEventCreationPage() {
-  return <AIEventWizard />
+  return (
+    <DashboardLayout>
+      <AIEventWizard />
+    </DashboardLayout>
+  )
 }
