@@ -39,6 +39,7 @@ import {
   LogOut,
   Eye,
   MoreVertical,
+  Sparkles,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import ViewAsDialog from '@/components/ViewAsDialog'
@@ -2077,6 +2078,27 @@ export default function Sidebar({
           >
             <ScrollText className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
             Planning
+          </PrefetchLink>
+
+          {/* Create with AI link */}
+          <PrefetchLink
+            href="/events/new/ai"
+            onClick={() => setIsOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+              pathname.startsWith('/events/new/ai')
+                ? 'bg-white/50 text-primary-600 font-medium'
+                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+            }`}
+            aria-current={pathname.startsWith('/events/new/ai') ? 'page' : undefined}
+          >
+            <Sparkles className="w-4 h-4 flex-shrink-0 text-blue-400" aria-hidden="true" />
+            <span>Create with AI</span>
+            {/* Aurora gradient dot — signals AI feature */}
+            <span
+              className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
+              aria-hidden="true"
+            />
           </PrefetchLink>
         </nav>
       </div>
