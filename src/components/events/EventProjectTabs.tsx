@@ -138,7 +138,13 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
       case 'tasks':
         return <EventTasksTab eventProjectId={project.id} />
       case 'comms':
-        return <EventCommsTab eventProjectId={project.id} />
+        return (
+          <EventCommsTab
+            eventProjectId={project.id}
+            eventTitle={project.title}
+            eventStartDate={project.startsAt ? new Date(project.startsAt) : null}
+          />
+        )
       default:
         return <EventOverviewTab project={project} />
     }
