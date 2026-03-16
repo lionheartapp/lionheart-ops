@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 22-09-PLAN.md
-last_updated: "2026-03-16T02:23:00.574Z"
+stopped_at: "Checkpoint: 22-10 Task 3 — human verification of Phase 22 feature set"
+last_updated: "2026-03-16T02:29:35.510Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 33
-  completed_plans: 32
+  completed_plans: 33
   percent: 100
 ---
 
@@ -133,6 +133,8 @@ Recent decisions affecting current work:
 - [Phase 22]: IntegrationCredential userId=null for org-level credentials (PCO, Twilio) — @@unique([organizationId, provider, userId]) uses null as valid Postgres unique key
 - [Phase 22]: Google Calendar is per-user OAuth — each staff member connects own account, not org-wide; credentials stored in IntegrationCredential with userId set
 - [Phase 22]: Twilio credentials stored in IntegrationCredential.config JSON field — supports multi-org SaaS without env vars per org
+- [Phase 22]: Dynamic import for cross-service calls in eventProjectService — prevents circular deps between eventProjectService, notificationOrchestrationService, and googleCalendarService
+- [Phase 22]: SMS dispatch is fire-and-forget in dispatchPendingNotifications — cron must not block on SMS delivery failures
 
 ### Pending Todos
 
@@ -153,7 +155,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:23:00.571Z
-Stopped at: Completed 22-09-PLAN.md
+Last session: 2026-03-16T02:29:27.150Z
+Stopped at: Checkpoint: 22-10 Task 3 — human verification of Phase 22 feature set
 Resume file: None
 Next action: `/gsd:plan-phase 20`
