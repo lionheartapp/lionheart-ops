@@ -97,3 +97,83 @@ export interface AIFeedbackAnalysis {
   summary: string
   actionItems: string[]
 }
+
+/**
+ * A generated form section with fields.
+ * Returned by generateRegistrationForm().
+ */
+export interface AIFormField {
+  type: 'TEXT' | 'DROPDOWN' | 'CHECKBOX' | 'NUMBER' | 'DATE' | 'FILE'
+  label: string
+  helpText?: string
+  required: boolean
+  options?: string[]
+}
+
+export interface AIFormSection {
+  title: string
+  fields: AIFormField[]
+}
+
+export interface AIGeneratedForm {
+  sections: AIFormSection[]
+}
+
+/**
+ * Input/output for generateGroupAssignments().
+ */
+export interface AIGroupParticipant {
+  id: string
+  name: string
+  grade?: string
+  gender?: string
+  friendRequests?: string[]
+}
+
+export interface AIGroupTarget {
+  id: string
+  name: string
+  type: string
+  capacity: number
+}
+
+export interface AIGroupConstraints {
+  balanceGender?: boolean
+  balanceGrade?: boolean
+  honorFriendRequests?: boolean
+  counselorRatio?: number
+}
+
+export interface AIGroupAssignment {
+  participantId: string
+  groupId: string
+  reasoning?: string
+}
+
+export interface AIGroupAssignmentResult {
+  assignments: AIGroupAssignment[]
+  warnings: string[]
+}
+
+/**
+ * Conflict detection result.
+ */
+export interface AIConflict {
+  type: 'ROOM' | 'STAFF' | 'TRANSPORTATION' | 'AUDIENCE'
+  severity: 'high' | 'medium' | 'low'
+  description: string
+  conflictingEventId?: string
+  conflictingEventTitle?: string
+}
+
+export interface AIConflictReport {
+  conflicts: AIConflict[]
+}
+
+/**
+ * Historical-data budget estimate (extended from AIBudgetEstimate).
+ */
+export interface AIHistoricalBudgetEstimate extends AIBudgetEstimate {
+  sourceEventCount?: number
+  isHistorical: boolean
+}

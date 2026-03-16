@@ -14,6 +14,7 @@
  */
 
 import { GoogleGenAI } from '@google/genai'
+import { rawPrisma } from '@/lib/db'
 import type {
   AIEventSuggestion,
   AIScheduleSuggestion,
@@ -22,6 +23,13 @@ import type {
   AINotificationDraft,
   AIFeedbackAnalysis,
   EventStatusInput,
+  AIGeneratedForm,
+  AIGroupParticipant,
+  AIGroupTarget,
+  AIGroupConstraints,
+  AIGroupAssignmentResult,
+  AIConflictReport,
+  AIHistoricalBudgetEstimate,
 } from '@/lib/types/event-ai'
 import type { TemplateData, ScheduleBlockTemplate } from '@/lib/types/event-template'
 
@@ -414,6 +422,378 @@ JSON:`
   } catch (err) {
     console.error('[eventAIService] Failed to parse enhanceTemplateForReuse response:', err)
     return templateData
+  }
+}
+
+// ---------------------------------------------------------------------------
+// generateRegistrationForm
+// ---------------------------------------------------------------------------
+
+export async function generateRegistrationForm(params: {
+  eventType: string
+  durationDays: number
+  expectedAttendance: number
+  description?: string
+}): Promise<AIGeneratedForm | null> {
+  const client = getClient()
+  if (!client) return null
+
+  const prompt = `You are a school event coordinator. Generate a registration form for this event.
+
+Event type: ${params.eventType}
+Duration: ${params.durationDays} day(s)
+Expected attendance: ${params.expectedAttendance} participants
+${params.description ? `Description: ${params.description}` : ''}
+
+Return ONLY valid JSON with this structure:
+{
+  "sections": [
+    {
+      "title": "Section title",
+      "fields": [
+        {
+          "type": "TEXT|DROPDOWN|CHECKBOX|NUMBER|DATE|FILE",
+          "label": "Field label",
+          "helpText": "Optional help text",
+          "required": true,
+          "options": ["Option 1", "Option 2"]
+        }
+      ]
+    }
+  ]
+}
+
+Guidelines:
+- Always include a "Participant Information" section with: First Name, Last Name, Grade (DROPDOWN), Date of Birth (DATE), T-Shirt Size (DROPDOWN for multi-day)
+- For multi-day events (durationDays > 1): add "Medical & Emergency" section with: Known Allergies (TEXT, required=false), Medications (TEXT, required=false), Emergency Contact Name (TEXT, required), Emergency Contact Phone (TEXT, required), Relationship (TEXT, required)
+- For camps (eventType contains "camp"): add dietary needs (DROPDOWN with: No restrictions, Vegetarian, Vegan, Gluten-Free, Dairy-Free, Other), medical notes
+- For field trips: add permission acknowledgment (CHECKBOX, required), transportation consent (CHECKBOX)
+- For retreats: include cabin/room preference (TEXT, required=false), special accommodations (TEXT, required=false)
+- For performances/events: include participant role (TEXT), experience level (DROPDOWN)
+- Keep it minimal — only include fields truly needed for this event type
+- Field types: TEXT for short answers, DROPDOWN for predefined options, CHECKBOX for yes/no consent, NUMBER for quantities, DATE for dates, FILE for uploads
+- Include options array only for DROPDOWN fields
+- T-Shirt sizes: ["Youth S", "Youth M", "Youth L", "Adult S", "Adult M", "Adult L", "Adult XL"]
+- Grade options: ["K", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th"]
+
+JSON:`
+
+  const responseText = await callGemini(prompt)
+  if (!responseText) return null
+
+  try {
+    const jsonStr = extractJSON(responseText)
+    if (!jsonStr) return null
+    return JSON.parse(jsonStr) as AIGeneratedForm
+  } catch (err) {
+    console.error('[eventAIService] Failed to parse generateRegistrationForm response:', err)
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// generateGroupAssignments
+// ---------------------------------------------------------------------------
+
+export async function generateGroupAssignments(params: {
+  participants: AIGroupParticipant[]
+  groups: AIGroupTarget[]
+  constraints: AIGroupConstraints
+}): Promise<AIGroupAssignmentResult | null> {
+  const client = getClient()
+  if (!client) return null
+
+  const participantSummary = params.participants.slice(0, 50).map((p) => ({
+    id: p.id,
+    name: p.name,
+    grade: p.grade ?? 'Unknown',
+    gender: p.gender ?? 'Unknown',
+    friendRequests: p.friendRequests?.slice(0, 3) ?? [],
+  }))
+
+  const groupSummary = params.groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+    type: g.type,
+    capacity: g.capacity,
+  }))
+
+  const prompt = `You are an expert at organizing school event groups. Assign participants to groups optimally.
+
+Participants (${params.participants.length} total):
+${JSON.stringify(participantSummary, null, 2)}
+
+Groups:
+${JSON.stringify(groupSummary, null, 2)}
+
+Constraints:
+- Balance gender: ${params.constraints.balanceGender ?? false}
+- Balance grade: ${params.constraints.balanceGrade ?? false}
+- Honor friend requests: ${params.constraints.honorFriendRequests ?? false}
+- Counselor ratio (participants per counselor): ${params.constraints.counselorRatio ?? 'N/A'}
+
+Return ONLY valid JSON with this structure:
+{
+  "assignments": [
+    {
+      "participantId": "id from participant list",
+      "groupId": "id from group list",
+      "reasoning": "Optional brief note (e.g. 'Honors friend request with Jane')"
+    }
+  ],
+  "warnings": [
+    "Any issues found — e.g. 'Group Bus 1 would exceed capacity by 2', '3 friend requests could not be honored'"
+  ]
+}
+
+Rules:
+- Every participant must have exactly one assignment
+- Do not exceed group capacity
+- If constraints conflict, prioritize: capacity > gender balance > grade balance > friend requests
+- Keep warnings concise and actionable
+- participantId and groupId must exactly match the provided ids
+
+JSON:`
+
+  const responseText = await callGemini(prompt)
+  if (!responseText) return null
+
+  try {
+    const jsonStr = extractJSON(responseText)
+    if (!jsonStr) return null
+    return JSON.parse(jsonStr) as AIGroupAssignmentResult
+  } catch (err) {
+    console.error('[eventAIService] Failed to parse generateGroupAssignments response:', err)
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// detectConflicts (deterministic — no AI needed)
+// ---------------------------------------------------------------------------
+
+export async function detectConflicts(params: {
+  eventProjectId: string
+  startsAt: string
+  endsAt: string
+  buildingId?: string
+  roomId?: string
+  organizationId: string
+}): Promise<AIConflictReport> {
+  const { startsAt, endsAt, buildingId, roomId, organizationId, eventProjectId } = params
+
+  const start = new Date(startsAt)
+  const end = new Date(endsAt)
+
+  const conflicts: AIConflictReport['conflicts'] = []
+
+  // Load all overlapping EventProjects in the org (excluding the current one)
+  const overlapping = await rawPrisma.eventProject.findMany({
+    where: {
+      organizationId,
+      id: { not: eventProjectId },
+      deletedAt: null,
+      AND: [
+        { startsAt: { lt: end } },
+        { endsAt: { gt: start } },
+      ],
+    },
+    select: {
+      id: true,
+      title: true,
+      buildingId: true,
+      roomId: true,
+      createdById: true,
+      startsAt: true,
+      endsAt: true,
+      schoolId: true,
+      locationText: true,
+    },
+  })
+
+  // Load current event for comparison
+  const currentEvent = await rawPrisma.eventProject.findUnique({
+    where: { id: eventProjectId },
+    select: {
+      createdById: true,
+      schoolId: true,
+    },
+  })
+
+  for (const other of overlapping) {
+    // Rule 1: Room double-booking — same room in same building
+    if (roomId && other.roomId && roomId === other.roomId) {
+      conflicts.push({
+        type: 'ROOM',
+        severity: 'high',
+        description: `Room is already booked by "${other.title}" during this time period.`,
+        conflictingEventId: other.id,
+        conflictingEventTitle: other.title,
+      })
+      continue
+    }
+
+    // Rule 2: Building-level conflict (same building, no specific room)
+    if (buildingId && !roomId && other.buildingId && buildingId === other.buildingId && !other.roomId) {
+      conflicts.push({
+        type: 'ROOM',
+        severity: 'medium',
+        description: `Another event "${other.title}" is using the same building without a specific room — potential space conflict.`,
+        conflictingEventId: other.id,
+        conflictingEventTitle: other.title,
+      })
+    }
+
+    // Rule 3: Staff scheduling conflict — same creator has overlapping event
+    if (currentEvent && other.createdById === currentEvent.createdById) {
+      conflicts.push({
+        type: 'STAFF',
+        severity: 'medium',
+        description: `The event creator is already coordinating "${other.title}" at the same time.`,
+        conflictingEventId: other.id,
+        conflictingEventTitle: other.title,
+      })
+    }
+
+    // Rule 4: Transportation overlap — events at external venues on same day
+    const sameDay =
+      start.toDateString() === other.startsAt.toDateString() ||
+      end.toDateString() === other.startsAt.toDateString()
+    if (sameDay && !buildingId && !other.buildingId && (other.locationText || other.roomId === null)) {
+      conflicts.push({
+        type: 'TRANSPORTATION',
+        severity: 'low',
+        description: `"${other.title}" is also off-campus on the same day — transportation resources may be shared.`,
+        conflictingEventId: other.id,
+        conflictingEventTitle: other.title,
+      })
+    }
+
+    // Rule 5: Audience overlap — same school has two events
+    if (currentEvent?.schoolId && other.schoolId && currentEvent.schoolId === other.schoolId) {
+      conflicts.push({
+        type: 'AUDIENCE',
+        severity: 'medium',
+        description: `"${other.title}" targets the same school during this time — students/parents may have split attention.`,
+        conflictingEventId: other.id,
+        conflictingEventTitle: other.title,
+      })
+    }
+  }
+
+  return { conflicts }
+}
+
+// ---------------------------------------------------------------------------
+// estimateBudgetFromHistory
+// ---------------------------------------------------------------------------
+
+export async function estimateBudgetFromHistory(params: {
+  eventType?: string
+  durationDays: number
+  expectedAttendance: number
+  organizationId: string
+}): Promise<AIHistoricalBudgetEstimate | null> {
+  const { organizationId, eventType, durationDays, expectedAttendance } = params
+
+  // Try to find similar historical events with budget data
+  const historicalProjects = await rawPrisma.eventProject.findMany({
+    where: {
+      organizationId,
+      deletedAt: null,
+      status: 'COMPLETED',
+      ...(eventType ? { title: { contains: eventType, mode: 'insensitive' } } : {}),
+    },
+    select: {
+      id: true,
+      title: true,
+      expectedAttendance: true,
+      startsAt: true,
+      endsAt: true,
+      budgetCategories: {
+        include: {
+          lineItems: {
+            select: {
+              budgetedAmount: true,
+              actualAmount: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+  })
+
+  // Filter events that have budget data
+  const eventsWithBudgets = historicalProjects.filter(
+    (p) => p.budgetCategories.some((c: any) => c.lineItems.length > 0),
+  )
+
+  if (eventsWithBudgets.length >= 3) {
+    // Build historical average per category
+    const categoryTotals: Record<string, { sum: number; count: number }> = {}
+
+    for (const project of eventsWithBudgets) {
+      const attendance = project.expectedAttendance ?? 1
+      const scale = expectedAttendance / Math.max(attendance, 1)
+
+      for (const category of project.budgetCategories as any[]) {
+        const total = category.lineItems.reduce((sum: number, item: any) => {
+          const amount = item.actualAmount ?? item.budgetedAmount
+          return sum + (parseFloat(amount?.toString() ?? '0') || 0)
+        }, 0)
+
+        if (total > 0) {
+          const scaledTotal = total * scale
+          if (!categoryTotals[category.name]) {
+            categoryTotals[category.name] = { sum: 0, count: 0 }
+          }
+          categoryTotals[category.name].sum += scaledTotal
+          categoryTotals[category.name].count += 1
+        }
+      }
+    }
+
+    const categories = Object.entries(categoryTotals)
+      .filter(([, { count }]) => count >= 2) // Only include categories seen in 2+ events
+      .map(([name, { sum, count }]) => {
+        const avg = sum / count
+        return {
+          name,
+          estimatedMin: Math.round(avg * 0.85),
+          estimatedMax: Math.round(avg * 1.15),
+        }
+      })
+
+    if (categories.length > 0) {
+      const totalMin = categories.reduce((s, c) => s + c.estimatedMin, 0)
+      const totalMax = categories.reduce((s, c) => s + c.estimatedMax, 0)
+
+      return {
+        categories,
+        totalMin,
+        totalMax,
+        reasoning: `Based on ${eventsWithBudgets.length} similar past events at your organization, scaled for ${expectedAttendance} participants.`,
+        sourceEventCount: eventsWithBudgets.length,
+        isHistorical: true,
+      }
+    }
+  }
+
+  // Fallback: AI estimation
+  const aiEstimate = await estimateBudget({
+    eventType: eventType ?? 'school event',
+    durationDays,
+    expectedAttendance,
+  })
+
+  if (!aiEstimate) return null
+
+  return {
+    ...aiEstimate,
+    isHistorical: false,
+    sourceEventCount: 0,
   }
 }
 
