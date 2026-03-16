@@ -59,9 +59,9 @@
 
 ### Budget & Financials
 
-- [ ] **BUD-01**: Staff can create a line-item budget with categories (venue, transportation, food, supplies, insurance) and budgeted amounts
-- [ ] **BUD-02**: Staff can log actual expenses with receipt uploads and track revenue (registration fees, sponsorships, fundraising)
-- [ ] **BUD-03**: Staff can view budget vs. actual reporting with per-participant cost analysis
+- [x] **BUD-01**: Staff can create a line-item budget with categories (venue, transportation, food, supplies, insurance) and budgeted amounts
+- [x] **BUD-02**: Staff can log actual expenses with receipt uploads and track revenue (registration fees, sponsorships, fundraising)
+- [x] **BUD-03**: Staff can view budget vs. actual reporting with per-participant cost analysis
 
 ### Communication
 
@@ -161,9 +161,9 @@
 | COM-03 | Phase 22 | Complete |
 | COM-04 | Phase 21 | Complete |
 | COM-05 | Phase 21 | Complete |
-| BUD-01 | Phase 22 | Pending |
-| BUD-02 | Phase 22 | Pending |
-| BUD-03 | Phase 22 | Pending |
+| BUD-01 | Phase 22 | Complete |
+| BUD-02 | Phase 22 | Complete |
+| BUD-03 | Phase 22 | Complete |
 | AI-01 | Phase 22 | Pending |
 | AI-02 | Phase 22 | Pending |
 | AI-03 | Phase 22 | Pending |

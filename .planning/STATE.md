@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 22-02-PLAN.md
-last_updated: "2026-03-16T02:03:10.527Z"
+stopped_at: Completed 22-03-PLAN.md
+last_updated: "2026-03-16T02:04:17.272Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 33
-  completed_plans: 24
+  completed_plans: 26
   percent: 100
 ---
 
@@ -113,6 +113,11 @@ Recent decisions affecting current work:
 - [Phase 22]: EventNotificationLog uses hard delete — immutable audit records, status cancellation on rule not log row
 - [Phase 22]: dispatchPendingNotifications uses rawPrisma — cron runs cross-org without org context
 - [Phase 22]: recalculateRulesForEvent only adjusts DATE_BASED rules — CONDITION_BASED and ACTION_TRIGGERED have no scheduledAt
+- [Phase 22]: Budget models use hard delete (not soft delete) for clean accounting integrity
+- [Phase 22]: syncRegistrationRevenue uses RegistrationStatus.REGISTERED and sums RegistrationPayment rows (status='succeeded') — no CONFIRMED status exists in the enum
+- [Phase 22-03]: EventTemplate uses day-offset serialization (not absolute dates) for portable template reuse
+- [Phase 22-03]: AI service returns null (not throw) when GEMINI_API_KEY absent — API routes return 503 AI_UNAVAILABLE
+- [Phase 22-03]: Two-phase AI summary pattern: ?skipAI=true returns raw metrics immediately for instant UI render
 
 ### Pending Todos
 
@@ -133,7 +138,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:03:10.525Z
-Stopped at: Completed 22-02-PLAN.md
+Last session: 2026-03-16T02:04:17.270Z
+Stopped at: Completed 22-03-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
