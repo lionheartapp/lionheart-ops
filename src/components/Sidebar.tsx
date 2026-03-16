@@ -40,6 +40,7 @@ import {
   Eye,
   MoreVertical,
   Sparkles,
+  Link2,
 } from 'lucide-react'
 import ReportBugDialog from '@/components/ReportBugDialog'
 import ViewAsDialog from '@/components/ViewAsDialog'
@@ -85,7 +86,7 @@ export interface CalendarSidebarData {
   campus?: { id: string; name: string } | null
 }
 
-export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons' | 'activity-log' | 'billing'
+export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons' | 'integrations' | 'activity-log' | 'billing'
 export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
 export type MaintenanceTab = 'dashboard' | 'pm-calendar'
 
@@ -891,6 +892,7 @@ export default function Sidebar({
     { id: 'campus' as SettingsTab, label: 'Campus', icon: Building2 },
     { id: 'billing' as SettingsTab, label: 'Billing', icon: CreditCard },
     { id: 'add-ons' as SettingsTab, label: 'Add-ons', icon: Puzzle },
+    { id: 'integrations' as SettingsTab, label: 'Integrations', icon: Link2 },
     { id: 'activity-log' as SettingsTab, label: 'Activity Log', icon: ScrollText },
   ]
 

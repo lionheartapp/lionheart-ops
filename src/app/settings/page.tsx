@@ -17,11 +17,12 @@ import ApprovalConfigTab from '@/components/settings/ApprovalConfigTab'
 import AddOnsTab from '@/components/settings/AddOnsTab'
 import AuditLogTab from '@/components/settings/AuditLogTab'
 import BillingTab from '@/components/settings/BillingTab'
+import IntegrationsTab from '@/components/settings/IntegrationsTab'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
-import { Camera, User, Shield, Lock, Mail, Bell } from 'lucide-react'
+import { Camera, User, Shield, Lock, Mail, Bell, Link2 } from 'lucide-react'
 
-type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'activity-log' | 'billing'
+type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'integrations' | 'activity-log' | 'billing'
 
 type WorkspaceTab = Exclude<Tab, 'profile'>
 
@@ -868,6 +869,12 @@ export default function SettingsPage() {
               {canManageWorkspace && visitedTabs.has('add-ons') && (
                 <div className={activeTab === 'add-ons' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'add-ons'}>
                   <AddOnsTab />
+                </div>
+              )}
+
+              {canManageWorkspace && visitedTabs.has('integrations') && (
+                <div className={activeTab === 'integrations' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'integrations'}>
+                  <IntegrationsTab />
                 </div>
               )}
 
