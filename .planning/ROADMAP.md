@@ -126,19 +126,20 @@ Plans:
   4. Staff can use AI to generate initial group assignments given constraints (gender, grade, friend requests, counselor ratios), receive AI-detected scheduling conflicts beyond date/room overlap (weather risk, testing schedules, audience overlap), and view AI-generated status summaries on the event Overview tab
   5. Staff can save any completed event as a template and create new events from templates; AI auto-updates dates, adjusts budget estimates, and surfaces lessons learned from the activity log of previous events using the same template
   6. Staff can sync events to Google Calendar, send SMS notifications via Twilio for day-of updates and deadline reminders, and (for schools using Planning Center) sync worship sets, team assignments, and people data — all integrations are module-toggled so absence of credentials does not break core functionality; AI analyzes post-event feedback surveys and surfaces actionable themes
-**Plans**: 10 plans
+**Plans**: 11 plans
 
 Plans:
-- [ ] 22-01-PLAN.md — Budget schema, service layer, and API routes (line items, revenue, receipts, report)
-- [ ] 22-02-PLAN.md — Notification orchestration schema, service, API routes, and cron dispatch
-- [ ] 22-03-PLAN.md — Event template schema + AI event service (generation, schedule, budget, summary, feedback)
-- [ ] 22-04-PLAN.md — Budget tab UI (spreadsheet-style line items, expense drawer, revenue section, report view)
-- [ ] 22-05-PLAN.md — Notification timeline UI (visual Gantt-lite builder, rule drawer with AI drafting)
-- [ ] 22-06-PLAN.md — AI event creation wizard (chat-style interface, two-panel layout, schedule generation)
-- [ ] 22-07-PLAN.md — AI generate-then-edit features (form, groups, conflicts, budget estimation, summaries, feedback)
-- [ ] 22-08-PLAN.md — Template UI (save dialog, template browser, create-from-template wizard with AI enhancement)
-- [ ] 22-09-PLAN.md — External integrations (Planning Center, Google Calendar, Twilio) services, API routes, settings tab
-- [ ] 22-10-PLAN.md — Cross-feature wiring, smoke tests, human verification
+- [x] 22-01-PLAN.md — Budget schema, service layer, and API routes (line items, revenue, receipts, report)
+- [x] 22-02-PLAN.md — Notification orchestration schema, service, API routes, and cron dispatch
+- [x] 22-03-PLAN.md — Event template schema + AI event service (generation, schedule, budget, summary, feedback)
+- [x] 22-04-PLAN.md — Budget tab UI (spreadsheet-style line items, expense drawer, revenue section, report view)
+- [x] 22-05-PLAN.md — Notification timeline UI (visual Gantt-lite builder, rule drawer with AI drafting)
+- [x] 22-06-PLAN.md — AI event creation wizard (chat-style interface, two-panel layout, schedule generation)
+- [x] 22-07-PLAN.md — AI generate-then-edit features (form, groups, conflicts, budget estimation, summaries, feedback)
+- [x] 22-08-PLAN.md — Template UI (save dialog, template browser, create-from-template wizard with AI enhancement)
+- [x] 22-09-PLAN.md — External integrations (Planning Center, Google Calendar, Twilio) services, API routes, settings tab
+- [x] 22-10-PLAN.md — Cross-feature wiring, smoke tests, human verification
+- [ ] 22-11-PLAN.md — Gap closure: wire orphaned template UI (SaveAsTemplateDialog, TemplateListDrawer, CreateFromTemplateWizard)
 
 ## Progress Table
 
@@ -147,4 +148,4 @@ Plans:
 | 19. Event Foundation | 6/6 | Complete    | 2026-03-15 |
 | 20. Registration and Public Pages | 7/7 | Complete    | 2026-03-15 |
 | 21. Documents, Groups, Communication, and Day-Of Tools | 10/10 | Complete    | 2026-03-16 |
-| 22. AI, Budget, Notifications, and External Integrations | 10/10 | Complete   | 2026-03-16 |
+| 22. AI, Budget, Notifications, and External Integrations | 10/11 | Gap Closure   | 2026-03-16 |
