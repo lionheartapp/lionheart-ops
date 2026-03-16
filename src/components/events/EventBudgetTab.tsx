@@ -277,6 +277,7 @@ export function EventBudgetTab({ eventProjectId }: EventBudgetTabProps) {
                 </div>
               ) : (
                 <BudgetLineItemTable
+                  eventProjectId={eventProjectId}
                   categories={categories}
                   lineItems={lineItems}
                   onAddExpense={handleAddExpense}
