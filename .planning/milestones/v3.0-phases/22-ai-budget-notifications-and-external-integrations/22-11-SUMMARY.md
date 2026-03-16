@@ -106,3 +106,10 @@ None - no external service configuration required.
 ---
 *Phase: 22-ai-budget-notifications-and-external-integrations*
 *Completed: 2026-03-16*
+
+## Self-Check: PASSED
+
+- FOUND: .planning/phases/22-ai-budget-notifications-and-external-integrations/22-11-SUMMARY.md
+- FOUND: commit 84ebe70 (Task 1 — wire SaveAsTemplateDialog)
+- FOUND: commit ffaea7d (Task 2 — wire TemplateListDrawer + CreateFromTemplateWizard)
+- FOUND: commit 293ae11 (docs — plan complete)
