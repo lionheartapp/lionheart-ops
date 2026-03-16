@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 22-06-PLAN.md
-last_updated: "2026-03-16T02:18:14.567Z"
+stopped_at: Completed 22-07-PLAN.md
+last_updated: "2026-03-16T02:22:12.540Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 33
-  completed_plans: 30
+  completed_plans: 31
   percent: 100
 ---
 
@@ -125,6 +125,11 @@ Recent decisions affecting current work:
 - [Phase 22-ai-budget-notifications-and-external-integrations]: AI wizard page matches events/page.tsx pattern (no DashboardLayout wrapper)
 - [Phase 22-ai-budget-notifications-and-external-integrations]: Budget creation from AI data deferred to budget tab — no client-side endpoint for custom category creation
 - [Phase 22-ai-budget-notifications-and-external-integrations]: Schedule block type normalization map in wizard (BREAK→FREE_TIME, CEREMONY→SESSION) normalizes AI output to API enum
+- [Phase 22-04]: Pill sub-tabs within EventBudgetTab keep EventProjectTabs clean — no new top-level tab
+- [Phase 22]: detectConflicts is deterministic (rawPrisma, no AI) — checks room/staff/transportation/audience overlaps
+- [Phase 22-04]: Zod ZodError uses .issues not .errors — fixed TS2339 error in budget form components
+- [Phase 22]: estimateBudgetFromHistory requires 3+ completed events with budget data — AI fallback otherwise
+- [Phase 22]: RegistrationTab AI modal creates form first if none exists then opens modal — prevents AI generating for non-existent form
 
 ### Pending Todos
 
@@ -145,7 +150,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:18:14.564Z
-Stopped at: Completed 22-06-PLAN.md
+Last session: 2026-03-16T02:22:12.538Z
+Stopped at: Completed 22-07-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
