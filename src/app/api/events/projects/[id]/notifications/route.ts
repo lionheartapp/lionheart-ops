@@ -14,15 +14,16 @@ import { getRules, createRule } from '@/lib/services/notificationOrchestrationSe
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_NOTIFICATIONS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const rules = await getRules(params.id)
+      const rules = await getRules(id)
       return NextResponse.json(ok(rules))
     })
   } catch (error) {
@@ -35,9 +36,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_NOTIFICATIONS_MANAGE)
@@ -52,7 +54,7 @@ export async function POST(
     }
 
     return await runWithOrgContext(orgId, async () => {
-      const rule = await createRule(params.id, parsed.data, ctx.userId)
+      const rule = await createRule(id, parsed.data, ctx.userId)
       return NextResponse.json(ok(rule), { status: 201 })
     })
   } catch (error) {

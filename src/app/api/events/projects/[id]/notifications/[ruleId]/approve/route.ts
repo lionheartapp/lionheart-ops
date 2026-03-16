@@ -24,9 +24,10 @@ const ApproveActionSchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; ruleId: string } }
+  { params }: { params: Promise<{ id: string; ruleId: string }> }
 ) {
   try {
+    const { ruleId } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_NOTIFICATIONS_MANAGE)
@@ -46,11 +47,11 @@ export async function POST(
       let updated
 
       if (action === 'submit') {
-        updated = await submitForApproval(params.ruleId)
+        updated = await submitForApproval(ruleId)
       } else if (action === 'approve') {
-        updated = await approveRule(params.ruleId, ctx.userId)
+        updated = await approveRule(ruleId, ctx.userId)
       } else {
-        updated = await cancelRule(params.ruleId)
+        updated = await cancelRule(ruleId)
       }
 
       return NextResponse.json(ok(updated))

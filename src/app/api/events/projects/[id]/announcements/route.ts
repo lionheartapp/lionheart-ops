@@ -28,15 +28,16 @@ const DeleteAnnouncementSchema = z.object({
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const announcements = await listAnnouncements(params.id)
+      const announcements = await listAnnouncements(id)
       return NextResponse.json(ok(announcements))
     })
   } catch (error) {
@@ -49,9 +50,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE)
@@ -67,7 +69,7 @@ export async function POST(
 
     return await runWithOrgContext(orgId, async () => {
       const announcement = await createAnnouncement({
-        eventProjectId: params.id,
+        eventProjectId: id,
         title: parsed.data.title,
         body: parsed.data.body,
         audience: parsed.data.audience,
@@ -86,9 +88,10 @@ export async function POST(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE)

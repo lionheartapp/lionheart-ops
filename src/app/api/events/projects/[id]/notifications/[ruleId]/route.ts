@@ -14,9 +14,10 @@ import { updateRule, deleteRule } from '@/lib/services/notificationOrchestration
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; ruleId: string } }
+  { params }: { params: Promise<{ id: string; ruleId: string }> }
 ) {
   try {
+    const { ruleId } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_NOTIFICATIONS_MANAGE)
@@ -31,7 +32,7 @@ export async function PATCH(
     }
 
     return await runWithOrgContext(orgId, async () => {
-      const updated = await updateRule(params.ruleId, parsed.data)
+      const updated = await updateRule(ruleId, parsed.data)
       return NextResponse.json(ok(updated))
     })
   } catch (error) {
@@ -50,15 +51,16 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; ruleId: string } }
+  { params }: { params: Promise<{ id: string; ruleId: string }> }
 ) {
   try {
+    const { ruleId } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_NOTIFICATIONS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      await deleteRule(params.ruleId)
+      await deleteRule(ruleId)
       return NextResponse.json(ok(null))
     })
   } catch (error) {

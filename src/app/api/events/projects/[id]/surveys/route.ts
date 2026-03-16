@@ -35,15 +35,16 @@ const DeleteSurveySchema = z.object({
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const surveys = await listSurveys(params.id)
+      const surveys = await listSurveys(id)
       return NextResponse.json(ok(surveys))
     })
   } catch (error) {
@@ -56,9 +57,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
@@ -74,7 +76,7 @@ export async function POST(
 
     return await runWithOrgContext(orgId, async () => {
       const survey = await createSurvey({
-        eventProjectId: params.id,
+        eventProjectId: id,
         formId: parsed.data.formId,
         opensAt: parsed.data.opensAt ? new Date(parsed.data.opensAt) : null,
         closesAt: parsed.data.closesAt ? new Date(parsed.data.closesAt) : null,
@@ -91,9 +93,10 @@ export async function POST(
 
 export async function PUT(
   req: NextRequest,
-  { params: _params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
@@ -125,9 +128,10 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params: _params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)

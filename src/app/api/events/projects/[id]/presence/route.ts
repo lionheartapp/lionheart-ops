@@ -25,15 +25,16 @@ const UpdatePresenceSchema = z.object({
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      const users = await getActiveUsers(params.id)
+      const users = await getActiveUsers(id)
       return NextResponse.json(ok(users))
     })
   } catch (error) {
@@ -50,9 +51,10 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_READ)
@@ -62,7 +64,7 @@ export async function POST(
 
     return await runWithOrgContext(orgId, async () => {
       await updatePresence(
-        params.id,
+        id,
         ctx.userId,
         parsed.success ? parsed.data.activeTab : undefined,
       )
@@ -81,15 +83,16 @@ export async function POST(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      await removePresence(params.id, ctx.userId)
+      await removePresence(id, ctx.userId)
       return NextResponse.json(ok({ removed: true }))
     })
   } catch (error) {

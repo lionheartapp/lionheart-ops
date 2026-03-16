@@ -19,12 +19,14 @@ import { getAnnouncementsForRegistration } from '@/lib/services/eventAnnouncemen
  */
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params
+
     // Verify the registration exists before calling the service
     const registration = await rawPrisma.eventRegistration.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, deletedAt: true },
     })
 
@@ -32,7 +34,7 @@ export async function GET(
       return NextResponse.json(fail('NOT_FOUND', 'Registration not found'), { status: 404 })
     }
 
-    const announcements = await getAnnouncementsForRegistration(params.id)
+    const announcements = await getAnnouncementsForRegistration(id)
     return NextResponse.json(ok(announcements))
   } catch {
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })

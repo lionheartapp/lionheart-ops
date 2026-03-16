@@ -22,15 +22,16 @@ const SubmitResponseSchema = z.object({
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; surveyId: string } },
+  { params }: { params: Promise<{ id: string; surveyId: string }> },
 ) {
   try {
+    const { surveyId } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const results = await getSurveyResults(params.surveyId)
+      const results = await getSurveyResults(surveyId)
       return NextResponse.json(ok(results))
     })
   } catch (error) {
@@ -48,9 +49,10 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; surveyId: string } },
+  { params }: { params: Promise<{ id: string; surveyId: string }> },
 ) {
   try {
+    const { surveyId } = await params
     const body = await req.json()
     const parsed = SubmitResponseSchema.safeParse(body)
     if (!parsed.success) {
@@ -62,7 +64,7 @@ export async function POST(
 
     // Service validates survey is ACTIVE and registrationId belongs to this event
     const result = await submitSurveyResponse({
-      surveyId: params.surveyId,
+      surveyId,
       registrationId: parsed.data.registrationId,
       responses: parsed.data.responses,
     })
