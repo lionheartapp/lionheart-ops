@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 21-10-PLAN.md
-last_updated: "2026-03-16T00:05:47.973Z"
+stopped_at: Phase 22 context gathered
+last_updated: "2026-03-16T00:48:35.506Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
@@ -130,7 +130,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:57:40.187Z
-Stopped at: Completed 21-10-PLAN.md
-Resume file: None
+Last session: 2026-03-16T00:48:35.504Z
+Stopped at: Phase 22 context gathered
+Resume file: .planning/phases/22-ai-budget-notifications-and-external-integrations/22-CONTEXT.md
 Next action: `/gsd:plan-phase 20`
