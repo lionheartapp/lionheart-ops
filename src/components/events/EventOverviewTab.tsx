@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { format, differenceInDays } from 'date-fns'
 import {
@@ -10,9 +11,11 @@ import {
   Clock,
   FileText,
   Layers,
+  BookmarkPlus,
 } from 'lucide-react'
 import { fadeInUp, staggerContainer, listItem } from '@/lib/animations'
 import { EventActivityLog } from './EventActivityLog'
+import { SaveAsTemplateDialog } from './templates/SaveAsTemplateDialog'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 
 // ─── Stat card ───────────────────────────────────────────────────────────────
@@ -93,7 +96,12 @@ interface EventOverviewTabProps {
   project: EventProject
 }
 
+// Statuses where saving as a template makes sense (not DRAFT — incomplete events)
+const TEMPLATE_ELIGIBLE_STATUSES = ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED']
+
 export function EventOverviewTab({ project }: EventOverviewTabProps) {
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
+
   const startsAt = new Date(project.startsAt)
   const endsAt = new Date(project.endsAt)
   const now = new Date()
@@ -109,13 +117,29 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
   const completedTasks = project.tasks?.filter((t) => t.status === 'DONE').length ?? 0
   const scheduleBlocks = project._count?.scheduleBlocks ?? 0
 
+  const canSaveAsTemplate = TEMPLATE_ELIGIBLE_STATUSES.includes(project.status)
+
   return (
+    <>
     <motion.div
       variants={staggerContainer(0.05)}
       initial="hidden"
       animate="visible"
       className="space-y-6"
     >
+      {/* Overview header with Save as Template action */}
+      {canSaveAsTemplate && (
+        <motion.div variants={listItem} className="flex justify-end">
+          <button
+            onClick={() => setSaveTemplateOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+          >
+            <BookmarkPlus className="w-4 h-4 text-gray-500" aria-hidden="true" />
+            Save as Template
+          </button>
+        </motion.div>
+      )}
+
       {/* Quick Stats */}
       <motion.div variants={listItem}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -221,5 +245,17 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
         <EventActivityLog eventProjectId={project.id} limit={5} />
       </motion.div>
     </motion.div>
+
+    {/* Save as Template dialog */}
+    {canSaveAsTemplate && (
+      <SaveAsTemplateDialog
+        eventProjectId={project.id}
+        eventTitle={project.title}
+        eventType={(project.metadata?.eventType as string | null) ?? null}
+        isOpen={saveTemplateOpen}
+        onClose={() => setSaveTemplateOpen(false)}
+      />
+    )}
+    </>
   )
 }
