@@ -147,4 +147,4 @@ Plans:
 | 19. Event Foundation | 6/6 | Complete    | 2026-03-15 |
 | 20. Registration and Public Pages | 7/7 | Complete    | 2026-03-15 |
 | 21. Documents, Groups, Communication, and Day-Of Tools | 10/10 | Complete    | 2026-03-16 |
-| 22. AI, Budget, Notifications, and External Integrations | 6/10 | In Progress|  |
+| 22. AI, Budget, Notifications, and External Integrations | 7/10 | In Progress|  |

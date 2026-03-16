@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 22-05-PLAN.md
-last_updated: "2026-03-16T02:15:13.324Z"
+stopped_at: Completed 22-06-PLAN.md
+last_updated: "2026-03-16T02:18:14.567Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 33
-  completed_plans: 29
+  completed_plans: 30
   percent: 100
 ---
 
@@ -122,6 +122,9 @@ Recent decisions affecting current work:
 - [Phase 22-08]: AI enhancement failure in CreateFromTemplateWizard is non-fatal — enhancements set to null, wizard continues with raw template data
 - [Phase 22-05]: AI draft endpoint co-located with notification routes, not shared /events/ai — notification concerns are self-contained
 - [Phase 22-05]: ACTION_TRIGGERED rules rendered in separate lane below Gantt timeline — no fixed date, cannot be positioned on date axis
+- [Phase 22-ai-budget-notifications-and-external-integrations]: AI wizard page matches events/page.tsx pattern (no DashboardLayout wrapper)
+- [Phase 22-ai-budget-notifications-and-external-integrations]: Budget creation from AI data deferred to budget tab — no client-side endpoint for custom category creation
+- [Phase 22-ai-budget-notifications-and-external-integrations]: Schedule block type normalization map in wizard (BREAK→FREE_TIME, CEREMONY→SESSION) normalizes AI output to API enum
 
 ### Pending Todos
 
@@ -142,7 +145,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:15:13.322Z
-Stopped at: Completed 22-05-PLAN.md
+Last session: 2026-03-16T02:18:14.564Z
+Stopped at: Completed 22-06-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
