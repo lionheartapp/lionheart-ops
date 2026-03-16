@@ -6,14 +6,28 @@
  * Each category header is collapsible. Columns: Description, Vendor, Budgeted,
  * Actual, Expense Date, Receipt, Actions. Footer row shows grand totals.
  *
+ * AI Estimate button: fetches budget estimates per category, shows comparison
+ * panel, and allows applying estimates to unfilled categories.
  */
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, Pencil, Trash2, Plus, Receipt } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  Trash2,
+  Plus,
+  Receipt,
+  Sparkles,
+  X,
+  Loader2,
+  Check,
+} from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { listItem, staggerContainer } from '@/lib/animations'
+import { listItem, staggerContainer, fadeInUp } from '@/lib/animations'
 import type { BudgetCategoryRow, BudgetLineItemRow } from '@/lib/types/budget'
+import type { AIHistoricalBudgetEstimate } from '@/lib/types/event-ai'
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -78,7 +92,8 @@ function CategorySection({
         </div>
         <div className="flex items-center gap-6 text-xs text-gray-500">
           <span>
-            Budgeted: <span className="font-semibold text-gray-700">{formatCurrency(totalBudgeted)}</span>
+            Budgeted:{' '}
+            <span className="font-semibold text-gray-700">{formatCurrency(totalBudgeted)}</span>
           </span>
           <span>
             Actual:{' '}
@@ -145,7 +160,9 @@ function CategorySection({
                           key={item.id}
                           className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
                         >
-                          <td className="px-4 py-2.5 text-gray-800 font-medium">{item.description}</td>
+                          <td className="px-4 py-2.5 text-gray-800 font-medium">
+                            {item.description}
+                          </td>
                           <td className="px-4 py-2.5 text-gray-500">{item.vendor ?? '—'}</td>
                           <td className="px-4 py-2.5 text-right text-gray-700 font-mono text-xs">
                             {formatCurrency(item.budgetedAmount)}
@@ -238,31 +255,236 @@ function CategorySection({
   )
 }
 
+// ─── AI Estimate Panel ────────────────────────────────────────────────────────
+
+interface AIEstimatePanelProps {
+  estimate: AIHistoricalBudgetEstimate
+  lineItems: BudgetLineItemRow[]
+  onApply: (suggestions: { categoryName: string; amount: number }[]) => void
+  onDismiss: () => void
+}
+
+function AIEstimatePanel({ estimate, lineItems, onApply, onDismiss }: AIEstimatePanelProps) {
+  // Build current budgeted totals per category name
+  const budgetedByCategory: Record<string, number> = {}
+  for (const item of lineItems) {
+    budgetedByCategory[item.categoryName] =
+      (budgetedByCategory[item.categoryName] ?? 0) + item.budgetedAmount
+  }
+
+  // Only suggest estimates for categories not yet budgeted
+  const suggestions = estimate.categories.filter(
+    (cat) => !budgetedByCategory[cat.name] || budgetedByCategory[cat.name] === 0,
+  )
+
+  function handleApply() {
+    const toApply = suggestions.map((s) => ({
+      categoryName: s.name,
+      amount: Math.round((s.estimatedMin + s.estimatedMax) / 2),
+    }))
+    onApply(toApply)
+  }
+
+  return (
+    <motion.div
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      className="border border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl overflow-hidden"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-white/70 border-b border-indigo-100">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Sparkles className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+          <span className="text-sm font-semibold text-gray-900">AI Budget Estimate</span>
+          {estimate.isHistorical && (estimate.sourceEventCount ?? 0) > 0 && (
+            <span className="text-xs text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full font-medium">
+              Based on {estimate.sourceEventCount} past events
+            </span>
+          )}
+          {!estimate.isHistorical && (
+            <span className="text-xs text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full font-medium">
+              AI Generated
+            </span>
+          )}
+        </div>
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-white/50 transition-colors cursor-pointer flex-shrink-0"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Reasoning */}
+      {estimate.reasoning && (
+        <p className="px-4 pt-3 text-xs text-gray-600 leading-relaxed">{estimate.reasoning}</p>
+      )}
+
+      {/* Category estimates */}
+      <div className="p-4 space-y-2">
+        {estimate.categories.map((cat) => {
+          const existingAmount = budgetedByCategory[cat.name]
+          const hasExisting = existingAmount != null && existingAmount > 0
+          return (
+            <div
+              key={cat.name}
+              className={`flex items-center justify-between text-sm px-3 py-2 rounded-lg ${
+                hasExisting ? 'bg-white/40 opacity-60' : 'bg-white/70'
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                {hasExisting ? (
+                  <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                )}
+                <span className="font-medium text-gray-800 truncate">{cat.name}</span>
+                {hasExisting && (
+                  <span className="text-xs text-gray-400 ml-1 flex-shrink-0">already budgeted</span>
+                )}
+              </div>
+              <span className="text-xs text-gray-600 font-mono flex-shrink-0 ml-4">
+                {formatCurrency(cat.estimatedMin)} – {formatCurrency(cat.estimatedMax)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Totals + actions */}
+      <div className="px-4 pb-4 flex items-center justify-between border-t border-indigo-100 pt-3 gap-3 flex-wrap">
+        <div className="text-xs text-gray-600">
+          Total estimate:{' '}
+          <span className="font-semibold text-gray-900">
+            {formatCurrency(estimate.totalMin)} – {formatCurrency(estimate.totalMax)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onDismiss}
+            className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 rounded-lg hover:bg-white/60 transition-colors cursor-pointer"
+          >
+            Dismiss
+          </button>
+          {suggestions.length > 0 ? (
+            <button
+              onClick={handleApply}
+              className="px-4 py-1.5 text-xs font-medium rounded-full bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.97] transition-all cursor-pointer"
+            >
+              Apply {suggestions.length} estimate{suggestions.length === 1 ? '' : 's'}
+            </button>
+          ) : (
+            <span className="text-xs text-gray-400">All categories already budgeted</span>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export interface BudgetLineItemTableProps {
+  eventProjectId: string
   categories: BudgetCategoryRow[]
   lineItems: BudgetLineItemRow[]
   onAddExpense: (categoryId: string) => void
   onEdit: (item: BudgetLineItemRow) => void
   onDelete: (item: BudgetLineItemRow) => void
+  onApplyEstimates?: (suggestions: { categoryName: string; amount: number }[]) => void
 }
 
 export function BudgetLineItemTable({
+  eventProjectId,
   categories,
   lineItems,
   onAddExpense,
   onEdit,
   onDelete,
+  onApplyEstimates,
 }: BudgetLineItemTableProps) {
+  const [estimating, setEstimating] = useState(false)
+  const [estimate, setEstimate] = useState<AIHistoricalBudgetEstimate | null>(null)
+  const [estimateError, setEstimateError] = useState<string | null>(null)
+
   const totalBudgeted = lineItems.reduce((sum, item) => sum + item.budgetedAmount, 0)
   const totalActual = lineItems.reduce((sum, item) => sum + (item.actualAmount ?? 0), 0)
 
   // Sort categories by sortOrder
   const sortedCategories = [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
 
+  async function handleAIEstimate() {
+    setEstimating(true)
+    setEstimateError(null)
+    try {
+      const res = await fetch('/api/events/ai/estimate-budget', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventProjectId }),
+      })
+      const json = (await res.json()) as { ok: boolean; data?: AIHistoricalBudgetEstimate; error?: { message: string } }
+      if (json.ok && json.data) {
+        setEstimate(json.data)
+      } else {
+        setEstimateError(json.error?.message ?? 'Failed to generate estimate')
+      }
+    } catch {
+      setEstimateError('Network error — please try again')
+    } finally {
+      setEstimating(false)
+    }
+  }
+
+  function handleApplyEstimates(suggestions: { categoryName: string; amount: number }[]) {
+    onApplyEstimates?.(suggestions)
+    setEstimate(null)
+  }
+
   return (
     <div className="space-y-3">
+      {/* AI Estimate button */}
+      <div className="flex items-center justify-end">
+        <button
+          onClick={handleAIEstimate}
+          disabled={estimating}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-medium hover:bg-indigo-100 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {estimating ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Sparkles className="w-4 h-4" />
+          )}
+          {estimating ? 'Estimating...' : 'AI Estimate'}
+        </button>
+      </div>
+
+      {/* Error alert */}
+      {estimateError && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          <X className="w-4 h-4 flex-shrink-0" />
+          <span className="flex-1">{estimateError}</span>
+          <button
+            onClick={() => setEstimateError(null)}
+            className="text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* AI Estimate panel */}
+      <AnimatePresence>
+        {estimate && (
+          <AIEstimatePanel
+            estimate={estimate}
+            lineItems={lineItems}
+            onApply={handleApplyEstimates}
+            onDismiss={() => setEstimate(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Category sections */}
       <motion.div
         variants={staggerContainer(0.04)}
