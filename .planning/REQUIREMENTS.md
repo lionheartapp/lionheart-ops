@@ -73,17 +73,17 @@
 
 ### AI Features
 
-- [ ] **AI-01**: Staff can create an event from a natural language description (auto-fills details, required docs, starter task list, budget range)
+- [x] **AI-01**: Staff can create an event from a natural language description (auto-fills details, required docs, starter task list, budget range)
 - [ ] **AI-02**: AI generates a registration form based on event type and parameters
 - [ ] **AI-03**: AI generates initial group assignments based on constraints (gender, grade, friend requests, counselor ratios)
 - [ ] **AI-04**: AI detects scheduling conflicts beyond date/room overlap (weather risk, testing schedules, audience overlap)
-- [ ] **AI-05**: AI generates multi-day event schedules from a natural language description
-- [ ] **AI-06**: AI estimates budgets based on historical event data and current event parameters
+- [x] **AI-05**: AI generates multi-day event schedules from a natural language description
+- [x] **AI-06**: AI estimates budgets based on historical event data and current event parameters
 - [ ] **AI-07**: AI drafts communication messages with full event context
-- [ ] **AI-08**: AI generates status summaries on the event Overview
+- [x] **AI-08**: AI generates status summaries on the event Overview
 - [ ] **AI-09**: AI analyzes post-event feedback surveys and surfaces actionable themes
-- [ ] **AI-10**: Staff can save any event as a template and create new events from templates
-- [ ] **AI-11**: AI enhances templates by auto-updating dates, adjusting budgets, and surfacing lessons learned
+- [x] **AI-10**: Staff can save any event as a template and create new events from templates
+- [x] **AI-11**: AI enhances templates by auto-updating dates, adjusting budgets, and surfacing lessons learned
 
 ### External Integrations
 
@@ -164,17 +164,17 @@
 | BUD-01 | Phase 22 | Complete |
 | BUD-02 | Phase 22 | Complete |
 | BUD-03 | Phase 22 | Complete |
-| AI-01 | Phase 22 | Pending |
+| AI-01 | Phase 22 | Complete |
 | AI-02 | Phase 22 | Pending |
 | AI-03 | Phase 22 | Pending |
 | AI-04 | Phase 22 | Pending |
-| AI-05 | Phase 22 | Pending |
-| AI-06 | Phase 22 | Pending |
+| AI-05 | Phase 22 | Complete |
+| AI-06 | Phase 22 | Complete |
 | AI-07 | Phase 22 | Pending |
-| AI-08 | Phase 22 | Pending |
+| AI-08 | Phase 22 | Complete |
 | AI-09 | Phase 22 | Pending |
-| AI-10 | Phase 22 | Pending |
-| AI-11 | Phase 22 | Pending |
+| AI-10 | Phase 22 | Complete |
+| AI-11 | Phase 22 | Complete |
 | INT-01 | Phase 22 | Pending |
 | INT-02 | Phase 22 | Pending |
 | INT-03 | Phase 22 | Pending |
