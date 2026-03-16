@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, LayoutPanelLeft, MessageSquare, Sparkles } from 'lucide-react'
-import PrefetchLink from '@/components/PrefetchLink'
+import { LayoutPanelLeft, MessageSquare } from 'lucide-react'
 import { AIEventChat } from './AIEventChat'
 import { AIEventPreview } from './AIEventPreview'
 import { useToast } from '@/components/Toast'
@@ -184,34 +183,16 @@ export function AIEventWizard() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] min-h-0">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center gap-3 px-6 py-4 border-b border-gray-200/50">
-        <PrefetchLink
-          href="/events"
-          className="flex items-center justify-center w-8 h-8 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
-          aria-label="Back to Events"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </PrefetchLink>
-
-        <div className="flex items-center gap-2">
-          <div
-            className="flex items-center justify-center w-7 h-7 rounded-full"
-            style={{
-              background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)',
-            }}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Create Event with Leo</h1>
-            <p className="text-xs text-gray-400">
-              Describe your event and Leo will fill in the details
-            </p>
-          </div>
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200/50">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Create with Leo</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Describe your event and Leo will fill in the details.
+          </p>
         </div>
 
         {/* Mobile toggle — visible only below lg */}
-        <div className="ml-auto flex items-center gap-1 lg:hidden">
+        <div className="flex items-center gap-1 lg:hidden">
           <button
             onClick={() => setMobilePanel('chat')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${

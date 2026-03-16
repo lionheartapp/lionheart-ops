@@ -1980,25 +1980,25 @@ export default function Sidebar({
     <div className="flex flex-col h-full">
       {/* Events Header */}
       <div className="px-5 py-4 border-b border-white/30 flex items-center gap-2">
-        <CalendarClock className="w-4 h-4 text-primary-500 flex-shrink-0" aria-hidden="true" />
-        <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Events</h2>
+        <CalendarClock className="w-5 h-5 text-primary-500 flex-shrink-0" aria-hidden="true" />
+        <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Events</h2>
       </div>
 
       {/* Navigation Links */}
       <div className="px-3 pt-4 flex-shrink-0">
-        <nav className="space-y-0.5" aria-label="Events navigation">
+        <nav className="space-y-1" aria-label="Events navigation">
           {/* Events Hub link */}
           <PrefetchLink
             href="/events"
             onClick={() => setIsOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
               pathname === '/events'
-                ? 'bg-white/50 text-primary-600 font-medium'
-                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+                ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
             }`}
             aria-current={pathname === '/events' ? 'page' : undefined}
           >
-            <Home className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
+            <Home className={`w-5 h-5 flex-shrink-0 ${pathname === '/events' ? 'text-primary-500' : ''}`} aria-hidden="true" />
             Events Hub
           </PrefetchLink>
 
@@ -2006,14 +2006,14 @@ export default function Sidebar({
           <PrefetchLink
             href="/calendar"
             onClick={() => setIsOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
               pathname.startsWith('/calendar')
-                ? 'bg-white/50 text-primary-600 font-medium'
-                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+                ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
             }`}
             aria-current={pathname.startsWith('/calendar') ? 'page' : undefined}
           >
-            <Calendar className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
+            <Calendar className={`w-5 h-5 flex-shrink-0 ${pathname.startsWith('/calendar') ? 'text-primary-500' : ''}`} aria-hidden="true" />
             Calendar
           </PrefetchLink>
 
@@ -2021,14 +2021,14 @@ export default function Sidebar({
           <PrefetchLink
             href="/planning"
             onClick={() => setIsOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
               pathname.startsWith('/planning')
-                ? 'bg-white/50 text-primary-600 font-medium'
-                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+                ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
             }`}
             aria-current={pathname.startsWith('/planning') ? 'page' : undefined}
           >
-            <ScrollText className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
+            <ScrollText className={`w-5 h-5 flex-shrink-0 ${pathname.startsWith('/planning') ? 'text-primary-500' : ''}`} aria-hidden="true" />
             Planning
           </PrefetchLink>
 
@@ -2036,73 +2036,17 @@ export default function Sidebar({
           <PrefetchLink
             href="/events/new/ai"
             onClick={() => setIsOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
               pathname.startsWith('/events/new/ai')
-                ? 'bg-white/50 text-primary-600 font-medium'
-                : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+                ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
             }`}
             aria-current={pathname.startsWith('/events/new/ai') ? 'page' : undefined}
           >
-            <Sparkles className="w-4 h-4 flex-shrink-0 text-blue-400" aria-hidden="true" />
-            <span>Create with Leo</span>
-            {/* Aurora gradient dot — signals AI feature */}
-            <span
-              className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
-              aria-hidden="true"
-            />
+            <Sparkles className={`w-5 h-5 flex-shrink-0 ${pathname.startsWith('/events/new/ai') ? 'text-primary-500' : ''}`} aria-hidden="true" />
+            Create with Leo
           </PrefetchLink>
         </nav>
-      </div>
-
-      {/* Active Events Section */}
-      <div className="px-3 pt-5 flex-1 overflow-y-auto">
-        <div className="flex items-center justify-between px-2 mb-2">
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase">Active Events</p>
-          <PrefetchLink
-            href="/events"
-            onClick={() => setIsOpen(false)}
-            className="text-xs text-primary-500 hover:text-primary-700 transition-colors duration-200 cursor-pointer"
-          >
-            View all
-          </PrefetchLink>
-        </div>
-
-        {eventsOpen && eventsLoading && (
-          <div className="space-y-2 px-1 animate-pulse">
-            <div className="h-8 bg-slate-200/60 rounded-lg" />
-            <div className="h-8 bg-slate-200/60 rounded-lg" />
-            <div className="h-8 bg-slate-200/60 rounded-lg" />
-          </div>
-        )}
-
-        {!eventsLoading && (!sidebarEventProjects || sidebarEventProjects.length === 0) && (
-          <div className="px-2 py-3 text-center">
-            <p className="text-xs text-slate-400">No active events</p>
-          </div>
-        )}
-
-        {!eventsLoading && sidebarEventProjects && sidebarEventProjects.length > 0 && (
-          <nav className="space-y-0.5" aria-label="Active event projects">
-            {sidebarEventProjects.map((project) => (
-              <PrefetchLink
-                key={project.id}
-                href={`/events/${project.id}`}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-                  pathname === `/events/${project.id}`
-                    ? 'bg-white/50 text-primary-600 font-medium'
-                    : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
-                }`}
-              >
-                <span className="truncate text-xs">{project.title}</span>
-                <span className={`flex-shrink-0 px-1.5 py-0.5 text-[10px] font-medium rounded-full ${eventStatusColor(project.status)}`}>
-                  {eventStatusLabel(project.status)}
-                </span>
-              </PrefetchLink>
-            ))}
-          </nav>
-        )}
       </div>
 
     </div>
