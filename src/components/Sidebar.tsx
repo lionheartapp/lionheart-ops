@@ -129,7 +129,7 @@ export default function Sidebar({
   const queryClient = useQueryClient()
   const athleticsPrefetched = useRef(false)
   const [isOpen, setIsOpen] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(() => pathname.startsWith('/settings'))
   const [bugDialogOpen, setBugDialogOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
@@ -157,10 +157,12 @@ export default function Sidebar({
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
 
   // Events sidebar state
-  const [eventsOpen, setEventsOpen] = useState(false)
+  const [eventsOpen, setEventsOpen] = useState(() =>
+    pathname.startsWith('/events') || pathname.startsWith('/calendar') || pathname.startsWith('/planning')
+  )
 
   // Athletics sidebar state
-  const [athleticsOpen, setAthleticsOpen] = useState(false)
+  const [athleticsOpen, setAthleticsOpen] = useState(() => pathname.startsWith('/athletics'))
   // Helper: is this path in the maintenance context? (includes /inventory?dept=maintenance)
   const isMaintenancePath = (p: string, params?: URLSearchParams) =>
     p.startsWith('/maintenance') || (p === '/inventory' && params?.get('dept') === 'maintenance')
@@ -280,7 +282,7 @@ export default function Sidebar({
   }, [])
 
   // Calendar sidebar state
-  const [calendarOpen, setCalendarOpen] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(() => pathname.startsWith('/calendar'))
   const [calendarData, setCalendarData] = useState<CalendarSidebarData[]>([])
   const [calendarDataReceived, setCalendarDataReceived] = useState(false)
   const [visibleCalendarIds, setVisibleCalendarIds] = useState<Set<string>>(new Set())
