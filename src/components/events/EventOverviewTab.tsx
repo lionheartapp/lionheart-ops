@@ -19,9 +19,11 @@ import {
   ThumbsUp,
   ThumbsDown,
   Minus,
+  BookmarkPlus,
 } from 'lucide-react'
 import { fadeInUp, staggerContainer, listItem } from '@/lib/animations'
 import { EventActivityLog } from './EventActivityLog'
+import { SaveAsTemplateDialog } from './templates/SaveAsTemplateDialog'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import type { AIStatusSummary, AIFeedbackAnalysis } from '@/lib/types/event-ai'
 
@@ -402,6 +404,8 @@ interface EventOverviewTabProps {
 }
 
 export function EventOverviewTab({ project }: EventOverviewTabProps) {
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
+
   const startsAt = new Date(project.startsAt)
   const endsAt = new Date(project.endsAt)
   const now = new Date()
@@ -419,14 +423,29 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
   const initialCompletionPercent =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
   const isCompleted = project.status === 'COMPLETED'
+  const canSaveAsTemplate = ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(project.status)
 
   return (
+    <>
     <motion.div
       variants={staggerContainer(0.05)}
       initial="hidden"
       animate="visible"
       className="space-y-6"
     >
+      {/* Save as Template button */}
+      {canSaveAsTemplate && (
+        <motion.div variants={listItem} className="flex justify-end">
+          <button
+            onClick={() => setIsTemplateDialogOpen(true)}
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+          >
+            <BookmarkPlus className="w-4 h-4" />
+            Save as Template
+          </button>
+        </motion.div>
+      )}
+
       {/* Quick Stats */}
       <motion.div variants={listItem}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -553,5 +572,14 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
         <EventActivityLog eventProjectId={project.id} limit={5} />
       </motion.div>
     </motion.div>
+
+    <SaveAsTemplateDialog
+      eventProjectId={project.id}
+      eventTitle={project.title}
+      eventType={null}
+      isOpen={isTemplateDialogOpen}
+      onClose={() => setIsTemplateDialogOpen(false)}
+    />
+    </>
   )
 }
