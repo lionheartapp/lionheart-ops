@@ -176,6 +176,9 @@ model Organization {
   budgetCategories            BudgetCategory[]
   budgetLineItems             BudgetLineItem[]
   budgetRevenue               BudgetRevenue[]
+  // Phase 22: External Integrations
+  integrationCredentials      IntegrationCredential[]
+  integrationSyncLogs         IntegrationSyncLog[]
 
   @@index([onboardingStatus])
 }
@@ -297,6 +300,8 @@ model User {
   // Phase 22: Budget relations
   budgetLineItemsCreated    BudgetLineItem[]         @relation("BudgetLineItemCreator")
   budgetRevenueCreated      BudgetRevenue[]          @relation("BudgetRevenueCreator")
+  // Phase 22: External Integrations (per-user, e.g. Google Calendar)
+  integrationCredentials    IntegrationCredential[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -4679,4 +4684,54 @@ model EventNotificationLog {
 
   @@index([organizationId])
   @@index([ruleId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 22: External Integrations (Planning Center, Google Calendar, Twilio)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Stores OAuth tokens and API credentials for external integrations.
+/// - userId null = org-level integration (Planning Center, Twilio)
+/// - userId set = per-user integration (Google Calendar)
+model IntegrationCredential {
+  id              String    @id @default(cuid())
+  organizationId  String
+  userId          String?   // null for org-level, set for per-user (e.g. Google Calendar)
+  provider        String    // "planning_center" | "google_calendar" | "twilio"
+  accessToken     String?
+  refreshToken    String?
+  tokenExpiresAt  DateTime?
+  config          Json?     // provider-specific config (e.g. phone number, org name)
+  isActive        Boolean   @default(true)
+  lastSyncAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncLogs     IntegrationSyncLog[]
+
+  @@unique([organizationId, provider, userId])
+  @@index([organizationId, provider])
+}
+
+/// Audit trail of sync operations for external integrations.
+model IntegrationSyncLog {
+  id               String    @id @default(cuid())
+  organizationId   String
+  credentialId     String
+  provider         String    // "planning_center" | "google_calendar" | "twilio"
+  action           String    // "sync_people" | "sync_services" | "push_event" | "send_sms"
+  status           String    // "success" | "partial" | "failed"
+  recordsProcessed Int       @default(0)
+  recordsFailed    Int       @default(0)
+  errorMessage     String?
+  metadata         Json?
+  createdAt        DateTime  @default(now())
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  credential   IntegrationCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, provider])
+  @@index([credentialId])
 }

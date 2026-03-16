@@ -122,6 +122,9 @@ const orgScopedModels = new Set([
 	'BudgetCategory',
 	'BudgetLineItem',
 	'BudgetRevenue',
+	// Phase 22: External Integrations
+	'IntegrationCredential',
+	'IntegrationSyncLog',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

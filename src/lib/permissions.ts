@@ -249,6 +249,10 @@ export const PERMISSIONS = {
   EVENTS_BUDGET_MANAGE: 'events:budget:manage',             // Create/edit/delete budget line items, revenue entries
   EVENTS_BUDGET_READ: 'events:budget:read',                 // View budget data and reports
 
+  // External Integrations — Phase 22
+  INTEGRATIONS_MANAGE: 'integrations:manage',               // Manage org-level integrations (PCO, Twilio)
+  INTEGRATIONS_GOOGLE_CALENDAR: 'integrations:google-calendar', // Per-user Google Calendar connect
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -438,6 +442,9 @@ export const DEFAULT_ROLES = {
       // Phase 22: Budget
       PERMISSIONS.EVENTS_BUDGET_MANAGE,
       PERMISSIONS.EVENTS_BUDGET_READ,
+      // Phase 22: External Integrations
+      PERMISSIONS.INTEGRATIONS_MANAGE,
+      PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
     ],
     isSystem: true,
   },
@@ -494,6 +501,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.EVENTS_TEMPLATES_MANAGE,
       // Phase 22: Budget (members can view budget reports)
       PERMISSIONS.EVENTS_BUDGET_READ,
+      // Phase 22: External Integrations (members can connect personal Google Calendar)
+      PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
     ],
     isSystem: true,
   },
