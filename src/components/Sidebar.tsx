@@ -2181,7 +2181,7 @@ export default function Sidebar({
 
         {/* Secondary Navigation — attached panel */}
         <aside
-          className={`flex flex-col w-60 h-full transition-all duration-300 ease-in-out overflow-hidden ${
+          className={`flex flex-col w-60 h-full transition-[max-width,opacity] duration-300 ease-in-out overflow-hidden ${
             secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
           }`}
           style={{ background: 'rgba(245, 247, 250, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.5)' : 'none', borderLeft: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.3)' : 'none' }}
@@ -2213,7 +2213,7 @@ export default function Sidebar({
 
       {/* Spacer for desktop layout - adjusts width based on secondary panel */}
       <div
-        className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out ${
           secondaryOpen ? 'w-[496px]' : 'w-[256px]'
         }`}
       />
