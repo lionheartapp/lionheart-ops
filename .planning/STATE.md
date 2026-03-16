@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Events Are the Product
 status: verifying
-stopped_at: Completed 22-03-PLAN.md
-last_updated: "2026-03-16T02:04:17.272Z"
+stopped_at: Completed 22-08-PLAN.md
+last_updated: "2026-03-16T02:14:05.354Z"
 last_activity: 2026-03-15 — Phase 21 Plan 10 verified and approved by user — Phase 21 done
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 33
-  completed_plans: 26
+  completed_plans: 27
   percent: 100
 ---
 
@@ -118,6 +118,8 @@ Recent decisions affecting current work:
 - [Phase 22-03]: EventTemplate uses day-offset serialization (not absolute dates) for portable template reuse
 - [Phase 22-03]: AI service returns null (not throw) when GEMINI_API_KEY absent — API routes return 503 AI_UNAVAILABLE
 - [Phase 22-03]: Two-phase AI summary pattern: ?skipAI=true returns raw metrics immediately for instant UI render
+- [Phase 22-ai-budget-notifications-and-external-integrations]: enhance-template API route auto-added — wizard needs client-callable AI enhancement endpoint not in Plan 03 routes
+- [Phase 22-08]: AI enhancement failure in CreateFromTemplateWizard is non-fatal — enhancements set to null, wizard continues with raw template data
 
 ### Pending Todos
 
@@ -138,7 +140,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:04:17.270Z
-Stopped at: Completed 22-03-PLAN.md
+Last session: 2026-03-16T02:14:05.352Z
+Stopped at: Completed 22-08-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 20`
