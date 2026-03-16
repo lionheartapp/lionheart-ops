@@ -181,7 +181,7 @@ export function AIEventWizard() {
   )
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] min-h-0">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200/50">
         <div>
