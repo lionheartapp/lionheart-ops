@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import type {
   CreateEventProjectInput,
   UpdateEventProjectInput,
@@ -10,6 +11,8 @@ import type {
 
 // The db cast is needed because the org-scoped extension models are typed as `any`
 const db = prisma as any
+
+const log = logger.child({ service: 'eventProjectService' })
 
 // ─── Activity Log ───────────────────────────────────────────────────────────
 
@@ -93,6 +96,16 @@ export async function createEventProject(
   // For non-direct-request sources, auto-confirm by creating the CalendarEvent bridge
   if (!isDirectRequest) {
     await confirmEventProject(project.id, createdById)
+
+    // Trigger Google Calendar sync for the creator (non-fatal)
+    try {
+      const { syncEventToCalendar } = await import(
+        '@/lib/services/integrations/googleCalendarService'
+      )
+      await syncEventToCalendar(createdById, project.organizationId as string, project as any)
+    } catch (err) {
+      log.error({ err, eventProjectId: project.id }, 'Google Calendar sync failed after create — non-fatal')
+    }
   }
 
   return project
@@ -221,6 +234,26 @@ export async function updateEventProject(
     await appendActivityLog(id, actorId, 'FIELD_UPDATED', { changes })
   }
 
+  // If dates changed, recalculate notification rule scheduledAt times
+  const datesChanged = changes.some((c) => c.field === 'startsAt' || c.field === 'endsAt')
+  if (datesChanged) {
+    try {
+      const { recalculateRulesForEvent } = await import(
+        '@/lib/services/notificationOrchestrationService'
+      )
+      const rescheduleResults = await recalculateRulesForEvent(id)
+      if (rescheduleResults.length > 0) {
+        await appendActivityLog(id, actorId, 'NOTIFICATION_RULES_RECALCULATED', {
+          rulesAdjusted: rescheduleResults.length,
+          changes: rescheduleResults,
+        })
+      }
+    } catch (err) {
+      // Non-fatal — notification recalculation failure should not block the date update
+      log.error({ err, eventProjectId: id }, 'Failed to recalculate notification rules after reschedule')
+    }
+  }
+
   return updated
 }
 
@@ -257,6 +290,19 @@ export async function approveEventProject(
 
   // Create the CalendarEvent bridge now that it's approved
   await confirmEventProject(id, approverId)
+
+  // Trigger Google Calendar sync for the approver (non-fatal)
+  try {
+    const { syncEventToCalendar } = await import(
+      '@/lib/services/integrations/googleCalendarService'
+    )
+    const freshProject = await db.eventProject.findUnique({ where: { id } })
+    if (freshProject) {
+      await syncEventToCalendar(approverId, freshProject.organizationId, freshProject)
+    }
+  } catch (err) {
+    log.error({ err, eventProjectId: id }, 'Google Calendar sync failed after approval — non-fatal')
+  }
 
   return updated
 }

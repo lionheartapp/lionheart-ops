@@ -11,6 +11,7 @@
 import { prisma, rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { createBulkNotifications } from '@/lib/services/notificationService'
+import * as twilioService from '@/lib/services/integrations/twilioService'
 import type {
   NotificationRuleInput,
   NotificationRuleRow,
@@ -437,6 +438,32 @@ async function resolveAudience(
   return []
 }
 
+// ─── Phone resolution ─────────────────────────────────────────────────────────
+
+/**
+ * Resolves phone numbers for a list of recipient userIds.
+ * Returns only recipients who have a phone number on their User record.
+ */
+async function resolvePhoneNumbers(
+  recipients: Recipient[]
+): Promise<Array<{ to: string; body: string }>> {
+  const userIds = recipients.map((r) => r.userId)
+  const users = await rawPrisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, phone: true },
+  } as any)
+
+  const phoneMap = new Map(
+    (users as Array<{ id: string; phone: string | null }>)
+      .filter((u) => u.phone)
+      .map((u) => [u.id, u.phone as string])
+  )
+
+  return recipients
+    .filter((r) => phoneMap.has(r.userId))
+    .map((r) => ({ to: phoneMap.get(r.userId)!, body: '' }))
+}
+
 // ─── Cron dispatch ────────────────────────────────────────────────────────────
 
 /**
@@ -488,6 +515,30 @@ export async function dispatchPendingNotifications(): Promise<number> {
             body: rule.messageBody,
           }))
         )
+      }
+
+      // SMS delivery — check if org has active Twilio integration
+      try {
+        const smsAvailable = await twilioService.isAvailable(rule.organizationId)
+        if (smsAvailable && recipients.length > 0) {
+          const smsMessage = `${rule.subject}\n\n${rule.messageBody}`
+          const smsRecipients = await resolvePhoneNumbers(recipients)
+          if (smsRecipients.length > 0) {
+            const smsRecipientsWithBody = smsRecipients.map((r) => ({
+              to: r.to,
+              body: smsMessage,
+            }))
+            // Fire-and-forget — SMS failures are non-fatal
+            twilioService
+              .sendBulkSMS(rule.organizationId, smsRecipientsWithBody)
+              .catch((err: unknown) => {
+                log.error({ err, ruleId: rule.id }, 'SMS delivery failed — non-fatal')
+              })
+          }
+        }
+      } catch (smsErr) {
+        // SMS failures are logged but do not block in-app dispatch
+        log.error({ smsErr, ruleId: rule.id }, 'SMS check failed — non-fatal')
       }
 
       // Mark rule as sent and create log
