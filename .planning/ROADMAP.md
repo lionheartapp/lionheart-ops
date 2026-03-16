@@ -104,16 +104,16 @@ Plans:
 **Plans**: 10 plans
 
 Plans:
-- [ ] 21-01-PLAN.md — Prisma schema (14 models, 6 enums), org-scope/soft-delete registration, permissions, shared types
-- [ ] 21-02-PLAN.md — Document service layer and API routes (requirements CRUD, completion matrix, reminders, compliance)
-- [ ] 21-03-PLAN.md — Documents tab UI (matrix view, compliance checklist, requirement drawer)
-- [ ] 21-04-PLAN.md — Group service layer and API routes (groups CRUD, assignments, auto-assign, activities, dietary/medical)
-- [ ] 21-05-PLAN.md — Logistics tab UI (drag-and-drop groups, activity manager, PDF generator, portal groups)
-- [ ] 21-06-PLAN.md — Communication service layer and API routes (announcements, surveys, presence)
-- [ ] 21-07-PLAN.md — Comms tab UI (announcement composer/feed, survey manager, presence bar)
-- [ ] 21-08-PLAN.md — Day-of service layer and API routes (check-in, incidents, participant self-service)
-- [ ] 21-09-PLAN.md — Day-of UI (QR scanner, incident form, offline PWA, participant self-service page)
-- [ ] 21-10-PLAN.md — Integration wiring, middleware updates, smoke tests, human verification
+- [x] 21-01-PLAN.md — Prisma schema (14 models, 6 enums), org-scope/soft-delete registration, permissions, shared types
+- [x] 21-02-PLAN.md — Document service layer and API routes (requirements CRUD, completion matrix, reminders, compliance)
+- [x] 21-03-PLAN.md — Documents tab UI (matrix view, compliance checklist, requirement drawer)
+- [x] 21-04-PLAN.md — Group service layer and API routes (groups CRUD, assignments, auto-assign, activities, dietary/medical)
+- [x] 21-05-PLAN.md — Logistics tab UI (drag-and-drop groups, activity manager, PDF generator, portal groups)
+- [x] 21-06-PLAN.md — Communication service layer and API routes (announcements, surveys, presence)
+- [x] 21-07-PLAN.md — Comms tab UI (announcement composer/feed, survey manager, presence bar)
+- [x] 21-08-PLAN.md — Day-of service layer and API routes (check-in, incidents, participant self-service)
+- [x] 21-09-PLAN.md — Day-of UI (QR scanner, incident form, offline PWA, participant self-service page)
+- [x] 21-10-PLAN.md — Integration wiring, middleware updates, smoke tests, human verification
 
 ### Phase 22: AI, Budget, Notifications, and External Integrations
 **Goal**: Staff can manage event budgets with line-item detail, configure automated notification timelines, use AI to generate forms, schedules, group assignments, and status summaries, save events as templates, and sync events with Planning Center, Google Calendar, and Twilio SMS
@@ -126,7 +126,19 @@ Plans:
   4. Staff can use AI to generate initial group assignments given constraints (gender, grade, friend requests, counselor ratios), receive AI-detected scheduling conflicts beyond date/room overlap (weather risk, testing schedules, audience overlap), and view AI-generated status summaries on the event Overview tab
   5. Staff can save any completed event as a template and create new events from templates; AI auto-updates dates, adjusts budget estimates, and surfaces lessons learned from the activity log of previous events using the same template
   6. Staff can sync events to Google Calendar, send SMS notifications via Twilio for day-of updates and deadline reminders, and (for schools using Planning Center) sync worship sets, team assignments, and people data — all integrations are module-toggled so absence of credentials does not break core functionality; AI analyzes post-event feedback surveys and surfaces actionable themes
-**Plans**: TBD
+**Plans**: 10 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — Budget schema, service layer, and API routes (line items, revenue, receipts, report)
+- [ ] 22-02-PLAN.md — Notification orchestration schema, service, API routes, and cron dispatch
+- [ ] 22-03-PLAN.md — Event template schema + AI event service (generation, schedule, budget, summary, feedback)
+- [ ] 22-04-PLAN.md — Budget tab UI (spreadsheet-style line items, expense drawer, revenue section, report view)
+- [ ] 22-05-PLAN.md — Notification timeline UI (visual Gantt-lite builder, rule drawer with AI drafting)
+- [ ] 22-06-PLAN.md — AI event creation wizard (chat-style interface, two-panel layout, schedule generation)
+- [ ] 22-07-PLAN.md — AI generate-then-edit features (form, groups, conflicts, budget estimation, summaries, feedback)
+- [ ] 22-08-PLAN.md — Template UI (save dialog, template browser, create-from-template wizard with AI enhancement)
+- [ ] 22-09-PLAN.md — External integrations (Planning Center, Google Calendar, Twilio) services, API routes, settings tab
+- [ ] 22-10-PLAN.md — Cross-feature wiring, smoke tests, human verification
 
 ## Progress Table
 
@@ -135,4 +147,4 @@ Plans:
 | 19. Event Foundation | 6/6 | Complete    | 2026-03-15 |
 | 20. Registration and Public Pages | 7/7 | Complete    | 2026-03-15 |
 | 21. Documents, Groups, Communication, and Day-Of Tools | 10/10 | Complete    | 2026-03-16 |
-| 22. AI, Budget, Notifications, and External Integrations | 0/TBD | Not started | - |
+| 22. AI, Budget, Notifications, and External Integrations | 0/10 | Not started | - |
