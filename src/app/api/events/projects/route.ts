@@ -37,7 +37,8 @@ export async function GET(req: NextRequest) {
       const status = searchParams.get('status') ?? undefined
       const campusId = searchParams.get('campusId') ?? undefined
       const schoolId = searchParams.get('schoolId') ?? undefined
-      const createdById = searchParams.get('createdById') ?? undefined
+      const rawCreatedBy = searchParams.get('createdBy') ?? searchParams.get('createdById') ?? undefined
+      const createdById = rawCreatedBy === 'me' ? ctx.userId : rawCreatedBy
 
       const filters = { status, campusId, schoolId, createdById }
 

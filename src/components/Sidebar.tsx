@@ -1979,19 +1979,19 @@ export default function Sidebar({
       {/* Navigation Links */}
       <div className="px-3 pt-4 flex-shrink-0">
         <nav className="space-y-0.5" aria-label="Events navigation">
-          {/* Dashboard link — first, ready for Plan 06 AI dashboard */}
+          {/* Events Hub link */}
           <PrefetchLink
-            href="/events/dashboard"
+            href="/events"
             onClick={() => setIsOpen(false)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-              pathname.startsWith('/events/dashboard')
+              pathname === '/events'
                 ? 'bg-white/50 text-primary-600 font-medium'
                 : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
             }`}
-            aria-current={pathname.startsWith('/events/dashboard') ? 'page' : undefined}
+            aria-current={pathname === '/events' ? 'page' : undefined}
           >
             <Home className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
-            Dashboard
+            Events Hub
           </PrefetchLink>
 
           {/* Calendar link */}

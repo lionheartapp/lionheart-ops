@@ -118,6 +118,7 @@ export interface EventProjectFilters {
   status?: string
   campusId?: string
   schoolId?: string
+  createdBy?: string
   limit?: number
   page?: number
 }

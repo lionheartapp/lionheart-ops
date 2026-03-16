@@ -1,12 +1,5 @@
-'use client'
-
-import DashboardLayout from '@/components/DashboardLayout'
-import EventDashboard from '@/components/events/EventDashboard'
+import { redirect } from 'next/navigation'
 
 export default function EventDashboardPage() {
-  return (
-    <DashboardLayout>
-      <EventDashboard />
-    </DashboardLayout>
-  )
+  redirect('/events')
 }
