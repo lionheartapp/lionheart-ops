@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Sparkles, LayoutPanelLeft, MessageSquare } from 'lucide-react'
+import { ArrowLeft, LayoutPanelLeft, MessageSquare, Sparkles } from 'lucide-react'
 import PrefetchLink from '@/components/PrefetchLink'
 import { AIEventChat } from './AIEventChat'
 import { AIEventPreview } from './AIEventPreview'
@@ -194,13 +194,18 @@ export function AIEventWizard() {
         </PrefetchLink>
 
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+          <div
+            className="flex items-center justify-center w-7 h-7 rounded-full"
+            style={{
+              background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)',
+            }}
+          >
             <Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-gray-900">Create Event with AI</h1>
+            <h1 className="text-base font-semibold text-gray-900">Create Event with Leo</h1>
             <p className="text-xs text-gray-400">
-              Describe your event and AI will fill in the details
+              Describe your event and Leo will fill in the details
             </p>
           </div>
         </div>

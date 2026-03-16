@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Sparkles, Send, Loader2 } from 'lucide-react'
+import AnimatedOrb from '@/components/ai/AnimatedOrb'
 import type { AIEventSuggestion } from '@/lib/types/event-ai'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -20,14 +21,24 @@ export interface AIEventChatProps {
 
 // ─── Typing Indicator ─────────────────────────────────────────────────────────
 
+function LeoAvatar() {
+  return (
+    <div
+      className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full"
+      style={{
+        background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)',
+      }}
+    >
+      <Sparkles className="h-3 w-3 text-white" aria-hidden="true" />
+    </div>
+  )
+}
+
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2">
-      {/* Avatar badge */}
-      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-        <Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" />
-      </div>
-      <div className="ui-glass px-4 py-3 rounded-2xl rounded-bl-sm inline-flex items-center gap-1.5">
+      <LeoAvatar />
+      <div className="bg-white/90 backdrop-blur-sm border border-slate-200/50 px-3 py-2 rounded-xl rounded-bl-sm shadow-sm inline-flex items-center gap-1.5">
         <span
           className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
           style={{ animationDelay: '0ms' }}
@@ -53,7 +64,10 @@ function MessageBubble({ message }: { message: Message }) {
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-br-sm bg-gray-900 text-white text-sm leading-relaxed">
+        <div
+          className="max-w-[85%] px-3 py-2 rounded-xl rounded-br-sm text-white text-sm leading-relaxed shadow-md"
+          style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' }}
+        >
           {message.content}
         </div>
       </div>
@@ -62,11 +76,8 @@ function MessageBubble({ message }: { message: Message }) {
 
   return (
     <div className="flex items-end gap-2">
-      {/* Sparkle avatar */}
-      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-        <Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" />
-      </div>
-      <div className="max-w-[80%] ui-glass px-4 py-3 rounded-2xl rounded-bl-sm text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+      <LeoAvatar />
+      <div className="max-w-[85%] bg-white/90 backdrop-blur-sm border border-slate-200/50 px-3 py-2 rounded-xl rounded-bl-sm text-sm text-slate-900 leading-relaxed whitespace-pre-wrap shadow-sm">
         {message.content}
       </div>
     </div>
@@ -78,7 +89,7 @@ function MessageBubble({ message }: { message: Message }) {
 const INITIAL_MESSAGE: Message = {
   role: 'assistant',
   content:
-    "Tell me about the event you're planning. Include details like the type of event, dates, location, expected number of attendees, and any special requirements.",
+    "Hi! Tell me about the event you're planning. Include details like the type of event, dates, location, expected number of attendees, and any special requirements — I'll take care of the rest.",
   timestamp: new Date(),
 }
 
@@ -126,7 +137,7 @@ export function AIEventChat({ onSuggestionGenerated, onRefinement, isGenerating 
       if (!res.ok || !json.ok) {
         const errorMsg =
           json?.error?.code === 'AI_UNAVAILABLE'
-            ? 'AI features require a Gemini API key. Please configure GEMINI_API_KEY in your environment.'
+            ? 'Leo needs a Gemini API key to work. Please configure GEMINI_API_KEY in your environment.'
             : json?.error?.message ?? 'Something went wrong. Please try again.'
 
         setMessages((prev) => [
@@ -159,7 +170,7 @@ export function AIEventChat({ onSuggestionGenerated, onRefinement, isGenerating 
         ...prev,
         {
           role: 'assistant',
-          content: 'Something went wrong connecting to AI. Please try again.',
+          content: 'Something went wrong connecting to Leo. Please try again.',
           timestamp: new Date(),
         },
       ])
@@ -182,30 +193,48 @@ export function AIEventChat({ onSuggestionGenerated, onRefinement, isGenerating 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200/50 flex items-center gap-2 flex-shrink-0">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-          <Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" />
-        </div>
+      <div className="relative flex-shrink-0 px-4 py-3 border-b border-slate-200/50 flex items-center gap-2">
+        <LeoAvatar />
         <div>
-          <p className="text-sm font-semibold text-gray-900">Event AI</p>
-          <p className="text-xs text-gray-400">Describe your event in natural language</p>
+          <p className="text-sm font-semibold text-slate-900">Leo</p>
+          {isBusy && (
+            <p className="text-[10px] text-indigo-500 font-medium -mt-0.5">Thinking...</p>
+          )}
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.map((msg, i) => (
-          <MessageBubble key={i} message={msg} />
-        ))}
-        {isLoading && <TypingIndicator />}
-        <div ref={messagesEndRef} />
+      <div
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 leo-scrollbar"
+        style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)' }}
+      >
+        {messages.length === 1 && messages[0].role === 'assistant' && !isLoading ? (
+          /* Empty state with orb — matches Leo chatbot */
+          <div className="flex flex-col items-center justify-center h-full text-center px-6">
+            <AnimatedOrb state="idle" size={80} className="mb-5" />
+            <p className="text-sm font-medium text-slate-700 mb-1">
+              Hi! I&apos;m Leo, your Event Planner
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Tell me about the event you&apos;re planning — type, dates, location, attendees, and any special requirements.
+            </p>
+          </div>
+        ) : (
+          <>
+            {messages.map((msg, i) => (
+              <MessageBubble key={i} message={msg} />
+            ))}
+            {isLoading && <TypingIndicator />}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 border-t border-gray-200/50 flex-shrink-0">
+      <div className="bg-white/60 backdrop-blur-sm border-t border-slate-200/40 px-4 py-3 flex-shrink-0">
         {hasFirstSuggestion && (
-          <p className="text-xs text-gray-400 mb-2">
-            You can refine the event — try &quot;Make it 3 days&quot; or &quot;Add a pool party on day 2&quot;
+          <p className="text-xs text-slate-400 mb-2">
+            Ask Leo to refine — try &quot;Make it 3 days&quot; or &quot;Add a pool party on day 2&quot;
           </p>
         )}
         <div className="flex items-end gap-2">
@@ -216,17 +245,18 @@ export function AIEventChat({ onSuggestionGenerated, onRefinement, isGenerating 
             onKeyDown={handleKeyDown}
             placeholder={
               hasFirstSuggestion
-                ? 'Refine the event description...'
-                : 'Describe your event (type, dates, location, attendees)...'
+                ? 'Ask Leo to refine...'
+                : 'Describe your event to Leo...'
             }
-            rows={3}
+            rows={2}
             disabled={isBusy}
-            className="flex-1 resize-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors disabled:opacity-50"
+            className="flex-1 resize-none rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 focus:bg-white transition-colors disabled:opacity-50"
           />
           <button
             onClick={() => void sendMessage()}
             disabled={!input.trim() || isBusy}
-            className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex-shrink-0 w-10 h-10 rounded-full text-white flex items-center justify-center hover:opacity-90 active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' }}
             aria-label="Send message"
           >
             {isBusy ? (
@@ -254,8 +284,8 @@ function buildSummaryMessage(
   const budgetCount = suggestion.budgetEstimate?.length ?? 0
 
   const prefix = isRefinement
-    ? "I've updated the event based on your feedback."
-    : `I've created an event plan for **${suggestion.title}**.`
+    ? "Done! I've updated the event based on your feedback."
+    : `Great — I've put together an event plan for **${suggestion.title}**.`
 
   const details: string[] = []
   if (blockCount > 0) details.push(`${blockCount} schedule block${blockCount !== 1 ? 's' : ''}`)

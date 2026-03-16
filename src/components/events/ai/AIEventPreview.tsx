@@ -24,14 +24,19 @@ const TASK_PRIORITIES = ['LOW', 'NORMAL', 'HIGH', 'CRITICAL']
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center h-full py-20 text-center px-6">
-      <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
-        <Sparkles className="w-8 h-8 text-indigo-400" aria-hidden="true" />
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(99,102,241,0.1) 50%, rgba(139,92,246,0.1) 100%)',
+        }}
+      >
+        <Sparkles className="w-7 h-7 text-indigo-500" aria-hidden="true" />
       </div>
       <h3 className="text-base font-semibold text-gray-900 mb-2">
-        Describe your event in the chat
+        Describe your event to Leo
       </h3>
       <p className="text-sm text-gray-500 max-w-xs">
-        Once you describe your event, AI will fill in the details here. You can edit everything
+        Once you describe your event, Leo will fill in the details here. You can edit everything
         before creating.
       </p>
     </div>
