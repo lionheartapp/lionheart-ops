@@ -241,7 +241,7 @@ export function useUnreadCount() {
 /** The bell icon with unread badge — render wherever you need the trigger */
 export function NotificationBellIcon({ unreadCount, className }: { unreadCount: number; className?: string }) {
   return (
-    <span className="relative inline-flex">
+    <span className="relative inline-flex overflow-visible">
       <Bell className={className || 'w-5 h-5 text-slate-800'} />
       <AnimatePresence>
         {unreadCount > 0 && (
@@ -251,7 +251,7 @@ export function NotificationBellIcon({ unreadCount, className }: { unreadCount: 
             initial="hidden"
             animate="visible"
             exit="hidden"
-            className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full"
+            className="absolute -top-1.5 -right-1.5 z-10 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </motion.span>

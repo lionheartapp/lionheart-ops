@@ -100,7 +100,7 @@ function MaintenanceContent() {
   // Show full dashboard + tabs for team members, admins, and technicians; My Requests only for submit-only users
   const showDashboardTabs = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance
   const campusFilter = useCampusFilter()
-  const dataLoading = campusFilter.isLoading
+  const dataLoading = false // Campus filter loading handled inline; don't gate entire page
   const queryClient = useQueryClient()
 
   // Determine default tab based on URL param then permissions

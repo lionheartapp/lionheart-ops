@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Oswald, Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
@@ -18,6 +18,10 @@ const bodyFont = Poppins({
   variable: '--font-body',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#6366f1',
+}
+
 export const metadata: Metadata = {
   title: 'Lionheart Operations Platform',
   description: 'Single-app, strict multi-tenant school operations platform',
@@ -26,7 +30,6 @@ export const metadata: Metadata = {
     apple: '/icons/apple-touch-icon.svg',
   },
   manifest: '/manifest.json',
-  themeColor: '#6366f1',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

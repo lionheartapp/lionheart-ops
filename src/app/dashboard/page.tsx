@@ -398,7 +398,7 @@ export default function DashboardPage() {
       onLogout={logout}
     >
       <MotionConfig reducedMotion="user">
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-col flex-1 min-h-0 overflow-x-hidden overflow-y-auto">
       {/* Greeting Section with Create Dropdown Button — pt/pb for hover glow breathing room */}
       <motion.div
         className="mb-6 pt-6 pb-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-shrink-0 overflow-visible"

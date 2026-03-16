@@ -502,8 +502,8 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold text-gray-900">Events Hub</h1>
             <p className="text-sm text-gray-500 mt-0.5">
               {isAdmin
@@ -511,7 +511,7 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
                 : 'Your events and submissions'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {isAdmin && (
               <>
                 <button

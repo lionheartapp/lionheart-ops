@@ -235,19 +235,19 @@ export default function AthleticsPage() {
           </motion.div>
 
           {/* Sub-navigation tabs */}
-          <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+          <div ref={tabContainerRef} className="relative flex gap-0.5 border-b border-gray-200 mb-6 overflow-x-auto scrollbar-hide">
             {SUB_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 ref={(el) => setTabRef(key, el)}
                 onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === key
                     ? 'text-gray-900'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 flex-shrink-0" />
                 {label}
               </button>
             ))}

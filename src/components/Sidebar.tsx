@@ -377,7 +377,13 @@ export default function Sidebar({
   // Permissions — declared here (before the indicator effect) so the effect
   // can include them in its dependency array without a temporal dead zone error.
   const { data: perms } = usePermissions()
-  const canManageWorkspace = perms?.canManageWorkspace ?? false
+  // Optimistic: show workspace settings immediately for admin roles while perms load
+  const optimisticCanManageWorkspace = (() => {
+    if (typeof window === 'undefined') return false
+    const role = (localStorage.getItem('user-role') || '').toLowerCase()
+    return role.includes('admin') || role.includes('super')
+  })()
+  const canManageWorkspace = perms?.canManageWorkspace ?? optimisticCanManageWorkspace
   const canManageMaintenance = perms?.canManageMaintenance ?? false
   const canClaimMaintenance = perms?.canClaimMaintenance ?? false
   const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
@@ -942,7 +948,7 @@ export default function Sidebar({
       </svg>
 
       {/* Navigation Menu */}
-      <nav className="p-4 pt-2 flex-1" role="navigation" aria-label="Main navigation">
+      <nav className="p-4 pt-2 flex-1 overflow-y-auto" role="navigation" aria-label="Main navigation">
         <ul className="space-y-2" role="list">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -1938,7 +1944,7 @@ export default function Sidebar({
   )
 
   // Fetch active event projects for sidebar display (only when events panel is open)
-  const { data: sidebarEventProjects } = useQuery<EventProjectSummary[]>({
+  const { data: sidebarEventProjects, isLoading: eventsLoading } = useQuery<EventProjectSummary[]>({
     queryKey: ['event-projects', { status: 'CONFIRMED,DRAFT', limit: 5 }],
     queryFn: async () => {
       const { fetchApi } = await import('@/lib/api-client')
@@ -2060,7 +2066,7 @@ export default function Sidebar({
           </PrefetchLink>
         </div>
 
-        {eventsOpen && !sidebarEventProjects && (
+        {eventsOpen && eventsLoading && (
           <div className="space-y-2 px-1 animate-pulse">
             <div className="h-8 bg-slate-200/60 rounded-lg" />
             <div className="h-8 bg-slate-200/60 rounded-lg" />
@@ -2068,13 +2074,13 @@ export default function Sidebar({
           </div>
         )}
 
-        {sidebarEventProjects && sidebarEventProjects.length === 0 && (
+        {!eventsLoading && (!sidebarEventProjects || sidebarEventProjects.length === 0) && (
           <div className="px-2 py-3 text-center">
             <p className="text-xs text-slate-400">No active events</p>
           </div>
         )}
 
-        {sidebarEventProjects && sidebarEventProjects.length > 0 && (
+        {!eventsLoading && sidebarEventProjects && sidebarEventProjects.length > 0 && (
           <nav className="space-y-0.5" aria-label="Active event projects">
             {sidebarEventProjects.map((project) => (
               <PrefetchLink
