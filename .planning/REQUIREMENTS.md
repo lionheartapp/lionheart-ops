@@ -79,7 +79,7 @@
 - [ ] **AI-04**: AI detects scheduling conflicts beyond date/room overlap (weather risk, testing schedules, audience overlap)
 - [x] **AI-05**: AI generates multi-day event schedules from a natural language description
 - [x] **AI-06**: AI estimates budgets based on historical event data and current event parameters
-- [ ] **AI-07**: AI drafts communication messages with full event context
+- [x] **AI-07**: AI drafts communication messages with full event context
 - [x] **AI-08**: AI generates status summaries on the event Overview
 - [ ] **AI-09**: AI analyzes post-event feedback surveys and surfaces actionable themes
 - [x] **AI-10**: Staff can save any event as a template and create new events from templates
@@ -170,7 +170,7 @@
 | AI-04 | Phase 22 | Pending |
 | AI-05 | Phase 22 | Complete |
 | AI-06 | Phase 22 | Complete |
-| AI-07 | Phase 22 | Pending |
+| AI-07 | Phase 22 | Complete |
 | AI-08 | Phase 22 | Complete |
 | AI-09 | Phase 22 | Pending |
 | AI-10 | Phase 22 | Complete |
