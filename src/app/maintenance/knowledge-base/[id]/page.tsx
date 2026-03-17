@@ -55,22 +55,21 @@ export default function KnowledgeBaseArticlePage({
   return (
     <DashboardLayout>
       <div className="max-w-3xl mx-auto">
-          {isLoading ? (
-            <ViewerSkeleton />
-          ) : article ? (
-            <div className="p-6">
-              <KnowledgeBaseArticleViewer
-                article={article}
-                canEdit={true}
-                onEdit={() => setEditorOpen(true)}
-              />
-            </div>
-          ) : (
-            <div className="p-6 text-center py-16">
-              <p className="text-sm text-gray-500">Article not found.</p>
-            </div>
-          )}
-        </div>
+        {isLoading ? (
+          <ViewerSkeleton />
+        ) : article ? (
+          <div className="p-6">
+            <KnowledgeBaseArticleViewer
+              article={article}
+              canEdit={true}
+              onEdit={() => setEditorOpen(true)}
+            />
+          </div>
+        ) : (
+          <div className="p-6 text-center py-16">
+            <p className="text-sm text-gray-500">Article not found.</p>
+          </div>
+        )}
 
         {/* Editor drawer for updating article */}
         {article && (

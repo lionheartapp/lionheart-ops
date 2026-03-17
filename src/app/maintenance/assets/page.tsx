@@ -176,8 +176,7 @@ function AssetRegisterContent() {
             isOpen={qrScannerOpen}
             onClose={() => setQrScannerOpen(false)}
           />
-        </MotionConfig>
-      </div>
+      </MotionConfig>
     </DashboardLayout>
   )
 }
