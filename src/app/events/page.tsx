@@ -163,15 +163,15 @@ function StatCard({ label, value, icon: Icon, accent }: {
     <div
       className={
         accent
-          ? 'bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-2xl p-4 text-center'
-          : 'ui-glass p-4 text-center'
+          ? 'bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3'
+          : 'ui-glass px-4 py-3 flex items-center gap-3'
       }
     >
-      <Icon className={`w-5 h-5 mx-auto mb-1.5 ${accent ? 'text-red-500' : 'text-gray-400'}`} />
-      <div className={`text-2xl font-bold ${accent ? 'text-red-700' : 'text-gray-900'}`}>
+      <Icon className={`w-4 h-4 flex-shrink-0 ${accent ? 'text-red-500' : 'text-gray-400'}`} />
+      <div className={`text-lg font-bold leading-none ${accent ? 'text-red-700' : 'text-gray-900'}`}>
         <AnimatedCounter value={value} />
       </div>
-      <p className={`text-xs mt-0.5 ${accent ? 'text-red-600' : 'text-gray-500'}`}>{label}</p>
+      <p className={`text-xs whitespace-nowrap ${accent ? 'text-red-600' : 'text-gray-500'}`}>{label}</p>
     </div>
   )
 }
@@ -302,35 +302,6 @@ function EventsListSkeleton() {
   )
 }
 
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="ui-glass p-4 animate-pulse">
-            <div className="w-5 h-5 bg-gray-200 rounded-full mx-auto mb-2" />
-            <div className="w-8 h-6 bg-gray-200 rounded mx-auto mb-1" />
-            <div className="w-16 h-3 bg-gray-100 rounded mx-auto" />
-          </div>
-        ))}
-      </div>
-      <div className="space-y-2">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="ui-glass p-4 animate-pulse flex gap-3">
-            <div className="w-1 bg-gray-200 rounded-full self-stretch" />
-            <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0 mt-0.5" />
-            <div className="flex-1 space-y-2">
-              <div className="w-3/4 h-4 bg-gray-200 rounded" />
-              <div className="w-full h-3 bg-gray-100 rounded" />
-              <div className="w-20 h-5 bg-gray-100 rounded-full" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EventsEmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
@@ -353,10 +324,52 @@ function EventsEmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
   )
 }
 
-// ─── Admin Left Panel ─────────────────────────────────────────────────────────
+// ─── Admin Stats Row ─────────────────────────────────────────────────────────
 
-function AdminDashboardPanel() {
-  const { items, stats, aiScored, isLoadingRaw, isLoadingScored, isError } = useEventDashboard()
+function AdminStatsRow() {
+  const { stats, isLoadingRaw } = useEventDashboard()
+
+  if (isLoadingRaw) {
+    return (
+      <div className="grid grid-cols-4 gap-3 animate-pulse">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="ui-glass px-4 py-3 flex items-center gap-3">
+            <div className="w-4 h-4 bg-gray-200 rounded-full flex-shrink-0" />
+            <div className="w-6 h-5 bg-gray-200 rounded" />
+            <div className="w-16 h-3 bg-gray-100 rounded" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <motion.div
+      variants={staggerContainer(0.06, 0.1)}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-4 gap-3"
+    >
+      <motion.div variants={cardEntrance}>
+        <StatCard label="Active Events" value={stats.totalActiveEvents} icon={Calendar} />
+      </motion.div>
+      <motion.div variants={cardEntrance}>
+        <StatCard label="Overdue Items" value={stats.overdueItems} icon={AlertTriangle} accent={stats.overdueItems > 0} />
+      </motion.div>
+      <motion.div variants={cardEntrance}>
+        <StatCard label="Due This Week" value={stats.upcomingDeadlines} icon={Clock} />
+      </motion.div>
+      <motion.div variants={cardEntrance}>
+        <StatCard label="Need Approval" value={stats.pendingApprovals} icon={Shield} />
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── Priority Actions Panel ──────────────────────────────────────────────────
+
+function PriorityActionsPanel() {
+  const { items, aiScored, isLoadingRaw, isLoadingScored, isError } = useEventDashboard()
   const resolveMutation = useResolveAction()
   const { toast } = useToast()
   const [resolvingIds, setResolvingIds] = useState<Set<string>>(new Set())
@@ -383,7 +396,23 @@ function AdminDashboardPanel() {
     }
   }
 
-  if (isLoadingRaw) return <DashboardSkeleton />
+  if (isLoadingRaw) {
+    return (
+      <div className="space-y-2">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="ui-glass p-4 animate-pulse flex gap-3">
+            <div className="w-1 bg-gray-200 rounded-full self-stretch" />
+            <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-2">
+              <div className="w-3/4 h-4 bg-gray-200 rounded" />
+              <div className="w-full h-3 bg-gray-100 rounded" />
+              <div className="w-20 h-5 bg-gray-100 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   if (isError) {
     return (
@@ -395,85 +424,78 @@ function AdminDashboardPanel() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stats 2×2 grid */}
-      <motion.div
-        variants={staggerContainer(0.06, 0.1)}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-2 gap-3"
-      >
-        <motion.div variants={cardEntrance}>
-          <StatCard label="Active Events" value={stats.totalActiveEvents} icon={Calendar} />
-        </motion.div>
-        <motion.div variants={cardEntrance}>
-          <StatCard label="Overdue Items" value={stats.overdueItems} icon={AlertTriangle} accent={stats.overdueItems > 0} />
-        </motion.div>
-        <motion.div variants={cardEntrance}>
-          <StatCard label="Due This Week" value={stats.upcomingDeadlines} icon={Clock} />
-        </motion.div>
-        <motion.div variants={cardEntrance}>
-          <StatCard label="Need Approval" value={stats.pendingApprovals} icon={Shield} />
-        </motion.div>
-      </motion.div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-indigo-400" />
+          Priority Actions
+        </h2>
+        <AiStatusBadge
+          isLoadingScored={isLoadingScored}
+          aiScored={aiScored}
+          hasItems={items.length > 0}
+        />
+      </div>
 
-      {/* Priority Actions */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-            Priority Actions
-          </h2>
-          <AiStatusBadge
-            isLoadingScored={isLoadingScored}
-            aiScored={aiScored}
-            hasItems={items.length > 0}
-          />
-        </div>
+      {items.length === 0 ? (
+        <motion.div
+          variants={cardEntrance}
+          initial="hidden"
+          animate="visible"
+          className="ui-glass p-8 text-center"
+        >
+          <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <PartyPopper className="w-6 h-6 text-green-500" />
+          </div>
+          <h3 className="text-sm font-semibold text-gray-900">All caught up!</h3>
+          <p className="text-xs text-gray-500 mt-1">No urgent action items.</p>
+        </motion.div>
+      ) : (
+        <motion.div
+          variants={staggerContainer(0.04, 0.1)}
+          initial="hidden"
+          animate="visible"
+          className="space-y-2 max-h-[calc(100vh-360px)] overflow-y-auto"
+        >
+          <AnimatePresence mode="popLayout">
+            {items.map((item) => (
+              <ActionItemCard
+                key={item.id}
+                item={item}
+                onResolve={handleResolve}
+                isResolving={resolvingIds.has(item.id)}
+              />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
 
-        {items.length === 0 ? (
-          <motion.div
-            variants={cardEntrance}
-            initial="hidden"
-            animate="visible"
-            className="ui-glass p-8 text-center"
-          >
-            <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <PartyPopper className="w-6 h-6 text-green-500" />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900">All caught up!</h3>
-            <p className="text-xs text-gray-500 mt-1">No urgent action items.</p>
-          </motion.div>
-        ) : (
-          <motion.div
-            variants={staggerContainer(0.04, 0.1)}
-            initial="hidden"
-            animate="visible"
-            className="space-y-2 max-h-[calc(100vh-360px)] overflow-y-auto"
-          >
-            <AnimatePresence mode="popLayout">
-              {items.map((item) => (
-                <ActionItemCard
-                  key={item.id}
-                  item={item}
-                  onResolve={handleResolve}
-                  isResolving={resolvingIds.has(item.id)}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        )}
+      {items.length === 0 && !isLoadingRaw && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center gap-2 text-sm text-green-600 py-2"
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          <span>All action items resolved</span>
+        </motion.div>
+      )}
+    </div>
+  )
+}
 
-        {items.length === 0 && !isLoadingRaw && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center justify-center gap-2 text-sm text-green-600 py-2"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>All action items resolved</span>
-          </motion.div>
-        )}
+// ─── Page Header ─────────────────────────────────────────────────────────────
+
+function EventsPageHeader({ isAdmin }: { isAdmin: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold text-gray-900">Events Hub</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {isAdmin
+            ? 'Manage all your school events from planning to completion'
+            : 'Your events and submissions'}
+        </p>
       </div>
     </div>
   )
@@ -500,62 +522,48 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900">Events Hub</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {isAdmin
-                ? 'Manage all your school events from planning to completion'
-                : 'Your events and submissions'}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {isAdmin && (
-              <>
-                <button
-                  onClick={() => setTemplateDrawerOpen(true)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
-                >
-                  <LayoutTemplate className="w-4 h-4" />
-                  From Template
-                </button>
-                <button
-                  onClick={() => setSeriesDrawerOpen(true)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  New Series
-                </button>
-              </>
-            )}
+      {/* Action buttons + filter chips */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        {isAdmin && (
+          <>
             <button
-              onClick={() => setCreateModalOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+              onClick={() => setTemplateDrawerOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              New Event
+              <LayoutTemplate className="w-4 h-4" />
+              From Template
             </button>
-          </div>
-        </div>
-
-        {/* Status filter chips */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {FILTER_TABS.map((f) => (
             <button
-              key={f.value}
-              onClick={() => setStatusFilter(f.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
-                statusFilter === f.value
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
+              onClick={() => setSeriesDrawerOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
             >
-              {f.label}
+              <RefreshCw className="w-4 h-4" />
+              New Series
             </button>
-          ))}
-        </div>
+          </>
+        )}
+        <button
+          onClick={() => setCreateModalOpen(true)}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          New Event
+        </button>
+      </div>
+      <div className="flex items-center gap-2 flex-wrap mb-5">
+        {FILTER_TABS.map((f) => (
+          <button
+            key={f.value}
+            onClick={() => setStatusFilter(f.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+              statusFilter === f.value
+                ? 'bg-gray-900 text-white'
+                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {/* Content */}
@@ -623,17 +631,25 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen">
+      <div className="min-h-screen space-y-6">
+        {/* Page header — full width, consistent with other pages */}
+        <EventsPageHeader isAdmin={isAdmin} />
+
         {isAdmin ? (
-          /* Admin: two-column layout — stats/actions left, events right */
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-8">
-            <div className="order-2 lg:order-1">
-              <AdminDashboardPanel />
+          <>
+            {/* Stats row — full width, single line */}
+            <AdminStatsRow />
+
+            {/* Two-column layout — priority actions left, events right */}
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-8">
+              <div>
+                <PriorityActionsPanel />
+              </div>
+              <div>
+                <EventsListPanel isAdmin />
+              </div>
             </div>
-            <div className="order-1 lg:order-2">
-              <EventsListPanel isAdmin />
-            </div>
-          </div>
+          </>
         ) : (
           /* Non-admin: full-width events only */
           <EventsListPanel isAdmin={false} />
