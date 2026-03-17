@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useToast } from '@/components/Toast'
-import { Trophy, Building2, X, Check, Plus, Settings2, Loader2 } from 'lucide-react'
+import { Trophy, Building2, X, Check, Plus, Settings2, Loader2, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface ModuleDefinition {
