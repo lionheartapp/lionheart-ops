@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import AssetDetailPage from '@/components/maintenance/AssetDetailPage'
 
 // ─── Content ─────────────────────────────────────────────────────────────────
@@ -83,9 +82,7 @@ function AssetDetailContent({ assetId }: { assetId: string }) {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <AssetDetailPage assetId={assetId} />
-      </ModuleGate>
+      <AssetDetailPage assetId={assetId} />
     </DashboardLayout>
   )
 }

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { motion } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import KnowledgeBaseList from '@/components/maintenance/KnowledgeBaseList'
 import KnowledgeBaseSearchBar from '@/components/maintenance/KnowledgeBaseSearchBar'
 import KnowledgeBaseArticleEditor from '@/components/maintenance/KnowledgeBaseArticleEditor'
@@ -16,8 +15,7 @@ export default function KnowledgeBasePage() {
 
   return (
     <DashboardLayout>
-      <ModuleGate moduleId="maintenance">
-        <motion.div
+      <motion.div
           variants={staggerContainer(0.08, 0)}
           initial="hidden"
           animate="visible"
@@ -55,15 +53,14 @@ export default function KnowledgeBasePage() {
               searchQuery={searchQuery}
               onCreateNew={() => setEditorOpen(true)}
             />
-          </motion.div>
         </motion.div>
+      </motion.div>
 
-        {/* Article editor drawer */}
-        <KnowledgeBaseArticleEditor
-          isOpen={editorOpen}
-          onClose={() => setEditorOpen(false)}
-        />
-      </ModuleGate>
+      {/* Article editor drawer */}
+      <KnowledgeBaseArticleEditor
+        isOpen={editorOpen}
+        onClose={() => setEditorOpen(false)}
+      />
     </DashboardLayout>
   )
 }

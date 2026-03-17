@@ -7,7 +7,6 @@ import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import MaintenanceSkeleton from '@/components/maintenance/MaintenanceSkeleton'
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
@@ -171,9 +170,8 @@ function MaintenanceContent() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <MotionConfig reducedMotion="user">
-          <div className="flex-1 min-h-0 overflow-y-auto">
+      <MotionConfig reducedMotion="user">
+        <div className="flex-1 min-h-0 overflow-y-auto">
             {/* Page header */}
             <motion.div
               className="mb-6"
@@ -358,9 +356,8 @@ function MaintenanceContent() {
                 <MyRequestsView />
               )
             )}
-          </div>
-        </MotionConfig>
-      </ModuleGate>
+        </div>
+      </MotionConfig>
     </DashboardLayout>
   )
 }

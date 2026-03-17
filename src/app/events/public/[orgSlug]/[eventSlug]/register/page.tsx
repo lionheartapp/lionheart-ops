@@ -70,7 +70,7 @@ export default function RegisterPage() {
           const code = json.error?.code ?? ''
           if (code === 'NOT_FOUND' || code === 'CLOSED' || code === 'NOT_OPEN') {
             // Redirect back to event landing page
-            router.replace(`/events/${orgSlug}/${eventSlug}`)
+            router.replace(`/events/public/${orgSlug}/${eventSlug}`)
             return
           }
           setState({
@@ -86,7 +86,7 @@ export default function RegisterPage() {
         const organization = data.organization as Record<string, unknown> | null
 
         if (!form || !sections) {
-          router.replace(`/events/${orgSlug}/${eventSlug}`)
+          router.replace(`/events/public/${orgSlug}/${eventSlug}`)
           return
         }
 

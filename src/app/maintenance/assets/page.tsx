@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { Plus, QrCode } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import AssetRegisterFilters, {
   DEFAULT_ASSET_FILTERS,
   type AssetFilterState,
@@ -96,9 +95,8 @@ function AssetRegisterContent() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <MotionConfig reducedMotion="user">
-          <div>
+      <MotionConfig reducedMotion="user">
+        <div>
             {/* Page header */}
             <motion.div
               className="flex items-start justify-between mb-6"
@@ -179,7 +177,7 @@ function AssetRegisterContent() {
             onClose={() => setQrScannerOpen(false)}
           />
         </MotionConfig>
-      </ModuleGate>
+      </div>
     </DashboardLayout>
   )
 }

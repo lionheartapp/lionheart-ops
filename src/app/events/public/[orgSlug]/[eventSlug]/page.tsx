@@ -160,7 +160,7 @@ export default async function PublicEventPage({
         <div className="mt-8 pb-24 sm:pb-8">
           {registrationState === 'open' && (
             <Link
-              href={`/events/${orgSlug}/${eventSlug}/register`}
+              href={`/events/public/${orgSlug}/${eventSlug}/register`}
               className="inline-block w-full sm:w-auto text-center px-8 py-3.5 rounded-xl text-white font-semibold text-sm shadow-sm transition-all duration-200 hover:opacity-90 active:scale-[0.97] cursor-pointer"
               style={{ backgroundColor: primaryColor }}
             >
@@ -175,7 +175,7 @@ export default async function PublicEventPage({
                 This event is at capacity, but you can join the waitlist.
               </div>
               <Link
-                href={`/events/${orgSlug}/${eventSlug}/register`}
+                href={`/events/public/${orgSlug}/${eventSlug}/register`}
                 className="inline-block w-full sm:w-auto text-center px-8 py-3.5 rounded-xl text-white font-semibold text-sm shadow-sm transition-all duration-200 hover:opacity-90 active:scale-[0.97] cursor-pointer"
                 style={{ backgroundColor: primaryColor }}
               >
@@ -214,7 +214,7 @@ export default async function PublicEventPage({
       {registrationState === 'open' && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 sm:hidden z-10">
           <Link
-            href={`/events/${orgSlug}/${eventSlug}/register`}
+            href={`/events/public/${orgSlug}/${eventSlug}/register`}
             className="block w-full text-center px-6 py-3.5 rounded-xl text-white font-semibold text-sm shadow-md transition-all duration-200 hover:opacity-90 active:scale-[0.97] cursor-pointer"
             style={{ backgroundColor: primaryColor }}
           >

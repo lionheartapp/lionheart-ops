@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import AnalyticsDashboard from '@/components/maintenance/AnalyticsDashboard'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 
@@ -83,9 +82,8 @@ function AnalyticsContent() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <MotionConfig reducedMotion="user">
-          <motion.div
+      <MotionConfig reducedMotion="user">
+        <motion.div
             initial="hidden"
             animate="visible"
             variants={staggerContainer(0.08, 0.05)}
@@ -100,9 +98,8 @@ function AnalyticsContent() {
             <motion.div variants={fadeInUp}>
               <AnalyticsDashboard />
             </motion.div>
-          </motion.div>
-        </MotionConfig>
-      </ModuleGate>
+        </motion.div>
+      </MotionConfig>
     </DashboardLayout>
   )
 }

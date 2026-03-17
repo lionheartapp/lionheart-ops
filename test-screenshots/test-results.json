@@ -1,0 +1,113 @@
+{
+  "session": {
+    "url": "https://linfield-christian-school.lionheartapp.com",
+    "persona": "power-user",
+    "email": "mkerley@linfield.com",
+    "startTime": "2026-03-12T16:02:06.743Z",
+    "endTime": "2026-03-12T16:02:18.430Z"
+  },
+  "phases": {
+    "login": {
+      "status": "success",
+      "notes": [
+        "Logged in as mkerley@linfield.com. Redirected to: https://linfield-christian-school.lionheartapp.com/dashboard"
+      ],
+      "durationMs": 5758
+    },
+    "leo_discovery": {
+      "status": "failed",
+      "notes": [
+        "Could not find or open Leo AI panel"
+      ]
+    },
+    "leo_basic": {
+      "status": "pending",
+      "notes": [],
+      "queries": []
+    },
+    "leo_complex": {
+      "status": "pending",
+      "notes": [],
+      "queries": []
+    },
+    "leo_edge_cases": {
+      "status": "pending",
+      "notes": [],
+      "queries": []
+    },
+    "leo_create_event": {
+      "status": "pending",
+      "notes": [],
+      "queries": []
+    },
+    "leo_limits": {
+      "status": "pending",
+      "notes": [],
+      "queries": []
+    },
+    "leo_followup": {
+      "status": "pending",
+      "notes": [],
+      "queries": []
+    },
+    "event_ui_creation": {
+      "status": "unclear",
+      "notes": [
+        "No modal appeared after Create click"
+      ]
+    }
+  },
+  "issues": {
+    "critical": [
+      {
+        "issue": "Leo AI assistant entry point not discoverable",
+        "detail": "No button, link, or UI element found that opens Leo chat. Power user spent time searching.",
+        "location": "Dashboard"
+      }
+    ],
+    "major": [],
+    "minor": [
+      {
+        "issue": "After clicking Create, no modal/drawer/dialog appeared",
+        "location": "Event Creation"
+      }
+    ],
+    "observations": []
+  },
+  "screenshots": [
+    {
+      "file": "01-login-page.png",
+      "note": "Login page initial state"
+    },
+    {
+      "file": "02-login-filled.png",
+      "note": "Credentials entered"
+    },
+    {
+      "file": "03-dashboard-initial.png",
+      "note": "Dashboard after login"
+    },
+    {
+      "file": "04-before-leo-search.png",
+      "note": "Before finding Leo"
+    },
+    {
+      "file": "04b-leo-not-found.png",
+      "note": "Leo panel not found after searching"
+    },
+    {
+      "file": "12-before-create-event.png",
+      "note": "State before finding Create button"
+    },
+    {
+      "file": "13-after-create-click.png",
+      "note": "After clicking Create button"
+    },
+    {
+      "file": "99-final-state.png",
+      "note": "Final page state"
+    }
+  ],
+  "consoleErrors": [],
+  "networkErrors": []
+}

@@ -412,6 +412,7 @@ export default function Sidebar({
   // Team membership — controls UI visibility (Team = what you SEE, Permissions = what you DO)
   const isOnMaintenanceTeam = isOnTeam(perms, 'maintenance')
   const isOnITTeam = isOnTeam(perms, 'it-support')
+  const isOnAVTeam = isOnTeam(perms, 'av-production')
 
   // Measure and position the facilities indicator.
   //
@@ -819,14 +820,12 @@ export default function Sidebar({
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
   const { enabled: athleticsEnabled, loading: athleticsModuleLoading } = useModuleEnabled('athletics')
-  const { enabled: maintenanceEnabled, loading: maintenanceModuleLoading } = useModuleEnabled('maintenance')
-  const { enabled: itHelpdeskEnabled, loading: itHelpdeskModuleLoading } = useModuleEnabled('it-helpdesk')
+  // Maintenance and IT Help Desk are now core features — no module gating needed
 
   const canReadInventory = perms?.canReadInventory ?? false
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
-    ...(canReadInventory ? [{ icon: Package, label: 'AV Inventory', href: '/inventory' }] : []),
   ]
 
   const handleEventsClick = () => {
@@ -1033,12 +1032,11 @@ export default function Sidebar({
           ) : null}
         </ul>
 
-        {/* Support section — shown when maintenance or IT help desk module is enabled */}
-        {((!maintenanceModuleLoading && maintenanceEnabled) || (!itHelpdeskModuleLoading && itHelpdeskEnabled)) && (
-          <>
-            <div className="px-1 mt-4 mb-1">
-              <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Support</span>
-            </div>
+        {/* Support section — always shown (Maintenance and IT Help Desk are core features) */}
+        <>
+          <div className="px-1 mt-4 mb-1">
+            <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Support</span>
+          </div>
             <ul className="space-y-1" role="list">
               {/* Facilities — collapsible section (no landing page; child links have content) */}
               {(isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance || canSubmitMaintenance) && (
@@ -1232,8 +1230,8 @@ export default function Sidebar({
                 </li>
               )}
 
-              {/* IT Help Desk — collapsible section (mirrors Maintenance pattern) */}
-              {!itHelpdeskModuleLoading && itHelpdeskEnabled && (isOnITTeam || canManageIT || canSubmitIT) && (
+              {/* IT Help Desk — collapsible section (core feature, no module gating) */}
+              {(isOnITTeam || canManageIT || canSubmitIT) && (
                 <li>
                   {(isOnITTeam || canManageIT) ? (
                   <>
@@ -1439,9 +1437,33 @@ export default function Sidebar({
                   )}
                 </li>
               )}
+
+              {/* AV Inventory — visible to AV team + admin + super-admin with inventory read permission */}
+              {canReadInventory && (isOnAVTeam || canManageWorkspace) && (
+                <li>
+                  <PrefetchLink
+                    href="/inventory"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setFacilitiesOpen(false)
+                      setItOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                      pathname === '/inventory' && !pageSearchParams.get('dept')
+                        ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                        : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                    }`}
+                    aria-current={pathname === '/inventory' && !pageSearchParams.get('dept') ? 'page' : undefined}
+                  >
+                    <Package className={`w-5 h-5 flex-shrink-0 ${pathname === '/inventory' && !pageSearchParams.get('dept') ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                    <span className="text-sm">AV Inventory</span>
+                  </PrefetchLink>
+                </li>
+              )}
             </ul>
-          </>
-        )}
+        </>
       </nav>
 
       {/* Footer — User Profile + 3-dot Menu + Logo */}

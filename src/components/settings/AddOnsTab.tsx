@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useToast } from '@/components/Toast'
-import { Trophy, Wrench, Monitor, Building2, X, Check, Plus, Settings2, Loader2, Info, Users, Shield, MessageSquare } from 'lucide-react'
+import { Trophy, Building2, X, Check, Plus, Settings2, Loader2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface ModuleDefinition {
@@ -23,6 +23,8 @@ interface Campus {
   isActive: boolean
 }
 
+// Facilities Management and IT Help Desk are now core features (no longer add-ons).
+// Only Athletics remains as a toggleable add-on module.
 const MODULE_REGISTRY: ModuleDefinition[] = [
   {
     id: 'athletics',
@@ -32,24 +34,6 @@ const MODULE_REGISTRY: ModuleDefinition[] = [
     color: '#f59e0b',
     gradient: 'from-amber-400 to-orange-500',
     scope: 'campus',
-  },
-  {
-    id: 'maintenance',
-    name: 'Facilities Management',
-    description: 'Maintenance request system with ticket tracking, technician assignments, and preventive maintenance scheduling.',
-    icon: Wrench,
-    color: '#059669',
-    gradient: 'from-emerald-500 to-teal-600',
-    scope: 'campus',
-  },
-  {
-    id: 'it-helpdesk',
-    name: 'IT Help Desk',
-    description: 'IT support ticketing with Kanban board, technician assignment, magic links for substitute teachers, and activity tracking.',
-    icon: Monitor,
-    color: '#3B82F6',
-    gradient: 'from-blue-500 to-indigo-600',
-    scope: 'org',
   },
 ]
 
@@ -346,40 +330,8 @@ export default function AddOnsTab() {
         </div>
       )}
 
-      {/* IT Help Desk guidance callout */}
-      {modules.some((m) => m.moduleId === 'it-helpdesk' && !m.campusId) && (
-        <div className="mt-6 rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm p-5">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <Info className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-900">IT Help Desk — Next Steps</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Roles have been automatically updated with IT permissions.</p>
-            </div>
-          </div>
-          <div className="space-y-2 ml-11">
-            <div className="flex items-start gap-2">
-              <Shield className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-600">
-                <span className="font-medium text-slate-700">Assign the IT Coordinator role</span> to your IT staff via Settings &gt; Members
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-600">
-                <span className="font-medium text-slate-700">Members and teachers</span> can already submit IT tickets
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <Users className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-600">
-                <span className="font-medium text-slate-700">Secretary / Front Office role</span> can submit tickets and generate magic links for substitutes
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Facilities Management and IT Help Desk are now built-in core features.
+          They no longer appear as add-ons. Only Athletics remains here. */}
 
       {/* Campus config modal */}
       {configMod && (

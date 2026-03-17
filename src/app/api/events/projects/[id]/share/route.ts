@@ -72,7 +72,7 @@ export async function GET(
       })
 
       const orgSlug = org?.slug ?? ''
-      const shareUrl = `${baseUrl}/events/${orgSlug}/${form.shareSlug}`
+      const shareUrl = `${baseUrl}/events/public/${orgSlug}/${form.shareSlug}`
 
       // Generate QR code (server-side)
       const qrCodeSvg = await QRCode.toString(shareUrl, {

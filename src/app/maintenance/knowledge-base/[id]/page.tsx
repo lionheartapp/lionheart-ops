@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { use } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import KnowledgeBaseArticleViewer from '@/components/maintenance/KnowledgeBaseArticleViewer'
 import KnowledgeBaseArticleEditor from '@/components/maintenance/KnowledgeBaseArticleEditor'
 import { fetchApi } from '@/lib/api-client'
@@ -55,8 +54,7 @@ export default function KnowledgeBaseArticlePage({
 
   return (
     <DashboardLayout>
-      <ModuleGate moduleId="maintenance">
-        <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto">
           {isLoading ? (
             <ViewerSkeleton />
           ) : article ? (
@@ -86,7 +84,7 @@ export default function KnowledgeBaseArticlePage({
             }}
           />
         )}
-      </ModuleGate>
+      </div>
     </DashboardLayout>
   )
 }

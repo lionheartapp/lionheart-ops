@@ -4,7 +4,6 @@ import { useState, useEffect, type ReactNode, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import { ShieldAlert } from 'lucide-react'
 
@@ -114,11 +113,9 @@ function ITPageShellInner({ children }: { children: ReactNode }) {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="it-helpdesk">
-        <MotionConfig reducedMotion="user">
-          {children}
-        </MotionConfig>
-      </ModuleGate>
+      <MotionConfig reducedMotion="user">
+        {children}
+      </MotionConfig>
     </DashboardLayout>
   )
 }

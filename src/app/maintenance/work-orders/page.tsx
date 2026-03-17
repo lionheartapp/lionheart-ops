@@ -6,7 +6,6 @@ import { motion, MotionConfig } from 'framer-motion'
 import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
 
@@ -93,9 +92,8 @@ function WorkOrdersContent() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <MotionConfig reducedMotion="user">
-          <div>
+      <MotionConfig reducedMotion="user">
+        <div>
             {/* Page header */}
             <motion.div
               className="mb-6"
@@ -124,9 +122,8 @@ function WorkOrdersContent() {
               initialUnassigned={searchParams.get('unassigned') === 'true'}
               initialSchoolId={searchParams.get('schoolId') || undefined}
             />
-          </div>
-        </MotionConfig>
-      </ModuleGate>
+        </div>
+      </MotionConfig>
     </DashboardLayout>
   )
 }

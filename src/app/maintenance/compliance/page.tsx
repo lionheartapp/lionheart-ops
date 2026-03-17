@@ -6,7 +6,6 @@ import { motion, MotionConfig } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Loader2, Download } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import { ComplianceDomainCard } from '@/components/maintenance/compliance/ComplianceDomainCard'
 import { ComplianceSetupWizard } from '@/components/maintenance/compliance/ComplianceSetupWizard'
 import { ComplianceCalendar } from '@/components/maintenance/compliance/ComplianceCalendar'
@@ -210,9 +209,8 @@ function ComplianceContent() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <MotionConfig reducedMotion="user">
-          <div>
+      <MotionConfig reducedMotion="user">
+        <div>
             {/* Page header */}
             <motion.div
               className="mb-6"
@@ -311,9 +309,8 @@ function ComplianceContent() {
 
               <ComplianceCalendar onEditRecord={openDrawer} />
             </motion.section>
-          </div>
-        </MotionConfig>
-      </ModuleGate>
+        </div>
+      </MotionConfig>
 
       {/* Setup Wizard */}
       <ComplianceSetupWizard

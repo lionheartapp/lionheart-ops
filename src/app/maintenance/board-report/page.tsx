@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import { BoardReportPage } from '@/components/maintenance/board-report/BoardReportPage'
 
 // ─── Page Content ─────────────────────────────────────────────────────────────
@@ -75,11 +74,9 @@ function BoardReportContent() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <MotionConfig reducedMotion="user">
-          <BoardReportPage token={token} />
-        </MotionConfig>
-      </ModuleGate>
+      <MotionConfig reducedMotion="user">
+        <BoardReportPage token={token} />
+      </MotionConfig>
     </DashboardLayout>
   )
 }

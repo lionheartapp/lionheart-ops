@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { Plus, CalendarDays, LayoutList, X } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
-import ModuleGate from '@/components/ModuleGate'
 import PmCalendarView from '@/components/maintenance/PmCalendarView'
 import PmScheduleList from '@/components/maintenance/PmScheduleList'
 import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
@@ -98,9 +97,8 @@ function PmCalendarContent() {
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
     >
-      <ModuleGate moduleId="maintenance">
-        <MotionConfig reducedMotion="user">
-          <div>
+      <MotionConfig reducedMotion="user">
+        <div>
             {/* Page header */}
             <motion.div
               className="flex items-start justify-between mb-6"
@@ -214,9 +212,8 @@ function PmCalendarContent() {
                 )}
               </motion.div>
             </AnimatePresence>
-          </div>
-        </MotionConfig>
-      </ModuleGate>
+        </div>
+      </MotionConfig>
     </DashboardLayout>
   )
 }
