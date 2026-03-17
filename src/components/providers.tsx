@@ -114,6 +114,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         localStorage.setItem('user-email', user.email || '')
         localStorage.setItem('user-avatar', user.avatar || '')
         localStorage.setItem('user-team', user.team || '')
+        localStorage.setItem('user-team-slugs', JSON.stringify(user.teamSlugs || []))
         localStorage.setItem('user-school-scope', user.schoolScope || '')
         localStorage.setItem('user-role', user.role || '')
         localStorage.setItem('org-name', org.name || '')

@@ -96,12 +96,13 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // Fetch team via junction table (take just one for display in the login response)
-      const firstMembership = await prisma.userTeam.findFirst({
+      // Fetch teams via junction table
+      const memberships = await prisma.userTeam.findMany({
         where: { userId: user.id },
-        select: { team: { select: { name: true } } },
+        select: { team: { select: { name: true, slug: true } } },
       })
-      const teamName = firstMembership?.team?.name ?? null
+      const teamName = memberships[0]?.team?.name ?? null
+      const teamSlugs = memberships.map((m) => m.team.slug)
 
       // Fire-and-forget audit log (non-critical)
       void audit({
@@ -128,6 +129,7 @@ export async function POST(req: NextRequest) {
             schoolScope: user.schoolScope,
             role: user.userRole?.name || null,
             team: teamName,
+            teamSlugs,
           },
         })
       )

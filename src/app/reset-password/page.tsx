@@ -83,6 +83,7 @@ function ResetPasswordContent() {
       localStorage.setItem('user-email', userData?.email || '')
       localStorage.setItem('user-avatar', userData?.avatar || '')
       localStorage.setItem('user-team', userData?.team || '')
+      localStorage.setItem('user-team-slugs', JSON.stringify(userData?.teamSlugs || []))
       localStorage.setItem('user-school-scope', userData?.schoolScope || '')
       localStorage.setItem('user-role', userData?.role || '')
       localStorage.setItem('org-name', orgData?.name || '')

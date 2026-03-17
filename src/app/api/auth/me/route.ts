@@ -110,6 +110,7 @@ export async function GET(req: NextRequest) {
           schoolScope: user.schoolScope ?? null,
           role: user.userRole?.name ?? null,
           team: teamName,
+          teamSlugs,
           dashboardMode,
         },
         org: {

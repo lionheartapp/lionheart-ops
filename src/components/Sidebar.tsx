@@ -379,21 +379,54 @@ export default function Sidebar({
   // Permissions — declared here (before the indicator effect) so the effect
   // can include them in its dependency array without a temporal dead zone error.
   const { data: perms } = usePermissions()
-  // Optimistic: show workspace settings immediately for admin roles while perms load
-  const optimisticCanManageWorkspace = (() => {
-    if (typeof window === 'undefined') return false
-    const role = (localStorage.getItem('user-role') || '').toLowerCase()
-    return role.includes('admin') || role.includes('super')
+
+  // ── Optimistic sidebar rendering ──────────────────────────────────────────
+  // Maintenance, IT Help Desk, and AV Inventory are core features. Their
+  // sidebar links should appear INSTANTLY — not after the permissions API
+  // resolves. We cache team slugs in localStorage and read them on mount so
+  // the Support section renders in the very first paint.
+  //
+  // Once the real `perms` object arrives the values are replaced with ground
+  // truth. The only edge case where a link could flash and disappear is a
+  // custom role with zero maintenance/IT access — very rare.
+
+  // Read cached role + teams from localStorage (synchronous, no round-trip)
+  const optimisticRole = (() => {
+    if (typeof window === 'undefined') return ''
+    return (localStorage.getItem('user-role') || '').toLowerCase()
   })()
-  const canManageWorkspace = perms?.canManageWorkspace ?? optimisticCanManageWorkspace
-  const canManageMaintenance = perms?.canManageMaintenance ?? false
-  const canClaimMaintenance = perms?.canClaimMaintenance ?? false
-  const canSubmitMaintenance = perms?.canSubmitMaintenance ?? false
-  const canManageIT = perms?.canManageIT ?? false
-  const canSubmitIT = perms?.canSubmitIT ?? false
-  // IT sub-section permissions
-  const canReadDevices = perms?.canReadDevices ?? false
-  const canReadStudents = perms?.canReadStudents ?? false
+  const optimisticIsAdmin = optimisticRole.includes('admin') || optimisticRole.includes('super')
+
+  const optimisticTeamSlugs = (() => {
+    if (typeof window === 'undefined') return [] as string[]
+    try {
+      return JSON.parse(localStorage.getItem('user-team-slugs') || '[]') as string[]
+    } catch {
+      return [] as string[]
+    }
+  })()
+
+  // Cache team slugs whenever permissions load/update
+  useEffect(() => {
+    if (perms?.userTeams) {
+      const slugs = perms.userTeams.map((t) => t.slug)
+      localStorage.setItem('user-team-slugs', JSON.stringify(slugs))
+    }
+  }, [perms?.userTeams])
+
+  // Workspace settings (existing pattern, now using shared optimisticIsAdmin)
+  const canManageWorkspace = perms?.canManageWorkspace ?? optimisticIsAdmin
+
+  // Maintenance permissions — optimistic: all default roles have at least submit
+  const canManageMaintenance = perms?.canManageMaintenance ?? optimisticIsAdmin
+  const canClaimMaintenance = perms?.canClaimMaintenance ?? optimisticIsAdmin
+  const canSubmitMaintenance = perms?.canSubmitMaintenance ?? true // all roles can submit
+  // IT permissions — optimistic: all default roles have at least submit
+  const canManageIT = perms?.canManageIT ?? optimisticIsAdmin
+  const canSubmitIT = perms?.canSubmitIT ?? true // all roles can submit
+  // IT sub-section permissions (fine-grained — only optimistic for admins)
+  const canReadDevices = perms?.canReadDevices ?? optimisticIsAdmin
+  const canReadStudents = perms?.canReadStudents ?? optimisticIsAdmin
   const canAccessLoaners = (perms?.canManageLoaners ?? false) || (perms?.canCheckoutLoaner ?? false) || (perms?.canCheckinLoaner ?? false)
   const canAccessDeployment = (perms?.canManageDeployment ?? false) || (perms?.canProcessDeployment ?? false)
   const canAccessProvisioning = (perms?.canManageProvisioning ?? false) || (perms?.canViewProvisioning ?? false)
@@ -409,10 +442,13 @@ export default function Sidebar({
   const canSeeITSecurity = canViewContentFilters || canViewSecurityIncidents || canViewIntelligence
   const canSeeITAdmin = canViewITAnalytics || canViewITBoardReports || canViewERate || canManageSync
 
-  // Team membership — controls UI visibility (Team = what you SEE, Permissions = what you DO)
-  const isOnMaintenanceTeam = isOnTeam(perms, 'maintenance')
-  const isOnITTeam = isOnTeam(perms, 'it-support')
-  const isOnAVTeam = isOnTeam(perms, 'av-production')
+  // Inventory — optimistic for admins
+  const canReadInventory = perms?.canReadInventory ?? optimisticIsAdmin
+
+  // Team membership — use cached slugs as fallback while perms load
+  const isOnMaintenanceTeam = perms ? isOnTeam(perms, 'maintenance') : optimisticTeamSlugs.includes('maintenance')
+  const isOnITTeam = perms ? isOnTeam(perms, 'it-support') : optimisticTeamSlugs.includes('it-support')
+  const isOnAVTeam = perms ? isOnTeam(perms, 'av-production') : optimisticTeamSlugs.includes('av-production')
 
   // Measure and position the facilities indicator.
   //
@@ -821,8 +857,6 @@ export default function Sidebar({
 
   const { enabled: athleticsEnabled, loading: athleticsModuleLoading } = useModuleEnabled('athletics')
   // Maintenance and IT Help Desk are now core features — no module gating needed
-
-  const canReadInventory = perms?.canReadInventory ?? false
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
