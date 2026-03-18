@@ -1085,12 +1085,16 @@ export default function Sidebar({
                         return !prev
                       })
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                    className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                      facilitiesOpen
+                        ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                        : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
+                    }`}
                     aria-expanded={facilitiesOpen}
                     aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
                   >
-                    <Wrench className="w-5 h-5 flex-shrink-0 text-slate-600" aria-hidden="true" />
-                    <span className="text-sm text-slate-600">Maintenance</span>
+                    <Wrench className={`w-5 h-5 flex-shrink-0 ${facilitiesOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
+                    <span className="text-sm">Maintenance</span>
                     <motion.span
                       className="ml-auto block"
                       animate={{ rotate: facilitiesOpen ? 180 : 0 }}
@@ -1277,12 +1281,16 @@ export default function Sidebar({
                         return !prev
                       })
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                    className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                      itOpen
+                        ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                        : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
+                    }`}
                     aria-expanded={itOpen}
                     aria-label={itOpen ? 'Collapse IT Help Desk' : 'Expand IT Help Desk'}
                   >
-                    <Monitor className="w-5 h-5 flex-shrink-0 text-slate-600" aria-hidden="true" />
-                    <span className="text-sm text-slate-600">IT Help Desk</span>
+                    <Monitor className={`w-5 h-5 flex-shrink-0 ${itOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
+                    <span className="text-sm">IT Help Desk</span>
                     <motion.span
                       className="ml-auto block"
                       animate={{ rotate: itOpen ? 180 : 0 }}
