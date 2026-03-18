@@ -129,7 +129,7 @@ export async function createEventProject(
  * Fetches a single EventProject with full nested data.
  */
 export async function getEventProject(id: string): Promise<Record<string, unknown> | null> {
-  return db.eventProject.findUnique({
+  return db.eventProject.findFirst({
     where: { id },
     include: {
       createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
