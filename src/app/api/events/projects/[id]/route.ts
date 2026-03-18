@@ -35,10 +35,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_READ)
 
     return await runWithOrgContext(orgId, async () => {
+      log.info({ eventProjectId: id, orgId }, 'Fetching EventProject')
       const project = await getEventProject(id)
 
       if (!project) {
-        return NextResponse.json(fail('NOT_FOUND', 'EventProject not found'), { status: 404 })
+        log.warn({ eventProjectId: id, orgId }, 'EventProject not found — may be org mismatch or deleted')
+        return NextResponse.json(fail('NOT_FOUND', `EventProject not found: ${id}`), { status: 404 })
       }
 
       return NextResponse.json(ok(project))
@@ -47,8 +49,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    log.error({ err: error }, 'Failed to fetch EventProject')
-    Sentry.captureException(error)
+    log.error({ err: error, eventProjectId: (await params).id }, 'Failed to fetch EventProject')
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
       { status: 500 },
