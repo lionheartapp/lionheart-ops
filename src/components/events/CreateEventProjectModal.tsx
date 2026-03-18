@@ -82,6 +82,8 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
       startsAt: new Date(startDateTime),
       endsAt: new Date(endDateTime),
       isMultiDay: form.isMultiDay,
+      requiresAV: false,
+      requiresFacilities: false,
       locationText: form.locationText.trim() || undefined,
       expectedAttendance: form.expectedAttendance
         ? parseInt(form.expectedAttendance, 10)
