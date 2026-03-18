@@ -20,6 +20,10 @@ import {
   Loader2,
   CheckCircle2,
   PartyPopper,
+  CheckCircle,
+  XCircle,
+  Hourglass,
+  ArrowRight,
 } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import { staggerContainer, cardEntrance, fadeInUp, listItem } from '@/lib/animations'
@@ -36,13 +40,13 @@ import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFr
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
-  DRAFT: { label: 'Draft', bg: 'bg-gray-100', text: 'text-gray-600' },
-  PENDING_APPROVAL: { label: 'Pending Approval', bg: 'bg-amber-50', text: 'text-amber-700' },
-  CONFIRMED: { label: 'Confirmed', bg: 'bg-blue-50', text: 'text-blue-700' },
-  IN_PROGRESS: { label: 'In Progress', bg: 'bg-green-50', text: 'text-green-700' },
-  COMPLETED: { label: 'Completed', bg: 'bg-purple-50', text: 'text-purple-700' },
-  CANCELLED: { label: 'Cancelled', bg: 'bg-red-50', text: 'text-red-600' },
+const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; icon: React.ElementType }> = {
+  DRAFT: { label: 'Draft', bg: 'bg-gray-100', text: 'text-gray-600', icon: Clock },
+  PENDING_APPROVAL: { label: 'Pending Approval', bg: 'bg-amber-50', text: 'text-amber-700', icon: Hourglass },
+  CONFIRMED: { label: 'Confirmed', bg: 'bg-blue-50', text: 'text-blue-700', icon: CheckCircle },
+  IN_PROGRESS: { label: 'In Progress', bg: 'bg-green-50', text: 'text-green-700', icon: ArrowRight },
+  COMPLETED: { label: 'Completed', bg: 'bg-purple-50', text: 'text-purple-700', icon: CheckCircle2 },
+  CANCELLED: { label: 'Cancelled', bg: 'bg-red-50', text: 'text-red-600', icon: XCircle },
 }
 
 const SOURCE_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
@@ -94,9 +98,38 @@ const itemExit = {
   transition: { duration: 0.25 },
 }
 
-// ─── Project Card ─────────────────────────────────────────────────────────────
+// ─── Stat Card (styled like reference image) ─────────────────────────────────
 
-function ProjectCard({ project, onClick }: { project: EventProject; onClick: () => void }) {
+interface StatCardProps {
+  label: string
+  value: number
+  icon: React.ElementType
+  iconBg: string
+  iconColor: string
+}
+
+function StatCard({ label, value, icon: Icon, iconBg, iconColor }: StatCardProps) {
+  return (
+    <div className="ui-glass flex-1 min-w-[200px] px-5 py-4 flex items-center gap-4">
+      <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-5 h-5 ${iconColor}`} />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-xl font-bold text-gray-900 leading-none">
+            <AnimatedCounter value={value} />
+          </span>
+          <span className="text-xs text-gray-400 font-medium">{value === 1 ? 'event' : 'events'}</span>
+        </div>
+        <p className="text-sm font-semibold text-gray-700 mt-0.5">{label}</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Event Card ──────────────────────────────────────────────────────────────
+
+function EventCard({ project, onClick }: { project: EventProject; onClick: () => void }) {
   const statusConfig = STATUS_CONFIG[project.status] ?? STATUS_CONFIG.DRAFT
   const sourceConfig = SOURCE_CONFIG[project.source] ?? SOURCE_CONFIG.DIRECT_REQUEST
   const startsAt = new Date(project.startsAt)
@@ -151,32 +184,7 @@ function ProjectCard({ project, onClick }: { project: EventProject; onClick: () 
   )
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, icon: Icon, accent }: {
-  label: string
-  value: number
-  icon: React.ElementType
-  accent?: boolean
-}) {
-  return (
-    <div
-      className={
-        accent
-          ? 'bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3'
-          : 'ui-glass px-4 py-3 flex items-center gap-3'
-      }
-    >
-      <Icon className={`w-4 h-4 flex-shrink-0 ${accent ? 'text-red-500' : 'text-gray-400'}`} />
-      <div className={`text-lg font-bold leading-none ${accent ? 'text-red-700' : 'text-gray-900'}`}>
-        <AnimatedCounter value={value} />
-      </div>
-      <p className={`text-xs whitespace-nowrap ${accent ? 'text-red-600' : 'text-gray-500'}`}>{label}</p>
-    </div>
-  )
-}
-
-// ─── Action Item Card ─────────────────────────────────────────────────────────
+// ─── Action Item Card ────────────────────────────────────────────────────────
 
 function ActionItemCard({ item, onResolve, isResolving }: {
   item: ScoredActionItem
@@ -290,7 +298,23 @@ function AiStatusBadge({ isLoadingScored, aiScored, hasItems }: {
   )
 }
 
-// ─── Skeletons ────────────────────────────────────────────────────────────────
+// ─── Skeletons ───────────────────────────────────────────────────────────────
+
+function StatsSkeleton() {
+  return (
+    <div className="flex gap-4 animate-pulse">
+      {[0, 1].map((i) => (
+        <div key={i} className="ui-glass flex-1 min-w-[200px] px-5 py-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-gray-200 flex-shrink-0" />
+          <div className="space-y-2">
+            <div className="w-12 h-5 bg-gray-200 rounded" />
+            <div className="w-24 h-3 bg-gray-100 rounded" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function EventsListSkeleton() {
   return (
@@ -302,7 +326,25 @@ function EventsListSkeleton() {
   )
 }
 
-// ─── Empty State ──────────────────────────────────────────────────────────────
+function ApprovalsSkeleton() {
+  return (
+    <div className="space-y-2 animate-pulse">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="ui-glass p-4 flex gap-3">
+          <div className="w-1 bg-gray-200 rounded-full self-stretch" />
+          <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-2">
+            <div className="w-3/4 h-4 bg-gray-200 rounded" />
+            <div className="w-full h-3 bg-gray-100 rounded" />
+            <div className="w-20 h-5 bg-gray-100 rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Empty State ─────────────────────────────────────────────────────────────
 
 function EventsEmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
   return (
@@ -312,7 +354,7 @@ function EventsEmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
       </div>
       <h3 className="text-base font-semibold text-gray-900 mb-2">No events yet</h3>
       <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
-        Create your first event project to start planning, scheduling, and coordinating everything in one place.
+        Create your first event to start planning, scheduling, and coordinating everything in one place.
       </p>
       <button
         onClick={onCreateEvent}
@@ -324,51 +366,70 @@ function EventsEmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
   )
 }
 
-// ─── Admin Stats Row ─────────────────────────────────────────────────────────
+// ─── Stats Row (2 cards, role-aware) ─────────────────────────────────────────
 
-function AdminStatsRow() {
+function StatsRow({ isAdmin }: { isAdmin: boolean }) {
   const { stats, isLoadingRaw } = useEventDashboard()
 
-  if (isLoadingRaw) {
-    return (
-      <div className="grid grid-cols-4 gap-3 animate-pulse">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="ui-glass px-4 py-3 flex items-center gap-3">
-            <div className="w-4 h-4 bg-gray-200 rounded-full flex-shrink-0" />
-            <div className="w-6 h-5 bg-gray-200 rounded" />
-            <div className="w-16 h-3 bg-gray-100 rounded" />
-          </div>
-        ))}
-      </div>
-    )
-  }
+  if (isLoadingRaw) return <StatsSkeleton />
 
   return (
     <motion.div
-      variants={staggerContainer(0.06, 0.1)}
+      variants={staggerContainer(0.08, 0.1)}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-4 gap-3"
+      className="flex gap-4"
     >
-      <motion.div variants={cardEntrance}>
-        <StatCard label="Active Events" value={stats.totalActiveEvents} icon={Calendar} />
-      </motion.div>
-      <motion.div variants={cardEntrance}>
-        <StatCard label="Overdue Items" value={stats.overdueItems} icon={AlertTriangle} accent={stats.overdueItems > 0} />
-      </motion.div>
-      <motion.div variants={cardEntrance}>
-        <StatCard label="Due This Week" value={stats.upcomingDeadlines} icon={Clock} />
-      </motion.div>
-      <motion.div variants={cardEntrance}>
-        <StatCard label="Need Approval" value={stats.pendingApprovals} icon={Shield} />
-      </motion.div>
+      {isAdmin ? (
+        <>
+          <motion.div variants={cardEntrance} className="flex-1">
+            <StatCard
+              label="Active Events"
+              value={stats.totalActiveEvents}
+              icon={Calendar}
+              iconBg="bg-blue-50"
+              iconColor="text-blue-500"
+            />
+          </motion.div>
+          <motion.div variants={cardEntrance} className="flex-1">
+            <StatCard
+              label="Needs Approval"
+              value={stats.pendingApprovals}
+              icon={Shield}
+              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-gray-50'}
+              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-gray-400'}
+            />
+          </motion.div>
+        </>
+      ) : (
+        <>
+          <motion.div variants={cardEntrance} className="flex-1">
+            <StatCard
+              label="My Events"
+              value={stats.totalActiveEvents}
+              icon={Calendar}
+              iconBg="bg-blue-50"
+              iconColor="text-blue-500"
+            />
+          </motion.div>
+          <motion.div variants={cardEntrance} className="flex-1">
+            <StatCard
+              label="Pending Review"
+              value={stats.pendingApprovals}
+              icon={Hourglass}
+              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-gray-50'}
+              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-gray-400'}
+            />
+          </motion.div>
+        </>
+      )}
     </motion.div>
   )
 }
 
-// ─── Priority Actions Panel ──────────────────────────────────────────────────
+// ─── Approval Queue (admin right column) ─────────────────────────────────────
 
-function PriorityActionsPanel() {
+function ApprovalQueue() {
   const { items, aiScored, isLoadingRaw, isLoadingScored, isError } = useEventDashboard()
   const resolveMutation = useResolveAction()
   const { toast } = useToast()
@@ -396,29 +457,13 @@ function PriorityActionsPanel() {
     }
   }
 
-  if (isLoadingRaw) {
-    return (
-      <div className="space-y-2">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="ui-glass p-4 animate-pulse flex gap-3">
-            <div className="w-1 bg-gray-200 rounded-full self-stretch" />
-            <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0 mt-0.5" />
-            <div className="flex-1 space-y-2">
-              <div className="w-3/4 h-4 bg-gray-200 rounded" />
-              <div className="w-full h-3 bg-gray-100 rounded" />
-              <div className="w-20 h-5 bg-gray-100 rounded-full" />
-            </div>
-          </div>
-        ))}
-      </div>
-    )
-  }
+  if (isLoadingRaw) return <ApprovalsSkeleton />
 
   if (isError) {
     return (
       <div className="ui-glass p-6 text-center">
         <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-        <p className="text-sm text-gray-600">Failed to load dashboard. Please refresh.</p>
+        <p className="text-sm text-gray-600">Failed to load approvals. Please refresh.</p>
       </div>
     )
   }
@@ -426,10 +471,7 @@ function PriorityActionsPanel() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-400" />
-          Priority Actions
-        </h2>
+        <h2 className="text-base font-semibold text-gray-900">Event Approvals</h2>
         <AiStatusBadge
           isLoadingScored={isLoadingScored}
           aiScored={aiScored}
@@ -448,14 +490,14 @@ function PriorityActionsPanel() {
             <PartyPopper className="w-6 h-6 text-green-500" />
           </div>
           <h3 className="text-sm font-semibold text-gray-900">All caught up!</h3>
-          <p className="text-xs text-gray-500 mt-1">No urgent action items.</p>
+          <p className="text-xs text-gray-500 mt-1">No events waiting for approval.</p>
         </motion.div>
       ) : (
         <motion.div
           variants={staggerContainer(0.04, 0.1)}
           initial="hidden"
           animate="visible"
-          className="space-y-2 max-h-[calc(100vh-360px)] overflow-y-auto"
+          className="space-y-2 max-h-[calc(100vh-320px)] overflow-y-auto"
         >
           <AnimatePresence mode="popLayout">
             {items.map((item) => (
@@ -469,41 +511,13 @@ function PriorityActionsPanel() {
           </AnimatePresence>
         </motion.div>
       )}
-
-      {items.length === 0 && !isLoadingRaw && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center justify-center gap-2 text-sm text-green-600 py-2"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>All action items resolved</span>
-        </motion.div>
-      )}
     </div>
   )
 }
 
-// ─── Page Header ─────────────────────────────────────────────────────────────
+// ─── My Events Panel ─────────────────────────────────────────────────────────
 
-function EventsPageHeader({ isAdmin }: { isAdmin: boolean }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="text-2xl font-semibold text-gray-900">Events Hub</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {isAdmin
-            ? 'Manage all your school events from planning to completion'
-            : 'Your events and submissions'}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-// ─── Events List Panel ────────────────────────────────────────────────────────
-
-function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
+function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState('')
   const [createModalOpen, setCreateModalOpen] = useState(false)
@@ -522,8 +536,13 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <div>
-      {/* Action buttons + filter chips */}
-      <div className="flex flex-wrap items-center gap-2 mb-5">
+      {/* Section header */}
+      <h2 className="text-base font-semibold text-gray-900 mb-4">
+        {isAdmin ? 'All Events' : 'My Events'}
+      </h2>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         {isAdmin && (
           <>
             <button
@@ -550,6 +569,8 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
           New Event
         </button>
       </div>
+
+      {/* Filter chips */}
       <div className="flex items-center gap-2 flex-wrap mb-5">
         {FILTER_TABS.map((f) => (
           <button
@@ -566,7 +587,7 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
         ))}
       </div>
 
-      {/* Content */}
+      {/* Event list */}
       {isLoading ? (
         <EventsListSkeleton />
       ) : !projects || projects.length === 0 ? (
@@ -579,7 +600,7 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
           className="space-y-3"
         >
           {projects.map((project) => (
-            <ProjectCard
+            <EventCard
               key={project.id}
               project={project}
               onClick={() => router.push(`/events/${project.id}`)}
@@ -613,7 +634,24 @@ function EventsListPanel({ isAdmin }: { isAdmin: boolean }) {
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Page Header ─────────────────────────────────────────────────────────────
+
+function EventsPageHeader({ isAdmin }: { isAdmin: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold text-gray-900">Events Hub</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {isAdmin
+            ? 'Manage all your school events from planning to completion'
+            : 'Your events and submissions'}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function EventsPage() {
   const { isAdmin, isReady } = useAuth()
@@ -632,27 +670,25 @@ export default function EventsPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen space-y-6">
-        {/* Page header — full width, consistent with other pages */}
+        {/* Page header */}
         <EventsPageHeader isAdmin={isAdmin} />
 
-        {isAdmin ? (
-          <>
-            {/* Stats row — full width, single line */}
-            <AdminStatsRow />
+        {/* Stats row — 2 role-aware cards */}
+        <StatsRow isAdmin={isAdmin} />
 
-            {/* Two-column layout — priority actions left, events right */}
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-8">
-              <div>
-                <PriorityActionsPanel />
-              </div>
-              <div>
-                <EventsListPanel isAdmin />
-              </div>
+        {isAdmin ? (
+          /* Admin: two-column — My Events left, Approval Queue right */
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8">
+            <div>
+              <MyEventsPanel isAdmin />
             </div>
-          </>
+            <div>
+              <ApprovalQueue />
+            </div>
+          </div>
         ) : (
-          /* Non-admin: full-width events only */
-          <EventsListPanel isAdmin={false} />
+          /* Non-admin: full-width My Events */
+          <MyEventsPanel isAdmin={false} />
         )}
       </div>
     </DashboardLayout>
