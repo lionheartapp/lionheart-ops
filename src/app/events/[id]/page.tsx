@@ -100,10 +100,18 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   }
 
   if (error || !project) {
+    // Log the actual error for debugging
+    if (error) console.error('[EventProjectPage] Error loading project:', error)
     return (
       <DashboardLayout>
       <div className="min-h-screen">
         <EventNotFound onBack={() => router.push('/events')} />
+        {/* Temporary debug info */}
+        {error && (
+          <div className="mt-4 mx-auto max-w-md p-3 bg-red-50 rounded-lg text-xs text-red-600 font-mono">
+            {(error as Error).message || String(error)}
+          </div>
+        )}
       </div>
       </DashboardLayout>
     )

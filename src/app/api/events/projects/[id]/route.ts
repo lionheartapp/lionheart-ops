@@ -46,12 +46,16 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json(ok(project))
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const errStack = error instanceof Error ? error.stack : undefined
+    log.error({ err: error, message: errMsg, stack: errStack }, 'Failed to fetch EventProject')
+    Sentry.captureException(error)
+    if (errMsg.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', errMsg), { status: 403 })
     }
-    log.error({ err: error, eventProjectId: (await params).id }, 'Failed to fetch EventProject')
+    // Temporarily include error details to help diagnose
     return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
+      fail('INTERNAL_ERROR', errMsg),
       { status: 500 },
     )
   }
