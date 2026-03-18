@@ -13,7 +13,7 @@
  * All functions return null if GEMINI_API_KEY is not configured.
  */
 
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenAI, Type } from '@google/genai'
 import { rawPrisma } from '@/lib/db'
 import type {
   AIEventSuggestion,
@@ -87,22 +87,22 @@ const EVENT_PLANNING_TOOLS = [
   {
     name: 'search_upcoming_events',
     description: 'Search for upcoming events at the school within the next 60 days. Use this to check for date conflicts and see what is already scheduled.',
-    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+    parameters: { type: Type.OBJECT, properties: {}, required: [] as string[] },
   },
   {
     name: 'list_buildings_and_rooms',
     description: 'List all buildings and rooms available at the school. Use this to suggest appropriate venues for the event.',
-    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+    parameters: { type: Type.OBJECT, properties: {}, required: [] as string[] },
   },
   {
     name: 'list_event_templates',
     description: 'List saved event templates from past events. If a similar event was done before, use the template as a starting point for schedule, tasks, and budget.',
-    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+    parameters: { type: Type.OBJECT, properties: {}, required: [] as string[] },
   },
   {
     name: 'get_school_info',
     description: 'Get school/organization details including name, grade levels, and campus info. Useful for tailoring the event to the school context.',
-    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+    parameters: { type: Type.OBJECT, properties: {}, required: [] as string[] },
   },
 ]
 
