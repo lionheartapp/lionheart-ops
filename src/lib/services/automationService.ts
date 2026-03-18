@@ -50,9 +50,7 @@ export async function processRegistrationReminders(): Promise<{ sent: number }> 
           organization: { select: { name: true } },
           registrations: {
             where: { status: 'REGISTERED' },
-            include: {
-              user: { select: { id: true, email: true, firstName: true } },
-            },
+            select: { id: true, email: true, firstName: true },
           },
         },
       })
@@ -66,28 +64,16 @@ export async function processRegistrationReminders(): Promise<{ sent: number }> 
           : 'soon'
 
         for (const reg of (event.registrations as any[]) || []) {
-          const user = reg.user
-          if (!user?.id) continue
+          if (!reg.email) continue
 
-          // In-app notification (deduped by notificationService)
-          notificationService.createNotification({
-            userId: user.id,
-            type: 'event_invite',
-            title: `Reminder: "${event.title}" is in ${window.label}`,
-            body: `${event.title} is happening ${eventDate}. Make sure you have everything ready!`,
-            linkUrl: `/events/${event.id}`,
-          })
-
-          // Email reminder
-          if (user.email) {
-            sendEventInviteEmail({
-              to: user.email,
-              eventTitle: event.title as string,
-              orgName,
-              eventLink: `/events/${event.id}`,
-              eventDate,
-            }).catch(() => {})
-          }
+          // Email reminder (registrations don't have userId, so email only)
+          sendEventInviteEmail({
+            to: reg.email,
+            eventTitle: event.title as string,
+            orgName,
+            eventLink: `/events/${event.id}`,
+            eventDate,
+          }).catch(() => {})
 
           sent++
         }

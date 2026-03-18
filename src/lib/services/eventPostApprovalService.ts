@@ -43,9 +43,7 @@ export async function runPostApprovalAutomations(ctx: PostApprovalContext): Prom
         organization: { select: { name: true, slug: true } },
         registrations: {
           where: { status: 'REGISTERED' },
-          include: {
-            user: { select: { id: true, email: true, firstName: true } },
-          },
+          select: { id: true, email: true, firstName: true },
         },
       },
     })
@@ -125,37 +123,23 @@ async function notifyAttendees(project: any, orgName: string, eventLink: string)
     : undefined
 
   for (const reg of registrations) {
-    const user = reg.user
-    if (!user?.id) continue
+    if (!reg.email) continue
 
     try {
-      // In-app notification
-      notificationService.createNotification({
-        userId: user.id,
-        type: 'event_invite',
-        title: `"${project.title}" is confirmed!`,
-        body: eventDate
-          ? `The event is scheduled for ${eventDate}. Check the event page for full details.`
-          : 'The event has been confirmed. Check the event page for details.',
-        linkUrl: eventLink,
+      // Email invitation (registrations store email directly, no userId)
+      sendEventInviteEmail({
+        to: reg.email,
+        eventTitle: project.title,
+        orgName,
+        eventLink,
+        eventDate,
+        eventTime,
+        eventId: project.id,
+      }).catch((err) => {
+        log.error({ err, email: reg.email }, 'Failed to send invite email to attendee')
       })
-
-      // Email invitation
-      if (user.email) {
-        sendEventInviteEmail({
-          to: user.email,
-          eventTitle: project.title,
-          orgName,
-          eventLink,
-          eventDate,
-          eventTime,
-          eventId: project.id,
-        }).catch((err) => {
-          log.error({ err, userId: user.id }, 'Failed to send invite email to attendee')
-        })
-      }
     } catch (err) {
-      log.error({ err, userId: user.id }, 'Failed to notify attendee')
+      log.error({ err, email: reg.email }, 'Failed to notify attendee')
     }
   }
 }
