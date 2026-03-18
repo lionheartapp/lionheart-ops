@@ -69,6 +69,8 @@ export async function POST(req: NextRequest) {
         startsAt,
         endsAt,
         isMultiDay: false,
+        requiresAV: false,
+        requiresFacilities: false,
         expectedAttendance: submission.expectedAttendance ?? undefined,
         calendarId: calendarId ?? undefined,
       }
