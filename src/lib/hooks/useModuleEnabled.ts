@@ -72,5 +72,5 @@ export function useModuleEnabled(moduleId: string): {
   const { data, isLoading, isFetching } = useModules()
   const enabled = data?.some((m) => m.moduleId === moduleId) ?? false
   // Only show loading if we have NO data at all (not even cached)
-  return { enabled, loading: isLoading && !data?.length }
+  return { enabled, loading: isLoading && !(data as TenantModule[] | undefined)?.length }
 }
