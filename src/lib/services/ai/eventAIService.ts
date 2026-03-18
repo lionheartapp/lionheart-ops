@@ -82,6 +82,123 @@ async function callGemini(prompt: string): Promise<string | null> {
 // generateEventFromDescription
 // ---------------------------------------------------------------------------
 
+// ── Tool definitions for event planning with real data ────────────────────
+const EVENT_PLANNING_TOOLS = [
+  {
+    name: 'search_upcoming_events',
+    description: 'Search for upcoming events at the school within the next 60 days. Use this to check for date conflicts and see what is already scheduled.',
+    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+  },
+  {
+    name: 'list_buildings_and_rooms',
+    description: 'List all buildings and rooms available at the school. Use this to suggest appropriate venues for the event.',
+    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+  },
+  {
+    name: 'list_event_templates',
+    description: 'List saved event templates from past events. If a similar event was done before, use the template as a starting point for schedule, tasks, and budget.',
+    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+  },
+  {
+    name: 'get_school_info',
+    description: 'Get school/organization details including name, grade levels, and campus info. Useful for tailoring the event to the school context.',
+    parameters: { type: 'object' as const, properties: {}, required: [] as string[] },
+  },
+]
+
+// Tool execution against the database
+async function executeEventPlanningTool(name: string): Promise<string> {
+  try {
+    switch (name) {
+      case 'search_upcoming_events': {
+        const now = new Date()
+        const sixtyDaysOut = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000)
+        const events = await rawPrisma.calendarEvent.findMany({
+          where: {
+            startTime: { gte: now, lte: sixtyDaysOut },
+            deletedAt: null,
+            calendarStatus: { in: ['CONFIRMED', 'TENTATIVE', 'PENDING_APPROVAL'] },
+          },
+          select: { title: true, startTime: true, endTime: true, locationText: true, isAllDay: true },
+          orderBy: { startTime: 'asc' },
+          take: 30,
+        })
+        return JSON.stringify({ events: events.map((e: any) => ({
+          title: e.title,
+          start: e.startTime?.toISOString().split('T')[0],
+          end: e.endTime?.toISOString().split('T')[0],
+          location: e.locationText,
+          allDay: e.isAllDay,
+        })), count: events.length })
+      }
+
+      case 'list_buildings_and_rooms': {
+        const buildings = await rawPrisma.building.findMany({
+          where: { deletedAt: null },
+          select: {
+            name: true,
+            areas: {
+              where: { deletedAt: null },
+              select: {
+                name: true,
+                rooms: {
+                  where: { deletedAt: null, isActive: true },
+                  select: { displayName: true, roomNumber: true },
+                  take: 10,
+                },
+              },
+              take: 5,
+            },
+          },
+          take: 10,
+        })
+        return JSON.stringify({ buildings: buildings.map((b: any) => ({
+          name: b.name,
+          areas: b.areas?.map((a: any) => ({
+            name: a.name,
+            rooms: a.rooms?.map((r: any) => r.displayName || r.roomNumber),
+          })),
+        })) })
+      }
+
+      case 'list_event_templates': {
+        const templates = await rawPrisma.eventTemplate.findMany({
+          where: { deletedAt: null },
+          select: { name: true, description: true, eventType: true },
+          orderBy: { usageCount: 'desc' },
+          take: 10,
+        })
+        return JSON.stringify({ templates: templates.map((t: any) => ({
+          name: t.name,
+          description: t.description,
+          type: t.eventType,
+        })), count: templates.length })
+      }
+
+      case 'get_school_info': {
+        const org = await rawPrisma.organization.findFirst({
+          select: { name: true, slug: true },
+        })
+        const campuses = await rawPrisma.campus.findMany({
+          where: { isActive: true },
+          select: { name: true },
+          take: 5,
+        })
+        return JSON.stringify({
+          schoolName: org?.name,
+          campuses: campuses.map((c: any) => c.name),
+        })
+      }
+
+      default:
+        return JSON.stringify({ error: `Unknown tool: ${name}` })
+    }
+  } catch (err) {
+    console.error(`[eventAIService] Tool ${name} failed:`, err)
+    return JSON.stringify({ error: `Tool failed: ${(err as Error).message}` })
+  }
+}
+
 export async function generateEventFromDescription(
   description: string,
   orgContext?: { existingEvents?: string[] },
@@ -89,6 +206,119 @@ export async function generateEventFromDescription(
   const client = getClient()
   if (!client) return null
 
+  const systemPrompt = `You are Leo, an AI event planner for a school. You help administrators plan events by:
+1. First, use your tools to check the school's calendar, available venues, and past event templates.
+2. Then, generate a detailed event plan based on the user's description AND the real data from the school.
+
+Always check for calendar conflicts and suggest appropriate venues based on actual available buildings/rooms.
+If a similar event template exists, use it as a starting point and adapt it.
+Today's date: ${new Date().toISOString().split('T')[0]}.`
+
+  const outputFormat = `After gathering context from tools, return ONLY valid JSON matching this structure:
+{
+  "title": "Event title",
+  "description": "2-3 sentence event description suitable for parents and staff",
+  "startsAt": "YYYY-MM-DD",
+  "endsAt": "YYYY-MM-DD",
+  "isMultiDay": false,
+  "expectedAttendance": 50,
+  "locationText": "Location or venue (use actual school venue if appropriate)",
+  "suggestedDocs": ["Permission Slip", "Medical Form"],
+  "suggestedTasks": [
+    { "title": "Book venue", "category": "Logistics", "priority": "HIGH" }
+  ],
+  "budgetEstimate": [
+    { "category": "Transportation", "estimatedMin": 500, "estimatedMax": 1200 }
+  ],
+  "scheduleBlocks": [
+    { "dayOffset": 0, "startTime": "08:00", "endTime": "09:00", "title": "Departure", "type": "TRAVEL" }
+  ]
+}
+Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIME.`
+
+  try {
+    const MAX_TOOL_ROUNDS = 4
+    let conversationContents: Array<{ role: string; parts: Array<Record<string, unknown>> }> = [
+      { role: 'user', parts: [{ text: `Plan this event: "${description}"\n\n${outputFormat}` }] },
+    ]
+
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      const result = await client.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: conversationContents as any,
+        config: {
+          systemInstruction: systemPrompt,
+          tools: [{ functionDeclarations: EVENT_PLANNING_TOOLS }],
+        },
+      })
+
+      const parts = result.candidates?.[0]?.content?.parts || []
+      const functionCalls: Array<{ name: string; args: Record<string, unknown> }> = []
+      let textResponse = ''
+
+      for (const part of parts) {
+        if ((part as any).text) textResponse += (part as any).text
+        if ((part as any).functionCall) {
+          functionCalls.push({
+            name: (part as any).functionCall.name,
+            args: (part as any).functionCall.args || {},
+          })
+        }
+      }
+
+      // If no function calls, we have the final answer
+      if (functionCalls.length === 0) {
+        const jsonStr = extractJSON(textResponse)
+        if (!jsonStr) return null
+        return JSON.parse(jsonStr) as AIEventSuggestion
+      }
+
+      // Execute function calls and feed results back
+      conversationContents.push({
+        role: 'model',
+        parts: functionCalls.map((fc) => ({
+          functionCall: { name: fc.name, args: fc.args },
+        })),
+      })
+
+      const functionResponses: Array<Record<string, unknown>> = []
+      for (const fc of functionCalls) {
+        const toolResult = await executeEventPlanningTool(fc.name)
+        functionResponses.push({
+          functionResponse: { name: fc.name, response: { content: toolResult } },
+        })
+      }
+
+      conversationContents.push({ role: 'user', parts: functionResponses })
+    }
+
+    // Fallback: if we exhausted rounds, try one final call without tools
+    const finalResult = await client.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: conversationContents as any,
+      config: { systemInstruction: systemPrompt },
+    })
+
+    const finalText = finalResult.text ?? ''
+    const jsonStr = extractJSON(finalText)
+    if (!jsonStr) return null
+    return JSON.parse(jsonStr) as AIEventSuggestion
+  } catch (err) {
+    console.error('[eventAIService] generateEventFromDescription with tools failed:', err)
+
+    // Fallback: try simple prompt without tools
+    return generateEventFromDescriptionSimple(description, orgContext)
+  }
+}
+
+/**
+ * Fallback: simple prompt-based generation without tool calling.
+ * Used when the tool-augmented approach fails.
+ */
+async function generateEventFromDescriptionSimple(
+  description: string,
+  orgContext?: { existingEvents?: string[] },
+): Promise<AIEventSuggestion | null> {
   const existingEventsHint =
     orgContext?.existingEvents?.length
       ? `\nExisting upcoming events at this school (for context): ${orgContext.existingEvents.slice(0, 5).join(', ')}`
@@ -124,12 +354,8 @@ Return ONLY valid JSON matching this exact structure (no markdown, no extra text
   ]
 }
 
-Common school event document types: Permission Slip, Medical/Emergency Form, Media Release, Code of Conduct, Financial Aid Form, Liability Waiver.
-Common task categories: Logistics, Communications, Venue, Volunteers, Transportation, Food, Safety, Finance.
 Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIME.
-Budget categories: Transportation, Food & Catering, Accommodations, Activities & Fees, Supplies & Materials, Staffing, Entertainment, Miscellaneous.
-
-Today's date context: Use realistic future dates for the event.
+Today's date: ${new Date().toISOString().split('T')[0]}. Use realistic future dates.
 JSON:`
 
   const responseText = await callGemini(prompt)
@@ -140,7 +366,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIEventSuggestion
   } catch (err) {
-    console.error('[eventAIService] Failed to parse generateEventFromDescription response:', err)
+    console.error('[eventAIService] Simple fallback parse failed:', err)
     return null
   }
 }
