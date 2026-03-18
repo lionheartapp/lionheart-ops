@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Component, type ReactNode, type ErrorInfo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
@@ -27,6 +27,45 @@ import { EventCommsTab } from './EventCommsTab'
 import { RegistrationTab } from './project/RegistrationTab'
 import { PresenceBar } from './comms/PresenceBar'
 import type { EventProject } from '@/lib/hooks/useEventProject'
+
+// ─── Tab Error Boundary ──────────────────────────────────────────────────────
+
+interface TabErrorState { hasError: boolean; error: Error | null }
+
+class TabErrorBoundary extends Component<{ children: ReactNode; tabName: string }, TabErrorState> {
+  constructor(props: { children: ReactNode; tabName: string }) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): TabErrorState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error(`[TabErrorBoundary] ${this.props.tabName} tab crashed:`, error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 text-center">
+          <p className="text-sm font-semibold text-gray-900 mb-2">This tab encountered an error</p>
+          <p className="text-xs text-red-600 font-mono bg-red-50 p-3 rounded-lg mb-4 max-w-xl mx-auto break-words">
+            {this.state.error?.message || 'Unknown error'}
+          </p>
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 cursor-pointer"
+          >
+            Try Again
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -228,7 +267,9 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
           animate="visible"
           exit="exit"
         >
-          {renderTab()}
+          <TabErrorBoundary tabName={activeTab} key={`error-${activeTab}`}>
+            {renderTab()}
+          </TabErrorBoundary>
         </motion.div>
       </AnimatePresence>
     </div>
