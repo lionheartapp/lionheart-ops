@@ -1090,7 +1090,7 @@ export default function Sidebar({
                     aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
                   >
                     <Wrench className="w-5 h-5 flex-shrink-0 text-slate-600" aria-hidden="true" />
-                    <span className="text-sm font-semibold text-slate-700">Maintenance</span>
+                    <span className="text-sm text-slate-600">Maintenance</span>
                     <motion.span
                       className="ml-auto block"
                       animate={{ rotate: facilitiesOpen ? 180 : 0 }}
@@ -1282,7 +1282,7 @@ export default function Sidebar({
                     aria-label={itOpen ? 'Collapse IT Help Desk' : 'Expand IT Help Desk'}
                   >
                     <Monitor className="w-5 h-5 flex-shrink-0 text-slate-600" aria-hidden="true" />
-                    <span className="text-sm font-semibold text-slate-700">IT Help Desk</span>
+                    <span className="text-sm text-slate-600">IT Help Desk</span>
                     <motion.span
                       className="ml-auto block"
                       animate={{ rotate: itOpen ? 180 : 0 }}
@@ -1627,13 +1627,19 @@ export default function Sidebar({
               <button
                 key={tab.id}
                 onClick={() => handleSettingsTabClick(tab.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+                className={`relative w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                   isTabActive
-                    ? 'bg-white/50 text-primary-600 font-medium'
-                    : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+                    ? 'text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-slate-400'}`} />
+                {isTabActive && (
+                  <span
+                    className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
+                    style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
+                  />
+                )}
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-indigo-500' : 'text-gray-400'}`} />
                 {tab.label}
               </button>
             )
@@ -1655,13 +1661,19 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={() => handleSettingsTabClick(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  className={`relative w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset ${
                     isTabActive
-                      ? 'bg-white/50 text-primary-600 font-medium'
-                      : 'text-slate-500 hover:bg-white/30 hover:text-slate-700'
+                      ? 'text-indigo-600'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-primary-600' : 'text-slate-400'}`} />
+                  {isTabActive && (
+                    <span
+                      className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
+                      style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
+                    />
+                  )}
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-indigo-500' : 'text-gray-400'}`} />
                   {tab.label}
                 </button>
               )
