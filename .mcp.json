@@ -3,6 +3,14 @@
     "playwright": {
       "command": "npx",
       "args": ["@playwright/mcp@latest"]
+    },
+    "lionheart": {
+      "command": "npx",
+      "args": ["tsx", "mcp-server/src/index.ts"],
+      "env": {
+        "LIONHEART_API_URL": "http://localhost:3004",
+        "LIONHEART_API_KEY": ""
+      }
     }
   }
 }
