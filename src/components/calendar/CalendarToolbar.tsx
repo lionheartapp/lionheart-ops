@@ -279,7 +279,63 @@ export default function CalendarToolbar({
           )}
         </div>
 
-        {/* Filter button — shown when there are categories or athletics is visible */}
+        {/* Category filter chips — always visible for quick toggling */}
+        {(categories.length > 0 || athleticsVisible) && (
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-1 min-w-0" style={{ scrollbarWidth: 'none' }}>
+            {categories.map((cat) => {
+              const isActive = calendarFilter.categoryIds.has(cat.id)
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    const next = new Set(calendarFilter.categoryIds)
+                    if (isActive) next.delete(cat.id)
+                    else next.add(cat.id)
+                    onCalendarFilterChange({ ...calendarFilter, categoryIds: next })
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer border flex-shrink-0 ${
+                    isActive
+                      ? 'text-white border-transparent'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                  style={isActive ? { backgroundColor: cat.color, borderColor: cat.color } : undefined}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: isActive ? 'rgba(255,255,255,0.7)' : cat.color }}
+                  />
+                  {cat.name}
+                </button>
+              )
+            })}
+            {/* Athletics chip — shown when athletics module is active */}
+            {athleticsVisible && (
+              <button
+                onClick={() => {
+                  // Athletics uses the sportIds filter — toggle all sports on/off
+                  const hasAnySport = calendarFilter.sportIds.size > 0
+                  onCalendarFilterChange({
+                    ...calendarFilter,
+                    sportIds: hasAnySport ? new Set() : new Set(['__all__']),
+                  })
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer border flex-shrink-0 ${
+                  calendarFilter.sportIds.size > 0
+                    ? 'bg-orange-500 text-white border-orange-500'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <span
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: calendarFilter.sportIds.size > 0 ? 'rgba(255,255,255,0.7)' : '#f97316' }}
+                />
+                Athletics
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Filter button — opens advanced filter popover */}
         {(categories.length > 0 || athleticsVisible) && (
           <>
             <button
