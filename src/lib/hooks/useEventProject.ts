@@ -284,6 +284,32 @@ export function useResubmitForApproval(id: string | null | undefined) {
 }
 
 /**
+ * Fetch EventProjects with a PENDING gate for a specific team.
+ */
+export function usePendingGateApprovals(gateType: 'av' | 'facilities' | 'admin', enabled = true) {
+  return useQuery<EventProject[]>({
+    queryKey: ['pending-gates', gateType],
+    queryFn: () => fetchApi<EventProject[]>(`/api/events/projects/pending-gates?gateType=${gateType}`),
+    enabled,
+    staleTime: 30_000,
+  })
+}
+
+/**
+ * Fetch the count of pending gate approvals for a specific team.
+ * Lightweight — used for sidebar badge counts.
+ */
+export function usePendingGateCount(gateType: 'av' | 'facilities' | 'admin', enabled = true) {
+  return useQuery<{ count: number }>({
+    queryKey: ['pending-gates-count', gateType],
+    queryFn: () => fetchApi<{ count: number }>(`/api/events/projects/pending-gates?gateType=${gateType}&countOnly=true`),
+    enabled,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  })
+}
+
+/**
  * Fetch the activity log for an event project.
  */
 export function useEventActivity(id: string | null | undefined) {

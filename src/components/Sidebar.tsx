@@ -48,6 +48,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { useModuleEnabled, useModules } from '@/lib/hooks/useModuleEnabled'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
+import { usePendingGateCount } from '@/lib/hooks/useEventProject'
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 import MeetWithSection from '@/components/calendar/MeetWithSection'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -449,6 +450,12 @@ export default function Sidebar({
   const isOnMaintenanceTeam = perms ? isOnTeam(perms, 'maintenance') : optimisticTeamSlugs.includes('maintenance')
   const isOnITTeam = perms ? isOnTeam(perms, 'it-support') : optimisticTeamSlugs.includes('it-support')
   const isOnAVTeam = perms ? isOnTeam(perms, 'av-production') : optimisticTeamSlugs.includes('av-production')
+
+  // Pending event approval counts for sidebar badges
+  const canApproveFacilitiesGate = isOnMaintenanceTeam || canManageMaintenance
+  const canApproveAVGate = isOnAVTeam || canManageWorkspace
+  const { data: facilitiesGateCount } = usePendingGateCount('facilities', canApproveFacilitiesGate)
+  const { data: avGateCount } = usePendingGateCount('av', canApproveAVGate)
 
   // Measure and position the facilities indicator.
   //
@@ -1181,6 +1188,31 @@ export default function Sidebar({
                                 <span className="text-sm">Work Orders</span>
                               </PrefetchLink>
                           )}
+                          {/* Event Approvals — events needing Facilities sign-off */}
+                          {(isOnMaintenanceTeam || canManageMaintenance) && (
+                              <PrefetchLink
+                                href="/maintenance/event-approvals"
+                                data-facility-active={pathname === '/maintenance/event-approvals' ? 'true' : undefined}
+                                onClick={() => {
+                                  setSettingsOpen(false)
+                                  setAthleticsOpen(false)
+                                  setIsOpen(false)
+                                }}
+                                className={`flex items-center justify-between pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                                  pathname === '/maintenance/event-approvals'
+                                    ? 'text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-800'
+                                }`}
+                                aria-current={pathname === '/maintenance/event-approvals' ? 'page' : undefined}
+                              >
+                                <span className="text-sm">Event Approvals</span>
+                                {(facilitiesGateCount?.count ?? 0) > 0 && (
+                                  <span className="ml-auto flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none">
+                                    {facilitiesGateCount!.count}
+                                  </span>
+                                )}
+                              </PrefetchLink>
+                          )}
                           {/* Inventory — visible to team members and admins with manage + read permission */}
                           {canReadInventory && (isOnMaintenanceTeam || canManageMaintenance) && (
                               <PrefetchLink
@@ -1501,6 +1533,36 @@ export default function Sidebar({
                   >
                     <Package className={`w-5 h-5 flex-shrink-0 ${pathname === '/inventory' && !pageSearchParams.get('dept') ? 'text-primary-500' : ''}`} aria-hidden="true" />
                     <span className="text-sm">AV Inventory</span>
+                  </PrefetchLink>
+                </li>
+              )}
+
+              {/* AV Event Approvals — events needing A/V sign-off */}
+              {(isOnAVTeam || canManageWorkspace) && (
+                <li>
+                  <PrefetchLink
+                    href="/av/event-approvals"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      setAthleticsOpen(false)
+                      setFacilitiesOpen(false)
+                      setItOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                      pathname === '/av/event-approvals'
+                        ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                        : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                    }`}
+                    aria-current={pathname === '/av/event-approvals' ? 'page' : undefined}
+                  >
+                    <Calendar className={`w-5 h-5 flex-shrink-0 ${pathname === '/av/event-approvals' ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                    <span className="text-sm flex-1">AV Event Approvals</span>
+                    {(avGateCount?.count ?? 0) > 0 && (
+                      <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none">
+                        {avGateCount!.count}
+                      </span>
+                    )}
                   </PrefetchLink>
                 </li>
               )}

@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
+import * as notificationService from '@/lib/services/notificationService'
 import type {
   CreateEventProjectInput,
   UpdateEventProjectInput,
@@ -100,6 +102,11 @@ export async function createEventProject(
     initialStatus,
   })
 
+  // For direct requests with gates, notify relevant teams (fire-and-forget)
+  if (isDirectRequest && approvalGates) {
+    notifyTeamsOfPendingApproval(project.title as string, project.id as string, approvalGates).catch(() => {})
+  }
+
   // For non-direct-request sources, auto-confirm by creating the CalendarEvent bridge
   if (!isDirectRequest) {
     await confirmEventProject(project.id, createdById)
@@ -178,6 +185,44 @@ export async function listEventProjects(filters?: {
     },
     orderBy: { startsAt: 'asc' },
   })
+}
+
+/**
+ * Returns EventProjects that have a PENDING gate for the given gate type.
+ * Used by team-specific approval queues (AV, Facilities).
+ */
+export async function listPendingGateApprovals(gateType: GateType): Promise<Record<string, unknown>[]> {
+  // Fetch all PENDING_APPROVAL projects that have approvalGates
+  const projects = await db.eventProject.findMany({
+    where: {
+      status: 'PENDING_APPROVAL',
+      approvalGates: { not: null },
+    },
+    include: {
+      createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+      building: { select: { id: true, name: true } },
+      room: { select: { id: true, name: true } },
+      _count: { select: { tasks: true, scheduleBlocks: true } },
+    },
+    orderBy: { startsAt: 'asc' },
+  })
+
+  // Filter to only those with a PENDING gate of the requested type
+  return projects.filter((p: any) => {
+    const gates = p.approvalGates as ApprovalGates | null
+    if (!gates) return false
+    const gate = gates[gateType]
+    return gate && gate.status === 'PENDING'
+  })
+}
+
+/**
+ * Counts EventProjects with a PENDING gate for the given type.
+ * Used for sidebar badge counts.
+ */
+export async function countPendingGateApprovals(gateType: GateType): Promise<number> {
+  const items = await listPendingGateApprovals(gateType)
+  return items.length
 }
 
 /**
@@ -475,6 +520,9 @@ export async function approveGate(
     gates,
   })
 
+  // Notify the event creator (fire-and-forget)
+  notifyCreatorOfGateChange(eventProjectId, gateType, 'APPROVED').catch(() => {})
+
   // If fully approved, create CalendarEvent bridge + sync
   if (shouldConfirm) {
     await confirmEventProject(eventProjectId, approverId)
@@ -541,6 +589,9 @@ export async function rejectGate(
     gates,
   })
 
+  // Notify the event creator (fire-and-forget)
+  notifyCreatorOfGateChange(eventProjectId, gateType, 'REJECTED', reason).catch(() => {})
+
   return updated
 }
 
@@ -591,7 +642,97 @@ export async function resubmitForApproval(
     gates,
   })
 
+  // Re-notify teams of the resubmission
+  const freshProject = await db.eventProject.findUnique({ where: { id: eventProjectId } })
+  if (freshProject?.approvalGates) {
+    notifyTeamsOfPendingApproval(freshProject.title, eventProjectId, freshProject.approvalGates as ApprovalGates).catch(() => {})
+  }
+
   return updated
+}
+
+// ─── Notification Helpers ────────────────────────────────────────────────────
+
+const GATE_TEAM_SLUGS: Record<string, string> = {
+  av: 'av-production',
+  facilities: 'facility-maintenance',
+}
+
+/**
+ * Notifies team members when an event needs their approval gate.
+ * Looks up team membership by slug and sends in-app notifications.
+ */
+async function notifyTeamsOfPendingApproval(
+  eventTitle: string,
+  eventProjectId: string,
+  gates: ApprovalGates,
+): Promise<void> {
+  for (const [gateKey, gate] of Object.entries(gates)) {
+    if (!gate || gate.status !== 'PENDING' || gateKey === 'admin') continue
+
+    const teamSlug = GATE_TEAM_SLUGS[gateKey]
+    if (!teamSlug) continue
+
+    // Find team members via team slug
+    const team = await rawPrisma.team.findFirst({
+      where: { slug: teamSlug },
+      select: { id: true },
+    })
+    if (!team) continue
+
+    const members = await rawPrisma.userTeam.findMany({
+      where: { teamId: team.id },
+      select: { userId: true },
+    })
+
+    const gateLabel = gateKey === 'av' ? 'A/V Production' : 'Facilities'
+    const linkUrl = gateKey === 'av' ? '/av/event-approvals' : '/maintenance/event-approvals'
+
+    for (const member of members) {
+      notificationService.createNotification({
+        userId: member.userId,
+        type: 'event_invite', // Closest existing notification type
+        title: `Event needs ${gateLabel} approval`,
+        body: `"${eventTitle}" requires ${gateLabel} review before it can proceed.`,
+        linkUrl,
+      })
+    }
+  }
+}
+
+/**
+ * Notifies the event creator when a gate status changes.
+ */
+async function notifyCreatorOfGateChange(
+  eventProjectId: string,
+  gateType: GateType,
+  status: 'APPROVED' | 'REJECTED',
+  reason?: string,
+): Promise<void> {
+  const project = await db.eventProject.findUnique({
+    where: { id: eventProjectId },
+    select: { title: true, createdById: true },
+  })
+  if (!project?.createdById) return
+
+  const gateLabel = gateType === 'av' ? 'A/V Production' : gateType === 'facilities' ? 'Facilities' : 'Admin'
+  const notificationType = status === 'APPROVED' ? 'event_approved' : 'event_rejected'
+  const title = status === 'APPROVED'
+    ? `${gateLabel} approved your event "${project.title}"`
+    : `${gateLabel} sent back your event "${project.title}"`
+  const body = status === 'REJECTED' && reason
+    ? `Reason: ${reason}`
+    : status === 'APPROVED'
+      ? `The ${gateLabel} team has signed off.`
+      : undefined
+
+  notificationService.createNotification({
+    userId: project.createdById,
+    type: notificationType as any,
+    title,
+    body,
+    linkUrl: `/events/${eventProjectId}`,
+  })
 }
 
 /**
