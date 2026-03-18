@@ -2,7 +2,9 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { LayoutPanelLeft, MessageSquare } from 'lucide-react'
+import { fadeInUp } from '@/lib/animations'
 import { AIEventChat } from './AIEventChat'
 import { AIEventPreview } from './AIEventPreview'
 import { useToast } from '@/components/Toast'
@@ -183,7 +185,12 @@ export function AIEventWizard() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between border-b border-slate-200/50">
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="flex-shrink-0 flex items-center justify-between border-b border-slate-200/50"
+      >
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Create with Leo</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -216,7 +223,7 @@ export function AIEventWizard() {
             Preview
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Two-panel layout */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
