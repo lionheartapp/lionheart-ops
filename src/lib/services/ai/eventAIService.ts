@@ -163,7 +163,7 @@ async function executeEventPlanningTool(name: string): Promise<string> {
 
       case 'list_event_templates': {
         const templates = await rawPrisma.eventTemplate.findMany({
-          where: { deletedAt: null },
+          where: {},
           select: { name: true, description: true, eventType: true },
           orderBy: { usageCount: 'desc' },
           take: 10,
