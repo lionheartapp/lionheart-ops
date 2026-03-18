@@ -1619,7 +1619,7 @@ export default function Sidebar({
         <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase px-2 mb-2">
           General
         </p>
-        <nav className="space-y-0.5" aria-label="General settings sections">
+        <nav className="space-y-1" aria-label="General settings sections">
           {generalTabs.map((tab) => {
             const Icon = tab.icon
             const isTabActive = activeSettingsTab === tab.id
@@ -1627,19 +1627,13 @@ export default function Sidebar({
               <button
                 key={tab.id}
                 onClick={() => handleSettingsTabClick(tab.id)}
-                className={`relative w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
+                className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                   isTabActive
-                    ? 'text-indigo-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
                 }`}
               >
-                {isTabActive && (
-                  <span
-                    className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
-                    style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
-                  />
-                )}
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                <Icon className={`w-5 h-5 flex-shrink-0 ${isTabActive ? 'text-primary-500' : ''}`} />
                 {tab.label}
               </button>
             )
@@ -1653,7 +1647,7 @@ export default function Sidebar({
           <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase px-2 mb-2">
             Workspace
           </p>
-          <nav className="space-y-0.5" aria-label="Workspace settings sections">
+          <nav className="space-y-1" aria-label="Workspace settings sections">
             {workspaceTabs.map((tab) => {
               const Icon = tab.icon
               const isTabActive = activeSettingsTab === tab.id
@@ -1661,19 +1655,13 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={() => handleSettingsTabClick(tab.id)}
-                  className={`relative w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                     isTabActive
-                      ? 'text-indigo-600'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
                   }`}
                 >
-                  {isTabActive && (
-                    <span
-                      className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
-                      style={{ background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)' }}
-                    />
-                  )}
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isTabActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${isTabActive ? 'text-primary-500' : ''}`} />
                   {tab.label}
                 </button>
               )
