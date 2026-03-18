@@ -36,7 +36,7 @@ interface CalendarFilterPopoverProps {
   onFilterChange: (filter: CalendarFilter) => void
   categories: CategoryChip[]
   athleticsVisible: boolean
-  allCampuses?: CampusChip[]
+  userCampuses?: CampusChip[]
   visibleAthleticsCampusIds?: Set<string>
   onToggleAthleticsCampus?: (campusId: string) => void
   onToggleAllAthletics?: (enabled: boolean) => void
@@ -77,7 +77,7 @@ export default function CalendarFilterPopover({
   onFilterChange,
   categories,
   athleticsVisible,
-  allCampuses = [],
+  userCampuses = [],
   visibleAthleticsCampusIds = new Set(),
   onToggleAthleticsCampus,
   onToggleAllAthletics,
@@ -190,7 +190,7 @@ export default function CalendarFilterPopover({
       )}
 
       {/* Athletics — toggle on/off with campus selection */}
-      {allCampuses.length > 0 && (
+      {userCampuses.length > 0 && (
         <div className="px-5 py-3 border-t border-slate-100">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Athletics</p>
@@ -207,7 +207,7 @@ export default function CalendarFilterPopover({
           </div>
           {athleticsVisible ? (
             <div className="flex flex-wrap gap-2">
-              {allCampuses.map(({ id, name }) => {
+              {userCampuses.map(({ id, name }) => {
                 const active = visibleAthleticsCampusIds.has(id)
                 return (
                   <button

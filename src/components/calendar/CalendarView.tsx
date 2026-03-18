@@ -37,7 +37,7 @@ import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { useAthleticsCalendarEvents, useAthleticsSports } from '@/lib/hooks/useAthleticsCalendar'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useQuery } from '@tanstack/react-query'
-import { queryOptions } from '@/lib/queries'
+// queryOptions removed — userCampuses uses inline fetch
 import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -242,12 +242,16 @@ export default function CalendarView() {
     : []
 
   // ── Athletics calendar overlay ──────────────────────────────────────
-  // Fetch all campuses for the filter popover
-  const { data: allCampusesRaw = [] } = useQuery(queryOptions.campuses())
-  const allCampuses = useMemo(
-    () => (allCampusesRaw as Array<{ id: string; name: string; isActive: boolean }>).filter((c) => c.isActive),
-    [allCampusesRaw],
-  )
+  // Fetch user's assigned campuses (scoped — falls back to all for admins)
+  const { data: userCampuses = [] } = useQuery<Array<{ id: string; name: string; isPrimary: boolean }>>({
+    queryKey: ['my-campuses'],
+    queryFn: async () => {
+      const res = await fetch('/api/auth/me/campuses', { credentials: 'include' })
+      const json = await res.json()
+      return json.ok ? json.data : []
+    },
+    staleTime: 5 * 60_000,
+  })
 
   const [visibleAthleticsCampusIds, setVisibleAthleticsCampusIds] = useState<Set<string>>(new Set())
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>({
@@ -891,7 +895,7 @@ export default function CalendarView() {
           calendarFilter={calendarFilter}
           onCalendarFilterChange={setCalendarFilter}
           athleticsVisible={anyAthleticsVisible}
-          allCampuses={allCampuses}
+          userCampuses={userCampuses}
           visibleAthleticsCampusIds={visibleAthleticsCampusIds}
           onToggleAthleticsCampus={(campusId: string) => {
             setVisibleAthleticsCampusIds((prev) => {
@@ -903,7 +907,7 @@ export default function CalendarView() {
           }}
           onToggleAllAthletics={(enabled: boolean) => {
             if (enabled) {
-              setVisibleAthleticsCampusIds(new Set(allCampuses.map((c) => c.id)))
+              setVisibleAthleticsCampusIds(new Set(userCampuses.map((c) => c.id)))
             } else {
               setVisibleAthleticsCampusIds(new Set())
             }
