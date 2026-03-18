@@ -523,10 +523,11 @@ export async function approveGate(
   // Notify the event creator (fire-and-forget)
   notifyCreatorOfGateChange(eventProjectId, gateType, 'APPROVED').catch(() => {})
 
-  // If fully approved, create CalendarEvent bridge + sync
+  // If fully approved, create CalendarEvent bridge + sync + post-approval automations
   if (shouldConfirm) {
     await confirmEventProject(eventProjectId, approverId)
 
+    // Google Calendar sync (non-fatal)
     try {
       const { syncEventToCalendar } = await import(
         '@/lib/services/integrations/googleCalendarService'
@@ -538,6 +539,11 @@ export async function approveGate(
     } catch (err) {
       log.error({ err, eventProjectId }, 'Google Calendar sync failed after gate approval — non-fatal')
     }
+
+    // Post-approval automations: notify creator, email attendees, etc. (fire-and-forget)
+    import('@/lib/services/eventPostApprovalService').then(({ runPostApprovalAutomations }) => {
+      runPostApprovalAutomations({ eventProjectId, approverId }).catch(() => {})
+    }).catch(() => {})
   }
 
   return updated
