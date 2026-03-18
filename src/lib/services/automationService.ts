@@ -49,7 +49,7 @@ export async function processRegistrationReminders(): Promise<{ sent: number }> 
         include: {
           organization: { select: { name: true } },
           registrations: {
-            where: { status: 'CONFIRMED' },
+            where: { status: 'REGISTERED' },
             include: {
               user: { select: { id: true, email: true, firstName: true } },
             },

@@ -42,7 +42,7 @@ export async function runPostApprovalAutomations(ctx: PostApprovalContext): Prom
         createdBy: { select: { id: true, email: true, firstName: true, lastName: true } },
         organization: { select: { name: true, slug: true } },
         registrations: {
-          where: { status: 'CONFIRMED' },
+          where: { status: 'REGISTERED' },
           include: {
             user: { select: { id: true, email: true, firstName: true } },
           },
