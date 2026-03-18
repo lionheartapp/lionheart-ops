@@ -42,7 +42,7 @@ export interface EventProject {
   rejectionReason?: string | null
   building?: { id: string; name: string } | null
   area?: { id: string; name: string } | null
-  room?: { id: string; name: string } | null
+  room?: { id: string; displayName?: string | null; roomNumber?: string | null } | null
   campus?: { id: string; name: string } | null
   school?: { id: string; name: string } | null
   createdBy?: {

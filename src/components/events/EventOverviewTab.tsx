@@ -518,7 +518,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
                   <p className="text-xs text-gray-500">
                     {project.building.name}
                     {project.area && ` · ${project.area.name}`}
-                    {project.room && ` · ${project.room.name}`}
+                    {project.room && ` · ${project.room.displayName || project.room.roomNumber || 'Room'}`}
                   </p>
                 )}
               </div>
