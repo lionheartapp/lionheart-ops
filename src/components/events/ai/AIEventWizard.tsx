@@ -183,7 +183,7 @@ export function AIEventWizard() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-200/50">
+      <div className="flex-shrink-0 flex items-center justify-between border-b border-slate-200/50">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Create with Leo</h1>
           <p className="text-sm text-slate-500 mt-1">
