@@ -68,6 +68,18 @@ export default function LoginForm({ organizationId, organizationName, organizati
       localStorage.setItem('org-school-type', orgData?.gradeLevel || '')
       localStorage.setItem('org-logo-url', orgData?.logoUrl || '')
 
+      // Prefetch modules so add-ons render instantly on first page load
+      fetch('/api/modules', {
+        headers: { Authorization: `Bearer ${authToken || 'cookie-auth'}` },
+      })
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.ok && Array.isArray(json.data)) {
+            localStorage.setItem('cached-modules', JSON.stringify(json.data))
+          }
+        })
+        .catch(() => {}) // Non-fatal — will fetch on first useModules() call
+
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error')

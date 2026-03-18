@@ -122,6 +122,16 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         localStorage.setItem('org-logo-url', org.logoUrl || '')
         localStorage.setItem('dashboard-mode', user.dashboardMode || 'default')
 
+        // Prefetch modules for instant add-on rendering
+        fetch('/api/modules', { credentials: 'include' })
+          .then((res) => res.json())
+          .then((json) => {
+            if (json.ok && Array.isArray(json.data)) {
+              localStorage.setItem('cached-modules', JSON.stringify(json.data))
+            }
+          })
+          .catch(() => {})
+
         // Impersonation state
         if (isImpersonating) {
           localStorage.setItem('is-impersonating', 'true')
