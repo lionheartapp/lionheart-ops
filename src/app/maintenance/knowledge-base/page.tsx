@@ -27,15 +27,15 @@ export default function KnowledgeBasePage() {
             className="flex items-start justify-between gap-4 flex-wrap"
           >
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Knowledge Base</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-2xl font-semibold text-slate-900">Knowledge Base</h1>
+              <p className="text-sm text-slate-500">
                 Equipment guides, SOPs, calculators, and reference articles
               </p>
             </div>
             <button
               type="button"
               onClick={() => setEditorOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer active:scale-[0.97]"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer active:scale-[0.97]"
             >
               <Plus className="w-4 h-4" />
               New Article

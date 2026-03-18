@@ -49,13 +49,13 @@ function StatCard({ label, value, sub, variant = 'default', icon: Icon }: StatCa
     default: 'bg-indigo-50 text-indigo-500',
     positive: 'bg-green-50 text-green-500',
     negative: 'bg-red-50 text-red-500',
-    neutral: 'bg-gray-50 text-gray-500',
+    neutral: 'bg-slate-50 text-slate-500',
   }
   const valueColor: Record<string, string> = {
-    default: 'text-gray-900',
+    default: 'text-slate-900',
     positive: 'text-green-700',
     negative: 'text-red-700',
-    neutral: 'text-gray-700',
+    neutral: 'text-slate-700',
   }
 
   return (
@@ -65,9 +65,9 @@ function StatCard({ label, value, sub, variant = 'default', icon: Icon }: StatCa
           <Icon className="w-4.5 h-4.5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-gray-500 font-medium">{label}</p>
+          <p className="text-xs text-slate-500 font-medium">{label}</p>
           <p className={`text-lg font-bold font-mono mt-0.5 ${valueColor[variant]}`}>{value}</p>
-          {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+          {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
         </div>
       </div>
     </div>
@@ -142,31 +142,31 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
 
       {/* ── Per-category breakdown ── */}
       <motion.div variants={listItem} className="ui-glass-table rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-800">Category Breakdown</h3>
+        <div className="px-5 py-4 border-b border-slate-100">
+          <h3 className="text-sm font-semibold text-slate-800">Category Breakdown</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
                   Category
                 </th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
                   Budgeted
                 </th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
                   Actual
                 </th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
                   Variance
                 </th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
                   % Used
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-50">
               {report.categories.map((cat) => {
                 const catVariance = cat.totalBudgeted - cat.totalActual
                 const catOver = catVariance < 0
@@ -178,17 +178,17 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
                     : 0
 
                 return (
-                  <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-5 py-3">
-                      <span className="font-medium text-gray-800">{cat.name}</span>
-                      <span className="ml-2 text-xs text-gray-400">
+                      <span className="font-medium text-slate-800">{cat.name}</span>
+                      <span className="ml-2 text-xs text-slate-400">
                         {cat.lineItemCount} {cat.lineItemCount === 1 ? 'item' : 'items'}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-right font-mono text-xs text-gray-700">
+                    <td className="px-5 py-3 text-right font-mono text-xs text-slate-700">
                       {formatCurrency(cat.totalBudgeted)}
                     </td>
-                    <td className="px-5 py-3 text-right font-mono text-xs text-gray-700">
+                    <td className="px-5 py-3 text-right font-mono text-xs text-slate-700">
                       {formatCurrency(cat.totalActual)}
                     </td>
                     <td
@@ -208,7 +208,7 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* Mini progress bar */}
-                        <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="w-16 h-1.5 rounded-full bg-slate-100 overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${
                               pctUsed > 100 ? 'bg-red-500' : pctUsed > 80 ? 'bg-amber-500' : 'bg-green-500'
@@ -218,7 +218,7 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
                         </div>
                         <span
                           className={`text-xs font-semibold ${
-                            pctUsed > 100 ? 'text-red-600' : pctUsed > 80 ? 'text-amber-600' : 'text-gray-600'
+                            pctUsed > 100 ? 'text-red-600' : pctUsed > 80 ? 'text-amber-600' : 'text-slate-600'
                           }`}
                         >
                           {formatPercent(pctUsed)}
@@ -231,12 +231,12 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
             </tbody>
             {/* Totals row */}
             <tfoot>
-              <tr className="bg-gray-900">
+              <tr className="bg-slate-900">
                 <td className="px-5 py-3 text-sm font-semibold text-white">Grand Total</td>
-                <td className="px-5 py-3 text-right font-mono text-xs font-semibold text-gray-300">
+                <td className="px-5 py-3 text-right font-mono text-xs font-semibold text-slate-300">
                   {formatCurrency(report.totalBudgeted)}
                 </td>
-                <td className="px-5 py-3 text-right font-mono text-xs font-semibold text-gray-300">
+                <td className="px-5 py-3 text-right font-mono text-xs font-semibold text-slate-300">
                   {formatCurrency(report.totalActual)}
                 </td>
                 <td
@@ -253,7 +253,7 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
                     {formatCurrency(Math.abs(variance))}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-right text-xs text-gray-400">
+                <td className="px-5 py-3 text-right text-xs text-slate-400">
                   {report.totalBudgeted > 0
                     ? formatPercent((report.totalActual / report.totalBudgeted) * 100)
                     : '—'}
@@ -271,24 +271,24 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
             <Users className="w-4.5 h-4.5 text-indigo-500" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-800">Per-Participant Cost</h3>
-            <p className="text-xs text-gray-400">Total actual costs divided by registrations</p>
+            <h3 className="text-sm font-semibold text-slate-800">Per-Participant Cost</h3>
+            <p className="text-xs text-slate-400">Total actual costs divided by registrations</p>
           </div>
         </div>
 
         {report.registrationCount === 0 ? (
-          <p className="text-sm text-gray-400 py-2">
+          <p className="text-sm text-slate-400 py-2">
             No registrations yet. Per-participant cost will appear once registrations are confirmed.
           </p>
         ) : (
           <div className="grid grid-cols-3 gap-4">
-            <div className="text-center py-3 px-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Registrations</p>
-              <p className="text-2xl font-bold text-gray-900">{report.registrationCount}</p>
+            <div className="text-center py-3 px-4 bg-slate-50 rounded-xl">
+              <p className="text-xs text-slate-500 mb-1">Registrations</p>
+              <p className="text-2xl font-bold text-slate-900">{report.registrationCount}</p>
             </div>
-            <div className="text-center py-3 px-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Total Actual Cost</p>
-              <p className="text-lg font-bold text-gray-900 font-mono">
+            <div className="text-center py-3 px-4 bg-slate-50 rounded-xl">
+              <p className="text-xs text-slate-500 mb-1">Total Actual Cost</p>
+              <p className="text-lg font-bold text-slate-900 font-mono">
                 {formatCurrency(report.totalActual)}
               </p>
             </div>

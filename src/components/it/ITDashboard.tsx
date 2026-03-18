@@ -98,7 +98,7 @@ const SOURCE_COLORS: Record<string, string> = {
 function PanelHeader({ title }: { title: string }) {
   return (
     <div className="flex items-center justify-between mb-4">
-      <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+      <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
     </div>
   )
 }
@@ -107,8 +107,8 @@ function EmptyState({ heading, description }: { heading: string; description: st
   return (
     <div className="flex flex-col items-center justify-center py-6 text-center">
       <IllustrationTickets className="w-40 h-32 mb-2" />
-      <p className="text-sm font-medium text-gray-500 mb-1">{heading}</p>
-      <p className="text-xs text-gray-400 max-w-[200px] leading-relaxed">{description}</p>
+      <p className="text-sm font-medium text-slate-500 mb-1">{heading}</p>
+      <p className="text-xs text-slate-400 max-w-[200px] leading-relaxed">{description}</p>
     </div>
   )
 }
@@ -147,14 +147,14 @@ function HorizontalBarChart({
         const pct = Math.round((count / maxCount) * 100)
         return (
           <div key={item.key} className="flex items-center gap-3">
-            <span className="text-xs text-gray-500 w-28 flex-shrink-0 truncate">{item.label}</span>
-            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <span className="text-xs text-slate-500 w-28 flex-shrink-0 truncate">{item.label}</span>
+            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${pct}%`, backgroundColor: item.color }}
               />
             </div>
-            <span className="text-xs text-gray-400 w-5 text-right flex-shrink-0">
+            <span className="text-xs text-slate-400 w-5 text-right flex-shrink-0">
               {count}
             </span>
           </div>
@@ -173,11 +173,11 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
     return (
       <div className="ui-glass rounded-2xl p-10 flex flex-col items-center justify-center text-center">
         <AlertTriangle className="w-8 h-8 text-red-400 mb-3" />
-        <p className="text-sm font-medium text-gray-600 mb-1">Unable to load dashboard data</p>
-        <p className="text-xs text-gray-400 mb-4">Check your connection and try again.</p>
+        <p className="text-sm font-medium text-slate-600 mb-1">Unable to load dashboard data</p>
+        <p className="text-xs text-slate-400 mb-4">Check your connection and try again.</p>
         <button
           onClick={() => refetch()}
-          className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all inline-flex items-center gap-2"
+          className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all inline-flex items-center gap-2"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Retry
@@ -226,10 +226,10 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
                   <Icon className={`w-5 h-5 ${card.iconColor}`} />
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">
+              <div className="text-3xl font-bold text-slate-900 mb-1">
                 <AnimatedCounter value={card.value} />
               </div>
-              <p className="text-xs text-gray-500">{card.label}</p>
+              <p className="text-xs text-slate-500">{card.label}</p>
             </motion.div>
           )
         })}
@@ -313,10 +313,10 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
                   <UserX className="w-6 h-6 text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-slate-900">
                     <AnimatedCounter value={d.unassignedCount ?? 0} />
                   </p>
-                  <p className="text-xs text-gray-400">tickets need assignment</p>
+                  <p className="text-xs text-slate-400">tickets need assignment</p>
                 </div>
               </div>
             ) : (
@@ -336,10 +336,10 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
                   <Clock className="w-6 h-6 text-primary-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-slate-900">
                     {formatResolutionTime(d.avgResolutionHours)}
                   </p>
-                  <p className="text-xs text-gray-400">average across completed tickets</p>
+                  <p className="text-xs text-slate-400">average across completed tickets</p>
                 </div>
               </div>
             ) : (
@@ -363,17 +363,17 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
                 <button
                   key={a.id}
                   onClick={() => onViewTicket(a.ticketId)}
-                  className="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-gray-50/70 transition-colors cursor-pointer"
+                  className="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50/70 transition-colors cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Activity className="w-3.5 h-3.5 text-gray-400" />
+                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Activity className="w-3.5 h-3.5 text-slate-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 truncate">
-                      <span className="font-mono text-xs text-gray-400 mr-1.5">{a.ticketNumber}</span>
+                    <p className="text-sm text-slate-700 truncate">
+                      <span className="font-mono text-xs text-slate-400 mr-1.5">{a.ticketNumber}</span>
                       {a.content || a.type.replace(/_/g, ' ').toLowerCase()}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-slate-400 mt-0.5">
                       {a.actorName ?? 'System'} · {relativeTime(a.createdAt)}
                     </p>
                   </div>
@@ -398,10 +398,10 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
                 const pct = total > 0 ? Math.round((count / total) * 100) : 0
                 return (
                   <div key={source} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-24 flex-shrink-0 truncate">
+                    <span className="text-xs text-slate-500 w-24 flex-shrink-0 truncate">
                       {SOURCE_LABELS[source] ?? source}
                     </span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-700"
                         style={{
@@ -410,7 +410,7 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
                         }}
                       />
                     </div>
-                    <span className="text-xs text-gray-400 w-12 text-right flex-shrink-0">
+                    <span className="text-xs text-slate-400 w-12 text-right flex-shrink-0">
                       {count} ({pct}%)
                     </span>
                   </div>

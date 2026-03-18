@@ -179,9 +179,9 @@ function FeatureValue({ value }: { value: boolean | string }) {
     return <Check className="w-5 h-5 text-primary-600 mx-auto" aria-label="Included" />
   }
   if (value === false) {
-    return <X className="w-5 h-5 text-gray-300 mx-auto" aria-label="Not included" />
+    return <X className="w-5 h-5 text-slate-300 mx-auto" aria-label="Not included" />
   }
-  return <span className="text-sm text-gray-600 font-medium">{value}</span>
+  return <span className="text-sm text-slate-600 font-medium">{value}</span>
 }
 
 function FaqAccordion({ items }: { items: FaqItem[] }) {
@@ -194,18 +194,18 @@ function FaqAccordion({ items }: { items: FaqItem[] }) {
         return (
           <div
             key={idx}
-            className="border border-gray-200 rounded-xl overflow-hidden"
+            className="border border-slate-200 rounded-xl overflow-hidden"
           >
             <button
               onClick={() => setOpenIndex(isOpen ? null : idx)}
-              className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-slate-50 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               aria-expanded={isOpen}
             >
-              <span className="text-base font-medium text-gray-900">{item.question}</span>
+              <span className="text-base font-medium text-slate-900">{item.question}</span>
               {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0" aria-hidden="true" />
+                <ChevronUp className="w-5 h-5 text-slate-500 flex-shrink-0" aria-hidden="true" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" aria-hidden="true" />
+                <ChevronDown className="w-5 h-5 text-slate-500 flex-shrink-0" aria-hidden="true" />
               )}
             </button>
             <AnimatePresence initial={false}>
@@ -218,7 +218,7 @@ function FaqAccordion({ items }: { items: FaqItem[] }) {
                   transition={{ duration: 0.25, ease: EASE_OUT_CUBIC }}
                   className="overflow-hidden"
                 >
-                  <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed border-t border-gray-100 pt-4">
+                  <div className="px-6 pb-5 text-slate-600 text-sm leading-relaxed border-t border-slate-100 pt-4">
                     {item.answer}
                   </div>
                 </motion.div>
@@ -258,7 +258,7 @@ export default function PricingPage() {
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.5, delay: 0.05, ease: EASE_OUT_CUBIC }}
-              className="text-3xl sm:text-5xl font-bold text-gray-900 leading-tight tracking-tight mb-4"
+              className="text-3xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4"
             >
               Simple, transparent pricing
             </motion.h1>
@@ -268,7 +268,7 @@ export default function PricingPage() {
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT_CUBIC }}
-              className="text-lg text-gray-600 max-w-xl mx-auto mb-10"
+              className="text-lg text-slate-600 max-w-xl mx-auto mb-10"
             >
               Choose the plan that fits your school. No hidden fees, cancel anytime.
             </motion.p>
@@ -279,7 +279,7 @@ export default function PricingPage() {
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.5, delay: 0.15, ease: EASE_OUT_CUBIC }}
-              className="inline-flex items-center gap-3 bg-gray-100 rounded-full p-1"
+              className="inline-flex items-center gap-3 bg-slate-100 rounded-full p-1"
               role="group"
               aria-label="Billing period"
             >
@@ -287,8 +287,8 @@ export default function PricingPage() {
                 onClick={() => setAnnual(false)}
                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
                   !annual
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
                 }`}
                 aria-pressed={!annual}
               >
@@ -298,8 +298,8 @@ export default function PricingPage() {
                 onClick={() => setAnnual(true)}
                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer flex items-center gap-2 ${
                   annual
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
                 }`}
                 aria-pressed={annual}
               >
@@ -334,7 +334,7 @@ export default function PricingPage() {
                   className={`relative rounded-2xl p-8 flex flex-col ${
                     isRecommended
                       ? 'bg-gradient-to-br from-primary-600 to-indigo-700 border-2 border-primary-500 shadow-2xl shadow-primary-200 scale-[1.02] z-10'
-                      : 'bg-white border border-gray-200 shadow-sm'
+                      : 'bg-white border border-slate-200 shadow-sm'
                   }`}
                   aria-label={`${plan.name} plan`}
                 >
@@ -348,10 +348,10 @@ export default function PricingPage() {
                   )}
 
                   <div className="mb-6">
-                    <h2 className={`text-xl font-bold mb-1 ${isRecommended ? 'text-white' : 'text-gray-900'}`}>
+                    <h2 className={`text-xl font-bold mb-1 ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
                       {plan.name}
                     </h2>
-                    <p className={`text-sm ${isRecommended ? 'text-primary-200' : 'text-gray-500'}`}>
+                    <p className={`text-sm ${isRecommended ? 'text-primary-200' : 'text-slate-500'}`}>
                       {plan.tagline}
                     </p>
                   </div>
@@ -368,10 +368,10 @@ export default function PricingPage() {
                           transition={{ duration: 0.2 }}
                           className="flex items-end gap-1"
                         >
-                          <span className={`text-5xl font-bold ${isRecommended ? 'text-white' : 'text-gray-900'}`}>
+                          <span className={`text-5xl font-bold ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
                             ${price}
                           </span>
-                          <span className={`text-sm mb-2 ${isRecommended ? 'text-primary-200' : 'text-gray-500'}`}>
+                          <span className={`text-sm mb-2 ${isRecommended ? 'text-primary-200' : 'text-slate-500'}`}>
                             /mo
                           </span>
                         </motion.div>
@@ -383,7 +383,7 @@ export default function PricingPage() {
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.2 }}
                         >
-                          <span className={`text-4xl font-bold ${isRecommended ? 'text-white' : 'text-gray-900'}`}>
+                          <span className={`text-4xl font-bold ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
                             Custom
                           </span>
                         </motion.div>
@@ -401,7 +401,7 @@ export default function PricingPage() {
                     )}
 
                     {price !== null && (
-                      <p className={`text-xs mt-1 ${isRecommended ? 'text-primary-200' : 'text-gray-400'}`}>
+                      <p className={`text-xs mt-1 ${isRecommended ? 'text-primary-200' : 'text-slate-400'}`}>
                         {annual ? 'billed annually' : 'billed monthly'}
                       </p>
                     )}
@@ -415,7 +415,7 @@ export default function PricingPage() {
                         ? 'bg-white text-primary-700 hover:bg-primary-50 shadow-sm'
                         : plan.ctaVariant === 'accent'
                         ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-sm'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
                     {plan.cta}
@@ -423,7 +423,7 @@ export default function PricingPage() {
 
                   {/* Trust signals */}
                   {plan.monthlyPrice !== null && (
-                    <p className={`text-xs text-center mb-6 ${isRecommended ? 'text-primary-200' : 'text-gray-400'}`}>
+                    <p className={`text-xs text-center mb-6 ${isRecommended ? 'text-primary-200' : 'text-slate-400'}`}>
                       No credit card required &middot; Cancel anytime
                     </p>
                   )}
@@ -439,10 +439,10 @@ export default function PricingPage() {
                             isDivider
                               ? isRecommended
                                 ? 'text-primary-200 font-semibold pt-2'
-                                : 'text-gray-500 font-semibold pt-2'
+                                : 'text-slate-500 font-semibold pt-2'
                               : isRecommended
                               ? 'text-primary-100'
-                              : 'text-gray-700'
+                              : 'text-slate-700'
                           }`}
                         >
                           {!isDivider && (
@@ -468,14 +468,14 @@ export default function PricingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="text-center text-sm text-gray-400 mt-8"
+            className="text-center text-sm text-slate-400 mt-8"
           >
             All plans include a 14-day free trial &middot; No credit card required &middot; Cancel anytime
           </motion.p>
         </section>
 
         {/* ── Feature Comparison Table ── */}
-        <section className="bg-gray-50 border-t border-gray-200 py-20">
+        <section className="bg-slate-50 border-t border-slate-200 py-20">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -484,15 +484,15 @@ export default function PricingPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-12"
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Compare all features</h2>
-              <p className="text-gray-500">See exactly what&apos;s included in each plan.</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Compare all features</h2>
+              <p className="text-slate-500">See exactly what&apos;s included in each plan.</p>
             </motion.div>
 
             {/* Desktop comparison table */}
             <div className="hidden md:block">
-              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 {/* Table header */}
-                <div className="grid grid-cols-4 border-b border-gray-200">
+                <div className="grid grid-cols-4 border-b border-slate-200">
                   <div className="p-5" />
                   {plans.map((plan) => (
                     <div
@@ -501,7 +501,7 @@ export default function PricingPage() {
                         plan.recommended ? 'bg-primary-50 border-x border-primary-100' : ''
                       }`}
                     >
-                      <p className={`font-bold text-base ${plan.recommended ? 'text-primary-700' : 'text-gray-900'}`}>
+                      <p className={`font-bold text-base ${plan.recommended ? 'text-primary-700' : 'text-slate-900'}`}>
                         {plan.name}
                       </p>
                       {plan.recommended && (
@@ -516,18 +516,18 @@ export default function PricingPage() {
                 {/* Feature rows */}
                 {featureCategories.map((category, catIdx) => (
                   <div key={catIdx}>
-                    <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
+                    <div className="grid grid-cols-4 bg-slate-50 border-b border-slate-200">
                       <div className="col-span-4 px-5 py-3">
-                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{category.name}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{category.name}</p>
                       </div>
                     </div>
                     {category.rows.map((row, rowIdx) => (
                       <div
                         key={rowIdx}
-                        className={`grid grid-cols-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors`}
+                        className={`grid grid-cols-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors`}
                       >
                         <div className="p-4 px-5">
-                          <span className="text-sm text-gray-700">{row.label}</span>
+                          <span className="text-sm text-slate-700">{row.label}</span>
                         </div>
                         <div className={`p-4 flex items-center justify-center ${row.starter === false ? '' : ''}`}>
                           <FeatureValue value={row.starter} />
@@ -551,21 +551,21 @@ export default function PricingPage() {
                 <div
                   key={plan.id}
                   className={`bg-white rounded-2xl border p-6 ${
-                    plan.recommended ? 'border-primary-300' : 'border-gray-200'
+                    plan.recommended ? 'border-primary-300' : 'border-slate-200'
                   }`}
                 >
-                  <h3 className={`font-bold text-lg mb-4 ${plan.recommended ? 'text-primary-700' : 'text-gray-900'}`}>
+                  <h3 className={`font-bold text-lg mb-4 ${plan.recommended ? 'text-primary-700' : 'text-slate-900'}`}>
                     {plan.name}
                   </h3>
                   {featureCategories.map((cat) => (
                     <div key={cat.name} className="mb-4">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{cat.name}</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{cat.name}</p>
                       <ul className="space-y-2">
                         {cat.rows.map((row) => {
                           const val = plan.id === 'starter' ? row.starter : plan.id === 'professional' ? row.professional : row.enterprise
                           if (val === false) return null
                           return (
-                            <li key={row.label} className="flex items-center gap-2 text-sm text-gray-700">
+                            <li key={row.label} className="flex items-center gap-2 text-sm text-slate-700">
                               <Check className="w-4 h-4 text-primary-500 flex-shrink-0" aria-hidden="true" />
                               <span>{row.label}{typeof val === 'string' ? `: ${val}` : ''}</span>
                             </li>
@@ -579,7 +579,7 @@ export default function PricingPage() {
                     className={`block w-full text-center py-3 px-6 rounded-xl font-semibold text-sm mt-4 transition-all duration-200 cursor-pointer ${
                       plan.recommended
                         ? 'bg-primary-600 text-white hover:bg-primary-700'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
                     {plan.cta}
@@ -591,7 +591,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── Value Props Strip ── */}
-        <section className="py-16 bg-white border-b border-gray-100">
+        <section className="py-16 bg-white border-b border-slate-100">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               variants={staggerContainer(0.1, 0)}
@@ -611,8 +611,8 @@ export default function PricingPage() {
                     <Icon className="w-6 h-6 text-primary-600" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">{label}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+                    <p className="font-semibold text-slate-900 text-sm">{label}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{sub}</p>
                   </div>
                 </motion.div>
               ))}
@@ -630,8 +630,8 @@ export default function PricingPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-12"
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Frequently asked questions</h2>
-              <p className="text-gray-500">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Frequently asked questions</h2>
+              <p className="text-slate-500">
                 Still have questions?{' '}
                 <Link href="/about#contact" className="text-primary-600 hover:text-primary-700 underline">
                   Contact us

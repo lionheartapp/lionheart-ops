@@ -88,7 +88,7 @@ export default function ParticipantFlashCard({ participant, hasMedicalPermission
           <img
             src={photoUrl}
             alt={`${firstName} ${lastName}`}
-            className="w-20 h-20 rounded-full object-cover flex-shrink-0 border-2 border-gray-100"
+            className="w-20 h-20 rounded-full object-cover flex-shrink-0 border-2 border-slate-100"
           />
         ) : (
           <div
@@ -101,13 +101,13 @@ export default function ParticipantFlashCard({ participant, hasMedicalPermission
 
         {/* Name + grade + status */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-gray-900 truncate">
+          <h2 className="text-xl font-bold text-slate-900 truncate">
             {firstName} {lastName}
           </h2>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {grade && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+              <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
                 {grade}
               </span>
             )}
@@ -119,7 +119,7 @@ export default function ParticipantFlashCard({ participant, hasMedicalPermission
                 Checked In
               </span>
             ) : (
-              <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-full">
+              <span className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 text-xs font-medium rounded-full">
                 <Clock className="w-3 h-3" />
                 Not Yet
               </span>
@@ -135,7 +135,7 @@ export default function ParticipantFlashCard({ participant, hasMedicalPermission
             <span
               key={g.id}
               className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
-                GROUP_TYPE_COLORS[g.type] ?? 'bg-gray-100 text-gray-600 border-gray-200'
+                GROUP_TYPE_COLORS[g.type] ?? 'bg-slate-100 text-slate-600 border-slate-200'
               }`}
             >
               {GROUP_TYPE_LABELS[g.type] ?? g.type}: {g.name}

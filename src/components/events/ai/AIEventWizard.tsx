@@ -183,10 +183,10 @@ export function AIEventWizard() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200/50">
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-200/50">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Create with Leo</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-semibold text-slate-900">Create with Leo</h1>
+          <p className="text-sm text-slate-500 mt-1">
             Describe your event and Leo will fill in the details.
           </p>
         </div>
@@ -197,8 +197,8 @@ export function AIEventWizard() {
             onClick={() => setMobilePanel('chat')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               mobilePanel === 'chat'
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -208,8 +208,8 @@ export function AIEventWizard() {
             onClick={() => setMobilePanel('preview')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               mobilePanel === 'preview'
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             <LayoutPanelLeft className="w-3.5 h-3.5" />
@@ -222,7 +222,7 @@ export function AIEventWizard() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Chat panel — 40% on desktop, full width on mobile when active */}
         <div
-          className={`flex-shrink-0 border-r border-gray-200/50 overflow-hidden flex flex-col ${
+          className={`flex-shrink-0 border-r border-slate-200/50 overflow-hidden flex flex-col ${
             mobilePanel === 'chat' ? 'w-full' : 'hidden'
           } lg:flex lg:w-2/5`}
         >

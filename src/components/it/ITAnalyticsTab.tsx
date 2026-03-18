@@ -65,13 +65,13 @@ function AnalyticsSkeleton() {
     <div className="space-y-6">
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
-        <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
+        <div className="h-5 w-32 bg-slate-200 rounded animate-pulse" />
         <div className="flex gap-2">
-          <div className="h-9 w-24 bg-gray-200 rounded-lg animate-pulse" />
+          <div className="h-9 w-24 bg-slate-200 rounded-lg animate-pulse" />
           <div className="flex gap-1">
-            <div className="h-9 w-12 bg-gray-200 rounded-lg animate-pulse" />
-            <div className="h-9 w-12 bg-gray-200 rounded-lg animate-pulse" />
-            <div className="h-9 w-12 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="h-9 w-12 bg-slate-200 rounded-lg animate-pulse" />
+            <div className="h-9 w-12 bg-slate-200 rounded-lg animate-pulse" />
+            <div className="h-9 w-12 bg-slate-200 rounded-lg animate-pulse" />
           </div>
         </div>
       </div>
@@ -80,8 +80,8 @@ function AnalyticsSkeleton() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="ui-glass p-6 text-center">
-            <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mx-auto mb-2" />
-            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mx-auto" />
+            <div className="h-8 w-16 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
+            <div className="h-4 w-24 bg-slate-200 rounded animate-pulse mx-auto" />
           </div>
         ))}
       </div>
@@ -90,17 +90,17 @@ function AnalyticsSkeleton() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="ui-glass p-6">
-            <div className="h-5 w-40 bg-gray-200 rounded animate-pulse mb-4" />
+            <div className="h-5 w-40 bg-slate-200 rounded animate-pulse mb-4" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, j) => (
                 <div key={j} className="space-y-1">
                   <div className="flex justify-between">
-                    <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-3 w-10 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-3 w-24 bg-slate-200 rounded animate-pulse" />
+                    <div className="h-3 w-10 bg-slate-200 rounded animate-pulse" />
                   </div>
-                  <div className="h-3 bg-gray-100 rounded-full">
+                  <div className="h-3 bg-slate-100 rounded-full">
                     <div
-                      className="h-3 bg-gray-200 rounded-full animate-pulse"
+                      className="h-3 bg-slate-200 rounded-full animate-pulse"
                       style={{ width: `${60 - j * 15}%` }}
                     />
                   </div>
@@ -121,7 +121,7 @@ function TicketVolumeSection({ data }: { data: AnalyticsData['ticketVolume'] }) 
 
   if (data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-slate-400 text-sm">
         <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No ticket volume data available
       </div>
@@ -135,12 +135,12 @@ function TicketVolumeSection({ data }: { data: AnalyticsData['ticketVolume'] }) 
         return (
           <div key={item.issueType} className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-700 font-medium truncate mr-2">
+              <span className="text-slate-700 font-medium truncate mr-2">
                 {item.issueType.replace(/_/g, ' ')}
               </span>
-              <span className="text-gray-500 tabular-nums flex-shrink-0">{item.count}</span>
+              <span className="text-slate-500 tabular-nums flex-shrink-0">{item.count}</span>
             </div>
-            <div className="bg-gray-100 rounded-full h-3">
+            <div className="bg-slate-100 rounded-full h-3">
               <div
                 className={`${getBarColor(idx)} rounded-full h-3 transition-all duration-500`}
                 style={{ width: `${pct}%` }}
@@ -175,7 +175,7 @@ function ResolutionTimeSection({ data }: { data: AnalyticsData['resolutionTime']
 
   if (byCampus.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-slate-400 text-sm">
         <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No resolution time data available
       </div>
@@ -189,10 +189,10 @@ function ResolutionTimeSection({ data }: { data: AnalyticsData['resolutionTime']
         return (
           <div key={item.campus} className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-700 font-medium truncate mr-2">{item.campus}</span>
-              <span className="text-gray-500 tabular-nums flex-shrink-0">{item.avgHours}h</span>
+              <span className="text-slate-700 font-medium truncate mr-2">{item.campus}</span>
+              <span className="text-slate-500 tabular-nums flex-shrink-0">{item.avgHours}h</span>
             </div>
-            <div className="bg-gray-100 rounded-full h-3">
+            <div className="bg-slate-100 rounded-full h-3">
               <div
                 className={`${getBarColor(idx)} rounded-full h-3 transition-all duration-500`}
                 style={{ width: `${pct}%` }}
@@ -208,7 +208,7 @@ function ResolutionTimeSection({ data }: { data: AnalyticsData['resolutionTime']
 function DeviceHealthSection({ data }: { data: AnalyticsData['deviceHealth'] }) {
   if (data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-slate-400 text-sm">
         <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No device health data available
       </div>
@@ -227,10 +227,10 @@ function DeviceHealthSection({ data }: { data: AnalyticsData['deviceHealth'] }) 
         return (
           <div key={row.schoolId} className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-700 font-medium truncate mr-2">{row.schoolName}</span>
-              <span className="text-gray-500 tabular-nums flex-shrink-0">{total} devices</span>
+              <span className="text-slate-700 font-medium truncate mr-2">{row.schoolName}</span>
+              <span className="text-slate-500 tabular-nums flex-shrink-0">{total} devices</span>
             </div>
-            <div className="bg-gray-100 rounded-full h-3 flex overflow-hidden">
+            <div className="bg-slate-100 rounded-full h-3 flex overflow-hidden">
               {goodPct > 0 && (
                 <div
                   className="bg-emerald-500 h-3 transition-all duration-500"
@@ -253,7 +253,7 @@ function DeviceHealthSection({ data }: { data: AnalyticsData['deviceHealth'] }) 
                 />
               )}
             </div>
-            <div className="flex gap-4 text-xs text-gray-500">
+            <div className="flex gap-4 text-xs text-slate-500">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
                 Good {goodPct}%
@@ -277,7 +277,7 @@ function DeviceHealthSection({ data }: { data: AnalyticsData['deviceHealth'] }) 
 function TechWorkloadSection({ data }: { data: AnalyticsData['technicianWorkload'] }) {
   if (data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-slate-400 text-sm">
         <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No technician workload data available
       </div>
@@ -290,16 +290,16 @@ function TechWorkloadSection({ data }: { data: AnalyticsData['technicianWorkload
     <div className="overflow-hidden">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-100">
-            <th className="text-left py-2 text-gray-500 font-medium">Technician</th>
-            <th className="text-right py-2 text-gray-500 font-medium">Active Tickets</th>
+          <tr className="border-b border-slate-100">
+            <th className="text-left py-2 text-slate-500 font-medium">Technician</th>
+            <th className="text-right py-2 text-slate-500 font-medium">Active Tickets</th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((tech) => (
-            <tr key={tech.technicianId} className="border-b border-gray-50 last:border-0">
-              <td className="py-2 text-gray-700">{tech.name}</td>
-              <td className="py-2 text-right tabular-nums font-medium text-gray-900">
+            <tr key={tech.technicianId} className="border-b border-slate-50 last:border-0">
+              <td className="py-2 text-slate-700">{tech.name}</td>
+              <td className="py-2 text-right tabular-nums font-medium text-slate-900">
                 {tech.activeTickets}
               </td>
             </tr>
@@ -313,7 +313,7 @@ function TechWorkloadSection({ data }: { data: AnalyticsData['technicianWorkload
 function SLASection({ data }: { data: AnalyticsData['slaCompliance'] }) {
   if (data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-slate-400 text-sm">
         <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
         No SLA compliance data available
       </div>
@@ -330,7 +330,7 @@ function SLASection({ data }: { data: AnalyticsData['slaCompliance'] }) {
         return (
           <div key={row.campus} className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-700 font-medium truncate mr-2">{row.campus}</span>
+              <span className="text-slate-700 font-medium truncate mr-2">{row.campus}</span>
               <span
                 className={`tabular-nums font-semibold flex-shrink-0 ${
                   pct > 90 ? 'text-emerald-600' : pct > 70 ? 'text-amber-600' : 'text-red-600'
@@ -339,13 +339,13 @@ function SLASection({ data }: { data: AnalyticsData['slaCompliance'] }) {
                 {pct}%
               </span>
             </div>
-            <div className="bg-gray-100 rounded-full h-3">
+            <div className="bg-slate-100 rounded-full h-3">
               <div
                 className={`${barColor} rounded-full h-3 transition-all duration-500`}
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-slate-400">
               {row.met} met / {row.breached} breached of {row.total} total
             </div>
           </div>
@@ -363,7 +363,7 @@ function LoanerSection({ data }: { data: AnalyticsData['loanerUtilization'] }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-2xl font-bold text-gray-900 tabular-nums">
+        <span className="text-2xl font-bold text-slate-900 tabular-nums">
           {data.activeCheckouts} / {data.totalLoaners}
         </span>
         <span
@@ -374,13 +374,13 @@ function LoanerSection({ data }: { data: AnalyticsData['loanerUtilization'] }) {
           {pct}% utilized
         </span>
       </div>
-      <div className="bg-gray-100 rounded-full h-4">
+      <div className="bg-slate-100 rounded-full h-4">
         <div
           className={`${barColor} rounded-full h-4 transition-all duration-500`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-xs text-slate-400">
         <span>0</span>
         <span>{data.totalLoaners} total loaners</span>
       </div>
@@ -461,7 +461,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
 
   if (!canViewBoardReports) {
     return (
-      <div className="text-center py-16 text-gray-400">
+      <div className="text-center py-16 text-slate-400">
         You do not have permission to view analytics.
       </div>
     )
@@ -477,7 +477,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
 
   if (isError || !analytics) {
     return (
-      <div className="text-center py-16 text-gray-400">
+      <div className="text-center py-16 text-slate-400">
         Failed to load analytics data. Please try again.
       </div>
     )
@@ -524,12 +524,12 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
     >
       {/* ── Header: School filter + Time range ───────────────────────── */}
       <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="text-sm font-semibold text-gray-900">IT Analytics</h2>
+        <h2 className="text-sm font-semibold text-slate-900">IT Analytics</h2>
         <div className="flex items-center gap-3">
           <select
             value={schoolId}
             onChange={(e) => setSchoolId(e.target.value)}
-            className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
           >
             <option value="">All Campuses</option>
             {schools.map((s) => (
@@ -539,15 +539,15 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
             ))}
           </select>
 
-          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
             {TIME_RANGES.map((range) => (
               <button
                 key={range.value}
                 onClick={() => setMonths(range.value)}
                 className={`px-3 py-1.5 text-sm font-medium transition-colors duration-200 cursor-pointer ${
                   months === range.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 {range.label}
@@ -564,11 +564,11 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
             <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center mx-auto mb-3`}>
               <stat.icon className="w-5 h-5" />
             </div>
-            <div className="text-2xl font-bold text-gray-900 tabular-nums">
+            <div className="text-2xl font-bold text-slate-900 tabular-nums">
               <AnimatedCounter value={stat.value} />
               {stat.suffix && <span>{stat.suffix}</span>}
             </div>
-            <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
+            <div className="text-xs text-slate-500 mt-1">{stat.label}</div>
           </div>
         ))}
       </motion.div>
@@ -579,7 +579,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-4 h-4 text-blue-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Ticket Volume by Issue Type</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Ticket Volume by Issue Type</h3>
           </div>
           <TicketVolumeSection data={analytics.ticketVolume ?? []} />
         </motion.div>
@@ -588,7 +588,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-4 h-4 text-indigo-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Avg Resolution Time by Campus</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Avg Resolution Time by Campus</h3>
           </div>
           <ResolutionTimeSection data={analytics.resolutionTime ?? []} />
         </motion.div>
@@ -597,7 +597,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <div className="flex items-center gap-2 mb-4">
             <Monitor className="w-4 h-4 text-emerald-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Device Health by Campus</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Device Health by Campus</h3>
           </div>
           <DeviceHealthSection data={analytics.deviceHealth ?? []} />
         </motion.div>
@@ -606,7 +606,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-4 h-4 text-amber-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Technician Workload</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Technician Workload</h3>
           </div>
           <TechWorkloadSection data={analytics.technicianWorkload ?? []} />
         </motion.div>
@@ -615,7 +615,7 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <div className="flex items-center gap-2 mb-4">
             <ShieldCheck className="w-4 h-4 text-violet-500" />
-            <h3 className="text-sm font-semibold text-gray-900">SLA Compliance by Campus</h3>
+            <h3 className="text-sm font-semibold text-slate-900">SLA Compliance by Campus</h3>
           </div>
           <SLASection data={analytics.slaCompliance ?? []} />
         </motion.div>
@@ -624,12 +624,12 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
         <motion.div variants={fadeInUp} className="ui-glass p-6">
           <div className="flex items-center gap-2 mb-4">
             <Package className="w-4 h-4 text-cyan-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Loaner Utilization</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Loaner Utilization</h3>
           </div>
           {analytics.loanerUtilization ? (
             <LoanerSection data={analytics.loanerUtilization} />
           ) : (
-            <div className="text-center py-8 text-gray-400 text-sm">
+            <div className="text-center py-8 text-slate-400 text-sm">
               <IllustrationAnalytics className="w-32 h-24 mx-auto mb-2" />
               No loaner data available
             </div>

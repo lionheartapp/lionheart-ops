@@ -238,7 +238,7 @@ export function BudgetExpenseDrawer({
       <button
         type="button"
         onClick={onClose}
-        className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+        className="flex-1 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
       >
         Cancel
       </button>
@@ -246,7 +246,7 @@ export function BudgetExpenseDrawer({
         form="budgetExpenseForm"
         type="submit"
         disabled={isSaving || uploadingReceipt}
-        className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex-1 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSaving ? 'Saving…' : isEditMode ? 'Save Changes' : 'Add Expense'}
       </button>
@@ -264,13 +264,13 @@ export function BudgetExpenseDrawer({
       <form id="budgetExpenseForm" onSubmit={handleSubmit} className="space-y-5">
         {/* Category */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">
             Category <span className="text-red-500">*</span>
           </label>
           <select
             value={form.categoryId}
             onChange={(e) => updateField('categoryId', e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
           >
             <option value="">Select a category</option>
             {categories.map((cat) => (
@@ -286,7 +286,7 @@ export function BudgetExpenseDrawer({
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">
             Description <span className="text-red-500">*</span>
           </label>
           <input
@@ -294,7 +294,7 @@ export function BudgetExpenseDrawer({
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
             placeholder="e.g. Bus rental for field trip"
-            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
           />
           {errors.description && (
             <p className="mt-1 text-xs text-red-500">{errors.description}</p>
@@ -304,11 +304,11 @@ export function BudgetExpenseDrawer({
         {/* Amounts row */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">
               Budgeted Amount <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                 $
               </span>
               <input
@@ -318,7 +318,7 @@ export function BudgetExpenseDrawer({
                 value={form.budgetedAmount}
                 onChange={(e) => updateField('budgetedAmount', e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-xl border border-gray-200 bg-white pl-7 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+                className="w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
               />
             </div>
             {errors.budgetedAmount && (
@@ -326,11 +326,11 @@ export function BudgetExpenseDrawer({
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">
               Actual Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                 $
               </span>
               <input
@@ -340,7 +340,7 @@ export function BudgetExpenseDrawer({
                 value={form.actualAmount}
                 onChange={(e) => updateField('actualAmount', e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-xl border border-gray-200 bg-white pl-7 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+                className="w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
               />
             </div>
             {errors.actualAmount && (
@@ -351,42 +351,42 @@ export function BudgetExpenseDrawer({
 
         {/* Vendor */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">Vendor</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">Vendor</label>
           <input
             type="text"
             value={form.vendor}
             onChange={(e) => updateField('vendor', e.target.value)}
             placeholder="e.g. Acme Transportation Co."
-            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
           />
         </div>
 
         {/* Expense Date */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">Expense Date</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">Expense Date</label>
           <input
             type="date"
             value={form.expenseDate}
             onChange={(e) => updateField('expenseDate', e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
           />
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">Notes</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">Notes</label>
           <textarea
             value={form.notes}
             onChange={(e) => updateField('notes', e.target.value)}
             placeholder="Any additional notes about this expense…"
             rows={3}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition resize-none"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition resize-none"
           />
         </div>
 
         {/* Receipt upload */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">Receipt</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">Receipt</label>
 
           {receiptPreview ? (
             <div className="relative inline-block">
@@ -394,11 +394,11 @@ export function BudgetExpenseDrawer({
                 <img
                   src={receiptPreview}
                   alt="Receipt preview"
-                  className="w-24 h-24 object-cover rounded-xl border border-gray-200"
+                  className="w-24 h-24 object-cover rounded-xl border border-slate-200"
                 />
               ) : (
-                <div className="w-24 h-24 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50">
-                  <ImageIcon className="w-8 h-8 text-gray-300" />
+                <div className="w-24 h-24 flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                  <ImageIcon className="w-8 h-8 text-slate-300" />
                 </div>
               )}
               <button
@@ -407,7 +407,7 @@ export function BudgetExpenseDrawer({
                   setReceiptUrl(null)
                   setReceiptPreview(null)
                 }}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center hover:bg-gray-700 transition cursor-pointer"
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-700 transition cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -417,7 +417,7 @@ export function BudgetExpenseDrawer({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingReceipt}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-gray-300 text-sm text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 text-sm text-slate-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Upload className="w-4 h-4" />
               {uploadingReceipt ? 'Uploading…' : 'Upload Receipt'}
@@ -431,7 +431,7 @@ export function BudgetExpenseDrawer({
             className="hidden"
             onChange={handleFileChange}
           />
-          <p className="mt-1.5 text-xs text-gray-400">JPG, PNG, WebP or PDF · max 10 MB</p>
+          <p className="mt-1.5 text-xs text-slate-400">JPG, PNG, WebP or PDF · max 10 MB</p>
         </div>
       </form>
     </DetailDrawer>

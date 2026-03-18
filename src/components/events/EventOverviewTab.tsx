@@ -39,8 +39,8 @@ function StatCard({ icon, value, label }: StatCardProps) {
   return (
     <div className="ui-glass p-4 text-center">
       <div className="flex justify-center mb-2 text-indigo-500">{icon}</div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+      <p className="text-2xl font-bold text-slate-900">{value}</p>
+      <p className="text-xs text-slate-500 mt-0.5">{label}</p>
     </div>
   )
 }
@@ -74,12 +74,12 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
                     ? 'border-indigo-500 bg-indigo-500'
                     : isDone
                     ? 'border-indigo-300 bg-indigo-300'
-                    : 'border-gray-200 bg-white'
+                    : 'border-slate-200 bg-white'
                 }`}
               />
               <span
                 className={`text-[10px] font-medium text-center leading-tight ${
-                  isCurrent ? 'text-indigo-600' : isDone ? 'text-indigo-400' : 'text-gray-400'
+                  isCurrent ? 'text-indigo-600' : isDone ? 'text-indigo-400' : 'text-slate-400'
                 } ${isUpcoming ? 'opacity-60' : ''}`}
               >
                 {step.label}
@@ -88,7 +88,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
             {i < STATUS_STEPS.length - 1 && (
               <div
                 className={`flex-1 h-0.5 mx-1 transition-colors ${
-                  isDone ? 'bg-indigo-300' : 'bg-gray-200'
+                  isDone ? 'bg-indigo-300' : 'bg-slate-200'
                 }`}
               />
             )}
@@ -147,7 +147,7 @@ function AIStatusSection({ eventProjectId, initialCompletionPercent = 0 }: AISta
     <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-500" />
           AI Status Summary
         </h3>
@@ -168,10 +168,10 @@ function AIStatusSection({ eventProjectId, initialCompletionPercent = 0 }: AISta
       {/* Completion progress bar */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-gray-500">Overall completion</span>
-          <span className="text-xs font-semibold text-gray-800">{completionPercent}%</span>
+          <span className="text-xs text-slate-500">Overall completion</span>
+          <span className="text-xs font-semibold text-slate-800">{completionPercent}%</span>
         </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
@@ -185,15 +185,15 @@ function AIStatusSection({ eventProjectId, initialCompletionPercent = 0 }: AISta
       {/* Loading skeleton */}
       {loading && !summary && (
         <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-gray-100 rounded-lg w-3/4" />
-          <div className="h-4 bg-gray-100 rounded-lg w-full" />
-          <div className="h-4 bg-gray-100 rounded-lg w-5/6" />
+          <div className="h-4 bg-slate-100 rounded-lg w-3/4" />
+          <div className="h-4 bg-slate-100 rounded-lg w-full" />
+          <div className="h-4 bg-slate-100 rounded-lg w-5/6" />
         </div>
       )}
 
       {/* Error */}
       {error && !loading && (
-        <p className="text-xs text-gray-400 italic">{error}</p>
+        <p className="text-xs text-slate-400 italic">{error}</p>
       )}
 
       {/* AI summary content */}
@@ -202,7 +202,7 @@ function AIStatusSection({ eventProjectId, initialCompletionPercent = 0 }: AISta
           {/* Natural language summary */}
           {summary.summary && (
             <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/80 rounded-xl p-4 border border-indigo-100/50">
-              <p className="text-sm text-gray-700 leading-relaxed">{summary.summary}</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{summary.summary}</p>
             </div>
           )}
 
@@ -227,10 +227,10 @@ function AIStatusSection({ eventProjectId, initialCompletionPercent = 0 }: AISta
           {/* Next steps */}
           {summary.nextSteps.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-700">Next Steps</p>
+              <p className="text-xs font-semibold text-slate-700">Next Steps</p>
               <ol className="space-y-1">
                 {summary.nextSteps.map((step, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
                     <ChevronRight className="w-3.5 h-3.5 text-indigo-400 mt-0.5 flex-shrink-0" />
                     {step}
                   </li>
@@ -282,14 +282,14 @@ function FeedbackAnalysisSection({ eventProjectId }: FeedbackAnalysisSectionProp
   const sentimentConfig: Record<string, { icon: React.ReactNode; badge: string }> = {
     positive: { icon: <ThumbsUp className="w-3 h-3" />, badge: 'bg-green-100 text-green-700' },
     negative: { icon: <ThumbsDown className="w-3 h-3" />, badge: 'bg-red-100 text-red-700' },
-    neutral: { icon: <Minus className="w-3 h-3" />, badge: 'bg-gray-100 text-gray-600' },
+    neutral: { icon: <Minus className="w-3 h-3" />, badge: 'bg-slate-100 text-slate-600' },
     mixed: { icon: <Minus className="w-3 h-3" />, badge: 'bg-yellow-100 text-yellow-700' },
   }
 
   return (
     <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-500" />
           Post-Event Feedback Analysis
         </h3>
@@ -310,18 +310,18 @@ function FeedbackAnalysisSection({ eventProjectId }: FeedbackAnalysisSectionProp
       </div>
 
       {!fetched && !loading && (
-        <p className="text-sm text-gray-400 text-center py-6">
+        <p className="text-sm text-slate-400 text-center py-6">
           Click &quot;Run Analysis&quot; to analyze survey feedback with AI
         </p>
       )}
 
       {loading && (
         <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-gray-100 rounded-lg w-3/4" />
-          <div className="h-4 bg-gray-100 rounded-lg w-full" />
+          <div className="h-4 bg-slate-100 rounded-lg w-3/4" />
+          <div className="h-4 bg-slate-100 rounded-lg w-full" />
           <div className="grid grid-cols-2 gap-2">
-            <div className="h-16 bg-gray-100 rounded-xl" />
-            <div className="h-16 bg-gray-100 rounded-xl" />
+            <div className="h-16 bg-slate-100 rounded-xl" />
+            <div className="h-16 bg-slate-100 rounded-xl" />
           </div>
         </div>
       )}
@@ -334,30 +334,30 @@ function FeedbackAnalysisSection({ eventProjectId }: FeedbackAnalysisSectionProp
 
       {analysis && !loading && (
         <>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             Based on{' '}
-            <span className="font-semibold text-gray-700">{analysis.responseCount}</span>{' '}
+            <span className="font-semibold text-slate-700">{analysis.responseCount}</span>{' '}
             survey response{analysis.responseCount === 1 ? '' : 's'}
           </p>
 
           {/* Summary paragraph */}
           {analysis.summary && (
             <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/80 rounded-xl p-4 border border-indigo-100/50">
-              <p className="text-sm text-gray-700 leading-relaxed">{analysis.summary}</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{analysis.summary}</p>
             </div>
           )}
 
           {/* Theme cards */}
           {analysis.themes.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-700 mb-2">Key Themes</p>
+              <p className="text-xs font-semibold text-slate-700 mb-2">Key Themes</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {analysis.themes.map((theme, i) => {
                   const config = sentimentConfig[theme.sentiment] ?? sentimentConfig.neutral
                   return (
-                    <div key={i} className="bg-white border border-gray-100 rounded-xl p-3">
+                    <div key={i} className="bg-white border border-slate-100 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-gray-800 truncate pr-2">
+                        <span className="text-xs font-semibold text-slate-800 truncate pr-2">
                           {theme.theme}
                         </span>
                         <span
@@ -367,7 +367,7 @@ function FeedbackAnalysisSection({ eventProjectId }: FeedbackAnalysisSectionProp
                           {theme.sentiment}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">{theme.count} mentions</p>
+                      <p className="text-xs text-slate-400">{theme.count} mentions</p>
                     </div>
                   )
                 })}
@@ -378,10 +378,10 @@ function FeedbackAnalysisSection({ eventProjectId }: FeedbackAnalysisSectionProp
           {/* Action items */}
           {analysis.actionItems.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-700">Action Items for Next Time</p>
+              <p className="text-xs font-semibold text-slate-700">Action Items for Next Time</p>
               <div className="space-y-1.5">
                 {analysis.actionItems.map((item, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs text-gray-700">
+                  <div key={i} className="flex items-start gap-2.5 text-xs text-slate-700">
                     <div className="w-5 h-5 rounded flex items-center justify-center bg-indigo-50 border border-indigo-100 flex-shrink-0 mt-0.5">
                       <span className="text-[10px] font-bold text-indigo-500">{i + 1}</span>
                     </div>
@@ -438,7 +438,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
         <motion.div variants={listItem} className="flex justify-end">
           <button
             onClick={() => setIsTemplateDialogOpen(true)}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
           >
             <BookmarkPlus className="w-4 h-4" />
             Save as Template
@@ -480,26 +480,26 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
 
       {/* Event Details */}
       <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-gray-400" />
+        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-slate-400" />
           Event Details
         </h3>
 
         {project.description && (
-          <p className="text-sm text-gray-700 leading-relaxed">{project.description}</p>
+          <p className="text-sm text-slate-700 leading-relaxed">{project.description}</p>
         )}
 
         <div className="space-y-2.5">
           {/* Dates */}
           <div className="flex items-start gap-3">
-            <CalendarDays className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <CalendarDays className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm text-gray-900">
+              <p className="text-sm text-slate-900">
                 {format(startsAt, 'EEEE, MMMM d, yyyy')}
                 {project.isMultiDay && ` – ${format(endsAt, 'EEEE, MMMM d, yyyy')}`}
               </p>
               {!project.isMultiDay && (
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   {format(startsAt, 'h:mm a')} – {format(endsAt, 'h:mm a')}
                 </p>
               )}
@@ -509,13 +509,13 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
           {/* Location */}
           {(project.locationText || project.building) && (
             <div className="flex items-start gap-3">
-              <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+              <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
               <div>
                 {project.locationText && (
-                  <p className="text-sm text-gray-900">{project.locationText}</p>
+                  <p className="text-sm text-slate-900">{project.locationText}</p>
                 )}
                 {project.building && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-slate-500">
                     {project.building.name}
                     {project.area && ` · ${project.area.name}`}
                     {project.room && ` · ${project.room.displayName || project.room.roomNumber || 'Room'}`}
@@ -528,10 +528,10 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
           {/* Created by */}
           {project.createdBy && (
             <div className="flex items-center gap-3">
-              <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
+              <Users className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              <p className="text-sm text-slate-700">
                 Created by{' '}
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-slate-900">
                   {project.createdBy.firstName
                     ? `${project.createdBy.firstName} ${project.createdBy.lastName || ''}`.trim()
                     : project.createdBy.email}
@@ -544,7 +544,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
 
       {/* Status Timeline */}
       <motion.div variants={listItem} className="ui-glass p-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Event Status</h3>
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">Event Status</h3>
         <StatusTimeline currentStatus={project.status} />
       </motion.div>
 
@@ -566,8 +566,8 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       {/* Recent Activity */}
       <motion.div variants={listItem} className="ui-glass p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">Recent Activity</h3>
-          <span className="text-xs text-gray-400">Last 5 entries</span>
+          <h3 className="text-sm font-semibold text-slate-900">Recent Activity</h3>
+          <span className="text-xs text-slate-400">Last 5 entries</span>
         </div>
         <EventActivityLog eventProjectId={project.id} limit={5} />
       </motion.div>

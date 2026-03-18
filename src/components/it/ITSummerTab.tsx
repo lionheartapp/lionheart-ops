@@ -66,14 +66,14 @@ interface StagingCounts {
 // ─── Constants ──────────────────────────────────────────────────────────
 
 const BATCH_STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  PENDING: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Pending' },
+  PENDING: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Pending' },
   IN_PROGRESS: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'In Progress' },
   COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
   CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Cancelled' },
 }
 
 const REPAIR_STATUS_OPTIONS = [
-  { value: 'PENDING', label: 'Pending', icon: Clock, color: 'bg-gray-100 text-gray-700' },
+  { value: 'PENDING', label: 'Pending', icon: Clock, color: 'bg-slate-100 text-slate-700' },
   { value: 'SENT_TO_VENDOR', label: 'Sent to Vendor', icon: Truck, color: 'bg-blue-100 text-blue-700' },
   { value: 'IN_REPAIR', label: 'In Repair', icon: Wrench, color: 'bg-orange-100 text-orange-700' },
   { value: 'REPAIRED', label: 'Repaired', icon: CheckCircle2, color: 'bg-green-100 text-green-700' },
@@ -118,24 +118,24 @@ function SummerTabSkeleton() {
       {/* Summer mode card */}
       <div className="ui-glass p-6 rounded-2xl">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gray-200 rounded-xl" />
+          <div className="w-12 h-12 bg-slate-200 rounded-xl" />
           <div className="flex-1 space-y-2">
-            <div className="h-5 w-40 bg-gray-200 rounded" />
-            <div className="h-3 w-64 bg-gray-100 rounded" />
+            <div className="h-5 w-40 bg-slate-200 rounded" />
+            <div className="h-3 w-64 bg-slate-100 rounded" />
           </div>
-          <div className="h-8 w-16 bg-gray-200 rounded-full" />
+          <div className="h-8 w-16 bg-slate-200 rounded-full" />
         </div>
       </div>
       {/* Sections */}
       {[1, 2, 3].map((i) => (
         <div key={i}>
-          <div className="h-5 w-36 bg-gray-200 rounded mb-4" />
+          <div className="h-5 w-36 bg-slate-200 rounded mb-4" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2].map((j) => (
               <div key={j} className="ui-glass p-5 rounded-2xl">
-                <div className="h-4 w-32 bg-gray-200 rounded mb-3" />
-                <div className="h-2 w-full bg-gray-100 rounded-full mb-2" />
-                <div className="h-3 w-20 bg-gray-100 rounded" />
+                <div className="h-4 w-32 bg-slate-200 rounded mb-3" />
+                <div className="h-2 w-full bg-slate-100 rounded-full mb-2" />
+                <div className="h-3 w-20 bg-slate-100 rounded" />
               </div>
             ))}
           </div>
@@ -279,31 +279,31 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
     <div className="space-y-8">
       {/* ─── Summer Mode Toggle Card ─────────────────────────────────── */}
       <div className={`ui-glass p-6 border-2 transition-colors duration-200 ${
-        isActive ? 'border-green-200 bg-green-50/30' : 'border-gray-200'
+        isActive ? 'border-green-200 bg-green-50/30' : 'border-slate-200'
       }`}>
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
             isActive
               ? 'bg-gradient-to-br from-amber-400 to-orange-500'
-              : 'bg-gray-100'
+              : 'bg-slate-100'
           }`}>
-            <Sun className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+            <Sun className={`w-6 h-6 ${isActive ? 'text-white' : 'text-slate-400'}`} />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">Summer Mode</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Summer Mode</h3>
               {isActive ? (
                 <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-700">
                   Active
                 </span>
               ) : (
-                <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
+                <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600">
                   Inactive
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               {isActive
                 ? `Active from ${formatDate(summerMode?.startDate)} to ${formatDate(summerMode?.endDate)}`
                 : 'Enable summer mode to start reimaging, repair, and staging workflows'}
@@ -315,7 +315,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
               onClick={() => toggleModeMutation.mutate(!isActive)}
               disabled={toggleModeMutation.isPending}
               className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                isActive ? 'bg-green-500' : 'bg-gray-300'
+                isActive ? 'bg-green-500' : 'bg-slate-300'
               }`}
               aria-label={isActive ? 'Disable summer mode' : 'Enable summer mode'}
             >
@@ -330,28 +330,28 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
 
         {/* Date pickers when inactive and toggling on */}
         {!isActive && canManage && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50 flex flex-col sm:flex-row gap-4">
+          <div className="mt-4 pt-4 border-t border-slate-200/50 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Start Date</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
                 />
               </div>
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">End Date</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
                 />
               </div>
             </div>
@@ -363,9 +363,9 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <RotateCcw className="w-5 h-5 text-gray-700" />
-            <h3 className="text-sm font-semibold text-gray-900">Reimaging Batches</h3>
-            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
+            <RotateCcw className="w-5 h-5 text-slate-700" />
+            <h3 className="text-sm font-semibold text-slate-900">Reimaging Batches</h3>
+            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600">
               {batches.length}
             </span>
           </div>
@@ -373,7 +373,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
             <button
               onClick={() => createBatchMutation.mutate()}
               disabled={createBatchMutation.isPending}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createBatchMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -389,11 +389,11 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
             {[1, 2].map((i) => (
               <div key={i} className="ui-glass p-5 rounded-2xl">
-                <div className="h-4 w-48 bg-gray-200 rounded mb-3" />
-                <div className="h-2 w-full bg-gray-100 rounded-full mb-3" />
+                <div className="h-4 w-48 bg-slate-200 rounded mb-3" />
+                <div className="h-2 w-full bg-slate-100 rounded-full mb-3" />
                 <div className="flex gap-2">
-                  <div className="h-5 w-20 bg-gray-100 rounded-md" />
-                  <div className="h-5 w-16 bg-gray-100 rounded-md" />
+                  <div className="h-5 w-20 bg-slate-100 rounded-md" />
+                  <div className="h-5 w-16 bg-slate-100 rounded-md" />
                 </div>
               </div>
             ))}
@@ -401,8 +401,8 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
         ) : batches.length === 0 ? (
           <div className="ui-glass p-8 text-center">
             <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-700">No reimaging batches</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-sm font-medium text-slate-700">No reimaging batches</p>
+            <p className="text-xs text-slate-400 mt-1">
               Create a batch to start tracking summer reimaging progress
             </p>
           </div>
@@ -419,17 +419,17 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
                   className="text-left ui-glass-hover p-5 group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold text-gray-900 truncate">{batch.name}</h4>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    <h4 className="text-sm font-semibold text-slate-900 truncate">{batch.name}</h4>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                   </div>
 
                   {/* Progress bar */}
                   <div className="mb-3">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <div className="flex justify-between text-xs text-slate-500 mb-1">
                       <span>{batch.processedCount} / {batch.deviceCount} devices</span>
                       <span>{pct}%</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
                         style={{ width: `${pct}%` }}
@@ -439,7 +439,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
 
                   <div className="flex items-center gap-2 flex-wrap">
                     <BatchStatusBadge status={batch.status} />
-                    <span className="text-xs text-gray-400">{formatDate(batch.createdAt)}</span>
+                    <span className="text-xs text-slate-400">{formatDate(batch.createdAt)}</span>
                   </div>
                 </button>
               )
@@ -449,14 +449,14 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
       </div>
 
       {/* ─── Divider ─────────────────────────────────────────────────── */}
-      <div className="border-t border-gray-200/60" />
+      <div className="border-t border-slate-200/60" />
 
       {/* ─── Repair Queue ────────────────────────────────────────────── */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Wrench className="w-5 h-5 text-gray-700" />
-          <h3 className="text-sm font-semibold text-gray-900">Repair Queue</h3>
-          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
+          <Wrench className="w-5 h-5 text-slate-700" />
+          <h3 className="text-sm font-semibold text-slate-900">Repair Queue</h3>
+          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600">
             {repairs.length}
           </span>
         </div>
@@ -465,16 +465,16 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
           <div className="space-y-4 animate-pulse">
             {[1, 2, 3].map((i) => (
               <div key={i} className="ui-glass p-4 rounded-2xl">
-                <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
-                <div className="h-3 w-64 bg-gray-100 rounded" />
+                <div className="h-4 w-32 bg-slate-200 rounded mb-2" />
+                <div className="h-3 w-64 bg-slate-100 rounded" />
               </div>
             ))}
           </div>
         ) : repairs.length === 0 ? (
           <div className="ui-glass p-8 text-center">
             <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-700">No repairs in queue</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-sm font-medium text-slate-700">No repairs in queue</p>
+            <p className="text-xs text-slate-400 mt-1">
               All devices are in working order
             </p>
           </div>
@@ -486,11 +486,11 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
               return (
                 <div key={statusOpt.value}>
                   <div className="flex items-center gap-2 mb-3">
-                    <statusOpt.icon className="w-4 h-4 text-gray-500" />
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <statusOpt.icon className="w-4 h-4 text-slate-500" />
+                    <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                       {statusOpt.label}
                     </span>
-                    <span className="text-xs text-gray-400">({items.length})</span>
+                    <span className="text-xs text-slate-400">({items.length})</span>
                   </div>
 
                   <div className="space-y-2">
@@ -498,14 +498,14 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
                       <div key={repair.id} className="ui-glass p-4 flex flex-col sm:flex-row sm:items-center gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-mono text-xs text-gray-500">
+                            <span className="font-mono text-xs text-slate-500">
                               {repair.device?.assetTag ?? '—'}
                             </span>
                             <RepairStatusBadge status={repair.status} />
                           </div>
-                          <p className="text-sm text-gray-700 truncate">{repair.description}</p>
+                          <p className="text-sm text-slate-700 truncate">{repair.description}</p>
                           {repair.vendorName && (
-                            <p className="text-xs text-gray-400 mt-0.5">
+                            <p className="text-xs text-slate-400 mt-0.5">
                               Vendor: {repair.vendorName}
                               {repair.estimatedCost != null && ` | Est: $${(repair.estimatedCost / 100).toFixed(2)}`}
                             </p>
@@ -520,7 +520,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
                                 onClick={() =>
                                   setStatusDropdownId(statusDropdownId === repair.id ? null : repair.id)
                                 }
-                                className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                               >
                                 Change Status
                               </button>
@@ -536,9 +536,9 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
                                             status: opt.value,
                                           })
                                         }
-                                        className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                                        className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 cursor-pointer"
                                       >
-                                        <opt.icon className="w-3.5 h-3.5 text-gray-400" />
+                                        <opt.icon className="w-3.5 h-3.5 text-slate-400" />
                                         {opt.label}
                                       </button>
                                     )
@@ -550,7 +550,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
                             {/* Add vendor log */}
                             <button
                               onClick={() => setVendorRepairId(repair.id)}
-                              className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                             >
                               Vendor Log
                             </button>
@@ -567,21 +567,21 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
       </div>
 
       {/* ─── Divider ─────────────────────────────────────────────────── */}
-      <div className="border-t border-gray-200/60" />
+      <div className="border-t border-slate-200/60" />
 
       {/* ─── Staging Section ─────────────────────────────────────────── */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Package className="w-5 h-5 text-gray-700" />
-          <h3 className="text-sm font-semibold text-gray-900">Deployment Staging</h3>
+          <Package className="w-5 h-5 text-slate-700" />
+          <h3 className="text-sm font-semibold text-slate-900">Deployment Staging</h3>
         </div>
 
         {stagingLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="ui-glass p-4 rounded-2xl">
-                <div className="h-3 w-20 bg-gray-200 rounded mb-2" />
-                <div className="h-8 w-12 bg-gray-100 rounded" />
+                <div className="h-3 w-20 bg-slate-200 rounded mb-2" />
+                <div className="h-8 w-12 bg-slate-100 rounded" />
               </div>
             ))}
           </div>
@@ -607,11 +607,11 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
                   .sort(([, a], [, b]) => b - a)
                   .map(([model, count]) => (
                     <div key={model} className="ui-glass p-4 text-center">
-                      <div className="mx-auto w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center mb-2">
-                        <Laptop className="w-4 h-4 text-gray-400" />
+                      <div className="mx-auto w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center mb-2">
+                        <Laptop className="w-4 h-4 text-slate-400" />
                       </div>
-                      <div className="text-xl font-bold text-gray-900">{count}</div>
-                      <div className="text-xs text-gray-500 mt-0.5 truncate" title={model}>
+                      <div className="text-xl font-bold text-slate-900">{count}</div>
+                      <div className="text-xs text-slate-500 mt-0.5 truncate" title={model}>
                         {model}
                       </div>
                     </div>
@@ -620,8 +620,8 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
             ) : (
               <div className="ui-glass p-6 text-center">
                 <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">No devices currently staged</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-sm text-slate-500">No devices currently staged</p>
+                <p className="text-xs text-slate-400 mt-1">
                   Devices will appear here once they are flagged for deployment staging
                 </p>
               </div>

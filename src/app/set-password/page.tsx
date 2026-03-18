@@ -88,12 +88,12 @@ function SetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-gray-900">Set Password</h1>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+        <h1 className="text-2xl font-bold text-slate-900">Set Password</h1>
 
         {loading ? (
-          <p className="text-sm text-gray-600">Validating setup link...</p>
+          <p className="text-sm text-slate-600">Validating setup link...</p>
         ) : !valid ? (
           <p className="text-sm text-red-700">{error || 'This setup link is invalid.'}</p>
         ) : success ? (
@@ -102,11 +102,11 @@ function SetPasswordContent() {
             {userStatus !== 'ACTIVE' && (
               <p className="text-sm text-amber-700">Your account is pending approval. An admin must activate it before login.</p>
             )}
-            <p className="text-sm text-gray-600">Redirecting to login...</p>
+            <p className="text-sm text-slate-600">Redirecting to login...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <p className="text-sm text-gray-600">Setting password for {email}</p>
+            <p className="text-sm text-slate-600">Setting password for {email}</p>
             <PasswordInput
               value={password}
               onChange={setPassword}
@@ -116,7 +116,7 @@ function SetPasswordContent() {
               autoComplete="new-password"
             />
             <div>
-              <label htmlFor="sp-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
+              <label htmlFor="sp-confirm" className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
               <input
                 id="sp-confirm"
                 type="password"
@@ -144,7 +144,7 @@ function SetPasswordContent() {
 
 export default function SetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4"><p className="text-sm text-gray-600">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center p-4"><p className="text-sm text-slate-600">Loading...</p></div>}>
       <SetPasswordContent />
     </Suspense>
   )

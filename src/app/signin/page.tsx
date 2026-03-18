@@ -58,8 +58,8 @@ export default function SigninPage() {
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
-          <p className="text-gray-600 mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome back</h1>
+          <p className="text-slate-600 mb-8">
             Enter your school&apos;s subdomain to sign in.
           </p>
 
@@ -77,7 +77,7 @@ export default function SigninPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="subdomain" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="subdomain" className="block text-sm font-medium text-slate-900 mb-1.5">
                 School Subdomain
               </label>
               <div className="relative">
@@ -87,14 +87,14 @@ export default function SigninPage() {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="w-full px-4 py-2.5 pr-44 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                  className="w-full px-4 py-2.5 pr-44 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                   required
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
                   .lionheartapp.com
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1.5">
+              <p className="text-xs text-slate-500 mt-1.5">
                 Enter your school&apos;s subdomain to continue
               </p>
             </div>
@@ -116,7 +116,7 @@ export default function SigninPage() {
             </button>
           </form>
 
-          <p className="text-sm text-gray-600 text-center mt-8">
+          <p className="text-sm text-slate-600 text-center mt-8">
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-primary-600 font-medium hover:text-primary-700">
               Sign up

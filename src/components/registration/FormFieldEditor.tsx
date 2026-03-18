@@ -54,16 +54,16 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
   }
 
   return (
-    <div className="ui-glass p-4 rounded-xl space-y-3 border border-gray-200/60">
+    <div className="ui-glass p-4 rounded-xl space-y-3 border border-slate-200/60">
       {/* Row 1: Input type + label + required toggle + remove */}
       <div className="flex items-start gap-3">
         {/* Input type selector */}
         <div className="w-36 flex-shrink-0">
-          <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+          <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>
           <select
             value={field.inputType}
             onChange={(e) => update({ inputType: e.target.value as FormField['inputType'] })}
-            className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer"
+            className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer"
           >
             {INPUT_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -73,13 +73,13 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
 
         {/* Label */}
         <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-500 mb-1">Label *</label>
+          <label className="block text-xs font-medium text-slate-500 mb-1">Label *</label>
           <input
             type="text"
             value={field.label}
             onChange={(e) => update({ label: e.target.value })}
             placeholder="Field label"
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
         </div>
 
@@ -92,7 +92,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
               aria-checked={field.required}
               onClick={() => update({ required: !field.required })}
               className={`relative inline-flex h-5 w-9 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
-                field.required ? 'bg-indigo-600' : 'bg-gray-200'
+                field.required ? 'bg-indigo-600' : 'bg-slate-200'
               } cursor-pointer`}
             >
               <span
@@ -101,7 +101,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
                 }`}
               />
             </button>
-            <span className="text-xs text-gray-600">Required</span>
+            <span className="text-xs text-slate-600">Required</span>
           </label>
         </div>
 
@@ -109,7 +109,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
         <button
           type="button"
           onClick={onRemove}
-          className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 cursor-pointer mt-4"
+          className="flex-shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 cursor-pointer mt-4"
           aria-label="Remove field"
         >
           <Trash2 className="w-4 h-4" />
@@ -121,7 +121,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
         <button
           type="button"
           onClick={() => setShowHelpText(!showHelpText)}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors duration-200 cursor-pointer"
         >
           {showHelpText ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           Help text (optional)
@@ -132,7 +132,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
             value={field.helpText ?? ''}
             onChange={(e) => update({ helpText: e.target.value || null })}
             placeholder="Displayed below the field as guidance"
-            className="mt-1.5 w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="mt-1.5 w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
         )}
       </div>
@@ -143,7 +143,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
           <button
             type="button"
             onClick={() => setShowPlaceholder(!showPlaceholder)}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors duration-200 cursor-pointer"
           >
             {showPlaceholder ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             Placeholder text (optional)
@@ -154,7 +154,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
               value={field.placeholder ?? ''}
               onChange={(e) => update({ placeholder: e.target.value || null })}
               placeholder="Grayed-out hint inside the field"
-              className="mt-1.5 w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="mt-1.5 w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
           )}
         </div>
@@ -163,7 +163,7 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
       {/* Options editor for dropdown/checkbox */}
       {supportsOptions && (
         <div className="space-y-2">
-          <span className="text-xs font-medium text-gray-600">Options</span>
+          <span className="text-xs font-medium text-slate-600">Options</span>
           {(field.options ?? []).map((opt, i) => (
             <div key={i} className="flex items-center gap-2">
               <input
@@ -171,12 +171,12 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
                 value={opt.label}
                 onChange={(e) => handleOptionChange(i, { label: e.target.value, value: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
                 placeholder={`Option ${i + 1}`}
-                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
               <button
                 type="button"
                 onClick={() => removeOption(i)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 cursor-pointer"
                 aria-label="Remove option"
               >
                 <X className="w-3.5 h-3.5" />

@@ -19,7 +19,7 @@ export function WeekViewSkeletons() {
       {WEEK_SKELETON_BLOCKS.map((block, i) => (
         <div
           key={i}
-          className="absolute rounded-xl bg-gray-100 animate-pulse"
+          className="absolute rounded-xl bg-slate-100 animate-pulse"
           style={{
             top: block.hour * HOUR_HEIGHT,
             height: block.duration * HOUR_HEIGHT,
@@ -48,7 +48,7 @@ export function DayViewSkeletons() {
       {DAY_SKELETON_BLOCKS.map((block, i) => (
         <div
           key={i}
-          className="absolute left-1 right-4 rounded-xl bg-gray-100 animate-pulse"
+          className="absolute left-1 right-4 rounded-xl bg-slate-100 animate-pulse"
           style={{
             top: block.hour * HOUR_HEIGHT,
             height: block.duration * HOUR_HEIGHT,
@@ -72,7 +72,7 @@ export function MonthViewSkeletons({ weeks }: { weeks: number }) {
           return Array.from({ length: count }, (_, pi) => (
             <div
               key={`${wi}-${di}-${pi}`}
-              className="h-5 rounded-md bg-gray-100 animate-pulse"
+              className="h-5 rounded-md bg-slate-100 animate-pulse"
               style={{
                 gridColumn: di + 1,
                 gridRow: wi + 1,
@@ -95,17 +95,17 @@ export function AgendaViewSkeletons() {
   return (
     <div className="space-y-2 px-4 sm:px-10 pt-4">
       {/* Date header skeleton */}
-      <div className="h-5 w-40 rounded bg-gray-100 animate-pulse mb-3" />
+      <div className="h-5 w-40 rounded bg-slate-100 animate-pulse mb-3" />
 
       {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="p-3 rounded-lg border border-gray-100 flex gap-3">
+        <div key={i} className="p-3 rounded-lg border border-slate-100 flex gap-3">
           {/* Color bar */}
-          <div className="w-1 rounded-full bg-gray-100 animate-pulse self-stretch" />
+          <div className="w-1 rounded-full bg-slate-100 animate-pulse self-stretch" />
           <div className="flex-1 space-y-2">
             {/* Title */}
-            <div className="h-4 rounded bg-gray-100 animate-pulse" style={{ width: `${55 + (i % 3) * 15}%` }} />
+            <div className="h-4 rounded bg-slate-100 animate-pulse" style={{ width: `${55 + (i % 3) * 15}%` }} />
             {/* Time */}
-            <div className="h-3.5 w-32 rounded bg-gray-100 animate-pulse" />
+            <div className="h-3.5 w-32 rounded bg-slate-100 animate-pulse" />
           </div>
         </div>
       ))}
@@ -119,11 +119,11 @@ export function MobileMonthViewSkeletons() {
   return (
     <div className="space-y-2 p-3">
       {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="p-3 rounded-lg border border-gray-100 flex gap-3">
-          <div className="w-1 rounded-full bg-gray-100 animate-pulse self-stretch" />
+        <div key={i} className="p-3 rounded-lg border border-slate-100 flex gap-3">
+          <div className="w-1 rounded-full bg-slate-100 animate-pulse self-stretch" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 rounded bg-gray-100 animate-pulse" style={{ width: `${50 + (i % 3) * 20}%` }} />
-            <div className="h-3.5 w-28 rounded bg-gray-100 animate-pulse" />
+            <div className="h-4 rounded bg-slate-100 animate-pulse" style={{ width: `${50 + (i % 3) * 20}%` }} />
+            <div className="h-3.5 w-28 rounded bg-slate-100 animate-pulse" />
           </div>
         </div>
       ))}

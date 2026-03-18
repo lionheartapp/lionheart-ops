@@ -111,7 +111,7 @@ export default function PracticeDrawer({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
+          className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition"
         >
           {saving ? 'Saving...' : 'Create Practice'}
         </button>
@@ -165,9 +165,9 @@ export default function PracticeDrawer({
             type="checkbox"
             checked={form.recurring}
             onChange={(e) => setForm({ ...form, recurring: e.target.checked, rrule: e.target.checked ? form.rrule : '' })}
-            className="w-4 h-4 rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
+            className="w-4 h-4 rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
           />
-          <span className="text-sm text-gray-700">Make recurring</span>
+          <span className="text-sm text-slate-700">Make recurring</span>
         </label>
 
         {form.recurring && (

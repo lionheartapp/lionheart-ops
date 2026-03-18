@@ -27,8 +27,8 @@ function EOLChip({
   return (
     <div className="bg-primary-50/80 border border-primary-100 rounded-xl p-3">
       <p className="text-xs text-primary-600 font-semibold mb-1">{label}</p>
-      <p className="text-lg font-black text-gray-900">{count}</p>
-      <p className="text-xs text-gray-500">{fmt(cost)}</p>
+      <p className="text-lg font-black text-slate-900">{count}</p>
+      <p className="text-xs text-slate-500">{fmt(cost)}</p>
     </div>
   )
 }
@@ -54,7 +54,7 @@ export function AssetForecastPanel({
     <div className="ui-glass p-6 space-y-5">
       {/* ── EOL Forecast ─────────────────────────────────────────── */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">End-of-Life Forecast</h3>
+        <h3 className="text-sm font-semibold text-slate-800 mb-3">End-of-Life Forecast</h3>
         <div className="grid grid-cols-3 gap-2">
           <EOLChip
             label="Next 1 Year"
@@ -76,20 +76,20 @@ export function AssetForecastPanel({
 
       {/* ── Top Repair Cost Assets ────────────────────────────────── */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">Top Repair Cost Assets</h3>
+        <h3 className="text-sm font-semibold text-slate-800 mb-3">Top Repair Cost Assets</h3>
 
         {topRepairCostAssets.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">No asset cost data yet.</p>
+          <p className="text-sm text-slate-500 text-center py-4">No asset cost data yet.</p>
         ) : (
           <>
             <div className="ui-glass-table overflow-hidden rounded-xl">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-gray-50/80 text-left">
-                    <th className="px-3 py-2.5 text-gray-500 font-semibold w-7">#</th>
-                    <th className="px-3 py-2.5 text-gray-500 font-semibold">Asset</th>
-                    <th className="px-3 py-2.5 text-gray-500 font-semibold text-right">Repair</th>
-                    <th className="px-3 py-2.5 text-gray-500 font-semibold text-right">vs. Replace</th>
+                  <tr className="bg-slate-50/80 text-left">
+                    <th className="px-3 py-2.5 text-slate-500 font-semibold w-7">#</th>
+                    <th className="px-3 py-2.5 text-slate-500 font-semibold">Asset</th>
+                    <th className="px-3 py-2.5 text-slate-500 font-semibold text-right">Repair</th>
+                    <th className="px-3 py-2.5 text-slate-500 font-semibold text-right">vs. Replace</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -99,22 +99,22 @@ export function AssetForecastPanel({
                     return (
                       <tr
                         key={asset.assetId}
-                        className="border-t border-gray-100/60 hover:bg-gray-50/50 transition-colors duration-150"
+                        className="border-t border-slate-100/60 hover:bg-slate-50/50 transition-colors duration-150"
                       >
-                        <td className="px-3 py-2.5 text-gray-400">{idx + 1}</td>
+                        <td className="px-3 py-2.5 text-slate-400">{idx + 1}</td>
                         <td className="px-3 py-2.5">
-                          <p className="font-semibold text-gray-800 truncate max-w-[120px]">
+                          <p className="font-semibold text-slate-800 truncate max-w-[120px]">
                             {asset.name}
                           </p>
-                          <p className="text-gray-400">{asset.assetNumber}</p>
+                          <p className="text-slate-400">{asset.assetNumber}</p>
                         </td>
-                        <td className="px-3 py-2.5 text-right font-semibold text-gray-800">
+                        <td className="px-3 py-2.5 text-right font-semibold text-slate-800">
                           {fmt(asset.cumulativeRepairCost)}
                         </td>
                         <td className="px-3 py-2.5 text-right">
                           <span
                             className={`inline-flex items-center gap-1 font-semibold ${
-                              isAlert ? 'text-red-600' : 'text-gray-600'
+                              isAlert ? 'text-red-600' : 'text-slate-600'
                             }`}
                           >
                             {isAlert && (

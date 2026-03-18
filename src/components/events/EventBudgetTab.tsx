@@ -44,16 +44,16 @@ function ExpensesSkeleton() {
   return (
     <div className="space-y-3 animate-pulse">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
+        <div key={i} className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-50">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-gray-200" />
-              <div className="w-32 h-4 rounded bg-gray-200" />
-              <div className="w-12 h-3 rounded bg-gray-100" />
+              <div className="w-4 h-4 rounded bg-slate-200" />
+              <div className="w-32 h-4 rounded bg-slate-200" />
+              <div className="w-12 h-3 rounded bg-slate-100" />
             </div>
             <div className="flex gap-6">
-              <div className="w-24 h-3 rounded bg-gray-200" />
-              <div className="w-24 h-3 rounded bg-gray-200" />
+              <div className="w-24 h-3 rounded bg-slate-200" />
+              <div className="w-24 h-3 rounded bg-slate-200" />
             </div>
           </div>
         </div>
@@ -66,22 +66,22 @@ function RevenueSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
       <div className="ui-glass rounded-xl p-5">
-        <div className="w-48 h-4 rounded bg-gray-200 mb-2" />
-        <div className="w-32 h-3 rounded bg-gray-100 mb-4" />
-        <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
-          <div className="w-40 h-4 rounded bg-gray-200" />
-          <div className="w-24 h-6 rounded bg-gray-200" />
+        <div className="w-48 h-4 rounded bg-slate-200 mb-2" />
+        <div className="w-32 h-3 rounded bg-slate-100 mb-4" />
+        <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
+          <div className="w-40 h-4 rounded bg-slate-200" />
+          <div className="w-24 h-6 rounded bg-slate-200" />
         </div>
       </div>
       <div className="ui-glass rounded-xl p-5">
-        <div className="w-36 h-4 rounded bg-gray-200 mb-4" />
+        <div className="w-36 h-4 rounded bg-slate-200 mb-4" />
         {[1, 2].map((i) => (
           <div key={i} className="flex items-center justify-between py-3">
             <div className="flex gap-3">
-              <div className="w-20 h-5 rounded-full bg-gray-200" />
-              <div className="w-40 h-4 rounded bg-gray-200" />
+              <div className="w-20 h-5 rounded-full bg-slate-200" />
+              <div className="w-40 h-4 rounded bg-slate-200" />
             </div>
-            <div className="w-20 h-4 rounded bg-gray-200" />
+            <div className="w-20 h-4 rounded bg-slate-200" />
           </div>
         ))}
       </div>
@@ -96,27 +96,27 @@ function ReportSkeleton() {
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="ui-glass rounded-xl p-4">
             <div className="flex gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gray-200 flex-shrink-0" />
+              <div className="w-9 h-9 rounded-xl bg-slate-200 flex-shrink-0" />
               <div className="flex-1">
-                <div className="w-20 h-3 rounded bg-gray-200 mb-2" />
-                <div className="w-28 h-5 rounded bg-gray-200" />
+                <div className="w-20 h-3 rounded bg-slate-200 mb-2" />
+                <div className="w-28 h-5 rounded bg-slate-200" />
               </div>
             </div>
           </div>
         ))}
       </div>
       <div className="ui-glass-table rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <div className="w-40 h-4 rounded bg-gray-200" />
+        <div className="px-5 py-4 border-b border-slate-100">
+          <div className="w-40 h-4 rounded bg-slate-200" />
         </div>
         <div className="p-4 space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex gap-4">
-              <div className="flex-1 h-4 rounded bg-gray-200" />
-              <div className="w-20 h-4 rounded bg-gray-200" />
-              <div className="w-20 h-4 rounded bg-gray-200" />
-              <div className="w-20 h-4 rounded bg-gray-200" />
-              <div className="w-16 h-4 rounded bg-gray-200" />
+              <div className="flex-1 h-4 rounded bg-slate-200" />
+              <div className="w-20 h-4 rounded bg-slate-200" />
+              <div className="w-20 h-4 rounded bg-slate-200" />
+              <div className="w-20 h-4 rounded bg-slate-200" />
+              <div className="w-16 h-4 rounded bg-slate-200" />
             </div>
           ))}
         </div>
@@ -223,15 +223,15 @@ export function EventBudgetTab({ eventProjectId }: EventBudgetTabProps) {
     <motion.div variants={fadeInUp} initial="hidden" animate="visible">
       {/* Sub-tab pill toggle + Add Expense button */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-full">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full">
           {SUB_TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveSubTab(tab.id)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeSubTab === tab.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {tab.label}
@@ -246,7 +246,7 @@ export function EventBudgetTab({ eventProjectId }: EventBudgetTabProps) {
               setDefaultCategoryId(categories[0]?.id ?? null)
               setDrawerOpen(true)
             }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Expense
@@ -272,7 +272,7 @@ export function EventBudgetTab({ eventProjectId }: EventBudgetTabProps) {
                   Failed to load budget data. Please try again.
                 </div>
               ) : categories.length === 0 ? (
-                <div className="py-12 text-center text-sm text-gray-400">
+                <div className="py-12 text-center text-sm text-slate-400">
                   No budget categories yet. Categories will be created automatically when you add your first expense.
                 </div>
               ) : (

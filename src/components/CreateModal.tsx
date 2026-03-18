@@ -88,10 +88,10 @@ export default function CreateModal({ isOpen, onClose, title, children, requestT
         aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-200 flex-shrink-0">
           <h2
             id="modal-title"
-            className="text-lg sm:text-xl font-bold text-gray-900"
+            className="text-lg sm:text-xl font-bold text-slate-900"
           >
             {title}
           </h2>

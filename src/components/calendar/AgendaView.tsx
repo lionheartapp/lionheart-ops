@@ -59,9 +59,9 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
 
   if (events.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-400">
+      <div className="flex-1 flex items-center justify-center text-slate-400">
         <div className="text-center">
-          <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <Clock className="w-12 h-12 mx-auto mb-3 text-slate-300" />
           <p className="text-lg font-medium">No upcoming events</p>
           <p className="text-sm mt-1">Events will appear here as they&apos;re scheduled</p>
         </div>
@@ -74,15 +74,15 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
       {grouped.map(({ date, events: dayEvents }) => (
         <div key={date.toISOString()}>
           {/* Sticky date header */}
-          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-3 py-2 border-b border-gray-100">
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-3 py-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
               {isToday(date) && (
                 <span className="w-2 h-2 rounded-full bg-primary-500" />
               )}
-              <span className={`text-sm font-semibold ${isToday(date) ? 'text-primary-600' : 'text-gray-900'}`}>
+              <span className={`text-sm font-semibold ${isToday(date) ? 'text-primary-600' : 'text-slate-900'}`}>
                 {isToday(date) ? 'Today' : formatDate(date)}
               </span>
-              <span className="text-xs text-gray-400">{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-slate-400">{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</span>
             </div>
           </div>
 
@@ -93,7 +93,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                 key={event.id}
                 onClick={() => onEventClick(event)}
                 aria-label={getEventAriaLabel(event)}
-                className="w-full text-left p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-white group"
+                className="w-full text-left p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all bg-white group"
               >
                 <div className="flex gap-3">
                   {/* Color bar */}
@@ -105,7 +105,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                   <div className="flex-1 min-w-0">
                     {/* Title + calendar chip */}
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-medium text-gray-900 truncate flex items-center gap-1">
+                      <h4 className="font-medium text-slate-900 truncate flex items-center gap-1">
                         {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
                         {event.title}
                       </h4>
@@ -126,14 +126,14 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                     </div>
 
                     {/* Time */}
-                    <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5 mt-1 text-sm text-slate-500">
                       <Clock className="w-3.5 h-3.5" />
                       {formatTimeRange(event.startTime, event.endTime, event.isAllDay)}
                     </div>
 
                     {/* Location */}
                     {event.locationText && (
-                      <div className="flex items-center gap-1.5 mt-0.5 text-sm text-gray-400">
+                      <div className="flex items-center gap-1.5 mt-0.5 text-sm text-slate-400">
                         <MapPin className="w-3.5 h-3.5" />
                         {event.locationText}
                         {event.building && ` · ${event.building.name}`}
@@ -147,13 +147,13 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                           {event.attendees.slice(0, 4).map((a) => (
                             <div
                               key={a.id}
-                              className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
+                              className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center"
                               title={a.user.name || a.user.firstName || ''}
                             >
                               {a.user.avatar ? (
                                 <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
                               ) : (
-                                <span className="text-xs font-medium text-gray-600">
+                                <span className="text-xs font-medium text-slate-600">
                                   {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}
                                 </span>
                               )}
@@ -161,7 +161,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                           ))}
                         </div>
                         {event.attendees.length > 4 && (
-                          <span className="text-xs text-gray-400">+{event.attendees.length - 4}</span>
+                          <span className="text-xs text-slate-400">+{event.attendees.length - 4}</span>
                         )}
                       </div>
                     )}

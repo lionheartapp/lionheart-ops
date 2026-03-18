@@ -267,7 +267,7 @@ export default function SchoolInfoPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600 mb-3" />
-        <p className="text-gray-600">Loading your school information...</p>
+        <p className="text-slate-600">Loading your school information...</p>
       </div>
     )
   }
@@ -317,8 +317,8 @@ export default function SchoolInfoPage() {
       {/* Title */}
       <AnimatedFormField>
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Let&apos;s set up your school</h2>
-          <p className="text-gray-600 mt-2">
+          <h2 className="text-3xl font-bold text-slate-900">Let&apos;s set up your school</h2>
+          <p className="text-slate-600 mt-2">
             We&apos;ve pre-filled what we could find. Feel free to update any information.
           </p>
         </div>
@@ -352,7 +352,7 @@ export default function SchoolInfoPage() {
                   className="w-16 h-16 bg-white rounded-lg p-2 object-contain"
                 />
               ) : (
-                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-gray-400">
+                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-slate-400">
                   No logo
                 </div>
               )}
@@ -370,7 +370,7 @@ export default function SchoolInfoPage() {
         {/* Logo */}
         <AnimatedFormField highlight={highlightedFields.has('logo')}>
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label className="block text-sm font-medium text-slate-900 mb-1.5">
               Logo
             </label>
             <div className="flex items-center gap-4">
@@ -378,10 +378,10 @@ export default function SchoolInfoPage() {
                 <img
                   src={data.logo}
                   alt="logo"
-                  className="w-20 h-20 bg-gray-100 rounded-lg p-1 object-contain border border-gray-200"
+                  className="w-20 h-20 bg-slate-100 rounded-lg p-1 object-contain border border-slate-200"
                 />
               ) : (
-                <div className="w-20 h-20 bg-gray-100 rounded-lg border border-gray-200 border-dashed flex items-center justify-center text-gray-400">
+                <div className="w-20 h-20 bg-slate-100 rounded-lg border border-slate-200 border-dashed flex items-center justify-center text-slate-400">
                   <span className="text-xs">No logo</span>
                 </div>
               )}
@@ -397,7 +397,7 @@ export default function SchoolInfoPage() {
                   onClick={(e) => {
                     e.currentTarget.parentElement?.querySelector('input')?.click()
                   }}
-                  className="px-4 py-2 bg-gray-100 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-200 transition flex items-center gap-2"
+                  className="px-4 py-2 bg-slate-100 text-slate-900 text-sm font-medium rounded-lg hover:bg-slate-200 transition flex items-center gap-2"
                 >
                   <Upload className="w-4 h-4" />
                   Upload Logo
@@ -410,7 +410,7 @@ export default function SchoolInfoPage() {
         {/* Primary Color */}
         <AnimatedFormField highlight={highlightedFields.has('color')}>
           <div>
-            <label htmlFor="color" className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label htmlFor="color" className="block text-sm font-medium text-slate-900 mb-1.5">
               Primary Color
             </label>
             <div className="flex items-center gap-3">
@@ -419,13 +419,13 @@ export default function SchoolInfoPage() {
                 type="color"
                 value={data.primaryColor}
                 onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                className="w-12 h-12 rounded-lg cursor-pointer border border-gray-200"
+                className="w-12 h-12 rounded-lg cursor-pointer border border-slate-200"
               />
               <input
                 type="text"
                 value={data.primaryColor}
                 onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
+                className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
                 placeholder="#2563eb"
               />
             </div>
@@ -436,7 +436,7 @@ export default function SchoolInfoPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <AnimatedFormField highlight={highlightedFields.has('phone')}>
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="phone" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Phone
               </label>
               <input
@@ -445,14 +445,14 @@ export default function SchoolInfoPage() {
                 value={data.phone}
                 onChange={(e) => setData((prev) => ({ ...prev, phone: e.target.value }))}
                 placeholder="(555) 123-4567"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
               />
             </div>
           </AnimatedFormField>
 
           <AnimatedFormField highlight={highlightedFields.has('address')}>
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="address" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Address
               </label>
               <input
@@ -465,10 +465,10 @@ export default function SchoolInfoPage() {
                 }}
                 onBlur={handleAddressBlur}
                 placeholder="123 Main St, City, State"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
               />
               {validatingAddress && (
-                <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                <p className="mt-1.5 text-xs text-slate-500 flex items-center gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" />
                   Verifying address...
                 </p>
@@ -499,7 +499,7 @@ export default function SchoolInfoPage() {
 
           <AnimatedFormField highlight={highlightedFields.has('gradeRange')}>
             <div>
-              <label htmlFor="gradeRange" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="gradeRange" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Grade Range
               </label>
               <input
@@ -508,21 +508,21 @@ export default function SchoolInfoPage() {
                 value={data.gradeRange}
                 onChange={(e) => setData((prev) => ({ ...prev, gradeRange: e.target.value }))}
                 placeholder="K-5, 6-8, 9-12"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
               />
             </div>
           </AnimatedFormField>
 
           <AnimatedFormField highlight={highlightedFields.has('type')}>
             <div>
-              <label htmlFor="type" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="type" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Institution Type
               </label>
               <select
                 id="type"
                 value={data.institutionType}
                 onChange={(e) => setData((prev) => ({ ...prev, institutionType: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 ui-select"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-select"
               >
                 <option value="PUBLIC">Public</option>
                 <option value="PRIVATE">Private</option>
@@ -536,10 +536,10 @@ export default function SchoolInfoPage() {
 
       {/* Actions */}
       <AnimatedFormField>
-        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-gray-200">
+        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-slate-200">
           <button
             onClick={() => router.push('/onboarding/members')}
-            className="px-6 py-3 text-gray-700 font-medium text-center hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded transition"
+            className="px-6 py-3 text-slate-700 font-medium text-center hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded transition"
           >
             Skip for now
           </button>

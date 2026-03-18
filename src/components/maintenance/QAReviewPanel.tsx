@@ -124,15 +124,15 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
         <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
       )}
 
-      <div className="ui-glass p-5 rounded-2xl space-y-5 border-l-4 border-l-gray-900">
+      <div className="ui-glass p-5 rounded-2xl space-y-5 border-l-4 border-l-slate-900">
         {/* Header */}
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center">
             <Check className="w-4 h-4 text-primary-600" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">QA Review</h3>
-            <p className="text-xs text-gray-500">Review completion evidence before approving</p>
+            <h3 className="text-sm font-semibold text-slate-900">QA Review</h3>
+            <p className="text-xs text-slate-500">Review completion evidence before approving</p>
           </div>
         </div>
 
@@ -140,8 +140,8 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
         {completionPhotos.length > 0 && (
           <div>
             <div className="flex items-center gap-1.5 mb-2">
-              <Image className="w-3.5 h-3.5 text-gray-500" />
-              <p className="text-xs font-semibold text-gray-700">
+              <Image className="w-3.5 h-3.5 text-slate-500" />
+              <p className="text-xs font-semibold text-slate-700">
                 Completion Photos ({completionPhotos.length})
               </p>
             </div>
@@ -150,7 +150,7 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
                 <button
                   key={url}
                   onClick={() => setLightboxUrl(url)}
-                  className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                  className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity"
                   title="Click to view full size"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -172,45 +172,45 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
         {completionNote && (
           <div>
             <div className="flex items-center gap-1.5 mb-1.5">
-              <FileText className="w-3.5 h-3.5 text-gray-500" />
-              <p className="text-xs font-semibold text-gray-700">Completion Note</p>
+              <FileText className="w-3.5 h-3.5 text-slate-500" />
+              <p className="text-xs font-semibold text-slate-700">Completion Note</p>
             </div>
-            <div className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{completionNote}</p>
+            <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">{completionNote}</p>
             </div>
           </div>
         )}
 
         {/* Labor & cost summary */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
             <div className="flex items-center gap-1.5 mb-1">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
-              <p className="text-xs text-gray-500">Labor</p>
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <p className="text-xs text-slate-500">Labor</p>
             </div>
             {laborEntries.length > 0 ? (
               <div>
-                <p className="text-sm font-semibold text-gray-900">{totalHours.toFixed(1)}h</p>
+                <p className="text-sm font-semibold text-slate-900">{totalHours.toFixed(1)}h</p>
                 {totalLaborCost > 0 && (
-                  <p className="text-xs text-gray-500">${totalLaborCost.toFixed(2)}</p>
+                  <p className="text-xs text-slate-500">${totalLaborCost.toFixed(2)}</p>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Not tracked</p>
+              <p className="text-sm text-slate-400">Not tracked</p>
             )}
           </div>
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
             <div className="flex items-center gap-1.5 mb-1">
-              <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-              <p className="text-xs text-gray-500">Materials</p>
+              <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+              <p className="text-xs text-slate-500">Materials</p>
             </div>
             {costEntries.length > 0 ? (
               <div>
-                <p className="text-sm font-semibold text-gray-900">${totalMaterialsCost.toFixed(2)}</p>
-                <p className="text-xs text-gray-500">{costEntries.length} item{costEntries.length !== 1 ? 's' : ''}</p>
+                <p className="text-sm font-semibold text-slate-900">${totalMaterialsCost.toFixed(2)}</p>
+                <p className="text-xs text-slate-500">{costEntries.length} item{costEntries.length !== 1 ? 's' : ''}</p>
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Not tracked</p>
+              <p className="text-sm text-slate-400">Not tracked</p>
             )}
           </div>
         </div>
@@ -275,14 +275,14 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
                 <div className="space-y-2 pt-1">
                   <label className="block text-xs font-medium text-red-700">
                     Rejection Note <span className="text-red-500">*</span>
-                    <span className="text-gray-400 font-normal ml-1">— explain what needs to be corrected</span>
+                    <span className="text-slate-400 font-normal ml-1">— explain what needs to be corrected</span>
                   </label>
                   <textarea
                     value={rejectionNote}
                     onChange={(e) => setRejectionNote(e.target.value)}
                     placeholder="Describe what needs to be fixed or completed before approval..."
                     rows={3}
-                    className="w-full px-3 py-2.5 border border-red-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-400 placeholder:text-gray-400"
+                    className="w-full px-3 py-2.5 border border-red-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-400 placeholder:text-slate-400"
                   />
                   {sendBackError && (
                     <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-xl">{sendBackError}</p>
@@ -302,7 +302,7 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
                     </button>
                     <button
                       onClick={() => { setShowSendBack(false); setRejectionNote('') }}
-                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                      className="text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>

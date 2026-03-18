@@ -380,8 +380,8 @@ function FormatCard({
       className={`
         group w-full text-left p-5 rounded-2xl border transition-all duration-200
         ${locked
-          ? 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
-          : 'bg-white border-gray-200 hover:shadow-md hover:border-blue-200 cursor-pointer active:scale-[0.98]'
+          ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
+          : 'bg-white border-slate-200 hover:shadow-md hover:border-blue-200 cursor-pointer active:scale-[0.98]'
         }
       `}
     >
@@ -397,10 +397,10 @@ function FormatCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+          <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
             {format.name}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
             {locked ? 'Requires events:medical:read permission' : format.description}
           </p>
           {loading && (
@@ -433,8 +433,8 @@ export default function EventPDFGenerator({
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900">Print & Download</h3>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <h3 className="text-sm font-semibold text-slate-900">Print & Download</h3>
+        <p className="text-xs text-slate-500 mt-0.5">
           Generate professional PDFs for bus drivers, counselors, and day-of staff.
         </p>
       </div>

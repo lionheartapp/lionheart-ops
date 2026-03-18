@@ -5,7 +5,7 @@ import { cardEntrance } from '@/lib/animations'
 import { WifiOff } from 'lucide-react'
 
 const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: 'bg-gray-100 text-gray-600',
+  BACKLOG: 'bg-slate-100 text-slate-600',
   TODO: 'bg-blue-100 text-blue-700',
   IN_PROGRESS: 'bg-indigo-100 text-indigo-700',
   ON_HOLD: 'bg-yellow-100 text-yellow-700',
@@ -27,7 +27,7 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  LOW: 'bg-gray-100 text-gray-600',
+  LOW: 'bg-slate-100 text-slate-600',
   MEDIUM: 'bg-blue-100 text-blue-700',
   HIGH: 'bg-orange-100 text-orange-700',
   URGENT: 'bg-red-100 text-red-700',
@@ -115,18 +115,18 @@ export default function TicketCard({ ticket }: TicketCardProps) {
 
       {/* Ticket number */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-mono text-gray-400 font-medium">{ticket.ticketNumber}</span>
-        <span className="text-xs text-gray-400">{relativeTime(ticket.createdAt)}</span>
+        <span className="text-xs font-mono text-slate-400 font-medium">{ticket.ticketNumber}</span>
+        <span className="text-xs text-slate-400">{relativeTime(ticket.createdAt)}</span>
       </div>
 
       {/* Title */}
-      <h4 className="text-sm font-semibold text-gray-900 mb-3 line-clamp-2 leading-snug">
+      <h4 className="text-sm font-semibold text-slate-900 mb-3 line-clamp-2 leading-snug">
         {ticket.title}
       </h4>
 
       {/* Location */}
       {locationParts.length > 0 && (
-        <p className="text-xs text-gray-500 mb-3 truncate">
+        <p className="text-xs text-slate-500 mb-3 truncate">
           {locationParts.join(' › ')}
         </p>
       )}
@@ -139,11 +139,11 @@ export default function TicketCard({ ticket }: TicketCardProps) {
             Pending Sync
           </span>
         ) : (
-          <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_COLORS[ticket.status] || 'bg-gray-100 text-gray-600'}`}>
+          <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_COLORS[ticket.status] || 'bg-slate-100 text-slate-600'}`}>
             {STATUS_LABELS[ticket.status] || ticket.status}
           </span>
         )}
-        <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${PRIORITY_COLORS[ticket.priority] || 'bg-gray-100 text-gray-600'}`}>
+        <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${PRIORITY_COLORS[ticket.priority] || 'bg-slate-100 text-slate-600'}`}>
           {ticket.priority.charAt(0) + ticket.priority.slice(1).toLowerCase()}
         </span>
         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 text-primary-700">
@@ -153,14 +153,14 @@ export default function TicketCard({ ticket }: TicketCardProps) {
 
       {/* Assigned tech */}
       <div className="flex items-center gap-1.5">
-        <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-xs text-gray-500 font-medium">
+        <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center">
+          <span className="text-xs text-slate-500 font-medium">
             {ticket.assignedTo
               ? (ticket.assignedTo.firstName[0] + ticket.assignedTo.lastName[0]).toUpperCase()
               : '?'}
           </span>
         </div>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-slate-500">
           {ticket.assignedTo
             ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`
             : 'Unassigned'}

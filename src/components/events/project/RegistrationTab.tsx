@@ -132,7 +132,7 @@ function AIGenerateModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.15 }}
-        className="relative bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-md p-6 z-10"
+        className="relative bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md p-6 z-10"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -140,24 +140,24 @@ function AIGenerateModal({
             <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-indigo-500" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900">Generate Form with AI</h3>
+            <h3 className="text-base font-semibold text-slate-900">Generate Form with AI</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <p className="text-sm text-gray-500 mb-5">
+        <p className="text-sm text-slate-500 mb-5">
           AI will suggest form sections and fields based on the event type. Review and edit before saving.
         </p>
 
         {/* Event type */}
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Event type
             </label>
             <input
@@ -165,21 +165,21 @@ function AIGenerateModal({
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
               placeholder="e.g. Summer Camp, Field Trip, Retreat"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Special requirements{' '}
-              <span className="text-gray-400 font-normal">(optional)</span>
+              <span className="text-slate-400 font-normal">(optional)</span>
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="e.g. Overnight event requiring medical forms, dietary needs collection"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors resize-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors resize-none"
             />
           </div>
         </div>
@@ -189,7 +189,7 @@ function AIGenerateModal({
           <button
             onClick={onClose}
             disabled={generating}
-            className="px-4 py-2 rounded-full text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-60"
+            className="px-4 py-2 rounded-full text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-60"
           >
             Cancel
           </button>
@@ -274,8 +274,8 @@ export function RegistrationTab({
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4 py-4">
-        <div className="h-8 bg-gray-100 rounded-xl w-56" />
-        <div className="h-48 bg-gray-100 rounded-xl" />
+        <div className="h-8 bg-slate-100 rounded-xl w-56" />
+        <div className="h-48 bg-slate-100 rounded-xl" />
       </div>
     )
   }
@@ -293,8 +293,8 @@ export function RegistrationTab({
           <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
             <ClipboardList className="w-8 h-8 text-indigo-500" />
           </div>
-          <h3 className="text-base font-semibold text-gray-900 mb-2">No Registration Form Yet</h3>
-          <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+          <h3 className="text-base font-semibold text-slate-900 mb-2">No Registration Form Yet</h3>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
             Set up a registration form so parents and participants can sign up for this event. You
             can configure fields, capacity, payments, and more.
           </p>
@@ -303,7 +303,7 @@ export function RegistrationTab({
               type="button"
               onClick={handleSetUpRegistration}
               disabled={createMutation.isPending}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-60"
             >
               {createMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -353,7 +353,7 @@ export function RegistrationTab({
       <div>
         {/* Sub-tab bar with AI generate button */}
         <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+          <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
             {SUB_TABS.map((tab) => {
               const Icon = tab.icon
               const isActive = tab.id === activeSubTab
@@ -363,11 +363,11 @@ export function RegistrationTab({
                   onClick={() => setActiveSubTab(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-500' : 'text-slate-400'}`} />
                   {tab.label}
                 </button>
               )

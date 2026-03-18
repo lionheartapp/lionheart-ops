@@ -186,8 +186,8 @@ export default function AthleticsPage() {
   // Loading screen during hydration
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -228,14 +228,14 @@ export default function AthleticsPage() {
             animate="visible"
             variants={staggerContainer(0.08, 0.05)}
           >
-            <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">Athletics</motion.h1>
-            <motion.p variants={fadeInUp} className="text-sm text-gray-500">
+            <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-slate-900">Athletics</motion.h1>
+            <motion.p variants={fadeInUp} className="text-sm text-slate-500">
               {enabledCampuses.find((c) => c.id === activeCampusId)?.name || 'Manage sports teams, schedules, and rosters'}
             </motion.p>
           </motion.div>
 
           {/* Sub-navigation tabs */}
-          <div ref={tabContainerRef} className="relative flex gap-0.5 border-b border-gray-200 mb-6 overflow-x-auto scrollbar-hide">
+          <div ref={tabContainerRef} className="relative flex gap-0.5 border-b border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
             {SUB_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -243,8 +243,8 @@ export default function AthleticsPage() {
                 onClick={() => setActiveTab(key)}
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === key
-                    ? 'text-gray-900'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />

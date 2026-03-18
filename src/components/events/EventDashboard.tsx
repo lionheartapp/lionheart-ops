@@ -39,7 +39,7 @@ const ACTION_COLORS: Record<ActionItemType, string> = {
   pending_approval: 'text-blue-500',
   missing_field: 'text-yellow-600',
   no_schedule: 'text-purple-500',
-  no_tasks: 'text-gray-400',
+  no_tasks: 'text-slate-400',
 }
 
 // ─── Urgency bar color based on score ─────────────────────────────────────────
@@ -70,7 +70,7 @@ interface ActionItemCardProps {
 
 function ActionItemCard({ item, onResolve, isResolving }: ActionItemCardProps) {
   const Icon = ACTION_ICONS[item.type] ?? AlertCircle
-  const iconColor = ACTION_COLORS[item.type] ?? 'text-gray-400'
+  const iconColor = ACTION_COLORS[item.type] ?? 'text-slate-400'
   const barColor = urgencyBarColor(item.urgencyScore)
 
   const resolveLabel = (() => {
@@ -84,7 +84,7 @@ function ActionItemCard({ item, onResolve, isResolving }: ActionItemCardProps) {
       return 'px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-medium hover:bg-green-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
     if (item.resolveAction.type === 'approve_event')
       return 'px-3 py-1.5 rounded-full bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
-    return 'px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-medium hover:bg-gray-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
+    return 'px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
   })()
 
   const handleResolve = () => {
@@ -115,8 +115,8 @@ function ActionItemCard({ item, onResolve, isResolving }: ActionItemCardProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-gray-900 leading-snug">{item.title}</p>
-            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
+            <p className="text-sm font-semibold text-slate-900 leading-snug">{item.title}</p>
+            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{item.description}</p>
 
             {/* Event badge */}
             <span className="inline-block mt-1.5 px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded-full font-medium">
@@ -125,7 +125,7 @@ function ActionItemCard({ item, onResolve, isResolving }: ActionItemCardProps) {
 
             {/* AI reason */}
             {item.aiReason && item.aiReason !== '' && !item.aiReason.includes('unavailable') && (
-              <p className="text-xs text-gray-400 mt-1 italic flex items-center gap-1">
+              <p className="text-xs text-slate-400 mt-1 italic flex items-center gap-1">
                 <Sparkles className="w-3 h-3 flex-shrink-0" />
                 {item.aiReason}
               </p>
@@ -170,11 +170,11 @@ function StatCard({ label, value, icon: Icon, accent }: StatCardProps) {
           : 'ui-glass p-4 text-center'
       }
     >
-      <Icon className={`w-5 h-5 mx-auto mb-1.5 ${accent ? 'text-red-500' : 'text-gray-400'}`} />
-      <div className={`text-2xl font-bold ${accent ? 'text-red-700' : 'text-gray-900'}`}>
+      <Icon className={`w-5 h-5 mx-auto mb-1.5 ${accent ? 'text-red-500' : 'text-slate-400'}`} />
+      <div className={`text-2xl font-bold ${accent ? 'text-red-700' : 'text-slate-900'}`}>
         <AnimatedCounter value={value} />
       </div>
-      <p className={`text-xs mt-0.5 ${accent ? 'text-red-600' : 'text-gray-500'}`}>{label}</p>
+      <p className={`text-xs mt-0.5 ${accent ? 'text-red-600' : 'text-slate-500'}`}>{label}</p>
     </div>
   )
 }
@@ -188,9 +188,9 @@ function DashboardSkeleton() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="ui-glass p-4 animate-pulse">
-            <div className="w-5 h-5 bg-gray-200 rounded-full mx-auto mb-2" />
-            <div className="w-8 h-6 bg-gray-200 rounded mx-auto mb-1" />
-            <div className="w-16 h-3 bg-gray-100 rounded mx-auto" />
+            <div className="w-5 h-5 bg-slate-200 rounded-full mx-auto mb-2" />
+            <div className="w-8 h-6 bg-slate-200 rounded mx-auto mb-1" />
+            <div className="w-16 h-3 bg-slate-100 rounded mx-auto" />
           </div>
         ))}
       </div>
@@ -199,12 +199,12 @@ function DashboardSkeleton() {
       <div className="space-y-2">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="ui-glass p-4 animate-pulse flex gap-3">
-            <div className="w-1 bg-gray-200 rounded-full self-stretch" />
-            <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0 mt-0.5" />
+            <div className="w-1 bg-slate-200 rounded-full self-stretch" />
+            <div className="w-5 h-5 bg-slate-200 rounded-full flex-shrink-0 mt-0.5" />
             <div className="flex-1 space-y-2">
-              <div className="w-3/4 h-4 bg-gray-200 rounded" />
-              <div className="w-full h-3 bg-gray-100 rounded" />
-              <div className="w-20 h-5 bg-gray-100 rounded-full" />
+              <div className="w-3/4 h-4 bg-slate-200 rounded" />
+              <div className="w-full h-3 bg-slate-100 rounded" />
+              <div className="w-20 h-5 bg-slate-100 rounded-full" />
             </div>
           </div>
         ))}
@@ -226,7 +226,7 @@ function AiStatusBadge({ isLoadingScored, aiScored, hasItems }: AiStatusBadgePro
 
   if (isLoadingScored) {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs rounded-full">
         <Loader2 className="w-3 h-3 animate-spin" />
         AI ranking...
       </span>
@@ -247,7 +247,7 @@ function AiStatusBadge({ isLoadingScored, aiScored, hasItems }: AiStatusBadgePro
 
   return (
     <span
-      className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full"
+      className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs rounded-full"
       title="Actions sorted by priority type (AI ranking unavailable)"
     >
       Manual Sort
@@ -268,8 +268,8 @@ function EmptyState() {
       <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
         <PartyPopper className="w-7 h-7 text-green-500" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900">All caught up!</h3>
-      <p className="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
+      <h3 className="text-lg font-semibold text-slate-900">All caught up!</h3>
+      <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
         No urgent action items across your events. Great job!
       </p>
       <Link
@@ -320,8 +320,8 @@ export default function EventDashboard() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Event Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Loading your action items...</p>
+          <h1 className="text-2xl font-bold text-slate-900">Event Dashboard</h1>
+          <p className="text-sm text-slate-500 mt-1">Loading your action items...</p>
         </div>
         <DashboardSkeleton />
       </div>
@@ -331,10 +331,10 @@ export default function EventDashboard() {
   if (isError) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Event Dashboard</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-4">Event Dashboard</h1>
         <div className="ui-glass p-6 text-center">
           <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-600">Failed to load dashboard. Please refresh.</p>
+          <p className="text-sm text-slate-600">Failed to load dashboard. Please refresh.</p>
         </div>
       </div>
     )
@@ -350,8 +350,8 @@ export default function EventDashboard() {
       >
         <motion.div variants={listItem} className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Event Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-slate-900">Event Dashboard</h1>
+            <p className="text-sm text-slate-500 mt-1">
               Action items across all your active events, ranked by urgency.
             </p>
           </div>
@@ -406,7 +406,7 @@ export default function EventDashboard() {
       <div className="space-y-3">
         {/* Section header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-400" />
             Priority Actions
           </h2>

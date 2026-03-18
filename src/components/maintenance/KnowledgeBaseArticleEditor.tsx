@@ -53,11 +53,11 @@ const CALCULATOR_OPTIONS = [
   { value: 'POND_CARE_DOSAGE', label: 'Pond Care Dosage' },
 ]
 
-const labelClass = 'block text-xs font-medium text-gray-600 mb-1'
+const labelClass = 'block text-xs font-medium text-slate-600 mb-1'
 const inputClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent transition-colors'
+  'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors'
 const selectClass =
-  'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus:border-transparent cursor-pointer transition-colors'
+  'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent cursor-pointer transition-colors'
 
 // ─── Initial form ─────────────────────────────────────────────────────────────
 
@@ -185,16 +185,16 @@ export default function KnowledgeBaseArticleEditor({
             className="fixed right-0 top-0 bottom-0 w-full max-w-lg ui-glass-overlay z-50 flex flex-col shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/50">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/50">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
                   <BookOpen className="w-4 h-4 text-primary-700" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900">
+                  <h2 className="text-sm font-semibold text-slate-900">
                     {isEditMode ? 'Edit Article' : 'New Article'}
                   </h2>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-slate-500">
                     {isEditMode ? 'Update knowledge base article' : 'Add to the knowledge base'}
                   </p>
                 </div>
@@ -202,7 +202,7 @@ export default function KnowledgeBaseArticleEditor({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -266,7 +266,7 @@ export default function KnowledgeBaseArticleEditor({
               {/* Content */}
               <div>
                 <label className={labelClass} htmlFor="kb-content">
-                  Content * <span className="text-gray-400 font-normal">(Markdown supported)</span>
+                  Content * <span className="text-slate-400 font-normal">(Markdown supported)</span>
                 </label>
                 <textarea
                   id="kb-content"
@@ -284,7 +284,7 @@ export default function KnowledgeBaseArticleEditor({
                 <label className={labelClass} htmlFor="kb-tags">
                   <span className="flex items-center gap-1">
                     <Tag className="w-3 h-3" />
-                    Tags <span className="text-gray-400 font-normal">(comma-separated)</span>
+                    Tags <span className="text-slate-400 font-normal">(comma-separated)</span>
                   </span>
                 </label>
                 <input
@@ -313,7 +313,7 @@ export default function KnowledgeBaseArticleEditor({
               {/* Asset ID (optional) */}
               <div>
                 <label className={labelClass} htmlFor="kb-asset">
-                  Asset ID <span className="text-gray-400 font-normal">(optional)</span>
+                  Asset ID <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <input
                   id="kb-asset"
@@ -326,18 +326,18 @@ export default function KnowledgeBaseArticleEditor({
               </div>
 
               {/* Published toggle */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Published</p>
-                  <p className="text-xs text-gray-500">Visible to all team members with KB access</p>
+                  <p className="text-sm font-medium text-slate-700">Published</p>
+                  <p className="text-xs text-slate-500">Visible to all team members with KB access</p>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   aria-checked={form.isPublished}
                   onClick={() => updateField('isPublished', !form.isPublished)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
-                    form.isPublished ? 'bg-gray-900' : 'bg-gray-200'
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${
+                    form.isPublished ? 'bg-slate-900' : 'bg-slate-200'
                   }`}
                 >
                   <span
@@ -355,11 +355,11 @@ export default function KnowledgeBaseArticleEditor({
             </form>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-200/50 flex items-center gap-3">
+            <div className="px-6 py-4 border-t border-slate-200/50 flex items-center gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>

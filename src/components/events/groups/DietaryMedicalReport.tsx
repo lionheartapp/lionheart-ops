@@ -17,11 +17,11 @@ interface DietaryMedicalReportProps {
 function LockedState() {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
-        <Lock className="w-7 h-7 text-gray-400" />
+      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+        <Lock className="w-7 h-7 text-slate-400" />
       </div>
-      <h3 className="text-base font-semibold text-gray-700 mb-2">Elevated Permissions Required</h3>
-      <p className="text-sm text-gray-500 max-w-sm">
+      <h3 className="text-base font-semibold text-slate-700 mb-2">Elevated Permissions Required</h3>
+      <p className="text-sm text-slate-500 max-w-sm">
         Medical data requires the <strong>events:medical:read</strong> permission (Admin or above).
         Contact your administrator if you need access.
       </p>
@@ -48,8 +48,8 @@ function StatCard({
         <Icon className="w-5 h-5" />
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900 leading-none">{value}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+        <p className="text-2xl font-bold text-slate-900 leading-none">{value}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{label}</p>
       </div>
     </div>
   )
@@ -74,11 +74,11 @@ export default function DietaryMedicalReport({
       <div className="space-y-4 animate-pulse">
         <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-2xl" />
+            <div key={i} className="h-20 bg-slate-100 rounded-2xl" />
           ))}
         </div>
-        <div className="h-40 bg-gray-100 rounded-2xl" />
-        <div className="h-40 bg-gray-100 rounded-2xl" />
+        <div className="h-40 bg-slate-100 rounded-2xl" />
+        <div className="h-40 bg-slate-100 rounded-2xl" />
       </div>
     )
   }
@@ -87,8 +87,8 @@ export default function DietaryMedicalReport({
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <AlertTriangle className="w-10 h-10 text-amber-400 mb-3" />
-        <p className="text-sm font-semibold text-gray-700">Unable to load medical data</p>
-        <p className="text-xs text-gray-400 mt-1">Please try again or contact support.</p>
+        <p className="text-sm font-semibold text-slate-700">Unable to load medical data</p>
+        <p className="text-xs text-slate-400 mt-1">Please try again or contact support.</p>
       </div>
     )
   }
@@ -127,26 +127,26 @@ export default function DietaryMedicalReport({
       {/* Dietary summary */}
       {data.dietarySummary.length > 0 && (
         <motion.div variants={fadeInUp} className="ui-glass rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <Users className="w-4 h-4 text-green-500" />
             Dietary Needs
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-2">
+                <tr className="border-b border-slate-100">
+                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider pb-2">
                     Dietary Need
                   </th>
-                  <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-2">
+                  <th className="text-right text-xs font-semibold text-slate-500 uppercase tracking-wider pb-2">
                     Count
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-slate-50">
                 {data.dietarySummary.map((item) => (
                   <tr key={item.need}>
-                    <td className="py-2.5 text-gray-800 font-medium">{item.need}</td>
+                    <td className="py-2.5 text-slate-800 font-medium">{item.need}</td>
                     <td className="py-2.5 text-right">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                         {item.count}
@@ -163,7 +163,7 @@ export default function DietaryMedicalReport({
       {/* Allergy summary */}
       {data.allergySummary.length > 0 && (
         <motion.div variants={fadeInUp} className="ui-glass rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
             Allergies
           </h3>
@@ -188,11 +188,11 @@ export default function DietaryMedicalReport({
       {/* Medical notes */}
       {data.participantsWithMedicalNotes.length > 0 && (
         <motion.div variants={fadeInUp} className="ui-glass rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <Shield className="w-4 h-4 text-blue-500" />
             Participants with Medical Notes
           </h3>
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-slate-500 mb-3">
             {data.medicationCount > 0 && (
               <span className="text-blue-600 font-medium">{data.medicationCount} on medication · </span>
             )}
@@ -218,11 +218,11 @@ export default function DietaryMedicalReport({
         data.participantsWithMedicalNotes.length === 0 && (
           <motion.div
             variants={fadeInUp}
-            className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
+            className="flex flex-col items-center justify-center py-16 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200"
           >
-            <Shield className="w-8 h-8 text-gray-300 mb-3" />
-            <p className="text-sm font-semibold text-gray-700">No medical or dietary data yet</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <Shield className="w-8 h-8 text-slate-300 mb-3" />
+            <p className="text-sm font-semibold text-slate-700">No medical or dietary data yet</p>
+            <p className="text-sm text-slate-500 mt-1">
               Data will appear here as participants complete their registration forms.
             </p>
           </motion.div>

@@ -308,9 +308,9 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
         <button
           type="button"
           onClick={toggleEnabled}
-          className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-sm text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
         >
-          <Repeat className={`w-4 h-4 ${isEnabled ? 'text-primary-600' : 'text-gray-400'}`} />
+          <Repeat className={`w-4 h-4 ${isEnabled ? 'text-primary-600' : 'text-slate-400'}`} />
           <span className={isEnabled ? 'font-medium' : ''}>
             {isEnabled ? 'Repeats' : 'Does not repeat'}
           </span>
@@ -327,7 +327,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
           />
           <label
             htmlFor="recurrence-toggle"
-            className="block w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-primary-600 transition-colors cursor-pointer"
+            className="block w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-primary-600 transition-colors cursor-pointer"
           />
           <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-subtle transition-transform peer-checked:translate-x-4 pointer-events-none" />
         </div>
@@ -335,20 +335,20 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
 
       {/* Config panel */}
       {isEnabled && (
-        <div className="space-y-4 p-4 bg-gray-50 rounded-xl">
+        <div className="space-y-4 p-4 bg-slate-50 rounded-xl">
           {/* Frequency + Interval */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 flex-shrink-0">Every</span>
+            <span className="text-sm text-slate-500 flex-shrink-0">Every</span>
             <input
               type="number"
               min={1}
               max={99}
               value={config.interval}
               onChange={(e) => updateConfig('interval', Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-14 px-2 py-1.5 text-sm text-center text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 focus:border-primary-500"
+              className="w-14 px-2 py-1.5 text-sm text-center text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 focus:border-primary-500"
               aria-label="Repeat interval"
             />
-            <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
               {FREQ_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -357,7 +357,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                   className={`px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     config.frequency === opt.value
                       ? 'bg-primary-600 text-white'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   {config.interval === 1
@@ -371,7 +371,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
           {/* Weekly: day-of-week chips */}
           {config.frequency === 'WEEKLY' && (
             <div>
-              <span className="text-xs font-medium text-gray-500 mb-2 block">Repeat on</span>
+              <span className="text-xs font-medium text-slate-500 mb-2 block">Repeat on</span>
               <div className="flex gap-1.5">
                 {WEEKDAY_LABELS.map((label, i) => (
                   <button
@@ -383,7 +383,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                     className={`w-11 h-11 rounded-full text-sm font-medium transition-all cursor-pointer ${
                       config.weekdays.includes(i)
                         ? 'bg-primary-600 text-white shadow-subtle'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
                     {label}
@@ -396,7 +396,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
           {/* Monthly: mode selector */}
           {config.frequency === 'MONTHLY' && (
             <div>
-              <span className="text-xs font-medium text-gray-500 mb-2 block">Repeat by</span>
+              <span className="text-xs font-medium text-slate-500 mb-2 block">Repeat by</span>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -404,7 +404,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                   className={`flex-1 px-3 py-2 text-sm rounded-lg font-medium transition-all cursor-pointer ${
                     config.monthlyMode === 'dayOfMonth'
                       ? 'bg-primary-600 text-white shadow-subtle'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   Day of month
@@ -415,7 +415,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                   className={`flex-1 px-3 py-2 text-sm rounded-lg font-medium transition-all cursor-pointer ${
                     config.monthlyMode === 'nthWeekday'
                       ? 'bg-primary-600 text-white shadow-subtle'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   {getNthWeekdayLabel(eventStartDate)}
@@ -426,21 +426,21 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
 
           {/* End condition */}
           <div>
-            <span className="text-xs font-medium text-gray-500 mb-2 block">Ends</span>
+            <span className="text-xs font-medium text-slate-500 mb-2 block">Ends</span>
             <div className="space-y-2">
               {/* End type selector */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setShowEndDropdown((p) => !p)}
-                  className="flex items-center justify-between w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
+                  className="flex items-center justify-between w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors cursor-pointer"
                 >
-                  <span className="text-gray-700">
+                  <span className="text-slate-700">
                     {config.endType === 'never' && 'Never'}
                     {config.endType === 'count' && `After ${config.count} occurrences`}
                     {config.endType === 'until' && 'On date'}
                   </span>
-                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showEndDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showEndDropdown ? 'rotate-180' : ''}`} />
                 </button>
 
                 {showEndDropdown && (
@@ -456,7 +456,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
                         className={`w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
                           config.endType === type
                             ? 'bg-primary-50 text-primary-700 font-medium'
-                            : 'text-gray-700 hover:bg-gray-50'
+                            : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
                         {type === 'never' && 'Never'}
@@ -471,30 +471,30 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
               {/* Count input */}
               {config.endType === 'count' && (
                 <div className="flex items-center gap-2 pl-1">
-                  <span className="text-sm text-gray-500">After</span>
+                  <span className="text-sm text-slate-500">After</span>
                   <input
                     type="number"
                     min={1}
                     max={999}
                     value={config.count}
                     onChange={(e) => updateConfig('count', Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 px-2 py-1.5 text-sm text-center text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 focus:border-primary-500"
+                    className="w-16 px-2 py-1.5 text-sm text-center text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 focus:border-primary-500"
                     aria-label="Number of occurrences"
                   />
-                  <span className="text-sm text-gray-500">occurrences</span>
+                  <span className="text-sm text-slate-500">occurrences</span>
                 </div>
               )}
 
               {/* Until date picker */}
               {config.endType === 'until' && (
                 <div className="flex items-center gap-2 pl-1">
-                  <span className="text-sm text-gray-500">Until</span>
+                  <span className="text-sm text-slate-500">Until</span>
                   <input
                     type="date"
                     value={config.until}
                     min={eventStartDate}
                     onChange={(e) => updateConfig('until', e.target.value)}
-                    className="px-3 py-1.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 focus:border-primary-500 cursor-pointer"
+                    className="px-3 py-1.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 focus:border-primary-500 cursor-pointer"
                     aria-label="End date"
                   />
                 </div>
@@ -503,9 +503,9 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
           </div>
 
           {/* Human-readable summary */}
-          <div className="pt-2 border-t border-gray-200">
-            <p className="text-sm text-gray-600">
-              <span className="font-medium text-gray-800">{summary}</span>
+          <div className="pt-2 border-t border-slate-200">
+            <p className="text-sm text-slate-600">
+              <span className="font-medium text-slate-800">{summary}</span>
             </p>
           </div>
         </div>

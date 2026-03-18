@@ -70,7 +70,7 @@ export default function RowActionMenu({ items }: RowActionMenuProps) {
           className={`flex w-full items-center gap-2.5 px-4 py-3 min-h-[44px] text-sm text-left whitespace-nowrap transition disabled:opacity-50 disabled:cursor-not-allowed ${
             item.variant === 'danger'
               ? 'text-red-600 hover:bg-red-50'
-              : 'text-gray-700 hover:bg-gray-50'
+              : 'text-slate-700 hover:bg-slate-50'
           }`}
         >
           <span className="flex-shrink-0 w-4 h-4 flex items-center justify-center">{item.icon}</span>
@@ -86,7 +86,7 @@ export default function RowActionMenu({ items }: RowActionMenuProps) {
         ref={btnRef}
         type="button"
         onClick={openMenu}
-        className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+        className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
         aria-label="Row actions"
       >
         <MoreVertical className="w-4 h-4" />

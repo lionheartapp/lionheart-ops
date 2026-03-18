@@ -147,7 +147,7 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
         trailing={canManage ? (
           <button
             onClick={onCreateDevice}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all whitespace-nowrap"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             Add Device
@@ -159,18 +159,18 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
       {devices.length === 0 ? (
         <div className="ui-glass py-14 text-center">
           <IllustrationDevices className="w-48 h-40 mx-auto mb-2" />
-          <p className="text-sm font-medium text-gray-600 mb-1">No devices found</p>
-          <p className="text-xs text-gray-400 mb-4">Try adjusting your filters or add a new device</p>
+          <p className="text-sm font-medium text-slate-600 mb-1">No devices found</p>
+          <p className="text-xs text-slate-400 mb-4">Try adjusting your filters or add a new device</p>
         </div>
       ) : (
         <>
-          <p className="text-xs text-gray-500">{total} device{total !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-slate-500">{total} device{total !== 1 ? 's' : ''}</p>
 
           {/* Desktop table */}
           <div className="hidden sm:block ui-glass-table">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-gray-500 border-b border-gray-200/50">
+                <tr className="text-left text-xs text-slate-500 border-b border-slate-200/50">
                   <th className="px-4 py-3 font-medium">Asset Tag</th>
                   <th className="px-4 py-3 font-medium">Type</th>
                   <th className="px-4 py-3 font-medium">Make / Model</th>
@@ -187,16 +187,16 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
                     <tr
                       key={d.id}
                       onClick={() => onViewDevice(d.id)}
-                      className="border-b border-gray-100/50 hover:bg-gray-50/50 cursor-pointer transition-colors"
+                      className="border-b border-slate-100/50 hover:bg-slate-50/50 cursor-pointer transition-colors"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4 text-gray-400" />
-                          <span className="font-mono text-xs text-gray-700">{d.assetTag}</span>
+                          <Icon className="w-4 h-4 text-slate-400" />
+                          <span className="font-mono text-xs text-slate-700">{d.assetTag}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3"><DeviceTypeBadge type={d.deviceType} /></td>
-                      <td className="px-4 py-3 text-gray-700">
+                      <td className="px-4 py-3 text-slate-700">
                         {[d.make, d.model].filter(Boolean).join(' ') || '—'}
                       </td>
                       <td className="px-4 py-3">
@@ -209,12 +209,12 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{getLocationText(d)}</td>
+                      <td className="px-4 py-3 text-xs text-slate-500">{getLocationText(d)}</td>
                       <td className="px-4 py-3">
                         {assignee ? (
-                          <span className="text-xs text-gray-600">{assignee}</span>
+                          <span className="text-xs text-slate-600">{assignee}</span>
                         ) : (
-                          <span className="text-xs text-gray-400">Unassigned</span>
+                          <span className="text-xs text-slate-400">Unassigned</span>
                         )}
                       </td>
                     </tr>
@@ -237,18 +237,18 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <Icon className="w-4 h-4 text-gray-400" />
-                      <span className="font-mono text-xs text-gray-500">{d.assetTag}</span>
+                      <Icon className="w-4 h-4 text-slate-400" />
+                      <span className="font-mono text-xs text-slate-500">{d.assetTag}</span>
                     </div>
                     <DeviceStatusBadge status={d.status} />
                   </div>
-                  <p className="text-sm font-medium text-gray-900 truncate mb-2">
+                  <p className="text-sm font-medium text-slate-900 truncate mb-2">
                     {[d.make, d.model].filter(Boolean).join(' ') || d.deviceType}
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <DeviceTypeBadge type={d.deviceType} />
                     {assignee && (
-                      <span className="text-xs text-gray-500">{assignee}</span>
+                      <span className="text-xs text-slate-500">{assignee}</span>
                     )}
                   </div>
                 </button>
@@ -259,21 +259,21 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 Page {page + 1} of {totalPages}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>

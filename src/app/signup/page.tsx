@@ -106,8 +106,8 @@ export default function SignupPage() {
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h1>
-          <p className="text-gray-600 mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Create your account</h1>
+          <p className="text-slate-600 mb-8">
             Set up your school on Lionheart in minutes.
           </p>
 
@@ -126,7 +126,7 @@ export default function SignupPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Your Name
               </label>
               <input
@@ -135,14 +135,14 @@ export default function SignupPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sarah Mitchell"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Email Address
               </label>
               <input
@@ -151,7 +151,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g., sarah@mitchell.edu"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
@@ -169,7 +169,7 @@ export default function SignupPage() {
             />
 
             <div>
-              <label htmlFor="school" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="school" className="block text-sm font-medium text-slate-900 mb-1.5">
                 School Name
               </label>
               <input
@@ -178,15 +178,15 @@ export default function SignupPage() {
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
                 placeholder="e.g., Mitchell Academy"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="website" className="block text-sm font-medium text-gray-900 mb-1.5">
-                School Website <span className="text-gray-400 font-normal">(optional)</span>
+              <label htmlFor="website" className="block text-sm font-medium text-slate-900 mb-1.5">
+                School Website <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <input
                 id="website"
@@ -194,10 +194,10 @@ export default function SignupPage() {
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="e.g., mitchell.edu"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
                 disabled={loading}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 We&apos;ll use this to set up your school automatically
               </p>
             </div>
@@ -214,14 +214,14 @@ export default function SignupPage() {
           </form>
 
           {/* Footer */}
-          <p className="text-xs text-gray-500 text-center mt-6">
+          <p className="text-xs text-slate-500 text-center mt-6">
             By signing up, you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-gray-700">Terms of Service</Link>
+            <Link href="/terms" className="underline hover:text-slate-700">Terms of Service</Link>
             {' '}and{' '}
-            <Link href="/privacy" className="underline hover:text-gray-700">Privacy Policy</Link>
+            <Link href="/privacy" className="underline hover:text-slate-700">Privacy Policy</Link>
           </p>
 
-          <p className="text-sm text-gray-600 text-center mt-4">
+          <p className="text-sm text-slate-600 text-center mt-4">
             Already have an account?{' '}
             <Link href="/signin" className="text-primary-600 font-medium hover:text-primary-700">
               Sign in

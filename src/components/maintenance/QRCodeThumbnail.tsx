@@ -60,7 +60,7 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="group relative w-20 h-20 border border-gray-200 rounded-xl bg-white flex items-center justify-center hover:border-primary-300 transition-colors cursor-pointer overflow-hidden"
+          className="group relative w-20 h-20 border border-slate-200 rounded-xl bg-white flex items-center justify-center hover:border-primary-300 transition-colors cursor-pointer overflow-hidden"
           title="View QR code"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -78,7 +78,7 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
             type="button"
             onClick={handlePrintSingle}
             disabled={printLoading}
-            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             title="Print label"
           >
             <Printer className="w-3 h-3" />
@@ -105,19 +105,19 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm font-bold text-gray-900">{assetNumber}</p>
-                  <p className="text-xs text-gray-500 truncate max-w-48">{assetName}</p>
+                  <p className="text-sm font-bold text-slate-900">{assetNumber}</p>
+                  <p className="text-xs text-slate-500 truncate max-w-48">{assetName}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4 text-gray-500" />
+                  <X className="w-4 h-4 text-slate-500" />
                 </button>
               </div>
 
-              <div className="flex justify-center p-4 bg-white rounded-xl border border-gray-100">
+              <div className="flex justify-center p-4 bg-white rounded-xl border border-slate-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={qrSrc}
@@ -131,7 +131,7 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
                   type="button"
                   onClick={handlePrintSingle}
                   disabled={printLoading}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Printer className="w-4 h-4" />
                   {printLoading ? 'Generating...' : 'Print Label'}
@@ -139,7 +139,7 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
                 <a
                   href={qrSrc}
                   download={`${assetNumber}-qr.svg`}
-                  className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
                   title="Download QR SVG"
                 >
                   <Download className="w-4 h-4" />

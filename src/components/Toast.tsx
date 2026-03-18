@@ -48,14 +48,14 @@ const STYLES: Record<ToastVariant, string> = {
   success: 'bg-white/80 backdrop-blur-md border-green-200/30 text-green-800',
   error: 'bg-white/80 backdrop-blur-md border-red-200/30 text-red-800',
   warning: 'bg-white/80 backdrop-blur-md border-yellow-200/30 text-yellow-800',
-  info: 'bg-white/80 backdrop-blur-md border-gray-200/30 text-gray-800',
+  info: 'bg-white/80 backdrop-blur-md border-slate-200/30 text-slate-800',
 }
 
 const ICON_STYLES: Record<ToastVariant, string> = {
   success: 'text-green-500',
   error: 'text-red-500',
   warning: 'text-yellow-500',
-  info: 'text-gray-500',
+  info: 'text-slate-500',
 }
 
 const DEFAULT_DURATION = 4000

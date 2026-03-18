@@ -20,11 +20,11 @@ function PMRatioBar({ pmPct }: { pmPct: number }) {
   const isGood = pmPct >= 60
   return (
     <div className="mt-1">
-      <div className="flex justify-between text-xs text-gray-500 mb-1">
+      <div className="flex justify-between text-xs text-slate-500 mb-1">
         <span>{pmPct}% Preventive</span>
         <span>{100 - pmPct}% Reactive</span>
       </div>
-      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
         <motion.div
           className={`h-2 rounded-full ${isGood ? 'bg-primary-500' : 'bg-amber-500'}`}
           initial={{ width: 0 }}
@@ -51,7 +51,7 @@ function MetricCard({ icon, label, value, subValue, accent = 'default' }: Metric
     green: 'bg-primary-50 text-primary-600',
     amber: 'bg-amber-50 text-amber-600',
     blue: 'bg-blue-50 text-blue-600',
-    default: 'bg-gray-100 text-gray-600',
+    default: 'bg-slate-100 text-slate-600',
   }
   return (
     <motion.div
@@ -63,8 +63,8 @@ function MetricCard({ icon, label, value, subValue, accent = 'default' }: Metric
           {icon}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500 font-medium mb-0.5">{label}</p>
-          <p className="text-xl font-black text-gray-900 leading-tight">{value}</p>
+          <p className="text-xs text-slate-500 font-medium mb-0.5">{label}</p>
+          <p className="text-xl font-black text-slate-900 leading-tight">{value}</p>
           {subValue && <div className="mt-1">{subValue}</div>}
         </div>
       </div>
@@ -96,14 +96,14 @@ export function BoardMetricsGrid({ metrics }: BoardMetricsGridProps) {
         }
         subValue={
           metrics.costPerStudent == null ? (
-            <p className="text-[10px] text-gray-400">
+            <p className="text-[10px] text-slate-400">
               Set student count in{' '}
               <a href="/settings?tab=school-info" className="text-primary-600 underline cursor-pointer">
                 School Info settings
               </a>
             </p>
           ) : (
-            <p className="text-xs text-gray-500">Per enrolled student</p>
+            <p className="text-xs text-slate-500">Per enrolled student</p>
           )
         }
         accent="green"
@@ -126,7 +126,7 @@ export function BoardMetricsGrid({ metrics }: BoardMetricsGridProps) {
         label="Deferred Backlog"
         value={`${metrics.deferredBacklog.count} tickets`}
         subValue={
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             {fmt(metrics.deferredBacklog.estimatedCostUSD)} est. cost
           </p>
         }
@@ -139,7 +139,7 @@ export function BoardMetricsGrid({ metrics }: BoardMetricsGridProps) {
         label="Response Time"
         value={`${metrics.responseTime.avgHours.toFixed(1)}h`}
         subValue={
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             Resolution avg: {metrics.resolutionTime.avgHours.toFixed(1)}h
           </p>
         }

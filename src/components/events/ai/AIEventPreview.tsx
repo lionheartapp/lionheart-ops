@@ -32,10 +32,10 @@ function EmptyState() {
       >
         <Sparkles className="w-7 h-7 text-indigo-500" aria-hidden="true" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-2">
+      <h3 className="text-base font-semibold text-slate-900 mb-2">
         Describe your event to Leo
       </h3>
-      <p className="text-sm text-gray-500 max-w-xs">
+      <p className="text-sm text-slate-500 max-w-xs">
         Once you describe your event, Leo will fill in the details here. You can edit everything
         before creating.
       </p>
@@ -48,7 +48,7 @@ function EmptyState() {
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="ui-glass rounded-2xl p-5">
-      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">{title}</h3>
+      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">{title}</h3>
       {children}
     </div>
   )
@@ -69,13 +69,13 @@ function TextInput({
 }) {
   return (
     <div>
-      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+      <label className="block text-xs text-slate-500 mb-1">{label}</label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors"
+        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors"
       />
     </div>
   )
@@ -92,12 +92,12 @@ function TextArea({
 }) {
   return (
     <div>
-      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+      <label className="block text-xs text-slate-500 mb-1">{label}</label>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors"
+        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors"
       />
     </div>
   )
@@ -290,7 +290,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
   }
 
   const PRIORITY_COLORS: Record<string, string> = {
-    LOW: 'bg-gray-100 text-gray-600',
+    LOW: 'bg-slate-100 text-slate-600',
     NORMAL: 'bg-blue-50 text-blue-700',
     HIGH: 'bg-amber-50 text-amber-700',
     CRITICAL: 'bg-red-50 text-red-700',
@@ -298,10 +298,10 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      <div className="px-5 py-4 border-b border-gray-200/50 flex items-center gap-2 flex-shrink-0">
+      <div className="px-5 py-4 border-b border-slate-200/50 flex items-center gap-2 flex-shrink-0">
         <Sparkles className="w-4 h-4 text-indigo-500" aria-hidden="true" />
-        <h2 className="text-sm font-semibold text-gray-900">Event Preview</h2>
-        <span className="ml-auto text-xs text-gray-400">Edit anything before creating</span>
+        <h2 className="text-sm font-semibold text-slate-900">Event Preview</h2>
+        <span className="ml-auto text-xs text-slate-400">Edit anything before creating</span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
@@ -322,31 +322,31 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
             />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
+                <label className="block text-xs text-slate-500 mb-1">
                   <CalendarDays className="inline w-3 h-3 mr-1" />Start Date
                 </label>
                 <input
                   type="date"
                   value={local.startsAt}
                   onChange={(e) => updateField('startsAt', e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
+                <label className="block text-xs text-slate-500 mb-1">
                   <CalendarDays className="inline w-3 h-3 mr-1" />End Date
                 </label>
                 <input
                   type="date"
                   value={local.endsAt}
                   onChange={(e) => updateField('endsAt', e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
+                <label className="block text-xs text-slate-500 mb-1">
                   <MapPin className="inline w-3 h-3 mr-1" />Location
                 </label>
                 <input
@@ -354,11 +354,11 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                   value={local.locationText}
                   onChange={(e) => updateField('locationText', e.target.value)}
                   placeholder="Event location"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
+                <label className="block text-xs text-slate-500 mb-1">
                   <Users className="inline w-3 h-3 mr-1" />Expected Attendance
                 </label>
                 <input
@@ -366,7 +366,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                   min={0}
                   value={local.expectedAttendance}
                   onChange={(e) => updateField('expectedAttendance', parseInt(e.target.value, 10) || 0)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
             </div>
@@ -376,12 +376,12 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
         {/* 2. Suggested Schedule */}
         <SectionCard title="Suggested Schedule">
           {local.scheduleBlocks.length === 0 ? (
-            <p className="text-xs text-gray-400 mb-3">No schedule blocks yet.</p>
+            <p className="text-xs text-slate-400 mb-3">No schedule blocks yet.</p>
           ) : (
             <div className="overflow-x-auto mb-3">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="text-gray-400 border-b border-gray-100">
+                  <tr className="text-slate-400 border-b border-slate-100">
                     <th className="text-left pb-2 pr-2 font-medium w-14">Day</th>
                     <th className="text-left pb-2 pr-2 font-medium w-20">
                       <Clock className="inline w-3 h-3 mr-0.5" />Time
@@ -391,7 +391,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                     <th className="pb-2 w-6" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-50">
                   {local.scheduleBlocks.map((block, i) => (
                     <tr key={i} className="group">
                       <td className="py-1.5 pr-2">
@@ -402,7 +402,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                           onChange={(e) =>
                             updateScheduleBlock(i, 'dayOffset', parseInt(e.target.value, 10) || 0)
                           }
-                          className="w-12 rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          className="w-12 rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
                         />
                       </td>
                       <td className="py-1.5 pr-2">
@@ -411,7 +411,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                             type="time"
                             value={block.startTime}
                             onChange={(e) => updateScheduleBlock(i, 'startTime', e.target.value)}
-                            className="w-20 rounded-lg border border-gray-200 px-1 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
+                            className="w-20 rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
                           />
                         </div>
                       </td>
@@ -420,14 +420,14 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                           type="text"
                           value={block.title}
                           onChange={(e) => updateScheduleBlock(i, 'title', e.target.value)}
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
                         />
                       </td>
                       <td className="py-1.5 pr-2">
                         <select
                           value={block.type}
                           onChange={(e) => updateScheduleBlock(i, 'type', e.target.value)}
-                          className="w-full rounded-lg border border-gray-200 px-1 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 bg-white cursor-pointer"
+                          className="w-full rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 bg-white cursor-pointer"
                         >
                           {BLOCK_TYPES.map((t) => (
                             <option key={t} value={t}>
@@ -439,7 +439,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                       <td className="py-1.5">
                         <button
                           onClick={() => removeScheduleBlock(i)}
-                          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                           aria-label="Remove block"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -464,7 +464,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
         <SectionCard title="Suggested Documents">
           <div className="space-y-1.5 mb-3">
             {local.suggestedDocs.length === 0 && (
-              <p className="text-xs text-gray-400">No documents suggested.</p>
+              <p className="text-xs text-slate-400">No documents suggested.</p>
             )}
             {local.suggestedDocs.map((doc) => (
               <label key={doc} className="flex items-center gap-2.5 cursor-pointer group">
@@ -472,9 +472,9 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                   type="checkbox"
                   checked={true}
                   onChange={() => toggleDoc(doc)}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400 cursor-pointer"
+                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-400 cursor-pointer"
                 />
-                <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+                <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
                   {doc}
                 </span>
               </label>
@@ -489,7 +489,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                 if (e.key === 'Enter') addDoc()
               }}
               placeholder="Add document type..."
-              className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
             />
             <button
               onClick={addDoc}
@@ -506,7 +506,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
         <SectionCard title="Suggested Tasks">
           <div className="space-y-1.5 mb-3">
             {local.suggestedTasks.length === 0 && (
-              <p className="text-xs text-gray-400">No tasks suggested.</p>
+              <p className="text-xs text-slate-400">No tasks suggested.</p>
             )}
             {local.suggestedTasks.map((task, i) => (
               <div key={i} className="flex items-center gap-2.5">
@@ -514,13 +514,13 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                   type="checkbox"
                   checked={includedTasks.has(i)}
                   onChange={() => toggleTask(i)}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400 cursor-pointer flex-shrink-0"
+                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-400 cursor-pointer flex-shrink-0"
                 />
                 <input
                   type="text"
                   value={task.title}
                   onChange={(e) => updateTask(i, 'title', e.target.value)}
-                  className="flex-1 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-300 min-w-0"
+                  className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-300 min-w-0"
                 />
                 <select
                   value={task.priority ?? 'NORMAL'}
@@ -547,7 +547,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                 if (e.key === 'Enter') addTask()
               }}
               placeholder="Add task..."
-              className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
             />
             <button
               onClick={addTask}
@@ -563,19 +563,19 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
         {/* 5. Budget Estimate */}
         <SectionCard title="Budget Estimate">
           {local.budgetEstimate.length === 0 ? (
-            <p className="text-xs text-gray-400 mb-3">No budget categories yet.</p>
+            <p className="text-xs text-slate-400 mb-3">No budget categories yet.</p>
           ) : (
             <div className="overflow-x-auto mb-3">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="text-gray-400 border-b border-gray-100">
+                  <tr className="text-slate-400 border-b border-slate-100">
                     <th className="text-left pb-2 pr-2 font-medium">Category</th>
                     <th className="text-right pb-2 pr-2 font-medium w-24">Min ($)</th>
                     <th className="text-right pb-2 pr-2 font-medium w-24">Max ($)</th>
                     <th className="pb-2 w-6" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-50">
                   {local.budgetEstimate.map((item, i) => (
                     <tr key={i} className="group">
                       <td className="py-1.5 pr-2">
@@ -583,7 +583,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                           type="text"
                           value={item.category}
                           onChange={(e) => updateBudgetItem(i, 'category', e.target.value)}
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
                         />
                       </td>
                       <td className="py-1.5 pr-2">
@@ -594,7 +594,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                           onChange={(e) =>
                             updateBudgetItem(i, 'estimatedMin', parseFloat(e.target.value) || 0)
                           }
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-blue-300"
                         />
                       </td>
                       <td className="py-1.5 pr-2">
@@ -605,13 +605,13 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                           onChange={(e) =>
                             updateBudgetItem(i, 'estimatedMax', parseFloat(e.target.value) || 0)
                           }
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-blue-300"
                         />
                       </td>
                       <td className="py-1.5">
                         <button
                           onClick={() => removeBudgetItem(i)}
-                          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                           aria-label="Remove budget item"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -621,7 +621,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-gray-200 font-semibold text-gray-700">
+                  <tr className="border-t border-slate-200 font-semibold text-slate-700">
                     <td className="pt-2 text-xs">Total Estimate</td>
                     <td className="pt-2 pr-2 text-right text-xs">${totalMin.toLocaleString()}</td>
                     <td className="pt-2 pr-2 text-right text-xs">${totalMax.toLocaleString()}</td>
@@ -642,7 +642,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
       </div>
 
       {/* Create Event button — sticky footer */}
-      <div className="px-5 py-4 border-t border-gray-200/50 flex-shrink-0">
+      <div className="px-5 py-4 border-t border-slate-200/50 flex-shrink-0">
         <button
           onClick={handleConfirm}
           disabled={isCreating}

@@ -22,7 +22,7 @@ interface TicketStatusData {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
-  BACKLOG: { label: 'Submitted', color: 'text-gray-700', bg: 'bg-gray-100', icon: Clock },
+  BACKLOG: { label: 'Submitted', color: 'text-slate-700', bg: 'bg-slate-100', icon: Clock },
   IN_PROGRESS: { label: 'In Progress', color: 'text-blue-700', bg: 'bg-blue-100', icon: Loader2 },
   ON_HOLD: { label: 'On Hold', color: 'text-yellow-700', bg: 'bg-yellow-100', icon: Pause },
   DONE: { label: 'Resolved', color: 'text-green-700', bg: 'bg-green-100', icon: CheckCircle2 },
@@ -60,16 +60,16 @@ function TicketStatusContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="ui-glass p-8 rounded-2xl max-w-md w-full mx-4">
           <div className="animate-pulse space-y-4">
-            <div className="h-6 bg-gray-200 rounded w-1/3" />
-            <div className="h-8 bg-gray-200 rounded w-2/3" />
-            <div className="h-10 bg-gray-200 rounded w-1/4" />
+            <div className="h-6 bg-slate-200 rounded w-1/3" />
+            <div className="h-8 bg-slate-200 rounded w-2/3" />
+            <div className="h-10 bg-slate-200 rounded w-1/4" />
             <div className="space-y-3 mt-6">
-              <div className="h-4 bg-gray-200 rounded w-full" />
-              <div className="h-4 bg-gray-200 rounded w-5/6" />
-              <div className="h-4 bg-gray-200 rounded w-4/6" />
+              <div className="h-4 bg-slate-200 rounded w-full" />
+              <div className="h-4 bg-slate-200 rounded w-5/6" />
+              <div className="h-4 bg-slate-200 rounded w-4/6" />
             </div>
           </div>
         </div>
@@ -79,13 +79,13 @@ function TicketStatusContent() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="ui-glass p-8 rounded-2xl max-w-md w-full mx-4 text-center">
           <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-7 h-7 text-red-400" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Ticket Not Found</h2>
-          <p className="text-sm text-gray-500">{error || 'The ticket could not be found or the link has expired.'}</p>
+          <h2 className="text-lg font-semibold text-slate-900 mb-2">Ticket Not Found</h2>
+          <p className="text-sm text-slate-500">{error || 'The ticket could not be found or the link has expired.'}</p>
         </div>
       </div>
     )
@@ -95,25 +95,25 @@ function TicketStatusContent() {
   const StatusIcon = statusConfig.icon
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-lg font-semibold text-gray-900">IT Ticket Status</h1>
-          <p className="text-xs text-gray-500 mt-1">Track your support request</p>
+          <h1 className="text-lg font-semibold text-slate-900">IT Ticket Status</h1>
+          <p className="text-xs text-slate-500 mt-1">Track your support request</p>
         </div>
 
         {/* Status Card */}
         <div className="ui-glass p-6 rounded-2xl mb-4">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-mono text-gray-500">{data.ticketNumber}</span>
+            <span className="text-xs font-mono text-slate-500">{data.ticketNumber}</span>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color}`}>
               <StatusIcon className="w-3.5 h-3.5" />
               {statusConfig.label}
             </span>
           </div>
-          <h2 className="text-base font-semibold text-gray-900 mb-2">{data.title}</h2>
-          <p className="text-xs text-gray-500">
+          <h2 className="text-base font-semibold text-slate-900 mb-2">{data.title}</h2>
+          <p className="text-xs text-slate-500">
             Submitted {new Date(data.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
           </p>
         </div>
@@ -121,27 +121,27 @@ function TicketStatusContent() {
         {/* Timeline */}
         {data.timeline.length > 0 && (
           <div className="ui-glass p-6 rounded-2xl">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Activity</h3>
+            <h3 className="text-sm font-semibold text-slate-900 mb-4">Activity</h3>
             <div className="space-y-4">
               {data.timeline.map((event, i) => (
                 <div key={event.id} className="flex gap-3">
                   <div className="flex flex-col items-center">
-                    <div className="w-2 h-2 rounded-full bg-gray-300 mt-1.5" />
-                    {i < data.timeline.length - 1 && <div className="w-px flex-1 bg-gray-200 mt-1" />}
+                    <div className="w-2 h-2 rounded-full bg-slate-300 mt-1.5" />
+                    {i < data.timeline.length - 1 && <div className="w-px flex-1 bg-slate-200 mt-1" />}
                   </div>
                   <div className="pb-4">
                     {event.type === 'STATUS_CHANGE' && event.toStatus && (
-                      <p className="text-xs text-gray-700">
+                      <p className="text-xs text-slate-700">
                         Status changed to <span className="font-medium">{STATUS_CONFIG[event.toStatus]?.label || event.toStatus}</span>
                       </p>
                     )}
                     {event.type === 'COMMENT' && event.content && (
-                      <p className="text-xs text-gray-700">{event.content}</p>
+                      <p className="text-xs text-slate-700">{event.content}</p>
                     )}
                     {event.type !== 'STATUS_CHANGE' && event.type !== 'COMMENT' && (
-                      <p className="text-xs text-gray-700">{event.content || event.type.replace(/_/g, ' ')}</p>
+                      <p className="text-xs text-slate-700">{event.content || event.type.replace(/_/g, ' ')}</p>
                     )}
-                    <p className="text-[10px] text-gray-400 mt-0.5">
+                    <p className="text-[10px] text-slate-400 mt-0.5">
                       {new Date(event.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     </p>
                   </div>
@@ -151,7 +151,7 @@ function TicketStatusContent() {
           </div>
         )}
 
-        <p className="text-center text-[10px] text-gray-400 mt-6">
+        <p className="text-center text-[10px] text-slate-400 mt-6">
           Powered by Lionheart
         </p>
       </div>
@@ -162,8 +162,8 @@ function TicketStatusContent() {
 export default function TicketStatusPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     }>
       <TicketStatusContent />

@@ -54,23 +54,23 @@ function DevicesContent() {
         animate="visible"
         variants={staggerContainer(0.08, 0.05)}
       >
-        <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">
+        <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-slate-900">
           IT Devices
         </motion.h1>
-        <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
+        <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
           Manage devices, student assignments, and loaner equipment
         </motion.p>
       </motion.div>
 
       {/* Tab bar */}
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200 mb-6">
+      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6">
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             ref={(el) => setTabRef(key, el)}
             onClick={() => setActiveTab(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
-              activeTab === key ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'
+              activeTab === key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <Icon className="w-4 h-4" />

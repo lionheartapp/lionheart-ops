@@ -85,7 +85,7 @@ export function FCIScoreCard({ fci }: FCIScoreCardProps) {
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-1">
+          <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase mb-1">
             Facility Condition Index
           </p>
           <div className="flex items-center gap-2">
@@ -99,24 +99,24 @@ export function FCIScoreCard({ fci }: FCIScoreCardProps) {
             className="w-7 h-7 rounded-full bg-white/70 flex items-center justify-center hover:bg-white transition-colors cursor-pointer"
             aria-label="FCI information"
           >
-            <Info className="w-3.5 h-3.5 text-gray-500" />
+            <Info className="w-3.5 h-3.5 text-slate-500" />
           </button>
           {tooltipOpen && (
-            <div className="absolute right-0 top-9 w-64 bg-gray-900 text-white text-xs rounded-xl p-3 shadow-lg z-10">
+            <div className="absolute right-0 top-9 w-64 bg-slate-900 text-white text-xs rounded-xl p-3 shadow-lg z-10">
               <p className="font-semibold mb-1">APPA FCI Standard</p>
-              <p className="text-gray-300 mb-2">FCI = Deferred Maintenance ÷ Replacement Value</p>
+              <p className="text-slate-300 mb-2">FCI = Deferred Maintenance ÷ Replacement Value</p>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary-400" />
-                  <span className="text-gray-300">{"< 5%"} — Good</span>
+                  <span className="text-slate-300">{"< 5%"} — Good</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="text-gray-300">5–10% — Fair</span>
+                  <span className="text-slate-300">5–10% — Fair</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-400" />
-                  <span className="text-gray-300">{"> 10%"} — Poor</span>
+                  <span className="text-slate-300">{"> 10%"} — Poor</span>
                 </div>
               </div>
             </div>
@@ -137,17 +137,17 @@ export function FCIScoreCard({ fci }: FCIScoreCardProps) {
       {/* Sub-stats */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3">
-          <p className="text-xs text-gray-500 mb-0.5">Deferred Maintenance</p>
-          <p className="text-sm font-bold text-gray-800">{fmt(fci.deferred)}</p>
+          <p className="text-xs text-slate-500 mb-0.5">Deferred Maintenance</p>
+          <p className="text-sm font-bold text-slate-800">{fmt(fci.deferred)}</p>
         </div>
         <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3">
-          <p className="text-xs text-gray-500 mb-0.5">Total Replacement Value</p>
-          <p className="text-sm font-bold text-gray-800">{fmt(fci.replacementValue)}</p>
+          <p className="text-xs text-slate-500 mb-0.5">Total Replacement Value</p>
+          <p className="text-sm font-bold text-slate-800">{fmt(fci.replacementValue)}</p>
         </div>
       </div>
 
       {/* Footnote */}
-      <p className="mt-3 text-[10px] text-gray-400">
+      <p className="mt-3 text-[10px] text-slate-400">
         APPA standard: {"< 5%"} Good | 5–10% Fair | {"> 10%"} Poor
       </p>
     </motion.div>

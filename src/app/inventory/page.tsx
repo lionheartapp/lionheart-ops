@@ -139,14 +139,14 @@ function TableSkeleton() {
   return (
     <div className="animate-pulse">
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-gray-100">
-          <div className="h-4 bg-gray-200 rounded w-1/4" />
-          <div className="h-4 bg-gray-200 rounded w-1/6" />
-          <div className="h-4 bg-gray-200 rounded w-1/8" />
-          <div className="h-4 bg-gray-200 rounded w-12" />
-          <div className="h-4 bg-gray-200 rounded w-12" />
-          <div className="h-6 bg-gray-200 rounded-full w-20" />
-          <div className="h-8 bg-gray-200 rounded-lg w-20 ml-auto" />
+        <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-slate-100">
+          <div className="h-4 bg-slate-200 rounded w-1/4" />
+          <div className="h-4 bg-slate-200 rounded w-1/6" />
+          <div className="h-4 bg-slate-200 rounded w-1/8" />
+          <div className="h-4 bg-slate-200 rounded w-12" />
+          <div className="h-4 bg-slate-200 rounded w-12" />
+          <div className="h-6 bg-slate-200 rounded-full w-20" />
+          <div className="h-8 bg-slate-200 rounded-lg w-20 ml-auto" />
         </div>
       ))}
     </div>
@@ -233,7 +233,7 @@ function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingCha
       )}
 
       <div>
-        <label htmlFor="item-name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="item-name" className="block text-sm font-medium text-slate-700 mb-1">
           Name <span className="text-red-500">*</span>
         </label>
         <input
@@ -241,8 +241,8 @@ function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingCha
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors ${
-            fieldErrors.name ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'
+          className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors ${
+            fieldErrors.name ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white'
           }`}
           placeholder="e.g. Whiteboard Markers"
           aria-describedby={fieldErrors.name ? 'name-error' : undefined}
@@ -253,14 +253,14 @@ function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingCha
       </div>
 
       <div>
-        <label htmlFor="item-category" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="item-category" className="block text-sm font-medium text-slate-700 mb-1">
           Category
         </label>
         <select
           id="item-category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors cursor-pointer"
+          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors cursor-pointer"
         >
           <option value="">— Select category —</option>
           {INVENTORY_CATEGORIES.map((cat) => (
@@ -270,22 +270,22 @@ function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingCha
       </div>
 
       <div>
-        <label htmlFor="item-sku" className="block text-sm font-medium text-gray-700 mb-1">
-          SKU <span className="text-gray-400 font-normal">(optional)</span>
+        <label htmlFor="item-sku" className="block text-sm font-medium text-slate-700 mb-1">
+          SKU <span className="text-slate-400 font-normal">(optional)</span>
         </label>
         <input
           id="item-sku"
           type="text"
           value={sku}
           onChange={(e) => setSku(e.target.value)}
-          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
           placeholder="e.g. WBM-100"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="item-qty" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="item-qty" className="block text-sm font-medium text-slate-700 mb-1">
             Qty on Hand
           </label>
           <input
@@ -294,11 +294,11 @@ function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingCha
             min={0}
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="item-threshold" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="item-threshold" className="block text-sm font-medium text-slate-700 mb-1">
             Reorder Point
           </label>
           <input
@@ -307,7 +307,7 @@ function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingCha
             min={0}
             value={threshold}
             onChange={(e) => setThreshold(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
           />
         </div>
       </div>
@@ -318,14 +318,14 @@ function ItemForm({ item, onSuccess, onCancel, hideActions, formId, onPendingCha
             type="button"
             onClick={onCancel}
             disabled={mutation.isPending}
-            className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+            className="flex-1 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+            className="flex-1 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
           >
             {mutation.isPending ? 'Saving…' : isEditing ? 'Save Changes' : 'Add Item'}
           </button>
@@ -402,8 +402,8 @@ function CheckoutForm({ item, onSuccess }: CheckoutFormProps) {
       )}
 
       <div>
-        <label htmlFor="checkout-qty" className="block text-sm font-medium text-gray-700 mb-1">
-          Quantity <span className="text-gray-400 text-xs">(max {maxQty})</span>
+        <label htmlFor="checkout-qty" className="block text-sm font-medium text-slate-700 mb-1">
+          Quantity <span className="text-slate-400 text-xs">(max {maxQty})</span>
         </label>
         <input
           id="checkout-qty"
@@ -412,33 +412,33 @@ function CheckoutForm({ item, onSuccess }: CheckoutFormProps) {
           max={maxQty}
           value={qty}
           onChange={(e) => setQty(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
         />
       </div>
 
       <div>
-        <label htmlFor="checkout-due" className="block text-sm font-medium text-gray-700 mb-1">
-          Due Date <span className="text-gray-400 font-normal">(optional)</span>
+        <label htmlFor="checkout-due" className="block text-sm font-medium text-slate-700 mb-1">
+          Due Date <span className="text-slate-400 font-normal">(optional)</span>
         </label>
         <input
           id="checkout-due"
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors cursor-pointer"
+          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors cursor-pointer"
         />
       </div>
 
       <div>
-        <label htmlFor="checkout-notes" className="block text-sm font-medium text-gray-700 mb-1">
-          Notes <span className="text-gray-400 font-normal">(optional)</span>
+        <label htmlFor="checkout-notes" className="block text-sm font-medium text-slate-700 mb-1">
+          Notes <span className="text-slate-400 font-normal">(optional)</span>
         </label>
         <textarea
           id="checkout-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors resize-none"
+          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors resize-none"
           placeholder="Who is checking out, reason, etc."
         />
       </div>
@@ -446,7 +446,7 @@ function CheckoutForm({ item, onSuccess }: CheckoutFormProps) {
       <button
         type="submit"
         disabled={mutation.isPending || maxQty === 0}
-        className="w-full px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+        className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
       >
         {mutation.isPending ? 'Checking Out…' : 'Confirm Checkout'}
       </button>
@@ -475,10 +475,10 @@ function TransactionTimeline({ itemId, onCheckin, checkinPendingId }: Transactio
       <div className="space-y-3 animate-pulse">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="flex gap-3">
-            <div className="w-7 h-7 rounded-full bg-gray-200 flex-shrink-0 mt-0.5" />
+            <div className="w-7 h-7 rounded-full bg-slate-200 flex-shrink-0 mt-0.5" />
             <div className="flex-1 space-y-1.5">
-              <div className="h-3 bg-gray-200 rounded w-3/4" />
-              <div className="h-3 bg-gray-200 rounded w-1/2" />
+              <div className="h-3 bg-slate-200 rounded w-3/4" />
+              <div className="h-3 bg-slate-200 rounded w-1/2" />
             </div>
           </div>
         ))}
@@ -488,7 +488,7 @@ function TransactionTimeline({ itemId, onCheckin, checkinPendingId }: Transactio
 
   if (transactions.length === 0) {
     return (
-      <div className="text-center py-6 text-sm text-gray-400">
+      <div className="text-center py-6 text-sm text-slate-400">
         No transactions yet
       </div>
     )
@@ -510,7 +510,7 @@ function TransactionTimeline({ itemId, onCheckin, checkinPendingId }: Transactio
                 isCheckout
                   ? isOpen
                     ? 'bg-red-100 text-red-600'
-                    : 'bg-gray-100 text-gray-500'
+                    : 'bg-slate-100 text-slate-500'
                   : isCheckin
                   ? 'bg-green-100 text-green-600'
                   : 'bg-blue-100 text-blue-600'
@@ -529,7 +529,7 @@ function TransactionTimeline({ itemId, onCheckin, checkinPendingId }: Transactio
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm text-gray-800">
+                  <p className="text-sm text-slate-800">
                     {isCheckout && (
                       <>
                         <span className="font-medium">{formatActorName(tx.checkedOutBy)}</span>
@@ -546,7 +546,7 @@ function TransactionTimeline({ itemId, onCheckin, checkinPendingId }: Transactio
                       <>Adjustment: <span className="font-medium">{tx.quantity > 0 ? `+${tx.quantity}` : tx.quantity}</span></>
                     )}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {formatDate(tx.createdAt)}
                     {tx.dueDate && ` · Due ${formatDate(tx.dueDate)}`}
                     {tx.notes && ` · ${tx.notes}`}
@@ -626,22 +626,22 @@ function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSuccess }: ItemDe
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-gray-900 text-base">{item.name}</h3>
+            <h3 className="font-semibold text-slate-900 text-base">{item.name}</h3>
             {item.category && (
-              <p className="text-sm text-gray-500 mt-0.5">{item.category}</p>
+              <p className="text-sm text-slate-500 mt-0.5">{item.category}</p>
             )}
             {item.sku && (
-              <p className="text-xs text-gray-400 mt-0.5 font-mono">SKU: {item.sku}</p>
+              <p className="text-xs text-slate-400 mt-0.5 font-mono">SKU: {item.sku}</p>
             )}
           </div>
           <StockBadge item={item} />
         </div>
 
         <div className="mt-4 flex items-end gap-1">
-          <span className="text-4xl font-bold text-gray-900">{item.quantityOnHand}</span>
-          <span className="text-sm text-gray-500 mb-1.5">units</span>
+          <span className="text-4xl font-bold text-slate-900">{item.quantityOnHand}</span>
+          <span className="text-sm text-slate-500 mb-1.5">units</span>
         </div>
-        <p className="text-xs text-gray-400 mt-1">Reorder at {item.reorderThreshold}</p>
+        <p className="text-xs text-slate-400 mt-1">Reorder at {item.reorderThreshold}</p>
       </div>
 
       {/* Quick actions */}
@@ -649,14 +649,14 @@ function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSuccess }: ItemDe
         <button
           onClick={() => setShowCheckoutForm((v) => !v)}
           disabled={item.quantityOnHand === 0}
-          className="flex-1 px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+          className="flex-1 px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
         >
           <ArrowDownCircle className="w-4 h-4" aria-hidden="true" />
           Checkout
         </button>
         <button
           onClick={onEdit}
-          className="px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
+          className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
         >
           <Pencil className="w-4 h-4" aria-hidden="true" />
           Edit
@@ -680,7 +680,7 @@ function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSuccess }: ItemDe
             className="overflow-hidden"
           >
             <div className="ui-glass p-4 rounded-xl">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Checkout Items</h4>
+              <h4 className="text-sm font-semibold text-slate-700 mb-3">Checkout Items</h4>
               <CheckoutForm
                 item={item}
                 onSuccess={() => {
@@ -696,8 +696,8 @@ function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSuccess }: ItemDe
       {/* Transaction history */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <ClipboardList className="w-4 h-4 text-gray-400" aria-hidden="true" />
-          <h4 className="text-sm font-semibold text-gray-700">Transaction History</h4>
+          <ClipboardList className="w-4 h-4 text-slate-400" aria-hidden="true" />
+          <h4 className="text-sm font-semibold text-slate-700">Transaction History</h4>
         </div>
         <TransactionTimeline
           itemId={item.id}
@@ -864,8 +864,8 @@ export default function InventoryPage() {
 
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Loading…</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-400 text-sm">Loading…</div>
       </div>
     )
   }
@@ -893,10 +893,10 @@ export default function InventoryPage() {
         >
           <div>
             <motion.div variants={fadeInUp} className="flex items-center gap-2 mb-0.5">
-              <Package className="w-5 h-5 text-gray-400" aria-hidden="true" />
-              <h1 className="text-2xl font-semibold text-gray-900">{deptConfig.title}</h1>
+              <Package className="w-5 h-5 text-slate-400" aria-hidden="true" />
+              <h1 className="text-2xl font-semibold text-slate-900">{deptConfig.title}</h1>
             </motion.div>
-            <motion.p variants={fadeInUp} className="text-sm text-gray-500">
+            <motion.p variants={fadeInUp} className="text-sm text-slate-500">
               {deptConfig.subtitle}
             </motion.p>
           </div>
@@ -906,7 +906,7 @@ export default function InventoryPage() {
                 setEditingItem(null)
                 setFormDrawerOpen(true)
               }}
-              className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
               {deptConfig.addLabel}
@@ -923,16 +923,16 @@ export default function InventoryPage() {
         >
           {/* Total Items */}
           <motion.div variants={cardEntrance} className="ui-glass p-4 text-center">
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Total Items</p>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Total Items</p>
+            <p className="text-3xl font-bold text-slate-900">
               <AnimatedCounter value={stats.totalItems} />
             </p>
           </motion.div>
 
           {/* Total Units */}
           <motion.div variants={cardEntrance} className="ui-glass p-4 text-center">
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Total Units</p>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Total Units</p>
+            <p className="text-3xl font-bold text-slate-900">
               <AnimatedCounter value={stats.totalInStock} />
             </p>
           </motion.div>
@@ -946,10 +946,10 @@ export default function InventoryPage() {
                 : 'ui-glass'
             }`}
           >
-            <p className={`text-xs uppercase tracking-wide font-medium mb-1 ${stats.lowStockCount > 0 ? 'text-amber-700' : 'text-gray-500'}`}>
+            <p className={`text-xs uppercase tracking-wide font-medium mb-1 ${stats.lowStockCount > 0 ? 'text-amber-700' : 'text-slate-500'}`}>
               Low Stock
             </p>
-            <p className={`text-3xl font-bold ${stats.lowStockCount > 0 ? 'text-amber-700' : 'text-gray-900'}`}>
+            <p className={`text-3xl font-bold ${stats.lowStockCount > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
               <AnimatedCounter value={stats.lowStockCount} />
             </p>
             {stats.lowStockCount > 0 && (
@@ -969,10 +969,10 @@ export default function InventoryPage() {
                 : 'ui-glass'
             }`}
           >
-            <p className={`text-xs uppercase tracking-wide font-medium mb-1 ${stats.outOfStockCount > 0 ? 'text-red-700' : 'text-gray-500'}`}>
+            <p className={`text-xs uppercase tracking-wide font-medium mb-1 ${stats.outOfStockCount > 0 ? 'text-red-700' : 'text-slate-500'}`}>
               Out of Stock
             </p>
-            <p className={`text-3xl font-bold ${stats.outOfStockCount > 0 ? 'text-red-700' : 'text-gray-900'}`}>
+            <p className={`text-3xl font-bold ${stats.outOfStockCount > 0 ? 'text-red-700' : 'text-slate-900'}`}>
               <AnimatedCounter value={stats.outOfStockCount} />
             </p>
           </motion.div>
@@ -987,13 +987,13 @@ export default function InventoryPage() {
         >
           {/* Search */}
           <div className="flex-1 min-w-[180px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
             <input
               type="text"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
               placeholder="Search items…"
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
             />
           </div>
 
@@ -1001,12 +1001,12 @@ export default function InventoryPage() {
           <div ref={categoryRef} className="relative">
             <button
               onClick={() => setCategoryOpen((v) => !v)}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer min-w-[160px] justify-between"
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition-colors cursor-pointer min-w-[160px] justify-between"
               aria-haspopup="listbox"
               aria-expanded={categoryOpen}
             >
-              <span className={category ? 'text-gray-900' : 'text-gray-500'}>{selectedCategoryLabel}</span>
-              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${categoryOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+              <span className={category ? 'text-slate-900' : 'text-slate-500'}>{selectedCategoryLabel}</span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${categoryOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
             <AnimatePresence>
               {categoryOpen && (
@@ -1028,7 +1028,7 @@ export default function InventoryPage() {
                         setCategoryOpen(false)
                       }}
                       className={`block w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
-                        category === cat ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                        category === cat ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       {cat || 'All Categories'}
@@ -1043,12 +1043,12 @@ export default function InventoryPage() {
           <div ref={stockRef} className="relative">
             <button
               onClick={() => setStockOpen((v) => !v)}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer min-w-[160px] justify-between"
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition-colors cursor-pointer min-w-[160px] justify-between"
               aria-haspopup="listbox"
               aria-expanded={stockOpen}
             >
-              <span className={stockFilter !== 'all' ? 'text-gray-900' : 'text-gray-500'}>{selectedStockLabel}</span>
-              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${stockOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+              <span className={stockFilter !== 'all' ? 'text-slate-900' : 'text-slate-500'}>{selectedStockLabel}</span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${stockOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
             <AnimatePresence>
               {stockOpen && (
@@ -1070,7 +1070,7 @@ export default function InventoryPage() {
                         setStockOpen(false)
                       }}
                       className={`block w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
-                        stockFilter === opt.value ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                        stockFilter === opt.value ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       {opt.label}
@@ -1097,10 +1097,10 @@ export default function InventoryPage() {
               <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
                 <Package className="w-8 h-8 text-primary-400" aria-hidden="true" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">
+              <h3 className="text-base font-semibold text-slate-900 mb-1">
                 {items.length === 0 ? 'No inventory items yet' : 'No items match your filters'}
               </h3>
-              <p className="text-sm text-gray-500 mb-6 max-w-xs">
+              <p className="text-sm text-slate-500 mb-6 max-w-xs">
                 {items.length === 0
                   ? 'Add your first item to start tracking stock levels and transactions.'
                   : 'Try adjusting your search or filter criteria.'}
@@ -1111,7 +1111,7 @@ export default function InventoryPage() {
                     setEditingItem(null)
                     setFormDrawerOpen(true)
                   }}
-                  className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 flex items-center gap-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" aria-hidden="true" />
                   Add Item
@@ -1121,14 +1121,14 @@ export default function InventoryPage() {
           ) : (
             <table className="w-full" role="table">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Name</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide hidden md:table-cell">Category</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide hidden lg:table-cell">SKU</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Qty</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide hidden sm:table-cell">Reorder At</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Actions</th>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Name</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide hidden md:table-cell">Category</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide hidden lg:table-cell">SKU</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Qty</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide hidden sm:table-cell">Reorder At</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Status</th>
+                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Actions</th>
                 </tr>
               </thead>
               <motion.tbody initial="hidden" animate="visible" variants={staggerContainer(0.04)}>
@@ -1136,25 +1136,25 @@ export default function InventoryPage() {
                   <motion.tr
                     key={item.id}
                     variants={listItem}
-                    className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-colors duration-200 cursor-pointer"
+                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors duration-200 cursor-pointer"
                     onClick={() => handleOpenDetail(item)}
                   >
                     <td className="px-6 py-3.5">
-                      <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                      <span className="text-sm font-medium text-slate-900">{item.name}</span>
                     </td>
                     <td className="px-4 py-3.5 hidden md:table-cell">
-                      <span className="text-sm text-gray-500">{item.category || '—'}</span>
+                      <span className="text-sm text-slate-500">{item.category || '—'}</span>
                     </td>
                     <td className="px-4 py-3.5 hidden lg:table-cell">
-                      <span className="text-xs text-gray-400 font-mono">{item.sku || '—'}</span>
+                      <span className="text-xs text-slate-400 font-mono">{item.sku || '—'}</span>
                     </td>
                     <td className="px-4 py-3.5 text-right">
-                      <span className={`text-sm font-semibold tabular-nums ${item.quantityOnHand === 0 ? 'text-red-600' : item.quantityOnHand <= item.reorderThreshold ? 'text-amber-600' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-semibold tabular-nums ${item.quantityOnHand === 0 ? 'text-red-600' : item.quantityOnHand <= item.reorderThreshold ? 'text-amber-600' : 'text-slate-900'}`}>
                         {item.quantityOnHand}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right hidden sm:table-cell">
-                      <span className="text-sm text-gray-400 tabular-nums">{item.reorderThreshold}</span>
+                      <span className="text-sm text-slate-400 tabular-nums">{item.reorderThreshold}</span>
                     </td>
                     <td className="px-4 py-3.5">
                       <StockBadge item={item} />
@@ -1168,7 +1168,7 @@ export default function InventoryPage() {
                           }}
                           disabled={item.quantityOnHand === 0}
                           title="Check out"
-                          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                         >
                           Checkout
                         </button>
@@ -1178,7 +1178,7 @@ export default function InventoryPage() {
                             handleOpenDetail(item)
                           }}
                           title="View details"
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-200 cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
                           aria-label={`View details for ${item.name}`}
                         >
                           <Eye className="w-4 h-4" aria-hidden="true" />

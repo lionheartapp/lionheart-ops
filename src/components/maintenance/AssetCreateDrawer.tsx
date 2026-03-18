@@ -73,12 +73,12 @@ function getInitialForm() {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const labelClass = 'block text-xs font-medium text-gray-600 mb-1'
+const labelClass = 'block text-xs font-medium text-slate-600 mb-1'
 const inputClass =
   'ui-input'
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3 mt-6 first:mt-0">
+    <div className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3 mt-6 first:mt-0">
       {title}
     </div>
   )
@@ -251,20 +251,20 @@ export default function AssetCreateDrawer({
             className="fixed inset-y-0 right-0 w-full sm:w-[480px] z-50 flex flex-col ui-glass-overlay"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/60 flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
                   <Package className="w-4 h-4 text-primary-600" />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">{isEditMode ? 'Edit Asset' : 'Add Asset'}</h2>
-                  <p className="text-xs text-gray-500">{isEditMode ? `Editing ${editAsset?.assetNumber}` : 'Asset number auto-assigned on creation'}</p>
+                  <h2 className="text-base font-semibold text-slate-900">{isEditMode ? 'Edit Asset' : 'Add Asset'}</h2>
+                  <p className="text-xs text-slate-500">{isEditMode ? `Editing ${editAsset?.assetNumber}` : 'Asset number auto-assigned on creation'}</p>
                 </div>
               </div>
               <button
                 onClick={handleClose}
                 disabled={mutation.isPending}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 aria-label="Close drawer"
               >
                 <X className="w-5 h-5" />
@@ -403,7 +403,7 @@ export default function AssetCreateDrawer({
 
                   <div>
                     <label className={labelClass}>
-                      Repair Threshold (%) <span className="text-gray-400">— flag if repair exceeds this % of replacement cost</span>
+                      Repair Threshold (%) <span className="text-slate-400">— flag if repair exceeds this % of replacement cost</span>
                     </label>
                     <input
                       type="number"
@@ -447,7 +447,7 @@ export default function AssetCreateDrawer({
             </div>
 
             {/* Footer */}
-            <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200/60 space-y-3">
+            <div className="flex-shrink-0 px-6 py-4 border-t border-slate-200/60 space-y-3">
               {error && (
                 <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                   {error}

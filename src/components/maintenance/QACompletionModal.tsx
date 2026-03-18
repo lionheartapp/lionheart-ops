@@ -185,41 +185,41 @@ export default function QACompletionModal({
           >
             <div className="ui-glass-overlay w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100/50">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100/50">
                 <div className="flex items-center gap-2">
-                  <CheckSquare className="w-5 h-5 text-gray-900" />
-                  <h2 className="text-base font-semibold text-gray-900">Submit for QA Review</h2>
+                  <CheckSquare className="w-5 h-5 text-slate-900" />
+                  <h2 className="text-base font-semibold text-slate-900">Submit for QA Review</h2>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4 text-gray-500" />
+                  <X className="w-4 h-4 text-slate-500" />
                 </button>
               </div>
 
               {/* Body */}
               <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-slate-600">
                   To submit this ticket for QA review, you must provide at least one completion photo and a detailed completion note describing the work done.
                 </p>
 
                 {/* Photo upload */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Completion Photos <span className="text-red-500">*</span>
-                    <span className="text-xs text-gray-400 font-normal ml-1">(at least 1 required)</span>
+                    <span className="text-xs text-slate-400 font-normal ml-1">(at least 1 required)</span>
                   </label>
 
                   {/* Upload area */}
                   {photos.length < 5 && (
                     <div
                       onClick={() => inputRef.current?.click()}
-                      className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-gray-400 hover:bg-gray-50/30 transition-all"
+                      className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-slate-400 hover:bg-slate-50/30 transition-all"
                     >
-                      <Camera className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                      <p className="text-sm text-gray-600 font-medium">Add Completion Photo</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Tap to take a photo or upload from device</p>
+                      <Camera className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                      <p className="text-sm text-slate-600 font-medium">Add Completion Photo</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Tap to take a photo or upload from device</p>
                       <input
                         ref={inputRef}
                         type="file"
@@ -240,7 +240,7 @@ export default function QACompletionModal({
                   {(photos.length > 0 || uploading.length > 0) && (
                     <div className="grid grid-cols-4 gap-2 mt-3">
                       {photos.map((photo, i) => (
-                        <div key={photo.url} className="relative aspect-square rounded-xl overflow-hidden group bg-gray-100">
+                        <div key={photo.url} className="relative aspect-square rounded-xl overflow-hidden group bg-slate-100">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={photo.localPreview || photo.url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
                           <button
@@ -253,7 +253,7 @@ export default function QACompletionModal({
                         </div>
                       ))}
                       {uploading.map((u) => (
-                        <div key={u.id} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+                        <div key={u.id} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={u.preview} alt="Uploading..." className="w-full h-full object-cover opacity-60" />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -277,9 +277,9 @@ export default function QACompletionModal({
 
                 {/* Completion note */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Completion Note <span className="text-red-500">*</span>
-                    <span className="text-xs text-gray-400 font-normal ml-1">(min. 10 characters)</span>
+                    <span className="text-xs text-slate-400 font-normal ml-1">(min. 10 characters)</span>
                   </label>
                   <textarea
                     value={completionNote}
@@ -294,13 +294,13 @@ export default function QACompletionModal({
                         {10 - completionNote.trim().length} more character{10 - completionNote.trim().length !== 1 ? 's' : ''} needed
                       </p>
                     ) : !hasNote ? (
-                      <p className="text-xs text-gray-400">Describe what was done in at least 10 characters</p>
+                      <p className="text-xs text-slate-400">Describe what was done in at least 10 characters</p>
                     ) : (
                       <p className="text-xs text-green-600 flex items-center gap-1">
                         <Check className="w-3 h-3" /> Note looks good
                       </p>
                     )}
-                    <span className="text-xs text-gray-400">{completionNote.trim().length} chars</span>
+                    <span className="text-xs text-slate-400">{completionNote.trim().length} chars</span>
                   </div>
                 </div>
 
@@ -310,10 +310,10 @@ export default function QACompletionModal({
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-gray-100/50">
+              <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100/50">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>

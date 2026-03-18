@@ -271,7 +271,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
             type="submit"
             form="it-ticket-create-form"
             disabled={!canSubmit || createMutation.isPending}
-            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             Submit Request
@@ -279,7 +279,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
           <button
             type="button"
             onClick={handleClose}
-            className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all"
+            className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all"
           >
             Cancel
           </button>
@@ -305,7 +305,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {/* Title suggestions */}
         {showSuggestions && (
           <div className="flex flex-wrap gap-1.5 -mt-2 animate-[fadeIn_200ms_ease-out]">
-            <span className="text-[11px] text-gray-400 mr-1 self-center">Suggestions:</span>
+            <span className="text-[11px] text-slate-400 mr-1 self-center">Suggestions:</span>
             {titleSuggestions.map((s) => (
               <button
                 key={s}
@@ -320,7 +320,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Issue Type *</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Issue Type *</label>
           <select
             value={issueType}
             onChange={(e) => {
@@ -329,7 +329,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
               setAvSubType('')
             }}
             required
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             <option value="">Select type...</option>
             {ISSUE_TYPES.map((t) => (
@@ -341,11 +341,11 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {/* Password sub-type */}
         {issueType === 'ACCOUNT_PASSWORD' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password Issue Type</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password Issue Type</label>
             <select
               value={passwordSubType}
               onChange={(e) => setPasswordSubType(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select...</option>
               {PASSWORD_SUB_TYPES.map((t) => (
@@ -358,11 +358,11 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {/* A/V sub-type */}
         {issueType === 'DISPLAY_AV' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">A/V Equipment</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">A/V Equipment</label>
             <select
               value={avSubType}
               onChange={(e) => setAvSubType(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select...</option>
               {AV_SUB_TYPES.map((t) => (
@@ -386,7 +386,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
               className={`absolute right-3 top-3 p-1.5 rounded-lg transition-colors ${
                 isRecording
                   ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
               }`}
               title={isRecording ? 'Stop recording' : 'Voice input'}
             >
@@ -405,11 +405,11 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {/* Priority — visible to coordinators */}
         {canManage && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               {PRIORITIES.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
@@ -420,7 +420,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
 
         {/* Location: Building → Area → Room */}
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">Location (optional)</label>
+          <label className="block text-sm font-medium text-slate-700">Location (optional)</label>
           <select
             value={buildingId}
             onChange={(e) => {
@@ -428,7 +428,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
               setAreaId('')
               setRoomId('')
             }}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             <option value="">Select building...</option>
             {buildings.map((b) => (
@@ -440,7 +440,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
             <select
               value={areaId}
               onChange={(e) => { setAreaId(e.target.value); setRoomId('') }}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select area...</option>
               {areas.map((a) => (
@@ -453,7 +453,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
             <select
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select room...</option>
               {rooms.map((r) => (
@@ -468,11 +468,11 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {/* Campus */}
         {schools.length > 1 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Campus</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Campus</label>
             <select
               value={schoolId}
               onChange={(e) => setSchoolId(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select campus...</option>
               {schools.map((s) => (

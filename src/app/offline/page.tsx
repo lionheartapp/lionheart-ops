@@ -11,11 +11,11 @@ export default function OfflinePage() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-semibold text-gray-900 mb-3">
+        <h1 className="text-2xl font-semibold text-slate-900 mb-3">
           You&apos;re Offline
         </h1>
 
-        <p className="text-gray-500 mb-8 leading-relaxed">
+        <p className="text-slate-500 mb-8 leading-relaxed">
           This page isn&apos;t available offline. Head to Maintenance to see your cached tickets and create new ones.
         </p>
 

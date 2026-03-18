@@ -70,7 +70,7 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
     <div className="sm:hidden space-y-4">
       {Array.from({ length: maxRound }, (_, i) => i + 1).map((round) => (
         <div key={round}>
-          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{roundLabel(round)}</h4>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{roundLabel(round)}</h4>
           <div className="space-y-2">
             {(roundMap[round] || []).map((match) => {
               const hasTeams = match.team1Id || match.team2Id
@@ -80,12 +80,12 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
                   className={`ui-glass p-3 rounded-xl ${hasTeams ? 'cursor-pointer active:scale-[0.97]' : ''}`}
                   onClick={() => hasTeams && onMatchClick(match)}
                 >
-                  <div className={`flex items-center justify-between py-1 ${match.winnerId === match.team1Id ? 'font-semibold text-green-700' : 'text-gray-700'}`}>
+                  <div className={`flex items-center justify-between py-1 ${match.winnerId === match.team1Id ? 'font-semibold text-green-700' : 'text-slate-700'}`}>
                     <span className="text-sm">{match.team1?.name || 'TBD'}</span>
                     {match.winnerId === match.team1Id && <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">W</span>}
                   </div>
-                  <div className="h-px bg-gray-100 my-1" />
-                  <div className={`flex items-center justify-between py-1 ${match.winnerId === match.team2Id ? 'font-semibold text-green-700' : 'text-gray-700'}`}>
+                  <div className="h-px bg-slate-100 my-1" />
+                  <div className={`flex items-center justify-between py-1 ${match.winnerId === match.team2Id ? 'font-semibold text-green-700' : 'text-slate-700'}`}>
                     <span className="text-sm">{match.team2?.name || 'TBD'}</span>
                     {match.winnerId === match.team2Id && <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">W</span>}
                   </div>
@@ -112,7 +112,7 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
             x={PADDING + (round - 1) * (MATCH_W + GAP_X) + MATCH_W / 2}
             y={14}
             textAnchor="middle"
-            className="fill-gray-400 text-[11px] font-medium"
+            className="fill-slate-400 text-[11px] font-medium"
           >
             {roundLabel(round)}
           </text>
@@ -196,7 +196,7 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
                   fill="white"
                   stroke={match.winnerId ? '#d1fae5' : '#e5e7eb'}
                   strokeWidth={1.5}
-                  className={hasTeams ? 'hover:stroke-gray-400 transition-colors' : ''}
+                  className={hasTeams ? 'hover:stroke-slate-400 transition-colors' : ''}
                 />
 
                 {/* Divider */}
@@ -224,7 +224,7 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
                   x={pos.x + 10}
                   y={pos.y + TEAM_ROW_H / 2 + 1}
                   dominantBaseline="middle"
-                  className={`text-[12px] ${t1IsWinner ? 'fill-green-700 font-semibold' : 'fill-gray-700'}`}
+                  className={`text-[12px] ${t1IsWinner ? 'fill-green-700 font-semibold' : 'fill-slate-700'}`}
                 >
                   {match.team1?.name || (match.team1Id ? 'Team' : 'TBD')}
                 </text>
@@ -255,7 +255,7 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
                   x={pos.x + 10}
                   y={pos.y + TEAM_ROW_H + TEAM_ROW_H / 2 + 1}
                   dominantBaseline="middle"
-                  className={`text-[12px] ${t2IsWinner ? 'fill-green-700 font-semibold' : 'fill-gray-700'}`}
+                  className={`text-[12px] ${t2IsWinner ? 'fill-green-700 font-semibold' : 'fill-slate-700'}`}
                 >
                   {match.team2?.name || (match.team2Id ? 'Team' : 'TBD')}
                 </text>

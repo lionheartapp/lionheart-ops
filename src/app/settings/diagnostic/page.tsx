@@ -79,36 +79,36 @@ export default function DiagnosticPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900">Settings Diagnostic</h1>
+        <h1 className="text-3xl font-bold mb-6 text-slate-900">Settings Diagnostic</h1>
 
-        <div className="bg-white rounded-lg shadow-subtle p-6 mb-6 border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">LocalStorage Values</h2>
+        <div className="bg-white rounded-lg shadow-subtle p-6 mb-6 border border-slate-200">
+          <h2 className="text-xl font-semibold mb-4 text-slate-900">LocalStorage Values</h2>
           {diagnostics ? (
-            <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+            <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
               {JSON.stringify(diagnostics, null, 2)}
             </pre>
           ) : (
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-slate-600">Loading...</p>
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow-subtle p-6 border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">API Test Results</h2>
+        <div className="bg-white rounded-lg shadow-subtle p-6 border border-slate-200">
+          <h2 className="text-xl font-semibold mb-4 text-slate-900">API Test Results</h2>
           {testResults ? (
             <div className="space-y-4">
               <div>
-                <h3 className="font-medium mb-2 text-gray-900">Permissions API</h3>
-                <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+                <h3 className="font-medium mb-2 text-slate-900">Permissions API</h3>
+                <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
                   {JSON.stringify(testResults.permissions, null, 2)}
                 </pre>
               </div>
 
               {testResults.roles && (
                 <div>
-                  <h3 className="font-medium mb-2 text-gray-900">Roles API</h3>
-                  <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+                  <h3 className="font-medium mb-2 text-slate-900">Roles API</h3>
+                  <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
                     {JSON.stringify(testResults.roles, null, 2)}
                   </pre>
                 </div>
@@ -116,15 +116,15 @@ export default function DiagnosticPage() {
 
               {testResults.teams && (
                 <div>
-                  <h3 className="font-medium mb-2 text-gray-900">Teams API</h3>
-                  <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+                  <h3 className="font-medium mb-2 text-slate-900">Teams API</h3>
+                  <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
                     {JSON.stringify(testResults.teams, null, 2)}
                   </pre>
                 </div>
               )}
             </div>
           ) : (
-            <p className="text-gray-600">Running tests...</p>
+            <p className="text-slate-600">Running tests...</p>
           )}
         </div>
 

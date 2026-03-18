@@ -94,23 +94,23 @@ export default function SignatureField({
     <div className="space-y-3">
       {/* Header */}
       <div className="space-y-1">
-        <p className="text-sm font-medium text-gray-900">
+        <p className="text-sm font-medium text-slate-900">
           Sign: {documentLabel}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-slate-500">
           By signing below, I agree to the terms of this document.
         </p>
       </div>
 
       {/* Mode toggle */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-slate-100 rounded-lg p-1 w-fit">
         <button
           type="button"
           onClick={switchToDrawn}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
             mode === 'DRAWN'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           <Pen className="w-3 h-3" />
@@ -121,8 +121,8 @@ export default function SignatureField({
           onClick={switchToTyped}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
             mode === 'TYPED'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           <Type className="w-3 h-3" />
@@ -135,7 +135,7 @@ export default function SignatureField({
         <div className="space-y-2">
           <div
             ref={containerRef}
-            className="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-white hover:border-gray-400 transition-colors"
+            className="border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-white hover:border-slate-400 transition-colors"
           >
             <SignatureCanvas
               ref={canvasRef}
@@ -149,13 +149,13 @@ export default function SignatureField({
             />
           </div>
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-slate-400">
               {isEmpty ? 'Draw your signature above' : 'Signature captured'}
             </p>
             <button
               type="button"
               onClick={handleClear}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" />
               Clear
@@ -168,7 +168,7 @@ export default function SignatureField({
       {mode === 'TYPED' && (
         <div className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
               Full name
             </label>
             <input
@@ -176,16 +176,16 @@ export default function SignatureField({
               value={typedName}
               onChange={handleTypeChange}
               placeholder="Type your full name"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all"
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all"
             />
           </div>
 
           {/* Cursive preview */}
           {typedName && (
-            <div className="border border-gray-200 rounded-xl bg-gray-50 px-4 py-3">
-              <p className="text-xs text-gray-400 mb-1">Preview</p>
+            <div className="border border-slate-200 rounded-xl bg-slate-50 px-4 py-3">
+              <p className="text-xs text-slate-400 mb-1">Preview</p>
               <p
-                className="text-2xl text-gray-800 select-none"
+                className="text-2xl text-slate-800 select-none"
                 style={{ fontFamily: '"Brush Script MT", "Dancing Script", cursive' }}
               >
                 {typedName}

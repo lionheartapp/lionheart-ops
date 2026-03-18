@@ -133,19 +133,19 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
             className="relative w-full max-w-lg ui-glass-overlay rounded-2xl overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-start justify-between p-6 border-b border-gray-200/50">
+            <div className="flex items-start justify-between p-6 border-b border-slate-200/50">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
                   <FileText className="w-5 h-5 text-primary-600" />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Export Compliance Audit Report</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Generate a downloadable PDF of all compliance records</p>
+                  <h2 className="text-base font-semibold text-slate-900">Export Compliance Audit Report</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Generate a downloadable PDF of all compliance records</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -156,21 +156,21 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
               {/* Date Range */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">From Date</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">From Date</label>
                   <input
                     type="date"
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">To Date</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">To Date</label>
                   <input
                     type="date"
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                   />
                 </div>
               </div>
@@ -178,11 +178,11 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
               {/* School filter — only for multi-school orgs */}
               {isMultiSchool && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Campus / School</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">Campus / School</label>
                   <select
                     value={schoolId}
                     onChange={(e) => setSchoolId(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                   >
                     <option value="">All Schools</option>
                     {schools.map((s) => (
@@ -194,11 +194,11 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
 
               {/* Domain filter */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Domain</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1.5">Domain</label>
                 <select
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
                 >
                   <option value="">All Domains</option>
                   {COMPLIANCE_DOMAINS.map((d) => (
@@ -219,7 +219,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
             <div className="px-6 pb-6 flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>

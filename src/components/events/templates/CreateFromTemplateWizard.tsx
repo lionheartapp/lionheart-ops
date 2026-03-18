@@ -75,19 +75,19 @@ function StepIndicator({ current, total }: { current: Step; total: number }) {
                 ? 'bg-indigo-500 text-white'
                 : step === current
                 ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-300'
-                : 'bg-gray-100 text-gray-400'
+                : 'bg-slate-100 text-slate-400'
             }`}
           >
             {step < current ? <CheckCircle className="w-4 h-4" /> : step}
           </div>
           <span
             className={`text-sm font-medium ${
-              step === current ? 'text-indigo-700' : 'text-gray-400'
+              step === current ? 'text-indigo-700' : 'text-slate-400'
             }`}
           >
             {STEP_LABELS[step]}
           </span>
-          {step < total && <div className="w-8 h-px bg-gray-200 mx-1" />}
+          {step < total && <div className="w-8 h-px bg-slate-200 mx-1" />}
         </div>
       ))}
     </div>
@@ -105,7 +105,7 @@ function Step1({ details, onChange }: Step1Props) {
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="new-event-title" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="new-event-title" className="block text-sm font-medium text-slate-700 mb-1">
           Event Title <span className="text-red-500">*</span>
         </label>
         <input
@@ -114,13 +114,13 @@ function Step1({ details, onChange }: Step1Props) {
           value={details.title}
           onChange={(e) => onChange({ ...details, title: e.target.value })}
           placeholder="e.g. Camp Big Bear 2026"
-          className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="new-event-starts" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="new-event-starts" className="block text-sm font-medium text-slate-700 mb-1">
             Start Date & Time <span className="text-red-500">*</span>
           </label>
           <input
@@ -128,11 +128,11 @@ function Step1({ details, onChange }: Step1Props) {
             type="datetime-local"
             value={details.startsAt}
             onChange={(e) => onChange({ ...details, startsAt: e.target.value })}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
           />
         </div>
         <div>
-          <label htmlFor="new-event-ends" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="new-event-ends" className="block text-sm font-medium text-slate-700 mb-1">
             End Date & Time <span className="text-red-500">*</span>
           </label>
           <input
@@ -140,14 +140,14 @@ function Step1({ details, onChange }: Step1Props) {
             type="datetime-local"
             value={details.endsAt}
             onChange={(e) => onChange({ ...details, endsAt: e.target.value })}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="new-event-location" className="block text-sm font-medium text-gray-700 mb-1">
-          Location <span className="text-gray-400 font-normal">(optional)</span>
+        <label htmlFor="new-event-location" className="block text-sm font-medium text-slate-700 mb-1">
+          Location <span className="text-slate-400 font-normal">(optional)</span>
         </label>
         <input
           id="new-event-location"
@@ -155,7 +155,7 @@ function Step1({ details, onChange }: Step1Props) {
           value={details.locationText}
           onChange={(e) => onChange({ ...details, locationText: e.target.value })}
           placeholder="e.g. Camp Sherwood, Malibu CA"
-          className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
         />
       </div>
     </div>
@@ -179,14 +179,14 @@ function Step2({ enhancements, isLoading, onChange }: Step2Props) {
             <Sparkles className="w-4 h-4 text-indigo-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">Analyzing template...</p>
-            <p className="text-xs text-gray-500">AI is adjusting dates and reviewing lessons learned</p>
+            <p className="text-sm font-medium text-slate-900">Analyzing template...</p>
+            <p className="text-xs text-slate-500">AI is adjusting dates and reviewing lessons learned</p>
           </div>
         </div>
         {[1, 2, 3].map((i) => (
           <div key={i} className="ui-glass p-4 rounded-xl animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
-            <div className="h-3 bg-gray-100 rounded w-full" />
+            <div className="h-4 bg-slate-200 rounded w-1/2 mb-2" />
+            <div className="h-3 bg-slate-100 rounded w-full" />
           </div>
         ))}
       </div>
@@ -196,11 +196,11 @@ function Step2({ enhancements, isLoading, onChange }: Step2Props) {
   if (!enhancements) {
     return (
       <div className="text-center py-8">
-        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-          <Sparkles className="w-6 h-6 text-gray-400" />
+        <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+          <Sparkles className="w-6 h-6 text-slate-400" />
         </div>
-        <p className="text-sm font-medium text-gray-700 mb-1">AI not available</p>
-        <p className="text-xs text-gray-500 max-w-xs mx-auto">
+        <p className="text-sm font-medium text-slate-700 mb-1">AI not available</p>
+        <p className="text-xs text-slate-500 max-w-xs mx-auto">
           Continuing without AI enhancements. The template structure will be applied as-is.
         </p>
       </div>
@@ -218,7 +218,7 @@ function Step2({ enhancements, isLoading, onChange }: Step2Props) {
         <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
           <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
         </div>
-        <p className="text-sm font-medium text-gray-900">AI-powered enhancements ready</p>
+        <p className="text-sm font-medium text-slate-900">AI-powered enhancements ready</p>
       </div>
 
       {/* Schedule adjustment */}
@@ -227,14 +227,14 @@ function Step2({ enhancements, isLoading, onChange }: Step2Props) {
           type="checkbox"
           checked={enhancements.includeSchedule}
           onChange={() => toggle('includeSchedule')}
-          className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-gray-300 cursor-pointer"
+          className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 cursor-pointer"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
             <Calendar className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-            <p className="text-sm font-medium text-gray-900">Schedule adjusted to new dates</p>
+            <p className="text-sm font-medium text-slate-900">Schedule adjusted to new dates</p>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             {enhancements.scheduleAdjusted
               ? 'Day offsets recalculated and timing optimized for your new dates.'
               : 'Schedule blocks preserved from the original template.'}
@@ -248,14 +248,14 @@ function Step2({ enhancements, isLoading, onChange }: Step2Props) {
           type="checkbox"
           checked={enhancements.includeBudget}
           onChange={() => toggle('includeBudget')}
-          className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-gray-300 cursor-pointer"
+          className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 cursor-pointer"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
             <DollarSign className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-            <p className="text-sm font-medium text-gray-900">Budget categories included</p>
+            <p className="text-sm font-medium text-slate-900">Budget categories included</p>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             {enhancements.budgetUpdated
               ? 'Budget categories reviewed and updated for current conditions.'
               : 'Budget category structure preserved from original template.'}
@@ -270,18 +270,18 @@ function Step2({ enhancements, isLoading, onChange }: Step2Props) {
             type="checkbox"
             checked={enhancements.includeLessons}
             onChange={() => toggle('includeLessons')}
-            className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-gray-300 cursor-pointer"
+            className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 cursor-pointer"
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-1">
               <ClipboardList className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-slate-900">
                 Lessons from previous event
               </p>
             </div>
             <ul className="space-y-1">
               {enhancements.lessonsFound.slice(0, 4).map((lesson, i) => (
-                <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
                   <span className="text-indigo-400 flex-shrink-0 mt-0.5">•</span>
                   {lesson}
                 </li>
@@ -328,31 +328,31 @@ function Step3({ details, templateName }: Step3Props) {
     <div className="space-y-4">
       <div className="ui-glass p-4 rounded-xl space-y-3">
         <div>
-          <p className="text-xs text-gray-500 mb-0.5">Event Title</p>
-          <p className="text-sm font-semibold text-gray-900">{details.title}</p>
+          <p className="text-xs text-slate-500 mb-0.5">Event Title</p>
+          <p className="text-sm font-semibold text-slate-900">{details.title}</p>
         </div>
         {startsAt && endsAt && (
           <div>
-            <p className="text-xs text-gray-500 mb-0.5">Dates</p>
-            <p className="text-sm text-gray-900">
+            <p className="text-xs text-slate-500 mb-0.5">Dates</p>
+            <p className="text-sm text-slate-900">
               {formatDateTime(startsAt)} &ndash; {formatDateTime(endsAt)}
             </p>
           </div>
         )}
         {details.locationText && (
           <div>
-            <p className="text-xs text-gray-500 mb-0.5">Location</p>
-            <p className="text-sm text-gray-900">{details.locationText}</p>
+            <p className="text-xs text-slate-500 mb-0.5">Location</p>
+            <p className="text-sm text-slate-900">{details.locationText}</p>
           </div>
         )}
         <div>
-          <p className="text-xs text-gray-500 mb-0.5">Template</p>
-          <p className="text-sm text-gray-900">{templateName}</p>
+          <p className="text-xs text-slate-500 mb-0.5">Template</p>
+          <p className="text-sm text-slate-900">{templateName}</p>
         </div>
       </div>
 
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
           What will be created
         </p>
         <div className="space-y-2">
@@ -361,14 +361,14 @@ function Step3({ details, templateName }: Step3Props) {
               <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                 <CheckCircle className="w-3 h-3 text-green-600" aria-hidden="true" />
               </div>
-              <Icon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" aria-hidden="true" />
-              <span className="text-sm text-gray-700">{label}</span>
+              <Icon className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" aria-hidden="true" />
+              <span className="text-sm text-slate-700">{label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 bg-gray-50 rounded-lg p-3">
+      <p className="text-xs text-slate-400 bg-slate-50 rounded-lg p-3">
         The new event will start in Draft status. Participant data and personal information
         are not copied from the source event.
       </p>
@@ -517,21 +517,21 @@ export function CreateFromTemplateWizard({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="absolute right-4 top-4 p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Close wizard"
           >
-            <X className="w-5 h-5 text-gray-400" aria-hidden="true" />
+            <X className="w-5 h-5 text-slate-400" aria-hidden="true" />
           </button>
 
           <div className="p-6 sm:p-8">
             {/* Header */}
             <div className="mb-4">
-              <h3 id="create-from-template-title" className="text-xl font-semibold text-gray-900">
+              <h3 id="create-from-template-title" className="text-xl font-semibold text-slate-900">
                 Create from Template
               </h3>
               {template && (
-                <p className="text-sm text-gray-500 mt-0.5">
-                  Using: <span className="font-medium text-gray-700">{template.name}</span>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  Using: <span className="font-medium text-slate-700">{template.name}</span>
                 </p>
               )}
             </div>
@@ -550,10 +550,10 @@ export function CreateFromTemplateWizard({
               >
                 {templateLoading ? (
                   <div className="space-y-4 animate-pulse">
-                    <div className="h-10 bg-gray-200 rounded-xl" />
+                    <div className="h-10 bg-slate-200 rounded-xl" />
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="h-10 bg-gray-200 rounded-xl" />
-                      <div className="h-10 bg-gray-200 rounded-xl" />
+                      <div className="h-10 bg-slate-200 rounded-xl" />
+                      <div className="h-10 bg-slate-200 rounded-xl" />
                     </div>
                   </div>
                 ) : step === 1 ? (
@@ -588,7 +588,7 @@ export function CreateFromTemplateWizard({
                   type="button"
                   onClick={() => setStep((s) => (s - 1) as Step)}
                   disabled={isCreating}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
                 >
                   <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                   Back
@@ -602,7 +602,7 @@ export function CreateFromTemplateWizard({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -614,7 +614,7 @@ export function CreateFromTemplateWizard({
                   type="button"
                   onClick={goToStep2}
                   disabled={!canGoToStep2 || templateLoading}
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" aria-hidden="true" />
@@ -626,7 +626,7 @@ export function CreateFromTemplateWizard({
                   type="button"
                   onClick={goToStep3}
                   disabled={aiLoading}
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {aiLoading ? 'Loading...' : 'Continue'}
                   {!aiLoading && <ChevronRight className="w-4 h-4" aria-hidden="true" />}
@@ -638,7 +638,7 @@ export function CreateFromTemplateWizard({
                   type="button"
                   onClick={handleCreate}
                   disabled={isCreating}
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating ? 'Creating...' : 'Create Event'}
                   {!isCreating && <CheckCircle className="w-4 h-4" aria-hidden="true" />}

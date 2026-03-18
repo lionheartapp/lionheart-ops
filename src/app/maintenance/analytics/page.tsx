@@ -65,8 +65,8 @@ function AnalyticsContent() {
 
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -89,8 +89,8 @@ function AnalyticsContent() {
             variants={staggerContainer(0.08, 0.05)}
           >
             <motion.div variants={fadeInUp} className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Maintenance Analytics</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-2xl font-semibold text-slate-900">Maintenance Analytics</h1>
+              <p className="text-sm text-slate-500">
                 Operational metrics — ticket volume, resolution time, technician workload, and more
               </p>
             </motion.div>
@@ -108,8 +108,8 @@ export default function MaintenanceAnalyticsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-gray-600">Loading...</div>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="text-slate-600">Loading...</div>
         </div>
       }
     >

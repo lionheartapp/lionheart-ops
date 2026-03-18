@@ -10,7 +10,7 @@ import { useEventActivity, type EventActivityLog as ActivityEntry } from '@/lib/
 const ACTIVITY_LABELS: Record<string, { label: string; color: string }> = {
   CREATED: { label: 'Created', color: 'bg-blue-100 text-blue-700' },
   STATUS_CHANGE: { label: 'Status', color: 'bg-purple-100 text-purple-700' },
-  UPDATED: { label: 'Updated', color: 'bg-gray-100 text-gray-700' },
+  UPDATED: { label: 'Updated', color: 'bg-slate-100 text-slate-700' },
   TASK_CREATED: { label: 'Task Added', color: 'bg-green-100 text-green-700' },
   TASK_UPDATED: { label: 'Task Updated', color: 'bg-yellow-100 text-yellow-700' },
   TASK_COMPLETED: { label: 'Task Done', color: 'bg-green-100 text-green-700' },
@@ -88,7 +88,7 @@ function ActorAvatar({ actor }: { actor: ActivityEntry['actor'] }) {
           <span className="text-xs font-semibold text-indigo-700">{initials}</span>
         )}
       </div>
-      <span className="text-sm font-medium text-gray-900">{displayName}</span>
+      <span className="text-sm font-medium text-slate-900">{displayName}</span>
     </div>
   )
 }
@@ -100,10 +100,10 @@ function ActivitySkeleton() {
     <div className="space-y-3">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="animate-pulse flex items-start gap-3 py-2">
-          <div className="w-7 h-7 rounded-full bg-gray-200 flex-shrink-0" />
+          <div className="w-7 h-7 rounded-full bg-slate-200 flex-shrink-0" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-3.5 bg-gray-200 rounded w-3/4" />
-            <div className="h-3 bg-gray-100 rounded w-1/3" />
+            <div className="h-3.5 bg-slate-200 rounded w-3/4" />
+            <div className="h-3 bg-slate-100 rounded w-1/3" />
           </div>
         </div>
       ))}
@@ -127,7 +127,7 @@ export function EventActivityLog({ eventProjectId, limit }: EventActivityLogProp
 
   if (displayed.length === 0) {
     return (
-      <p className="text-sm text-gray-400 text-center py-4">No activity yet</p>
+      <p className="text-sm text-slate-400 text-center py-4">No activity yet</p>
     )
   }
 
@@ -139,7 +139,7 @@ export function EventActivityLog({ eventProjectId, limit }: EventActivityLogProp
       className="space-y-1"
     >
       {displayed.map((entry) => {
-        const typeConfig = ACTIVITY_LABELS[entry.type] || { label: entry.type, color: 'bg-gray-100 text-gray-600' }
+        const typeConfig = ACTIVITY_LABELS[entry.type] || { label: entry.type, color: 'bg-slate-100 text-slate-600' }
         const description = buildDescription(entry)
         const timeAgo = formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })
 
@@ -147,7 +147,7 @@ export function EventActivityLog({ eventProjectId, limit }: EventActivityLogProp
           <motion.div
             key={entry.id}
             variants={listItem}
-            className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0"
+            className="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-0"
           >
             <ActorAvatar actor={entry.actor} />
             <div className="flex-1 min-w-0">
@@ -157,9 +157,9 @@ export function EventActivityLog({ eventProjectId, limit }: EventActivityLogProp
                 >
                   {typeConfig.label}
                 </span>
-                <span className="text-sm text-gray-700 truncate">{description}</span>
+                <span className="text-sm text-slate-700 truncate">{description}</span>
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">{timeAgo}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{timeAgo}</p>
             </div>
           </motion.div>
         )

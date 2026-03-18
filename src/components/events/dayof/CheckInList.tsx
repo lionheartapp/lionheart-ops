@@ -40,7 +40,7 @@ function ParticipantRow({ participant, onToggle, isProcessing }: ParticipantRowP
     <button
       onClick={() => onToggle(participant)}
       disabled={isProcessing}
-      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 cursor-pointer text-left disabled:opacity-50 disabled:cursor-default border-b border-gray-100 last:border-0`}
+      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors duration-150 cursor-pointer text-left disabled:opacity-50 disabled:cursor-default border-b border-slate-100 last:border-0`}
     >
       {/* Avatar */}
       {photoUrl ? (
@@ -48,7 +48,7 @@ function ParticipantRow({ participant, onToggle, isProcessing }: ParticipantRowP
         <img
           src={photoUrl}
           alt={`${firstName} ${lastName}`}
-          className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-100"
+          className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-slate-100"
         />
       ) : (
         <div
@@ -61,11 +61,11 @@ function ParticipantRow({ participant, onToggle, isProcessing }: ParticipantRowP
 
       {/* Name + grade */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900">
+        <p className="text-sm font-medium text-slate-900">
           {firstName} {lastName}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
-          {grade && <span className="text-xs text-gray-500">{grade}</span>}
+          {grade && <span className="text-xs text-slate-500">{grade}</span>}
           {isCheckedIn && checkedInAt && (
             <span className="text-xs text-green-600">Checked in {formatTime(checkedInAt)}</span>
           )}
@@ -75,11 +75,11 @@ function ParticipantRow({ participant, onToggle, isProcessing }: ParticipantRowP
       {/* Status icon */}
       <div className="flex-shrink-0">
         {isProcessing ? (
-          <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+          <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
         ) : isCheckedIn ? (
           <CheckCircle2 className="w-5 h-5 text-green-500" />
         ) : (
-          <Circle className="w-5 h-5 text-gray-300" />
+          <Circle className="w-5 h-5 text-slate-300" />
         )}
       </div>
     </button>
@@ -151,12 +151,12 @@ export default function CheckInList({ useCheckInData, onSwitchToScanner }: Check
   return (
     <div className="flex flex-col h-full bg-white">
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white flex-shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-gray-900">
+          <span className="text-sm font-semibold text-slate-900">
             {counter.checkedIn} / {counter.total} checked in
           </span>
-          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
@@ -169,7 +169,7 @@ export default function CheckInList({ useCheckInData, onSwitchToScanner }: Check
 
         <button
           onClick={onSwitchToScanner}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <QrCode className="w-3.5 h-3.5" />
           Scan QR
@@ -177,15 +177,15 @@ export default function CheckInList({ useCheckInData, onSwitchToScanner }: Check
       </div>
 
       {/* ── Search ── */}
-      <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0">
+      <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search participants..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
           />
         </div>
       </div>
@@ -201,10 +201,10 @@ export default function CheckInList({ useCheckInData, onSwitchToScanner }: Check
       <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
           <div className="flex items-center justify-center h-40">
-            <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
+            <Loader2 className="w-8 h-8 text-slate-300 animate-spin" />
           </div>
         ) : filteredList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-sm">
+          <div className="flex flex-col items-center justify-center h-40 text-slate-400 text-sm">
             {search ? `No participants matching "${search}"` : 'No participants found'}
           </div>
         ) : (

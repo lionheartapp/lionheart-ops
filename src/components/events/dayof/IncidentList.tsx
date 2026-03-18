@@ -97,11 +97,11 @@ function IncidentCard({ incident }: { incident: IncidentListItem }) {
   const Icon = TYPE_ICONS[type]
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
       {/* Card header (always visible) */}
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="w-full flex items-start gap-3 p-4 text-left cursor-pointer hover:bg-gray-50 transition-colors"
+        className="w-full flex items-start gap-3 p-4 text-left cursor-pointer hover:bg-slate-50 transition-colors"
       >
         {/* Type icon */}
         <div className="flex-shrink-0 mt-0.5">
@@ -111,7 +111,7 @@ function IncidentCard({ incident }: { incident: IncidentListItem }) {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-gray-900">{TYPE_LABELS[type]}</span>
+            <span className="text-sm font-semibold text-slate-900">{TYPE_LABELS[type]}</span>
             <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${SEVERITY_COLORS[severity]}`}>
               {severity.charAt(0) + severity.slice(1).toLowerCase()}
             </span>
@@ -123,9 +123,9 @@ function IncidentCard({ incident }: { incident: IncidentListItem }) {
             )}
           </div>
 
-          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{description}</p>
+          <p className="text-sm text-slate-600 mt-1 line-clamp-2">{description}</p>
 
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
+          <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-400">
             <span>{formatDateTime(createdAt)}</span>
             {reporterName && <span>by {reporterName}</span>}
             {participantNames.length > 0 && (
@@ -136,7 +136,7 @@ function IncidentCard({ incident }: { incident: IncidentListItem }) {
 
         {/* Expand chevron */}
         <ChevronDown
-          className={`w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5 transition-transform duration-200 ${
+          className={`w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5 transition-transform duration-200 ${
             expanded ? 'rotate-180' : ''
           }`}
         />
@@ -152,18 +152,18 @@ function IncidentCard({ incident }: { incident: IncidentListItem }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+            <div className="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
               {/* Full description */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</p>
-                <p className="text-sm text-gray-700">{description}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Description</p>
+                <p className="text-sm text-slate-700">{description}</p>
               </div>
 
               {/* Actions taken */}
               {actionsTaken && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Actions Taken</p>
-                  <p className="text-sm text-gray-700">{actionsTaken}</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Actions Taken</p>
+                  <p className="text-sm text-slate-700">{actionsTaken}</p>
                 </div>
               )}
 
@@ -178,14 +178,14 @@ function IncidentCard({ incident }: { incident: IncidentListItem }) {
               {/* Participants */}
               {participantNames.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
                     Involved Participants
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {participantNames.map((name, i) => (
                       <span
                         key={i}
-                        className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full"
+                        className="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded-full"
                       >
                         {name}
                       </span>
@@ -197,12 +197,12 @@ function IncidentCard({ incident }: { incident: IncidentListItem }) {
               {/* Photo */}
               {!isOffline && online.photoUrl && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Photo</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Photo</p>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={online.photoUrl}
                     alt="Incident"
-                    className="w-32 h-32 object-cover rounded-xl border border-gray-200"
+                    className="w-32 h-32 object-cover rounded-xl border border-slate-200"
                   />
                 </div>
               )}
@@ -230,7 +230,7 @@ function FilterBar({ typeFilter, severityFilter, onTypeChange, onSeverityChange 
       <select
         value={typeFilter}
         onChange={(e) => onTypeChange(e.target.value as EventIncidentType | 'ALL')}
-        className="text-xs border border-gray-200 rounded-full px-3 py-1.5 bg-white text-gray-600 focus:outline-none cursor-pointer"
+        className="text-xs border border-slate-200 rounded-full px-3 py-1.5 bg-white text-slate-600 focus:outline-none cursor-pointer"
       >
         <option value="ALL">All Types</option>
         {Object.entries(TYPE_LABELS).map(([v, l]) => (
@@ -242,7 +242,7 @@ function FilterBar({ typeFilter, severityFilter, onTypeChange, onSeverityChange 
       <select
         value={severityFilter}
         onChange={(e) => onSeverityChange(e.target.value as EventIncidentSeverity | 'ALL')}
-        className="text-xs border border-gray-200 rounded-full px-3 py-1.5 bg-white text-gray-600 focus:outline-none cursor-pointer"
+        className="text-xs border border-slate-200 rounded-full px-3 py-1.5 bg-white text-slate-600 focus:outline-none cursor-pointer"
       >
         <option value="ALL">All Severities</option>
         <option value="MINOR">Minor</option>
@@ -269,7 +269,7 @@ export default function IncidentList({ incidents, isLoading }: IncidentListProps
     return (
       <div className="space-y-3">
         {[1, 2].map((n) => (
-          <div key={n} className="animate-pulse bg-gray-100 rounded-xl h-20" />
+          <div key={n} className="animate-pulse bg-slate-100 rounded-xl h-20" />
         ))}
       </div>
     )
@@ -287,7 +287,7 @@ export default function IncidentList({ incidents, isLoading }: IncidentListProps
       )}
 
       {filtered.length === 0 ? (
-        <div className="text-center py-8 text-gray-400 text-sm">
+        <div className="text-center py-8 text-slate-400 text-sm">
           {incidents.length === 0 ? 'No incidents logged yet' : 'No incidents match the filters'}
         </div>
       ) : (

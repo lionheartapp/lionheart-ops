@@ -40,7 +40,7 @@ const INPUT_TYPE_LABELS: Record<string, string> = {
 
 function InputTypeBadge({ type }: { type: string }) {
   return (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">
       {INPUT_TYPE_LABELS[type] ?? type}
     </span>
   )
@@ -58,7 +58,7 @@ interface CommonFieldPickerProps {
 export function CommonFieldPicker({ enabledKeys, onToggle }: CommonFieldPickerProps) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Common Fields</h3>
+      <h3 className="text-sm font-semibold text-slate-700 mb-3">Common Fields</h3>
       <div className="grid grid-cols-1 gap-2">
         {COMMON_FIELDS.map((field) => {
           const isEnabled = field.alwaysOn || enabledKeys.has(field.key)
@@ -68,7 +68,7 @@ export function CommonFieldPicker({ enabledKeys, onToggle }: CommonFieldPickerPr
             <div
               key={field.key}
               className={`ui-glass p-3 rounded-xl flex items-start gap-3 transition-colors duration-200 ${
-                isEnabled ? 'bg-white' : 'bg-gray-50/60'
+                isEnabled ? 'bg-white' : 'bg-slate-50/60'
               }`}
             >
               {/* Toggle */}
@@ -79,7 +79,7 @@ export function CommonFieldPicker({ enabledKeys, onToggle }: CommonFieldPickerPr
                 disabled={isDisabled}
                 onClick={() => !isDisabled && onToggle(field.key, !isEnabled)}
                 className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 mt-0.5 ${
-                  isEnabled ? 'bg-indigo-600' : 'bg-gray-200'
+                  isEnabled ? 'bg-indigo-600' : 'bg-slate-200'
                 } ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <span
@@ -92,7 +92,7 @@ export function CommonFieldPicker({ enabledKeys, onToggle }: CommonFieldPickerPr
               {/* Field info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-sm font-medium ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>
+                  <span className={`text-sm font-medium ${isEnabled ? 'text-slate-900' : 'text-slate-500'}`}>
                     {field.label}
                   </span>
                   {field.required && (

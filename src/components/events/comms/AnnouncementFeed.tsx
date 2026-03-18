@@ -36,14 +36,14 @@ function FeedSkeleton() {
   return (
     <div className="space-y-3">
       {[1, 2].map((i) => (
-        <div key={i} className="animate-pulse bg-white border border-gray-100 rounded-xl p-4">
+        <div key={i} className="animate-pulse bg-white border border-slate-100 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
+            <div className="w-8 h-8 rounded-full bg-slate-200 flex-shrink-0" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-2/3" />
-              <div className="h-3 bg-gray-100 rounded w-full" />
-              <div className="h-3 bg-gray-100 rounded w-4/5" />
-              <div className="h-3 bg-gray-100 rounded w-1/3" />
+              <div className="h-4 bg-slate-200 rounded w-2/3" />
+              <div className="h-3 bg-slate-100 rounded w-full" />
+              <div className="h-3 bg-slate-100 rounded w-4/5" />
+              <div className="h-3 bg-slate-100 rounded w-1/3" />
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@ function AnnouncementCard({ announcement, onDelete, isDeleting }: AnnouncementCa
   return (
     <motion.div
       variants={listItem}
-      className="bg-white border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors"
+      className="bg-white border border-slate-100 rounded-xl p-4 hover:border-slate-200 transition-colors"
     >
       <div className="flex items-start gap-3">
         {/* Author avatar */}
@@ -106,11 +106,11 @@ function AnnouncementCard({ announcement, onDelete, isDeleting }: AnnouncementCa
           {/* Header row */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900 truncate">{announcement.title}</h4>
+              <h4 className="text-sm font-semibold text-slate-900 truncate">{announcement.title}</h4>
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
-                <span className="text-xs text-gray-500">{announcement.authorName}</span>
-                <span className="text-gray-300">·</span>
-                <span className="text-xs text-gray-400">{formatRelativeTime(announcement.createdAt)}</span>
+                <span className="text-xs text-slate-500">{announcement.authorName}</span>
+                <span className="text-slate-300">·</span>
+                <span className="text-xs text-slate-400">{formatRelativeTime(announcement.createdAt)}</span>
               </div>
             </div>
             {/* Delete button */}
@@ -118,7 +118,7 @@ function AnnouncementCard({ announcement, onDelete, isDeleting }: AnnouncementCa
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={isDeleting}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
               aria-label="Delete announcement"
             >
               {isDeleting ? (
@@ -135,7 +135,7 @@ function AnnouncementCard({ announcement, onDelete, isDeleting }: AnnouncementCa
           </span>
 
           {/* Body */}
-          <p className="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-wrap">{displayBody}</p>
+          <p className="text-sm text-slate-600 mt-2 leading-relaxed whitespace-pre-wrap">{displayBody}</p>
 
           {/* Read more / less toggle */}
           {needsTruncation && (
@@ -170,13 +170,13 @@ function AnnouncementCard({ announcement, onDelete, isDeleting }: AnnouncementCa
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
-            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-              <p className="text-xs text-gray-500">Delete this announcement?</p>
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <p className="text-xs text-slate-500">Delete this announcement?</p>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -224,11 +224,11 @@ export function AnnouncementFeed({ eventProjectId }: AnnouncementFeedProps) {
   if (announcements.length === 0) {
     return (
       <div className="text-center py-10">
-        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-          <Megaphone className="w-6 h-6 text-gray-300" />
+        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-3">
+          <Megaphone className="w-6 h-6 text-slate-300" />
         </div>
-        <p className="text-sm font-medium text-gray-500">No announcements sent yet</p>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-sm font-medium text-slate-500">No announcements sent yet</p>
+        <p className="text-xs text-slate-400 mt-1">
           Use the form above to send your first announcement.
         </p>
       </div>

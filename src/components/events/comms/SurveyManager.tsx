@@ -40,7 +40,7 @@ function getSurveyPublicUrl(shareSlug: string, surveyId: string): string {
 }
 
 const STATUS_STYLES: Record<SurveyStatus, { style: string; label: string }> = {
-  DRAFT: { style: 'bg-gray-100 text-gray-600', label: 'Draft' },
+  DRAFT: { style: 'bg-slate-100 text-slate-600', label: 'Draft' },
   ACTIVE: { style: 'bg-green-100 text-green-700', label: 'Active' },
   CLOSED: { style: 'bg-red-100 text-red-600', label: 'Closed' },
 }
@@ -57,9 +57,9 @@ function ResultsPanel({ surveyId, eventProjectId }: ResultsPanelProps) {
 
   if (isLoading) {
     return (
-      <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+      <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
         {[1, 2].map(i => (
-          <div key={i} className="animate-pulse h-10 bg-gray-100 rounded-lg" />
+          <div key={i} className="animate-pulse h-10 bg-slate-100 rounded-lg" />
         ))}
       </div>
     )
@@ -67,22 +67,22 @@ function ResultsPanel({ surveyId, eventProjectId }: ResultsPanelProps) {
 
   if (!results || results.totalResponses === 0) {
     return (
-      <div className="mt-3 pt-3 border-t border-gray-100 text-center py-4">
-        <BarChart3 className="w-8 h-8 text-gray-200 mx-auto mb-1.5" />
-        <p className="text-xs text-gray-500">No responses yet.</p>
+      <div className="mt-3 pt-3 border-t border-slate-100 text-center py-4">
+        <BarChart3 className="w-8 h-8 text-slate-200 mx-auto mb-1.5" />
+        <p className="text-xs text-slate-500">No responses yet.</p>
       </div>
     )
   }
 
   return (
-    <div className="mt-3 pt-3 border-t border-gray-100 space-y-4">
-      <p className="text-xs font-medium text-gray-500">
+    <div className="mt-3 pt-3 border-t border-slate-100 space-y-4">
+      <p className="text-xs font-medium text-slate-500">
         {results.totalResponses} response{results.totalResponses !== 1 ? 's' : ''}
       </p>
 
       {Object.entries(results.aggregation).map(([fieldKey, agg]) => (
         <div key={fieldKey}>
-          <p className="text-xs font-semibold text-gray-700 mb-1.5 capitalize">
+          <p className="text-xs font-semibold text-slate-700 mb-1.5 capitalize">
             {fieldKey.replace(/_/g, ' ')}
           </p>
 
@@ -98,10 +98,10 @@ function ResultsPanel({ surveyId, eventProjectId }: ResultsPanelProps) {
                     <div key={choice} className="flex items-center gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-center mb-0.5">
-                          <span className="text-xs text-gray-600 truncate">{choice}</span>
-                          <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{count} ({pct}%)</span>
+                          <span className="text-xs text-slate-600 truncate">{choice}</span>
+                          <span className="text-xs text-slate-500 ml-2 flex-shrink-0">{count} ({pct}%)</span>
                         </div>
-                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full"
                             style={{
@@ -120,12 +120,12 @@ function ResultsPanel({ surveyId, eventProjectId }: ResultsPanelProps) {
           {agg.type === 'text' && agg.textValues && (
             <div className="space-y-1">
               {agg.textValues.slice(0, 5).map((text, idx) => (
-                <p key={idx} className="text-xs text-gray-600 bg-gray-50 rounded-lg px-2.5 py-1.5 italic">
+                <p key={idx} className="text-xs text-slate-600 bg-slate-50 rounded-lg px-2.5 py-1.5 italic">
                   &ldquo;{text.length > 120 ? text.slice(0, 120) + '…' : text}&rdquo;
                 </p>
               ))}
               {agg.textValues.length > 5 && (
-                <p className="text-xs text-gray-400">+{agg.textValues.length - 5} more responses</p>
+                <p className="text-xs text-slate-400">+{agg.textValues.length - 5} more responses</p>
               )}
             </div>
           )}
@@ -165,13 +165,13 @@ function SurveyCard({
   return (
     <motion.div
       variants={listItem}
-      className="bg-white border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors"
+      className="bg-white border border-slate-100 rounded-xl p-4 hover:border-slate-200 transition-colors"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-sm font-semibold text-gray-900 truncate">
+            <h4 className="text-sm font-semibold text-slate-900 truncate">
               {survey.formTitle ?? 'Untitled Survey'}
             </h4>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.style}`}>
@@ -180,14 +180,14 @@ function SurveyCard({
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-slate-500">
               {survey.responseCount} response{survey.responseCount !== 1 ? 's' : ''}
             </span>
             {survey.opensAt && (
-              <span className="text-xs text-gray-400">Opens {formatDate(survey.opensAt)}</span>
+              <span className="text-xs text-slate-400">Opens {formatDate(survey.opensAt)}</span>
             )}
             {survey.closesAt && (
-              <span className="text-xs text-gray-400">Closes {formatDate(survey.closesAt)}</span>
+              <span className="text-xs text-slate-400">Closes {formatDate(survey.closesAt)}</span>
             )}
           </div>
         </div>
@@ -220,7 +220,7 @@ function SurveyCard({
           <button
             type="button"
             onClick={() => setShowResults(prev => !prev)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors cursor-pointer"
             aria-label="View results"
             title="View Results"
           >
@@ -236,7 +236,7 @@ function SurveyCard({
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isDeleting}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
             aria-label="Delete survey"
           >
             {isDeleting ? (
@@ -288,13 +288,13 @@ function SurveyCard({
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
-            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-              <p className="text-xs text-gray-500">Delete this survey?</p>
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <p className="text-xs text-slate-500">Delete this survey?</p>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -359,20 +359,20 @@ function CreateSurveyModal({ formId, formTitle, onSubmit, onClose, isPending }: 
         transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">Create Survey</h3>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-            <X className="w-4 h-4 text-gray-500" />
+          <h3 className="text-sm font-semibold text-slate-900">Create Survey</h3>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+            <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Form selector */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
               Survey Form
             </label>
             {formId ? (
-              <div className="px-3.5 py-2.5 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700">
+              <div className="px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-700">
                 {formTitle ?? 'Registration Form'}
               </div>
             ) : (
@@ -380,7 +380,7 @@ function CreateSurveyModal({ formId, formTitle, onSubmit, onClose, isPending }: 
                 No registration form found. Create a form on the Registration tab first.
               </div>
             )}
-            <p className="text-xs text-gray-400 mt-1.5">
+            <p className="text-xs text-slate-400 mt-1.5">
               Surveys use the existing registration form as their question template.
             </p>
           </div>
@@ -388,25 +388,25 @@ function CreateSurveyModal({ formId, formTitle, onSubmit, onClose, isPending }: 
           {/* Optional date range */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
                 Opens (optional)
               </label>
               <input
                 type="datetime-local"
                 value={opensAt}
                 onChange={(e) => setOpensAt(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
                 Closes (optional)
               </label>
               <input
                 type="datetime-local"
                 value={closesAt}
                 onChange={(e) => setClosesAt(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
               />
             </div>
           </div>
@@ -416,14 +416,14 @@ function CreateSurveyModal({ formId, formTitle, onSubmit, onClose, isPending }: 
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!formId || isPending}
-              className="flex-1 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isPending ? (
                 <>
@@ -497,7 +497,7 @@ export function SurveyManager({ eventProjectId }: SurveyManagerProps) {
     return (
       <div className="space-y-3">
         {[1, 2].map(i => (
-          <div key={i} className="animate-pulse h-16 bg-gray-100 rounded-xl" />
+          <div key={i} className="animate-pulse h-16 bg-slate-100 rounded-xl" />
         ))}
       </div>
     )
@@ -519,13 +519,13 @@ export function SurveyManager({ eventProjectId }: SurveyManagerProps) {
 
       {/* Header with Create button */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-slate-500">
           {surveys.length === 0 ? 'No surveys yet' : `${surveys.length} survey${surveys.length !== 1 ? 's' : ''}`}
         </p>
         <button
           type="button"
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           Create Survey
@@ -534,11 +534,11 @@ export function SurveyManager({ eventProjectId }: SurveyManagerProps) {
 
       {surveys.length === 0 ? (
         <div className="text-center py-10">
-          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-            <ClipboardList className="w-6 h-6 text-gray-300" />
+          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-3">
+            <ClipboardList className="w-6 h-6 text-slate-300" />
           </div>
-          <p className="text-sm font-medium text-gray-500">No surveys yet</p>
-          <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
+          <p className="text-sm font-medium text-slate-500">No surveys yet</p>
+          <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
             Create a survey to collect post-event feedback from participants using your registration form.
           </p>
         </div>

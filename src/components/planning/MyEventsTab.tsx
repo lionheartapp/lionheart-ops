@@ -28,9 +28,9 @@ export default function MyEventsTab({ seasonId }: MyEventsTabProps) {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-xl border border-gray-200 p-4 animate-pulse">
-            <div className="h-4 w-48 bg-gray-200 rounded mb-2" />
-            <div className="h-3 w-32 bg-gray-100 rounded" />
+          <div key={i} className="rounded-xl border border-slate-200 p-4 animate-pulse">
+            <div className="h-4 w-48 bg-slate-200 rounded mb-2" />
+            <div className="h-3 w-32 bg-slate-100 rounded" />
           </div>
         ))}
       </div>
@@ -54,7 +54,7 @@ export default function MyEventsTab({ seasonId }: MyEventsTabProps) {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               filter === opt.value
                 ? 'bg-primary-100 text-primary-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             {opt.label}
@@ -69,8 +69,8 @@ export default function MyEventsTab({ seasonId }: MyEventsTabProps) {
       {filtered.length === 0 ? (
         <div className="text-center py-12">
           <IllustrationCalendar className="w-48 h-40 mx-auto mb-2" />
-          <p className="text-base font-semibold text-gray-700 mb-1">No submissions yet</p>
-          <p className="text-sm text-gray-500">Your event submissions will appear here.</p>
+          <p className="text-base font-semibold text-slate-700 mb-1">No submissions yet</p>
+          <p className="text-sm text-slate-500">Your event submissions will appear here.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -95,7 +95,7 @@ export default function MyEventsTab({ seasonId }: MyEventsTabProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="text-sm font-semibold text-gray-900 truncate">{submission.title}</h4>
+                      <h4 className="text-sm font-semibold text-slate-900 truncate">{submission.title}</h4>
                       <span
                         className="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
                         style={{ backgroundColor: config.bgColor, color: config.color }}
@@ -104,9 +104,9 @@ export default function MyEventsTab({ seasonId }: MyEventsTabProps) {
                       </span>
                     </div>
                     {submission.description && (
-                      <p className="text-xs text-gray-500 line-clamp-1 mb-1">{submission.description}</p>
+                      <p className="text-xs text-slate-500 line-clamp-1 mb-1">{submission.description}</p>
                     )}
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <div className="flex items-center gap-3 text-xs text-slate-400">
                       {preferredDate && <span>{preferredDate}</span>}
                       {submission.duration && <span>{submission.duration}min</span>}
                       {submission.priority && (

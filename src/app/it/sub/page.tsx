@@ -107,40 +107,40 @@ function SubFormContent() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-3 shadow-lg">
             <Monitor className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">IT Help Request</h1>
-          <p className="text-sm text-gray-500 mt-1">Submit a technology issue for IT support</p>
+          <h1 className="text-xl font-bold text-slate-900">IT Help Request</h1>
+          <p className="text-sm text-slate-500 mt-1">Submit a technology issue for IT support</p>
         </div>
 
         {/* Loading */}
         {validating && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
             <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-3" />
-            <p className="text-sm text-gray-500">Validating your link...</p>
+            <p className="text-sm text-slate-500">Validating your link...</p>
           </div>
         )}
 
         {/* Token error */}
         {!validating && tokenError && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
             <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
               <AlertTriangle className="w-6 h-6 text-red-500" />
             </div>
-            <h2 className="text-base font-semibold text-gray-900 mb-1">Link Issue</h2>
-            <p className="text-sm text-gray-600">{tokenError}</p>
+            <h2 className="text-base font-semibold text-slate-900 mb-1">Link Issue</h2>
+            <p className="text-sm text-slate-600">{tokenError}</p>
           </div>
         )}
 
         {/* Success */}
         {submitted && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
             <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-6 h-6 text-green-500" />
             </div>
-            <h2 className="text-base font-semibold text-gray-900 mb-1">Request Submitted!</h2>
-            <p className="text-sm text-gray-600 mb-2">
+            <h2 className="text-base font-semibold text-slate-900 mb-1">Request Submitted!</h2>
+            <p className="text-sm text-slate-600 mb-2">
               Your IT request <span className="font-mono font-medium">{ticketNumber}</span> has been submitted.
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-slate-400">
               The IT team will be notified and will address the issue as soon as possible.
             </p>
           </div>
@@ -148,29 +148,29 @@ function SubFormContent() {
 
         {/* Form */}
         {!validating && !tokenError && !submitted && validation && (
-          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
             {validation.school && (
-              <div className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-                Campus: <span className="font-medium text-gray-700">{validation.school.name}</span>
+              <div className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
+                Campus: <span className="font-medium text-slate-700">{validation.school.name}</span>
               </div>
             )}
 
             {/* Room */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Room Number *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Room Number *</label>
               <input
                 type="text"
                 value={roomText}
                 onChange={(e) => setRoomText(e.target.value)}
                 placeholder="e.g., Room 204, Library, Gym"
                 required
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
               />
             </div>
 
             {/* Issue type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">What&apos;s the issue? *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">What&apos;s the issue? *</label>
               <div className="grid grid-cols-2 gap-2">
                 {ISSUE_TYPES.map((type) => (
                   <button
@@ -180,11 +180,11 @@ function SubFormContent() {
                     className={`text-left p-3 rounded-xl border transition-all ${
                       issueType === type.value
                         ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-400/30'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
-                    <span className="text-sm font-medium text-gray-900 block">{type.label}</span>
-                    <span className="text-[10px] text-gray-500 leading-tight">{type.description}</span>
+                    <span className="text-sm font-medium text-slate-900 block">{type.label}</span>
+                    <span className="text-[10px] text-slate-500 leading-tight">{type.description}</span>
                   </button>
                 ))}
               </div>
@@ -192,14 +192,14 @@ function SubFormContent() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Describe the problem *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Describe the problem *</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What's happening? What have you tried?"
                 required
                 rows={4}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 resize-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 resize-none"
               />
             </div>
 

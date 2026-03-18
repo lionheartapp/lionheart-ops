@@ -8,8 +8,8 @@ export default function FacilitiesEventApprovalsPage() {
     <DashboardLayout>
       <div className="min-h-screen space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Event Approvals</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-semibold text-slate-900">Event Approvals</h1>
+          <p className="text-sm text-slate-500 mt-1">
             Events requesting Facilities resources that need your review
           </p>
         </div>

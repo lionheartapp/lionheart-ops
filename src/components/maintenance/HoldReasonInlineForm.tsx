@@ -102,14 +102,14 @@ export default function HoldReasonInlineForm({
         {/* Optional note */}
         <div>
           <label className="block text-xs font-medium text-amber-800 mb-1">
-            Additional Note <span className="text-gray-400">(optional)</span>
+            Additional Note <span className="text-slate-400">(optional)</span>
           </label>
           <textarea
             value={holdNote}
             onChange={(e) => setHoldNote(e.target.value)}
             placeholder="Add context for the team..."
             rows={2}
-            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 placeholder:text-gray-400"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 placeholder:text-slate-400"
           />
         </div>
 
@@ -133,7 +133,7 @@ export default function HoldReasonInlineForm({
           </button>
           <button
             onClick={onCancel}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
             Cancel

@@ -41,7 +41,7 @@ import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFr
 // ─── Status config ────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; icon: React.ElementType }> = {
-  DRAFT: { label: 'Draft', bg: 'bg-gray-100', text: 'text-gray-600', icon: Clock },
+  DRAFT: { label: 'Draft', bg: 'bg-slate-100', text: 'text-slate-600', icon: Clock },
   PENDING_APPROVAL: { label: 'Pending Approval', bg: 'bg-amber-50', text: 'text-amber-700', icon: Hourglass },
   CONFIRMED: { label: 'Confirmed', bg: 'bg-blue-50', text: 'text-blue-700', icon: CheckCircle },
   IN_PROGRESS: { label: 'In Progress', bg: 'bg-green-50', text: 'text-green-700', icon: ArrowRight },
@@ -50,7 +50,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; i
 }
 
 const SOURCE_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
-  DIRECT_REQUEST: { label: 'Direct Request', bg: 'bg-gray-100', text: 'text-gray-600' },
+  DIRECT_REQUEST: { label: 'Direct Request', bg: 'bg-slate-100', text: 'text-slate-600' },
   SERIES: { label: 'Series', bg: 'bg-indigo-50', text: 'text-indigo-700' },
   PLANNING_SUBMISSION: { label: 'Planning', bg: 'bg-blue-50', text: 'text-blue-700' },
 }
@@ -81,7 +81,7 @@ const ACTION_COLORS: Record<ActionItemType, string> = {
   pending_approval: 'text-blue-500',
   missing_field: 'text-yellow-600',
   no_schedule: 'text-purple-500',
-  no_tasks: 'text-gray-400',
+  no_tasks: 'text-slate-400',
 }
 
 function urgencyBarColor(score: number): string {
@@ -116,12 +116,12 @@ function StatCard({ label, value, icon: Icon, iconBg, iconColor }: StatCardProps
       </div>
       <div className="min-w-0">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-xl font-bold text-gray-900 leading-none">
+          <span className="text-xl font-bold text-slate-900 leading-none">
             <AnimatedCounter value={value} />
           </span>
-          <span className="text-xs text-gray-400 font-medium">{value === 1 ? 'event' : 'events'}</span>
+          <span className="text-xs text-slate-400 font-medium">{value === 1 ? 'event' : 'events'}</span>
         </div>
-        <p className="text-sm font-semibold text-gray-700 mt-0.5">{label}</p>
+        <p className="text-sm font-semibold text-slate-700 mt-0.5">{label}</p>
       </div>
     </div>
   )
@@ -133,7 +133,7 @@ const GATE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: stri
   PENDING: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' },
   APPROVED: { label: 'Approved', bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-400' },
   REJECTED: { label: 'Rejected', bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-400' },
-  SKIPPED: { label: 'Skipped', bg: 'bg-gray-50', text: 'text-gray-500', dot: 'bg-gray-300' },
+  SKIPPED: { label: 'Skipped', bg: 'bg-slate-50', text: 'text-slate-500', dot: 'bg-slate-300' },
 }
 
 const GATE_LABELS: Record<string, string> = {
@@ -190,7 +190,7 @@ function EventCard({ project, onClick }: { project: EventProject; onClick: () =>
       className="ui-glass-hover p-5 rounded-2xl cursor-pointer"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
-        <h3 className="text-sm font-semibold text-gray-900 flex-1 min-w-0 truncate">
+        <h3 className="text-sm font-semibold text-slate-900 flex-1 min-w-0 truncate">
           {project.title}
         </h3>
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -204,10 +204,10 @@ function EventCard({ project, onClick }: { project: EventProject; onClick: () =>
       </div>
 
       {project.description && (
-        <p className="text-xs text-gray-500 mb-3 line-clamp-2">{project.description}</p>
+        <p className="text-xs text-slate-500 mb-3 line-clamp-2">{project.description}</p>
       )}
 
-      <div className="flex items-center gap-3 text-xs text-gray-500">
+      <div className="flex items-center gap-3 text-xs text-slate-500">
         <div className="flex items-center gap-1">
           <CalendarRange className="w-3.5 h-3.5" />
           {dateDisplay}
@@ -218,7 +218,7 @@ function EventCard({ project, onClick }: { project: EventProject; onClick: () =>
       </div>
 
       {creatorName && (
-        <p className="text-xs text-gray-400 mt-2">By {creatorName}</p>
+        <p className="text-xs text-slate-400 mt-2">By {creatorName}</p>
       )}
 
       {/* Approval gate indicators */}
@@ -245,7 +245,7 @@ function ActionItemCard({ item, onResolve, isResolving }: {
   isResolving: boolean
 }) {
   const Icon = ACTION_ICONS[item.type] ?? AlertCircle
-  const iconColor = ACTION_COLORS[item.type] ?? 'text-gray-400'
+  const iconColor = ACTION_COLORS[item.type] ?? 'text-slate-400'
   const barColor = urgencyBarColor(item.urgencyScore)
 
   const resolveLabel = (() => {
@@ -259,7 +259,7 @@ function ActionItemCard({ item, onResolve, isResolving }: {
       return 'px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-medium hover:bg-green-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
     if (item.resolveAction.type === 'approve_event')
       return 'px-3 py-1.5 rounded-full bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
-    return 'px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-medium hover:bg-gray-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
+    return 'px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
   })()
 
   const handleResolve = () => {
@@ -284,13 +284,13 @@ function ActionItemCard({ item, onResolve, isResolving }: {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-gray-900 leading-snug">{item.title}</p>
-            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
+            <p className="text-sm font-semibold text-slate-900 leading-snug">{item.title}</p>
+            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{item.description}</p>
             <span className="inline-block mt-1.5 px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded-full font-medium">
               {item.eventProjectTitle}
             </span>
             {item.aiReason && item.aiReason !== '' && !item.aiReason.includes('unavailable') && (
-              <p className="text-xs text-gray-400 mt-1 italic flex items-center gap-1">
+              <p className="text-xs text-slate-400 mt-1 italic flex items-center gap-1">
                 <Sparkles className="w-3 h-3 flex-shrink-0" />
                 {item.aiReason}
               </p>
@@ -322,7 +322,7 @@ function AiStatusBadge({ isLoadingScored, aiScored, hasItems }: {
 
   if (isLoadingScored) {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs rounded-full">
         <Loader2 className="w-3 h-3 animate-spin" />
         AI ranking...
       </span>
@@ -343,7 +343,7 @@ function AiStatusBadge({ isLoadingScored, aiScored, hasItems }: {
 
   return (
     <span
-      className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full"
+      className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs rounded-full"
       title="Actions sorted by priority type (AI ranking unavailable)"
     >
       Manual Sort
@@ -358,10 +358,10 @@ function StatsSkeleton() {
     <div className="flex gap-4 animate-pulse">
       {[0, 1].map((i) => (
         <div key={i} className="ui-glass flex-1 min-w-[200px] px-5 py-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-gray-200 flex-shrink-0" />
+          <div className="w-10 h-10 rounded-xl bg-slate-200 flex-shrink-0" />
           <div className="space-y-2">
-            <div className="w-12 h-5 bg-gray-200 rounded" />
-            <div className="w-24 h-3 bg-gray-100 rounded" />
+            <div className="w-12 h-5 bg-slate-200 rounded" />
+            <div className="w-24 h-3 bg-slate-100 rounded" />
           </div>
         </div>
       ))}
@@ -373,7 +373,7 @@ function EventsListSkeleton() {
   return (
     <div className="space-y-3 animate-pulse">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="rounded-2xl bg-gray-100 h-28" />
+        <div key={i} className="rounded-2xl bg-slate-100 h-28" />
       ))}
     </div>
   )
@@ -384,12 +384,12 @@ function ApprovalsSkeleton() {
     <div className="space-y-2 animate-pulse">
       {[...Array(3)].map((_, i) => (
         <div key={i} className="ui-glass p-4 flex gap-3">
-          <div className="w-1 bg-gray-200 rounded-full self-stretch" />
-          <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0 mt-0.5" />
+          <div className="w-1 bg-slate-200 rounded-full self-stretch" />
+          <div className="w-5 h-5 bg-slate-200 rounded-full flex-shrink-0 mt-0.5" />
           <div className="flex-1 space-y-2">
-            <div className="w-3/4 h-4 bg-gray-200 rounded" />
-            <div className="w-full h-3 bg-gray-100 rounded" />
-            <div className="w-20 h-5 bg-gray-100 rounded-full" />
+            <div className="w-3/4 h-4 bg-slate-200 rounded" />
+            <div className="w-full h-3 bg-slate-100 rounded" />
+            <div className="w-20 h-5 bg-slate-100 rounded-full" />
           </div>
         </div>
       ))}
@@ -405,13 +405,13 @@ function EventsEmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
       <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-4">
         <Layers className="w-7 h-7 text-indigo-500" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-2">No events yet</h3>
-      <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+      <h3 className="text-base font-semibold text-slate-900 mb-2">No events yet</h3>
+      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
         Create your first event to start planning, scheduling, and coordinating everything in one place.
       </p>
       <button
         onClick={onCreateEvent}
-        className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+        className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
       >
         Create First Event
       </button>
@@ -449,8 +449,8 @@ function StatsRow({ isAdmin }: { isAdmin: boolean }) {
               label="Needs Approval"
               value={stats.pendingApprovals}
               icon={Shield}
-              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-gray-50'}
-              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-gray-400'}
+              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-slate-50'}
+              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-slate-400'}
             />
           </motion.div>
         </>
@@ -470,8 +470,8 @@ function StatsRow({ isAdmin }: { isAdmin: boolean }) {
               label="Pending Review"
               value={stats.pendingApprovals}
               icon={Hourglass}
-              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-gray-50'}
-              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-gray-400'}
+              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-slate-50'}
+              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-slate-400'}
             />
           </motion.div>
         </>
@@ -516,7 +516,7 @@ function ApprovalQueue() {
     return (
       <div className="ui-glass p-6 text-center">
         <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-        <p className="text-sm text-gray-600">Failed to load approvals. Please refresh.</p>
+        <p className="text-sm text-slate-600">Failed to load approvals. Please refresh.</p>
       </div>
     )
   }
@@ -524,7 +524,7 @@ function ApprovalQueue() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">Event Approvals</h2>
+        <h2 className="text-base font-semibold text-slate-900">Event Approvals</h2>
         <AiStatusBadge
           isLoadingScored={isLoadingScored}
           aiScored={aiScored}
@@ -542,8 +542,8 @@ function ApprovalQueue() {
           <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
             <PartyPopper className="w-6 h-6 text-green-500" />
           </div>
-          <h3 className="text-sm font-semibold text-gray-900">All caught up!</h3>
-          <p className="text-xs text-gray-500 mt-1">No events waiting for approval.</p>
+          <h3 className="text-sm font-semibold text-slate-900">All caught up!</h3>
+          <p className="text-xs text-slate-500 mt-1">No events waiting for approval.</p>
         </motion.div>
       ) : (
         <motion.div
@@ -590,7 +590,7 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
   return (
     <div>
       {/* Section header */}
-      <h2 className="text-base font-semibold text-gray-900 mb-4">
+      <h2 className="text-base font-semibold text-slate-900 mb-4">
         {isAdmin ? 'All Events' : 'My Events'}
       </h2>
 
@@ -600,14 +600,14 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
           <>
             <button
               onClick={() => setTemplateDrawerOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
             >
               <LayoutTemplate className="w-4 h-4" />
               From Template
             </button>
             <button
               onClick={() => setSeriesDrawerOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
               New Series
@@ -616,7 +616,7 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
         )}
         <button
           onClick={() => setCreateModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           New Event
@@ -631,8 +631,8 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
             onClick={() => setStatusFilter(f.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
               statusFilter === f.value
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             {f.label}
@@ -693,8 +693,8 @@ function EventsPageHeader({ isAdmin }: { isAdmin: boolean }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold text-gray-900">Events Hub</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-semibold text-slate-900">Events Hub</h1>
+        <p className="text-sm text-slate-500 mt-1">
           {isAdmin
             ? 'Manage all your school events from planning to completion'
             : 'Your events and submissions'}
@@ -713,8 +713,8 @@ export default function EventsPage() {
     return (
       <DashboardLayout>
         <div className="min-h-screen animate-pulse">
-          <div className="h-8 w-48 bg-gray-200 rounded mb-4" />
-          <div className="h-4 w-64 bg-gray-100 rounded" />
+          <div className="h-8 w-48 bg-slate-200 rounded mb-4" />
+          <div className="h-4 w-64 bg-slate-100 rounded" />
         </div>
       </DashboardLayout>
     )

@@ -38,7 +38,7 @@ const BLOCK_TYPES: Array<{
   { value: 'SESSION', label: 'Session', color: 'text-blue-700', bg: 'bg-blue-100' },
   { value: 'ACTIVITY', label: 'Activity', color: 'text-green-700', bg: 'bg-green-100' },
   { value: 'MEAL', label: 'Meal', color: 'text-amber-700', bg: 'bg-amber-100' },
-  { value: 'FREE_TIME', label: 'Free Time', color: 'text-gray-600', bg: 'bg-gray-100' },
+  { value: 'FREE_TIME', label: 'Free Time', color: 'text-slate-600', bg: 'bg-slate-100' },
   { value: 'TRAVEL', label: 'Travel', color: 'text-purple-700', bg: 'bg-purple-100' },
   { value: 'SETUP', label: 'Setup', color: 'text-orange-700', bg: 'bg-orange-100' },
 ]
@@ -53,7 +53,7 @@ function ScheduleSkeleton() {
   return (
     <div className="space-y-3 animate-pulse">
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="bg-gray-100 rounded-xl h-20" />
+        <div key={i} className="bg-slate-100 rounded-xl h-20" />
       ))}
     </div>
   )
@@ -67,13 +67,13 @@ function ScheduleEmptyState({ onAdd }: { onAdd: () => void }) {
       <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-4">
         <CalendarDays className="w-7 h-7 text-indigo-500" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-2">No schedule blocks yet</h3>
-      <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+      <h3 className="text-base font-semibold text-slate-900 mb-2">No schedule blocks yet</h3>
+      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
         Build your event schedule by adding time blocks for sessions, activities, meals, and more.
       </p>
       <button
         onClick={onAdd}
-        className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+        className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
       >
         Add First Block
       </button>
@@ -140,10 +140,10 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
       {/* Type */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1.5">Block Type</label>
+        <label className="block text-xs font-medium text-slate-700 mb-1.5">Block Type</label>
         <div className="flex flex-wrap gap-2">
           {BLOCK_TYPES.map((t) => (
             <button
@@ -153,7 +153,7 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                 form.type === t.value
                   ? `${t.bg} ${t.color} ring-2 ring-indigo-300`
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               {t.label}
@@ -164,7 +164,7 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
 
       {/* Title */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-slate-700 mb-1">
           Title <span className="text-red-500">*</span>
         </label>
         <input
@@ -173,7 +173,7 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
           onChange={(e) => update('title', e.target.value)}
           placeholder="Block title"
           className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-            errors.title ? 'border-red-300' : 'border-gray-200'
+            errors.title ? 'border-red-300' : 'border-slate-200'
           }`}
         />
         {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
@@ -182,7 +182,7 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
       {/* Date + Times row */}
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-medium text-slate-700 mb-1">
             Date <span className="text-red-500">*</span>
           </label>
           <input
@@ -190,13 +190,13 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
             value={form.date}
             onChange={(e) => update('date', e.target.value)}
             className={`w-full px-2 py-2 text-sm border rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-              errors.date ? 'border-red-300' : 'border-gray-200'
+              errors.date ? 'border-red-300' : 'border-slate-200'
             }`}
           />
           {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-medium text-slate-700 mb-1">
             Start <span className="text-red-500">*</span>
           </label>
           <input
@@ -204,12 +204,12 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
             value={form.startTime}
             onChange={(e) => update('startTime', e.target.value)}
             className={`w-full px-2 py-2 text-sm border rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-              errors.startTime ? 'border-red-300' : 'border-gray-200'
+              errors.startTime ? 'border-red-300' : 'border-slate-200'
             }`}
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-medium text-slate-700 mb-1">
             End <span className="text-red-500">*</span>
           </label>
           <input
@@ -217,7 +217,7 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
             value={form.endTime}
             onChange={(e) => update('endTime', e.target.value)}
             className={`w-full px-2 py-2 text-sm border rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-              errors.endTime ? 'border-red-300' : 'border-gray-200'
+              errors.endTime ? 'border-red-300' : 'border-slate-200'
             }`}
           />
         </div>
@@ -225,25 +225,25 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
 
       {/* Description */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Description (optional)</label>
+        <label className="block text-xs font-medium text-slate-700 mb-1">Description (optional)</label>
         <textarea
           value={form.description}
           onChange={(e) => update('description', e.target.value)}
           rows={2}
           placeholder="Add details..."
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
+          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
         />
       </div>
 
       {/* Location */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Location (optional)</label>
+        <label className="block text-xs font-medium text-slate-700 mb-1">Location (optional)</label>
         <input
           type="text"
           value={form.locationText}
           onChange={(e) => update('locationText', e.target.value)}
           placeholder="e.g. Main Hall, Room 204"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
         />
       </div>
 
@@ -252,7 +252,7 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-60 active:scale-[0.97] transition-all cursor-pointer flex items-center gap-1.5"
+          className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-60 active:scale-[0.97] transition-all cursor-pointer flex items-center gap-1.5"
         >
           {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           {submitLabel}
@@ -260,7 +260,7 @@ function BlockForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel 
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+          className="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
         >
           Cancel
         </button>
@@ -335,20 +335,20 @@ function BlockCard({ block, onUpdate, onDelete, isUpdating, isDeleting }: BlockC
               {typeConfig.label}
             </span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{block.title}</p>
+              <p className="text-sm font-semibold text-slate-900 truncate">{block.title}</p>
               <div className="flex items-center gap-3 mt-0.5">
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-slate-500">
                   <Clock className="w-3 h-3" />
                   {timeRange}
                 </div>
                 {block.locationText && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-1 text-xs text-slate-500">
                     <MapPin className="w-3 h-3" />
                     {block.locationText}
                   </div>
                 )}
                 {block.lead && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-1 text-xs text-slate-500">
                     <User className="w-3 h-3" />
                     {block.lead.firstName
                       ? `${block.lead.firstName} ${block.lead.lastName || ''}`.trim()
@@ -359,9 +359,9 @@ function BlockCard({ block, onUpdate, onDelete, isUpdating, isDeleting }: BlockC
             </div>
             <div className="flex items-center gap-1 ml-2">
               {isExpanded ? (
-                <ChevronUp className="w-4 h-4 text-gray-400" />
+                <ChevronUp className="w-4 h-4 text-slate-400" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+                <ChevronDown className="w-4 h-4 text-slate-400" />
               )}
             </div>
           </div>
@@ -376,14 +376,14 @@ function BlockCard({ block, onUpdate, onDelete, isUpdating, isDeleting }: BlockC
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="pt-3 mt-3 border-t border-gray-100 space-y-2">
+                <div className="pt-3 mt-3 border-t border-slate-100 space-y-2">
                   {block.description && (
-                    <p className="text-sm text-gray-600">{block.description}</p>
+                    <p className="text-sm text-slate-600">{block.description}</p>
                   )}
                   <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium hover:bg-slate-200 transition-colors cursor-pointer"
                     >
                       <Pencil className="w-3 h-3" />
                       Edit
@@ -490,15 +490,15 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">Schedule</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Schedule</h3>
           {blocks && blocks.length > 0 && (
-            <p className="text-xs text-gray-500 mt-0.5">{blocks.length} block{blocks.length !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{blocks.length} block{blocks.length !== 1 ? 's' : ''}</p>
           )}
         </div>
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Block
@@ -537,7 +537,7 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
         >
           {sortedDates.map((dateKey) => (
             <div key={dateKey}>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 pl-1">
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 pl-1">
                 {format(new Date(dateKey + 'T00:00:00'), 'EEEE, MMMM d')}
               </h4>
               <div className="space-y-2">

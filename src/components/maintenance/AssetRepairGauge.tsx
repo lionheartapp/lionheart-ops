@@ -29,7 +29,7 @@ export default function AssetRepairGauge({
 }: AssetRepairGaugeProps) {
   if (!replacementCost || replacementCost <= 0) {
     return (
-      <div className="ui-glass p-4 text-center text-sm text-gray-400">
+      <div className="ui-glass p-4 text-center text-sm text-slate-400">
         Set a replacement cost to track repair-vs-replace health
       </div>
     )
@@ -61,17 +61,17 @@ export default function AssetRepairGauge({
       {/* Gauge */}
       <div className="ui-glass p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Repair vs. Replacement</span>
-          <span className="text-sm font-semibold text-gray-900">
+          <span className="text-sm font-medium text-slate-700">Repair vs. Replacement</span>
+          <span className="text-sm font-semibold text-slate-900">
             {Math.round(pct)}%
           </span>
         </div>
 
         {/* Progress bar track */}
-        <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div className="relative h-3 bg-slate-100 rounded-full overflow-hidden">
           {/* Threshold marker */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-gray-400 z-10"
+            className="absolute top-0 bottom-0 w-0.5 bg-slate-400 z-10"
             style={{ left: `${thresholdPctDisplay}%` }}
             title={`Alert threshold: ${thresholdPctDisplay}%`}
           />
@@ -84,15 +84,15 @@ export default function AssetRepairGauge({
 
         {/* Labels */}
         <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-slate-500">
             {formatCurrency(cumulativeRepairCost)} cumulative repairs
           </span>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-slate-500">
             {formatCurrency(replacementCost)} replacement cost
           </span>
         </div>
 
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-slate-400">
           Alert threshold at {thresholdPctDisplay}% ({formatCurrency(thresholdAmt)})
         </p>
       </div>

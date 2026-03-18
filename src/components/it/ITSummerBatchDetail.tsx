@@ -56,7 +56,7 @@ const BATCH_TYPE_LABELS: Record<string, string> = {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  PENDING: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Pending' },
+  PENDING: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Pending' },
   IN_PROGRESS: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'In Progress' },
   COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
   CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Cancelled' },
@@ -79,21 +79,21 @@ function BatchDetailSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-gray-200 rounded-lg" />
-        <div className="h-6 w-64 bg-gray-200 rounded" />
+        <div className="w-8 h-8 bg-slate-200 rounded-lg" />
+        <div className="h-6 w-64 bg-slate-200 rounded" />
       </div>
       <div className="flex gap-3">
-        <div className="h-6 w-24 bg-gray-100 rounded-md" />
-        <div className="h-6 w-20 bg-gray-100 rounded-md" />
+        <div className="h-6 w-24 bg-slate-100 rounded-md" />
+        <div className="h-6 w-20 bg-slate-100 rounded-md" />
       </div>
-      <div className="h-3 w-full bg-gray-100 rounded-full" />
+      <div className="h-3 w-full bg-slate-100 rounded-full" />
       <div className="space-y-2">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <div className="w-5 h-5 bg-gray-200 rounded" />
-            <div className="h-4 w-20 bg-gray-200 rounded" />
-            <div className="h-4 flex-1 bg-gray-100 rounded" />
-            <div className="h-5 w-16 bg-gray-100 rounded-md" />
+          <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+            <div className="w-5 h-5 bg-slate-200 rounded" />
+            <div className="h-4 w-20 bg-slate-200 rounded" />
+            <div className="h-4 flex-1 bg-slate-100 rounded" />
+            <div className="h-5 w-16 bg-slate-100 rounded-md" />
           </div>
         ))}
       </div>
@@ -208,7 +208,7 @@ export default function ITSummerBatchDetail({
       <div>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4 transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-4 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Summer
@@ -233,7 +233,7 @@ export default function ITSummerBatchDetail({
       <div>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4 transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-4 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Summer
@@ -241,7 +241,7 @@ export default function ITSummerBatchDetail({
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-gray-900 truncate">{batch.name}</h2>
+            <h2 className="text-lg font-semibold text-slate-900 truncate">{batch.name}</h2>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700">
                 {typeLabel}
@@ -249,7 +249,7 @@ export default function ITSummerBatchDetail({
               <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
                 {statusStyle.label}
               </span>
-              <span className="text-xs text-gray-400">Created {formatDate(batch.createdAt)}</span>
+              <span className="text-xs text-slate-400">Created {formatDate(batch.createdAt)}</span>
             </div>
           </div>
 
@@ -260,7 +260,7 @@ export default function ITSummerBatchDetail({
                 <button
                   onClick={() => startBatchMutation.mutate()}
                   disabled={startBatchMutation.isPending}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {startBatchMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -291,15 +291,15 @@ export default function ITSummerBatchDetail({
 
       {/* ─── Progress Bar ──────────────────────────────────────────── */}
       <div className="ui-glass p-5">
-        <div className="flex justify-between text-sm text-gray-700 mb-2">
+        <div className="flex justify-between text-sm text-slate-700 mb-2">
           <span className="font-medium">Progress</span>
           <span>
-            <span className="font-bold text-gray-900">{completedCount}</span>
-            <span className="text-gray-400"> / {totalCount}</span>
-            <span className="text-gray-500 ml-2">({pct}%)</span>
+            <span className="font-bold text-slate-900">{completedCount}</span>
+            <span className="text-slate-400"> / {totalCount}</span>
+            <span className="text-slate-500 ml-2">({pct}%)</span>
           </span>
         </div>
-        <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
             style={{ width: `${pct}%` }}
@@ -311,14 +311,14 @@ export default function ITSummerBatchDetail({
       <div className="ui-glass p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Laptop className="w-5 h-5 text-gray-700" />
-            <h3 className="text-sm font-semibold text-gray-900">Devices</h3>
+            <Laptop className="w-5 h-5 text-slate-700" />
+            <h3 className="text-sm font-semibold text-slate-900">Devices</h3>
           </div>
 
           {canManage && incompleteDevices.length > 0 && (
             <button
               onClick={toggleAll}
-              className="text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              className="text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
             >
               {selectedIds.size === incompleteDevices.length ? 'Deselect All' : 'Select All'}
             </button>
@@ -327,8 +327,8 @@ export default function ITSummerBatchDetail({
 
         {devices.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-500">No devices in this batch</p>
-            <p className="text-xs text-gray-400 mt-1">Add devices to the batch to start tracking</p>
+            <p className="text-sm text-slate-500">No devices in this batch</p>
+            <p className="text-xs text-slate-400 mt-1">Add devices to the batch to start tracking</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -342,7 +342,7 @@ export default function ITSummerBatchDetail({
                       ? 'bg-green-50/50 opacity-60'
                       : isSelected
                         ? 'bg-blue-50/50 border border-blue-200/50'
-                        : 'hover:bg-gray-50'
+                        : 'hover:bg-slate-50'
                   }`}
                 >
                   {/* Checkbox */}
@@ -354,19 +354,19 @@ export default function ITSummerBatchDetail({
                       {isSelected ? (
                         <CheckSquare className="w-5 h-5 text-blue-600" />
                       ) : (
-                        <Square className="w-5 h-5 text-gray-300 hover:text-gray-400" />
+                        <Square className="w-5 h-5 text-slate-300 hover:text-slate-400" />
                       )}
                     </button>
                   ) : device.completed ? (
                     <Check className="w-5 h-5 text-green-500 shrink-0" />
                   ) : (
-                    <Square className="w-5 h-5 text-gray-200 shrink-0" />
+                    <Square className="w-5 h-5 text-slate-200 shrink-0" />
                   )}
 
                   {/* Device info */}
                   <div className="flex-1 min-w-0 flex items-center gap-3">
-                    <span className="font-mono text-xs text-gray-600">{device.assetTag}</span>
-                    <span className="text-sm text-gray-700 truncate">
+                    <span className="font-mono text-xs text-slate-600">{device.assetTag}</span>
+                    <span className="text-sm text-slate-700 truncate">
                       {[device.make, device.model].filter(Boolean).join(' ') || device.deviceType}
                     </span>
                   </div>
@@ -385,11 +385,11 @@ export default function ITSummerBatchDetail({
 
         {/* Bulk complete button */}
         {canManage && selectedIds.size > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50">
+          <div className="mt-4 pt-4 border-t border-slate-200/50">
             <button
               onClick={() => markDevicesMutation.mutate(Array.from(selectedIds))}
               disabled={markDevicesMutation.isPending}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {markDevicesMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

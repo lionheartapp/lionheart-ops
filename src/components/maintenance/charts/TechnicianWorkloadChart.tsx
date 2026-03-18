@@ -23,7 +23,7 @@ function truncateName(name: string, maxLen = 12): string {
 export default function TechnicianWorkloadChart({ data }: TechnicianWorkloadChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
         No technician activity for this period
       </div>
     )

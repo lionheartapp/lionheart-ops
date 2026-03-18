@@ -120,7 +120,7 @@ export function DocumentRequirementDrawer({
         type="button"
         onClick={onClose}
         disabled={isPending}
-        className="flex-1 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+        className="flex-1 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
       >
         Cancel
       </button>
@@ -128,7 +128,7 @@ export function DocumentRequirementDrawer({
         type="button"
         onClick={handleSave}
         disabled={isPending}
-        className="flex-1 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+        className="flex-1 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
       >
         {isPending ? 'Saving…' : isEditing ? 'Update' : 'Add Requirement'}
       </button>
@@ -146,7 +146,7 @@ export function DocumentRequirementDrawer({
       <div className="space-y-5">
         {/* Label */}
         <div>
-          <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
             <FileText className="w-3.5 h-3.5" />
             Label <span className="text-red-400">*</span>
           </label>
@@ -155,20 +155,20 @@ export function DocumentRequirementDrawer({
             value={form.label}
             onChange={(e) => handleChange('label', e.target.value)}
             placeholder="e.g. Signed Permission Slip"
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
           />
         </div>
 
         {/* Document Type */}
         <div>
-          <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
             <Tag className="w-3.5 h-3.5" />
             Document Type
           </label>
           <select
             value={form.documentType}
             onChange={(e) => handleChange('documentType', e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors cursor-pointer bg-white"
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors cursor-pointer bg-white"
           >
             {DOCUMENT_TYPES.map((dt) => (
               <option key={dt.value} value={dt.value}>
@@ -180,40 +180,40 @@ export function DocumentRequirementDrawer({
 
         {/* Description */}
         <div>
-          <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
             <AlignLeft className="w-3.5 h-3.5" />
-            Description <span className="text-gray-300 font-normal">(optional)</span>
+            Description <span className="text-slate-300 font-normal">(optional)</span>
           </label>
           <textarea
             value={form.description}
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="Brief instructions for families…"
             rows={3}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors resize-none"
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors resize-none"
           />
         </div>
 
         {/* Due Date */}
         <div>
-          <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
             <Calendar className="w-3.5 h-3.5" />
-            Due Date <span className="text-gray-300 font-normal">(optional)</span>
+            Due Date <span className="text-slate-300 font-normal">(optional)</span>
           </label>
           <input
             type="date"
             value={form.dueDate}
             onChange={(e) => handleChange('dueDate', e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors cursor-pointer"
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors cursor-pointer"
           />
         </div>
 
         {/* Required Toggle */}
-        <div className="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+        <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-100">
           <div className="flex items-center gap-2.5">
-            <ToggleLeft className="w-4 h-4 text-gray-400" />
+            <ToggleLeft className="w-4 h-4 text-slate-400" />
             <div>
-              <p className="text-sm font-medium text-gray-900">Required</p>
-              <p className="text-xs text-gray-500">Reminders will only be sent for required documents</p>
+              <p className="text-sm font-medium text-slate-900">Required</p>
+              <p className="text-xs text-slate-500">Reminders will only be sent for required documents</p>
             </div>
           </div>
           <button
@@ -222,7 +222,7 @@ export function DocumentRequirementDrawer({
             aria-checked={form.isRequired}
             onClick={() => handleChange('isRequired', !form.isRequired)}
             className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${
-              form.isRequired ? 'bg-indigo-600' : 'bg-gray-200'
+              form.isRequired ? 'bg-indigo-600' : 'bg-slate-200'
             }`}
           >
             <span

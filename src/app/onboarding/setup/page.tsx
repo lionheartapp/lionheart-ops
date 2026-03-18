@@ -59,7 +59,7 @@ function ProgressRing({ progress }: { progress: number }) {
           key={Math.round(progress)}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-2xl font-bold text-gray-900"
+          className="text-2xl font-bold text-slate-900"
         >
           {Math.round(progress)}%
         </motion.span>
@@ -271,7 +271,7 @@ export default function SetupPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-slate-900">
             Getting things set up for you...
           </h2>
         </motion.div>
@@ -288,7 +288,7 @@ export default function SetupPage() {
               variants={stepRowVariants}
               initial="hidden"
               animate="visible"
-              className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border border-gray-200"
+              className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200"
             >
               <div className="flex-shrink-0">
                 <AnimatePresence mode="wait">
@@ -312,7 +312,7 @@ export default function SetupPage() {
                   ) : (
                     <motion.div
                       key="pending"
-                      className="w-6 h-6 rounded-full border-2 border-gray-300"
+                      className="w-6 h-6 rounded-full border-2 border-slate-300"
                     />
                   )}
                 </AnimatePresence>
@@ -323,7 +323,7 @@ export default function SetupPage() {
                     ? 'text-green-700'
                     : step.status === 'loading'
                       ? 'text-primary-700'
-                      : 'text-gray-500'
+                      : 'text-slate-500'
                 }`}
               >
                 {step.status === 'loading' ? (
@@ -361,7 +361,7 @@ export default function SetupPage() {
       {/* Welcome Text with typewriter effect */}
       <div>
         <motion.h2
-          className="text-4xl font-bold text-gray-900 mb-2"
+          className="text-4xl font-bold text-slate-900 mb-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
@@ -378,10 +378,10 @@ export default function SetupPage() {
         </motion.h2>
         {/* Fallback for reduced motion / after animation */}
         <noscript>
-          <h2 className="text-4xl font-bold text-gray-900 mb-2">Welcome to Lionheart!</h2>
+          <h2 className="text-4xl font-bold text-slate-900 mb-2">Welcome to Lionheart!</h2>
         </noscript>
         <motion.p
-          className="text-lg text-gray-600"
+          className="text-lg text-slate-600"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.0, duration: 0.4 }}
@@ -407,7 +407,7 @@ export default function SetupPage() {
             className="flex items-center gap-3 text-left"
           >
             <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-gray-700">{feature}</span>
+            <span className="text-slate-700">{feature}</span>
           </motion.div>
         ))}
       </div>
@@ -431,7 +431,7 @@ export default function SetupPage() {
           href="https://help.lionheartapp.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-8 py-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition flex items-center justify-center gap-2"
+          className="px-8 py-4 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition flex items-center justify-center gap-2"
         >
           View Help & Docs
           <ExternalLink className="w-4 h-4" />

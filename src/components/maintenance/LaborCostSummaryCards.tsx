@@ -67,10 +67,10 @@ export default function LaborCostSummaryCards({ summary }: LaborCostSummaryCards
             <div className={`inline-flex items-center justify-center w-7 h-7 rounded-lg ${card.bgClass} mb-2`}>
               <Icon className={`w-3.5 h-3.5 ${card.colorClass}`} />
             </div>
-            <p className={`text-sm font-semibold ${card.emphasis ? 'text-primary-800' : 'text-gray-800'}`}>
+            <p className={`text-sm font-semibold ${card.emphasis ? 'text-primary-800' : 'text-slate-800'}`}>
               {card.format(card.value)}
             </p>
-            <p className="text-[10px] text-gray-500 mt-0.5">{card.label}</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">{card.label}</p>
           </div>
         )
       })}

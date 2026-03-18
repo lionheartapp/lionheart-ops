@@ -13,7 +13,7 @@ export default function LoadingState({
 }: LoadingStateProps) {
   if (variant === 'inline') {
     return (
-      <span className="inline-flex items-center gap-2 text-sm text-gray-500">
+      <span className="inline-flex items-center gap-2 text-sm text-slate-500">
         <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
         {label}
       </span>
@@ -22,7 +22,7 @@ export default function LoadingState({
 
   if (variant === 'page') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-400">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-400">
         <Loader2 className="w-8 h-8 animate-spin mb-3" aria-hidden="true" />
         <p className="text-sm">{label}</p>
       </div>
@@ -31,7 +31,7 @@ export default function LoadingState({
 
   // section (default)
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+    <div className="flex flex-col items-center justify-center py-16 text-slate-400">
       <Loader2 className="w-6 h-6 animate-spin mb-3" aria-hidden="true" />
       <p className="text-sm">{label}</p>
     </div>

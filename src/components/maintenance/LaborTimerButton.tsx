@@ -159,7 +159,7 @@ export default function LaborTimerButton({
       {/* Toast notification */}
       {toast && (
         <div className="absolute bottom-full mb-2 left-0 right-0 z-10 flex justify-center pointer-events-none">
-          <div className="bg-gray-900/90 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+          <div className="bg-slate-900/90 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
             {toast}
           </div>
         </div>

@@ -167,8 +167,8 @@ export default function RegisterPage() {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-3" />
-          <p className="text-sm text-gray-500">Loading registration form…</p>
+          <Loader2 className="w-8 h-8 text-slate-400 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-slate-500">Loading registration form…</p>
         </div>
       </div>
     )
@@ -187,8 +187,8 @@ export default function RegisterPage() {
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Payment Successful!</h2>
-          <p className="text-gray-500">
+          <h2 className="text-2xl font-bold text-slate-900">Payment Successful!</h2>
+          <p className="text-slate-500">
             Your registration and payment have been confirmed. A confirmation email
             will be sent to you shortly.
           </p>
@@ -205,8 +205,8 @@ export default function RegisterPage() {
           <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6 text-red-500" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900">Unable to load form</h2>
-          <p className="text-sm text-gray-500">{state.message}</p>
+          <h2 className="text-lg font-semibold text-slate-900">Unable to load form</h2>
+          <p className="text-sm text-slate-500">{state.message}</p>
         </div>
       </div>
     )
@@ -217,7 +217,7 @@ export default function RegisterPage() {
     <div className="max-w-2xl mx-auto">
       {state.props.form.title && (
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{state.props.form.title}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{state.props.form.title}</h1>
         </div>
       )}
       <RegistrationWizard {...state.props} />

@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export default function PublicFooter() {
   return (
-    <footer className="bg-gray-900 text-gray-400 py-16" role="contentinfo">
+    <footer className="bg-slate-900 text-slate-400 py-16" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           <div>
@@ -75,7 +75,7 @@ export default function PublicFooter() {
             </ul>
           </nav>
         </div>
-        <div className="border-t border-gray-800 pt-8 text-center text-sm">
+        <div className="border-t border-slate-800 pt-8 text-center text-sm">
           <p>&copy; 2026 Lionheart. All rights reserved.</p>
         </div>
       </div>

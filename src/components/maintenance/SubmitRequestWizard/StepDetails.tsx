@@ -20,8 +20,8 @@ const PRIORITIES = [
     value: 'LOW',
     label: 'Low',
     description: 'Not urgent, can wait',
-    colors: 'bg-gray-50 border-gray-200 text-gray-700',
-    selected: 'bg-gray-100 border-gray-400 text-gray-900 ring-2 ring-gray-300',
+    colors: 'bg-slate-50 border-slate-200 text-slate-700',
+    selected: 'bg-slate-100 border-slate-400 text-slate-900 ring-2 ring-slate-300',
   },
   {
     value: 'MEDIUM',
@@ -94,17 +94,17 @@ export default function StepDetails({
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-1">Describe the Issue</h3>
-        <p className="text-sm text-gray-500">Tell the maintenance team what needs attention</p>
+        <h3 className="text-base font-semibold text-slate-900 mb-1">Describe the Issue</h3>
+        <p className="text-sm text-slate-500">Tell the maintenance team what needs attention</p>
       </div>
 
       {/* Title */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             Issue Title <span className="text-red-500">*</span>
           </label>
-          <span className={`text-xs ${titleRemaining < 20 ? 'text-red-500' : 'text-gray-400'}`}>
+          <span className={`text-xs ${titleRemaining < 20 ? 'text-red-500' : 'text-slate-400'}`}>
             {titleRemaining} left
           </span>
         </div>
@@ -113,14 +113,14 @@ export default function StepDetails({
           value={title}
           onChange={(e) => onTitleChange(e.target.value.slice(0, 200))}
           placeholder="e.g. Leaking faucet in Room 201"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
         />
       </div>
 
       {/* Category */}
       <div>
         <div className="flex items-center gap-2 mb-1.5">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             Category <span className="text-red-500">*</span>
           </label>
           {aiSuggestedCategory && aiSuggestedCategory === category && (
@@ -133,7 +133,7 @@ export default function StepDetails({
         <select
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer appearance-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer appearance-none"
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}
         >
           <option value="">Select a category...</option>
@@ -155,7 +155,7 @@ export default function StepDetails({
 
       {/* Priority */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+        <label className="block text-sm font-medium text-slate-700 mb-2">Priority</label>
         <div className="grid grid-cols-2 gap-2">
           {PRIORITIES.map((p) => (
             <button
@@ -177,10 +177,10 @@ export default function StepDetails({
       {/* Description */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-sm font-medium text-gray-700">
-            Description <span className="text-gray-400 font-normal">(optional)</span>
+          <label className="block text-sm font-medium text-slate-700">
+            Description <span className="text-slate-400 font-normal">(optional)</span>
           </label>
-          <span className={`text-xs ${descRemaining < 100 ? 'text-red-500' : 'text-gray-400'}`}>
+          <span className={`text-xs ${descRemaining < 100 ? 'text-red-500' : 'text-slate-400'}`}>
             {descRemaining} left
           </span>
         </div>
@@ -189,21 +189,21 @@ export default function StepDetails({
           onChange={(e) => onDescriptionChange(e.target.value.slice(0, 2000))}
           placeholder="Provide additional details about the issue..."
           rows={3}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow resize-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow resize-none"
         />
       </div>
 
       {/* Availability Note */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Access Note <span className="text-gray-400 font-normal">(optional)</span>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          Access Note <span className="text-slate-400 font-normal">(optional)</span>
         </label>
         <input
           type="text"
           value={availabilityNote}
           onChange={(e) => onAvailabilityNoteChange(e.target.value)}
           placeholder="e.g. Room available after 3pm, contact front office for key"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
         />
       </div>
 
@@ -215,8 +215,8 @@ export default function StepDetails({
               <Calendar className="w-4 h-4 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Schedule for later</p>
-              <p className="text-xs text-gray-500">Set a future start date</p>
+              <p className="text-sm font-medium text-slate-900">Schedule for later</p>
+              <p className="text-xs text-slate-500">Set a future start date</p>
             </div>
           </div>
           <button
@@ -226,7 +226,7 @@ export default function StepDetails({
             onClick={() => handleScheduleToggle(!scheduleEnabled)}
             className={`
               relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1
-              ${scheduleEnabled ? 'bg-primary-500' : 'bg-gray-200'}
+              ${scheduleEnabled ? 'bg-primary-500' : 'bg-slate-200'}
             `}
           >
             <span
@@ -247,15 +247,15 @@ export default function StepDetails({
               transition={{ duration: 0.2, ease: 'easeOut' }}
               className="overflow-hidden"
             >
-              <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="mt-3 pt-3 border-t border-slate-100">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <input
                     type="date"
                     value={scheduledDate}
                     min={minDateStr}
                     onChange={(e) => onScheduledDateChange(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer"
+                    className="flex-1 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer"
                   />
                 </div>
                 {scheduledDate && (

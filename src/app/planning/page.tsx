@@ -122,8 +122,8 @@ export default function PlanningPage() {
       >
         <motion.div variants={fadeInUp} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Calendar Planning</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-semibold text-slate-900">Calendar Planning</h1>
+            <p className="text-sm text-slate-500 mt-1">
               Collect, review, and coordinate event proposals before publishing to the calendar.
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function PlanningPage() {
                 <select
                   value={effectiveSeasonId || ''}
                   onChange={(e) => setSelectedSeasonId(e.target.value)}
-                  className="appearance-none pl-3 pr-8 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  className="appearance-none pl-3 pr-8 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   {seasons.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -142,13 +142,13 @@ export default function PlanningPage() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             )}
             {isAdmin && !activeSeason && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
               >
                 <Plus className="w-4 h-4" />
                 Create Planning Season
@@ -157,7 +157,7 @@ export default function PlanningPage() {
             {isAdmin && activeSeason && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
               >
                 <Plus className="w-4 h-4" />
                 New Season
@@ -166,7 +166,7 @@ export default function PlanningPage() {
             {activeSeason && !isAdmin && activeSeason.phase === 'COLLECTING' && (
               <button
                 onClick={() => setShowForm(true)}
-                className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+                className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
               >
                 + New Submission
               </button>
@@ -176,15 +176,15 @@ export default function PlanningPage() {
 
         {seasonsLoading && (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-slate-200 border-t-primary-600 rounded-full animate-spin" />
           </div>
         )}
 
         {!seasonsLoading && !activeSeason && !showCreateSeason && (
           <motion.div variants={cardEntrance} className="ui-glass p-8 text-center">
-            <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h2 className="text-lg font-medium text-gray-700 mb-1">No Planning Seasons</h2>
-            <p className="text-sm text-gray-500 mb-4">
+            <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <h2 className="text-lg font-medium text-slate-700 mb-1">No Planning Seasons</h2>
+            <p className="text-sm text-slate-500 mb-4">
               {isAdmin
                 ? 'Create a planning season to start collecting event submissions from staff.'
                 : 'An administrator needs to create a planning season first.'}
@@ -192,7 +192,7 @@ export default function PlanningPage() {
             {isAdmin && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
               >
                 <Plus className="w-4 h-4" />
                 Create Planning Season
@@ -204,7 +204,7 @@ export default function PlanningPage() {
         {/* Create Season Form (Admin) */}
         {showCreateSeason && (
           <motion.div variants={cardEntrance} className="ui-glass p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">New Planning Season</h3>
+            <h3 className="text-lg font-semibold text-slate-900">New Planning Season</h3>
             <FloatingInput
               label="Season Name"
               value={seasonName}
@@ -223,14 +223,14 @@ export default function PlanningPage() {
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => { setShowCreateSeason(false); setSeasonError('') }}
-                className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                className="flex-1 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateSeason}
                 disabled={createSeason.isPending}
-                className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+                className="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition disabled:opacity-50"
               >
                 {createSeason.isPending ? 'Creating...' : 'Create Season'}
               </button>
@@ -251,7 +251,7 @@ export default function PlanningPage() {
           <>
             {showForm ? (
               <div className="ui-glass p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">New Event Submission</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">New Event Submission</h3>
                 <PlanningSubmissionForm
                   seasonId={activeSeason.id}
                   isSubmitting={createSubmission.isPending}
@@ -278,19 +278,19 @@ export default function PlanningPage() {
         {selectedSubmission && activeSeason && (
           <div className="ui-glass p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">{selectedSubmission.title}</h3>
-              <button onClick={() => setSelectedSubmission(null)} className="text-sm text-gray-500 hover:text-gray-700">Close</button>
+              <h3 className="text-lg font-semibold text-slate-900">{selectedSubmission.title}</h3>
+              <button onClick={() => setSelectedSubmission(null)} className="text-sm text-slate-500 hover:text-slate-700">Close</button>
             </div>
 
             {selectedSubmission.description && (
-              <p className="text-sm text-gray-600">{selectedSubmission.description}</p>
+              <p className="text-sm text-slate-600">{selectedSubmission.description}</p>
             )}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              <div><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(selectedSubmission.preferredDate).toLocaleDateString()}</span></div>
-              <div><span className="text-gray-500">Duration:</span> <span className="font-medium">{selectedSubmission.duration}min</span></div>
-              <div><span className="text-gray-500">Priority:</span> <span className="font-medium">{selectedSubmission.priority.replace('_', ' ')}</span></div>
-              {selectedSubmission.expectedAttendance && <div><span className="text-gray-500">Attendance:</span> <span className="font-medium">~{selectedSubmission.expectedAttendance}</span></div>}
+              <div><span className="text-slate-500">Date:</span> <span className="font-medium">{new Date(selectedSubmission.preferredDate).toLocaleDateString()}</span></div>
+              <div><span className="text-slate-500">Duration:</span> <span className="font-medium">{selectedSubmission.duration}min</span></div>
+              <div><span className="text-slate-500">Priority:</span> <span className="font-medium">{selectedSubmission.priority.replace('_', ' ')}</span></div>
+              {selectedSubmission.expectedAttendance && <div><span className="text-slate-500">Attendance:</span> <span className="font-medium">~{selectedSubmission.expectedAttendance}</span></div>}
             </div>
 
             {selectedSubmission.adminNotes && (
@@ -300,8 +300,8 @@ export default function PlanningPage() {
               </div>
             )}
 
-            <div className="pt-2 border-t border-gray-100">
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Comments</h4>
+            <div className="pt-2 border-t border-slate-100">
+              <h4 className="text-sm font-medium text-slate-900 mb-2">Comments</h4>
               <CommentThread
                 comments={comments}
                 onAddComment={(message, isAdminOnly) => addComment.mutate({

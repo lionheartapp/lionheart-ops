@@ -133,7 +133,7 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
             type="submit"
             form="it-student-create-form"
             disabled={!canSubmit || createMutation.isPending}
-            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             Add Student
@@ -141,7 +141,7 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
           <button
             type="button"
             onClick={handleClose}
-            className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all"
+            className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all"
           >
             Cancel
           </button>
@@ -186,11 +186,11 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
 
         {/* Grade */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Grade</label>
           <select
             value={grade}
             onChange={(e) => setGrade(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             {GRADE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -201,11 +201,11 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
         {/* Campus */}
         {schools.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">School / Campus</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">School / Campus</label>
             <select
               value={schoolId}
               onChange={(e) => setSchoolId(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select school...</option>
               {schools.map((s) => (
@@ -217,11 +217,11 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
 
         {/* Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             {STATUS_OPTIONS.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>

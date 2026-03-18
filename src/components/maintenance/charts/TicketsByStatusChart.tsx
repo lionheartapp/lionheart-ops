@@ -42,7 +42,7 @@ interface TicketsByStatusChartProps {
 export default function TicketsByStatusChart({ data }: TicketsByStatusChartProps) {
   if (data.campuses.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
         No data available for this period
       </div>
     )

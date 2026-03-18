@@ -103,9 +103,9 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
   if (loading) {
     return (
       <div className="space-y-3">
-        <div className="h-5 w-32 bg-gray-100 rounded animate-pulse" />
-        <div className="h-12 bg-gray-50 rounded-lg animate-pulse" />
-        <div className="h-12 bg-gray-50 rounded-lg animate-pulse" />
+        <div className="h-5 w-32 bg-slate-100 rounded animate-pulse" />
+        <div className="h-12 bg-slate-50 rounded-lg animate-pulse" />
+        <div className="h-12 bg-slate-50 rounded-lg animate-pulse" />
       </div>
     )
   }
@@ -113,7 +113,7 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700">Seasons</h3>
+        <h3 className="text-sm font-semibold text-slate-700">Seasons</h3>
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
@@ -126,7 +126,7 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
 
       {/* Inline create form */}
       {showForm && (
-        <div className="mb-4 p-4 rounded-xl border border-gray-200 bg-gray-50 space-y-3">
+        <div className="mb-4 p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
           <FloatingInput
             id="season-name"
             label="Season Name"
@@ -152,12 +152,12 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
               required
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
             <input
               type="checkbox"
               checked={form.isCurrent}
               onChange={(e) => setForm({ ...form, isCurrent: e.target.checked })}
-              className="rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
+              className="rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
             />
             Mark as current season
           </label>
@@ -167,14 +167,14 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
               type="button"
               onClick={handleCreate}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
+              className="px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-full hover:bg-slate-800 disabled:opacity-50 transition"
             >
               {saving ? 'Creating...' : 'Create Season'}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setError('') }}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition"
+              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition"
             >
               Cancel
             </button>
@@ -186,29 +186,29 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
       {seasons.length === 0 ? (
         <div className="text-center py-6">
           <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
-          <p className="text-sm text-gray-400">No seasons yet</p>
+          <p className="text-sm text-slate-400">No seasons yet</p>
         </div>
       ) : (
         <div className="space-y-2">
           {seasons.map((season) => (
             <div
               key={season.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-white hover:border-gray-200 transition-colors"
+              className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-white hover:border-slate-200 transition-colors"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900 truncate">{season.name}</span>
+                  <span className="text-sm font-medium text-slate-900 truncate">{season.name}</span>
                   {season.isCurrent && (
                     <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-green-100 text-green-700 rounded-full">
                       Current
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   {formatDateRange(season.startDate, season.endDate)}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-400 flex-shrink-0 ml-3">
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 flex-shrink-0 ml-3">
                 <Trophy className="w-3 h-3" />
                 {season._count.teams} team{season._count.teams !== 1 ? 's' : ''}
               </div>

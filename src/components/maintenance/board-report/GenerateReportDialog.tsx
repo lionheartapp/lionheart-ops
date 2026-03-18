@@ -119,14 +119,14 @@ export function GenerateReportDialog({
               exit="hidden"
             >
               {/* Header */}
-              <div className="flex items-start justify-between p-6 pb-4 border-b border-gray-100/60">
+              <div className="flex items-start justify-between p-6 pb-4 border-b border-slate-100/60">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
                     <FileText className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900">Generate Board Report</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <h2 className="text-base font-semibold text-slate-900">Generate Board Report</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Configure and download your PDF report
                     </p>
                   </div>
@@ -134,9 +134,9 @@ export function GenerateReportDialog({
                 <button
                   onClick={onClose}
                   disabled={loading}
-                  className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+                  className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <X className="w-3.5 h-3.5 text-gray-500" />
+                  <X className="w-3.5 h-3.5 text-slate-500" />
                 </button>
               </div>
 
@@ -144,7 +144,7 @@ export function GenerateReportDialog({
               <div className="p-6 space-y-5">
                 {/* Period picker */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
                     Report Period
                   </label>
                   <div className="flex gap-2">
@@ -152,7 +152,7 @@ export function GenerateReportDialog({
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(Number(e.target.value))}
                       disabled={loading}
-                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
+                      className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
                     >
                       {months.map((m) => (
                         <option key={m.value} value={m.value}>
@@ -164,7 +164,7 @@ export function GenerateReportDialog({
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(Number(e.target.value))}
                       disabled={loading}
-                      className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
+                      className="w-28 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
                     >
                       {years.map((y) => (
                         <option key={y} value={y}>
@@ -173,7 +173,7 @@ export function GenerateReportDialog({
                       ))}
                     </select>
                   </div>
-                  <p className="mt-1.5 text-xs text-gray-400">
+                  <p className="mt-1.5 text-xs text-slate-400">
                     {formatMonthYear(selectedYear, selectedMonth)} — full month
                   </p>
                 </div>
@@ -183,11 +183,11 @@ export function GenerateReportDialog({
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
                       <Sparkles className="w-4 h-4 text-primary-600" />
-                      <span className="text-sm font-semibold text-gray-800">
+                      <span className="text-sm font-semibold text-slate-800">
                         AI Executive Summary
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-500">
                       Powered by Gemini — analyzes your facility data and writes a 3-paragraph
                       narrative for board members
                     </p>
@@ -196,7 +196,7 @@ export function GenerateReportDialog({
                     onClick={() => setIncludeAI(!includeAI)}
                     disabled={loading}
                     className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-60 ${
-                      includeAI ? 'bg-primary-600' : 'bg-gray-300'
+                      includeAI ? 'bg-primary-600' : 'bg-slate-300'
                     }`}
                     role="switch"
                     aria-checked={includeAI}
@@ -236,11 +236,11 @@ export function GenerateReportDialog({
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100/60">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100/60">
                 <button
                   onClick={onClose}
                   disabled={loading}
-                  className="px-4 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-60"
+                  className="px-4 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-60"
                 >
                   Cancel
                 </button>

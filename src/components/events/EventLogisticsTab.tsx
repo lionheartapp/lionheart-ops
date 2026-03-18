@@ -65,13 +65,13 @@ function QuickStats({ eventProjectId }: { eventProjectId: string }) {
   ].reduce((sum, g) => sum + g.assignmentCount, 0)
 
   return (
-    <div className="flex items-center gap-4 text-xs text-gray-500">
+    <div className="flex items-center gap-4 text-xs text-slate-500">
       <span>
-        <strong className="text-gray-800 font-semibold">{totalGroups}</strong> groups
+        <strong className="text-slate-800 font-semibold">{totalGroups}</strong> groups
       </span>
-      <span className="text-gray-300">·</span>
+      <span className="text-slate-300">·</span>
       <span>
-        <strong className="text-gray-800 font-semibold">{totalAssigned}</strong> assigned
+        <strong className="text-slate-800 font-semibold">{totalAssigned}</strong> assigned
       </span>
     </div>
   )
@@ -94,17 +94,17 @@ function AIAssignmentsModal({ result, onApply, onDismiss }: AIAssignmentsModalPr
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.15 }}
-        className="relative bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-lg max-h-[80vh] flex flex-col z-10"
+        className="relative bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[80vh] flex flex-col z-10"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-500" />
-            <h3 className="text-base font-semibold text-gray-900">AI Group Assignments</h3>
+            <h3 className="text-base font-semibold text-slate-900">AI Group Assignments</h3>
           </div>
           <button
             onClick={onDismiss}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -127,7 +127,7 @@ function AIAssignmentsModal({ result, onApply, onDismiss }: AIAssignmentsModalPr
 
           {/* Assignment preview — count by group */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-3">
+            <p className="text-sm font-medium text-slate-700 mb-3">
               {result.assignments.length} participant{result.assignments.length === 1 ? '' : 's'} assigned
             </p>
             {/* Group by groupId */}
@@ -138,18 +138,18 @@ function AIAssignmentsModal({ result, onApply, onDismiss }: AIAssignmentsModalPr
                 byGroup[a.groupId].push(a)
               }
               return Object.entries(byGroup).map(([groupId, assignments]) => (
-                <div key={groupId} className="bg-gray-50 rounded-xl p-3 mb-2">
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
+                <div key={groupId} className="bg-slate-50 rounded-xl p-3 mb-2">
+                  <p className="text-xs font-semibold text-slate-600 mb-1.5">
                     Group {groupId.slice(-6)} — {assignments.length} participants
                   </p>
                   <div className="space-y-0.5">
                     {assignments.slice(0, 3).map((a) => (
-                      <p key={a.participantId} className="text-xs text-gray-500">
+                      <p key={a.participantId} className="text-xs text-slate-500">
                         {a.reasoning ? `• ${a.reasoning}` : `• Participant ${a.participantId.slice(-6)}`}
                       </p>
                     ))}
                     {assignments.length > 3 && (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-slate-400">
                         + {assignments.length - 3} more...
                       </p>
                     )}
@@ -161,10 +161,10 @@ function AIAssignmentsModal({ result, onApply, onDismiss }: AIAssignmentsModalPr
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-100">
           <button
             onClick={onDismiss}
-            className="px-4 py-2 rounded-full text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-full text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -225,13 +225,13 @@ function ConflictAlert({ report, onDismiss }: ConflictAlertProps) {
       className="space-y-2"
     >
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+        <p className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
           <AlertTriangle className="w-4 h-4 text-amber-500" />
           {conflicts.length} scheduling conflict{conflicts.length === 1 ? '' : 's'} found
         </p>
         <button
           onClick={onDismiss}
-          className="text-gray-400 hover:text-gray-600 cursor-pointer"
+          className="text-slate-400 hover:text-slate-600 cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -254,7 +254,7 @@ function ConflictAlert({ report, onDismiss }: ConflictAlertProps) {
                 </span>
                 <span className={`text-xs ${cfg.text}`}>{conflict.description}</span>
                 {conflict.conflictingEventTitle && (
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Conflicts with: <span className="font-medium">{conflict.conflictingEventTitle}</span>
                   </p>
                 )}
@@ -406,7 +406,7 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
         {/* Header row */}
         <motion.div variants={fadeInUp} className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Logistics & Groups</h2>
+            <h2 className="text-base font-semibold text-slate-900">Logistics & Groups</h2>
             <QuickStats eventProjectId={eventProjectId} />
           </div>
 
@@ -470,7 +470,7 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
         </AnimatePresence>
 
         {/* Sub-tabs */}
-        <motion.div variants={fadeInUp} className="border-b border-gray-200">
+        <motion.div variants={fadeInUp} className="border-b border-slate-200">
           <nav className="flex overflow-x-auto scrollbar-none -mb-px gap-1" style={{ scrollbarWidth: 'none' }}>
             {LOGISTICS_TABS.map((tab) => {
               const Icon = tab.icon
@@ -486,18 +486,18 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
                     ${
                       isActive
                         ? 'border-indigo-500 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                     }
                   `}
                 >
                   <Icon
                     className={`w-4 h-4 ${
-                      isActive ? 'text-indigo-500' : 'text-gray-400'
+                      isActive ? 'text-indigo-500' : 'text-slate-400'
                     }`}
                   />
                   {tab.label}
                   {tab.medical && !canViewMedical && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 ml-0.5" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 ml-0.5" />
                   )}
                 </button>
               )

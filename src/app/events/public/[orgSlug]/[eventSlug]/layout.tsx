@@ -115,7 +115,7 @@ export default async function PublicEventLayout({
         />
 
         {/* Top nav — org branding only */}
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
             {logoUrl ? (
               <Image
@@ -133,7 +133,7 @@ export default async function PublicEventLayout({
                 {orgName.slice(0, 2).toUpperCase()}
               </div>
             )}
-            <span className="text-sm font-semibold text-gray-900">{orgName}</span>
+            <span className="text-sm font-semibold text-slate-900">{orgName}</span>
           </div>
         </header>
 
@@ -143,8 +143,8 @@ export default async function PublicEventLayout({
         </main>
 
         {/* Footer — org attribution, NOT Lionheart */}
-        <footer className="border-t border-gray-100 mt-12 py-6">
-          <div className="max-w-4xl mx-auto px-4 text-center text-xs text-gray-400">
+        <footer className="border-t border-slate-100 mt-12 py-6">
+          <div className="max-w-4xl mx-auto px-4 text-center text-xs text-slate-400">
             Powered by {orgName}
           </div>
         </footer>

@@ -70,7 +70,7 @@ function formatTriggerDescription(triggerType: TriggerType, offsetDays: number, 
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
       {children}
     </h4>
   )
@@ -91,11 +91,11 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="block text-xs font-medium text-gray-700 mb-1">
+      <label htmlFor={htmlFor} className="block text-xs font-medium text-slate-700 mb-1">
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+      {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
     </div>
   )
 }
@@ -104,7 +104,7 @@ function Field({
 
 function StatusBadge({ status }: { status: NotificationRuleRow['status'] }) {
   const configs = {
-    DRAFT: { icon: Clock, cls: 'bg-gray-100 text-gray-600', label: 'Draft' },
+    DRAFT: { icon: Clock, cls: 'bg-slate-100 text-slate-600', label: 'Draft' },
     PENDING_APPROVAL: { icon: AlertCircle, cls: 'bg-amber-100 text-amber-700', label: 'Pending Approval' },
     APPROVED: { icon: CheckCircle, cls: 'bg-blue-100 text-blue-700', label: 'Approved — queued' },
     SENT: { icon: CheckCircle, cls: 'bg-green-100 text-green-700', label: 'Sent' },
@@ -296,7 +296,7 @@ export function NotificationRuleDrawer({
             type="button"
             onClick={handleSaveDraft}
             disabled={isMutating}
-            className="flex-1 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
           >
             {isMutating ? 'Saving...' : 'Save as Draft'}
           </button>
@@ -304,7 +304,7 @@ export function NotificationRuleDrawer({
             type="button"
             onClick={handleSubmitForApproval}
             disabled={isMutating}
-            className="flex-1 py-2.5 rounded-full border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-full border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
           >
             Submit for Approval
           </button>
@@ -319,7 +319,7 @@ export function NotificationRuleDrawer({
             type="button"
             onClick={handleSaveDraft}
             disabled={isMutating}
-            className="flex-1 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
           >
             {isMutating ? 'Saving...' : 'Save Changes'}
           </button>
@@ -350,7 +350,7 @@ export function NotificationRuleDrawer({
             type="button"
             onClick={handleCancel}
             disabled={isMutating}
-            className="py-2.5 px-4 rounded-full border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+            className="py-2.5 px-4 rounded-full border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
           >
             Cancel
           </button>
@@ -393,7 +393,7 @@ export function NotificationRuleDrawer({
           <div className="flex items-center gap-2">
             <StatusBadge status={rule.status} />
             {rule.sentAt && (
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-slate-400">
                 Sent {new Date(rule.sentAt).toLocaleDateString()}
               </span>
             )}
@@ -405,7 +405,7 @@ export function NotificationRuleDrawer({
           <SectionLabel>Trigger Configuration</SectionLabel>
 
           {/* Trigger type segmented control */}
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-4">
+          <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-4">
             {TRIGGER_TABS.map(({ id, label: tabLabel, icon: Icon }) => (
               <button
                 key={id}
@@ -416,8 +416,8 @@ export function NotificationRuleDrawer({
                   flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium
                   transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                   ${triggerType === id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
                   }
                 `}
               >
@@ -431,7 +431,7 @@ export function NotificationRuleDrawer({
           {triggerType === 'DATE_BASED' && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 whitespace-nowrap">Send</span>
+                <span className="text-sm text-slate-600 whitespace-nowrap">Send</span>
                 <input
                   type="number"
                   id="offsetDays"
@@ -440,10 +440,10 @@ export function NotificationRuleDrawer({
                   value={offsetDays}
                   onChange={(e) => setOffsetDays(Number(e.target.value))}
                   disabled={isReadOnly}
-                  className="w-16 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-50"
+                  className="w-16 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50"
                 />
-                <span className="text-sm text-gray-600">days</span>
-                <div className="flex gap-1 p-0.5 bg-gray-100 rounded-lg">
+                <span className="text-sm text-slate-600">days</span>
+                <div className="flex gap-1 p-0.5 bg-slate-100 rounded-lg">
                   {(['before', 'after'] as const).map((opt) => (
                     <button
                       key={opt}
@@ -452,14 +452,14 @@ export function NotificationRuleDrawer({
                       onClick={() => setBeforeAfter(opt)}
                       className={`
                         px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer disabled:cursor-not-allowed
-                        ${beforeAfter === opt ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}
+                        ${beforeAfter === opt ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}
                       `}
                     >
                       {opt}
                     </button>
                   ))}
                 </div>
-                <span className="text-sm text-gray-600 whitespace-nowrap">event</span>
+                <span className="text-sm text-slate-600 whitespace-nowrap">event</span>
               </div>
               {scheduledDatePreview && (
                 <p className="text-xs text-indigo-600 font-medium">
@@ -473,13 +473,13 @@ export function NotificationRuleDrawer({
           {triggerType === 'CONDITION_BASED' && (
             <div className="space-y-3">
               <div className="flex items-start gap-2 flex-wrap">
-                <span className="text-sm text-gray-600 whitespace-nowrap pt-2">If</span>
+                <span className="text-sm text-slate-600 whitespace-nowrap pt-2">If</span>
                 <select
                   id="conditionType"
                   value={conditionType}
                   onChange={(e) => setConditionType(e.target.value)}
                   disabled={isReadOnly}
-                  className="flex-1 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-gray-50 cursor-pointer"
+                  className="flex-1 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-slate-50 cursor-pointer"
                 >
                   {CONDITION_TYPES.map((c) => (
                     <option key={c.key} value={c.key}>{c.label}</option>
@@ -487,7 +487,7 @@ export function NotificationRuleDrawer({
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 whitespace-nowrap">is true</span>
+                <span className="text-sm text-slate-600 whitespace-nowrap">is true</span>
                 <input
                   type="number"
                   min={1}
@@ -495,9 +495,9 @@ export function NotificationRuleDrawer({
                   value={conditionThresholdDays}
                   onChange={(e) => setConditionThresholdDays(Number(e.target.value))}
                   disabled={isReadOnly}
-                  className="w-16 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-50"
+                  className="w-16 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50"
                 />
-                <span className="text-sm text-gray-600">days before event, send notification</span>
+                <span className="text-sm text-slate-600">days before event, send notification</span>
               </div>
             </div>
           )}
@@ -505,13 +505,13 @@ export function NotificationRuleDrawer({
           {/* Action-triggered config */}
           {triggerType === 'ACTION_TRIGGERED' && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 whitespace-nowrap">Send immediately when</span>
+              <span className="text-sm text-slate-600 whitespace-nowrap">Send immediately when</span>
               <select
                 id="actionType"
                 value={actionType}
                 onChange={(e) => setActionType(e.target.value)}
                 disabled={isReadOnly}
-                className="flex-1 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-gray-50 cursor-pointer"
+                className="flex-1 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-slate-50 cursor-pointer"
               >
                 {ACTION_TYPES.map((a) => (
                   <option key={a.key} value={a.key}>{a.label}</option>
@@ -530,7 +530,7 @@ export function NotificationRuleDrawer({
               value={targetAudience}
               onChange={(e) => setTargetAudience(e.target.value as TargetAudience)}
               disabled={isReadOnly}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-gray-50 cursor-pointer"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-slate-50 cursor-pointer"
             >
               {AUDIENCE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -570,7 +570,7 @@ export function NotificationRuleDrawer({
                 disabled={isReadOnly}
                 placeholder="e.g. 7-day reminder"
                 maxLength={200}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50"
               />
             </Field>
 
@@ -584,7 +584,7 @@ export function NotificationRuleDrawer({
                   disabled={isReadOnly}
                   placeholder="Notification subject line"
                   maxLength={500}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-50 pr-24"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 pr-24"
                 />
                 {isAIDrafted && (
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-indigo-700 whitespace-nowrap">
@@ -602,7 +602,7 @@ export function NotificationRuleDrawer({
                 disabled={isReadOnly}
                 placeholder="Write your message here, or click AI Draft to generate one..."
                 rows={6}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-50 resize-none"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 resize-none"
               />
             </Field>
           </div>
@@ -612,7 +612,7 @@ export function NotificationRuleDrawer({
         {subject && (
           <section>
             <SectionLabel>Preview</SectionLabel>
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -621,9 +621,9 @@ export function NotificationRuleDrawer({
                   <span className="text-white text-xs font-bold">L</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-900">{subject || 'Subject line'}</p>
+                  <p className="text-xs font-semibold text-slate-900">{subject || 'Subject line'}</p>
                   {messageBody && (
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-3 whitespace-pre-line">
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-3 whitespace-pre-line">
                       {messageBody}
                     </p>
                   )}

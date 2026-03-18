@@ -153,7 +153,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
       </div>
     )
   }
@@ -161,7 +161,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
   if (!tournament) {
     return (
       <div className="text-center py-12">
-        <p className="text-sm text-gray-500">Tournament not found</p>
+        <p className="text-sm text-slate-500">Tournament not found</p>
         <button onClick={onBack} className="mt-2 text-sm text-primary-600 hover:text-primary-700">
           Go back
         </button>
@@ -178,13 +178,13 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
       <div className="flex items-start gap-3 mb-6">
         <button
           onClick={onBack}
-          className="mt-0.5 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+          className="mt-0.5 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-xl font-semibold text-gray-900">{tournament.name}</h2>
+            <h2 className="text-xl font-semibold text-slate-900">{tournament.name}</h2>
             <span
               className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
               style={{
@@ -195,11 +195,11 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
               <SportIcon sport={tournament.sport.name} size={12} style={{ color: tournament.sport.color }} />
               {tournament.sport.name}
             </span>
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
               {FORMAT_LABELS[tournament.format] || tournament.format}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-0.5">{startDate} – {endDate}</p>
+          <p className="text-sm text-slate-500 mt-0.5">{startDate} – {endDate}</p>
         </div>
 
         {hasBrackets && (
@@ -209,7 +209,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
             className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition disabled:opacity-50 ${
               showTeamPicker
                 ? 'text-primary-700 border border-primary-300 bg-primary-50'
-                : 'text-gray-700 border border-gray-200 hover:bg-gray-50'
+                : 'text-slate-700 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -226,27 +226,27 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
       {!hasBrackets && (
         <div className="mb-6">
           {/* Setup steps guide */}
-          <div className="flex items-center gap-6 mb-5 text-xs text-gray-400">
+          <div className="flex items-center gap-6 mb-5 text-xs text-slate-400">
             <div className="flex items-center gap-1.5">
               <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                teams.length > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                teams.length > 0 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
               }`}>1</span>
               <span className={teams.length > 0 ? 'text-green-700 font-medium' : ''}>Teams available</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                selectedTeamIds.size >= 2 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                selectedTeamIds.size >= 2 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
               }`}>2</span>
               <span className={selectedTeamIds.size >= 2 ? 'text-green-700 font-medium' : ''}>Select 2+ teams</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] font-bold">3</span>
+              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-bold">3</span>
               <span>Generate bracket</span>
             </div>
           </div>
 
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">Select Teams</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Select Teams</h3>
             {teams.length > 0 && (
               <button onClick={selectAll} className="text-xs text-primary-600 hover:text-primary-700">
                 {selectedTeamIds.size === teams.length ? 'Deselect All' : 'Select All'}
@@ -255,11 +255,11 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
           </div>
 
           {teams.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
+            <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center">
               <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
-              <p className="text-sm text-gray-500 mb-1">No teams found for this sport</p>
-              <p className="text-xs text-gray-400">
-                Create teams in the <span className="font-medium text-gray-600">Teams</span> tab first, then come back to set up the bracket.
+              <p className="text-sm text-slate-500 mb-1">No teams found for this sport</p>
+              <p className="text-xs text-slate-400">
+                Create teams in the <span className="font-medium text-slate-600">Teams</span> tab first, then come back to set up the bracket.
               </p>
             </div>
           ) : (
@@ -273,19 +273,19 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition ${
                         checked
                           ? 'border-primary-300 bg-primary-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleTeam(team.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
+                        className="w-4 h-4 rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
                         <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
-                        <span className="text-sm text-gray-900 truncate">{team.name}</span>
-                        <span className="text-xs text-gray-400">{team.season?.name}</span>
+                        <span className="text-sm text-slate-900 truncate">{team.name}</span>
+                        <span className="text-xs text-slate-400">{team.season?.name}</span>
                       </div>
                     </label>
                   )
@@ -295,7 +295,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
               <button
                 onClick={handleGenerate}
                 disabled={generating || selectedTeamIds.size < 2}
-                className="px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+                className="px-4 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50"
               >
                 {generating ? 'Generating...' : `Generate Bracket (${selectedTeamIds.size} teams)`}
               </button>
@@ -308,7 +308,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
       {hasBrackets && showTeamPicker && (
         <div className="mb-6 p-4 rounded-xl border border-primary-200 bg-primary-50/30">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">Select Teams for New Bracket</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Select Teams for New Bracket</h3>
             {teams.length > 0 && (
               <button onClick={selectAll} className="text-xs text-primary-600 hover:text-primary-700">
                 {selectedTeamIds.size === teams.length ? 'Deselect All' : 'Select All'}
@@ -317,7 +317,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
           </div>
 
           {teams.length === 0 ? (
-            <p className="text-sm text-gray-500">No teams found for this sport</p>
+            <p className="text-sm text-slate-500">No teams found for this sport</p>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
@@ -329,18 +329,18 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition ${
                         checked
                           ? 'border-primary-300/50 bg-white/70 backdrop-blur-sm'
-                          : 'border-gray-200/30 bg-white/60 backdrop-blur-sm hover:border-gray-300/40'
+                          : 'border-slate-200/30 bg-white/60 backdrop-blur-sm hover:border-slate-300/40'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleTeam(team.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-primary-500 focus-visible:ring-primary-500"
+                        className="w-4 h-4 rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
                         <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
-                        <span className="text-sm text-gray-900 truncate">{team.name}</span>
+                        <span className="text-sm text-slate-900 truncate">{team.name}</span>
                       </div>
                     </label>
                   )
@@ -351,13 +351,13 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                 <button
                   onClick={() => setShowRegenConfirm(true)}
                   disabled={generating || selectedTeamIds.size < 2}
-                  className="px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+                  className="px-4 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50"
                 >
                   {generating ? 'Generating...' : `Regenerate Bracket (${selectedTeamIds.size} teams)`}
                 </button>
                 <button
                   onClick={() => { setShowTeamPicker(false); setSelectedTeamIds(new Set()) }}
-                  className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition"
+                  className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 transition"
                 >
                   Cancel
                 </button>
@@ -386,7 +386,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
 
           {(tournament.format === 'DOUBLE_ELIMINATION' || tournament.format === 'POOL_PLAY') && (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 italic flex items-center gap-1.5">
+              <p className="text-sm text-slate-500 italic flex items-center gap-1.5">
                 <ListOrdered className="w-4 h-4" />
                 Grouped match list view
               </p>
@@ -397,7 +397,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                   const roundMatches = tournament.brackets.filter((b) => b.round === round)
                   return (
                     <div key={round}>
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                         Round {round}
                       </h4>
                       <div className="space-y-1">
@@ -408,15 +408,15 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition ${
                               match.winnerId
                                 ? 'border-green-200 bg-green-50'
-                                : 'border-gray-200 hover:bg-gray-50'
+                                : 'border-slate-200 hover:bg-slate-50'
                             }`}
                           >
                             <div className="flex items-center gap-3 text-sm">
-                              <span className={match.winnerId === match.team1Id ? 'font-semibold text-green-700' : 'text-gray-700'}>
+                              <span className={match.winnerId === match.team1Id ? 'font-semibold text-green-700' : 'text-slate-700'}>
                                 {match.team1?.name || 'TBD'}
                               </span>
-                              <span className="text-xs text-gray-400">vs</span>
-                              <span className={match.winnerId === match.team2Id ? 'font-semibold text-green-700' : 'text-gray-700'}>
+                              <span className="text-xs text-slate-400">vs</span>
+                              <span className={match.winnerId === match.team2Id ? 'font-semibold text-green-700' : 'text-slate-700'}>
                                 {match.team2?.name || 'TBD'}
                               </span>
                             </div>

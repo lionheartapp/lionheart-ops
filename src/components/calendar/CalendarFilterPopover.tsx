@@ -136,25 +136,25 @@ export default function CalendarFilterPopover({
   const popover = (
     <div
       ref={popoverRef}
-      className="fixed z-modal bg-white rounded-2xl shadow-xl border border-gray-200 w-80 max-h-[70vh] overflow-y-auto"
+      className="fixed z-modal bg-white rounded-2xl shadow-xl border border-slate-200 w-80 max-h-[70vh] overflow-y-auto"
       style={{ top: position.top, left: position.left }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-2">
-        <h3 className="text-sm font-semibold text-gray-900">Filters</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Filters</h3>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+          className="p-1.5 rounded-full hover:bg-slate-100 transition-colors"
           aria-label="Close filters"
         >
-          <X className="w-4 h-4 text-gray-400" />
+          <X className="w-4 h-4 text-slate-400" />
         </button>
       </div>
 
       {/* Category */}
       {categories.length > 0 && (
         <div className="px-5 py-3">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Category</p>
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Category</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((cat) => {
               const active = filter.categoryIds.has(cat.id)
@@ -165,7 +165,7 @@ export default function CalendarFilterPopover({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     active
                       ? 'text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                   style={active ? { backgroundColor: cat.color } : undefined}
                 >
@@ -183,8 +183,8 @@ export default function CalendarFilterPopover({
 
       {/* Campus — athletics only */}
       {athleticsVisible && campuses.length > 1 && (
-        <div className="px-5 py-3 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Campus</p>
+        <div className="px-5 py-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Campus</p>
           <div className="flex flex-wrap gap-2">
             {campuses.map(({ id, name }) => {
               const active = filter.campusIds.has(id)
@@ -194,8 +194,8 @@ export default function CalendarFilterPopover({
                   onClick={() => onFilterChange({ ...filter, campusIds: toggleInSet(filter.campusIds, id) })}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     active
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   {name}
@@ -208,8 +208,8 @@ export default function CalendarFilterPopover({
 
       {/* School Level — athletics only */}
       {athleticsVisible && (
-        <div className="px-5 py-3 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">School Level</p>
+        <div className="px-5 py-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">School Level</p>
           <div className="flex flex-wrap gap-2">
             {SCHOOL_LEVELS.map(({ value, label }) => {
               const active = filter.schoolLevels.has(value)
@@ -219,8 +219,8 @@ export default function CalendarFilterPopover({
                   onClick={() => onFilterChange({ ...filter, schoolLevels: toggleInSet(filter.schoolLevels, value) })}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     active
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   {label}
@@ -233,8 +233,8 @@ export default function CalendarFilterPopover({
 
       {/* Sport — athletics only */}
       {athleticsVisible && sports.length > 0 && (
-        <div className="px-5 py-3 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Sport</p>
+        <div className="px-5 py-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Sport</p>
           <div className="flex flex-wrap gap-2">
             {sports.map((sport) => {
               const active = filter.sportIds.has(sport.id)
@@ -245,7 +245,7 @@ export default function CalendarFilterPopover({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     active
                       ? 'text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                   style={active ? { backgroundColor: sport.color } : undefined}
                 >
@@ -263,8 +263,8 @@ export default function CalendarFilterPopover({
 
       {/* Team Level — athletics only */}
       {athleticsVisible && (
-        <div className="px-5 py-3 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Team Level</p>
+        <div className="px-5 py-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Team Level</p>
           <div className="flex flex-wrap gap-2">
             {TEAM_LEVELS.map(({ value, label }) => {
               const active = filter.teamLevels.has(value)
@@ -274,8 +274,8 @@ export default function CalendarFilterPopover({
                   onClick={() => onFilterChange({ ...filter, teamLevels: toggleInSet(filter.teamLevels, value) })}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     active
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   {label}
@@ -288,10 +288,10 @@ export default function CalendarFilterPopover({
 
       {/* Footer */}
       {activeCount > 0 && (
-        <div className="px-5 py-3 border-t border-gray-100">
+        <div className="px-5 py-3 border-t border-slate-100">
           <button
             onClick={handleClear}
-            className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+            className="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
           >
             Clear all filters ({activeCount})
           </button>

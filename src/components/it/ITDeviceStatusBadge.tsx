@@ -4,9 +4,9 @@ const DEVICE_STATUS_COLORS: Record<string, { bg: string; text: string; label: st
   ACTIVE: { bg: 'bg-green-100', text: 'text-green-700', label: 'Active' },
   REPAIR: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'In Repair' },
   LOANER: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Loaner' },
-  RETIRED: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Retired' },
+  RETIRED: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Retired' },
   LOST: { bg: 'bg-red-100', text: 'text-red-700', label: 'Lost' },
-  DECOMMISSIONED: { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Decommissioned' },
+  DECOMMISSIONED: { bg: 'bg-slate-100', text: 'text-slate-500', label: 'Decommissioned' },
 }
 
 const DEVICE_TYPE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -16,12 +16,12 @@ const DEVICE_TYPE_COLORS: Record<string, { bg: string; text: string; label: stri
   DESKTOP: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Desktop' },
   MONITOR: { bg: 'bg-cyan-100', text: 'text-cyan-700', label: 'Monitor' },
   PRINTER: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Printer' },
-  OTHER: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Other' },
+  OTHER: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Other' },
 }
 
 const STUDENT_STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   ACTIVE: { bg: 'bg-green-100', text: 'text-green-700', label: 'Active' },
-  INACTIVE: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Inactive' },
+  INACTIVE: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Inactive' },
   TRANSFERRED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Transferred' },
   GRADUATED: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Graduated' },
 }

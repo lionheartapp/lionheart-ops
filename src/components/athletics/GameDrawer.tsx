@@ -165,7 +165,7 @@ export default function GameDrawer({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
+          className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition"
         >
           {saving ? 'Saving...' : editingGame ? 'Update Game' : 'Create Game'}
         </button>

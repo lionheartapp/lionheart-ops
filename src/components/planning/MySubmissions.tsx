@@ -11,7 +11,7 @@ interface MySubmissionsProps {
 }
 
 const STATUS_BADGES: Record<string, { label: string; color: string }> = {
-  DRAFT: { label: 'Draft', color: 'bg-gray-100 text-gray-600' },
+  DRAFT: { label: 'Draft', color: 'bg-slate-100 text-slate-600' },
   SUBMITTED: { label: 'Submitted', color: 'bg-blue-100 text-blue-700' },
   UNDER_REVIEW: { label: 'Under Review', color: 'bg-yellow-100 text-yellow-700' },
   APPROVED_IN_PRINCIPLE: { label: 'Approved in Principle', color: 'bg-green-100 text-green-700' },
@@ -26,7 +26,7 @@ const STATUS_BADGES: Record<string, { label: string; color: string }> = {
 const PRIORITY_COLORS: Record<string, string> = {
   MUST_HAVE: 'text-red-600',
   IMPORTANT: 'text-yellow-600',
-  NICE_TO_HAVE: 'text-gray-500',
+  NICE_TO_HAVE: 'text-slate-500',
 }
 
 export default function MySubmissions({ submissions, onSubmit, onSelect, isSubmitting }: MySubmissionsProps) {
@@ -37,12 +37,12 @@ export default function MySubmissions({ submissions, onSubmit, onSelect, isSubmi
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <button onClick={() => setFilterStatus('')} className={`px-3 py-1 text-xs rounded-full border transition ${!filterStatus ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border-gray-200'}`}>All ({submissions.length})</button>
+        <button onClick={() => setFilterStatus('')} className={`px-3 py-1 text-xs rounded-full border transition ${!filterStatus ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border-slate-200'}`}>All ({submissions.length})</button>
         {Object.entries(STATUS_BADGES).map(([key, badge]) => {
           const count = submissions.filter((s) => s.submissionStatus === key).length
           if (count === 0) return null
           return (
-            <button key={key} onClick={() => setFilterStatus(key)} className={`px-3 py-1 text-xs rounded-full border transition ${filterStatus === key ? 'bg-gray-900 text-white' : `bg-white ${badge.color} border-gray-200`}`}>
+            <button key={key} onClick={() => setFilterStatus(key)} className={`px-3 py-1 text-xs rounded-full border transition ${filterStatus === key ? 'bg-slate-900 text-white' : `bg-white ${badge.color} border-slate-200`}`}>
               {badge.label} ({count})
             </button>
           )
@@ -50,7 +50,7 @@ export default function MySubmissions({ submissions, onSubmit, onSelect, isSubmi
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 text-sm">No submissions found</div>
+        <div className="text-center py-8 text-slate-500 text-sm">No submissions found</div>
       ) : (
         <div className="space-y-2">
           {filtered.map((sub) => {
@@ -60,11 +60,11 @@ export default function MySubmissions({ submissions, onSubmit, onSelect, isSubmi
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-gray-900 text-sm">{sub.title}</span>
+                      <span className="font-semibold text-slate-900 text-sm">{sub.title}</span>
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${badge.color}`}>{badge.label}</span>
                       <span className={`text-xs font-medium ${PRIORITY_COLORS[sub.priority] || ''}`}>{sub.priority.replace('_', ' ')}</span>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-500">
                       {new Date(sub.preferredDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       {' · '}{sub.duration}min
                       {sub.expectedAttendance ? ` · ~${sub.expectedAttendance} attendees` : ''}

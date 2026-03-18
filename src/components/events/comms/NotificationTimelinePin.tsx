@@ -27,10 +27,10 @@ interface NotificationTimelinePinProps {
 
 const STATUS_STYLES = {
   DRAFT: {
-    dotClass: 'bg-gray-400',
-    borderClass: 'border-gray-300 border-dashed',
-    labelClass: 'text-gray-500',
-    lineClass: 'bg-gray-300',
+    dotClass: 'bg-slate-400',
+    borderClass: 'border-slate-300 border-dashed',
+    labelClass: 'text-slate-500',
+    lineClass: 'bg-slate-300',
   },
   PENDING_APPROVAL: {
     dotClass: 'bg-amber-500 animate-pulse',
@@ -107,15 +107,15 @@ function PinTooltip({ rule, visible }: TooltipProps) {
 
   return (
     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-20 pointer-events-none">
-      <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg max-w-[200px]">
+      <div className="bg-slate-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg max-w-[200px]">
         <p className="font-medium truncate">{rule.label}</p>
-        <p className="text-gray-300 mt-0.5">{getTriggerLabel(rule)}</p>
+        <p className="text-slate-300 mt-0.5">{getTriggerLabel(rule)}</p>
         {rule.scheduledAt && (
-          <p className="text-gray-400 mt-0.5">{formatScheduledDate(rule.scheduledAt)}</p>
+          <p className="text-slate-400 mt-0.5">{formatScheduledDate(rule.scheduledAt)}</p>
         )}
-        <p className="text-gray-400 mt-0.5">{statusLabel[rule.status] ?? rule.status}</p>
+        <p className="text-slate-400 mt-0.5">{statusLabel[rule.status] ?? rule.status}</p>
         {/* Tooltip arrow */}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
       </div>
     </div>
   )

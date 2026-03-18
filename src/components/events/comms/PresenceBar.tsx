@@ -88,11 +88,11 @@ function Avatar({ user, isCurrent, size = 32 }: AvatarProps) {
 
       {/* Tooltip on hover */}
       <div
-        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10"
+        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10"
         style={{ fontSize: 11 }}
       >
         {tooltipText}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
       </div>
     </div>
   )
@@ -121,7 +121,7 @@ export function PresenceBar({ eventProjectId, currentUserId, activeTab }: Presen
   // Only current user active
   if (otherUsers.length === 0 && currentUser) {
     return (
-      <div className="flex items-center gap-2 text-xs text-gray-400">
+      <div className="flex items-center gap-2 text-xs text-slate-400">
         <Avatar user={currentUser} isCurrent size={28} />
         <span>Only you here</span>
       </div>
@@ -162,7 +162,7 @@ export function PresenceBar({ eventProjectId, currentUserId, activeTab }: Presen
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center flex-shrink-0 text-xs font-semibold text-gray-600"
+          className="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center flex-shrink-0 text-xs font-semibold text-slate-600"
           style={{ marginLeft: -8 }}
           title={`${overflowCount} more collaborator${overflowCount !== 1 ? 's' : ''}`}
         >

@@ -17,7 +17,7 @@ interface PlanningSeasonAdminProps {
 const PHASE_ORDER = ['SETUP', 'COLLECTING', 'REVIEWING', 'WAR_ROOM', 'FINALIZING', 'APPROVING', 'CLOSED']
 
 const PHASE_LABELS: Record<string, { label: string; color: string }> = {
-  SETUP: { label: 'Setup', color: 'bg-gray-100 text-gray-700' },
+  SETUP: { label: 'Setup', color: 'bg-slate-100 text-slate-700' },
   COLLECTING: { label: 'Collecting', color: 'bg-blue-100 text-blue-700' },
   REVIEWING: { label: 'Reviewing', color: 'bg-yellow-100 text-yellow-700' },
   WAR_ROOM: { label: 'War Room', color: 'bg-red-100 text-red-700' },
@@ -27,7 +27,7 @@ const PHASE_LABELS: Record<string, { label: string; color: string }> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-600',
+  DRAFT: 'bg-slate-100 text-slate-600',
   SUBMITTED: 'bg-blue-100 text-blue-700',
   UNDER_REVIEW: 'bg-yellow-100 text-yellow-700',
   APPROVED_IN_PRINCIPLE: 'bg-green-100 text-green-700',
@@ -38,7 +38,7 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  LOW: 'bg-gray-100 text-gray-600',
+  LOW: 'bg-slate-100 text-slate-600',
   MEDIUM: 'bg-blue-100 text-blue-700',
   IMPORTANT: 'bg-blue-100 text-blue-700',
   HIGH: 'bg-orange-100 text-orange-700',
@@ -182,7 +182,7 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
       {/* Phase Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-gray-900">{season.name}</h3>
+          <h3 className="text-lg font-semibold text-slate-900">{season.name}</h3>
           <span className={`px-3 py-1 text-xs font-medium rounded-full ${phaseInfo.color}`}>{phaseInfo.label}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
             <button
               onClick={handleAdvancePhase}
               disabled={transitionPhase.isPending}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 disabled:opacity-50 transition"
+              className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 disabled:opacity-50 transition"
             >
               Advance to {PHASE_LABELS[nextPhase]?.label || nextPhase}
               <ChevronRight className="w-4 h-4" />
@@ -203,27 +203,27 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
       {/* Phase Progress */}
       <div className="flex items-center gap-1">
         {PHASE_ORDER.map((phase, idx) => (
-          <div key={phase} className={`flex-1 h-2 rounded-full ${idx <= currentPhaseIdx ? 'bg-gray-900' : 'bg-gray-200'}`} />
+          <div key={phase} className={`flex-1 h-2 rounded-full ${idx <= currentPhaseIdx ? 'bg-slate-900' : 'bg-slate-200'}`} />
         ))}
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="ui-glass p-3 text-center">
-          <div className="text-2xl font-bold text-gray-900">{submissions.length}</div>
-          <div className="text-xs text-gray-500">Total Submissions</div>
+          <div className="text-2xl font-bold text-slate-900">{submissions.length}</div>
+          <div className="text-xs text-slate-500">Total Submissions</div>
         </div>
         <div className="ui-glass p-3 text-center">
           <div className="text-2xl font-bold text-green-600">{submissions.filter((s) => s.submissionStatus === 'APPROVED' || s.submissionStatus === 'APPROVED_IN_PRINCIPLE').length}</div>
-          <div className="text-xs text-gray-500">Approved</div>
+          <div className="text-xs text-slate-500">Approved</div>
         </div>
         <div className="ui-glass p-3 text-center">
           <div className="text-2xl font-bold text-yellow-600">{submissions.filter((s) => s.submissionStatus === 'SUBMITTED').length}</div>
-          <div className="text-xs text-gray-500">Awaiting Review</div>
+          <div className="text-xs text-slate-500">Awaiting Review</div>
         </div>
         <div className="ui-glass p-3 text-center">
           <div className="text-2xl font-bold text-red-600">{unresolvedConflicts.length}</div>
-          <div className="text-xs text-gray-500">Conflicts</div>
+          <div className="text-xs text-slate-500">Conflicts</div>
         </div>
       </div>
 
@@ -248,37 +248,37 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
 
       {/* Submissions Table */}
       <div>
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Submissions</h4>
+        <h4 className="text-sm font-semibold text-slate-900 mb-3">Submissions</h4>
         {submissions.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 text-sm">No submissions yet</div>
+          <div className="text-center py-8 text-slate-500 text-sm">No submissions yet</div>
         ) : (
           <div className="ui-glass-table">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200/50 text-left">
-                  <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Title</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden sm:table-cell">Submitted By</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Date</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider hidden sm:table-cell">Priority</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider w-10"></th>
+                <tr className="border-b border-slate-200/50 text-left">
+                  <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Title</th>
+                  <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider hidden sm:table-cell">Submitted By</th>
+                  <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider hidden md:table-cell">Date</th>
+                  <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider hidden sm:table-cell">Priority</th>
+                  <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider w-10"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {submissions.map((sub) => (
                   <tr key={sub.id} className="hover:bg-white/40 transition-colors">
                     <td className="px-4 py-3">
                       <button
                         onClick={() => onSelectSubmission(sub)}
-                        className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors text-left cursor-pointer"
+                        className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors text-left cursor-pointer"
                       >
                         {sub.title}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
+                    <td className="px-4 py-3 text-slate-600 hidden sm:table-cell">
                       {sub.submittedBy.firstName} {sub.submittedBy.lastName}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
+                    <td className="px-4 py-3 text-slate-600 hidden md:table-cell">
                       {new Date(sub.preferredDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
@@ -316,13 +316,13 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
           loadingText="Saving..."
         >
           <div className="mt-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Notes (optional)</label>
             <textarea
               value={reviewNotes}
               onChange={(e) => setReviewNotes(e.target.value)}
               placeholder="Add review notes..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent resize-none"
             />
           </div>
         </ConfirmDialog>
@@ -378,14 +378,14 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
           <div className="flex gap-3">
             <button
               onClick={() => setShowEditDrawer(false)}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
+              className="flex-1 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveEdit}
               disabled={updateSeason.isPending || !editName.trim()}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50"
             >
               {updateSeason.isPending ? 'Saving...' : 'Save Changes'}
             </button>

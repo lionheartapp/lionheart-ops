@@ -196,7 +196,7 @@ export default function PlanEventDrawer({
         {step > 1 ? (
           <button
             onClick={() => { setStep(s => s - 1); setError('') }}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -204,7 +204,7 @@ export default function PlanEventDrawer({
         ) : (
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
           >
             Cancel
           </button>
@@ -213,7 +213,7 @@ export default function PlanEventDrawer({
           <button
             onClick={handleSubmit}
             disabled={saving || !canAdvance()}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             Submit for Approval
@@ -225,7 +225,7 @@ export default function PlanEventDrawer({
               else { setError('Please fill in the required fields.') }
             }}
             disabled={!canAdvance()}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 flex items-center justify-center gap-1.5"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 flex items-center justify-center gap-1.5"
           >
             Continue
             <ChevronRight className="w-4 h-4" />
@@ -248,17 +248,17 @@ export default function PlanEventDrawer({
             return (
               <div key={label} className={`flex items-center ${i < STEP_LABELS.length - 1 ? 'flex-1' : ''}`}>
                 <div className="flex flex-col items-center gap-1">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isComplete ? 'bg-green-500 shadow-sm' : isCurrent ? 'bg-gray-900 shadow-md ring-4 ring-gray-900/10' : 'bg-gray-100'}`}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isComplete ? 'bg-green-500 shadow-sm' : isCurrent ? 'bg-slate-900 shadow-md ring-4 ring-slate-900/10' : 'bg-slate-100'}`}>
                     {isComplete ? (
                       <Check className="w-4 h-4 text-white" />
                     ) : (
-                      <StepIcon className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-gray-400'}`} />
+                      <StepIcon className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-slate-400'}`} />
                     )}
                   </div>
-                  <span className={`text-[10px] font-medium whitespace-nowrap ${isCurrent ? 'text-gray-900' : isComplete ? 'text-green-600' : 'text-gray-400'}`}>{label}</span>
+                  <span className={`text-[10px] font-medium whitespace-nowrap ${isCurrent ? 'text-slate-900' : isComplete ? 'text-green-600' : 'text-slate-400'}`}>{label}</span>
                 </div>
                 {i < STEP_LABELS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mb-4 mx-1 transition-colors duration-300 ${step > stepNum ? 'bg-green-400' : 'bg-gray-200'}`} />
+                  <div className={`flex-1 h-0.5 mb-4 mx-1 transition-colors duration-300 ${step > stepNum ? 'bg-green-400' : 'bg-slate-200'}`} />
                 )}
               </div>
             )
@@ -273,12 +273,12 @@ export default function PlanEventDrawer({
               <FloatingInput id="stepper-room" label="Room / Location" placeholder="e.g. Main Auditorium, Gym, Room 204" value={form.room} onChange={e => setForm(f => ({ ...f, room: e.target.value }))} />
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="stepper-starts" className="block text-xs font-medium text-gray-600 mb-1">Start Time <span className="text-red-500">*</span></label>
-                  <input id="stepper-starts" type="datetime-local" value={form.startsAt} onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900" />
+                  <label htmlFor="stepper-starts" className="block text-xs font-medium text-slate-600 mb-1">Start Time <span className="text-red-500">*</span></label>
+                  <input id="stepper-starts" type="datetime-local" value={form.startsAt} onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent text-slate-900" />
                 </div>
                 <div>
-                  <label htmlFor="stepper-ends" className="block text-xs font-medium text-gray-600 mb-1">End Time <span className="text-red-500">*</span></label>
-                  <input id="stepper-ends" type="datetime-local" value={form.endsAt} onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900" />
+                  <label htmlFor="stepper-ends" className="block text-xs font-medium text-slate-600 mb-1">End Time <span className="text-red-500">*</span></label>
+                  <input id="stepper-ends" type="datetime-local" value={form.endsAt} onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent text-slate-900" />
                 </div>
               </div>
               <FloatingTextarea id="stepper-description" label="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} />
@@ -295,28 +295,28 @@ export default function PlanEventDrawer({
                 <Video className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-purple-800">Does this event need audio/visual support from the A/V Production team?</p>
               </div>
-              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition">
+              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
                 <div className="relative flex-shrink-0">
                   <input type="checkbox" checked={form.requiresAV} onChange={e => setForm(f => ({ ...f, requiresAV: e.target.checked, avRequirements: e.target.checked ? f.avRequirements : '' }))} className="sr-only peer" id="stepper-requires-av" />
-                  <div className="w-10 h-6 bg-gray-200 rounded-full peer-checked:bg-purple-600 transition-colors" />
+                  <div className="w-10 h-6 bg-slate-200 rounded-full peer-checked:bg-purple-600 transition-colors" />
                   <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">This event requires A/V support</p>
-                  <p className="text-xs text-gray-500">Projectors, microphones, livestream, recording, etc.</p>
+                  <p className="text-sm font-semibold text-slate-900">This event requires A/V support</p>
+                  <p className="text-xs text-slate-500">Projectors, microphones, livestream, recording, etc.</p>
                 </div>
               </label>
               {form.requiresAV && (
                 <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-                  <label htmlFor="stepper-av-req" className="block text-sm font-medium text-gray-700">Describe your A/V needs</label>
-                  <textarea id="stepper-av-req" value={form.avRequirements} onChange={e => setForm(f => ({ ...f, avRequirements: e.target.value }))} placeholder="e.g. 1 projector, 2 wireless mics, livestream to YouTube, recording equipment…" rows={4} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
-                  <p className="text-xs text-gray-400 flex items-center gap-1.5">
+                  <label htmlFor="stepper-av-req" className="block text-sm font-medium text-slate-700">Describe your A/V needs</label>
+                  <textarea id="stepper-av-req" value={form.avRequirements} onChange={e => setForm(f => ({ ...f, avRequirements: e.target.value }))} placeholder="e.g. 1 projector, 2 wireless mics, livestream to YouTube, recording equipment…" rows={4} className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900" />
+                  <p className="text-xs text-slate-400 flex items-center gap-1.5">
                     <Zap className="w-3 h-3 text-purple-400" />
                     AI will automatically parse your description into a structured equipment list.
                   </p>
                 </motion.div>
               )}
-              {!form.requiresAV && <p className="text-sm text-gray-400 text-center py-4">No A/V support needed — you can skip this step.</p>}
+              {!form.requiresAV && <p className="text-sm text-slate-400 text-center py-4">No A/V support needed — you can skip this step.</p>}
             </motion.div>
           </AnimatePresence>
         )}
@@ -329,25 +329,25 @@ export default function PlanEventDrawer({
                 <Building2 className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-800">Does this event require any physical setup or facility support from the Maintenance team?</p>
               </div>
-              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition">
+              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
                 <div className="relative flex-shrink-0">
                   <input type="checkbox" checked={form.requiresFacilitySetup} onChange={e => setForm(f => ({ ...f, requiresFacilitySetup: e.target.checked, setupNeeds: e.target.checked ? f.setupNeeds : [], facilityNotes: e.target.checked ? f.facilityNotes : '' }))} className="sr-only peer" id="stepper-requires-facility" />
-                  <div className="w-10 h-6 bg-gray-200 rounded-full peer-checked:bg-amber-500 transition-colors" />
+                  <div className="w-10 h-6 bg-slate-200 rounded-full peer-checked:bg-amber-500 transition-colors" />
                   <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">This event needs facility setup</p>
-                  <p className="text-xs text-gray-500">Seating, staging, cleaning, room arrangement, etc.</p>
+                  <p className="text-sm font-semibold text-slate-900">This event needs facility setup</p>
+                  <p className="text-xs text-slate-500">Seating, staging, cleaning, room arrangement, etc.</p>
                 </div>
               </label>
               {form.requiresFacilitySetup && (
                 <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                  <p className="text-sm font-medium text-gray-700">What setup is needed? <span className="text-gray-400 font-normal">(select all that apply)</span></p>
+                  <p className="text-sm font-medium text-slate-700">What setup is needed? <span className="text-slate-400 font-normal">(select all that apply)</span></p>
                   <div className="grid grid-cols-2 gap-2">
                     {SETUP_OPTIONS.map(opt => (
-                      <label key={opt} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition text-sm font-medium select-none ${form.setupNeeds.includes(opt) ? 'border-amber-400 bg-amber-50 text-amber-900' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                      <label key={opt} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition text-sm font-medium select-none ${form.setupNeeds.includes(opt) ? 'border-amber-400 bg-amber-50 text-amber-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
                         <input type="checkbox" checked={form.setupNeeds.includes(opt)} onChange={() => toggleSetupNeed(opt)} className="sr-only" />
-                        <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition ${form.setupNeeds.includes(opt) ? 'bg-amber-500' : 'border border-gray-300 bg-white'}`}>
+                        <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition ${form.setupNeeds.includes(opt) ? 'bg-amber-500' : 'border border-slate-300 bg-white'}`}>
                           {form.setupNeeds.includes(opt) && <Check className="w-2.5 h-2.5 text-white" />}
                         </div>
                         {opt}
@@ -357,7 +357,7 @@ export default function PlanEventDrawer({
                   <FloatingTextarea id="stepper-facility-notes" label="Additional facility notes" value={form.facilityNotes} onChange={e => setForm(f => ({ ...f, facilityNotes: e.target.value }))} rows={2} />
                 </motion.div>
               )}
-              {!form.requiresFacilitySetup && <p className="text-sm text-gray-400 text-center py-4">No facility setup needed — you can skip this step.</p>}
+              {!form.requiresFacilitySetup && <p className="text-sm text-slate-400 text-center py-4">No facility setup needed — you can skip this step.</p>}
             </motion.div>
           </AnimatePresence>
         )}
@@ -366,26 +366,26 @@ export default function PlanEventDrawer({
         {step === 4 && (
           <AnimatePresence mode="wait">
             <motion.div key="step-4" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-5">
-              <div className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-gray-600" />
+              <div className="bg-slate-50 rounded-xl p-4 space-y-3 border border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-slate-600" />
                   Event Summary
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Title</span>
-                    <span className="font-medium text-gray-900 max-w-[60%] text-right">{form.title || '—'}</span>
+                    <span className="text-slate-500">Title</span>
+                    <span className="font-medium text-slate-900 max-w-[60%] text-right">{form.title || '—'}</span>
                   </div>
                   {form.room && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Location</span>
-                      <span className="font-medium text-gray-900">{form.room}</span>
+                      <span className="text-slate-500">Location</span>
+                      <span className="font-medium text-slate-900">{form.room}</span>
                     </div>
                   )}
                   {form.startsAt && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Date & Time</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-slate-500">Date & Time</span>
+                      <span className="font-medium text-slate-900">
                         {new Date(form.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })},{' '}
                         {new Date(form.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                         {form.endsAt ? ` – ${new Date(form.endsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
@@ -394,29 +394,29 @@ export default function PlanEventDrawer({
                   )}
                   {form.attendees.length > 0 && (
                     <div className="flex justify-between items-start">
-                      <span className="text-gray-500">Attendees</span>
-                      <span className="font-medium text-gray-900 text-right max-w-[60%]">
+                      <span className="text-slate-500">Attendees</span>
+                      <span className="font-medium text-slate-900 text-right max-w-[60%]">
                         {form.attendees.map(a => a.firstName || a.email.split('@')[0]).join(', ')}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-gray-500">A/V Support</span>
-                    <span className={`font-medium ${form.requiresAV ? 'text-purple-700' : 'text-gray-400'}`}>{form.requiresAV ? 'Required' : 'Not needed'}</span>
+                    <span className="text-slate-500">A/V Support</span>
+                    <span className={`font-medium ${form.requiresAV ? 'text-purple-700' : 'text-slate-400'}`}>{form.requiresAV ? 'Required' : 'Not needed'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Facility Setup</span>
-                    <span className={`font-medium ${form.requiresFacilitySetup ? 'text-amber-700' : 'text-gray-400'}`}>{form.requiresFacilitySetup ? 'Required' : 'Not needed'}</span>
+                    <span className="text-slate-500">Facility Setup</span>
+                    <span className={`font-medium ${form.requiresFacilitySetup ? 'text-amber-700' : 'text-slate-400'}`}>{form.requiresFacilitySetup ? 'Required' : 'Not needed'}</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-gray-600" />
+                <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-slate-600" />
                   Approval Required Before Publishing
                 </h3>
-                <p className="text-xs text-gray-500 mb-3">Your event will go through the following review before it appears on the main calendar:</p>
+                <p className="text-xs text-slate-500 mb-3">Your event will go through the following review before it appears on the main calendar:</p>
                 <div className="space-y-2">
                   {approvalChain.map((approver, i) => (
                     <div key={approver.label} className={`flex items-center gap-3 p-3 rounded-xl border ${approver.bgColor} ${approver.borderColor}`}>
@@ -425,13 +425,13 @@ export default function PlanEventDrawer({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-semibold ${approver.color}`}>{approver.label}</p>
-                        {approver.always && <p className="text-xs text-gray-500">Always required for all events</p>}
-                        {!approver.always && approver.label.includes('A/V') && <p className="text-xs text-gray-500">Required because A/V support was requested</p>}
-                        {!approver.always && approver.label.includes('Facilities') && <p className="text-xs text-gray-500">Required because facility setup was requested</p>}
+                        {approver.always && <p className="text-xs text-slate-500">Always required for all events</p>}
+                        {!approver.always && approver.label.includes('A/V') && <p className="text-xs text-slate-500">Required because A/V support was requested</p>}
+                        {!approver.always && approver.label.includes('Facilities') && <p className="text-xs text-slate-500">Required because facility setup was requested</p>}
                       </div>
                       <div className="flex-shrink-0">
                         {i < approvalChain.length - 1 ? (
-                          <span className="text-xs text-gray-400 font-medium">Step {i + 1}</span>
+                          <span className="text-xs text-slate-400 font-medium">Step {i + 1}</span>
                         ) : (
                           <span className="text-xs text-green-600 font-semibold">→ Published</span>
                         )}
@@ -439,7 +439,7 @@ export default function PlanEventDrawer({
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 text-xs text-gray-400 flex items-center gap-1.5">
+                <p className="mt-3 text-xs text-slate-400 flex items-center gap-1.5">
                   <CheckCircle className="w-3 h-3" />
                   Approval usually takes 1–2 business days.
                 </p>

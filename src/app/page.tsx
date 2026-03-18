@@ -52,7 +52,7 @@ export default function Landing() {
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="border-b border-gray-200" role="navigation" aria-label="Main navigation">
+      <nav className="border-b border-slate-200" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-4">
           <a href="#" className="flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-2 py-1" aria-label="Lionheart - home">
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
@@ -85,7 +85,7 @@ export default function Landing() {
               variants={fadeInUp}
               initial="hidden"
               animate="visible"
-              className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-[1.1] tracking-tight"
+              className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 leading-[1.1] tracking-tight"
             >
               School Operations
               <br />
@@ -97,7 +97,7 @@ export default function Landing() {
               variants={fadeInUp}
               initial="hidden"
               animate="visible"
-              className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
+              className="text-base sm:text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed"
             >
               Simple IT and maintenance request management for modern schools. Stop managing requests in email and spreadsheets.
             </motion.p>
@@ -133,14 +133,14 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="bg-gray-50 border-y border-gray-200 py-16 sm:py-24">
+      <section id="features" className="bg-slate-50 border-y border-slate-200 py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5 }}
-            className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4"
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 text-center mb-4"
           >
             Built for Schools. By School Operators.
           </motion.h2>
@@ -149,7 +149,7 @@ export default function Landing() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-gray-500 text-center max-w-xl mx-auto mb-12 sm:mb-16"
+            className="text-slate-500 text-center max-w-xl mx-auto mb-12 sm:mb-16"
           >
             Everything you need to keep your school running smoothly, in one platform.
           </motion.p>
@@ -167,15 +167,15 @@ export default function Landing() {
                 <motion.article
                   key={idx}
                   variants={featureCard}
-                  className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 hover:border-primary-200 hover:-translate-y-1 hover:shadow-medium transition-all duration-300 group"
+                  className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 hover:border-primary-200 hover:-translate-y-1 hover:shadow-medium transition-all duration-300 group"
                 >
                   <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-primary-200 transition-colors">
                     <Icon className="w-6 h-6 text-primary-600" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{feature.description}</p>
+                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">{feature.description}</p>
                 </motion.article>
               )
             })}
@@ -193,7 +193,7 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
               Why Schools Choose Lionheart
             </h2>
             <ul className="space-y-4" role="list">
@@ -213,7 +213,7 @@ export default function Landing() {
                   className="flex items-start gap-3"
                 >
                   <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                  <span className="text-sm sm:text-base text-gray-700">{benefit}</span>
+                  <span className="text-sm sm:text-base text-slate-700">{benefit}</span>
                 </motion.li>
               ))}
             </ul>
@@ -298,7 +298,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-16" role="contentinfo">
+      <footer className="bg-slate-900 text-slate-400 py-16" role="contentinfo">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div>
@@ -327,7 +327,7 @@ export default function Landing() {
               </ul>
             </nav>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-sm">
+          <div className="border-t border-slate-800 pt-8 text-center text-sm">
             <p>&copy; 2026 Lionheart. All rights reserved.</p>
           </div>
         </div>

@@ -184,7 +184,7 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
 
   const labelRow = (
     <div className="flex items-center gap-1.5 mb-1.5">
-      <label className="block text-sm font-medium text-gray-900">
+      <label className="block text-sm font-medium text-slate-900">
         {field.label}
         {field.required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -205,7 +205,7 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
   }
 
   const baseInputClass =
-    'w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all bg-white'
+    'w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all bg-white'
 
   switch (field.inputType) {
     case 'TEXT':
@@ -213,7 +213,7 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
         <div>
           {labelRow}
           {field.helpText && (
-            <p className="text-xs text-gray-500 mb-1.5">{field.helpText}</p>
+            <p className="text-xs text-slate-500 mb-1.5">{field.helpText}</p>
           )}
           <input
             type="text"
@@ -231,7 +231,7 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
         <div>
           {labelRow}
           {field.helpText && (
-            <p className="text-xs text-gray-500 mb-1.5">{field.helpText}</p>
+            <p className="text-xs text-slate-500 mb-1.5">{field.helpText}</p>
           )}
           <input
             type="number"
@@ -249,7 +249,7 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
         <div>
           {labelRow}
           {field.helpText && (
-            <p className="text-xs text-gray-500 mb-1.5">{field.helpText}</p>
+            <p className="text-xs text-slate-500 mb-1.5">{field.helpText}</p>
           )}
           <input
             type="date"
@@ -266,7 +266,7 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
         <div>
           {labelRow}
           {field.helpText && (
-            <p className="text-xs text-gray-500 mb-1.5">{field.helpText}</p>
+            <p className="text-xs text-slate-500 mb-1.5">{field.helpText}</p>
           )}
           <select
             value={data.value}
@@ -289,7 +289,7 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
         <div>
           {labelRow}
           {field.helpText && (
-            <p className="text-xs text-gray-500 mb-1.5">{field.helpText}</p>
+            <p className="text-xs text-slate-500 mb-1.5">{field.helpText}</p>
           )}
           <div className="space-y-2">
             {(field.options ?? []).map((opt) => (
@@ -306,9 +306,9 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
                       : data.values.filter((v) => v !== opt.value)
                     onUpdate({ values: next })
                   }}
-                  className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                 />
-                <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                <span className="text-sm text-slate-700 group-hover:text-slate-900">
                   {opt.label}
                 </span>
               </label>
@@ -384,13 +384,13 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
         <div>
           {labelRow}
           {field.helpText && (
-            <p className="text-xs text-gray-500 mb-1.5">{field.helpText}</p>
+            <p className="text-xs text-slate-500 mb-1.5">{field.helpText}</p>
           )}
 
-          <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+          <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors">
             {uploadPreview ? (
               <div className="space-y-3">
-                <div className="relative w-full h-40 rounded-lg overflow-hidden bg-gray-100">
+                <div className="relative w-full h-40 rounded-lg overflow-hidden bg-slate-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={uploadPreview}
@@ -416,14 +416,14 @@ function FieldRenderer({ field, data, onUpdate, shareSlug }: FieldRendererProps)
               </div>
             ) : (
               <label className="flex flex-col items-center gap-2 cursor-pointer">
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
                   {uploading ? (
-                    <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                    <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
                   ) : (
-                    <Upload className="w-5 h-5 text-gray-400" />
+                    <Upload className="w-5 h-5 text-slate-400" />
                   )}
                 </div>
-                <span className="text-sm text-gray-600 text-center">
+                <span className="text-sm text-slate-600 text-center">
                   {uploading ? 'Uploading…' : 'Click to upload a file'}
                 </span>
                 <input
@@ -492,10 +492,10 @@ function CoppaStep({ orgName, onConsent }: CoppaStepProps) {
             type="checkbox"
             checked={checked}
             onChange={(e) => setChecked(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
           />
         </div>
-        <span className="text-sm text-gray-700 group-hover:text-gray-900 leading-relaxed">
+        <span className="text-sm text-slate-700 group-hover:text-slate-900 leading-relaxed">
           I confirm that I am the parent or legal guardian of the participant
           and consent to the collection and use of their personal information
           as described in this registration form.
@@ -506,7 +506,7 @@ function CoppaStep({ orgName, onConsent }: CoppaStepProps) {
         type="button"
         onClick={onConsent}
         disabled={!checked}
-        className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
+        className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
       >
         I Agree — Continue to Registration
       </button>
@@ -542,18 +542,18 @@ function ReviewStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Review your information</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-lg font-semibold text-slate-900">Review your information</h2>
+        <p className="text-sm text-slate-500 mt-1">
           Please review your responses before submitting.
         </p>
       </div>
 
       {sections.map((section) => (
         <div key={section.id} className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
             {section.title}
           </h3>
-          <div className="bg-gray-50 border border-gray-200 rounded-xl divide-y divide-gray-100">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl divide-y divide-slate-100">
             {section.fields
               .filter((f) => f.enabled)
               .map((field) => {
@@ -577,10 +577,10 @@ function ReviewStep({
 
                 return (
                   <div key={id} className="flex items-start gap-3 px-4 py-3">
-                    <span className="text-xs text-gray-500 flex-shrink-0 mt-0.5 w-1/3">
+                    <span className="text-xs text-slate-500 flex-shrink-0 mt-0.5 w-1/3">
                       {field.label}
                     </span>
-                    <span className="text-sm text-gray-900 flex-1">{displayValue}</span>
+                    <span className="text-sm text-slate-900 flex-1">{displayValue}</span>
                   </div>
                 )
               })}
@@ -656,7 +656,7 @@ function ProgressIndicator({ steps, currentStep, primaryColor }: ProgressProps) 
                   ? 'text-white'
                   : i === currentStep
                     ? 'text-white ring-4 ring-offset-1'
-                    : 'bg-gray-100 text-gray-400'
+                    : 'bg-slate-100 text-slate-400'
               }`}
               style={
                 i <= currentStep
@@ -672,7 +672,7 @@ function ProgressIndicator({ steps, currentStep, primaryColor }: ProgressProps) 
             </div>
             <span
               className={`text-xs text-center max-w-[60px] truncate ${
-                i === currentStep ? 'text-gray-900 font-medium' : 'text-gray-400'
+                i === currentStep ? 'text-slate-900 font-medium' : 'text-slate-400'
               }`}
             >
               {label}
@@ -681,7 +681,7 @@ function ProgressIndicator({ steps, currentStep, primaryColor }: ProgressProps) 
           {i < steps.length - 1 && (
             <div
               className={`h-0.5 w-6 mt-[-14px] rounded-full transition-all duration-300 ${
-                i < currentStep ? 'opacity-100' : 'bg-gray-200'
+                i < currentStep ? 'opacity-100' : 'bg-slate-200'
               }`}
               style={i < currentStep ? { backgroundColor: primaryColor } : undefined}
             />
@@ -708,8 +708,8 @@ function SuccessScreen({ orgName, primaryColor }: { orgName: string; primaryColo
       >
         <Check className="w-8 h-8" style={{ color: primaryColor }} />
       </div>
-      <h2 className="text-2xl font-bold text-gray-900">Registration Complete!</h2>
-      <p className="text-gray-600 max-w-sm mx-auto">
+      <h2 className="text-2xl font-bold text-slate-900">Registration Complete!</h2>
+      <p className="text-slate-600 max-w-sm mx-auto">
         Your registration has been submitted to {orgName}. You will receive a
         confirmation email shortly.
       </p>
@@ -914,9 +914,9 @@ export default function RegistrationWizard({
             return (
               <div className="space-y-5">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{section.title}</h2>
+                  <h2 className="text-xl font-semibold text-slate-900">{section.title}</h2>
                   {section.description && (
-                    <p className="text-sm text-gray-500 mt-1">{section.description}</p>
+                    <p className="text-sm text-slate-500 mt-1">{section.description}</p>
                   )}
                 </div>
 
@@ -954,7 +954,7 @@ export default function RegistrationWizard({
           {/* Payment step */}
           {currentStepDef.type === 'payment' && state.registrationId && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900">Payment</h2>
+              <h2 className="text-xl font-semibold text-slate-900">Payment</h2>
               <PaymentStep
                 registrationId={state.registrationId}
                 shareSlug={shareSlug}
@@ -999,7 +999,7 @@ export default function RegistrationWizard({
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
               Back
@@ -1025,7 +1025,7 @@ export default function RegistrationWizard({
         <button
           type="button"
           onClick={handleBack}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
           Edit responses

@@ -546,8 +546,8 @@ export default function SettingsPage() {
 
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -580,8 +580,8 @@ export default function SettingsPage() {
                         <User className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">My Profile</h2>
-                        <p className="text-sm text-gray-500">Manage your personal information</p>
+                        <h2 className="text-lg font-semibold text-slate-900">My Profile</h2>
+                        <p className="text-sm text-slate-500">Manage your personal information</p>
                       </div>
                     </div>
 
@@ -606,8 +606,8 @@ export default function SettingsPage() {
                         </button>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700 mb-1">Profile Photo</p>
-                        <p className="text-xs text-gray-400 mb-3">JPG, PNG or GIF. Max 5MB.</p>
+                        <p className="text-sm font-medium text-slate-700 mb-1">Profile Photo</p>
+                        <p className="text-xs text-slate-400 mb-3">JPG, PNG or GIF. Max 5MB.</p>
                         <div className="flex flex-wrap gap-2">
                           <input
                             ref={fileInputRef}
@@ -621,7 +621,7 @@ export default function SettingsPage() {
                             type="button"
                             onClick={handleChangeImageClick}
                             disabled={avatarUpdating}
-                            className="ui-btn px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                            className="ui-btn px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                           >
                             {avatarUpdating ? 'Uploading...' : 'Change Image'}
                           </button>
@@ -629,7 +629,7 @@ export default function SettingsPage() {
                             type="button"
                             onClick={handleRemoveAvatar}
                             disabled={avatarUpdating || !displayAvatar}
-                            className="ui-btn px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                            className="ui-btn px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                           >
                             Remove
                           </button>
@@ -640,7 +640,7 @@ export default function SettingsPage() {
                       <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{avatarError}</div>
                     )}
 
-                    <div className="border-t border-gray-100 my-6" />
+                    <div className="border-t border-slate-100 my-6" />
 
                     {/* Name form */}
                     <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -671,7 +671,7 @@ export default function SettingsPage() {
                         <button
                           type="submit"
                           disabled={profileSaving}
-                          className="ui-btn px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          className="ui-btn px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -686,31 +686,31 @@ export default function SettingsPage() {
                         <Shield className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Account Security</h3>
-                        <p className="text-sm text-gray-500">Manage your email and password</p>
+                        <h3 className="text-lg font-semibold text-slate-900">Account Security</h3>
+                        <p className="text-sm text-slate-500">Manage your email and password</p>
                       </div>
                     </div>
 
                     <div className="space-y-5">
                       <div>
                         <div className="flex items-center gap-1.5 mb-2">
-                          <Mail className="w-3.5 h-3.5 text-gray-400" />
-                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email Address</span>
+                          <Mail className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Email Address</span>
                         </div>
                         <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                           <div className="flex-1">
                             <FloatingInput id="email" label="Email" type="email" defaultValue={userEmail || ''} readOnly />
                           </div>
-                          <span className="text-xs text-gray-400 lg:pb-3 whitespace-nowrap">Contact admin to change</span>
+                          <span className="text-xs text-slate-400 lg:pb-3 whitespace-nowrap">Contact admin to change</span>
                         </div>
                       </div>
 
-                      <div className="border-t border-gray-100" />
+                      <div className="border-t border-slate-100" />
 
                       <div>
                         <div className="flex items-center gap-1.5 mb-2">
-                          <Lock className="w-3.5 h-3.5 text-gray-400" />
-                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Password</span>
+                          <Lock className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Password</span>
                         </div>
                         <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
                           <div className="flex-1">
@@ -719,7 +719,7 @@ export default function SettingsPage() {
                           <button
                             type="button"
                             onClick={openChangePassword}
-                            className="ui-btn px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                            className="ui-btn px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                           >
                             Change password
                           </button>
@@ -740,7 +740,7 @@ export default function SettingsPage() {
                           type="submit"
                           form="change-password-form"
                           disabled={passwordSaving || passwordSuccess}
-                          className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           {passwordSaving ? 'Saving...' : 'Update Password'}
                         </button>
@@ -748,7 +748,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={closeChangePassword}
                           disabled={passwordSaving}
-                          className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                          className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                         >
                           Cancel
                         </button>
@@ -787,7 +787,7 @@ export default function SettingsPage() {
                             minLength={8}
                             autoComplete="new-password"
                           />
-                          <p className="mt-1.5 text-xs text-gray-400">Must be at least 8 characters</p>
+                          <p className="mt-1.5 text-xs text-slate-400">Must be at least 8 characters</p>
                         </div>
 
                         <FloatingInput
@@ -811,8 +811,8 @@ export default function SettingsPage() {
                         <Bell className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Notification Preferences</h3>
-                        <p className="text-sm text-gray-500">Choose how you want to be notified</p>
+                        <h3 className="text-lg font-semibold text-slate-900">Notification Preferences</h3>
+                        <p className="text-sm text-slate-500">Choose how you want to be notified</p>
                       </div>
                     </div>
                     <NotificationPreferences />
@@ -908,7 +908,7 @@ export default function SettingsPage() {
               label: 'Discard & Leave',
               onClick: handleDiscardAndLeave,
               className:
-                'flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition',
+                'flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition',
             }
           : undefined}
       />

@@ -38,15 +38,15 @@ export default function CommentThread({ comments, onAddComment, isSubmitting, is
       {comments.length > 0 && (
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {comments.map((comment) => (
-            <div key={comment.id} className={`px-3 py-2 rounded-lg text-sm ${comment.isAdminOnly ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}>
+            <div key={comment.id} className={`px-3 py-2 rounded-lg text-sm ${comment.isAdminOnly ? 'bg-amber-50 border border-amber-200' : 'bg-slate-50'}`}>
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium text-gray-900 text-xs">
+                <span className="font-medium text-slate-900 text-xs">
                   {comment.author.firstName} {comment.author.lastName}
                 </span>
-                <span className="text-xs text-gray-400">{formatRelativeTime(comment.createdAt)}</span>
+                <span className="text-xs text-slate-400">{formatRelativeTime(comment.createdAt)}</span>
                 {comment.isAdminOnly && <span className="text-xs text-amber-600 font-medium">Admin only</span>}
               </div>
-              <p className="text-gray-700 text-sm">{comment.message}</p>
+              <p className="text-slate-700 text-sm">{comment.message}</p>
             </div>
           ))}
         </div>
@@ -58,16 +58,16 @@ export default function CommentThread({ comments, onAddComment, isSubmitting, is
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Add a comment..."
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm"
           disabled={isSubmitting}
         />
         {isAdmin && (
-          <label className="flex items-center gap-1 text-xs text-gray-500">
+          <label className="flex items-center gap-1 text-xs text-slate-500">
             <input type="checkbox" checked={isAdminOnly} onChange={(e) => setIsAdminOnly(e.target.checked)} className="rounded" />
             Admin
           </label>
         )}
-        <button type="submit" disabled={isSubmitting || !message.trim()} className="px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-full hover:bg-gray-800 disabled:opacity-50 transition">
+        <button type="submit" disabled={isSubmitting || !message.trim()} className="px-3 py-2 bg-slate-900 text-white text-xs font-medium rounded-full hover:bg-slate-800 disabled:opacity-50 transition">
           Send
         </button>
       </form>

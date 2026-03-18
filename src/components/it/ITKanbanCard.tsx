@@ -45,7 +45,7 @@ function getRelativeTime(dateStr: string): { text: string; color: string } {
   } else if (diffHours > 24) {
     color = 'text-amber-500'
   } else {
-    color = 'text-gray-400'
+    color = 'text-slate-400'
   }
 
   return { text, color }
@@ -88,11 +88,11 @@ export default function ITKanbanCard({ ticket, onClick }: ITKanbanCardProps) {
       {...attributes}
       {...listeners}
       onClick={() => onClick(ticket.id)}
-      className="p-3 bg-white rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md cursor-pointer transition-shadow active:scale-[0.98]"
+      className="p-3 bg-white rounded-xl border border-slate-200/50 shadow-sm hover:shadow-md cursor-pointer transition-shadow active:scale-[0.98]"
     >
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-[10px] text-gray-400">{ticket.ticketNumber}</span>
+          <span className="font-mono text-[10px] text-slate-400">{ticket.ticketNumber}</span>
           {isSub && (
             <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-amber-100 text-amber-700 rounded-full leading-none">
               SUB
@@ -101,7 +101,7 @@ export default function ITKanbanCard({ ticket, onClick }: ITKanbanCardProps) {
         </div>
         <PriorityBadge priority={ticket.priority} />
       </div>
-      <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">{ticket.title}</p>
+      <p className="text-sm font-medium text-slate-900 line-clamp-2 mb-2">{ticket.title}</p>
       <div className="flex items-center justify-between">
         <TypeBadge type={ticket.issueType} />
         {ticket.assignedTo ? (
@@ -109,20 +109,20 @@ export default function ITKanbanCard({ ticket, onClick }: ITKanbanCardProps) {
             {ticket.assignedTo.firstName[0]}{ticket.assignedTo.lastName[0]}
           </div>
         ) : (
-          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-            <User className="w-3 h-3 text-gray-400" />
+          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+            <User className="w-3 h-3 text-slate-400" />
           </div>
         )}
       </div>
       <div className="flex items-center justify-between mt-1.5">
         <div className="flex items-center gap-2 min-w-0">
           {location && (
-            <p className="text-[10px] text-gray-400 truncate">{location}</p>
+            <p className="text-[10px] text-slate-400 truncate">{location}</p>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {photoCount > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+            <span className="flex items-center gap-0.5 text-[10px] text-slate-400">
               <Camera className="w-3 h-3" />
               {photoCount}
             </span>

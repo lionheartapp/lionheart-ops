@@ -131,17 +131,17 @@ export default function ImageUpload({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-semibold text-gray-700">
+        <label className="block text-sm font-semibold text-slate-700">
           <Camera className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
           Photos
         </label>
-        <span className="text-xs text-gray-400">{images.length}/{maxImages}</span>
+        <span className="text-xs text-slate-400">{images.length}/{maxImages}</span>
       </div>
 
       {/* Image grid */}
       <div className="grid grid-cols-2 gap-2">
         {images.map((url, idx) => (
-          <div key={url} className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+          <div key={url} className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
             <img
               src={url}
               alt="Uploaded image preview"
@@ -172,7 +172,7 @@ export default function ImageUpload({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="aspect-[4/3] rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-400 hover:bg-primary-50/50 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="aspect-[4/3] rounded-lg border-2 border-dashed border-slate-300 hover:border-primary-400 hover:bg-primary-50/50 flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? (
               <>

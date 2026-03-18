@@ -54,12 +54,12 @@ const SOURCE_LABELS: Record<BudgetRevenueSource, string> = {
 }
 
 const SOURCE_STYLES: Record<BudgetRevenueSource, string> = {
-  REGISTRATION_FEE: 'bg-gray-100 text-gray-600',
+  REGISTRATION_FEE: 'bg-slate-100 text-slate-600',
   SPONSORSHIP: 'bg-blue-100 text-blue-700',
   FUNDRAISING: 'bg-green-100 text-green-700',
   DONATION: 'bg-purple-100 text-purple-700',
   GRANT: 'bg-amber-100 text-amber-700',
-  OTHER: 'bg-gray-100 text-gray-600',
+  OTHER: 'bg-slate-100 text-slate-600',
 }
 
 function SourceBadge({ source }: { source: BudgetRevenueSource }) {
@@ -152,13 +152,13 @@ function InlineRevenueForm({
       <div className="grid grid-cols-2 gap-4">
         {/* Source */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">
             Source <span className="text-red-500">*</span>
           </label>
           <select
             value={form.source}
             onChange={(e) => updateField('source', e.target.value as BudgetRevenueSource)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
           >
             {manualSources.map((s) => (
               <option key={s} value={s}>
@@ -169,11 +169,11 @@ function InlineRevenueForm({
         </div>
         {/* Amount */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">
             Amount <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
             <input
               type="number"
               min="0"
@@ -181,7 +181,7 @@ function InlineRevenueForm({
               value={form.amount}
               onChange={(e) => updateField('amount', e.target.value)}
               placeholder="0.00"
-              className="w-full rounded-xl border border-gray-200 bg-white pl-6 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+              className="w-full rounded-xl border border-slate-200 bg-white pl-6 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
             />
           </div>
           {errors.amount && <p className="mt-1 text-xs text-red-500">{errors.amount}</p>}
@@ -190,7 +190,7 @@ function InlineRevenueForm({
 
       {/* Description */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+        <label className="block text-xs font-medium text-slate-600 mb-1.5">
           Description <span className="text-red-500">*</span>
         </label>
         <input
@@ -198,7 +198,7 @@ function InlineRevenueForm({
           value={form.description}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="e.g. Spring Gala sponsorship from ABC Corp"
-          className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
         />
         {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
       </div>
@@ -206,22 +206,22 @@ function InlineRevenueForm({
       {/* Date + Notes */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">Received Date</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">Received Date</label>
           <input
             type="date"
             value={form.receivedDate}
             onChange={(e) => updateField('receivedDate', e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">Notes</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">Notes</label>
           <input
             type="text"
             value={form.notes}
             onChange={(e) => updateField('notes', e.target.value)}
             placeholder="Optional notes"
-            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
           />
         </div>
       </div>
@@ -231,7 +231,7 @@ function InlineRevenueForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
         >
           <X className="w-3.5 h-3.5" />
           Cancel
@@ -239,7 +239,7 @@ function InlineRevenueForm({
         <button
           type="submit"
           disabled={isSaving}
-          className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Saving…' : 'Save Revenue'}
         </button>
@@ -288,8 +288,8 @@ export function BudgetRevenueSection({
       <div className="ui-glass rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-800">Registration Revenue</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-semibold text-slate-800">Registration Revenue</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
               Auto-synced from Stripe{' '}
               {syncedAt && (
                 <span>
@@ -301,22 +301,22 @@ export function BudgetRevenueSection({
           <button
             onClick={onSync}
             disabled={isSyncing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-600 text-xs font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-600 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
             Sync Now
           </button>
         </div>
 
-        <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+        <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
           <div>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-slate-600">
               {registrationRevenue.length > 0
                 ? `${registrationRevenue.length} payment${registrationRevenue.length !== 1 ? 's' : ''} recorded`
                 : 'No payments recorded yet'}
             </span>
           </div>
-          <span className="text-lg font-bold text-gray-900 font-mono">
+          <span className="text-lg font-bold text-slate-900 font-mono">
             {formatCurrency(registrationTotal)}
           </span>
         </div>
@@ -326,8 +326,8 @@ export function BudgetRevenueSection({
       <div className="ui-glass rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-800">Other Revenue</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-semibold text-slate-800">Other Revenue</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
               Sponsorships, donations, grants, and other income
             </p>
           </div>
@@ -336,7 +336,7 @@ export function BudgetRevenueSection({
               setEditItem(null)
               setShowAddForm(true)
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Revenue
@@ -358,7 +358,7 @@ export function BudgetRevenueSection({
         )}
 
         {otherRevenue.length === 0 && !showAddForm ? (
-          <div className="py-8 text-center text-sm text-gray-400">
+          <div className="py-8 text-center text-sm text-slate-400">
             No revenue entries yet. Add sponsorships, donations, and other income above.
           </div>
         ) : (
@@ -389,18 +389,18 @@ export function BudgetRevenueSection({
                     isSaving={isMutating}
                   />
                 ) : (
-                  <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors group">
+                  <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-slate-50 transition-colors group">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <SourceBadge source={item.source} />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-800 truncate">
+                        <p className="text-sm font-medium text-slate-800 truncate">
                           {item.description}
                         </p>
-                        <p className="text-xs text-gray-400">{formatDate(item.receivedDate)}</p>
+                        <p className="text-xs text-slate-400">{formatDate(item.receivedDate)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-gray-900 font-mono">
+                      <span className="text-sm font-semibold text-slate-900 font-mono">
                         {formatCurrency(item.amount)}
                       </span>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -409,13 +409,13 @@ export function BudgetRevenueSection({
                             setEditItem(item)
                             setShowAddForm(false)
                           }}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleteTarget(item)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -429,10 +429,10 @@ export function BudgetRevenueSection({
         )}
 
         {otherRevenue.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
-            <span className="text-xs text-gray-500">
+          <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+            <span className="text-xs text-slate-500">
               Other total:{' '}
-              <span className="font-semibold text-gray-800 font-mono">
+              <span className="font-semibold text-slate-800 font-mono">
                 {formatCurrency(otherTotal)}
               </span>
             </span>
@@ -441,7 +441,7 @@ export function BudgetRevenueSection({
       </div>
 
       {/* ── Grand total ── */}
-      <div className="flex items-center justify-between px-5 py-4 bg-gray-900 rounded-xl">
+      <div className="flex items-center justify-between px-5 py-4 bg-slate-900 rounded-xl">
         <span className="text-sm font-semibold text-white">Total Revenue</span>
         <span className="text-xl font-bold text-white font-mono">{formatCurrency(grandTotal)}</span>
       </div>

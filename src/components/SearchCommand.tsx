@@ -74,15 +74,15 @@ function flattenResults(data: SearchResults | undefined): ResultItem[] {
 function getTypeIcon(type: string) {
   switch (type) {
     case 'user':
-      return <User className="w-4 h-4 text-gray-400" />
+      return <User className="w-4 h-4 text-slate-400" />
     case 'event':
-      return <Calendar className="w-4 h-4 text-gray-400" />
+      return <Calendar className="w-4 h-4 text-slate-400" />
     case 'ticket':
-      return <Ticket className="w-4 h-4 text-gray-400" />
+      return <Ticket className="w-4 h-4 text-slate-400" />
     case 'location':
-      return <MapPin className="w-4 h-4 text-gray-400" />
+      return <MapPin className="w-4 h-4 text-slate-400" />
     default:
-      return <Search className="w-4 h-4 text-gray-400" />
+      return <Search className="w-4 h-4 text-slate-400" />
   }
 }
 
@@ -209,26 +209,26 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
         >
           {/* Search input */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-            <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
+            <Search className="w-5 h-5 text-slate-400 flex-shrink-0" />
             <input
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search people, events, tickets, locations..."
-              className="flex-1 text-sm text-gray-900 placeholder:text-gray-400 outline-none bg-transparent"
+              className="flex-1 text-sm text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
               autoComplete="off"
               spellCheck={false}
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="p-1 hover:bg-gray-100 rounded transition"
+                className="p-1 hover:bg-slate-100 rounded transition"
               >
-                <X className="w-4 h-4 text-gray-400" />
+                <X className="w-4 h-4 text-slate-400" />
               </button>
             )}
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-100 rounded">
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-400 bg-slate-100 rounded">
               ESC
             </kbd>
           </div>
@@ -236,22 +236,22 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
           {/* Results */}
           <div ref={listRef} className="max-h-[360px] overflow-y-auto">
             {debouncedQuery.length < 2 ? (
-              <div className="py-10 text-center text-sm text-gray-400">
+              <div className="py-10 text-center text-sm text-slate-400">
                 Type to search...
               </div>
             ) : isLoading ? (
-              <div className="py-10 text-center text-sm text-gray-400">
+              <div className="py-10 text-center text-sm text-slate-400">
                 Searching...
               </div>
             ) : items.length === 0 ? (
-              <div className="py-10 text-center text-sm text-gray-400">
+              <div className="py-10 text-center text-sm text-slate-400">
                 No results found
               </div>
             ) : (
               grouped.map((group) => (
                 <div key={group.type}>
                   <div className="px-4 pt-3 pb-1">
-                    <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
                       {getTypeLabel(group.type)}
                     </span>
                   </div>
@@ -264,14 +264,14 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
                       className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${
                         item.globalIndex === activeIndex
                           ? 'bg-primary-50 text-primary-700'
-                          : 'hover:bg-gray-50 text-gray-700'
+                          : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <div className="flex-shrink-0">{getTypeIcon(item.type)}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.label}</p>
                         {item.sublabel && (
-                          <p className="text-xs text-gray-400 truncate">{item.sublabel}</p>
+                          <p className="text-xs text-slate-400 truncate">{item.sublabel}</p>
                         )}
                       </div>
                     </button>
@@ -282,18 +282,18 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
           </div>
 
           {/* Footer hint */}
-          <div className="px-4 py-2 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500">
+          <div className="px-4 py-2 border-t border-slate-100 flex items-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">&uarr;</kbd>
-              <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">&darr;</kbd>
+              <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">&uarr;</kbd>
+              <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">&darr;</kbd>
               navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">&crarr;</kbd>
+              <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">&crarr;</kbd>
               open
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">esc</kbd>
+              <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">esc</kbd>
               close
             </span>
           </div>

@@ -154,17 +154,17 @@ function EventBufferSection() {
 
   return (
     <section>
-      <h3 className="text-lg font-semibold text-gray-900">Event Settings</h3>
-      <div className="h-px bg-gray-200 mt-2 mb-4" />
+      <h3 className="text-lg font-semibold text-slate-900">Event Settings</h3>
+      <div className="h-px bg-slate-200 mt-2 mb-4" />
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
           <Clock className="w-5 h-5 text-blue-600" />
         </div>
         <div className="flex-1 space-y-1">
-          <label htmlFor="event-buffer" className="text-sm font-medium text-gray-900">
+          <label htmlFor="event-buffer" className="text-sm font-medium text-slate-900">
             Location buffer time
           </label>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             Minimum minutes between events at the same location. Set to 0 to disable.
           </p>
           <div className="flex items-center gap-3 mt-2">
@@ -175,15 +175,15 @@ function EventBufferSection() {
               max={480}
               value={bufferMinutes}
               onChange={(e) => setBufferMinutes(Math.max(0, Math.min(480, parseInt(e.target.value) || 0)))}
-              className="w-24 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+              className="w-24 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
             />
-            <span className="text-sm text-gray-500">minutes</span>
+            <span className="text-sm text-slate-500">minutes</span>
             {isDirty && (
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition-colors"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -480,62 +480,62 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       {/* School Details card */}
       <div className="ui-glass p-6 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="w-10 h-10 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
-            <div className="h-4 w-28 bg-gray-200 rounded" />
-            <div className="h-3 w-48 bg-gray-100 rounded" />
+            <div className="h-4 w-28 bg-slate-200 rounded" />
+            <div className="h-3 w-48 bg-slate-100 rounded" />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-slate-200 rounded" />
+          <div className="h-10 bg-slate-200 rounded" />
+          <div className="h-10 bg-slate-200 rounded" />
+          <div className="h-10 bg-slate-200 rounded" />
         </div>
       </div>
 
       {/* Enrollment & Staffing card */}
       <div className="ui-glass p-6 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="w-10 h-10 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
-            <div className="h-4 w-36 bg-gray-200 rounded" />
-            <div className="h-3 w-32 bg-gray-100 rounded" />
+            <div className="h-4 w-36 bg-slate-200 rounded" />
+            <div className="h-3 w-32 bg-slate-100 rounded" />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-10 bg-gray-200 rounded" />
-          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-slate-200 rounded" />
+          <div className="h-10 bg-slate-200 rounded" />
         </div>
       </div>
 
       {/* Branding card */}
       <div className="ui-glass p-6 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="w-10 h-10 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
-            <div className="h-4 w-20 bg-gray-200 rounded" />
-            <div className="h-3 w-44 bg-gray-100 rounded" />
+            <div className="h-4 w-20 bg-slate-200 rounded" />
+            <div className="h-3 w-44 bg-slate-100 rounded" />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-24 bg-gray-200 rounded" />
-          <div className="h-24 bg-gray-200 rounded" />
+          <div className="h-24 bg-slate-200 rounded" />
+          <div className="h-24 bg-slate-200 rounded" />
         </div>
       </div>
 
       {/* Workspace Metadata card */}
       <div className="ui-glass p-6 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-200" />
+          <div className="w-10 h-10 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
-            <div className="h-4 w-36 bg-gray-200 rounded" />
-            <div className="h-3 w-28 bg-gray-100 rounded" />
+            <div className="h-4 w-36 bg-slate-200 rounded" />
+            <div className="h-3 w-28 bg-slate-100 rounded" />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-16 bg-gray-100 rounded-lg" />
-          <div className="h-16 bg-gray-100 rounded-lg" />
+          <div className="h-16 bg-slate-100 rounded-lg" />
+          <div className="h-16 bg-slate-100 rounded-lg" />
         </div>
       </div>
     </div>
@@ -552,7 +552,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <button
           type="button"
           onClick={loadSchoolInfo}
-          className="px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
+          className="px-4 py-2 min-h-[40px] rounded-full bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition"
         >
           Retry
         </button>
@@ -572,8 +572,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             <School className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">School Details</h3>
-            <p className="text-xs text-gray-500">Basic information about your institution</p>
+            <h3 className="text-base font-semibold text-slate-900">School Details</h3>
+            <p className="text-xs text-slate-500">Basic information about your institution</p>
           </div>
         </div>
 
@@ -606,7 +606,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           <FloatingInput id="si-gradeRange" label="Grade Range" value={form.gradeRange} onChange={(event) => setForm((prev) => ({ ...prev, gradeRange: event.target.value }))} />
 
           <div className="md:col-span-2">
-            <label htmlFor="si-physicalAddress" className="block text-xs text-gray-500 font-medium mb-1.5">Physical Address</label>
+            <label htmlFor="si-physicalAddress" className="block text-xs text-slate-500 font-medium mb-1.5">Physical Address</label>
             <AddressAutocomplete
               value={form.physicalAddress}
               onChange={(value) => setForm((prev) => ({ ...prev, physicalAddress: value }))}
@@ -622,8 +622,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Enrollment & Staffing</h3>
-            <p className="text-xs text-gray-500">Student and staff counts</p>
+            <h3 className="text-base font-semibold text-slate-900">Enrollment & Staffing</h3>
+            <p className="text-xs text-slate-500">Student and staff counts</p>
           </div>
         </div>
 
@@ -640,8 +640,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             <Palette className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Branding</h3>
-            <p className="text-xs text-gray-500">Logo, login image, and subdomain</p>
+            <h3 className="text-base font-semibold text-slate-900">Branding</h3>
+            <p className="text-xs text-slate-500">Logo, login image, and subdomain</p>
           </div>
         </div>
 
@@ -649,9 +649,9 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <div className="mb-6">
           <div className="flex items-center justify-between gap-3 mb-1">
             <div>
-              <p className="text-sm font-medium text-gray-700">Subdomain</p>
-              <p className="text-xs text-gray-500 mt-0.5">
-                <span className="font-mono text-gray-800">{form.slug || 'your-school'}</span>
+              <p className="text-sm font-medium text-slate-700">Subdomain</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                <span className="font-mono text-slate-800">{form.slug || 'your-school'}</span>
                 .lionheartapp.com
               </p>
             </div>
@@ -659,7 +659,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
               <button
                 type="button"
                 onClick={openSlugEdit}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
               >
                 <Pencil className="w-3 h-3" />
                 Change Slug
@@ -704,7 +704,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                   )}
 
                   <div className="space-y-2">
-                    <label className="block text-xs font-medium text-gray-700">
+                    <label className="block text-xs font-medium text-slate-700">
                       Type the new slug to confirm
                     </label>
                     <div className="relative">
@@ -717,7 +717,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                         {slugValidating && (
-                          <span className="inline-block h-4 w-4 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" />
+                          <span className="inline-block h-4 w-4 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin" />
                         )}
                         {!slugValidating && slugValid === true && (
                           <CheckCircle className="w-4 h-4 text-green-500" />
@@ -736,7 +736,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                       </p>
                     )}
                     {slugValid === true && slugInput === form.slug && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-slate-500">
                         That is already your current slug
                       </p>
                     )}
@@ -747,7 +747,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                       type="button"
                       onClick={handleSlugSave}
                       disabled={slugValid !== true || slugSaving || slugInput === form.slug}
-                      className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {slugSaving ? 'Saving...' : 'Confirm Change'}
                     </button>
@@ -755,7 +755,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                       type="button"
                       onClick={cancelSlugEdit}
                       disabled={slugSaving}
-                      className="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
@@ -767,7 +767,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         </div>
 
         {/* Divider between slug section and image uploads */}
-        <div className="h-px bg-gray-200 my-4" />
+        <div className="h-px bg-slate-200 my-4" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
           <ImageDropZone
@@ -791,7 +791,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
           {/* Visual Layout Position Picker */}
           <div className="md:col-span-2">
-            <label className="block text-xs text-gray-500 font-medium mb-2">Login Page Layout</label>
+            <label className="block text-xs text-slate-500 font-medium mb-2">Login Page Layout</label>
             <div className="flex gap-3">
               <button
                 type="button"
@@ -799,7 +799,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                 className={`flex-1 rounded-xl border p-3 cursor-pointer transition-all ${
                   form.imagePosition === 'LEFT'
                     ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50/50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
                 <svg viewBox="0 0 160 100" className="w-full h-auto mb-2" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -811,7 +811,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                   <rect x="100" y="64" width="40" height="8" rx="3" fill="#C7D2FE" />
                   <rect x="100" y="76" width="40" height="8" rx="3" fill="#E5E7EB" />
                 </svg>
-                <span className={`text-xs font-medium ${form.imagePosition === 'LEFT' ? 'text-blue-700' : 'text-gray-500'}`}>
+                <span className={`text-xs font-medium ${form.imagePosition === 'LEFT' ? 'text-blue-700' : 'text-slate-500'}`}>
                   Image Left
                 </span>
               </button>
@@ -822,7 +822,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                 className={`flex-1 rounded-xl border p-3 cursor-pointer transition-all ${
                   form.imagePosition === 'RIGHT'
                     ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50/50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
                 <svg viewBox="0 0 160 100" className="w-full h-auto mb-2" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -834,7 +834,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                   <rect x="20" y="64" width="40" height="8" rx="3" fill="#C7D2FE" />
                   <rect x="20" y="76" width="40" height="8" rx="3" fill="#E5E7EB" />
                 </svg>
-                <span className={`text-xs font-medium ${form.imagePosition === 'RIGHT' ? 'text-blue-700' : 'text-gray-500'}`}>
+                <span className={`text-xs font-medium ${form.imagePosition === 'RIGHT' ? 'text-blue-700' : 'text-slate-500'}`}>
                   Image Right
                 </span>
               </button>
@@ -850,30 +850,30 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             <Globe className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Workspace Metadata</h3>
-            <p className="text-xs text-gray-500">System information</p>
+            <h3 className="text-base font-semibold text-slate-900">Workspace Metadata</h3>
+            <p className="text-xs text-slate-500">System information</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <p className="text-gray-500">Organization ID</p>
-            <p className="mt-1 font-medium text-gray-900 break-all">{schoolInfo?.id || '—'}</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-slate-500">Organization ID</p>
+            <p className="mt-1 font-medium text-slate-900 break-all">{schoolInfo?.id || '—'}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <p className="text-gray-500">Created At</p>
-            <p className="mt-1 font-medium text-gray-900">{schoolInfo ? formatTimestamp(schoolInfo.createdAt) : '—'}</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-slate-500">Created At</p>
+            <p className="mt-1 font-medium text-slate-900">{schoolInfo ? formatTimestamp(schoolInfo.createdAt) : '—'}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 md:col-span-2">
-            <p className="text-gray-500">Primary Admin Contact</p>
-            <p className="mt-1 font-medium text-gray-900">{schoolInfo?.primaryAdminContact.name || '—'}</p>
-            <p className="text-gray-600">{schoolInfo?.primaryAdminContact.email || '—'}</p>
-            <p className="text-gray-600">{schoolInfo?.primaryAdminContact.phone || '—'}</p>
-            <p className="text-gray-600">{schoolInfo?.primaryAdminContact.title || '—'}</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 md:col-span-2">
+            <p className="text-slate-500">Primary Admin Contact</p>
+            <p className="mt-1 font-medium text-slate-900">{schoolInfo?.primaryAdminContact.name || '—'}</p>
+            <p className="text-slate-600">{schoolInfo?.primaryAdminContact.email || '—'}</p>
+            <p className="text-slate-600">{schoolInfo?.primaryAdminContact.phone || '—'}</p>
+            <p className="text-slate-600">{schoolInfo?.primaryAdminContact.title || '—'}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 md:col-span-2">
-            <p className="text-gray-500">Campus Snapshot</p>
-            <p className="mt-1 font-medium text-gray-900">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 md:col-span-2">
+            <p className="text-slate-500">Campus Snapshot</p>
+            <p className="mt-1 font-medium text-slate-900">
               Buildings: {schoolInfo?.campusSnapshot.buildings ?? 0} · Areas: {schoolInfo?.campusSnapshot.areas ?? 0} · Rooms: {schoolInfo?.campusSnapshot.rooms ?? 0}
             </p>
           </div>
@@ -887,7 +887,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
           {saving ? 'Saving...' : 'Save Changes'}
@@ -896,22 +896,22 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           type="button"
           onClick={resetForm}
           disabled={saving}
-          className="px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 min-h-[40px] rounded-full bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Reset
         </button>
       </div>
 
       {isDirty && (
-        <div className="fixed inset-x-0 bottom-0 z-mobilenav border-t border-gray-200 bg-white/95 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-mobilenav border-t border-slate-200 bg-white/95 backdrop-blur">
           <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-10 lg:px-8">
-            <p className="text-sm text-gray-700">You have unsaved school information changes.</p>
+            <p className="text-sm text-slate-700">You have unsaved school information changes.</p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={resetForm}
                 disabled={saving}
-                className="px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 min-h-[40px] rounded-full bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Discard
               </button>
@@ -919,7 +919,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
                 type="button"
                 onClick={saveSchoolInfo}
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save Changes'}

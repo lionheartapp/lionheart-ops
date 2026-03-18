@@ -48,8 +48,8 @@ export default function SigninModal({ onClose }: SigninModalProps) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-modal" role="presentation">
       <div className="bg-white rounded-lg shadow-heavy max-w-md w-full" role="dialog" aria-labelledby="signin-title" aria-modal="true">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-          <h2 id="signin-title" className="text-lg sm:text-xl font-bold text-gray-900">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-200">
+          <h2 id="signin-title" className="text-lg sm:text-xl font-bold text-slate-900">
             Sign In
           </h2>
           <button
@@ -78,7 +78,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
             )}
 
             <div>
-              <label htmlFor="subdomain-signin" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="subdomain-signin" className="block text-sm font-medium text-slate-700 mb-1.5">
                 School Subdomain
               </label>
               <div className="relative">
@@ -92,16 +92,16 @@ export default function SigninModal({ onClose }: SigninModalProps) {
                   aria-describedby="subdomain-hint"
                   required
                 />
-                <span className="absolute right-4 top-3 text-gray-500 text-sm pointer-events-none">
+                <span className="absolute right-4 top-3 text-slate-500 text-sm pointer-events-none">
                   .lionheartapp.com
                 </span>
               </div>
-              <p id="subdomain-hint" className="text-xs text-gray-500 mt-1">
+              <p id="subdomain-hint" className="text-xs text-slate-500 mt-1">
                 Enter your school's subdomain
               </p>
             </div>
 
-            <p className="text-xs sm:text-sm text-gray-600 text-center bg-primary-50 rounded-lg p-3">
+            <p className="text-xs sm:text-sm text-slate-600 text-center bg-primary-50 rounded-lg p-3">
               You'll be redirected to your school's branded login page
             </p>
 
@@ -118,14 +118,14 @@ export default function SigninModal({ onClose }: SigninModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="w-full px-4 py-3 min-h-[44px] border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition"
+              className="w-full px-4 py-3 min-h-[44px] border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition"
             >
               Cancel
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <p className="text-sm text-slate-600 text-center">
               Don't have an account yet?
             </p>
             <button

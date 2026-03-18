@@ -50,13 +50,13 @@ const DOCUMENT_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   WAIVER: { bg: 'bg-orange-100', text: 'text-orange-700' },
   MEDICAL_RELEASE: { bg: 'bg-red-100', text: 'text-red-700' },
   PHOTO_RELEASE: { bg: 'bg-purple-100', text: 'text-purple-700' },
-  CUSTOM: { bg: 'bg-gray-100', text: 'text-gray-600' },
+  CUSTOM: { bg: 'bg-slate-100', text: 'text-slate-600' },
 }
 
 function docTypeConfig(type: string) {
   return {
     label: DOCUMENT_TYPE_LABELS[type] ?? type,
-    ...(DOCUMENT_TYPE_COLORS[type] ?? { bg: 'bg-gray-100', text: 'text-gray-600' }),
+    ...(DOCUMENT_TYPE_COLORS[type] ?? { bg: 'bg-slate-100', text: 'text-slate-600' }),
   }
 }
 
@@ -66,7 +66,7 @@ function RequirementsSkeleton() {
   return (
     <div className="animate-pulse space-y-2">
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="h-14 bg-gray-100 rounded-xl" />
+        <div key={i} className="h-14 bg-slate-100 rounded-xl" />
       ))}
     </div>
   )
@@ -121,30 +121,30 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
       {stats && requirements.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           <div className="ui-glass p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.totalRequirements}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Requirements</p>
+            <p className="text-2xl font-bold text-slate-900">{stats.totalRequirements}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Requirements</p>
           </div>
           <div className="ui-glass p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.totalRegistrations}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Participants</p>
+            <p className="text-2xl font-bold text-slate-900">{stats.totalRegistrations}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Participants</p>
           </div>
           <div className="ui-glass p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{Math.round(stats.completionPercentage)}%</p>
-            <p className="text-xs text-gray-500 mt-0.5">Complete</p>
+            <p className="text-2xl font-bold text-slate-900">{Math.round(stats.completionPercentage)}%</p>
+            <p className="text-xs text-slate-500 mt-0.5">Complete</p>
           </div>
         </div>
       )}
 
       {/* Add button */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500">
           {requirements.length === 0
             ? 'No document requirements yet'
             : `${requirements.length} document requirement${requirements.length === 1 ? '' : 's'}`}
         </p>
         <button
           onClick={handleAdd}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Requirement
@@ -162,7 +162,7 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-3">
             <FileText className="w-6 h-6 text-indigo-400" />
           </div>
-          <p className="text-sm text-gray-500 max-w-xs mx-auto">
+          <p className="text-sm text-slate-500 max-w-xs mx-auto">
             Add document requirements like permission slips, waivers, and medical releases.
           </p>
         </motion.div>
@@ -179,7 +179,7 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
               <motion.li
                 key={req.id}
                 variants={listItem}
-                className="group flex items-center gap-3 p-3.5 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:bg-gray-50/40 transition-all"
+                className="group flex items-center gap-3 p-3.5 bg-white border border-slate-100 rounded-xl hover:border-slate-200 hover:bg-slate-50/40 transition-all"
               >
                 {/* Required indicator */}
                 {req.isRequired ? (
@@ -189,16 +189,16 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
                   />
                 ) : (
                   <Check
-                    className="w-4 h-4 text-gray-300 flex-shrink-0"
+                    className="w-4 h-4 text-slate-300 flex-shrink-0"
                     aria-label="Optional"
                   />
                 )}
 
                 {/* Label */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{req.label}</p>
+                  <p className="text-sm font-medium text-slate-900 truncate">{req.label}</p>
                   {req.description && (
-                    <p className="text-xs text-gray-400 truncate mt-0.5">{req.description}</p>
+                    <p className="text-xs text-slate-400 truncate mt-0.5">{req.description}</p>
                   )}
                 </div>
 
@@ -212,7 +212,7 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
 
                 {/* Due date */}
                 {req.dueDate && (
-                  <span className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0 hidden sm:flex">
+                  <span className="flex items-center gap-1 text-xs text-slate-400 flex-shrink-0 hidden sm:flex">
                     <Calendar className="w-3 h-3" />
                     {new Date(req.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
@@ -222,7 +222,7 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleEdit(req)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all cursor-pointer"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all cursor-pointer"
                     title="Edit"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -230,7 +230,7 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
                   <button
                     onClick={() => handleDelete(req)}
                     disabled={deletingId === req.id}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer disabled:opacity-50"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer disabled:opacity-50"
                     title="Delete"
                   >
                     {deletingId === req.id ? (
@@ -272,18 +272,18 @@ const SUB_TABS: { id: SubTab; label: string; icon: React.ComponentType<{ classNa
 
 function SubTabBar({ active, onChange }: SubTabBarProps) {
   return (
-    <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+    <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit">
       {SUB_TABS.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           onClick={() => onChange(id)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
             active === id
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          <Icon className={`w-3.5 h-3.5 ${active === id ? 'text-indigo-500' : 'text-gray-400'}`} />
+          <Icon className={`w-3.5 h-3.5 ${active === id ? 'text-indigo-500' : 'text-slate-400'}`} />
           {label}
         </button>
       ))}
@@ -322,12 +322,12 @@ function DocumentsHeaderStats({ eventProjectId }: { eventProjectId: string }) {
       {/* Quick stats */}
       <div className="flex items-center gap-4 flex-shrink-0">
         <div className="text-center">
-          <p className="text-lg font-bold text-gray-900">{stats.totalRequirements}</p>
-          <p className="text-[10px] text-gray-500 uppercase tracking-wide">Docs</p>
+          <p className="text-lg font-bold text-slate-900">{stats.totalRequirements}</p>
+          <p className="text-[10px] text-slate-500 uppercase tracking-wide">Docs</p>
         </div>
         <div className="text-center">
-          <p className="text-lg font-bold text-gray-900">{stats.totalRegistrations}</p>
-          <p className="text-[10px] text-gray-500 uppercase tracking-wide">Participants</p>
+          <p className="text-lg font-bold text-slate-900">{stats.totalRegistrations}</p>
+          <p className="text-[10px] text-slate-500 uppercase tracking-wide">Participants</p>
         </div>
       </div>
     </div>

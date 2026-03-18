@@ -181,7 +181,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
       {/* Day headers */}
       <div className="grid grid-cols-7" role="row">
         {dayNames.map((day) => (
-          <div key={day} role="columnheader" className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-200">
+          <div key={day} role="columnheader" className="py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-widest border-b border-slate-200">
             {day}
           </div>
         ))}
@@ -217,8 +217,8 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                   onClick={() => onDateClick(date)}
                   onKeyDown={(e) => handleGridKeyDown(e, date)}
                   onFocus={() => setFocusedDate(date)}
-                  className={`border-r border-b border-gray-100 last:border-r-0 p-2 cursor-pointer hover:bg-gray-50/50 transition-colors flex flex-col overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
-                    !isCurrentMonth ? 'bg-gray-50/40' : ''
+                  className={`border-r border-b border-slate-100 last:border-r-0 p-2 cursor-pointer hover:bg-slate-50/50 transition-colors flex flex-col overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
+                    !isCurrentMonth ? 'bg-slate-50/40' : ''
                   }`}
                 >
                   {/* Special day banner */}
@@ -242,8 +242,8 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                         today
                           ? 'bg-primary-600 text-white'
                           : isCurrentMonth
-                            ? 'text-gray-900'
-                            : 'text-gray-400'
+                            ? 'text-slate-900'
+                            : 'text-slate-400'
                       }`}
                     >
                       {date.getDate()}
@@ -257,7 +257,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                       ((wi * 7 + di) % 3 > 0) && Array.from({ length: (wi * 7 + di) % 3 }, (_, pi) => (
                         <div
                           key={pi}
-                          className="h-5 rounded-md bg-gray-100 animate-pulse"
+                          className="h-5 rounded-md bg-slate-100 animate-pulse"
                           style={{ width: `${60 + ((wi * 7 + di + pi) % 3) * 15}%` }}
                         />
                       ))
@@ -332,7 +332,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           e.stopPropagation()
                           onDateClick(date)
                         }}
-                        className="w-full text-left px-2 py-0.5 text-xs font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                        className="w-full text-left px-2 py-0.5 text-xs font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
                       >
                         +{moreCount} more
                       </button>

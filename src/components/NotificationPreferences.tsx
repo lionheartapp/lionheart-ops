@@ -117,7 +117,7 @@ function Toggle({ checked, onChange, disabled, label }: ToggleProps) {
         'relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
         'transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
         disabled ? 'cursor-not-allowed opacity-40' : '',
-        checked ? 'bg-primary-600' : 'bg-gray-200',
+        checked ? 'bg-primary-600' : 'bg-slate-200',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -252,7 +252,7 @@ export default function NotificationPreferences() {
     return (
       <div className="space-y-4 animate-pulse">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-gray-100 rounded-xl" />
+          <div key={i} className="h-24 bg-slate-100 rounded-xl" />
         ))}
       </div>
     )
@@ -267,11 +267,11 @@ export default function NotificationPreferences() {
       )}
 
       {/* Master pause toggle */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Pause all notifications</p>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-sm font-semibold text-slate-900">Pause all notifications</p>
+            <p className="text-xs text-slate-500 mt-0.5">
               Temporarily silence all email and in-app notifications
             </p>
           </div>
@@ -309,11 +309,11 @@ export default function NotificationPreferences() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex items-center gap-2 text-sm text-gray-500"
+            className="flex items-center gap-2 text-sm text-slate-500"
           >
             {saving ? (
               <>
-                <span className="inline-block h-3 w-3 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" />
+                <span className="inline-block h-3 w-3 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin" />
                 Saving...
               </>
             ) : (
@@ -330,13 +330,13 @@ export default function NotificationPreferences() {
           const allInApp = groupAllEnabled(group.types, 'inAppEnabled')
 
           return (
-            <div key={group.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div key={group.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
               {/* Group header */}
-              <div className="flex items-center justify-between gap-4 px-5 py-3 bg-gray-50 border-b border-gray-200">
-                <p className="text-sm font-semibold text-gray-900">{group.label}</p>
+              <div className="flex items-center justify-between gap-4 px-5 py-3 bg-slate-50 border-b border-slate-200">
+                <p className="text-sm font-semibold text-slate-900">{group.label}</p>
                 <div className="flex items-center gap-6">
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-xs text-gray-400">Email</span>
+                    <span className="text-xs text-slate-400">Email</span>
                     <Toggle
                       checked={allEmail}
                       onChange={(v) => setGroupField(group.types, 'emailEnabled', v)}
@@ -344,7 +344,7 @@ export default function NotificationPreferences() {
                     />
                   </div>
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-xs text-gray-400">In-App</span>
+                    <span className="text-xs text-slate-400">In-App</span>
                     <Toggle
                       checked={allInApp}
                       onChange={(v) => setGroupField(group.types, 'inAppEnabled', v)}
@@ -355,7 +355,7 @@ export default function NotificationPreferences() {
               </div>
 
               {/* Individual rows */}
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-slate-100">
                 {group.types.map((type) => {
                   const pref = getPref(type)
                   return (
@@ -363,7 +363,7 @@ export default function NotificationPreferences() {
                       key={type}
                       className="flex items-center justify-between gap-4 px-5 py-3"
                     >
-                      <span className="text-sm text-gray-700">{typeToLabel(type)}</span>
+                      <span className="text-sm text-slate-700">{typeToLabel(type)}</span>
                       <div className="flex items-center gap-6 flex-shrink-0">
                         <Toggle
                           checked={pref.emailEnabled}

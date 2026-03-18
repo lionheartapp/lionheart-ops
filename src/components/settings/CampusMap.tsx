@@ -52,8 +52,8 @@ export default function CampusMap() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-8 flex items-center justify-center">
-        <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 flex items-center justify-center">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
       </div>
     )
   }
@@ -67,9 +67,9 @@ export default function CampusMap() {
 
   if (!orgLat || !orgLng) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-        <MapPin className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-        <p className="text-sm text-gray-500">
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+        <MapPin className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+        <p className="text-sm text-slate-500">
           Add a school address in <span className="font-medium">School Information</span> to see your campus on the map.
         </p>
       </div>
@@ -85,14 +85,14 @@ export default function CampusMap() {
   const embedUrl = `https://www.google.com/maps?q=${query}&z=16&output=embed`
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+    <div className="rounded-xl border border-slate-200 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary-600" />
-          <span className="text-sm font-medium text-gray-700">Campus Location</span>
+          <span className="text-sm font-medium text-slate-700">Campus Location</span>
         </div>
         {mapData?.org?.address && (
-          <span className="text-xs text-gray-500 truncate max-w-xs">{mapData.org.address}</span>
+          <span className="text-xs text-slate-500 truncate max-w-xs">{mapData.org.address}</span>
         )}
       </div>
       <iframe

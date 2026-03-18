@@ -586,7 +586,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
   }
 
   if (loading) {
-    return <div className="text-sm text-gray-500">Loading schools...</div>
+    return <div className="text-sm text-slate-500">Loading schools...</div>
   }
 
   return (
@@ -595,13 +595,13 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
 
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">Schools</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Schools operating from this campus</p>
+          <h3 className="text-base font-semibold text-slate-900">Schools</h3>
+          <p className="text-sm text-slate-500 mt-0.5">Schools operating from this campus</p>
         </div>
         <button
           type="button"
           onClick={handleOpenNew}
-          className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition"
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
         >
           <Plus className="w-4 h-4" />
           Add School
@@ -612,11 +612,11 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
         {schools.length === 0 ? (
           <div className="text-center py-14">
             <IllustrationCampus className="w-48 h-40 mx-auto mb-2" />
-            <p className="text-base font-semibold text-gray-700 mb-1">No schools yet</p>
-            <p className="text-sm text-gray-500 mb-4 max-w-xs mx-auto">Add your schools first so buildings can be associated with the right division.</p>
+            <p className="text-base font-semibold text-slate-700 mb-1">No schools yet</p>
+            <p className="text-sm text-slate-500 mb-4 max-w-xs mx-auto">Add your schools first so buildings can be associated with the right division.</p>
             <button
               onClick={handleOpenNew}
-              className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+              className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
             >
               Add First School
             </button>
@@ -624,7 +624,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
         ) : (
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-gray-500 border-b bg-gray-50">
+              <tr className="text-slate-500 border-b bg-slate-50">
                 <th className="py-3 px-4 text-left font-medium">Name</th>
                 <th className="py-3 px-4 text-left font-medium">Grade Level</th>
                 <th className="py-3 px-4 text-left font-medium">Principal</th>
@@ -633,17 +633,17 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </thead>
             <tbody>
               {schools.map((school) => (
-                <tr key={school.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-900">
+                <tr key={school.id} className="border-b border-slate-200 hover:bg-slate-50">
+                  <td className="px-4 py-3 text-slate-900">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: school.color }} />
                       {school.name}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-slate-600">
                     {school.gradeLevel.replace(/_/g, ' ')}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-slate-600">
                     {school.principalName || '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -651,7 +651,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                       <button
                         type="button"
                         onClick={() => handleEdit(school)}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-gray-600 hover:text-gray-900 transition"
+                        className="inline-flex items-center gap-1 px-2 py-1 text-slate-600 hover:text-slate-900 transition"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -669,7 +669,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                             type="button"
                             onClick={() => setDeleteConfirmId(null)}
                             disabled={saving}
-                            className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+                            className="px-2 py-1 text-xs bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition"
                           >
                             Cancel
                           </button>
@@ -678,7 +678,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                         <button
                           type="button"
                           onClick={() => setDeleteConfirmId(school.id)}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-gray-600 hover:text-red-600 transition"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-slate-600 hover:text-red-600 transition"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -704,14 +704,14 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               type="submit"
               form="school-form"
               disabled={saving || searchingPrincipals || creatingPrincipal}
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
               {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add School'}
             </button>
             <button
               type="button"
               onClick={handleCloseModal}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1"
             >
               Cancel
             </button>
@@ -726,8 +726,8 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
           )}
 
           <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">School Details</h3>
+            <div className="border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">School Details</h3>
             </div>
 
             <FloatingInput
@@ -758,7 +758,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
               <div className="flex items-center gap-2 flex-wrap">
                 {COLOR_PRESETS.map((c) => (
                   <button
@@ -777,8 +777,8 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
           </section>
 
           <section className="space-y-4">
-            <div className="border-b border-gray-200 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Principal</h3>
+            <div className="border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Principal</h3>
             </div>
 
             {/* Principal Search/Create */}
@@ -805,7 +805,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                   <button
                     type="button"
                     onClick={() => setShowPrincipalDropdown(false)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
                   >
                     <ChevronDown className="w-4 h-4" />
                   </button>
@@ -815,7 +815,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               {showPrincipalDropdown && (
                 <div className="absolute z-dropdown w-full mt-1 ui-glass-dropdown">
                   {searchingPrincipals ? (
-                    <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
+                    <div className="px-4 py-2 text-sm text-slate-500">Searching...</div>
                   ) : rankedPrincipalOptions.length > 0 ? (
                     <>
                       {rankedPrincipalOptions.map((principal) => (
@@ -825,11 +825,11 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                           onClick={() => selectPrincipal(principal)}
                           className="w-full text-left px-4 py-2 hover:bg-primary-50 transition"
                         >
-                          <div className="font-medium text-gray-900">{principal.name}</div>
-                          <div className="text-xs text-gray-500">{principal.email}</div>
+                          <div className="font-medium text-slate-900">{principal.name}</div>
+                          <div className="text-xs text-slate-500">{principal.email}</div>
                         </button>
                       ))}
-                      <div className="border-t border-gray-200" />
+                      <div className="border-t border-slate-200" />
                     </>
                   ) : null}
 
@@ -891,13 +891,13 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm">
               <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
                 <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">New principal created</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">New principal created</h3>
+                  <p className="text-slate-600">
                     <strong>{successData.schoolName}</strong> has been added and <strong>{successData.principalName}</strong> was created as a new principal.
                   </p>
                 </div>
 
-                <p className="text-gray-600 mb-6 text-sm">
+                <p className="text-slate-600 mb-6 text-sm">
                   Would you like to edit this new principal’s information now?
                 </p>
 
@@ -905,14 +905,14 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
                   <button
                     type="button"
                     onClick={() => handleSuccessClose(true)}
-                    className="flex-1 px-4 py-2 min-h-[40px] rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition"
+                    className="flex-1 px-4 py-2 min-h-[40px] rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"
                   >
                     Yes
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSuccessClose(false)}
-                    className="flex-1 px-4 py-2 min-h-[40px] rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
+                    className="flex-1 px-4 py-2 min-h-[40px] rounded-full bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition"
                   >
                     Cancel
                   </button>
@@ -934,14 +934,14 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
               type="submit"
               form="principal-editor-form"
               disabled={savingPrincipalEditor}
-              className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
               {savingPrincipalEditor ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               type="button"
               onClick={handlePrincipalEditorClose}
-              className="w-full text-sm text-gray-500 hover:text-gray-700 transition py-1"
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1"
             >
               Cancel
             </button>

@@ -119,14 +119,14 @@ export default function LaborEntryForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3 pt-3">
       {/* Input mode toggle */}
-      <div className="flex items-center rounded-lg border border-gray-200 p-0.5 bg-gray-50 w-fit gap-0.5">
+      <div className="flex items-center rounded-lg border border-slate-200 p-0.5 bg-slate-50 w-fit gap-0.5">
         <button
           type="button"
           onClick={() => setInputMode('times')}
           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
             inputMode === 'times'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           Start / End Times
@@ -136,8 +136,8 @@ export default function LaborEntryForm({
           onClick={() => setInputMode('duration')}
           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
             inputMode === 'duration'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           Duration Only
@@ -147,36 +147,36 @@ export default function LaborEntryForm({
       {inputMode === 'times' ? (
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Date <span className="text-red-500">*</span></label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Start Time <span className="text-red-500">*</span></label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Start Time <span className="text-red-500">*</span></label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">End Time <span className="text-red-500">*</span></label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">End Time <span className="text-red-500">*</span></label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             />
           </div>
         </div>
       ) : (
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Duration (hours) <span className="text-red-500">*</span></label>
+          <label className="block text-xs font-medium text-slate-700 mb-1">Duration (hours) <span className="text-red-500">*</span></label>
           <input
             type="number"
             min="0.1"
@@ -184,7 +184,7 @@ export default function LaborEntryForm({
             value={durationInput}
             onChange={(e) => setDurationInput(e.target.value)}
             placeholder="e.g. 1.5 for 1h 30m"
-            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
           />
         </div>
       )}
@@ -200,11 +200,11 @@ export default function LaborEntryForm({
       {/* Technician selector */}
       {technicians && technicians.length > 0 && (
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Technician</label>
+          <label className="block text-xs font-medium text-slate-700 mb-1">Technician</label>
           <select
             value={technicianId}
             onChange={(e) => setTechnicianId(e.target.value)}
-            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 cursor-pointer"
+            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 cursor-pointer"
           >
             {technicians.map((t) => (
               <option key={t.id} value={t.id}>
@@ -217,13 +217,13 @@ export default function LaborEntryForm({
 
       {/* Notes */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+        <label className="block text-xs font-medium text-slate-700 mb-1">Notes</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Optional: describe work performed..."
           rows={2}
-          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-gray-400"
+          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-slate-400"
         />
       </div>
 
@@ -242,7 +242,7 @@ export default function LaborEntryForm({
           <button
             type="button"
             onClick={onCancel}
-            className="text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+            className="text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
           >
             Cancel
           </button>

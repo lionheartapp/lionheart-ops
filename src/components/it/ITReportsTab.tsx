@@ -133,13 +133,13 @@ function ReportSkeleton() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="ui-glass p-4 animate-pulse">
-            <div className="h-3 w-16 bg-gray-200 rounded mb-2" />
-            <div className="h-7 w-20 bg-gray-200 rounded" />
+            <div className="h-3 w-16 bg-slate-200 rounded mb-2" />
+            <div className="h-7 w-20 bg-slate-200 rounded" />
           </div>
         ))}
       </div>
       <div className="ui-glass animate-pulse">
-        <div className="h-48 bg-gray-100 rounded-xl" />
+        <div className="h-48 bg-slate-100 rounded-xl" />
       </div>
     </div>
   )
@@ -155,8 +155,8 @@ function StatCard({ label, value, prefix, suffix }: {
 }) {
   return (
     <motion.div variants={cardEntrance} className="ui-glass p-4 text-center">
-      <p className="text-xs text-gray-500 font-medium mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-900">
+      <p className="text-xs text-slate-500 font-medium mb-1">{label}</p>
+      <p className="text-2xl font-bold text-slate-900">
         {prefix}<AnimatedCounter value={value} />{suffix}
       </p>
     </motion.div>
@@ -300,13 +300,13 @@ export default function ITReportsTab({}: ITReportsTabProps) {
                 <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
                   isSelected
                     ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white'
-                    : 'bg-gray-100 text-gray-600'
+                    : 'bg-slate-100 text-slate-600'
                 }`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900">{card.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{card.description}</p>
+                  <h3 className="text-sm font-semibold text-slate-900">{card.title}</h3>
+                  <p className="text-xs text-slate-500 mt-1">{card.description}</p>
                 </div>
               </div>
             </motion.button>
@@ -331,33 +331,33 @@ export default function ITReportsTab({}: ITReportsTabProps) {
                 {showDateRange && (
                   <>
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <label className="text-xs text-gray-500 font-medium">From</label>
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      <label className="text-xs text-slate-500 font-medium">From</label>
                       <input
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
-                        className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg"
+                        className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="text-xs text-gray-500 font-medium">To</label>
+                      <label className="text-xs text-slate-500 font-medium">To</label>
                       <input
                         type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
-                        className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg"
+                        className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
                       />
                     </div>
                   </>
                 )}
                 {showSchoolFilter && (
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <Building2 className="w-4 h-4 text-slate-400" />
                     <select
                       value={schoolId}
                       onChange={(e) => setSchoolId(e.target.value)}
-                      className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white"
+                      className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white"
                     >
                       <option value="">All Schools</option>
                       {schools.map((s) => (
@@ -409,12 +409,12 @@ export default function ITReportsTab({}: ITReportsTabProps) {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="w-4 h-4 text-indigo-500" />
-                  <h4 className="text-sm font-semibold text-gray-900">AI Summary</h4>
-                  <button onClick={() => setAiSummary(null)} className="ml-auto text-gray-400 hover:text-gray-600">
+                  <h4 className="text-sm font-semibold text-slate-900">AI Summary</h4>
+                  <button onClick={() => setAiSummary(null)} className="ml-auto text-slate-400 hover:text-slate-600">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{aiSummary}</p>
+                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{aiSummary}</p>
               </motion.div>
             )}
 
@@ -423,7 +423,7 @@ export default function ITReportsTab({}: ITReportsTabProps) {
               <button
                 onClick={() => handleExportPDF(selectedReport)}
                 disabled={exporting || activeQuery?.isLoading}
-                className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 transition-colors duration-200"
+                className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 transition-colors duration-200"
               >
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 {exporting ? 'Exporting...' : 'Download PDF'}
@@ -431,7 +431,7 @@ export default function ITReportsTab({}: ITReportsTabProps) {
               <button
                 onClick={handleGenerateAISummary}
                 disabled={aiLoading || activeQuery?.isLoading}
-                className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 transition-colors duration-200"
+                className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 transition-colors duration-200"
               >
                 {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {aiLoading ? 'Generating...' : 'Generate AI Summary'}
@@ -461,16 +461,16 @@ function AnnualReportDetail({ data }: { data: AnnualReportData }) {
         <div className="ui-glass-table">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Device Type</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+              <tr className="border-b border-slate-100">
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Device Type</th>
+                <th className="text-right py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Count</th>
               </tr>
             </thead>
             <tbody>
               {Object.entries(data.devicesByType).map(([type, count]) => (
-                <tr key={type} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 px-4 text-gray-700 capitalize">{type.toLowerCase().replace(/_/g, ' ')}</td>
-                  <td className="py-2.5 px-4 text-right font-medium text-gray-900">{count}</td>
+                <tr key={type} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 px-4 text-slate-700 capitalize">{type.toLowerCase().replace(/_/g, ' ')}</td>
+                  <td className="py-2.5 px-4 text-right font-medium text-slate-900">{count}</td>
                 </tr>
               ))}
             </tbody>
@@ -494,7 +494,7 @@ function RefreshForecastDetail({ data }: { data: RefreshForecastData }) {
 
       {/* Staggered budget breakdown */}
       <div className="ui-glass p-5">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Staggered Replacement Budget</h4>
+        <h4 className="text-sm font-semibold text-slate-900 mb-3">Staggered Replacement Budget</h4>
         <div className="space-y-3">
           {[
             { label: 'Year 1', value: data.staggeredYearOne },
@@ -506,14 +506,14 @@ function RefreshForecastDetail({ data }: { data: RefreshForecastData }) {
             const pct = (item.value / maxVal) * 100
             return (
               <div key={item.label} className="flex items-center gap-3">
-                <span className="text-xs font-medium text-gray-500 w-12">{item.label}</span>
-                <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                <span className="text-xs font-medium text-slate-500 w-12">{item.label}</span>
+                <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-xs font-semibold text-gray-700 w-20 text-right">
+                <span className="text-xs font-semibold text-slate-700 w-20 text-right">
                   ${item.value.toLocaleString()}
                 </span>
               </div>
@@ -527,16 +527,16 @@ function RefreshForecastDetail({ data }: { data: RefreshForecastData }) {
         <div className="ui-glass-table">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Purchase Year</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Devices</th>
+              <tr className="border-b border-slate-100">
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Purchase Year</th>
+                <th className="text-right py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Devices</th>
               </tr>
             </thead>
             <tbody>
               {data.devicesByAge.map((row) => (
-                <tr key={row.year} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 px-4 text-gray-700">{row.year}</td>
-                  <td className="py-2.5 px-4 text-right font-medium text-gray-900">{row.count}</td>
+                <tr key={row.year} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 px-4 text-slate-700">{row.year}</td>
+                  <td className="py-2.5 px-4 text-right font-medium text-slate-900">{row.count}</td>
                 </tr>
               ))}
             </tbody>
@@ -563,21 +563,21 @@ function RepairReplaceDetail({ data }: { data: RepairReplaceData }) {
         <div className="ui-glass-table">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Tag</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Repairs</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Recommendation</th>
+              <tr className="border-b border-slate-100">
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Asset Tag</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Model</th>
+                <th className="text-right py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Repairs</th>
+                <th className="text-right py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Total Cost</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Recommendation</th>
               </tr>
             </thead>
             <tbody>
               {data.lemons.slice(0, 20).map((device) => (
-                <tr key={device.id} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 px-4 font-mono text-xs text-gray-700">{device.assetTag}</td>
-                  <td className="py-2.5 px-4 text-gray-700">{device.model ?? '-'}</td>
-                  <td className="py-2.5 px-4 text-right font-medium text-gray-900">{device.repairCount}</td>
-                  <td className="py-2.5 px-4 text-right font-medium text-gray-900">
+                <tr key={device.id} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 px-4 font-mono text-xs text-slate-700">{device.assetTag}</td>
+                  <td className="py-2.5 px-4 text-slate-700">{device.model ?? '-'}</td>
+                  <td className="py-2.5 px-4 text-right font-medium text-slate-900">{device.repairCount}</td>
+                  <td className="py-2.5 px-4 text-right font-medium text-slate-900">
                     ${device.totalRepairCost.toLocaleString()}
                   </td>
                   <td className="py-2.5 px-4">
@@ -594,7 +594,7 @@ function RepairReplaceDetail({ data }: { data: RepairReplaceData }) {
             </tbody>
           </table>
           {data.lemons.length > 20 && (
-            <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
+            <div className="px-4 py-2 text-xs text-slate-500 border-t border-slate-100">
               Showing 20 of {data.lemons.length} devices
             </div>
           )}
@@ -620,32 +620,32 @@ function DamageFeesDetail({ data }: { data: DamageFeesData }) {
         <div className="ui-glass-table">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Tag</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Assessed</th>
+              <tr className="border-b border-slate-100">
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Student</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Asset Tag</th>
+                <th className="text-right py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Assessed</th>
               </tr>
             </thead>
             <tbody>
               {data.fees.slice(0, 25).map((fee) => (
-                <tr key={fee.id} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 px-4 text-gray-700">{fee.studentName}</td>
-                  <td className="py-2.5 px-4 font-mono text-xs text-gray-700">{fee.assetTag}</td>
-                  <td className="py-2.5 px-4 text-right font-medium text-gray-900">
+                <tr key={fee.id} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 px-4 text-slate-700">{fee.studentName}</td>
+                  <td className="py-2.5 px-4 font-mono text-xs text-slate-700">{fee.assetTag}</td>
+                  <td className="py-2.5 px-4 text-right font-medium text-slate-900">
                     ${fee.amount.toLocaleString()}
                   </td>
                   <td className="py-2.5 px-4">
                     <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
                       fee.status === 'PAID' ? 'bg-green-100 text-green-700'
-                        : fee.status === 'WAIVED' ? 'bg-gray-100 text-gray-600'
+                        : fee.status === 'WAIVED' ? 'bg-slate-100 text-slate-600'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}>
                       {fee.status}
                     </span>
                   </td>
-                  <td className="py-2.5 px-4 text-xs text-gray-500">
+                  <td className="py-2.5 px-4 text-xs text-slate-500">
                     {new Date(fee.assessedAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -653,7 +653,7 @@ function DamageFeesDetail({ data }: { data: DamageFeesData }) {
             </tbody>
           </table>
           {data.fees.length > 25 && (
-            <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
+            <div className="px-4 py-2 text-xs text-slate-500 border-t border-slate-100">
               Showing 25 of {data.fees.length} fees
             </div>
           )}

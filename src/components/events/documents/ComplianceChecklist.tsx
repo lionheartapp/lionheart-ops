@@ -63,8 +63,8 @@ function statusConfig(status: ComplianceStatus) {
     default:
       return {
         label: 'Not Started',
-        bg: 'bg-gray-100',
-        text: 'text-gray-600',
+        bg: 'bg-slate-100',
+        text: 'text-slate-600',
         icon: <Circle className="w-3 h-3" />,
       }
   }
@@ -82,7 +82,7 @@ function ComplianceSkeleton() {
   return (
     <div className="animate-pulse space-y-2">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-14 bg-gray-100 rounded-xl" />
+        <div key={i} className="h-14 bg-slate-100 rounded-xl" />
       ))}
     </div>
   )
@@ -101,14 +101,14 @@ function ComplianceEmpty({ onImport, isImporting }: { onImport: () => void; isIm
       <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
         <Shield className="w-7 h-7 text-blue-500" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-2">No compliance items yet</h3>
-      <p className="text-sm text-gray-500 max-w-xs mx-auto mb-6">
+      <h3 className="text-base font-semibold text-slate-900 mb-2">No compliance items yet</h3>
+      <p className="text-sm text-slate-500 max-w-xs mx-auto mb-6">
         Import a set of standard off-campus compliance items or add custom ones.
       </p>
       <button
         onClick={onImport}
         disabled={isImporting}
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-60"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-60"
       >
         {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
         Import Standard Defaults
@@ -157,7 +157,7 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
   }
 
   return (
-    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3 mt-2">
+    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 mt-2">
       {/* Label */}
       <div>
         <input
@@ -165,7 +165,7 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
           value={label}
           onChange={(e) => { setLabel(e.target.value); setLabelError('') }}
           placeholder="Compliance item label *"
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
         />
         {labelError && <p className="text-xs text-red-500 mt-1">{labelError}</p>}
       </div>
@@ -176,17 +176,17 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description (optional)"
         rows={2}
-        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors resize-none"
+        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors resize-none"
       />
 
       <div className="grid grid-cols-2 gap-3">
         {/* Status */}
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">Status</label>
+          <label className="text-xs text-slate-500 mb-1 block">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as ComplianceStatus)}
-            className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer bg-white"
+            className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer bg-white"
           >
             <option value="NOT_STARTED">Not Started</option>
             <option value="IN_PROGRESS">In Progress</option>
@@ -196,23 +196,23 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
 
         {/* Due date */}
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">Due Date</label>
+          <label className="text-xs text-slate-500 mb-1 block">Due Date</label>
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
+            className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
           />
         </div>
       </div>
 
       {/* Assignee */}
       <div>
-        <label className="text-xs text-gray-500 mb-1 block">Assignee</label>
+        <label className="text-xs text-slate-500 mb-1 block">Assignee</label>
         <select
           value={assigneeId}
           onChange={(e) => setAssigneeId(e.target.value)}
-          className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer bg-white"
+          className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer bg-white"
         >
           <option value="">Unassigned</option>
           {users.map((u) => (
@@ -225,15 +225,15 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
 
       {/* File URL */}
       <div>
-        <label className="text-xs text-gray-500 mb-1 block">File URL (optional)</label>
+        <label className="text-xs text-slate-500 mb-1 block">File URL (optional)</label>
         <div className="relative">
-          <Paperclip className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          <Paperclip className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <input
             type="url"
             value={fileUrl}
             onChange={(e) => setFileUrl(e.target.value)}
             placeholder="https://…"
-            className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
+            className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
           />
         </div>
       </div>
@@ -243,14 +243,14 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
         <button
           onClick={onCancel}
           disabled={isSaving}
-          className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 font-medium hover:bg-white active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 font-medium hover:bg-white active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           onClick={handleSubmit}
           disabled={isSaving}
-          className="flex-1 px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+          className="flex-1 px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
         >
           {isSaving ? 'Saving…' : 'Save'}
         </button>
@@ -296,7 +296,7 @@ function ComplianceItemRow({
         className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
           isEditing
             ? 'border-indigo-200 bg-indigo-50/30'
-            : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50/50 bg-white'
+            : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 bg-white'
         }`}
         onClick={() => (isEditing ? onCancelEdit() : onEdit(item.id))}
       >
@@ -309,7 +309,7 @@ function ComplianceItemRow({
         </span>
 
         {/* Label */}
-        <span className="text-sm font-medium text-gray-900 flex-1 min-w-0 truncate">
+        <span className="text-sm font-medium text-slate-900 flex-1 min-w-0 truncate">
           {item.label}
         </span>
 
@@ -327,7 +327,7 @@ function ComplianceItemRow({
 
         {/* Due date */}
         {item.dueDate && (
-          <span className="text-xs text-gray-400 flex-shrink-0 hidden sm:block">
+          <span className="text-xs text-slate-400 flex-shrink-0 hidden sm:block">
             Due {new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
         )}
@@ -339,7 +339,7 @@ function ComplianceItemRow({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="text-gray-400 hover:text-indigo-500 flex-shrink-0 transition-colors"
+            className="text-slate-400 hover:text-indigo-500 flex-shrink-0 transition-colors"
             title="View file"
           >
             <Paperclip className="w-3.5 h-3.5" />
@@ -348,7 +348,7 @@ function ComplianceItemRow({
 
         {/* Expand indicator */}
         <ChevronDown
-          className={`w-4 h-4 text-gray-300 flex-shrink-0 transition-transform group-hover:text-gray-400 ${
+          className={`w-4 h-4 text-slate-300 flex-shrink-0 transition-transform group-hover:text-slate-400 ${
             isEditing ? 'rotate-180 text-indigo-400' : ''
           }`}
         />
@@ -360,7 +360,7 @@ function ComplianceItemRow({
             onDelete(item.id)
           }}
           disabled={isDeleting}
-          className="p-1 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer disabled:opacity-50 flex-shrink-0"
+          className="p-1 rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer disabled:opacity-50 flex-shrink-0"
           title="Delete item"
         >
           {isDeleting ? (
@@ -473,12 +473,12 @@ export function ComplianceChecklist({ eventProjectId }: ComplianceChecklistProps
       {/* Header actions */}
       {!isEmpty && (
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-sm text-gray-500">{items.length} compliance items</span>
+          <span className="text-sm text-slate-500">{items.length} compliance items</span>
           <div className="flex items-center gap-2">
             <button
               onClick={handleImportDefaults}
               disabled={isImporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-60"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-60"
             >
               {isImporting ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -489,7 +489,7 @@ export function ComplianceChecklist({ eventProjectId }: ComplianceChecklistProps
             </button>
             <button
               onClick={() => { setShowNewForm(true); setEditingId(null) }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Add Custom

@@ -158,7 +158,7 @@ function StatusBadge({ status }: { status: RegistrationStatus }) {
     REGISTERED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Registered' },
     WAITLISTED: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Waitlisted' },
     CANCELLED:  { bg: 'bg-red-100',   text: 'text-red-700',   label: 'Cancelled'  },
-    DRAFT:      { bg: 'bg-gray-100',  text: 'text-gray-700',  label: 'Draft'      },
+    DRAFT:      { bg: 'bg-slate-100',  text: 'text-slate-700',  label: 'Draft'      },
   }
   const s = styles[status] ?? styles.DRAFT
   return (
@@ -173,7 +173,7 @@ function PaymentBadge({ status }: { status: PaymentStatus }) {
   const styles: Record<PaymentStatus, { bg: string; text: string; label: string }> = {
     PAID:         { bg: 'bg-green-100', text: 'text-green-700', label: 'Paid' },
     DEPOSIT_PAID: { bg: 'bg-blue-100',  text: 'text-blue-700',  label: 'Deposit Paid' },
-    UNPAID:       { bg: 'bg-gray-100',  text: 'text-gray-600',  label: 'No Payment Required' },
+    UNPAID:       { bg: 'bg-slate-100',  text: 'text-slate-600',  label: 'No Payment Required' },
   }
   const s = styles[status] ?? styles.UNPAID
   return (
@@ -195,7 +195,7 @@ function GroupTypeBadge({ type }: { type: string }) {
   const config = GROUP_TYPE_CONFIG[type] ?? {
     label: type,
     icon: Users,
-    color: 'bg-gray-50 text-gray-600 border-gray-100',
+    color: 'bg-slate-50 text-slate-600 border-slate-100',
   }
   const Icon = config.icon
   return (
@@ -224,7 +224,7 @@ function RegistrationQRCode({ registrationId }: { registrationId: string }) {
 
   if (!qrUrl) {
     return (
-      <div className="w-[180px] h-[180px] bg-gray-100 animate-pulse rounded-lg mx-auto" />
+      <div className="w-[180px] h-[180px] bg-slate-100 animate-pulse rounded-lg mx-auto" />
     )
   }
 
@@ -235,9 +235,9 @@ function RegistrationQRCode({ registrationId }: { registrationId: string }) {
         alt="Check-in QR Code"
         width={180}
         height={180}
-        className="border-4 border-gray-100 rounded-xl mx-auto"
+        className="border-4 border-slate-100 rounded-xl mx-auto"
       />
-      <p className="text-xs text-gray-400 mt-2">Present at check-in</p>
+      <p className="text-xs text-slate-400 mt-2">Present at check-in</p>
     </div>
   )
 }
@@ -263,8 +263,8 @@ function GroupAssignmentsSection({ registrationId }: { registrationId: string })
   }, [registrationId])
 
   return (
-    <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+    <motion.div variants={fadeInUp} className="bg-white border border-slate-200 rounded-2xl p-5">
+      <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
         <Users className="w-4 h-4" />
         Your Groups
       </h2>
@@ -272,14 +272,14 @@ function GroupAssignmentsSection({ registrationId }: { registrationId: string })
       {loading ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />
+            <div key={i} className="h-16 bg-slate-50 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : groups.length === 0 ? (
         <div className="text-center py-6">
-          <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">Groups haven&apos;t been assigned yet.</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+          <p className="text-sm text-slate-500">Groups haven&apos;t been assigned yet.</p>
+          <p className="text-xs text-slate-400 mt-1">
             Check back closer to the event date.
           </p>
         </div>
@@ -288,22 +288,22 @@ function GroupAssignmentsSection({ registrationId }: { registrationId: string })
           {groups.map((group) => (
             <div
               key={group.groupId}
-              className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100"
+              className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <GroupTypeBadge type={group.groupType} />
-                  <p className="text-sm font-semibold text-gray-900 truncate">
+                  <p className="text-sm font-semibold text-slate-900 truncate">
                     {group.groupName}
                   </p>
                 </div>
                 {group.leaderName && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-slate-500">
                     Leader: {group.leaderName}
                   </p>
                 )}
                 {group.description && (
-                  <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
+                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
                     {group.description}
                   </p>
                 )}
@@ -373,13 +373,13 @@ export default function PortalView({
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-b from-gray-50 to-white"
+      className="min-h-screen bg-gradient-to-b from-slate-50 to-white"
       initial="initial"
       animate="animate"
       variants={stagger}
     >
       {/* ─── Header ─────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center gap-3">
             {orgLogo ? (
@@ -396,8 +396,8 @@ export default function PortalView({
               </div>
             )}
             <div>
-              <p className="text-xs text-gray-500 font-medium">{orgName}</p>
-              <p className="text-sm font-semibold text-gray-900">Registration Portal</p>
+              <p className="text-xs text-slate-500 font-medium">{orgName}</p>
+              <p className="text-sm font-semibold text-slate-900">Registration Portal</p>
             </div>
           </div>
         </div>
@@ -464,44 +464,44 @@ export default function PortalView({
         </motion.div>
 
         {/* ─── Registration Summary Card ───────────────────────────────── */}
-        <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <motion.div variants={fadeInUp} className="bg-white border border-slate-200 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
             <User className="w-4 h-4" />
             Registration
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Participant</p>
-              <p className="text-sm font-semibold text-gray-900 mt-0.5">
+              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Participant</p>
+              <p className="text-sm font-semibold text-slate-900 mt-0.5">
                 {registration.firstName} {registration.lastName}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Email</p>
-              <p className="text-sm text-gray-700 mt-0.5 truncate">{registration.email}</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Email</p>
+              <p className="text-sm text-slate-700 mt-0.5 truncate">{registration.email}</p>
             </div>
             {registration.phone && (
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Phone</p>
-                <p className="text-sm text-gray-700 mt-0.5">{registration.phone}</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Phone</p>
+                <p className="text-sm text-slate-700 mt-0.5">{registration.phone}</p>
               </div>
             )}
             {registration.grade && (
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Grade</p>
-                <p className="text-sm text-gray-700 mt-0.5">{registration.grade}</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Grade</p>
+                <p className="text-sm text-slate-700 mt-0.5">{registration.grade}</p>
               </div>
             )}
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Status</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Status</p>
               <div className="mt-0.5">
                 <StatusBadge status={registration.status} />
               </div>
             </div>
             {registration.status !== 'DRAFT' && (
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Payment</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Payment</p>
                 <div className="mt-0.5">
                   <PaymentBadge status={registration.paymentStatus} />
                 </div>
@@ -509,16 +509,16 @@ export default function PortalView({
             )}
             {registration.submittedAt && (
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Submitted</p>
-                <p className="text-sm text-gray-700 mt-0.5">{formatShortDate(registration.submittedAt)}</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Submitted</p>
+                <p className="text-sm text-slate-700 mt-0.5">{formatShortDate(registration.submittedAt)}</p>
               </div>
             )}
           </div>
 
           {/* QR Code */}
           {registration.status === 'REGISTERED' && (
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <p className="text-xs text-gray-500 text-center mb-3 font-medium">Your Check-In QR Code</p>
+            <div className="mt-5 pt-5 border-t border-slate-100">
+              <p className="text-xs text-slate-500 text-center mb-3 font-medium">Your Check-In QR Code</p>
               <RegistrationQRCode registrationId={registration.id} />
             </div>
           )}
@@ -536,48 +536,48 @@ export default function PortalView({
         </motion.div>
 
         {/* ─── Schedule Section ─────────────────────────────────────────── */}
-        <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <motion.div variants={fadeInUp} className="bg-white border border-slate-200 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
             <CalendarDays className="w-4 h-4" />
             Schedule
           </h2>
 
           {schedule.length === 0 ? (
             <div className="text-center py-6">
-              <CalendarDays className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Schedule will be posted soon.</p>
-              <p className="text-xs text-gray-400 mt-1">Check back closer to the event date.</p>
+              <CalendarDays className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">Schedule will be posted soon.</p>
+              <p className="text-xs text-slate-400 mt-1">Check back closer to the event date.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {schedule.map((block) => (
                 <div
                   key={block.id}
-                  className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl"
+                  className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl"
                 >
                   <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-blue-400 to-indigo-500 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{block.title}</p>
+                    <p className="text-sm font-semibold text-slate-900">{block.title}</p>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                       {block.startsAt && (
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <span className="text-xs text-slate-500 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {formatTime(block.startsAt)}
                           {block.endsAt && ` – ${formatTime(block.endsAt)}`}
                         </span>
                       )}
                       {block.locationText && (
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <span className="text-xs text-slate-500 flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
                           {block.locationText}
                         </span>
                       )}
                     </div>
                     {block.description && (
-                      <p className="text-xs text-gray-400 mt-1 leading-relaxed">{block.description}</p>
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">{block.description}</p>
                     )}
                   </div>
-                  <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded font-medium uppercase flex-shrink-0">
+                  <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-medium uppercase flex-shrink-0">
                     {block.type}
                   </span>
                 </div>
@@ -592,17 +592,17 @@ export default function PortalView({
         )}
 
         {/* ─── Documents / Signatures Section ──────────────────────────── */}
-        <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <motion.div variants={fadeInUp} className="bg-white border border-slate-200 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
             <FileText className="w-4 h-4" />
             Documents
           </h2>
 
           {signatures.length === 0 ? (
             <div className="text-center py-6">
-              <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">No documents on file.</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No documents on file.</p>
+              <p className="text-xs text-slate-400 mt-1">
                 Required documents will appear here when available.
               </p>
             </div>
@@ -615,10 +615,10 @@ export default function PortalView({
                 >
                   <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-slate-900 truncate">
                       {sig.documentLabel}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Signed {formatShortDate(sig.signedAt)}
                       {' · '}
                       {sig.signatureType === 'DRAWN' ? 'Drawn signature' : 'Typed signature'}
@@ -632,8 +632,8 @@ export default function PortalView({
 
         {/* ─── Payments Section ─────────────────────────────────────────── */}
         {(payments.length > 0 || basePrice) && (
-          <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <motion.div variants={fadeInUp} className="bg-white border border-slate-200 rounded-2xl p-5">
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
               Payments
             </h2>
@@ -643,27 +643,27 @@ export default function PortalView({
                 {payments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                    className="flex items-center justify-between p-3 bg-slate-50 rounded-xl"
                   >
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-slate-900">
                         {payment.paymentType === 'DEPOSIT' ? 'Deposit' :
                          payment.paymentType === 'BALANCE' ? 'Balance' : 'Full Payment'}
                       </p>
                       {payment.discountCode && (
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Code: {payment.discountCode}
                           {payment.discountAmount ? ` (−${formatCurrency(payment.discountAmount, payment.currency)})` : ''}
                         </p>
                       )}
                       {payment.paidAt && (
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-slate-400 mt-0.5">
                           {formatShortDate(payment.paidAt)}
                         </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold text-slate-900">
                         {formatCurrency(payment.amount, payment.currency)}
                       </p>
                       <span
@@ -686,19 +686,19 @@ export default function PortalView({
 
             {/* Balance summary */}
             {basePrice && (
-              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <div className="bg-slate-50 rounded-xl p-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Registration fee</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(basePrice)}</span>
+                  <span className="text-slate-500">Registration fee</span>
+                  <span className="font-medium text-slate-900">{formatCurrency(basePrice)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Total paid</span>
+                  <span className="text-slate-500">Total paid</span>
                   <span className="font-medium text-green-700">{formatCurrency(totalPaid)}</span>
                 </div>
                 {hasBalance && (
                   <>
-                    <div className="border-t border-gray-200 pt-2 flex justify-between text-sm">
-                      <span className="font-semibold text-gray-900">Balance due</span>
+                    <div className="border-t border-slate-200 pt-2 flex justify-between text-sm">
+                      <span className="font-semibold text-slate-900">Balance due</span>
                       <span className="font-bold text-amber-700">{formatCurrency(balanceDue)}</span>
                     </div>
                     <a
@@ -715,8 +715,8 @@ export default function PortalView({
         )}
 
         {/* ─── Announcements Section ────────────────────────────────────── */}
-        <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <motion.div variants={fadeInUp} className="bg-white border border-slate-200 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
             <Megaphone className="w-4 h-4" />
             Announcements
           </h2>
@@ -724,14 +724,14 @@ export default function PortalView({
           {announcementsLoading ? (
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="animate-pulse h-16 bg-gray-50 rounded-xl" />
+                <div key={i} className="animate-pulse h-16 bg-slate-50 rounded-xl" />
               ))}
             </div>
           ) : announcements.length === 0 ? (
             <div className="text-center py-6">
-              <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">No announcements yet.</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <Megaphone className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No announcements yet.</p>
+              <p className="text-xs text-slate-400 mt-1">
                 Important updates will appear here as the event approaches.
               </p>
             </div>
@@ -747,11 +747,11 @@ export default function PortalView({
                       <Megaphone className="w-3.5 h-3.5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{ann.title}</p>
-                      <p className="text-sm text-gray-700 mt-1 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-sm font-semibold text-slate-900">{ann.title}</p>
+                      <p className="text-sm text-slate-700 mt-1 leading-relaxed whitespace-pre-wrap">
                         {ann.body}
                       </p>
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-slate-400 mt-2">
                         {new Date(ann.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -773,7 +773,7 @@ export default function PortalView({
           <button
             type="button"
             onClick={onRequestNewLink}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
             Request New Link
@@ -782,7 +782,7 @@ export default function PortalView({
           {organization && (
             <a
               href={`mailto:?subject=Question about ${event?.title ?? 'my registration'}`}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
             >
               <Mail className="w-4 h-4" />
               Contact {orgName}
@@ -792,11 +792,11 @@ export default function PortalView({
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-6 text-center">
-        <p className="text-xs text-gray-400">
+      <footer className="border-t border-slate-100 py-6 text-center">
+        <p className="text-xs text-slate-400">
           {orgName} — Registration Portal
         </p>
-        <p className="text-xs text-gray-300 mt-1">Powered by Lionheart</p>
+        <p className="text-xs text-slate-300 mt-1">Powered by Lionheart</p>
       </footer>
     </motion.div>
   )

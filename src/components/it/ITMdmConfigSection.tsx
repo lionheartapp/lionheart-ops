@@ -46,13 +46,13 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <Shield className="w-5 h-5 text-gray-700" />
-        <h3 className="text-sm font-semibold text-gray-900">
+        <Shield className="w-5 h-5 text-slate-700" />
+        <h3 className="text-sm font-semibold text-slate-900">
           Mobile Device Management (MDM)
         </h3>
       </div>
 
-      <p className="text-xs text-gray-500 mb-4">
+      <p className="text-xs text-slate-500 mb-4">
         Connect your MDM provider to automatically sync device enrollment, push policies, and manage
         apps across your fleet.
       </p>
@@ -66,14 +66,14 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-xl border border-gray-100">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-xl border border-slate-100">
                   {provider.logo}
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900">
+                  <h4 className="text-sm font-semibold text-slate-900">
                     {provider.name}
                   </h4>
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-500">
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-500">
                     Not Connected
                   </span>
                 </div>
@@ -81,7 +81,7 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
             </div>
 
             {/* Description */}
-            <p className="text-xs text-gray-500 mb-3 leading-relaxed">
+            <p className="text-xs text-slate-500 mb-3 leading-relaxed">
               {provider.description}
             </p>
 
@@ -90,7 +90,7 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
               {provider.features.map((feature) => (
                 <span
                   key={feature}
-                  className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-gray-50 text-gray-500 border border-gray-100"
+                  className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-slate-50 text-slate-500 border border-slate-100"
                 >
                   {feature}
                 </span>
@@ -105,7 +105,7 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
                   onMouseLeave={() => setTooltipId(null)}
                   onClick={() => setTooltipId(tooltipId === provider.id ? null : provider.id)}
                   disabled={!canManage}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-500 text-xs font-medium cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-500 text-xs font-medium cursor-not-allowed"
                 >
                   <Settings className="w-3.5 h-3.5" />
                   Configure
@@ -114,11 +114,11 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
                 {/* Tooltip */}
                 {tooltipId === provider.id && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 whitespace-nowrap">
-                    <div className="ui-glass-dropdown px-3 py-2 text-xs text-gray-600 flex items-center gap-1.5">
-                      <Info className="w-3.5 h-3.5 text-gray-400" />
+                    <div className="ui-glass-dropdown px-3 py-2 text-xs text-slate-600 flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5 text-slate-400" />
                       Coming soon — requires API credentials
                     </div>
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-white/80 border-r border-b border-gray-200/30 transform rotate-45 -mt-1" />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-white/80 border-r border-b border-slate-200/30 transform rotate-45 -mt-1" />
                   </div>
                 )}
               </div>
@@ -127,7 +127,7 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
                 href={provider.docsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 Docs

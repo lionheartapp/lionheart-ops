@@ -121,11 +121,11 @@ export default function ConfirmDialog({
           <div className="p-5 sm:p-8">
             {/* Title */}
             <div>
-              <h3 id="confirm-dialog-title" className="text-xl sm:text-2xl font-semibold text-gray-900">
+              <h3 id="confirm-dialog-title" className="text-xl sm:text-2xl font-semibold text-slate-900">
                 {title}
               </h3>
-              <div className="mt-4 h-px w-full bg-gray-200" />
-              <p className="mt-4 text-base text-gray-700">
+              <div className="mt-4 h-px w-full bg-slate-200" />
+              <p className="mt-4 text-base text-slate-700">
                 {message}
               </p>
             </div>
@@ -134,13 +134,13 @@ export default function ConfirmDialog({
 
             {requiresConfirmation && (
               <div className="mt-6">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   To confirm this, type &ldquo;{requireText}&rdquo;
                 </p>
                 <input
                   value={confirmInput}
                   onChange={(event) => setConfirmInput(event.target.value)}
-                  className="mt-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
+                  className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
                   placeholder={requireText}
                 />
                 <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3">
@@ -181,7 +181,7 @@ export default function ConfirmDialog({
                     disabled={isLoading || extraAction.disabled}
                     className={
                       extraAction.className ||
-                      'flex-1 ui-btn-md ui-btn-ghost rounded-full bg-gray-100 hover:bg-gray-200'
+                      'flex-1 ui-btn-md ui-btn-ghost rounded-full bg-slate-100 hover:bg-slate-200'
                     }
                   >
                     {extraAction.label}

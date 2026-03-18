@@ -27,7 +27,7 @@ interface LaborHoursChartProps {
 export default function LaborHoursChart({ data }: LaborHoursChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
         No labor data for this period
       </div>
     )

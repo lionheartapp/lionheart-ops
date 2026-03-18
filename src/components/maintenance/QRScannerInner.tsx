@@ -102,7 +102,7 @@ export default function QRScannerInner({ onClose }: QRScannerInnerProps) {
         </div>
       )}
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-slate-400 text-center">
         Point camera at an asset QR label to navigate to the asset detail page
       </p>
     </div>

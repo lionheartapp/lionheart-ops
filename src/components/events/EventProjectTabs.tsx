@@ -50,13 +50,13 @@ class TabErrorBoundary extends Component<{ children: ReactNode; tabName: string 
     if (this.state.hasError) {
       return (
         <div className="p-6 text-center">
-          <p className="text-sm font-semibold text-gray-900 mb-2">This tab encountered an error</p>
+          <p className="text-sm font-semibold text-slate-900 mb-2">This tab encountered an error</p>
           <p className="text-xs text-red-600 font-mono bg-red-50 p-3 rounded-lg mb-4 max-w-xl mx-auto break-words">
             {this.state.error?.message || 'Unknown error'}
           </p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 cursor-pointer"
+            className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 cursor-pointer"
           >
             Try Again
           </button>
@@ -192,7 +192,7 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
   return (
     <div>
       {/* Tab bar with PresenceBar */}
-      <div className="relative border-b border-gray-200 mb-6">
+      <div className="relative border-b border-slate-200 mb-6">
         {/* Tab row with presence bar at right */}
         <div className="flex items-center">
           {/* Scrollable tab list */}
@@ -210,10 +210,10 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
                   data-tab={tab.id}
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-shrink-0 ${
-                    isActive ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-700'
+                    isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : 'text-slate-400'}`} />
                   {tab.label}
                 </button>
               )
@@ -236,7 +236,7 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
             <div className="flex-shrink-0 ml-3 mb-1 pb-1">
               <button
                 onClick={() => router.push(`/events/${project.id}/dayof`)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
               >
                 <QrCode className="w-3.5 h-3.5" />
                 Launch Day-Of Mode

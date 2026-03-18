@@ -27,7 +27,7 @@ function ResetPasswordContent() {
         </div>
         <a
           href="/login"
-          className="inline-block text-sm text-gray-600 hover:text-gray-900 transition-colors underline"
+          className="inline-block text-sm text-slate-600 hover:text-slate-900 transition-colors underline"
         >
           Back to sign in
         </a>
@@ -124,7 +124,7 @@ function ResetPasswordContent() {
         />
 
         <div>
-          <label htmlFor="rp-confirm" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="rp-confirm" className="block text-sm font-medium text-slate-700">
             Confirm new password
           </label>
           <div className="relative mt-1">
@@ -134,14 +134,14 @@ function ResetPasswordContent() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repeat your new password"
-              className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
+              className="block w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
               required
               autoComplete="new-password"
             />
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               aria-label={showConfirm ? 'Hide password' : 'Show password'}
               tabIndex={-1}
             >
@@ -169,7 +169,7 @@ function ResetPasswordContent() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-full bg-gray-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-full bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {submitting ? 'Resetting password...' : 'Set new password'}
       </button>
@@ -177,7 +177,7 @@ function ResetPasswordContent() {
       <p className="text-center text-sm">
         <a
           href="/login"
-          className="text-gray-500 hover:text-gray-700 transition-colors"
+          className="text-slate-500 hover:text-slate-700 transition-colors"
         >
           Back to sign in
         </a>
@@ -200,10 +200,10 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Form card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-xl">
+        <div className="bg-white rounded-xl border border-slate-200 p-8 shadow-xl">
           <Suspense fallback={
             <div className="text-center py-4">
-              <p className="text-sm text-gray-600">Loading&hellip;</p>
+              <p className="text-sm text-slate-600">Loading&hellip;</p>
             </div>
           }>
             <ResetPasswordContent />

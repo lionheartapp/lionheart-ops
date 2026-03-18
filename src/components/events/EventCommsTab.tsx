@@ -42,7 +42,7 @@ function SubTabBar({ activeTab, onChange, announcementCount, activeSurveyCount, 
   ]
 
   return (
-    <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+    <div className="flex gap-1 p-1 bg-slate-100 rounded-xl w-fit">
       {tabs.map(({ id, label, count, icon: Icon }) => (
         <button
           key={id}
@@ -50,8 +50,8 @@ function SubTabBar({ activeTab, onChange, announcementCount, activeSurveyCount, 
           onClick={() => onChange(id)}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
             activeTab === id
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           <Icon className="w-4 h-4" />
@@ -61,7 +61,7 @@ function SubTabBar({ activeTab, onChange, announcementCount, activeSurveyCount, 
               className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
                 activeTab === id
                   ? 'bg-indigo-100 text-indigo-700'
-                  : 'bg-gray-200 text-gray-600'
+                  : 'bg-slate-200 text-slate-600'
               }`}
             >
               {count}
@@ -114,16 +114,16 @@ export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStart
       {/* Quick stats row */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border border-blue-100 rounded-xl p-4">
-          <p className="text-2xl font-bold text-gray-900">{announcements.length}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Announcement{announcements.length !== 1 ? 's' : ''} sent</p>
+          <p className="text-2xl font-bold text-slate-900">{announcements.length}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Announcement{announcements.length !== 1 ? 's' : ''} sent</p>
         </div>
         <div className="bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border border-emerald-100 rounded-xl p-4">
-          <p className="text-2xl font-bold text-gray-900">{activeSurveyCount}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Active survey{activeSurveyCount !== 1 ? 's' : ''}</p>
+          <p className="text-2xl font-bold text-slate-900">{activeSurveyCount}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Active survey{activeSurveyCount !== 1 ? 's' : ''}</p>
         </div>
         <div className="bg-gradient-to-br from-violet-50/80 to-purple-50/80 border border-violet-100 rounded-xl p-4">
-          <p className="text-2xl font-bold text-gray-900">{notificationCount}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Notification rule{notificationCount !== 1 ? 's' : ''}</p>
+          <p className="text-2xl font-bold text-slate-900">{notificationCount}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Notification rule{notificationCount !== 1 ? 's' : ''}</p>
         </div>
       </div>
 
@@ -148,8 +148,8 @@ export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStart
           {activeSubTab === 'announcements' && (
             <div className="space-y-6">
               {/* Composer card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="bg-white border border-slate-200 rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
                   <Megaphone className="w-4 h-4 text-indigo-500" />
                   Compose Announcement
                 </h3>
@@ -157,8 +157,8 @@ export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStart
               </div>
 
               {/* Feed card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">
+              <div className="bg-white border border-slate-200 rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4">
                   Sent Announcements
                 </h3>
                 <AnnouncementFeed eventProjectId={eventProjectId} />
@@ -167,12 +167,12 @@ export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStart
           )}
 
           {activeSubTab === 'surveys' && (
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-1 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-slate-900 mb-1 flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-indigo-500" />
                 Surveys
               </h3>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="text-xs text-slate-500 mb-4">
                 Post-event feedback surveys that use your registration form as the question template.
               </p>
               <SurveyManager eventProjectId={eventProjectId} />
@@ -180,12 +180,12 @@ export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStart
           )}
 
           {activeSubTab === 'notifications' && (
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-1 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-slate-900 mb-1 flex items-center gap-2">
                 <Bell className="w-4 h-4 text-indigo-500" />
                 Automated Notifications
               </h3>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="text-xs text-slate-500 mb-4">
                 Set up notification triggers with AI-drafted messages. All notifications require approval before sending.
               </p>
               <NotificationTimeline

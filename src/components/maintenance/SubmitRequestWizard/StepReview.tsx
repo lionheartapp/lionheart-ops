@@ -29,7 +29,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  LOW: 'bg-gray-100 text-gray-700',
+  LOW: 'bg-slate-100 text-slate-700',
   MEDIUM: 'bg-blue-100 text-blue-700',
   HIGH: 'bg-orange-100 text-orange-700',
   URGENT: 'bg-red-100 text-red-700',
@@ -133,8 +133,8 @@ export default function StepReview({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-1">Review Your Request</h3>
-        <p className="text-sm text-gray-500">Confirm details before submitting</p>
+        <h3 className="text-base font-semibold text-slate-900 mb-1">Review Your Request</h3>
+        <p className="text-sm text-slate-500">Confirm details before submitting</p>
       </div>
 
       {/* Multi-issue AI banner */}
@@ -189,7 +189,7 @@ export default function StepReview({
 
       {/* AI checking indicator */}
       {checkingMultiIssue && (
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex items-center gap-2 text-xs text-slate-400">
           <Loader2 className="w-3 h-3 animate-spin" />
           AI is reviewing your request...
         </div>
@@ -198,33 +198,33 @@ export default function StepReview({
       {/* Summary card */}
       <div className="ui-glass rounded-xl overflow-hidden">
         {/* Location */}
-        <div className="px-4 py-3 border-b border-gray-100/50">
+        <div className="px-4 py-3 border-b border-slate-100/50">
           <div className="flex items-center gap-2 mb-1">
             <MapPin className="w-3.5 h-3.5 text-primary-500" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Location</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Location</span>
           </div>
-          <p className="text-sm text-gray-900 font-medium">{formData.locationLabel || 'Not specified'}</p>
+          <p className="text-sm text-slate-900 font-medium">{formData.locationLabel || 'Not specified'}</p>
         </div>
 
         {/* Title */}
-        <div className="px-4 py-3 border-b border-gray-100/50">
+        <div className="px-4 py-3 border-b border-slate-100/50">
           <div className="flex items-start gap-2">
-            <MessageSquare className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
+            <MessageSquare className="w-3.5 h-3.5 text-slate-400 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Issue</span>
-              <p className="text-sm font-medium text-gray-900">{formData.title}</p>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">Issue</span>
+              <p className="text-sm font-medium text-slate-900">{formData.title}</p>
               {formData.description && (
-                <p className="text-sm text-gray-600 mt-1 leading-relaxed">{formData.description}</p>
+                <p className="text-sm text-slate-600 mt-1 leading-relaxed">{formData.description}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Category & Priority */}
-        <div className="px-4 py-3 border-b border-gray-100/50">
+        <div className="px-4 py-3 border-b border-slate-100/50">
           <div className="flex items-center gap-2 mb-2">
-            <Tag className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</span>
+            <Tag className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Details</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.category && (
@@ -233,7 +233,7 @@ export default function StepReview({
               </span>
             )}
             {formData.priority && (
-              <span className={`px-2.5 py-1 text-xs font-medium rounded-lg ${PRIORITY_COLORS[formData.priority] || 'bg-gray-100 text-gray-700'}`}>
+              <span className={`px-2.5 py-1 text-xs font-medium rounded-lg ${PRIORITY_COLORS[formData.priority] || 'bg-slate-100 text-slate-700'}`}>
                 {formData.priority} priority
               </span>
             )}
@@ -242,16 +242,16 @@ export default function StepReview({
 
         {/* Photos */}
         {formData.photos.length > 0 && (
-          <div className="px-4 py-3 border-b border-gray-100/50">
+          <div className="px-4 py-3 border-b border-slate-100/50">
             <div className="flex items-center gap-2 mb-2">
-              <Camera className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <Camera className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Photos ({formData.photos.length})
               </span>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {formData.photos.map((photo, i) => (
-                <div key={photo.url} className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                <div key={photo.url} className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-slate-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photo.localPreview || photo.url}
@@ -266,12 +266,12 @@ export default function StepReview({
 
         {/* Availability note */}
         {formData.availabilityNote && (
-          <div className="px-4 py-3 border-b border-gray-100/50">
+          <div className="px-4 py-3 border-b border-slate-100/50">
             <div className="flex items-center gap-2 mb-1">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Access Note</span>
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Access Note</span>
             </div>
-            <p className="text-sm text-gray-700">{formData.availabilityNote}</p>
+            <p className="text-sm text-slate-700">{formData.availabilityNote}</p>
           </div>
         )}
 
@@ -280,14 +280,14 @@ export default function StepReview({
           <div className="px-4 py-3">
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Scheduled For</span>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Scheduled For</span>
             </div>
             <p className="text-sm text-blue-700 font-medium">
               {new Date(formData.scheduledDate + 'T00:00:00').toLocaleDateString('en-US', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
               })}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">Ticket will be activated on this date</p>
+            <p className="text-xs text-slate-400 mt-0.5">Ticket will be activated on this date</p>
           </div>
         )}
       </div>

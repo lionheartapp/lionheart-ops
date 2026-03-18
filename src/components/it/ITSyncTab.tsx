@@ -69,7 +69,7 @@ const JOB_TYPE_LABELS: Record<string, string> = {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot?: string }> = {
-  PENDING: { bg: 'bg-gray-100', text: 'text-gray-700' },
+  PENDING: { bg: 'bg-slate-100', text: 'text-slate-700' },
   RUNNING: { bg: 'bg-blue-100', text: 'text-blue-700' },
   COMPLETED: { bg: 'bg-green-100', text: 'text-green-700' },
   FAILED: { bg: 'bg-red-100', text: 'text-red-700' },
@@ -161,26 +161,26 @@ function SyncTabSkeleton() {
         {[1, 2, 3].map((i) => (
           <div key={i} className="ui-glass p-5 animate-pulse">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gray-200 rounded-xl" />
+              <div className="w-10 h-10 bg-slate-200 rounded-xl" />
               <div className="flex-1 space-y-2">
-                <div className="w-24 h-4 bg-gray-200 rounded" />
-                <div className="w-16 h-3 bg-gray-100 rounded" />
+                <div className="w-24 h-4 bg-slate-200 rounded" />
+                <div className="w-16 h-3 bg-slate-100 rounded" />
               </div>
             </div>
-            <div className="w-full h-8 bg-gray-100 rounded-full" />
+            <div className="w-full h-8 bg-slate-100 rounded-full" />
           </div>
         ))}
       </div>
       <div className="ui-glass-table animate-pulse">
-        <div className="h-10 bg-gray-100 border-b border-gray-200/50" />
+        <div className="h-10 bg-slate-100 border-b border-slate-200/50" />
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-12 border-b border-gray-100/50 flex items-center px-4 gap-4">
-            <div className="w-20 h-3 bg-gray-100 rounded" />
-            <div className="w-16 h-3 bg-gray-100 rounded" />
-            <div className="w-16 h-5 bg-gray-100 rounded-md" />
-            <div className="w-24 h-3 bg-gray-100 rounded" />
-            <div className="w-16 h-3 bg-gray-100 rounded" />
-            <div className="w-12 h-3 bg-gray-100 rounded" />
+          <div key={i} className="h-12 border-b border-slate-100/50 flex items-center px-4 gap-4">
+            <div className="w-20 h-3 bg-slate-100 rounded" />
+            <div className="w-16 h-3 bg-slate-100 rounded" />
+            <div className="w-16 h-5 bg-slate-100 rounded-md" />
+            <div className="w-24 h-3 bg-slate-100 rounded" />
+            <div className="w-16 h-3 bg-slate-100 rounded" />
+            <div className="w-12 h-3 bg-slate-100 rounded" />
           </div>
         ))}
       </div>
@@ -273,13 +273,13 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
     <div className="space-y-8">
       {/* ─── Sync Providers ──────────────────────────────────────────── */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Sync Providers</h3>
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">Sync Providers</h3>
 
         {configs.length === 0 ? (
           <div className="ui-glass p-8 text-center">
             <IllustrationSync className="w-40 h-32 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-600 mb-1">No sync providers configured</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-sm font-medium text-slate-600 mb-1">No sync providers configured</p>
+            <p className="text-xs text-slate-400 mt-1">
               Set up Google Admin, Clever, or ClassLink to sync data automatically
             </p>
           </div>
@@ -301,8 +301,8 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
                         <Icon className="w-5 h-5 text-primary-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{label}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-sm font-semibold text-slate-900">{label}</p>
+                        <p className="text-xs text-slate-400">
                           {config.syncSchedule ?? 'Manual sync'}
                         </p>
                       </div>
@@ -319,7 +319,7 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
                         }
                         disabled={toggleEnableMutation.isPending}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                          config.isEnabled ? 'bg-green-500' : 'bg-gray-300'
+                          config.isEnabled ? 'bg-green-500' : 'bg-slate-300'
                         }`}
                         aria-label={config.isEnabled ? 'Disable sync' : 'Enable sync'}
                       >
@@ -337,9 +337,9 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
                     {config.lastSyncStatus ? (
                       <SyncStatusBadge status={config.lastSyncStatus} />
                     ) : (
-                      <span className="text-xs text-gray-400">No sync history</span>
+                      <span className="text-xs text-slate-400">No sync history</span>
                     )}
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-slate-400">
                       {formatRelativeTime(config.lastSyncAt)}
                     </span>
                   </div>
@@ -355,7 +355,7 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
                     <button
                       onClick={() => triggerSyncMutation.mutate(config.provider)}
                       disabled={isSyncing || !config.isEnabled}
-                      className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSyncing ? (
                         <>
@@ -382,14 +382,14 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
 
       {/* ─── Sync History ────────────────────────────────────────────── */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Sync History</h3>
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">Sync History</h3>
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <select
             value={providerFilter}
             onChange={(e) => { setProviderFilter(e.target.value); setPage(0) }}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             {PROVIDER_FILTER_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -398,7 +398,7 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(0) }}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             {STATUS_FILTER_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -409,14 +409,14 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
         {jobs.length === 0 ? (
           <div className="ui-glass p-8 text-center">
             <IllustrationSync className="w-40 h-32 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-600 mb-1">No sync jobs found</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-sm font-medium text-slate-600 mb-1">No sync jobs found</p>
+            <p className="text-xs text-slate-400 mt-1">
               Trigger a sync above to see job history here
             </p>
           </div>
         ) : (
           <>
-            <p className="text-xs text-gray-500 mb-2">
+            <p className="text-xs text-slate-500 mb-2">
               {jobsTotal} job{jobsTotal !== 1 ? 's' : ''}
             </p>
 
@@ -424,7 +424,7 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
             <div className="hidden sm:block ui-glass-table">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 border-b border-gray-200/50">
+                  <tr className="text-left text-xs text-slate-500 border-b border-slate-200/50">
                     <th className="px-4 py-3 font-medium">Provider</th>
                     <th className="px-4 py-3 font-medium">Job Type</th>
                     <th className="px-4 py-3 font-medium">Status</th>
@@ -437,18 +437,18 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
                   {jobs.map((job) => (
                     <tr
                       key={job.id}
-                      className="border-b border-gray-100/50 hover:bg-gray-50/50 transition-colors"
+                      className="border-b border-slate-100/50 hover:bg-slate-50/50 transition-colors"
                     >
-                      <td className="px-4 py-3 text-gray-700">
+                      <td className="px-4 py-3 text-slate-700">
                         {PROVIDER_LABELS[job.provider] ?? job.provider}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">
+                      <td className="px-4 py-3 text-slate-600 text-xs">
                         {JOB_TYPE_LABELS[job.jobType] ?? job.jobType}
                       </td>
                       <td className="px-4 py-3">
                         <SyncStatusBadge status={job.status} />
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">
+                      <td className="px-4 py-3 text-xs text-slate-500">
                         {formatDateTime(job.startedAt)}
                       </td>
                       <td className="px-4 py-3">
@@ -464,18 +464,18 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
                             </span>
                           )}
                           {job.recordsSkipped > 0 && (
-                            <span className="inline-flex items-center rounded-md px-1.5 py-0.5 bg-gray-100 text-gray-600 font-medium">
+                            <span className="inline-flex items-center rounded-md px-1.5 py-0.5 bg-slate-100 text-slate-600 font-medium">
                               {job.recordsSkipped} skipped
                             </span>
                           )}
                           {job.recordsCreated === 0 &&
                             job.recordsUpdated === 0 &&
                             job.recordsSkipped === 0 && (
-                              <span className="text-gray-400">—</span>
+                              <span className="text-slate-400">—</span>
                             )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">
+                      <td className="px-4 py-3 text-xs text-slate-500">
                         {formatDuration(job.startedAt, job.completedAt)}
                       </td>
                     </tr>
@@ -489,12 +489,12 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
               {jobs.map((job) => (
                 <div key={job.id} className="ui-glass p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-slate-900">
                       {PROVIDER_LABELS[job.provider] ?? job.provider}
                     </span>
                     <SyncStatusBadge status={job.status} />
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-2">
+                  <div className="flex items-center gap-2 flex-wrap text-xs text-slate-500 mb-2">
                     <span>{JOB_TYPE_LABELS[job.jobType] ?? job.jobType}</span>
                     <span>{formatDateTime(job.startedAt)}</span>
                     <span>{formatDuration(job.startedAt, job.completedAt)}</span>
@@ -511,7 +511,7 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
                       </span>
                     )}
                     {job.recordsSkipped > 0 && (
-                      <span className="inline-flex items-center rounded-md px-1.5 py-0.5 bg-gray-100 text-gray-600 font-medium">
+                      <span className="inline-flex items-center rounded-md px-1.5 py-0.5 bg-slate-100 text-slate-600 font-medium">
                         {job.recordsSkipped} skipped
                       </span>
                     )}
@@ -523,21 +523,21 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between pt-2">
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-500">
                   Page {page + 1} of {totalPages}
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                     disabled={page === 0}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                     disabled={page >= totalPages - 1}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                   </button>

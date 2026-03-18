@@ -215,11 +215,11 @@ export default function MembersPage() {
           transition={{ delay: 0.3 }}
           className="space-y-2"
         >
-          <p className="text-5xl font-bold text-gray-900">{members.length}</p>
-          <p className="text-lg text-gray-600">
+          <p className="text-5xl font-bold text-slate-900">{members.length}</p>
+          <p className="text-lg text-slate-600">
             member{members.length !== 1 ? 's' : ''} invited
           </p>
-          <p className="text-sm text-gray-400 mt-3">
+          <p className="text-sm text-slate-400 mt-3">
             They&apos;ll receive an email invitation to join your workspace
           </p>
         </motion.div>
@@ -244,8 +244,8 @@ export default function MembersPage() {
             <Users className="w-8 h-8 text-primary-600" />
           </div>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900">Add your team</h2>
-        <p className="text-gray-500 mt-2">
+        <h2 className="text-3xl font-bold text-slate-900">Add your team</h2>
+        <p className="text-slate-500 mt-2">
           Bring your team along for the ride
         </p>
       </motion.div>
@@ -280,7 +280,7 @@ export default function MembersPage() {
                   setSelectedOption('csv')
                   setCsvError('')
                 }}
-                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="group relative p-7 bg-white border border-slate-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
@@ -289,17 +289,17 @@ export default function MembersPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">Upload CSV</h3>
+                        <h3 className="font-semibold text-slate-900">Upload CSV</h3>
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-100">
                           Recommended
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-slate-500 mt-1">
                         Import a list of staff from a spreadsheet
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-400 transition-all duration-200 group-hover:translate-x-0.5 mt-1 flex-shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-400 transition-all duration-200 group-hover:translate-x-0.5 mt-1 flex-shrink-0" />
                 </div>
               </motion.button>
 
@@ -312,7 +312,7 @@ export default function MembersPage() {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedOption('manual')}
-                className="group relative p-7 bg-white border border-gray-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="group relative p-7 bg-white border border-slate-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
@@ -320,13 +320,13 @@ export default function MembersPage() {
                       <UserPlus className="w-6 h-6 text-emerald-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">Add Manually</h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <h3 className="font-semibold text-slate-900">Add Manually</h3>
+                      <p className="text-sm text-slate-500 mt-1">
                         Add team members one at a time
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-400 transition-all duration-200 group-hover:translate-x-0.5 mt-1 flex-shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-400 transition-all duration-200 group-hover:translate-x-0.5 mt-1 flex-shrink-0" />
                 </div>
               </motion.button>
             </div>
@@ -341,7 +341,7 @@ export default function MembersPage() {
             >
               <button
                 onClick={handleSkip}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1"
+                className="text-sm text-slate-400 hover:text-slate-600 transition-colors inline-flex items-center gap-1"
               >
                 I&apos;ll do this later
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -364,14 +364,14 @@ export default function MembersPage() {
           >
             <button
               onClick={() => setSelectedOption(null)}
-              className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1.5 transition-colors"
+              className="text-sm text-slate-500 hover:text-slate-900 flex items-center gap-1.5 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back to options
             </button>
 
             <div>
-              <label htmlFor="csv-upload" className="block text-sm font-medium text-gray-900 mb-2">
+              <label htmlFor="csv-upload" className="block text-sm font-medium text-slate-900 mb-2">
                 Upload CSV File
               </label>
               <div
@@ -391,15 +391,15 @@ export default function MembersPage() {
                     <Upload className="w-6 h-6 text-primary-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Drag &amp; drop your CSV here</p>
-                    <p className="text-sm text-gray-500 mt-0.5">or click to browse</p>
+                    <p className="font-medium text-slate-900">Drag &amp; drop your CSV here</p>
+                    <p className="text-sm text-slate-500 mt-0.5">or click to browse</p>
                   </div>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white text-gray-500 border border-gray-200 tracking-wide">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white text-slate-500 border border-slate-200 tracking-wide">
                     CSV
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-slate-400 mt-2">
                 CSV must have &quot;name&quot; and &quot;email&quot; columns
               </p>
             </div>
@@ -418,7 +418,7 @@ export default function MembersPage() {
                 animate={{ opacity: 1 }}
               >
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">Preview</h3>
+                  <h3 className="font-semibold text-slate-900">Preview</h3>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary-50 to-indigo-50 text-primary-700 border border-primary-100">
                     {members.length} member{members.length !== 1 ? 's' : ''}
                   </span>
@@ -427,20 +427,20 @@ export default function MembersPage() {
                   {members.slice(0, 5).map((member, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-lg"
+                      className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-lg"
                     >
                       <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarColor(idx)} flex items-center justify-center flex-shrink-0`}>
                         <span className="text-xs font-semibold text-white">{getInitials(member.name)}</span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{member.email}</p>
+                        <p className="text-sm font-medium text-slate-900 truncate">{member.name}</p>
+                        <p className="text-xs text-slate-500 truncate">{member.email}</p>
                       </div>
                     </div>
                   ))}
                 </div>
                 {members.length > 5 && (
-                  <p className="text-xs text-gray-400 pl-1">
+                  <p className="text-xs text-slate-400 pl-1">
                     + {members.length - 5} more member{members.length - 5 !== 1 ? 's' : ''}
                   </p>
                 )}
@@ -454,7 +454,7 @@ export default function MembersPage() {
                     setMembers([])
                     fileInputRef.current?.click()
                   }}
-                  className="px-4 py-2.5 text-gray-700 font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                  className="px-4 py-2.5 text-slate-700 font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition"
                 >
                   Change file
                 </button>
@@ -486,16 +486,16 @@ export default function MembersPage() {
           >
             <button
               onClick={() => setSelectedOption(null)}
-              className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1.5 transition-colors"
+              className="text-sm text-slate-500 hover:text-slate-900 flex items-center gap-1.5 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back to options
             </button>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-subtle">
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-subtle">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
-                  <label htmlFor="manual-name" className="block text-xs font-medium text-gray-500 mb-1.5">
+                  <label htmlFor="manual-name" className="block text-xs font-medium text-slate-500 mb-1.5">
                     Name
                   </label>
                   <input
@@ -510,11 +510,11 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="John Smith"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="manual-email" className="block text-xs font-medium text-gray-500 mb-1.5">
+                  <label htmlFor="manual-email" className="block text-xs font-medium text-slate-500 mb-1.5">
                     Email
                   </label>
                   <input
@@ -529,7 +529,7 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="john@school.edu"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
                   />
                 </div>
                 <div className="flex items-end">
@@ -546,15 +546,15 @@ export default function MembersPage() {
 
             {members.length === 0 && (
               <div className="text-center py-8">
-                <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">No members added yet</p>
+                <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-400">No members added yet</p>
               </div>
             )}
 
             {members.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">Members</h3>
+                  <h3 className="font-semibold text-slate-900">Members</h3>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary-50 to-indigo-50 text-primary-700 border border-primary-100">
                     {members.length}
                   </span>
@@ -569,18 +569,18 @@ export default function MembersPage() {
                         animate="animate"
                         exit="exit"
                         layout
-                        className="group flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-lg hover:border-gray-200 transition-colors"
+                        className="group flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-lg hover:border-slate-200 transition-colors"
                       >
                         <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarColor(idx)} flex items-center justify-center flex-shrink-0`}>
                           <span className="text-xs font-semibold text-white">{getInitials(member.name)}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{member.email}</p>
+                          <p className="text-sm font-medium text-slate-900 truncate">{member.name}</p>
+                          <p className="text-xs text-slate-500 truncate">{member.email}</p>
                         </div>
                         <button
                           onClick={() => removeMember(idx)}
-                          className="p-1.5 rounded-full text-gray-300 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
+                          className="p-1.5 rounded-full text-slate-300 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
                           aria-label="Remove member"
                         >
                           <X className="w-4 h-4" />

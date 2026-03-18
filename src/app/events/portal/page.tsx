@@ -212,10 +212,10 @@ export default function EventPortalPage() {
 
   if (pageState.phase === 'loading' || pageState.phase === 'validating') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             {pageState.phase === 'validating' ? 'Verifying your link…' : 'Loading…'}
           </p>
         </div>
@@ -229,10 +229,10 @@ export default function EventPortalPage() {
 
   // Shared card wrapper for auth states
   const CardWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
       <motion.div
         {...fadeIn}
-        className="w-full max-w-sm bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden"
+        className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden"
       >
         {/* Simple branded header */}
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-5">
@@ -255,12 +255,12 @@ export default function EventPortalPage() {
             {pageState.errorMessage ?? 'Your session has expired.'}
           </p>
         </div>
-        <p className="text-sm text-gray-600 mb-5">
+        <p className="text-sm text-slate-600 mb-5">
           Enter your email address to receive a new access link.
         </p>
         <form onSubmit={handleRequestSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1.5">
+            <label htmlFor="email" className="block text-xs font-medium text-slate-700 mb-1.5">
               Email address
             </label>
             <input
@@ -269,7 +269,7 @@ export default function EventPortalPage() {
               value={emailInput}
               onChange={(e) => { setEmailInput(e.target.value); setEmailError('') }}
               placeholder="you@example.com"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400"
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400"
               disabled={submitting}
               autoFocus
             />
@@ -283,7 +283,7 @@ export default function EventPortalPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
             {submitting ? 'Sending…' : 'Send New Link'}
@@ -301,10 +301,10 @@ export default function EventPortalPage() {
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="w-6 h-6 text-green-600" />
             </div>
-            <h2 className="text-base font-semibold text-gray-900 mb-2">Check your inbox</h2>
-            <p className="text-sm text-gray-500 mb-6">
+            <h2 className="text-base font-semibold text-slate-900 mb-2">Check your inbox</h2>
+            <p className="text-sm text-slate-500 mb-6">
               If you have any registrations, we&apos;ve sent a secure link to{' '}
-              <span className="font-medium text-gray-900">{emailInput}</span>.
+              <span className="font-medium text-slate-900">{emailInput}</span>.
             </p>
             <button
               type="button"
@@ -321,13 +321,13 @@ export default function EventPortalPage() {
 
     return (
       <CardWrapper>
-        <p className="text-sm text-gray-600 mb-5">
+        <p className="text-sm text-slate-600 mb-5">
           Enter the email address you used when registering to receive a secure access link.
           No account required.
         </p>
         <form onSubmit={handleRequestSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1.5">
+            <label htmlFor="email" className="block text-xs font-medium text-slate-700 mb-1.5">
               Email address
             </label>
             <input
@@ -336,7 +336,7 @@ export default function EventPortalPage() {
               value={emailInput}
               onChange={(e) => { setEmailInput(e.target.value); setEmailError('') }}
               placeholder="you@example.com"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400"
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400"
               disabled={submitting}
               autoFocus
             />
@@ -350,13 +350,13 @@ export default function EventPortalPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
             {submitting ? 'Sending…' : 'Send My Link'}
           </button>
         </form>
-        <p className="text-xs text-gray-400 mt-4 text-center">
+        <p className="text-xs text-slate-400 mt-4 text-center">
           Links are valid for 48 hours and can only be used once.
         </p>
       </CardWrapper>
@@ -370,8 +370,8 @@ export default function EventPortalPage() {
         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <AlertCircle className="w-6 h-6 text-red-500" />
         </div>
-        <h2 className="text-base font-semibold text-gray-900 mb-2">Something went wrong</h2>
-        <p className="text-sm text-gray-500 mb-5">
+        <h2 className="text-base font-semibold text-slate-900 mb-2">Something went wrong</h2>
+        <p className="text-sm text-slate-500 mb-5">
           {pageState.phase === 'error' ? pageState.message : 'An unexpected error occurred.'}
         </p>
         <button

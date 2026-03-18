@@ -62,7 +62,7 @@ const RESOURCE_META: Record<string, { label: string; icon: React.ReactNode; colo
   settings: {
     label: 'Settings',
     icon: <Settings className="w-5 h-5" />,
-    color: 'bg-gray-100 text-gray-600',
+    color: 'bg-slate-100 text-slate-600',
   },
   users: {
     label: 'Users',
@@ -123,7 +123,7 @@ function groupPermissions(permissions: PermissionItem[]): PermissionGroup[] {
       const meta = RESOURCE_META[resource] || {
         label: capitalize(resource),
         icon: <Settings className="w-5 h-5" />,
-        color: 'bg-gray-100 text-gray-600',
+        color: 'bg-slate-100 text-slate-600',
       }
       groups.push({
         resource,
@@ -145,7 +145,7 @@ function groupPermissions(permissions: PermissionItem[]): PermissionGroup[] {
       resource,
       label: capitalize(resource),
       icon: <Settings className="w-5 h-5" />,
-      color: 'bg-gray-100 text-gray-600',
+      color: 'bg-slate-100 text-slate-600',
       permissions: list.sort((a, b) => {
         const d = a.action.localeCompare(b.action)
         return d !== 0 ? d : a.scope.localeCompare(b.scope)
@@ -244,18 +244,18 @@ function LoadingSkeleton() {
     <div className="space-y-6">
       {[1, 2, 3].map((i) => (
         <div key={i} className="animate-pulse">
-          <div className="h-5 w-24 bg-gray-200 rounded mb-3" />
+          <div className="h-5 w-24 bg-slate-200 rounded mb-3" />
           <div className="space-y-2">
             {[1, 2, 3].map((j) => (
-              <div key={j} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+              <div key={j} className="flex items-center justify-between p-3 border border-slate-100 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 bg-gray-200 rounded-lg" />
+                  <div className="h-9 w-9 bg-slate-200 rounded-lg" />
                   <div>
-                    <div className="h-4 w-40 bg-gray-200 rounded mb-1" />
-                    <div className="h-3 w-24 bg-gray-100 rounded" />
+                    <div className="h-4 w-40 bg-slate-200 rounded mb-1" />
+                    <div className="h-3 w-24 bg-slate-100 rounded" />
                   </div>
                 </div>
-                <div className="h-6 w-11 bg-gray-200 rounded-full" />
+                <div className="h-6 w-11 bg-slate-200 rounded-full" />
               </div>
             ))}
           </div>
@@ -292,9 +292,9 @@ export default function PermissionToggleList({
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${group.color}`}>
                   {group.icon}
                 </div>
-                <h4 className="text-sm font-semibold text-gray-900">{group.label}</h4>
+                <h4 className="text-sm font-semibold text-slate-900">{group.label}</h4>
               </div>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-slate-500">
                 {enabledCount} of {group.permissions.length}
               </span>
             </div>
@@ -310,8 +310,8 @@ export default function PermissionToggleList({
                     className={`
                       flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
                       border transition-colors
-                      ${isOn ? 'border-primary-100 bg-primary-50/30' : 'border-gray-100 bg-white'}
-                      ${!disabled ? 'hover:bg-gray-50' : ''}
+                      ${isOn ? 'border-primary-100 bg-primary-50/30' : 'border-slate-100 bg-white'}
+                      ${!disabled ? 'hover:bg-slate-50' : ''}
                     `}
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -320,14 +320,14 @@ export default function PermissionToggleList({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-slate-900 truncate">
                             {getPermissionLabel(perm)}
                           </p>
                           {mode === 'user' && perm.status && perm.status !== 'none' && (
                             <StatusBadge status={perm.status} />
                           )}
                         </div>
-                        <p className="text-xs text-gray-500">{getPermissionSubtext(perm)}</p>
+                        <p className="text-xs text-slate-500">{getPermissionSubtext(perm)}</p>
                       </div>
                     </div>
 

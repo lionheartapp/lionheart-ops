@@ -121,18 +121,18 @@ export default function FilterBottomSheet({
               className="flex items-center justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
               onPointerDown={(e) => dragControls.start(e)}
             >
-              <div className="w-10 h-1 rounded-full bg-gray-300" />
+              <div className="w-10 h-1 rounded-full bg-slate-300" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 pb-3 border-b border-gray-100">
-              <h3 className="text-base font-semibold text-gray-900">Filters</h3>
+            <div className="flex items-center justify-between px-5 pb-3 border-b border-slate-100">
+              <h3 className="text-base font-semibold text-slate-900">Filters</h3>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 aria-label="Close filters"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
@@ -140,7 +140,7 @@ export default function FilterBottomSheet({
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
               {/* Status */}
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
                   Status
                 </label>
                 <select
@@ -157,7 +157,7 @@ export default function FilterBottomSheet({
 
               {/* Priority */}
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
                   Priority
                 </label>
                 <select
@@ -174,7 +174,7 @@ export default function FilterBottomSheet({
 
               {/* Category */}
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
                   Category
                 </label>
                 <select
@@ -192,7 +192,7 @@ export default function FilterBottomSheet({
               {/* Technician */}
               {technicians.length > 0 && (
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
                     Technician
                   </label>
                   <select
@@ -212,11 +212,11 @@ export default function FilterBottomSheet({
 
               {/* Search */}
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
                   Search
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     ref={searchRef}
                     type="text"
@@ -229,28 +229,28 @@ export default function FilterBottomSheet({
               </div>
 
               {/* Unassigned toggle */}
-              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none py-1">
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none py-1">
                 <input
                   type="checkbox"
                   checked={filters.unassigned}
                   onChange={(e) => update({ unassigned: e.target.checked })}
-                  className="w-4 h-4 rounded border-gray-300 text-gray-900 focus-visible:ring-gray-400 cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
                 />
                 Unassigned only
               </label>
             </div>
 
             {/* Footer actions */}
-            <div className="flex items-center gap-3 px-5 py-4 border-t border-gray-100 bg-white">
+            <div className="flex items-center gap-3 px-5 py-4 border-t border-slate-100 bg-white">
               <button
                 onClick={clearAll}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Clear All
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer"
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Apply
               </button>

@@ -22,7 +22,7 @@ interface GroupCardProps {
 function CapacityBar({ current, max }: { current: number; max: number | null }) {
   if (!max) {
     return (
-      <span className="text-xs text-gray-500">
+      <span className="text-xs text-slate-500">
         {current} participant{current !== 1 ? 's' : ''}
       </span>
     )
@@ -35,7 +35,7 @@ function CapacityBar({ current, max }: { current: number; max: number | null }) 
 
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden min-w-[48px]">
+      <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-[48px]">
         <div
           className={`h-full rounded-full transition-all duration-300 ${barColor}`}
           style={{ width: `${pct}%` }}
@@ -80,7 +80,7 @@ function EditForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Group name"
-        className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
+        className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
         autoFocus
       />
       <input
@@ -89,19 +89,19 @@ function EditForm({
         onChange={(e) => setCapacity(e.target.value)}
         placeholder="Capacity (optional)"
         min={1}
-        className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
+        className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
       />
       <input
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description (optional)"
-        className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
+        className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
       />
       <div className="flex gap-2 justify-end">
         <button
           type="button"
           onClick={onCancel}
-          className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer"
+          className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
         >
           <X className="w-3 h-3" />
           Cancel
@@ -145,12 +145,12 @@ export default function GroupCard({
       ref={setNodeRef}
       className={`
         bg-white border rounded-2xl overflow-hidden transition-all duration-150
-        ${isOver ? 'border-blue-400 shadow-lg shadow-blue-100 ring-2 ring-blue-200' : 'border-gray-200 shadow-sm'}
+        ${isOver ? 'border-blue-400 shadow-lg shadow-blue-100 ring-2 ring-blue-200' : 'border-slate-200 shadow-sm'}
         min-h-[200px] flex flex-col
       `}
     >
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-gray-100 flex-shrink-0">
+      <div className="px-4 pt-4 pb-3 border-b border-slate-100 flex-shrink-0">
         {editing ? (
           <EditForm
             group={group}
@@ -161,16 +161,16 @@ export default function GroupCard({
           <>
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-gray-900 truncate">{group.name}</h3>
+                <h3 className="text-sm font-semibold text-slate-900 truncate">{group.name}</h3>
                 {leaderName && (
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">Leader: {leaderName}</p>
+                  <p className="text-xs text-slate-500 mt-0.5 truncate">Leader: {leaderName}</p>
                 )}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  className="w-6 h-6 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                   title="Edit group"
                 >
                   <Edit2 className="w-3 h-3" />
@@ -178,7 +178,7 @@ export default function GroupCard({
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(true)}
-                  className="w-6 h-6 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                  className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                   title="Delete group"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -211,7 +211,7 @@ export default function GroupCard({
             <button
               type="button"
               onClick={() => setConfirmDelete(false)}
-              className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 cursor-pointer"
+              className="flex-1 px-2.5 py-1.5 text-xs border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -226,13 +226,13 @@ export default function GroupCard({
             className={`
               flex flex-col items-center justify-center h-full min-h-[120px]
               rounded-xl border-2 border-dashed transition-colors
-              ${isOver ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-gray-50'}
+              ${isOver ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-slate-50'}
             `}
           >
             <Users
-              className={`w-6 h-6 mb-1.5 ${isOver ? 'text-blue-400' : 'text-gray-300'}`}
+              className={`w-6 h-6 mb-1.5 ${isOver ? 'text-blue-400' : 'text-slate-300'}`}
             />
-            <p className={`text-xs ${isOver ? 'text-blue-500' : 'text-gray-400'}`}>
+            <p className={`text-xs ${isOver ? 'text-blue-500' : 'text-slate-400'}`}>
               {isOver ? 'Drop to assign' : 'Drag participants here'}
             </p>
           </div>

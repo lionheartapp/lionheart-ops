@@ -124,13 +124,13 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 pt-5 pb-4 flex-shrink-0">
-                <h2 className="text-lg font-semibold text-gray-900">New Event Project</h2>
+                <h2 className="text-lg font-semibold text-slate-900">New Event Project</h2>
                 <button
                   onClick={handleClose}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-2 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                   aria-label="Close"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
 
@@ -139,7 +139,7 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                 <div className="space-y-5">
                   {/* Title */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
                       Title <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -149,7 +149,7 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                       placeholder="e.g. Spring Retreat 2026"
                       autoFocus
                       className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-                        errors.title ? 'border-red-300' : 'border-gray-200'
+                        errors.title ? 'border-red-300' : 'border-slate-200'
                       }`}
                     />
                     {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
@@ -157,7 +157,7 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
                       Description
                     </label>
                     <textarea
@@ -165,7 +165,7 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                       onChange={(e) => update('description', e.target.value)}
                       rows={3}
                       placeholder="Brief overview of this event..."
-                      className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
+                      className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
                     />
                   </div>
 
@@ -175,7 +175,7 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                       type="button"
                       onClick={() => update('isMultiDay', !form.isMultiDay)}
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
-                        form.isMultiDay ? 'bg-indigo-500' : 'bg-gray-200'
+                        form.isMultiDay ? 'bg-indigo-500' : 'bg-slate-200'
                       }`}
                       aria-checked={form.isMultiDay}
                       role="switch"
@@ -187,7 +187,7 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                       />
                     </button>
                     <label
-                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
                       onClick={() => update('isMultiDay', !form.isMultiDay)}
                     >
                       Multi-day event
@@ -197,8 +197,8 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                   {/* Dates */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        <CalendarDays className="inline w-3.5 h-3.5 mr-1 text-gray-400" />
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        <CalendarDays className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
                         Start Date <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -209,13 +209,13 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                           if (!form.isMultiDay) update('endsAt', e.target.value)
                         }}
                         className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 ${
-                          errors.startsAt ? 'border-red-300' : 'border-gray-200'
+                          errors.startsAt ? 'border-red-300' : 'border-slate-200'
                         }`}
                       />
                     </div>
                     {form.isMultiDay ? (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
                           End Date <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -224,20 +224,20 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                           onChange={(e) => update('endsAt', e.target.value)}
                           min={form.startsAt}
                           className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 ${
-                            errors.endsAt ? 'border-red-300' : 'border-gray-200'
+                            errors.endsAt ? 'border-red-300' : 'border-slate-200'
                           }`}
                         />
                       </div>
                     ) : (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
                           Start Time
                         </label>
                         <input
                           type="time"
                           value={form.startsAtTime}
                           onChange={(e) => update('startsAtTime', e.target.value)}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-400"
+                          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
                         />
                       </div>
                     )}
@@ -248,12 +248,12 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                     <div className="grid grid-cols-2 gap-3">
                       <div />
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">End Time</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">End Time</label>
                         <input
                           type="time"
                           value={form.endsAtTime}
                           onChange={(e) => update('endsAtTime', e.target.value)}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-400"
+                          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
                         />
                       </div>
                     </div>
@@ -261,8 +261,8 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
 
                   {/* Location */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      <MapPin className="inline w-3.5 h-3.5 mr-1 text-gray-400" />
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <MapPin className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
                       Location
                     </label>
                     <input
@@ -270,14 +270,14 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                       value={form.locationText}
                       onChange={(e) => update('locationText', e.target.value)}
                       placeholder="e.g. Camp Linfield, Main Campus"
-                      className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-400"
+                      className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
                     />
                   </div>
 
                   {/* Expected Attendance */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      <Users className="inline w-3.5 h-3.5 mr-1 text-gray-400" />
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <Users className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
                       Expected Attendance
                     </label>
                     <input
@@ -286,19 +286,19 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                       value={form.expectedAttendance}
                       onChange={(e) => update('expectedAttendance', e.target.value)}
                       placeholder="e.g. 120"
-                      className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-400"
+                      className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
                     />
                   </div>
                 </div>
               </form>
 
               {/* Footer */}
-              <div className="flex-shrink-0 border-t border-gray-200 px-6 py-4 flex gap-3">
+              <div className="flex-shrink-0 border-t border-slate-200 px-6 py-4 flex gap-3">
                 <button
                   type="submit"
                   form="create-event-form"
                   disabled={createProject.isPending}
-                  className="flex-1 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-60 active:scale-[0.97] transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 active:scale-[0.97] transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   {createProject.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create Event Project
@@ -306,7 +306,7 @@ export function CreateEventProjectModal({ isOpen, onClose }: CreateEventProjectM
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
                 >
                   Cancel
                 </button>

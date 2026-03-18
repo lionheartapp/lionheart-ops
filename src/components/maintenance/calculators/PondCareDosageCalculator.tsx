@@ -66,15 +66,15 @@ export default function PondCareDosageCalculator() {
           <FlaskConical className="w-5 h-5 text-amber-700" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">Pond Care Dosage Calculator</h3>
-          <p className="text-xs text-gray-500">Calculate product dose for your pond volume</p>
+          <h3 className="text-sm font-semibold text-slate-900">Pond Care Dosage Calculator</h3>
+          <p className="text-xs text-slate-500">Calculate product dose for your pond volume</p>
         </div>
       </div>
 
       {/* Inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
+          <label className="block text-xs font-medium text-slate-600 mb-1">
             Pond Volume (gallons)
           </label>
           <input
@@ -84,12 +84,12 @@ export default function PondCareDosageCalculator() {
             value={volume}
             onChange={(e) => setVolume(e.target.value)}
             placeholder="e.g. 10000"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
+          <label className="block text-xs font-medium text-slate-600 mb-1">
             Product Concentration (%)
           </label>
           <input
@@ -100,12 +100,12 @@ export default function PondCareDosageCalculator() {
             value={concentration}
             onChange={(e) => setConcentration(e.target.value)}
             placeholder="e.g. 47.5"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
+          <label className="block text-xs font-medium text-slate-600 mb-1">
             Target Dose (ppm)
           </label>
           <input
@@ -115,7 +115,7 @@ export default function PondCareDosageCalculator() {
             value={targetPpm}
             onChange={(e) => setTargetPpm(e.target.value)}
             placeholder="e.g. 1.0"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
           />
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function PondCareDosageCalculator() {
       {/* Results */}
       {result !== null && (
         <div className="bg-white/70 rounded-xl border border-amber-100 p-4 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Calculated Dose
           </p>
           <div className="grid grid-cols-3 gap-3 text-center">
@@ -154,7 +154,7 @@ export default function PondCareDosageCalculator() {
 
       {/* Empty / prompt state */}
       {result === null && (volume || concentration || targetPpm) && (
-        <p className="text-xs text-gray-400 italic">
+        <p className="text-xs text-slate-400 italic">
           Enter all three values to see the computed dose.
         </p>
       )}

@@ -54,7 +54,7 @@ export default function RsvpDialog({ isOpen, status, onSubmit, onCancel }: RsvpD
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-lightbox w-[380px] bg-white rounded-2xl shadow-xl"
           >
             <div className="px-6 pt-5 pb-2">
-              <h3 id="rsvp-dialog-title" className="text-sm font-semibold text-gray-900 mb-2">
+              <h3 id="rsvp-dialog-title" className="text-sm font-semibold text-slate-900 mb-2">
                 {label} this event?
               </h3>
               <textarea
@@ -62,7 +62,7 @@ export default function RsvpDialog({ isOpen, status, onSubmit, onCancel }: RsvpD
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Add a note (optional)"
                 aria-label="Response note"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 focus:border-gray-900 resize-none"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 focus:border-slate-900 resize-none"
                 rows={3}
                 maxLength={500}
                 autoFocus
@@ -72,7 +72,7 @@ export default function RsvpDialog({ isOpen, status, onSubmit, onCancel }: RsvpD
             <div className="flex items-center justify-end gap-2 px-6 pb-5 pt-3">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
               >
                 Cancel
               </button>

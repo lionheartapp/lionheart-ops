@@ -346,14 +346,14 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
         <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
           <WifiOff className="w-8 h-8 text-amber-500" />
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-1">Ticket Queued for Sync</h3>
-        <p className="text-sm text-gray-500 mb-6 max-w-xs">
+        <h3 className="text-lg font-bold text-slate-900 mb-1">Ticket Queued for Sync</h3>
+        <p className="text-sm text-slate-500 mb-6 max-w-xs">
           You&apos;re offline. Your request has been saved and will be submitted automatically when you reconnect.
         </p>
         <button
           type="button"
           onClick={onComplete}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
         >
           Back to My Requests
         </button>
@@ -373,8 +373,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
         <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-5">
           <CheckCircle2 className="w-8 h-8 text-primary-500" />
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-1">Request Submitted!</h3>
-        <p className="text-sm text-gray-500 mb-2">Your ticket has been created successfully</p>
+        <h3 className="text-lg font-bold text-slate-900 mb-1">Request Submitted!</h3>
+        <p className="text-sm text-slate-500 mb-2">Your ticket has been created successfully</p>
         <div className="px-4 py-2 bg-primary-50 rounded-xl border border-primary-100 mb-6">
           <p className="text-primary-700 font-bold text-lg tracking-wide">{success.ticketNumber}</p>
         </div>
@@ -389,7 +389,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
           <button
             type="button"
             onClick={onComplete}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Back to My Requests
           </button>
@@ -439,9 +439,9 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
                   <div
                     className={`
                       w-8 h-8 rounded-full flex items-center justify-center transition-all
-                      ${isCompleted ? 'bg-gray-900 text-white' :
-                        isCurrent ? 'bg-gray-900 text-white ring-4 ring-gray-200' :
-                        'bg-gray-100 text-gray-400'
+                      ${isCompleted ? 'bg-slate-900 text-white' :
+                        isCurrent ? 'bg-slate-900 text-white ring-4 ring-slate-200' :
+                        'bg-slate-100 text-slate-400'
                       }
                     `}
                   >
@@ -451,12 +451,12 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
                       <StepIcon className="w-4 h-4" />
                     )}
                   </div>
-                  <span className={`text-xs mt-1 font-medium ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
+                  <span className={`text-xs mt-1 font-medium ${isCurrent ? 'text-slate-900' : isCompleted ? 'text-slate-700' : 'text-slate-400'}`}>
                     {step.label}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-1 mb-4 rounded-full transition-colors ${i < currentStep ? 'bg-gray-900' : 'bg-gray-100'}`} />
+                  <div className={`flex-1 h-0.5 mx-1 mb-4 rounded-full transition-colors ${i < currentStep ? 'bg-slate-900' : 'bg-slate-100'}`} />
                 )}
               </div>
             )
@@ -540,11 +540,11 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
 
       {/* Navigation buttons */}
       {currentStep < lastStep && (
-        <div className="mt-6 pt-4 border-t border-gray-100/50 flex items-center gap-3">
+        <div className="mt-6 pt-4 border-t border-slate-100/50 flex items-center gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -553,7 +553,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
             <button
               type="button"
               onClick={goBack}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Back
             </button>
@@ -571,18 +571,18 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       )}
 
       {currentStep === lastStep && (
-        <div className="mt-4 pt-4 border-t border-gray-100/50 flex items-center gap-3">
+        <div className="mt-4 pt-4 border-t border-slate-100/50 flex items-center gap-3">
           <button
             type="button"
             onClick={goBack}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Back
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="ml-auto px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="ml-auto px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Cancel
           </button>

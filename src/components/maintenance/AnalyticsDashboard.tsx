@@ -40,13 +40,13 @@ interface Campus {
 function ChartSkeleton({ height = 280 }: { height?: number }) {
   return (
     <div className="animate-pulse" style={{ height }}>
-      <div className="h-4 bg-gray-200 rounded w-2/5 mb-4" />
-      <div className="h-3 bg-gray-100 rounded w-1/3 mb-6" />
+      <div className="h-4 bg-slate-200 rounded w-2/5 mb-4" />
+      <div className="h-3 bg-slate-100 rounded w-1/3 mb-6" />
       <div className="flex items-end gap-2 h-40">
         {[60, 80, 45, 95, 70, 55].map((pct, i) => (
           <div
             key={i}
-            className="flex-1 bg-gray-200 rounded-t"
+            className="flex-1 bg-slate-200 rounded-t"
             style={{ height: `${pct}%` }}
           />
         ))}
@@ -58,9 +58,9 @@ function ChartSkeleton({ height = 280 }: { height?: number }) {
 function StatCardSkeleton() {
   return (
     <div className="animate-pulse ui-glass p-4">
-      <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />
-      <div className="h-8 bg-gray-200 rounded w-1/3 mb-1" />
-      <div className="h-3 bg-gray-100 rounded w-2/3" />
+      <div className="h-3 bg-slate-200 rounded w-1/2 mb-2" />
+      <div className="h-8 bg-slate-200 rounded w-1/3 mb-1" />
+      <div className="h-3 bg-slate-100 rounded w-2/3" />
     </div>
   )
 }
@@ -87,7 +87,7 @@ function PmComplianceSection({ data }: { data: PmComplianceResult }) {
         >
           {data.complianceRate}%
         </span>
-        <p className="text-sm text-gray-500 mt-1">Compliance Rate</p>
+        <p className="text-sm text-slate-500 mt-1">Compliance Rate</p>
       </div>
 
       {/* Three stat cards */}
@@ -112,7 +112,7 @@ function PmComplianceSection({ data }: { data: PmComplianceResult }) {
       {/* Progress bar */}
       {total > 0 && (
         <div>
-          <div className="flex rounded-full h-2 overflow-hidden bg-gray-100">
+          <div className="flex rounded-full h-2 overflow-hidden bg-slate-100">
             {data.completedOnTime > 0 && (
               <div
                 className="bg-green-500 transition-all"
@@ -132,7 +132,7 @@ function PmComplianceSection({ data }: { data: PmComplianceResult }) {
               />
             )}
           </div>
-          <p className="text-xs text-gray-400 mt-1 text-center">{total} total PM tickets</p>
+          <p className="text-xs text-slate-400 mt-1 text-center">{total} total PM tickets</p>
         </div>
       )}
     </div>
@@ -146,7 +146,7 @@ function TopLocationsSection({ data }: { data: TopLocationResult[] }) {
     return (
       <div className="flex flex-col items-center justify-center h-32 text-center">
         <IllustrationMaintenance className="w-28 h-20 mb-1" />
-        <p className="text-sm text-gray-400">No location data for this period</p>
+        <p className="text-sm text-slate-400">No location data for this period</p>
       </div>
     )
   }
@@ -162,12 +162,12 @@ function TopLocationsSection({ data }: { data: TopLocationResult[] }) {
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-0.5">
-              <span className="text-sm text-gray-700 truncate pr-2">{loc.locationLabel}</span>
-              <span className="text-sm font-medium text-gray-900 flex-shrink-0">
+              <span className="text-sm text-slate-700 truncate pr-2">{loc.locationLabel}</span>
+              <span className="text-sm font-medium text-slate-900 flex-shrink-0">
                 {loc.ticketCount}
               </span>
             </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary-400 rounded-full transition-all"
                 style={{ width: `${(loc.ticketCount / maxCount) * 100}%` }}
@@ -196,8 +196,8 @@ function SectionCard({
   return (
     <motion.div variants={cardEntrance} className={`ui-glass p-6 ${className}`}>
       <div className="mb-4">
-        <h3 className="font-medium text-gray-900">{title}</h3>
-        {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        <h3 className="font-medium text-slate-900">{title}</h3>
+        {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
       </div>
       {children}
     </motion.div>
@@ -251,8 +251,8 @@ export default function AnalyticsDashboard() {
               <BarChart2 className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Analytics Dashboard</h2>
-              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+              <h2 className="text-lg font-semibold text-slate-900">Analytics Dashboard</h2>
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
                 <RefreshCw className="w-3 h-3" />
                 <span>
                   {lastUpdated ? `Updated ${lastUpdated} · auto-refreshes every 60s` : 'Auto-refreshes every 60s'}
@@ -266,7 +266,7 @@ export default function AnalyticsDashboard() {
             <select
               value={selectedCampusId}
               onChange={(e) => setSelectedCampusId(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
+              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
             >
               <option value="">All Campuses</option>
               {campuses.map((c) => (
@@ -275,7 +275,7 @@ export default function AnalyticsDashboard() {
                 </option>
               ))}
             </select>
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">
+            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-medium">
               Last 6 months
             </span>
           </div>
@@ -313,17 +313,17 @@ export default function AnalyticsDashboard() {
           <SectionCard title="PM Compliance" subtitle="Preventive maintenance on-time completion rate">
             {isLoading ? (
               <div className="space-y-4 animate-pulse">
-                <div className="h-20 bg-gray-100 rounded-xl" />
+                <div className="h-20 bg-slate-100 rounded-xl" />
                 <div className="grid grid-cols-3 gap-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-20 bg-gray-100 rounded-xl" />
+                    <div key={i} className="h-20 bg-slate-100 rounded-xl" />
                   ))}
                 </div>
               </div>
             ) : analytics ? (
               <PmComplianceSection data={analytics.pmCompliance} />
             ) : (
-              <div className="flex items-center justify-center h-48 text-gray-400 text-sm">
+              <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
                 No PM data available
               </div>
             )}
@@ -383,19 +383,19 @@ export default function AnalyticsDashboard() {
               <div className="space-y-3 animate-pulse">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-gray-200" />
+                    <div className="w-5 h-5 rounded-full bg-slate-200" />
                     <div className="flex-1 space-y-1">
-                      <div className="h-3 bg-gray-200 rounded w-3/4" />
-                      <div className="h-1.5 bg-gray-100 rounded" />
+                      <div className="h-3 bg-slate-200 rounded w-3/4" />
+                      <div className="h-1.5 bg-slate-100 rounded" />
                     </div>
-                    <div className="w-6 h-3 bg-gray-200 rounded" />
+                    <div className="w-6 h-3 bg-slate-200 rounded" />
                   </div>
                 ))}
               </div>
             ) : analytics ? (
               <TopLocationsSection data={analytics.topLocations} />
             ) : (
-              <div className="flex items-center justify-center h-48 text-gray-400 text-sm">
+              <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
                 No location data available
               </div>
             )}

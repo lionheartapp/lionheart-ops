@@ -73,27 +73,27 @@ function CategorySection({
   const totalActual = items.reduce((sum, item) => sum + (item.actualAmount ?? 0), 0)
 
   return (
-    <motion.div variants={listItem} className="border border-gray-200 rounded-xl overflow-hidden">
+    <motion.div variants={listItem} className="border border-slate-200 rounded-xl overflow-hidden">
       {/* Category header */}
       <button
         onClick={() => setCollapsed((c) => !c)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer text-left"
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer text-left"
       >
         <div className="flex items-center gap-2">
           {collapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
           )}
-          <span className="text-sm font-semibold text-gray-800">{category.name}</span>
-          <span className="text-xs text-gray-400 font-normal">
+          <span className="text-sm font-semibold text-slate-800">{category.name}</span>
+          <span className="text-xs text-slate-400 font-normal">
             {items.length} {items.length === 1 ? 'item' : 'items'}
           </span>
         </div>
-        <div className="flex items-center gap-6 text-xs text-gray-500">
+        <div className="flex items-center gap-6 text-xs text-slate-500">
           <span>
             Budgeted:{' '}
-            <span className="font-semibold text-gray-700">{formatCurrency(totalBudgeted)}</span>
+            <span className="font-semibold text-slate-700">{formatCurrency(totalBudgeted)}</span>
           </span>
           <span>
             Actual:{' '}
@@ -120,30 +120,30 @@ function CategorySection({
             className="overflow-hidden"
           >
             {items.length === 0 ? (
-              <div className="px-4 py-6 text-center text-sm text-gray-400">
+              <div className="px-4 py-6 text-center text-sm text-slate-400">
                 No expenses in this category yet
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-white">
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <tr className="border-b border-slate-100 bg-white">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
                         Description
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
                         Vendor
                       </th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
                         Budgeted
                       </th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
                         Actual
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
                         Date
                       </th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase tracking-wide">
                         Receipt
                       </th>
                       <th className="px-4 py-2" />
@@ -158,13 +158,13 @@ function CategorySection({
                       return (
                         <tr
                           key={item.id}
-                          className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                          className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
                         >
-                          <td className="px-4 py-2.5 text-gray-800 font-medium">
+                          <td className="px-4 py-2.5 text-slate-800 font-medium">
                             {item.description}
                           </td>
-                          <td className="px-4 py-2.5 text-gray-500">{item.vendor ?? '—'}</td>
-                          <td className="px-4 py-2.5 text-right text-gray-700 font-mono text-xs">
+                          <td className="px-4 py-2.5 text-slate-500">{item.vendor ?? '—'}</td>
+                          <td className="px-4 py-2.5 text-right text-slate-700 font-mono text-xs">
                             {formatCurrency(item.budgetedAmount)}
                           </td>
                           <td
@@ -173,12 +173,12 @@ function CategorySection({
                                 ? 'text-red-600'
                                 : isUnder
                                 ? 'text-green-600'
-                                : 'text-gray-400'
+                                : 'text-slate-400'
                             }`}
                           >
                             {formatCurrency(item.actualAmount)}
                           </td>
-                          <td className="px-4 py-2.5 text-gray-500 text-xs">
+                          <td className="px-4 py-2.5 text-slate-500 text-xs">
                             {formatDate(item.expenseDate)}
                           </td>
                           <td className="px-4 py-2.5 text-center">
@@ -193,21 +193,21 @@ function CategorySection({
                                 <Receipt className="w-3.5 h-3.5" />
                               </a>
                             ) : (
-                              <span className="text-gray-300 text-xs">—</span>
+                              <span className="text-slate-300 text-xs">—</span>
                             )}
                           </td>
                           <td className="px-4 py-2.5">
                             <div className="flex items-center justify-end gap-1">
                               <button
                                 onClick={() => onEdit(item)}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                                 title="Edit expense"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget(item)}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                                 title="Delete expense"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -223,7 +223,7 @@ function CategorySection({
             )}
 
             {/* Add expense button per category */}
-            <div className="px-4 py-2 border-t border-gray-100">
+            <div className="px-4 py-2 border-t border-slate-100">
               <button
                 onClick={() => onAddExpense(category.id)}
                 className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-medium py-1 px-2 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer"
@@ -296,7 +296,7 @@ function AIEstimatePanel({ estimate, lineItems, onApply, onDismiss }: AIEstimate
       <div className="flex items-center justify-between px-4 py-3 bg-white/70 border-b border-indigo-100">
         <div className="flex items-center gap-2 flex-wrap">
           <Sparkles className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-gray-900">AI Budget Estimate</span>
+          <span className="text-sm font-semibold text-slate-900">AI Budget Estimate</span>
           {estimate.isHistorical && (estimate.sourceEventCount ?? 0) > 0 && (
             <span className="text-xs text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full font-medium">
               Based on {estimate.sourceEventCount} past events
@@ -310,7 +310,7 @@ function AIEstimatePanel({ estimate, lineItems, onApply, onDismiss }: AIEstimate
         </div>
         <button
           onClick={onDismiss}
-          className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-white/50 transition-colors cursor-pointer flex-shrink-0"
+          className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-white/50 transition-colors cursor-pointer flex-shrink-0"
         >
           <X className="w-4 h-4" />
         </button>
@@ -318,7 +318,7 @@ function AIEstimatePanel({ estimate, lineItems, onApply, onDismiss }: AIEstimate
 
       {/* Reasoning */}
       {estimate.reasoning && (
-        <p className="px-4 pt-3 text-xs text-gray-600 leading-relaxed">{estimate.reasoning}</p>
+        <p className="px-4 pt-3 text-xs text-slate-600 leading-relaxed">{estimate.reasoning}</p>
       )}
 
       {/* Category estimates */}
@@ -339,12 +339,12 @@ function AIEstimatePanel({ estimate, lineItems, onApply, onDismiss }: AIEstimate
                 ) : (
                   <Sparkles className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
                 )}
-                <span className="font-medium text-gray-800 truncate">{cat.name}</span>
+                <span className="font-medium text-slate-800 truncate">{cat.name}</span>
                 {hasExisting && (
-                  <span className="text-xs text-gray-400 ml-1 flex-shrink-0">already budgeted</span>
+                  <span className="text-xs text-slate-400 ml-1 flex-shrink-0">already budgeted</span>
                 )}
               </div>
-              <span className="text-xs text-gray-600 font-mono flex-shrink-0 ml-4">
+              <span className="text-xs text-slate-600 font-mono flex-shrink-0 ml-4">
                 {formatCurrency(cat.estimatedMin)} – {formatCurrency(cat.estimatedMax)}
               </span>
             </div>
@@ -354,16 +354,16 @@ function AIEstimatePanel({ estimate, lineItems, onApply, onDismiss }: AIEstimate
 
       {/* Totals + actions */}
       <div className="px-4 pb-4 flex items-center justify-between border-t border-indigo-100 pt-3 gap-3 flex-wrap">
-        <div className="text-xs text-gray-600">
+        <div className="text-xs text-slate-600">
           Total estimate:{' '}
-          <span className="font-semibold text-gray-900">
+          <span className="font-semibold text-slate-900">
             {formatCurrency(estimate.totalMin)} – {formatCurrency(estimate.totalMax)}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={onDismiss}
-            className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 rounded-lg hover:bg-white/60 transition-colors cursor-pointer"
+            className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800 rounded-lg hover:bg-white/60 transition-colors cursor-pointer"
           >
             Dismiss
           </button>
@@ -375,7 +375,7 @@ function AIEstimatePanel({ estimate, lineItems, onApply, onDismiss }: AIEstimate
               Apply {suggestions.length} estimate{suggestions.length === 1 ? '' : 's'}
             </button>
           ) : (
-            <span className="text-xs text-gray-400">All categories already budgeted</span>
+            <span className="text-xs text-slate-400">All categories already budgeted</span>
           )}
         </div>
       </div>
@@ -511,16 +511,16 @@ export function BudgetLineItemTable({
 
       {/* Grand total footer */}
       {lineItems.length > 0 && (
-        <div className="flex items-center justify-end gap-8 px-4 py-3 bg-gray-900 rounded-xl text-sm">
-          <span className="text-gray-300 font-medium">Grand Total</span>
+        <div className="flex items-center justify-end gap-8 px-4 py-3 bg-slate-900 rounded-xl text-sm">
+          <span className="text-slate-300 font-medium">Grand Total</span>
           <div className="flex items-center gap-6">
-            <span className="text-gray-300 text-xs">
+            <span className="text-slate-300 text-xs">
               Budgeted:{' '}
               <span className="text-white font-semibold font-mono">
                 {formatCurrency(totalBudgeted)}
               </span>
             </span>
-            <span className="text-gray-300 text-xs">
+            <span className="text-slate-300 text-xs">
               Actual:{' '}
               <span
                 className={`font-semibold font-mono ${

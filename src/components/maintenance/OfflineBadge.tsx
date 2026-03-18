@@ -6,7 +6,7 @@ interface OfflineBadgeProps {
 
 export function OfflineBadge({ className }: OfflineBadgeProps) {
   return (
-    <span className={`text-xs text-gray-500 flex items-center gap-1 ${className ?? ''}`}>
+    <span className={`text-xs text-slate-500 flex items-center gap-1 ${className ?? ''}`}>
       <WifiOff className="w-3 h-3" />
       <span>Cached</span>
     </span>

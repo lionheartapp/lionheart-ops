@@ -61,16 +61,16 @@ function HealthScoreBar({ score }: { score: number }) {
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between items-baseline">
-        <span className="text-xs font-medium text-gray-600">Health Score</span>
-        <span className="text-2xl font-bold text-gray-900">{clamped}</span>
+        <span className="text-xs font-medium text-slate-600">Health Score</span>
+        <span className="text-2xl font-bold text-slate-900">{clamped}</span>
       </div>
-      <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+      <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
           style={{ width: `${clamped}%` }}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-gray-400">
+      <div className="flex justify-between text-[10px] text-slate-400">
         <span>Critical</span>
         <span>Fair</span>
         <span>Good</span>
@@ -91,13 +91,13 @@ function ConfidenceMeter({ confidence }: { confidence: number }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full ${color} transition-all duration-500`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs font-medium text-gray-600 w-10 text-right">{pct}%</span>
+      <span className="text-xs font-medium text-slate-600 w-10 text-right">{pct}%</span>
     </div>
   )
 }
@@ -162,15 +162,15 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
               <Brain className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-gray-900">AI Diagnostics</h4>
-              <p className="text-xs text-gray-400">
+              <h4 className="text-sm font-semibold text-slate-900">AI Diagnostics</h4>
+              <p className="text-xs text-slate-400">
                 Powered by Gemini
               </p>
             </div>
           </div>
         </div>
 
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-xs text-slate-500 mb-3">
           {type === 'ticket'
             ? 'Analyze this ticket to get category, severity assessment, resolution steps, and time estimate.'
             : 'Run a health check on this device to identify issues and get maintenance recommendations.'}
@@ -203,19 +203,19 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
             <Brain className="w-4 h-4 text-white animate-pulse" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-gray-900">Analyzing...</h4>
-            <p className="text-xs text-gray-400">AI is reviewing the data</p>
+            <h4 className="text-sm font-semibold text-slate-900">Analyzing...</h4>
+            <p className="text-xs text-slate-400">AI is reviewing the data</p>
           </div>
         </div>
 
         <div className="space-y-3 animate-pulse">
-          <div className="h-3 bg-gray-200 rounded w-3/4" />
-          <div className="h-3 bg-gray-100 rounded w-full" />
-          <div className="h-3 bg-gray-100 rounded w-5/6" />
-          <div className="h-3 bg-gray-100 rounded w-2/3" />
+          <div className="h-3 bg-slate-200 rounded w-3/4" />
+          <div className="h-3 bg-slate-100 rounded w-full" />
+          <div className="h-3 bg-slate-100 rounded w-5/6" />
+          <div className="h-3 bg-slate-100 rounded w-2/3" />
           <div className="mt-4 flex gap-3">
-            <div className="h-6 w-20 bg-gray-200 rounded-md" />
-            <div className="h-6 w-16 bg-gray-200 rounded-md" />
+            <div className="h-6 w-20 bg-slate-200 rounded-md" />
+            <div className="h-6 w-16 bg-slate-200 rounded-md" />
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
               <Brain className="w-4 h-4 text-white" />
             </div>
-            <h4 className="text-sm font-semibold text-gray-900">AI Diagnosis</h4>
+            <h4 className="text-sm font-semibold text-slate-900">AI Diagnosis</h4>
           </div>
           <button
             onClick={() => diagnoseMutation.mutate()}
@@ -248,15 +248,15 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
 
         {/* Summary */}
         {summary && (
-          <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>
+          <p className="text-sm text-slate-600 leading-relaxed">{summary}</p>
         )}
 
         {/* Meta badges */}
         <div className="flex items-center gap-3 flex-wrap">
           {/* Category */}
           <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs font-medium text-gray-700">{category}</span>
+            <Shield className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-medium text-slate-700">{category}</span>
           </div>
 
           {/* Severity */}
@@ -266,8 +266,8 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
 
           {/* Time estimate */}
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-600">
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs text-slate-600">
               ~{estimatedTimeMinutes < 60
                 ? `${estimatedTimeMinutes}m`
                 : `${Math.round(estimatedTimeMinutes / 60)}h ${estimatedTimeMinutes % 60}m`}
@@ -278,16 +278,16 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
         {/* Steps */}
         {steps.length > 0 && (
           <div>
-            <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+            <h5 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Resolution Steps
             </h5>
             <ol className="space-y-2">
               {steps.map((step, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
                     {i + 1}
                   </span>
-                  <span className="text-sm text-gray-700 leading-relaxed">{step}</span>
+                  <span className="text-sm text-slate-700 leading-relaxed">{step}</span>
                 </li>
               ))}
             </ol>
@@ -296,7 +296,7 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
 
         {/* Confidence */}
         <div>
-          <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+          <h5 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
             Confidence
           </h5>
           <ConfidenceMeter confidence={confidence} />
@@ -317,7 +317,7 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
               <Brain className="w-4 h-4 text-white" />
             </div>
-            <h4 className="text-sm font-semibold text-gray-900">Device Health Report</h4>
+            <h4 className="text-sm font-semibold text-slate-900">Device Health Report</h4>
           </div>
           <button
             onClick={() => diagnoseMutation.mutate()}
@@ -333,20 +333,20 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
 
         {/* Summary */}
         {summary && (
-          <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>
+          <p className="text-sm text-slate-600 leading-relaxed">{summary}</p>
         )}
 
         {/* Issues */}
         {issues.length > 0 && (
           <div>
-            <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+            <h5 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Issues Found
             </h5>
             <ul className="space-y-1.5">
               {issues.map((issue, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <AlertCircle className="w-3.5 h-3.5 text-orange-500 shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700">{issue}</span>
+                  <span className="text-sm text-slate-700">{issue}</span>
                 </li>
               ))}
             </ul>
@@ -356,14 +356,14 @@ export default function ITAIDiagnosticPanel({ type, targetId }: ITAIDiagnosticPa
         {/* Recommendations */}
         {recommendations.length > 0 && (
           <div>
-            <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+            <h5 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Recommendations
             </h5>
             <ul className="space-y-1.5">
               {recommendations.map((rec, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <ChevronRight className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700">{rec}</span>
+                  <span className="text-sm text-slate-700">{rec}</span>
                 </li>
               ))}
             </ul>

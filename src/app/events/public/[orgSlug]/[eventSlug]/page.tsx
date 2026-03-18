@@ -123,35 +123,35 @@ export default async function PublicEventPage({
 
       {/* Event title + meta */}
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900 leading-tight">{event.title}</h1>
+        <h1 className="text-3xl font-bold text-slate-900 leading-tight">{event.title}</h1>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-slate-600">
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 flex-shrink-0 text-gray-400" />
+            <Calendar className="w-4 h-4 flex-shrink-0 text-slate-400" />
             <span>{dateLabel}</span>
           </div>
 
           {event.locationText && (
             <div className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 flex-shrink-0 text-gray-400" />
+              <MapPin className="w-4 h-4 flex-shrink-0 text-slate-400" />
               <span>{event.locationText}</span>
             </div>
           )}
 
           {event.expectedAttendance && (
             <div className="flex items-center gap-1.5">
-              <Users className="w-4 h-4 flex-shrink-0 text-gray-400" />
+              <Users className="w-4 h-4 flex-shrink-0 text-slate-400" />
               <span>Up to {event.expectedAttendance} attendees</span>
             </div>
           )}
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-100 pt-4" />
+        <div className="border-t border-slate-100 pt-4" />
 
         {/* Description */}
         {event.description && (
-          <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">
+          <div className="prose prose-gray max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
             {event.description}
           </div>
         )}
@@ -185,14 +185,14 @@ export default async function PublicEventPage({
           )}
 
           {registrationState === 'full' && (
-            <div className="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-600 font-medium">
+            <div className="inline-flex items-center gap-2 px-5 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-600 font-medium">
               <Users className="w-4 h-4" />
               Registration is full
             </div>
           )}
 
           {registrationState === 'closed' && (
-            <div className="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-600 font-medium">
+            <div className="inline-flex items-center gap-2 px-5 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-600 font-medium">
               Registration Closed
             </div>
           )}
@@ -212,7 +212,7 @@ export default async function PublicEventPage({
 
       {/* Mobile sticky CTA */}
       {registrationState === 'open' && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 sm:hidden z-10">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-100 sm:hidden z-10">
           <Link
             href={`/events/public/${orgSlug}/${eventSlug}/register`}
             className="block w-full text-center px-6 py-3.5 rounded-xl text-white font-semibold text-sm shadow-md transition-all duration-200 hover:opacity-90 active:scale-[0.97] cursor-pointer"

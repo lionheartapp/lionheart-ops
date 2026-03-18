@@ -114,7 +114,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
           <button
             type="button"
             onClick={handleBackToSignIn}
-            className="w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            className="w-full text-sm text-slate-600 hover:text-slate-900 transition-colors"
           >
             Back to sign in
           </button>
@@ -125,10 +125,10 @@ export default function LoginForm({ organizationId, organizationName, organizati
     return (
       <form onSubmit={handleForgotSubmit} className="space-y-6">
         <div>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-slate-600 mb-4">
             Enter your email address and we&apos;ll send you a link to reset your password.
           </p>
-          <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="forgot-email" className="block text-sm font-medium text-slate-700">
             Email address
           </label>
           <input
@@ -137,7 +137,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
             value={forgotEmail}
             onChange={(e) => setForgotEmail(e.target.value)}
             placeholder="you@example.com"
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
+            className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
             required
             autoComplete="email"
             autoFocus
@@ -147,7 +147,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
         <button
           type="submit"
           disabled={forgotLoading}
-          className="w-full rounded-full bg-gray-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full rounded-full bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {forgotLoading ? 'Sending...' : 'Send reset link'}
         </button>
@@ -155,7 +155,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
         <button
           type="button"
           onClick={handleBackToSignIn}
-          className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors"
         >
           Back to sign in
         </button>
@@ -168,7 +168,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="email" className="block text-sm font-medium text-slate-700">
             Email address
           </label>
           <input
@@ -177,7 +177,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
+            className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
             required
             autoComplete="email"
             autoFocus
@@ -186,7 +186,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
 
         <div>
           <div className="flex items-center justify-between">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
               Password
             </label>
             <button
@@ -195,7 +195,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
                 setForgotEmail(email)
                 setForgotMode(true)
               }}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              className="text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
             >
               Forgot password?
             </button>
@@ -207,14 +207,14 @@ export default function LoginForm({ organizationId, organizationName, organizati
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
+              className="block w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
               required
               autoComplete="current-password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
               tabIndex={-1}
             >
@@ -234,12 +234,12 @@ export default function LoginForm({ organizationId, organizationName, organizati
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-full bg-gray-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-full bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? 'Signing in...' : `Sign in to ${organizationName}`}
       </button>
 
-      <p className="text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-slate-500">
         By signing in, you&apos;ll stay logged in for 30 days
       </p>
     </form>

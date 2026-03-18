@@ -40,7 +40,7 @@ function StatusBadge({ status }: { status: ComplianceStatus }) {
     CURRENT: { label: 'Current', className: 'bg-green-100 text-green-700' },
     DUE_SOON: { label: 'Due Soon', className: 'bg-amber-100 text-amber-700' },
     OVERDUE: { label: 'Overdue', className: 'bg-red-100 text-red-700' },
-    NOT_APPLICABLE: { label: 'N/A', className: 'bg-gray-100 text-gray-500' },
+    NOT_APPLICABLE: { label: 'N/A', className: 'bg-slate-100 text-slate-500' },
     PENDING: { label: 'Pending', className: 'bg-blue-100 text-blue-700' },
   }
   const { label, className } = config[status]
@@ -56,7 +56,7 @@ function OutcomeBadge({ outcome }: { outcome: ComplianceOutcome }) {
     PASSED: { label: 'Passed', className: 'bg-green-100 text-green-700' },
     FAILED: { label: 'Failed', className: 'bg-red-100 text-red-700' },
     CONDITIONAL_PASS: { label: 'Conditional', className: 'bg-amber-100 text-amber-700' },
-    PENDING: { label: 'Pending', className: 'bg-gray-100 text-gray-500' },
+    PENDING: { label: 'Pending', className: 'bg-slate-100 text-slate-500' },
   }
   const { label, className } = config[outcome]
   return (
@@ -72,12 +72,12 @@ function CalendarSkeleton() {
   return (
     <div className="animate-pulse space-y-2">
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-gray-100">
-          <div className="h-4 w-32 bg-gray-200 rounded" />
-          <div className="h-4 w-48 bg-gray-200 rounded flex-1" />
-          <div className="h-4 w-24 bg-gray-200 rounded" />
-          <div className="h-5 w-16 bg-gray-200 rounded-full" />
-          <div className="h-5 w-16 bg-gray-200 rounded-full" />
+        <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-slate-100">
+          <div className="h-4 w-32 bg-slate-200 rounded" />
+          <div className="h-4 w-48 bg-slate-200 rounded flex-1" />
+          <div className="h-4 w-24 bg-slate-200 rounded" />
+          <div className="h-5 w-16 bg-slate-200 rounded-full" />
+          <div className="h-5 w-16 bg-slate-200 rounded-full" />
         </div>
       ))}
     </div>
@@ -119,8 +119,8 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <IllustrationCompliance className="w-48 h-40 mb-2" />
-          <p className="text-sm font-medium text-gray-500 mb-1">No compliance deadlines found</p>
-          <p className="text-xs text-gray-400 max-w-xs leading-relaxed">
+          <p className="text-sm font-medium text-slate-500 mb-1">No compliance deadlines found</p>
+          <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
             Configure your domains above, then click &quot;Populate Calendar for This Year&quot; to generate deadlines.
           </p>
         </div>
@@ -131,17 +131,17 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
       <div className="ui-glass-table rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Domain</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Inspection</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Due Date</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Outcome</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Inspector</th>
+            <tr className="border-b border-slate-100">
+              <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Domain</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Inspection</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Due Date</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Outcome</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Inspector</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-slate-50">
             {records.map((record) => {
               const meta = COMPLIANCE_DOMAIN_DEFAULTS[record.domain]
               const dueDate = new Date(record.dueDate)
@@ -151,13 +151,13 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
                 <tr
                   key={record.id}
                   onClick={() => onEditRecord?.(record)}
-                  className="hover:bg-gray-50/50 cursor-pointer transition-colors"
+                  className="hover:bg-slate-50/50 cursor-pointer transition-colors"
                 >
                   <td className="px-4 py-3">
-                    <span className="font-medium text-gray-900 text-xs">{meta.label}</span>
+                    <span className="font-medium text-slate-900 text-xs">{meta.label}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{record.title}</td>
-                  <td className={`px-4 py-3 font-medium text-xs ${isOverdue ? 'text-red-600' : 'text-gray-700'}`}>
+                  <td className="px-4 py-3 text-slate-600 max-w-[200px] truncate">{record.title}</td>
+                  <td className={`px-4 py-3 font-medium text-xs ${isOverdue ? 'text-red-600' : 'text-slate-700'}`}>
                     {dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                   <td className="px-4 py-3">
@@ -166,7 +166,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
                   <td className="px-4 py-3">
                     <OutcomeBadge outcome={record.outcome} />
                   </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">
+                  <td className="px-4 py-3 text-slate-500 text-xs">
                     {record.inspector ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -205,8 +205,8 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <IllustrationCompliance className="w-48 h-40 mb-2" />
-          <p className="text-sm font-medium text-gray-500 mb-1">No compliance deadlines found</p>
-          <p className="text-xs text-gray-400 max-w-xs">Configure domains and populate the calendar to see deadlines here.</p>
+          <p className="text-sm font-medium text-slate-500 mb-1">No compliance deadlines found</p>
+          <p className="text-xs text-slate-400 max-w-xs">Configure domains and populate the calendar to see deadlines here.</p>
         </div>
       )
     }
@@ -215,7 +215,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
       CURRENT: 'bg-green-500',
       DUE_SOON: 'bg-amber-500',
       OVERDUE: 'bg-red-500',
-      NOT_APPLICABLE: 'bg-gray-300',
+      NOT_APPLICABLE: 'bg-slate-300',
       PENDING: 'bg-blue-500',
     }
 
@@ -223,7 +223,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
       <div className="space-y-4">
         {Object.entries(byMonth).map(([month, monthRecords]) => (
           <div key={month} className="ui-glass rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-gray-800 mb-3">{month}</h4>
+            <h4 className="text-sm font-semibold text-slate-800 mb-3">{month}</h4>
             <div className="space-y-2">
               {monthRecords.map((record) => {
                 const meta = COMPLIANCE_DOMAIN_DEFAULTS[record.domain]
@@ -231,12 +231,12 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
                   <div
                     key={record.id}
                     onClick={() => onEditRecord?.(record)}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50/50 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50/50 cursor-pointer transition-colors"
                   >
                     <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${STATUS_COLORS[record.status]}`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{meta.label}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-slate-900 truncate">{meta.label}</p>
+                      <p className="text-xs text-slate-500">
                         {new Date(record.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         {record.school && ` — ${record.school.name}`}
                       </p>
@@ -288,7 +288,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
           <button
             onClick={() => setViewMode('list')}
             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-              viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
             }`}
             title="List view"
           >
@@ -297,7 +297,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
           <button
             onClick={() => setViewMode('timeline')}
             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-              viewMode === 'timeline' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              viewMode === 'timeline' ? 'bg-primary-50 text-primary-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
             }`}
             title="Timeline view"
           >
@@ -317,7 +317,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
 
       {/* Summary */}
       {!isLoading && records.length > 0 && (
-        <p className="text-xs text-gray-400 mt-3 text-right">
+        <p className="text-xs text-slate-400 mt-3 text-right">
           {records.length} deadline{records.length === 1 ? '' : 's'} in school year {schoolYearStart.getFullYear()}–{schoolYearEnd.getFullYear()}
         </p>
       )}

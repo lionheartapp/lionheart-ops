@@ -73,12 +73,12 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
       {/* Section header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 w-full px-2 py-2 text-xs font-semibold tracking-widest text-gray-400 uppercase hover:text-gray-600 transition-colors"
+        className="flex items-center gap-1.5 w-full px-2 py-2 text-xs font-semibold tracking-widest text-slate-400 uppercase hover:text-slate-600 transition-colors"
       >
         <Users className="w-3 h-3" />
         Meet with...
         {people.length > 0 && (
-          <span className="ml-auto text-gray-300 normal-case tracking-normal font-normal text-xs">
+          <span className="ml-auto text-slate-300 normal-case tracking-normal font-normal text-xs">
             {people.length}
           </span>
         )}
@@ -89,7 +89,7 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
           {/* Search input */}
           <div ref={containerRef} className="relative">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
               <input
                 ref={inputRef}
                 type="text"
@@ -103,39 +103,39 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
                 }}
                 placeholder="Search people..."
                 disabled={people.length >= 5}
-                className="w-full h-9 pl-8 pr-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-full focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-400 focus:border-primary-400 placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-9 pl-8 pr-3 text-sm text-slate-900 bg-white border border-slate-200 rounded-full focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-400 focus:border-primary-400 placeholder-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
             {/* Results dropdown */}
             {showResults && debouncedQuery.length >= 2 && (
-              <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+              <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white rounded-lg shadow-lg border border-slate-200 z-50 py-1">
                 {isLoading && (
-                  <div className="px-3 py-2 text-xs text-gray-400">Searching...</div>
+                  <div className="px-3 py-2 text-xs text-slate-400">Searching...</div>
                 )}
                 {!isLoading && filteredResults.length === 0 && (
-                  <div className="px-3 py-2 text-xs text-gray-400">No results found</div>
+                  <div className="px-3 py-2 text-xs text-slate-400">No results found</div>
                 )}
                 {filteredResults.map((result) => (
                   <button
                     key={result.id}
                     type="button"
                     onClick={() => handleSelect(result)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-slate-50 transition-colors"
                   >
-                    <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
                       {result.avatar ? (
                         <img src={result.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                       ) : (
-                        <span className="text-xs font-medium text-gray-500">
+                        <span className="text-xs font-medium text-slate-500">
                           {(result.firstName?.[0] || result.email[0] || '?').toUpperCase()}
                         </span>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm text-gray-900 truncate">{getFullName(result)}</div>
+                      <div className="text-sm text-slate-900 truncate">{getFullName(result)}</div>
                       {result.jobTitle && (
-                        <div className="text-xs text-gray-400 truncate">{result.jobTitle}</div>
+                        <div className="text-xs text-slate-400 truncate">{result.jobTitle}</div>
                       )}
                     </div>
                   </button>

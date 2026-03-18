@@ -14,7 +14,7 @@ import { useToast } from '@/components/Toast'
 // ─── Status config ────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
-  DRAFT: { label: 'Draft', bg: 'bg-gray-100', text: 'text-gray-600' },
+  DRAFT: { label: 'Draft', bg: 'bg-slate-100', text: 'text-slate-600' },
   PENDING_APPROVAL: { label: 'Pending Approval', bg: 'bg-amber-50', text: 'text-amber-700' },
   CONFIRMED: { label: 'Confirmed', bg: 'bg-blue-50', text: 'text-blue-700' },
   IN_PROGRESS: { label: 'In Progress', bg: 'bg-green-50', text: 'text-green-700' },
@@ -27,17 +27,17 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }>
 function EventProjectSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="h-6 bg-gray-200 rounded w-24 mb-6" />
-      <div className="h-8 bg-gray-200 rounded w-2/3 mb-3" />
-      <div className="h-4 bg-gray-100 rounded w-1/3 mb-8" />
-      <div className="flex gap-2 border-b border-gray-200 mb-6">
+      <div className="h-6 bg-slate-200 rounded w-24 mb-6" />
+      <div className="h-8 bg-slate-200 rounded w-2/3 mb-3" />
+      <div className="h-4 bg-slate-100 rounded w-1/3 mb-8" />
+      <div className="flex gap-2 border-b border-slate-200 mb-6">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="h-10 bg-gray-100 rounded w-20" />
+          <div key={i} className="h-10 bg-slate-100 rounded w-20" />
         ))}
       </div>
       <div className="grid grid-cols-4 gap-3">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-20 bg-gray-100 rounded-2xl" />
+          <div key={i} className="h-20 bg-slate-100 rounded-2xl" />
         ))}
       </div>
     </div>
@@ -52,13 +52,13 @@ function EventNotFound({ onBack }: { onBack: () => void }) {
       <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
         <AlertCircle className="w-7 h-7 text-red-400" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-2">Event project not found</h3>
-      <p className="text-sm text-gray-500 mb-6">
+      <h3 className="text-base font-semibold text-slate-900 mb-2">Event project not found</h3>
+      <p className="text-sm text-slate-500 mb-6">
         This event may have been deleted or you may not have access.
       </p>
       <button
         onClick={onBack}
-        className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+        className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
       >
         Back to Events
       </button>
@@ -133,7 +133,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
         <motion.div variants={listItem} className="mb-5">
           <button
             onClick={() => router.push('/events')}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors cursor-pointer -ml-1 px-1 py-0.5 rounded-lg hover:bg-gray-100"
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors cursor-pointer -ml-1 px-1 py-0.5 rounded-lg hover:bg-slate-100"
           >
             <ArrowLeft className="w-4 h-4" />
             Events
@@ -149,22 +149,22 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
                   {statusConfig.label}
                 </span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">{project.title}</h1>
+              <h1 className="text-2xl font-bold text-slate-900 mb-1">{project.title}</h1>
 
               {/* Meta row */}
-              <div className="flex items-center gap-4 text-sm text-gray-500 flex-wrap">
+              <div className="flex items-center gap-4 text-sm text-slate-500 flex-wrap">
                 <div className="flex items-center gap-1.5">
-                  <CalendarDays className="w-4 h-4 text-gray-400" />
+                  <CalendarDays className="w-4 h-4 text-slate-400" />
                   {dateDisplay}
                 </div>
                 {project.locationText && (
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-gray-400" />
+                    <MapPin className="w-4 h-4 text-slate-400" />
                     {project.locationText}
                   </div>
                 )}
                 {creatorName && (
-                  <span className="text-gray-400">By {creatorName}</span>
+                  <span className="text-slate-400">By {creatorName}</span>
                 )}
               </div>
             </div>

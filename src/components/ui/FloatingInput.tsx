@@ -3,12 +3,12 @@
 import { forwardRef, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode, useState, useRef, useEffect, useCallback } from 'react'
 
 // Shared styles
-const borderBase = 'border border-gray-300 rounded-lg bg-white transition-colors'
-const borderFocus = 'focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10'
-const borderDisabled = 'disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-200'
-const labelBase = 'absolute left-3 -top-2.5 px-1 bg-white text-xs text-gray-500 font-medium pointer-events-none transition-all duration-200'
-const labelInside = 'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-gray-400'
-const labelFocused = 'peer-focus:-top-2.5 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-medium peer-focus:text-gray-600'
+const borderBase = 'border border-slate-300 rounded-lg bg-white transition-colors'
+const borderFocus = 'focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10'
+const borderDisabled = 'disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200'
+const labelBase = 'absolute left-3 -top-2.5 px-1 bg-white text-xs text-slate-500 font-medium pointer-events-none transition-all duration-200'
+const labelInside = 'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-400'
+const labelFocused = 'peer-focus:-top-2.5 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-medium peer-focus:text-slate-600'
 
 // ─── FloatingInput ────────────────────────────────────────────────────────────
 
@@ -25,12 +25,12 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
         placeholder={label}
         required={required}
         aria-required={required || undefined}
-        className={`peer w-full px-3.5 py-3.5 text-sm text-gray-900 placeholder-transparent outline-none ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
+        className={`peer w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder-transparent outline-none ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
         {...props}
       />
       <label
         htmlFor={id}
-        className={`${labelBase} ${labelInside} ${labelFocused} peer-disabled:bg-gray-50`}
+        className={`${labelBase} ${labelInside} ${labelFocused} peer-disabled:bg-slate-50`}
       >
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -56,7 +56,7 @@ export const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>
         id={id}
         required={required}
         aria-required={required || undefined}
-        className={`peer w-full px-3.5 py-3.5 pr-10 text-sm text-gray-900 outline-none appearance-none bg-no-repeat ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
+        className={`peer w-full px-3.5 py-3.5 pr-10 text-sm text-slate-900 outline-none appearance-none bg-no-repeat ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
         style={{
           backgroundImage: chevronSvg,
           backgroundSize: '16px 16px',
@@ -68,7 +68,7 @@ export const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>
       </select>
       <label
         htmlFor={id}
-        className={`${labelBase} peer-disabled:bg-gray-50`}
+        className={`${labelBase} peer-disabled:bg-slate-50`}
       >
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -228,8 +228,8 @@ export function FloatingDropdown({
         onClick={() => !disabled && setOpen((p) => !p)}
         onKeyDown={handleKeyDown}
         className={`w-full px-3.5 py-3.5 pr-10 text-sm text-left outline-none bg-no-repeat ${borderBase} ${
-          open ? 'border-gray-900 ring-1 ring-gray-900/10' : ''
-        } ${disabled ? 'bg-gray-50 text-gray-500 border-gray-200 cursor-not-allowed' : 'cursor-pointer'}`}
+          open ? 'border-slate-900 ring-1 ring-slate-900/10' : ''
+        } ${disabled ? 'bg-slate-50 text-slate-500 border-slate-200 cursor-not-allowed' : 'cursor-pointer'}`}
         style={{
           backgroundImage: chevronSvg,
           backgroundSize: '16px 16px',
@@ -240,7 +240,7 @@ export function FloatingDropdown({
           renderSelected ? (
             renderSelected(selected!)
           ) : (
-            <span className="flex items-center gap-2 text-gray-900">
+            <span className="flex items-center gap-2 text-slate-900">
               {selected!.color && (
                 <span
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -251,12 +251,12 @@ export function FloatingDropdown({
             </span>
           )
         ) : (
-          <span className="text-gray-400">{placeholder || label}</span>
+          <span className="text-slate-400">{placeholder || label}</span>
         )}
       </button>
       <label
         htmlFor={id}
-        className={`${labelBase} ${disabled ? 'bg-gray-50' : ''}`}
+        className={`${labelBase} ${disabled ? 'bg-slate-50' : ''}`}
       >
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -272,7 +272,7 @@ export function FloatingDropdown({
             return (
               <div key={groupName ?? '__ungrouped'}>
                 {groupName && (
-                  <div className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider select-none">
+                  <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider select-none">
                     {groupName}
                   </div>
                 )}
@@ -299,12 +299,12 @@ export function FloatingDropdown({
                       }}
                       className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
                         opt.disabled
-                          ? 'text-gray-300 cursor-not-allowed'
+                          ? 'text-slate-300 cursor-not-allowed'
                           : isSelected
                             ? 'bg-primary-50 text-primary-700 font-medium'
                             : isFocused
-                              ? 'bg-gray-50 text-gray-900'
-                              : 'text-gray-700 hover:bg-gray-50'
+                              ? 'bg-slate-50 text-slate-900'
+                              : 'text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       {opt.color && (
@@ -339,12 +339,12 @@ export const FloatingTextarea = forwardRef<HTMLTextAreaElement, FloatingTextarea
         ref={ref}
         id={id}
         placeholder={label}
-        className={`peer w-full px-3.5 pt-5 pb-3 text-sm text-gray-900 placeholder-transparent outline-none resize-none ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
+        className={`peer w-full px-3.5 pt-5 pb-3 text-sm text-slate-900 placeholder-transparent outline-none resize-none ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
         {...props}
       />
       <label
         htmlFor={id}
-        className={`${labelBase} peer-placeholder-shown:top-4 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-gray-400 ${labelFocused} peer-disabled:bg-gray-50`}
+        className={`${labelBase} peer-placeholder-shown:top-4 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-400 ${labelFocused} peer-disabled:bg-slate-50`}
       >
         {label}
       </label>

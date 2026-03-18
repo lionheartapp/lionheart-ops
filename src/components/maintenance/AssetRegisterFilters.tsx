@@ -174,14 +174,14 @@ export default function AssetRegisterFilters({
 
   const dropdownFilterCount = countActiveDropdownFilters(filters)
 
-  const selectClass = 'w-full h-10 px-3 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer'
+  const selectClass = 'w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer'
 
   return (
     <div className="flex items-center gap-3 pb-2">
       {/* KB-style search bar */}
       <div className="group relative flex-1 max-w-[768px]">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
-          <Search className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
+          <Search className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
         </div>
         <input
           id="asset-search"
@@ -190,14 +190,14 @@ export default function AssetRegisterFilters({
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}
           placeholder="Search assets..."
-          className="w-full h-[52px] pl-14 pr-12 text-base text-gray-800 placeholder:text-gray-400 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
+          className="w-full h-[52px] pl-14 pr-12 text-base text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
           aria-label="Search assets"
         />
         {filters.search && (
           <button
             type="button"
             onClick={handleSearchClear}
-            className="absolute inset-y-0 right-0 flex items-center pr-5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            className="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
             aria-label="Clear search"
           >
             <X className="w-4 h-4" />
@@ -212,14 +212,14 @@ export default function AssetRegisterFilters({
           onClick={() => setPopoverOpen((o) => !o)}
           className={`inline-flex items-center gap-2 h-[52px] px-5 text-sm font-medium rounded-full border transition-all duration-200 cursor-pointer ${
             popoverOpen || dropdownFilterCount > 0
-              ? 'bg-gray-900 text-white border-gray-900'
-              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+              ? 'bg-slate-900 text-white border-slate-900'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
           Filters
           {dropdownFilterCount > 0 && (
-            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold bg-white text-gray-900 rounded-full">
+            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold bg-white text-slate-900 rounded-full">
               {dropdownFilterCount}
             </span>
           )}
@@ -229,11 +229,11 @@ export default function AssetRegisterFilters({
         {popoverOpen && (
           <div
             ref={filterPopoverRef}
-            className="absolute right-0 top-full mt-2 w-[320px] bg-white border border-gray-200 rounded-2xl shadow-xl z-50 p-5 space-y-4"
+            className="absolute right-0 top-full mt-2 w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-5 space-y-4"
           >
             {/* Category */}
             <div>
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Category</label>
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
               <select
                 value={filters.category}
                 onChange={(e) => update({ category: e.target.value as AssetCategoryFilter })}
@@ -249,7 +249,7 @@ export default function AssetRegisterFilters({
             {/* Building */}
             {buildingOptions.length > 0 && (
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Building</label>
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Building</label>
                 <select
                   value={filters.buildingId}
                   onChange={(e) => update({ buildingId: e.target.value, areaId: '', roomId: '' })}
@@ -265,7 +265,7 @@ export default function AssetRegisterFilters({
 
             {/* Status */}
             <div>
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Status</label>
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
               <select
                 value={filters.status}
                 onChange={(e) => update({ status: e.target.value as AssetStatusFilter })}
@@ -280,7 +280,7 @@ export default function AssetRegisterFilters({
 
             {/* Warranty Status */}
             <div>
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Warranty</label>
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Warranty</label>
               <select
                 value={filters.warrantyStatus}
                 onChange={(e) => update({ warrantyStatus: e.target.value as WarrantyStatusFilter })}
@@ -296,7 +296,7 @@ export default function AssetRegisterFilters({
             {/* Sort By + Direction row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Sort By</label>
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Sort By</label>
                 <select
                   value={filters.sortField}
                   onChange={(e) => update({ sortField: e.target.value as AssetSortField })}
@@ -308,7 +308,7 @@ export default function AssetRegisterFilters({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Direction</label>
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Direction</label>
                 <select
                   value={filters.sortDir}
                   onChange={(e) => update({ sortDir: e.target.value as AssetSortDir })}
@@ -322,10 +322,10 @@ export default function AssetRegisterFilters({
 
             {/* Clear row */}
             {dropdownFilterCount > 0 && (
-              <div className="pt-2 border-t border-gray-100">
+              <div className="pt-2 border-t border-slate-100">
                 <button
                   onClick={clearDropdownFilters}
-                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                  className="text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
                 >
                   Clear all filters
                 </button>

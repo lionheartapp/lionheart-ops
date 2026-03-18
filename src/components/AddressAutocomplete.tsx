@@ -130,14 +130,14 @@ export default function AddressAutocomplete({ value, onChange, className = 'ui-i
       </div>
 
       {isOpen && suggestions.length > 0 && (
-        <ul className="absolute z-modal w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-medium max-h-60 overflow-y-auto">
+        <ul className="absolute z-modal w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-medium max-h-60 overflow-y-auto">
           {suggestions.map((suggestion, index) => (
             <li
               key={suggestion.placeId}
               className={`px-4 py-3 cursor-pointer text-sm transition-colors ${
                 index === highlightedIndex
                   ? 'bg-primary-50 text-primary-900'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  : 'text-slate-700 hover:bg-slate-50'
               }`}
               onMouseEnter={() => setHighlightedIndex(index)}
               onMouseDown={(e) => {
@@ -146,7 +146,7 @@ export default function AddressAutocomplete({ value, onChange, className = 'ui-i
               }}
             >
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -154,7 +154,7 @@ export default function AddressAutocomplete({ value, onChange, className = 'ui-i
               </div>
             </li>
           ))}
-          <li className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100">
+          <li className="px-4 py-2 text-xs text-slate-400 border-t border-slate-100">
             Powered by Google
           </li>
         </ul>

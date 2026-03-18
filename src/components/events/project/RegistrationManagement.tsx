@@ -69,12 +69,12 @@ interface RegistrationManagementProps {
 const STATUS_COLORS: Record<RegistrationStatus, string> = {
   REGISTERED: 'bg-green-100 text-green-700',
   WAITLISTED: 'bg-amber-100 text-amber-700',
-  CANCELLED: 'bg-gray-100 text-gray-500',
-  DRAFT: 'bg-gray-100 text-gray-500',
+  CANCELLED: 'bg-slate-100 text-slate-500',
+  DRAFT: 'bg-slate-100 text-slate-500',
 }
 
 const PAYMENT_COLORS: Record<PaymentStatus, string> = {
-  UNPAID: 'bg-gray-100 text-gray-500',
+  UNPAID: 'bg-slate-100 text-slate-500',
   DEPOSIT_PAID: 'bg-amber-100 text-amber-700',
   PAID: 'bg-green-100 text-green-700',
   REFUNDED: 'bg-red-100 text-red-600',
@@ -149,13 +149,13 @@ function MedicalModal({
       >
         <div className="flex items-center gap-2 mb-4">
           <Shield className="w-5 h-5 text-indigo-500" />
-          <h3 className="text-base font-semibold text-gray-900">Medical Data — {name}</h3>
+          <h3 className="text-base font-semibold text-slate-900">Medical Data — {name}</h3>
         </div>
 
         {isLoading && (
           <div className="space-y-3 animate-pulse">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-8 bg-gray-100 rounded-xl" />
+              <div key={i} className="h-8 bg-slate-100 rounded-xl" />
             ))}
           </div>
         )}
@@ -165,7 +165,7 @@ function MedicalModal({
             {(error as Error).message === 'FORBIDDEN' ? (
               <p className="text-sm text-red-600">You don&apos;t have permission to view medical data.</p>
             ) : (
-              <p className="text-sm text-gray-500">No medical data on file for this registration.</p>
+              <p className="text-sm text-slate-500">No medical data on file for this registration.</p>
             )}
           </div>
         )}
@@ -174,36 +174,36 @@ function MedicalModal({
           <div className="space-y-3 text-sm">
             {data.allergies && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-0.5">Allergies</p>
-                <p className="text-gray-800">{data.allergies}</p>
+                <p className="text-xs font-medium text-slate-500 mb-0.5">Allergies</p>
+                <p className="text-slate-800">{data.allergies}</p>
               </div>
             )}
             {data.medications && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-0.5">Medications</p>
-                <p className="text-gray-800">{data.medications}</p>
+                <p className="text-xs font-medium text-slate-500 mb-0.5">Medications</p>
+                <p className="text-slate-800">{data.medications}</p>
               </div>
             )}
             {data.medicalNotes && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-0.5">Medical Notes</p>
-                <p className="text-gray-800">{data.medicalNotes}</p>
+                <p className="text-xs font-medium text-slate-500 mb-0.5">Medical Notes</p>
+                <p className="text-slate-800">{data.medicalNotes}</p>
               </div>
             )}
             {data.emergencyName && (
-              <div className="pt-2 border-t border-gray-100">
-                <p className="text-xs font-medium text-gray-500 mb-1">Emergency Contact</p>
-                <p className="text-gray-800 font-medium">{data.emergencyName}</p>
+              <div className="pt-2 border-t border-slate-100">
+                <p className="text-xs font-medium text-slate-500 mb-1">Emergency Contact</p>
+                <p className="text-slate-800 font-medium">{data.emergencyName}</p>
                 {data.emergencyRelationship && (
-                  <p className="text-gray-500 text-xs">{data.emergencyRelationship}</p>
+                  <p className="text-slate-500 text-xs">{data.emergencyRelationship}</p>
                 )}
                 {data.emergencyPhone && (
-                  <p className="text-gray-700">{data.emergencyPhone}</p>
+                  <p className="text-slate-700">{data.emergencyPhone}</p>
                 )}
               </div>
             )}
             {!data.allergies && !data.medications && !data.medicalNotes && !data.emergencyName && (
-              <p className="text-gray-400 text-center py-2">No medical information on file</p>
+              <p className="text-slate-400 text-center py-2">No medical information on file</p>
             )}
           </div>
         )}
@@ -211,7 +211,7 @@ function MedicalModal({
         <div className="mt-5 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 active:scale-[0.97] transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 active:scale-[0.97] transition-all cursor-pointer"
           >
             Close
           </button>
@@ -242,14 +242,14 @@ function CancelDialog({
         animate={{ opacity: 1, scale: 1 }}
         className="relative ui-glass-overlay rounded-2xl p-6 w-full max-w-sm z-10"
       >
-        <h3 className="text-base font-semibold text-gray-900 mb-2">Cancel Registration</h3>
-        <p className="text-sm text-gray-500 mb-5">
+        <h3 className="text-base font-semibold text-slate-900 mb-2">Cancel Registration</h3>
+        <p className="text-sm text-slate-500 mb-5">
           Cancel the registration for <strong>{name}</strong>? This will trigger automatic waitlist promotion if applicable.
         </p>
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
           >
             Keep
           </button>
@@ -289,14 +289,14 @@ function BalanceDialog({
         animate={{ opacity: 1, scale: 1 }}
         className="relative ui-glass-overlay rounded-2xl p-6 w-full max-w-sm z-10"
       >
-        <h3 className="text-base font-semibold text-gray-900 mb-2">Request Balance Payment</h3>
-        <p className="text-sm text-gray-500 mb-5">
+        <h3 className="text-base font-semibold text-slate-900 mb-2">Request Balance Payment</h3>
+        <p className="text-sm text-slate-500 mb-5">
           Send a balance payment request email to <strong>{email}</strong> for <strong>{name}</strong>&apos;s registration?
         </p>
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
           >
             Cancel
           </button>
@@ -333,7 +333,7 @@ function RegistrationRow({
   const initials = `${reg.firstName[0] ?? ''}${reg.lastName[0] ?? ''}`.toUpperCase()
 
   return (
-    <motion.tr variants={listItem} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-colors">
+    <motion.tr variants={listItem} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
       {/* Avatar + Name */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-2.5">
@@ -341,7 +341,7 @@ function RegistrationRow({
             <img
               src={reg.photoUrl}
               alt={displayName}
-              className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-200"
+              className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-slate-200"
             />
           ) : (
             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-indigo-600">
@@ -349,19 +349,19 @@ function RegistrationRow({
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-            <p className="text-xs text-gray-400 truncate">{reg.email}</p>
+            <p className="text-sm font-medium text-slate-900 truncate">{displayName}</p>
+            <p className="text-xs text-slate-400 truncate">{reg.email}</p>
           </div>
         </div>
       </td>
       {/* Grade */}
-      <td className="px-4 py-3 text-sm text-gray-600">{reg.grade ?? '—'}</td>
+      <td className="px-4 py-3 text-sm text-slate-600">{reg.grade ?? '—'}</td>
       {/* Status */}
       <td className="px-4 py-3"><StatusBadge status={reg.status} /></td>
       {/* Payment */}
       <td className="px-4 py-3"><PaymentBadge status={reg.paymentStatus} /></td>
       {/* Submitted */}
-      <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">
         {reg.submittedAt
           ? formatDistanceToNow(new Date(reg.submittedAt), { addSuffix: true })
           : '—'}
@@ -373,7 +373,7 @@ function RegistrationRow({
           <button
             onClick={onMedicalClick}
             title="View medical data"
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
           >
             <Shield className="w-3.5 h-3.5" />
           </button>
@@ -393,7 +393,7 @@ function RegistrationRow({
           <div className="relative">
             <button
               onClick={() => setActionsOpen(!actionsOpen)}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
@@ -506,9 +506,9 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
   if (isLoading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-20 bg-gray-100 rounded-2xl" />
-        <div className="h-10 bg-gray-100 rounded-2xl" />
-        {[1, 2, 3].map((i) => <div key={i} className="h-14 bg-gray-100 rounded-2xl" />)}
+        <div className="h-20 bg-slate-100 rounded-2xl" />
+        <div className="h-10 bg-slate-100 rounded-2xl" />
+        {[1, 2, 3].map((i) => <div key={i} className="h-14 bg-slate-100 rounded-2xl" />)}
       </div>
     )
   }
@@ -535,24 +535,24 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
         >
           <div className="flex items-center gap-4 flex-wrap">
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">{capacity?.registeredCount ?? 0}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Registered</p>
+              <p className="text-2xl font-bold text-slate-900">{capacity?.registeredCount ?? 0}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Registered</p>
             </div>
             {(capacity?.waitlistedCount ?? 0) > 0 && (
               <div className="text-center">
                 <p className="text-2xl font-bold text-amber-700">{capacity?.waitlistedCount ?? 0}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Waitlisted</p>
+                <p className="text-xs text-slate-500 mt-0.5">Waitlisted</p>
               </div>
             )}
             {(capacity?.cancelledCount ?? 0) > 0 && (
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-400">{capacity?.cancelledCount ?? 0}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Cancelled</p>
+                <p className="text-2xl font-bold text-slate-400">{capacity?.cancelledCount ?? 0}</p>
+                <p className="text-xs text-slate-500 mt-0.5">Cancelled</p>
               </div>
             )}
             {capacity?.maxCapacity && (
               <div className="flex-1 min-w-[160px]">
-                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <div className="flex justify-between text-xs text-slate-500 mb-1">
                   <span>{capacity.registeredCount} of {capacity.maxCapacity}</span>
                   <span>{capacityPct}%</span>
                 </div>
@@ -575,19 +575,19 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
         {/* Filters */}
         <motion.div variants={fadeInUp} className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[180px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder="Search by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all cursor-pointer"
+            className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="REGISTERED">Registered</option>
@@ -602,8 +602,8 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-3">
               <User className="w-6 h-6 text-indigo-400" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">No registrations yet</h3>
-            <p className="text-sm text-gray-400">
+            <h3 className="text-sm font-semibold text-slate-900 mb-1">No registrations yet</h3>
+            <p className="text-sm text-slate-400">
               {search || statusFilter !== 'ALL'
                 ? 'No registrations match your search.'
                 : 'Share the registration link with parents to get started.'}
@@ -616,13 +616,13 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
           <motion.div variants={fadeInUp} className="ui-glass-table">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Registrant</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Grade</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Payment</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Submitted</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">Actions</th>
+                <tr className="border-b border-slate-100">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Registrant</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Grade</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Payment</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Submitted</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500">Actions</th>
                 </tr>
               </thead>
               <motion.tbody variants={staggerContainer()} initial="hidden" animate="visible">
@@ -640,8 +640,8 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
             </table>
 
             {total > 50 && (
-              <div className="px-4 py-3 border-t border-gray-100">
-                <p className="text-xs text-gray-400 text-center">Showing 50 of {total} registrations</p>
+              <div className="px-4 py-3 border-t border-slate-100">
+                <p className="text-xs text-slate-400 text-center">Showing 50 of {total} registrations</p>
               </div>
             )}
           </motion.div>

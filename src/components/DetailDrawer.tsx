@@ -110,16 +110,16 @@ export default function DetailDrawer({
         <div className="flex items-center justify-between px-6 pt-5 pb-3 flex-shrink-0">
           <h2
             id="drawer-title"
-            className="text-xs text-gray-400 uppercase tracking-wide font-medium truncate"
+            className="text-xs text-slate-400 uppercase tracking-wide font-medium truncate"
           >
             {title}
           </h2>
           <button
             onClick={handleClose}
-            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors flex-shrink-0"
             aria-label="Close drawer"
           >
-            <X className="w-5 h-5 text-gray-400" aria-hidden="true" />
+            <X className="w-5 h-5 text-slate-400" aria-hidden="true" />
           </button>
         </div>
 
@@ -133,11 +133,11 @@ export default function DetailDrawer({
 
         {/* Footer — sticky bottom with separator */}
         {(footer || onEdit) && (
-          <div className="flex-shrink-0 border-t border-gray-200 px-6 py-4">
+          <div className="flex-shrink-0 border-t border-slate-200 px-6 py-4">
             {footer ?? (
               <button
                 onClick={onEdit}
-                className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition cursor-pointer"
+                className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 transition cursor-pointer"
               >
                 Edit
               </button>

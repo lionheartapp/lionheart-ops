@@ -55,7 +55,7 @@ export default function OfflineSyncStatus({
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-slate-900">
                 {isSuccess
                   ? `Synced ${result.succeeded} change${result.succeeded === 1 ? '' : 's'} successfully`
                   : hasPartial
@@ -81,7 +81,7 @@ export default function OfflineSyncStatus({
             <button
               type="button"
               onClick={onDismiss}
-              className="p-0.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+              className="p-0.5 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer flex-shrink-0"
               aria-label="Dismiss"
             >
               <X className="w-4 h-4" />

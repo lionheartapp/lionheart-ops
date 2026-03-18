@@ -86,22 +86,22 @@ export default function ITMagicLinksTab() {
             <Link2 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Magic Links</h3>
-            <p className="text-xs text-gray-500">Generate one-time links for substitute teachers to submit IT requests</p>
+            <h3 className="text-sm font-semibold text-slate-900">Magic Links</h3>
+            <p className="text-xs text-slate-500">Generate one-time links for substitute teachers to submit IT requests</p>
           </div>
         </div>
 
         <div className="space-y-4">
           {/* Expiry */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               <Clock className="w-3.5 h-3.5 inline mr-1" />
               Link expires in
             </label>
             <select
               value={expiresInHours}
               onChange={(e) => setExpiresInHours(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="4">4 hours</option>
               <option value="8">8 hours (1 school day)</option>
@@ -114,14 +114,14 @@ export default function ITMagicLinksTab() {
           {/* School */}
           {schools.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 <School className="w-3.5 h-3.5 inline mr-1" />
                 Campus (optional)
               </label>
               <select
                 value={schoolId}
                 onChange={(e) => setSchoolId(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
               >
                 <option value="">All campuses</option>
                 {schools.map((s) => (
@@ -134,7 +134,7 @@ export default function ITMagicLinksTab() {
           <button
             onClick={() => generateMutation.mutate()}
             disabled={generateMutation.isPending}
-            className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 transition-all"
+            className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-50 transition-all"
           >
             {generateMutation.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -157,9 +157,9 @@ export default function ITMagicLinksTab() {
         <div className="ui-glass p-6 border-blue-200 bg-blue-50/30">
           <div className="flex items-center gap-2 mb-3">
             <Check className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-gray-900">Link generated!</span>
+            <span className="text-sm font-medium text-slate-900">Link generated!</span>
           </div>
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-slate-500 mb-3">
             This link will only be shown once. Copy it now and share with the substitute teacher.
           </p>
 
@@ -168,14 +168,14 @@ export default function ITMagicLinksTab() {
               type="text"
               readOnly
               value={generatedLink.url}
-              className="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 font-mono truncate"
+              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 font-mono truncate"
             />
             <button
               onClick={handleCopy}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 copied
                   ? 'bg-green-100 text-green-700 border border-green-200'
-                  : 'bg-gray-900 text-white hover:bg-gray-800'
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
               }`}
             >
               {copied ? (
@@ -192,7 +192,7 @@ export default function ITMagicLinksTab() {
             </button>
           </div>
 
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-slate-400 mt-2">
             Expires: {new Date(generatedLink.expiresAt).toLocaleString()}
           </p>
         </div>
@@ -200,8 +200,8 @@ export default function ITMagicLinksTab() {
 
       {/* Instructions */}
       <div className="ui-glass p-6">
-        <h4 className="text-sm font-semibold text-gray-900 mb-2">How it works</h4>
-        <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+        <h4 className="text-sm font-semibold text-slate-900 mb-2">How it works</h4>
+        <ol className="text-sm text-slate-600 space-y-2 list-decimal list-inside">
           <li>Generate a magic link above</li>
           <li>Share the link with the substitute teacher (print, email, or post in the classroom)</li>
           <li>The sub opens the link and fills out the IT request form — no login required</li>

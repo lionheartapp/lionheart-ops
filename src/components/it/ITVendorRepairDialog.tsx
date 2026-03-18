@@ -106,13 +106,13 @@ export default function ITVendorRepairDialog({
       {/* Dialog */}
       <div className="relative ui-glass-overlay rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-[scaleIn_200ms_ease-out]">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-200/50">
-          <h3 className="text-base font-semibold text-gray-900">
+        <div className="flex items-center justify-between p-5 border-b border-slate-200/50">
+          <h3 className="text-base font-semibold text-slate-900">
             Add Vendor Repair Log
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -122,7 +122,7 @@ export default function ITVendorRepairDialog({
         <div className="p-5 space-y-4">
           {/* Vendor Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Vendor Name <span className="text-red-400">*</span>
             </label>
             <input
@@ -130,32 +130,32 @@ export default function ITVendorRepairDialog({
               value={form.vendorName}
               onChange={(e) => handleChange('vendorName', e.target.value)}
               placeholder="e.g. TechRepairs Inc."
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
             />
           </div>
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Sent Date
               </label>
               <input
                 type="date"
                 value={form.sentDate}
                 onChange={(e) => handleChange('sentDate', e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Received Date
               </label>
               <input
                 type="date"
                 value={form.receivedDate}
                 onChange={(e) => handleChange('receivedDate', e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
               />
             </div>
           </div>
@@ -163,11 +163,11 @@ export default function ITVendorRepairDialog({
           {/* Costs */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Estimated Cost
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                   $
                 </span>
                 <input
@@ -177,16 +177,16 @@ export default function ITVendorRepairDialog({
                   value={form.estimatedCost}
                   onChange={(e) => handleChange('estimatedCost', e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                  className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Actual Cost
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                   $
                 </span>
                 <input
@@ -196,7 +196,7 @@ export default function ITVendorRepairDialog({
                   value={form.actualCost}
                   onChange={(e) => handleChange('actualCost', e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                  className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
                 />
               </div>
             </div>
@@ -204,7 +204,7 @@ export default function ITVendorRepairDialog({
 
           {/* Invoice # */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Invoice Number
             </label>
             <input
@@ -212,13 +212,13 @@ export default function ITVendorRepairDialog({
               value={form.invoiceNumber}
               onChange={(e) => handleChange('invoiceNumber', e.target.value)}
               placeholder="INV-12345"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
             />
           </div>
 
           {/* Receipt URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Receipt URL
             </label>
             <input
@@ -226,13 +226,13 @@ export default function ITVendorRepairDialog({
               value={form.receiptUrl}
               onChange={(e) => handleChange('receiptUrl', e.target.value)}
               placeholder="https://..."
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Notes
             </label>
             <textarea
@@ -240,23 +240,23 @@ export default function ITVendorRepairDialog({
               value={form.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
               placeholder="Additional repair details..."
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow resize-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow resize-none"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-200/50">
+        <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-200/50">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+            className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending || !form.vendorName.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {saveMutation.isPending ? (
               <>

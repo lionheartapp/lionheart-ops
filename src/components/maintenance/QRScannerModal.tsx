@@ -10,10 +10,10 @@ import { scaleIn } from '@/lib/animations'
 const QRScannerInner = dynamic(() => import('./QRScannerInner'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-64 bg-gray-100 rounded-xl">
+    <div className="flex items-center justify-center h-64 bg-slate-100 rounded-xl">
       <div className="text-center">
         <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Starting camera...</p>
+        <p className="text-sm text-slate-500">Starting camera...</p>
       </div>
     </div>
   ),
@@ -52,16 +52,16 @@ export default function QRScannerModal({ isOpen, onClose }: QRScannerModalProps)
                   <QrCode className="w-4 h-4 text-primary-600" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900">Scan Asset QR</h3>
-                  <p className="text-xs text-gray-400">Point camera at equipment label</p>
+                  <h3 className="text-sm font-semibold text-slate-900">Scan Asset QR</h3>
+                  <p className="text-xs text-slate-400">Point camera at equipment label</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4 text-gray-500" />
+                <X className="w-4 h-4 text-slate-500" />
               </button>
             </div>
 

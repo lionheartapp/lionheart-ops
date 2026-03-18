@@ -70,8 +70,8 @@ function ITPageShellInner({ children }: { children: ReactNode }) {
 
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -92,10 +92,10 @@ function ITPageShellInner({ children }: { children: ReactNode }) {
           <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
             <ShieldAlert className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Access Required</h2>
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <h2 className="text-lg font-semibold text-slate-900 mb-2">Access Required</h2>
+          <p className="text-sm text-slate-500 leading-relaxed">
             You don&apos;t have permission to access the IT Help Desk. Ask your administrator to
-            update your role in <span className="font-medium text-gray-700">Settings &gt; Members</span>.
+            update your role in <span className="font-medium text-slate-700">Settings &gt; Members</span>.
           </p>
         </div>
       </DashboardLayout>
@@ -123,8 +123,8 @@ function ITPageShellInner({ children }: { children: ReactNode }) {
 export default function ITPageShell({ children }: { children: ReactNode }) {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     }>
       <ITPageShellInner>{children}</ITPageShellInner>

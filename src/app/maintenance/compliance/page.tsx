@@ -42,15 +42,15 @@ function DomainCardSkeleton() {
   return (
     <div className="animate-pulse ui-glass p-4 rounded-2xl">
       <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl bg-gray-100" />
-        <div className="w-9 h-5 rounded-full bg-gray-100" />
+        <div className="w-10 h-10 rounded-xl bg-slate-100" />
+        <div className="w-9 h-5 rounded-full bg-slate-100" />
       </div>
-      <div className="h-4 w-3/4 bg-gray-100 rounded mb-1.5" />
-      <div className="h-3 w-full bg-gray-100 rounded mb-1" />
-      <div className="h-3 w-2/3 bg-gray-100 rounded mb-3" />
+      <div className="h-4 w-3/4 bg-slate-100 rounded mb-1.5" />
+      <div className="h-3 w-full bg-slate-100 rounded mb-1" />
+      <div className="h-3 w-2/3 bg-slate-100 rounded mb-3" />
       <div className="flex items-center justify-between">
-        <div className="h-5 w-16 bg-gray-100 rounded-full" />
-        <div className="h-3 w-20 bg-gray-100 rounded" />
+        <div className="h-5 w-16 bg-slate-100 rounded-full" />
+        <div className="h-3 w-20 bg-slate-100 rounded" />
       </div>
     </div>
   )
@@ -192,8 +192,8 @@ function ComplianceContent() {
 
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -220,15 +220,15 @@ function ComplianceContent() {
             >
               <motion.div variants={fadeInUp} className="flex items-center gap-3">
                 <div className="flex-1">
-                  <h1 className="text-2xl font-semibold text-gray-900">Compliance</h1>
-                  <p className="text-sm text-gray-500">
+                  <h1 className="text-2xl font-semibold text-slate-900">Compliance</h1>
+                  <p className="text-sm text-slate-500">
                     Configure compliance domains and track regulatory deadlines for your school
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setExportOpen(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer active:scale-[0.97]"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer active:scale-[0.97]"
                   >
                     <Download className="w-4 h-4" />
                     Export Audit PDF
@@ -236,7 +236,7 @@ function ComplianceContent() {
                   <button
                     onClick={() => populateMutation.mutate()}
                     disabled={populateMutation.isPending}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-60 active:scale-[0.97]"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-60 active:scale-[0.97]"
                   >
                     {populateMutation.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -300,8 +300,8 @@ function ComplianceContent() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800">Compliance Calendar</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h2 className="text-base font-semibold text-slate-800">Compliance Calendar</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
                     All regulatory deadlines for the current school year
                   </p>
                 </div>
@@ -342,8 +342,8 @@ function ComplianceContent() {
 export default function CompliancePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     }>
       <ComplianceContent />

@@ -36,7 +36,7 @@ interface ActivityManagerProps {
 
 function CapacityBar({ current, max }: { current: number; max: number | null }) {
   if (!max) {
-    return <span className="text-xs text-gray-500">{current} signed up</span>
+    return <span className="text-xs text-slate-500">{current} signed up</span>
   }
   const pct = Math.min(100, Math.round((current / max) * 100))
   const barColor = pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-yellow-400' : 'bg-green-500'
@@ -44,7 +44,7 @@ function CapacityBar({ current, max }: { current: number; max: number | null }) 
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
       <span className={`text-xs font-medium ${textColor}`}>
@@ -105,14 +105,14 @@ function ActivityForm({
         value={values.name}
         onChange={(e) => set('name', e.target.value)}
         placeholder="Activity name *"
-        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
         required
       />
       <input
         value={values.description}
         onChange={(e) => set('description', e.target.value)}
         placeholder="Description (optional)"
-        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <div className="grid grid-cols-2 gap-3">
         <input
@@ -121,20 +121,20 @@ function ActivityForm({
           onChange={(e) => set('capacity', e.target.value)}
           placeholder="Max capacity"
           min={1}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <input
           type="datetime-local"
           value={values.scheduledAt}
           onChange={(e) => set('scheduledAt', e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>
       <input
         value={values.location}
         onChange={(e) => set('location', e.target.value)}
         placeholder="Location (optional)"
-        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <div className="flex gap-2">
         <button
@@ -147,7 +147,7 @@ function ActivityForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 cursor-pointer"
+          className="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 cursor-pointer"
         >
           Cancel
         </button>
@@ -239,7 +239,7 @@ function ActivityRow({
       {/* Activity header */}
       {editing ? (
         <div className="p-4">
-          <h4 className="text-sm font-semibold text-gray-800 mb-3">Edit Activity</h4>
+          <h4 className="text-sm font-semibold text-slate-800 mb-3">Edit Activity</h4>
           <ActivityForm
             initial={{
               name: activity.name,
@@ -274,7 +274,7 @@ function ActivityRow({
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(false)}
-                  className="flex-1 px-3 py-1.5 text-xs border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="flex-1 px-3 py-1.5 text-xs border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -285,7 +285,7 @@ function ActivityRow({
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-semibold text-gray-900 truncate">{activity.name}</h3>
+                <h3 className="text-sm font-semibold text-slate-900 truncate">{activity.name}</h3>
                 {activity.isFull && (
                   <span className="text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full flex-shrink-0">
                     FULL
@@ -294,18 +294,18 @@ function ActivityRow({
               </div>
 
               {activity.description && (
-                <p className="text-xs text-gray-500 mb-2">{activity.description}</p>
+                <p className="text-xs text-slate-500 mb-2">{activity.description}</p>
               )}
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
                 {activity.scheduledAt && (
-                  <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <span className="flex items-center gap-1 text-xs text-slate-500">
                     <Clock className="w-3 h-3" />
                     {formatTime(activity.scheduledAt)}
                   </span>
                 )}
                 {activity.location && (
-                  <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <span className="flex items-center gap-1 text-xs text-slate-500">
                     <MapPin className="w-3 h-3" />
                     {activity.location}
                   </span>
@@ -320,21 +320,21 @@ function ActivityRow({
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
@@ -353,8 +353,8 @@ function ActivityRow({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-gray-100 p-4">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <div className="border-t border-slate-100 p-4">
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5" />
                 Signed Up ({activity.signupCount})
               </h4>
@@ -362,31 +362,31 @@ function ActivityRow({
               {signupsLoading ? (
                 <div className="space-y-2">
                   {[1, 2].map((i) => (
-                    <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+                    <div key={i} className="h-10 bg-slate-100 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : signups.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">No signups yet.</p>
+                <p className="text-sm text-slate-400 text-center py-4">No signups yet.</p>
               ) : (
                 <div className="space-y-2">
                   {signups.map((signup) => (
                     <div
                       key={signup.id}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white border border-gray-200"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white border border-slate-200"
                     >
                       <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-slate-900 truncate">
                           {signup.participant.firstName} {signup.participant.lastName}
                         </p>
                         {signup.participant.grade && (
-                          <p className="text-xs text-gray-500">Gr. {signup.participant.grade}</p>
+                          <p className="text-xs text-slate-500">Gr. {signup.participant.grade}</p>
                         )}
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveSignup(signup.registrationId)}
-                        className="w-5 h-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 cursor-pointer"
+                        className="w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 cursor-pointer"
                         title="Remove from activity"
                       >
                         <X className="w-3 h-3" />
@@ -446,7 +446,7 @@ export default function ActivityManager({ eventProjectId }: ActivityManagerProps
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+          <div key={i} className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
         ))}
       </div>
     )
@@ -457,13 +457,13 @@ export default function ActivityManager({ eventProjectId }: ActivityManagerProps
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">Activities</h3>
-          <p className="text-xs text-gray-500">{activities.length} activities</p>
+          <h3 className="text-sm font-semibold text-slate-900">Activities</h3>
+          <p className="text-xs text-slate-500">{activities.length} activities</p>
         </div>
         <button
           type="button"
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Activity
@@ -473,7 +473,7 @@ export default function ActivityManager({ eventProjectId }: ActivityManagerProps
       {/* Add form */}
       {showAddForm && (
         <div className="ui-glass p-4 rounded-2xl border border-blue-200">
-          <h4 className="text-sm font-semibold text-gray-800 mb-3">New Activity</h4>
+          <h4 className="text-sm font-semibold text-slate-800 mb-3">New Activity</h4>
           <ActivityForm
             onSubmit={handleCreateActivity}
             onCancel={() => setShowAddForm(false)}
@@ -488,16 +488,16 @@ export default function ActivityManager({ eventProjectId }: ActivityManagerProps
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
-          className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
+          className="flex flex-col items-center justify-center py-16 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200"
         >
-          <p className="text-sm font-semibold text-gray-700 mb-1">No activities yet</p>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm font-semibold text-slate-700 mb-1">No activities yet</p>
+          <p className="text-sm text-slate-500 mb-4">
             Create elective activities for participants to sign up for.
           </p>
           <button
             type="button"
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add First Activity

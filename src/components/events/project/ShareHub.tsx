@@ -83,7 +83,7 @@ function SectionCard({
         <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 flex-shrink-0">
           {icon}
         </div>
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
       </div>
       {children}
     </motion.div>
@@ -198,7 +198,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
     return (
       <div className="space-y-4 animate-pulse">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="ui-glass p-5 h-32 rounded-2xl bg-gray-100" />
+          <div key={i} className="ui-glass p-5 h-32 rounded-2xl bg-slate-100" />
         ))}
       </div>
     )
@@ -217,8 +217,8 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
         <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-3">
           <QrCode className="w-6 h-6 text-indigo-400" />
         </div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">Registration Not Set Up</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="text-sm font-semibold text-slate-900 mb-1">Registration Not Set Up</h3>
+        <p className="text-sm text-slate-500">
           Create a registration form in the Registration tab first.
         </p>
       </motion.div>
@@ -240,12 +240,12 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
       {/* Share Link */}
       <SectionCard icon={<Link2 className="w-4 h-4" />} title="Share Link">
         <div className="flex items-center gap-2 mb-3">
-          <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 font-mono truncate">
+          <div className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-mono truncate">
             {configData.shareUrl}
           </div>
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
           >
             {copied ? (
               <><CheckCheck className="w-4 h-4" /> Copied</>
@@ -266,17 +266,17 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
       <SectionCard icon={<QrCode className="w-4 h-4" />} title="QR Code for Flyers">
         <div className="flex items-start gap-4">
           <div
-            className="w-28 h-28 flex-shrink-0 p-2 bg-white border border-gray-200 rounded-xl"
+            className="w-28 h-28 flex-shrink-0 p-2 bg-white border border-slate-200 rounded-xl"
             dangerouslySetInnerHTML={{ __html: configData.qrCodeSvg }}
           />
           <div className="flex-1">
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-slate-500 mb-3">
               Print this QR code on flyers, posters, and handouts. Parents can scan it to go directly to the registration page.
             </p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleDownloadQR}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer w-fit"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer w-fit"
               >
                 <Download className="w-4 h-4" />
                 Download PNG
@@ -285,7 +285,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
                 href={configData.shareUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer w-fit"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer w-fit"
               >
                 <ExternalLink className="w-4 h-4" />
                 Preview Public Page
@@ -299,7 +299,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
       <SectionCard icon={<Calendar className="w-4 h-4" />} title="Registration Window">
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-slate-600 mb-1">
               <Clock className="w-3 h-3 inline mr-1" />
               Opens
             </label>
@@ -307,11 +307,11 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
               type="datetime-local"
               value={openAt}
               onChange={(e) => setOpenAt(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-slate-600 mb-1">
               <Clock className="w-3 h-3 inline mr-1" />
               Closes
             </label>
@@ -319,14 +319,14 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
               type="datetime-local"
               value={closeAt}
               onChange={(e) => setCloseAt(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
         </div>
         <button
           onClick={handleSaveWindow}
           disabled={saveMutation.isPending}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
         >
           <Check className="w-4 h-4" />
           {saveMutation.isPending ? 'Saving...' : 'Save Window'}
@@ -338,11 +338,11 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
         {/* Progress bar */}
         {configData.maxCapacity && (
           <div className="mb-4">
-            <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+            <div className="flex justify-between text-xs text-slate-500 mb-1.5">
               <span>{configData.registeredCount} registered</span>
               <span>{configData.maxCapacity} max</span>
             </div>
-            <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -365,14 +365,14 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
 
         <div className="flex items-end gap-3 mb-3">
           <div className="flex-1">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Max Capacity</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Max Capacity</label>
             <input
               type="number"
               value={maxCapacity}
               onChange={(e) => setMaxCapacity(e.target.value)}
               min={1}
               placeholder="Unlimited"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
           <div className="flex items-center gap-2 pb-2">
@@ -380,20 +380,20 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
               role="switch"
               aria-checked={waitlistEnabled}
               onClick={() => setWaitlistEnabled(!waitlistEnabled)}
-              className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${waitlistEnabled ? 'bg-indigo-500' : 'bg-gray-200'}`}
+              className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${waitlistEnabled ? 'bg-indigo-500' : 'bg-slate-200'}`}
             >
               <span
                 className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${waitlistEnabled ? 'translate-x-5' : 'translate-x-0'}`}
               />
             </button>
-            <span className="text-xs text-gray-600">Waitlist</span>
+            <span className="text-xs text-slate-600">Waitlist</span>
           </div>
         </div>
 
         <button
           onClick={handleSaveCapacity}
           disabled={saveMutation.isPending}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
         >
           <Check className="w-4 h-4" />
           {saveMutation.isPending ? 'Saving...' : 'Save Capacity'}
@@ -402,7 +402,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
 
       {/* Branding */}
       <SectionCard icon={<Palette className="w-4 h-4" />} title="Branding">
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-xs text-slate-500 mb-3">
           The public registration page uses your organization logo and colors by default.
           Custom overrides coming in a future release.
         </p>
@@ -410,7 +410,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
           href={configData.shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer w-fit"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer w-fit"
         >
           <ExternalLink className="w-4 h-4" />
           View Public Page

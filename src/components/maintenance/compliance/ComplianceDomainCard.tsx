@@ -93,7 +93,7 @@ function StatusBadge({ status }: { status: ComplianceStatus }) {
     CURRENT: { label: 'Current', className: 'bg-green-100 text-green-700' },
     DUE_SOON: { label: 'Due Soon', className: 'bg-amber-100 text-amber-700' },
     OVERDUE: { label: 'Overdue', className: 'bg-red-100 text-red-700' },
-    NOT_APPLICABLE: { label: 'Not Applicable', className: 'bg-gray-100 text-gray-500' },
+    NOT_APPLICABLE: { label: 'Not Applicable', className: 'bg-slate-100 text-slate-500' },
     PENDING: { label: 'Pending', className: 'bg-blue-100 text-blue-700' },
   }
   const { label, className } = config[status]
@@ -124,7 +124,7 @@ function ToggleSwitch({
       }}
       disabled={disabled}
       className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-        enabled ? 'bg-primary-600' : 'bg-gray-200'
+        enabled ? 'bg-primary-600' : 'bg-slate-200'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       aria-checked={enabled}
       role="switch"
@@ -186,10 +186,10 @@ export function ComplianceDomainCard({
       </div>
 
       {/* Domain name */}
-      <h3 className="text-sm font-semibold text-gray-900 mb-0.5 leading-tight pr-2">
+      <h3 className="text-sm font-semibold text-slate-900 mb-0.5 leading-tight pr-2">
         {meta.label}
       </h3>
-      <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">
+      <p className="text-xs text-slate-500 mb-3 line-clamp-2 leading-relaxed">
         {meta.description}
       </p>
 
@@ -197,7 +197,7 @@ export function ComplianceDomainCard({
       <div className="flex items-center justify-between">
         <StatusBadge status={status} />
         {isEnabled && dueDateStr && (
-          <span className={`text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-gray-500'}`}>
+          <span className={`text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-slate-500'}`}>
             {isOverdue
               ? `${Math.abs(daysUntilDue!)}d overdue`
               : `Due ${dueDateStr}`}
@@ -207,10 +207,10 @@ export function ComplianceDomainCard({
 
       {/* Frequency hint */}
       <div className="mt-2 flex items-center justify-between">
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-slate-400">
           {meta.frequencyYears === 1 ? 'Annual' : `Every ${meta.frequencyYears} years`}
         </span>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-400 transition-colors" />
+        <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400 transition-colors" />
       </div>
     </motion.div>
   )

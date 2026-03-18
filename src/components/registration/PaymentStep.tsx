@@ -113,9 +113,9 @@ function CheckoutForm({
 
       {/* Divider */}
       <div className="relative flex items-center gap-3 py-1">
-        <div className="flex-1 border-t border-gray-200" />
-        <span className="text-xs text-gray-400 font-medium">or pay by card</span>
-        <div className="flex-1 border-t border-gray-200" />
+        <div className="flex-1 border-t border-slate-200" />
+        <span className="text-xs text-slate-400 font-medium">or pay by card</span>
+        <div className="flex-1 border-t border-slate-200" />
       </div>
 
       {/* Card payment element */}
@@ -128,7 +128,7 @@ function CheckoutForm({
       <button
         type="submit"
         disabled={!stripe || processing}
-        className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
+        className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
       >
         {processing ? (
           <>
@@ -262,12 +262,12 @@ export default function PaymentStep({
     return (
       <div className="space-y-5">
         {/* Amount summary */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">Payment Summary</h3>
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-slate-900">Payment Summary</h3>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Registration fee</span>
-            <span className="font-medium text-gray-900">{formatCents(amount)}</span>
+            <span className="text-slate-600">Registration fee</span>
+            <span className="font-medium text-slate-900">{formatCents(amount)}</span>
           </div>
 
           {appliedDiscount && (
@@ -295,7 +295,7 @@ export default function PaymentStep({
             </div>
           )}
 
-          <div className="border-t border-gray-200 pt-2 flex items-center justify-between text-sm font-semibold text-gray-900">
+          <div className="border-t border-slate-200 pt-2 flex items-center justify-between text-sm font-semibold text-slate-900">
             <span>Total due today</span>
             <span>{formatCents(effectiveAmount)}</span>
           </div>
@@ -304,7 +304,7 @@ export default function PaymentStep({
         {/* Payment type selector (only if deposit option exists) */}
         {depositPercent != null && (
           <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-700">Payment option</p>
+            <p className="text-xs font-medium text-slate-700">Payment option</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -312,7 +312,7 @@ export default function PaymentStep({
                 className={`p-3 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                   paymentType === 'FULL'
                     ? 'border-indigo-500 bg-indigo-50 text-indigo-800'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}
               >
                 Pay in full
@@ -326,7 +326,7 @@ export default function PaymentStep({
                 className={`p-3 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                   paymentType === 'DEPOSIT'
                     ? 'border-indigo-500 bg-indigo-50 text-indigo-800'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}
               >
                 Pay deposit
@@ -341,7 +341,7 @@ export default function PaymentStep({
         {/* Discount code */}
         {discountCodes && discountCodes.length > 0 && !appliedDiscount && (
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-xs font-medium text-slate-700">
               Discount code (optional)
             </label>
             <div className="flex gap-2">
@@ -353,12 +353,12 @@ export default function PaymentStep({
                   setDiscountError('')
                 }}
                 placeholder="ENTER CODE"
-                className="flex-1 px-3.5 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 uppercase"
+                className="flex-1 px-3.5 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 uppercase"
               />
               <button
                 type="button"
                 onClick={handleApplyDiscount}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl transition-colors cursor-pointer"
               >
                 Apply
               </button>
@@ -383,7 +383,7 @@ export default function PaymentStep({
           type="button"
           onClick={handleProceedToPayment}
           disabled={loadingIntent || effectiveAmount === 0}
-          className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
+          className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer active:scale-[0.97]"
         >
           {loadingIntent ? (
             <>
@@ -418,9 +418,9 @@ export default function PaymentStep({
     >
       <div className="space-y-4">
         {/* Amount reminder */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
-          <span className="text-gray-600">Amount due</span>
-          <span className="font-semibold text-gray-900">{formatCents(effectiveAmount)}</span>
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+          <span className="text-slate-600">Amount due</span>
+          <span className="font-semibold text-slate-900">{formatCents(effectiveAmount)}</span>
         </div>
 
         <CheckoutForm

@@ -138,10 +138,10 @@ export default function TicketStatusTracker({
                             : isWaiting
                               ? 'bg-purple-400 border-purple-400 ring-2 ring-purple-200 ring-offset-1'
                               : isCancelledStep
-                                ? 'bg-gray-100 border-gray-200'
+                                ? 'bg-slate-100 border-slate-200'
                                 : isFuture
-                                  ? 'bg-white border-gray-200'
-                                  : 'bg-white border-gray-200'
+                                  ? 'bg-white border-slate-200'
+                                  : 'bg-white border-slate-200'
                       }
                     `}
                   >
@@ -154,7 +154,7 @@ export default function TicketStatusTracker({
                     ) : isWaiting ? (
                       <Clock className="w-3 h-3 text-white" />
                     ) : (
-                      <div className="w-2 h-2 rounded-full bg-gray-200" />
+                      <div className="w-2 h-2 rounded-full bg-slate-200" />
                     )}
                   </div>
 
@@ -172,8 +172,8 @@ export default function TicketStatusTracker({
                             : isWaiting
                               ? 'text-purple-600 font-semibold'
                               : isCancelledStep
-                                ? 'text-gray-300'
-                                : 'text-gray-400'
+                                ? 'text-slate-300'
+                                : 'text-slate-400'
                       }
                     `}
                   >
@@ -189,8 +189,8 @@ export default function TicketStatusTracker({
                       ${isCompleted
                         ? 'bg-primary-400'
                         : isCancelledStep || (isCancelled && index === 0)
-                          ? 'bg-gray-100'
-                          : 'border-t border-dashed border-gray-200'
+                          ? 'bg-slate-100'
+                          : 'border-t border-dashed border-slate-200'
                       }
                     `}
                   />

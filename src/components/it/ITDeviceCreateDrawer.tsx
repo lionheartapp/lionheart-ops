@@ -174,7 +174,7 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
             type="submit"
             form="it-device-create-form"
             disabled={createMutation.isPending}
-            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             Add Device
@@ -182,7 +182,7 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
           <button
             type="button"
             onClick={handleClose}
-            className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all"
+            className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all"
           >
             Cancel
           </button>
@@ -199,11 +199,11 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
       >
         {/* Device Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Device Type *</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Device Type *</label>
           <select
             value={deviceType}
             onChange={(e) => setDeviceType(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             {DEVICE_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -234,11 +234,11 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
 
         {/* Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             {STATUSES.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
@@ -249,12 +249,12 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
         {/* Purchase Info */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Purchase Date</label>
             <input
               type="date"
               value={purchaseDate}
               onChange={(e) => setPurchaseDate(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
             />
           </div>
           <FloatingInput
@@ -267,23 +267,23 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Warranty Expiry</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Warranty Expiry</label>
           <input
             type="date"
             value={warrantyExpiry}
             onChange={(e) => setWarrantyExpiry(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
           />
         </div>
 
         {/* Campus */}
         {schools.length > 1 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Campus</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Campus</label>
             <select
               value={schoolId}
               onChange={(e) => setSchoolId(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select campus...</option>
               {schools.map((s) => (
@@ -295,11 +295,11 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
 
         {/* Location */}
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">Location (optional)</label>
+          <label className="block text-sm font-medium text-slate-700">Location (optional)</label>
           <select
             value={buildingId}
             onChange={(e) => { setBuildingId(e.target.value); setAreaId(''); setRoomId('') }}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             <option value="">Select building...</option>
             {buildings.map((b) => (
@@ -311,7 +311,7 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
             <select
               value={areaId}
               onChange={(e) => { setAreaId(e.target.value); setRoomId('') }}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select area...</option>
               {areas.map((a) => (
@@ -324,7 +324,7 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
             <select
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">Select room...</option>
               {rooms.map((r) => (

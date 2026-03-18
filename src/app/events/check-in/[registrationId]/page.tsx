@@ -148,7 +148,7 @@ export default async function ParticipantSelfServicePage({
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* ── Header / branding ── */}
       <div
         className="px-4 pt-8 pb-6 text-center"
@@ -182,7 +182,7 @@ export default async function ParticipantSelfServicePage({
             <img
               src={photoUrl}
               alt={`${firstName} ${lastName}`}
-              className="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-gray-100"
+              className="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-slate-100"
             />
           ) : (
             <div
@@ -194,10 +194,10 @@ export default async function ParticipantSelfServicePage({
           )}
 
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-slate-900">
               {firstName} {lastName}
             </h2>
-            {grade && <p className="text-sm text-gray-500">{grade}</p>}
+            {grade && <p className="text-sm text-slate-500">{grade}</p>}
           </div>
 
           {/* Check-in status */}
@@ -206,13 +206,13 @@ export default async function ParticipantSelfServicePage({
               <CheckCircle2 className="w-7 h-7 text-green-500" />
               <span className="text-xs text-green-600 font-medium mt-0.5">Checked In</span>
               {checkInStatus.checkedInAt && (
-                <span className="text-xs text-gray-400">{formatTime(checkInStatus.checkedInAt)}</span>
+                <span className="text-xs text-slate-400">{formatTime(checkInStatus.checkedInAt)}</span>
               )}
             </div>
           ) : (
             <div className="flex-shrink-0 flex flex-col items-center text-center">
-              <Clock className="w-7 h-7 text-gray-300" />
-              <span className="text-xs text-gray-400 font-medium mt-0.5">Not Yet</span>
+              <Clock className="w-7 h-7 text-slate-300" />
+              <span className="text-xs text-slate-400 font-medium mt-0.5">Not Yet</span>
             </div>
           )}
         </div>
@@ -223,17 +223,17 @@ export default async function ParticipantSelfServicePage({
 
         {/* Group assignments */}
         {groups.length > 0 && (
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
               <Users className="w-4 h-4 text-blue-500" />
-              <h2 className="text-sm font-bold text-gray-800">Your Groups</h2>
+              <h2 className="text-sm font-bold text-slate-800">Your Groups</h2>
             </div>
             <div className="px-4 py-3 flex flex-wrap gap-2">
               {groups.map((g) => (
                 <div
                   key={g.id}
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${
-                    GROUP_TYPE_COLORS[g.type] ?? 'bg-gray-100 text-gray-700'
+                    GROUP_TYPE_COLORS[g.type] ?? 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   <span className="text-xs font-semibold opacity-70">
@@ -248,22 +248,22 @@ export default async function ParticipantSelfServicePage({
 
         {/* Schedule */}
         {schedule.length > 0 && (
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
               <CalendarDays className="w-4 h-4 text-blue-500" />
-              <h2 className="text-sm font-bold text-gray-800">Schedule</h2>
+              <h2 className="text-sm font-bold text-slate-800">Schedule</h2>
             </div>
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-slate-50">
               {schedule.map((block) => (
                 <div key={block.id} className="flex gap-3 px-4 py-3">
                   <div className="flex-shrink-0 text-right min-w-[72px]">
                     <p className="text-xs font-semibold text-blue-600">{formatTime(block.startsAt)}</p>
-                    <p className="text-xs text-gray-400">{formatTime(block.endsAt)}</p>
+                    <p className="text-xs text-slate-400">{formatTime(block.endsAt)}</p>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{block.title}</p>
+                    <p className="text-sm font-semibold text-slate-900">{block.title}</p>
                     {block.locationText && (
-                      <p className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                      <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
                         <MapPin className="w-3 h-3" />
                         {block.locationText}
                       </p>
@@ -277,17 +277,17 @@ export default async function ParticipantSelfServicePage({
 
         {/* Announcements */}
         {announcements.length > 0 && (
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
               <Megaphone className="w-4 h-4 text-blue-500" />
-              <h2 className="text-sm font-bold text-gray-800">Announcements</h2>
+              <h2 className="text-sm font-bold text-slate-800">Announcements</h2>
             </div>
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-slate-50">
               {announcements.map((a) => (
                 <div key={a.id} className="px-4 py-3">
-                  <p className="text-sm font-semibold text-gray-900">{a.title}</p>
-                  <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{a.body}</p>
-                  <p className="text-xs text-gray-400 mt-1.5">
+                  <p className="text-sm font-semibold text-slate-900">{a.title}</p>
+                  <p className="text-sm text-slate-600 mt-1 whitespace-pre-line">{a.body}</p>
+                  <p className="text-xs text-slate-400 mt-1.5">
                     {formatDate(a.sentAt ?? a.createdAt)}
                   </p>
                 </div>
@@ -298,7 +298,7 @@ export default async function ParticipantSelfServicePage({
 
         {/* Empty state if nothing to show */}
         {groups.length === 0 && schedule.length === 0 && announcements.length === 0 && (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-slate-400">
             <CalendarDays className="w-10 h-10 mx-auto mb-2 opacity-30" />
             <p className="text-sm">Event details are being prepared.</p>
             <p className="text-xs mt-1">Check back closer to the event date.</p>
@@ -308,7 +308,7 @@ export default async function ParticipantSelfServicePage({
 
       {/* ── Footer ── */}
       <div className="max-w-lg mx-auto px-4 pb-8 text-center">
-        <p className="text-xs text-gray-300">Powered by Lionheart</p>
+        <p className="text-xs text-slate-300">Powered by Lionheart</p>
       </div>
     </div>
   )

@@ -113,7 +113,7 @@ export default function HoldReasonDialog({ isOpen, ticketTitle, onConfirm, onCan
 
             {/* Reasons */}
             <div className="px-6 py-4">
-              <p className="text-sm text-gray-500 mb-3">Why is this ticket being put on hold?</p>
+              <p className="text-sm text-slate-500 mb-3">Why is this ticket being put on hold?</p>
               <div className="space-y-1.5">
                 {HOLD_REASONS.map((reason) => {
                   const isSelected = selected === reason.value
@@ -125,22 +125,22 @@ export default function HoldReasonDialog({ isOpen, ticketTitle, onConfirm, onCan
                       className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
                         isSelected
                           ? 'bg-amber-50 border border-amber-200'
-                          : 'bg-gray-50 border border-transparent hover:bg-gray-100'
+                          : 'bg-slate-50 border border-transparent hover:bg-slate-100'
                       }`}
                     >
                       {/* Radio indicator */}
                       <div
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                          isSelected ? 'border-amber-500 bg-amber-500' : 'border-gray-300'
+                          isSelected ? 'border-amber-500 bg-amber-500' : 'border-slate-300'
                         }`}
                       >
                         {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                       </div>
                       <div>
-                        <span className={`text-sm font-medium ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+                        <span className={`text-sm font-medium ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
                           {reason.label}
                         </span>
-                        <p className="text-xs text-gray-400 mt-0.5">{reason.description}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{reason.description}</p>
                       </div>
                     </button>
                   )
@@ -149,18 +149,18 @@ export default function HoldReasonDialog({ isOpen, ticketTitle, onConfirm, onCan
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex gap-3 justify-end">
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 justify-end">
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
               >
                 Confirm Hold
               </button>

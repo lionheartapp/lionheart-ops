@@ -64,8 +64,8 @@ function ConfirmDialog({ audience, groupName, onConfirm, onCancel, isPending }: 
             <AlertCircle className="w-5 h-5 text-amber-500" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Send announcement?</h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <h3 className="text-sm font-semibold text-slate-900">Send announcement?</h3>
+            <p className="text-sm text-slate-500 mt-1">
               This will email all {audienceLabel}. This action cannot be undone.
             </p>
           </div>
@@ -76,7 +76,7 @@ function ConfirmDialog({ audience, groupName, onConfirm, onCancel, isPending }: 
             type="button"
             onClick={onCancel}
             disabled={isPending}
-            className="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+            className="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
           >
             Cancel
           </button>
@@ -84,7 +84,7 @@ function ConfirmDialog({ audience, groupName, onConfirm, onCancel, isPending }: 
             type="button"
             onClick={onConfirm}
             disabled={isPending}
-            className="flex-1 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isPending ? (
               <>
@@ -174,7 +174,7 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
             Subject
           </label>
           <input
@@ -183,14 +183,14 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Important schedule update"
             maxLength={200}
-            className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
+            className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
             required
           />
         </div>
 
         {/* Body */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
             Message
           </label>
           <textarea
@@ -198,14 +198,14 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
             onChange={(e) => setBody(e.target.value)}
             placeholder="Write your announcement here..."
             rows={4}
-            className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors resize-none"
+            className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors resize-none"
             required
           />
         </div>
 
         {/* Audience */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+          <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
             Send to
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -215,7 +215,7 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
                 className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                   audience === opt.value
                     ? 'border-blue-400 bg-blue-50/50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
                 <input
@@ -230,8 +230,8 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
                   className="mt-0.5 accent-blue-500 flex-shrink-0"
                 />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{opt.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{opt.description}</p>
+                  <p className="text-sm font-medium text-slate-900">{opt.label}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{opt.description}</p>
                 </div>
               </label>
             ))}
@@ -248,14 +248,14 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
                 Select Group
               </label>
               <div className="relative">
                 <select
                   value={targetGroupId}
                   onChange={(e) => setTargetGroupId(e.target.value)}
-                  className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors cursor-pointer"
+                  className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors cursor-pointer"
                   required={audience === 'GROUP'}
                 >
                   <option value="">Choose a group...</option>
@@ -265,7 +265,7 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
               {groups.length === 0 && (
                 <p className="text-xs text-amber-600 mt-1.5">
@@ -281,7 +281,7 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
           <button
             type="submit"
             disabled={!isValid || createMutation.isPending}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
             Send Announcement

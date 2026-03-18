@@ -64,7 +64,7 @@ export default function MyRequestsGrid({ onSubmitRequest }: MyRequestsGridProps)
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="animate-pulse rounded-2xl bg-gray-100 h-40" />
+          <div key={i} className="animate-pulse rounded-2xl bg-slate-100 h-40" />
         ))}
       </div>
     )
@@ -100,8 +100,8 @@ export default function MyRequestsGrid({ onSubmitRequest }: MyRequestsGridProps)
               <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
                 <WifiOff className="w-8 h-8 text-amber-400" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">No cached tickets</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <h3 className="text-base font-semibold text-slate-900 mb-2">No cached tickets</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
                 Connect to the network to load your tickets. They&apos;ll be available offline after first load.
               </p>
             </div>
@@ -158,10 +158,10 @@ export default function MyRequestsGrid({ onSubmitRequest }: MyRequestsGridProps)
       >
         <div className="flex flex-col items-center justify-center text-center max-w-sm mx-auto">
           <IllustrationMaintenance className="w-48 h-40 mb-2" />
-          <h3 className="text-base font-semibold text-gray-900 mb-2">
+          <h3 className="text-base font-semibold text-slate-900 mb-2">
             No maintenance requests yet
           </h3>
-          <p className="text-sm text-gray-500 leading-relaxed mb-6">
+          <p className="text-sm text-slate-500 leading-relaxed mb-6">
             Submit a request when you notice something that needs fixing in your building.
           </p>
           <button

@@ -175,15 +175,15 @@ export default function CheckInScanner({
   // ─── Render ──────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-gray-950">
+    <div className="flex flex-col h-full bg-slate-950">
       {/* ── Header bar ── */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-900 text-white flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-white flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="text-sm font-semibold">
             {counter.checkedIn} / {counter.total} checked in
           </div>
           {/* Mini progress bar */}
-          <div className="w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
@@ -197,7 +197,7 @@ export default function CheckInScanner({
         {/* Switch to list */}
         <button
           onClick={onSwitchToList}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors text-xs font-medium cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-700 hover:bg-slate-600 transition-colors text-xs font-medium cursor-pointer"
         >
           <List className="w-3.5 h-3.5" />
           List
@@ -248,17 +248,17 @@ export default function CheckInScanner({
                   <p className="text-red-400 text-sm font-medium">{scanError}</p>
                   <button
                     onClick={resetToScanning}
-                    className="mt-2 text-xs text-gray-400 hover:text-gray-200 cursor-pointer"
+                    className="mt-2 text-xs text-slate-400 hover:text-slate-200 cursor-pointer"
                   >
                     Tap to try again
                   </button>
                 </div>
               ) : (
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-2">
-                    <QrCode className="w-6 h-6 text-gray-400" />
+                  <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
+                    <QrCode className="w-6 h-6 text-slate-400" />
                   </div>
-                  <p className="text-gray-400 text-sm">Point camera at participant QR code</p>
+                  <p className="text-slate-400 text-sm">Point camera at participant QR code</p>
                 </div>
               )}
             </div>

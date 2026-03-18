@@ -73,9 +73,9 @@ export default function TicketAssigneeSelect({
         disabled={!canAssign}
         className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl border transition-colors text-left ${
           canAssign
-            ? 'hover:bg-gray-50 border-gray-200 cursor-pointer'
+            ? 'hover:bg-slate-50 border-slate-200 cursor-pointer'
             : 'border-transparent cursor-default'
-        } ${open ? 'bg-gray-50 border-gray-300' : ''}`}
+        } ${open ? 'bg-slate-50 border-slate-300' : ''}`}
       >
         {currentAssignee ? (
           <>
@@ -83,21 +83,21 @@ export default function TicketAssigneeSelect({
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-slate-900 truncate">
                 {currentAssignee.firstName} {currentAssignee.lastName}
               </p>
             </div>
           </>
         ) : (
           <>
-            <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <UserX className="w-3.5 h-3.5 text-gray-400" />
+            <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+              <UserX className="w-3.5 h-3.5 text-slate-400" />
             </div>
-            <span className="text-sm text-gray-400">Unassigned</span>
+            <span className="text-sm text-slate-400">Unassigned</span>
           </>
         )}
         {canAssign && (
-          <ChevronDown className={`w-3.5 h-3.5 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3.5 h-3.5 text-slate-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
         )}
       </button>
 
@@ -105,8 +105,8 @@ export default function TicketAssigneeSelect({
         <div className="absolute top-full left-0 right-0 mt-1 z-20 ui-glass-dropdown py-1 max-h-48 overflow-y-auto">
           {technicians.length === 0 ? (
             <div className="px-3 py-4 text-center">
-              <Loader2 className="w-4 h-4 text-gray-400 animate-spin mx-auto" />
-              <p className="text-xs text-gray-400 mt-1">Loading team...</p>
+              <Loader2 className="w-4 h-4 text-slate-400 animate-spin mx-auto" />
+              <p className="text-xs text-slate-400 mt-1">Loading team...</p>
             </div>
           ) : (
             technicians.map((tech) => {
@@ -117,13 +117,13 @@ export default function TicketAssigneeSelect({
                   onClick={() => !selected && assignMutation.mutate(tech.id)}
                   disabled={assignMutation.isPending}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors cursor-pointer ${
-                    selected ? 'bg-primary-50' : 'hover:bg-gray-50'
+                    selected ? 'bg-primary-50' : 'hover:bg-slate-50'
                   }`}
                 >
                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-semibold text-blue-700 flex-shrink-0">
                     {tech.firstName[0]}{tech.lastName[0]}
                   </div>
-                  <span className="text-sm text-gray-700 flex-1 truncate">
+                  <span className="text-sm text-slate-700 flex-1 truncate">
                     {tech.firstName} {tech.lastName}
                   </span>
                   {selected && <Check className="w-3.5 h-3.5 text-primary-600 flex-shrink-0" />}

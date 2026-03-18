@@ -120,7 +120,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
         {/* Day-of-week headers */}
         <div className="grid grid-cols-7 mb-1">
           {dayHeaders.map((day, i) => (
-            <div key={i} className="text-center text-xs font-medium text-gray-400">
+            <div key={i} className="text-center text-xs font-medium text-slate-400">
               {day}
             </div>
           ))}
@@ -160,10 +160,10 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                       today
                         ? 'bg-primary-600 text-white font-semibold'
                         : isSelected
-                          ? 'ring-2 ring-primary-500 font-medium text-gray-900'
+                          ? 'ring-2 ring-primary-500 font-medium text-slate-900'
                           : isCurrentMonth
-                            ? 'text-gray-900'
-                            : 'text-gray-400'
+                            ? 'text-slate-900'
+                            : 'text-slate-400'
                     }`}
                   >
                     {date.getDate()}
@@ -187,11 +187,11 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
       </div>
 
       {/* Divider */}
-      <div className="border-t border-gray-200" />
+      <div className="border-t border-slate-200" />
 
       {/* Selected date header */}
-      <div className="sticky top-0 z-10 bg-white px-4 py-2.5 border-b border-gray-100">
-        <span className={`text-sm font-semibold ${isToday(selectedDate) ? 'text-primary-600' : 'text-gray-900'}`}>
+      <div className="sticky top-0 z-10 bg-white px-4 py-2.5 border-b border-slate-100">
+        <span className={`text-sm font-semibold ${isToday(selectedDate) ? 'text-primary-600' : 'text-slate-900'}`}>
           {isToday(selectedDate) ? 'Today' : formatFullDate(selectedDate)}
         </span>
       </div>
@@ -201,7 +201,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
         {isLoading ? (
           <MobileMonthViewSkeletons />
         ) : selectedDayEvents.length === 0 ? (
-          <div className="flex items-center justify-center py-12 text-gray-400">
+          <div className="flex items-center justify-center py-12 text-slate-400">
             <p className="text-sm">No events on this day</p>
           </div>
         ) : (
@@ -211,7 +211,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                 key={event.id}
                 onClick={() => onEventClick(event)}
                 aria-label={getEventAriaLabel(event)}
-                className="w-full text-left p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-white"
+                className="w-full text-left p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all bg-white"
               >
                 <div className="flex gap-3">
                   {/* Color bar */}
@@ -223,7 +223,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                   <div className="flex-1 min-w-0">
                     {/* Title + calendar chip */}
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-medium text-gray-900 truncate flex items-center gap-1">
+                      <h4 className="font-medium text-slate-900 truncate flex items-center gap-1">
                         {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
                         {event.title}
                       </h4>
@@ -244,14 +244,14 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                     </div>
 
                     {/* Time */}
-                    <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5 mt-1 text-sm text-slate-500">
                       <Clock className="w-3.5 h-3.5" />
                       {formatTimeRange(event.startTime, event.endTime, event.isAllDay)}
                     </div>
 
                     {/* Location */}
                     {event.locationText && (
-                      <div className="flex items-center gap-1.5 mt-0.5 text-sm text-gray-400">
+                      <div className="flex items-center gap-1.5 mt-0.5 text-sm text-slate-400">
                         <MapPin className="w-3.5 h-3.5" />
                         {event.locationText}
                         {event.building && ` · ${event.building.name}`}
@@ -265,13 +265,13 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                           {event.attendees.slice(0, 4).map((a) => (
                             <div
                               key={a.id}
-                              className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
+                              className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center"
                               title={a.user.name || a.user.firstName || ''}
                             >
                               {a.user.avatar ? (
                                 <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
                               ) : (
-                                <span className="text-xs font-medium text-gray-600">
+                                <span className="text-xs font-medium text-slate-600">
                                   {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}
                                 </span>
                               )}
@@ -279,7 +279,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                           ))}
                         </div>
                         {event.attendees.length > 4 && (
-                          <span className="text-xs text-gray-400">+{event.attendees.length - 4}</span>
+                          <span className="text-xs text-slate-400">+{event.attendees.length - 4}</span>
                         )}
                       </div>
                     )}

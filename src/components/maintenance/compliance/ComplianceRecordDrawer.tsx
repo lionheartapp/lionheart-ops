@@ -38,7 +38,7 @@ interface ComplianceRecordDrawerProps {
 // ─── Outcome Button Group ─────────────────────────────────────────────────────
 
 const OUTCOME_OPTIONS: { value: ComplianceOutcome; label: string; color: string; selected: string }[] = [
-  { value: 'PENDING', label: 'Pending', color: 'text-gray-600 border-gray-200 bg-white', selected: 'text-gray-700 border-gray-400 bg-gray-100' },
+  { value: 'PENDING', label: 'Pending', color: 'text-slate-600 border-slate-200 bg-white', selected: 'text-slate-700 border-slate-400 bg-slate-100' },
   { value: 'PASSED', label: 'Passed', color: 'text-green-700 border-green-200 bg-white', selected: 'text-green-700 border-green-500 bg-green-50' },
   { value: 'CONDITIONAL_PASS', label: 'Conditional', color: 'text-amber-700 border-amber-200 bg-white', selected: 'text-amber-700 border-amber-500 bg-amber-50' },
   { value: 'FAILED', label: 'Failed', color: 'text-red-700 border-red-200 bg-white', selected: 'text-red-700 border-red-500 bg-red-50' },
@@ -51,7 +51,7 @@ function StatusBadge({ status }: { status: ComplianceStatus }) {
     CURRENT: { label: 'Current', className: 'bg-green-100 text-green-700' },
     DUE_SOON: { label: 'Due Soon', className: 'bg-amber-100 text-amber-700' },
     OVERDUE: { label: 'Overdue', className: 'bg-red-100 text-red-700' },
-    NOT_APPLICABLE: { label: 'N/A', className: 'bg-gray-100 text-gray-500' },
+    NOT_APPLICABLE: { label: 'N/A', className: 'bg-slate-100 text-slate-500' },
     PENDING: { label: 'Pending', className: 'bg-blue-100 text-blue-700' },
   }
   const { label, className } = config[status]
@@ -69,11 +69,11 @@ function TicketChip({ ticket, label }: { ticket: { ticketNumber: string; status:
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50 border border-primary-200">
       <Ticket className="w-3.5 h-3.5 text-primary-600 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        {label && <p className="text-xs text-gray-500 leading-none mb-0.5">{label}</p>}
+        {label && <p className="text-xs text-slate-500 leading-none mb-0.5">{label}</p>}
         <span className="text-sm font-medium text-primary-700">{ticket.ticketNumber}</span>
-        <span className="ml-2 text-xs text-gray-400">{ticket.status}</span>
+        <span className="ml-2 text-xs text-slate-400">{ticket.status}</span>
       </div>
-      <ExternalLink className="w-3 h-3 text-gray-400" />
+      <ExternalLink className="w-3 h-3 text-slate-400" />
     </div>
   )
 }
@@ -196,21 +196,21 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
           className="absolute right-0 top-0 h-full w-full max-w-lg ui-glass-overlay flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-start justify-between p-6 border-b border-gray-200/50">
+          <div className="flex items-start justify-between p-6 border-b border-slate-200/50">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-lg font-semibold text-gray-900">{meta.label}</h2>
+                <h2 className="text-lg font-semibold text-slate-900">{meta.label}</h2>
                 <StatusBadge status={record.status} />
               </div>
-              <p className="text-sm text-gray-500">{record.title}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-sm text-slate-500">{record.title}</p>
+              <p className="text-xs text-slate-400 mt-0.5">
                 Due: {dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 {record.school && ` — ${record.school.name}`}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -221,11 +221,11 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
 
             {/* ── Section 1: Inspection Details ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Inspection Details</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Inspection Details</h3>
 
               {/* Outcome button group */}
               <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Outcome</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1.5">Outcome</label>
                 <div className="grid grid-cols-4 gap-1.5">
                   {OUTCOME_OPTIONS.map((opt) => (
                     <button
@@ -243,7 +243,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
 
               {/* Inspection Date */}
               <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className="block text-xs font-medium text-slate-600 mb-1.5">
                   Inspection Date
                 </label>
                 <input
@@ -251,13 +251,13 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   value={inspectionDate}
                   onChange={(e) => setInspectionDate(e.target.value)}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400 cursor-pointer"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:bg-slate-50 disabled:text-slate-400 cursor-pointer"
                 />
               </div>
 
               {/* Inspector */}
               <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className="block text-xs font-medium text-slate-600 mb-1.5">
                   Inspector Name
                 </label>
                 <input
@@ -265,26 +265,26 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                   value={inspector}
                   onChange={(e) => setInspector(e.target.value)}
                   placeholder="Inspector name or company"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 />
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Notes</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1.5">Notes</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Inspection notes, findings, follow-up actions..."
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 resize-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 resize-none"
                 />
               </div>
             </section>
 
             {/* ── Section 2: Work Order ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Work Order</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Work Order</h3>
 
               {/* Compliance ticket */}
               {generatedTicket ? (
@@ -337,7 +337,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
 
             {/* ── Section 3: Attachments ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Documents</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Documents</h3>
               <ComplianceAttachmentPanel
                 record={{ id: record.id, attachments: localAttachments }}
                 onAttachmentsUpdated={(updated) => {
@@ -349,10 +349,10 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200/50 flex items-center justify-between gap-3">
+          <div className="p-6 border-t border-slate-200/50 flex items-center justify-between gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -378,7 +378,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-4 py-2 rounded-lg shadow-lg"
+                className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-4 py-2 rounded-lg shadow-lg"
               >
                 {toast}
               </motion.div>

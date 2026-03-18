@@ -125,17 +125,17 @@ export default function StepEssentials({
   const totalQuantity = locations.reduce((sum, loc) => sum + loc.quantity, 0)
 
   const inputClass =
-    'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors'
+    'w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors'
 
   return (
     <div className="space-y-8">
       {/* ── Basic Information ── */}
-      <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900">Basic information</h3>
+      <section className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-slate-900">Basic information</h3>
 
         {/* Name */}
         <div>
-          <label htmlFor="av-name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="av-name" className="block text-sm font-medium text-slate-700 mb-1">
             Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -151,7 +151,7 @@ export default function StepEssentials({
 
         {/* Description */}
         <div>
-          <label htmlFor="av-desc" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="av-desc" className="block text-sm font-medium text-slate-700 mb-1">
             Description
           </label>
           <textarea
@@ -166,10 +166,10 @@ export default function StepEssentials({
 
         {/* Owner */}
         <div>
-          <label htmlFor="av-owner" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="av-owner" className="block text-sm font-medium text-slate-700 mb-1">
             Owner
           </label>
-          <p className="text-xs text-gray-500 mb-1.5">
+          <p className="text-xs text-slate-500 mb-1.5">
             Receives an email when someone requests to check out this equipment.
           </p>
           <select
@@ -190,10 +190,10 @@ export default function StepEssentials({
       </section>
 
       {/* ── Inventory & Locations ── */}
-      <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+      <section className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">Inventory &amp; locations</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h3 className="text-sm font-semibold text-slate-900">Inventory &amp; locations</h3>
+          <p className="text-xs text-slate-500 mt-0.5">
             Add items by quantity, location, and usage. Total quantity is calculated automatically.
           </p>
         </div>
@@ -204,24 +204,24 @@ export default function StepEssentials({
             {locations.map((loc) => (
               <div
                 key={loc.id}
-                className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-100"
+                className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-lg border border-slate-100"
               >
-                <span className="text-sm font-medium text-gray-900 min-w-[2.5rem]">
+                <span className="text-sm font-medium text-slate-900 min-w-[2.5rem]">
                   {loc.quantity}×
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 truncate flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                  <p className="text-sm text-slate-900 truncate flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                     {loc.locationName}
                   </p>
                   {loc.usage && (
-                    <p className="text-xs text-gray-500 mt-0.5 truncate">{loc.usage}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{loc.usage}</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => handleRemoveLocation(loc.id)}
-                  className="p-1.5 text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
                   aria-label="Remove location"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -234,17 +234,17 @@ export default function StepEssentials({
         {/* Add location row */}
         <div className="grid grid-cols-[80px_1fr_1fr_40px] gap-3 items-end">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Quantity</label>
             <input
               type="number"
               min="1"
               value={newQty}
               onChange={(e) => setNewQty(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
             />
           </div>
           <div className="relative" ref={dropdownRef}>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Location</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Location</label>
             <input
               type="text"
               value={locationSearch}
@@ -254,11 +254,11 @@ export default function StepEssentials({
                 setNewLocationId('')
               }}
               onFocus={() => setShowLocationDropdown(true)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
               placeholder="Select or type location"
             />
             {showLocationDropdown && filteredLocations.length > 0 && (
-              <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg">
                 {filteredLocations.map((loc) => {
                   const id = loc.roomId || loc.areaId || loc.buildingId || ''
                   return (
@@ -266,12 +266,12 @@ export default function StepEssentials({
                       key={id}
                       type="button"
                       onClick={() => handleSelectLocation(loc)}
-                      className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="w-full px-3 py-2 text-sm text-left hover:bg-slate-50 transition-colors cursor-pointer"
                     >
-                      <span className="text-gray-900">
+                      <span className="text-slate-900">
                         {loc.hierarchy?.join(' › ') || loc.label}
                       </span>
-                      <span className="ml-2 text-xs text-gray-400 capitalize">{loc.type}</span>
+                      <span className="ml-2 text-xs text-slate-400 capitalize">{loc.type}</span>
                     </button>
                   )
                 })}
@@ -279,12 +279,12 @@ export default function StepEssentials({
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Usage</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Usage</label>
             <input
               type="text"
               value={newUsage}
               onChange={(e) => setNewUsage(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 focus:border-gray-400 transition-colors"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
               placeholder="e.g., For basketball games"
             />
           </div>
@@ -299,27 +299,27 @@ export default function StepEssentials({
         </div>
 
         {/* Total quantity */}
-        <p className="text-sm text-gray-600">
-          Total Quantity: <span className="font-semibold text-gray-900">{totalQuantity}</span>
+        <p className="text-sm text-slate-600">
+          Total Quantity: <span className="font-semibold text-slate-900">{totalQuantity}</span>
         </p>
       </section>
 
       {/* ── Checkout ── */}
-      <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900">Checkout</h3>
+      <section className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-slate-900">Checkout</h3>
 
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={allowCheckout}
             onChange={(e) => onCheckoutChange(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
           />
-          <span className="text-sm text-gray-700">Allow staff to checkout</span>
+          <span className="text-sm text-slate-700">Allow staff to checkout</span>
         </label>
 
         <div>
-          <label htmlFor="av-category" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="av-category" className="block text-sm font-medium text-slate-700 mb-1">
             Category
           </label>
           <select

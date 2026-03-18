@@ -56,8 +56,8 @@ export const ARTICLE_TYPE_CONFIG: Record<
   },
   ASSET_NOTE: {
     label: 'Asset Note',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100',
     icon: StickyNote,
   },
 }
@@ -124,14 +124,14 @@ function ArticleSkeleton() {
   return (
     <div className="animate-pulse ui-glass rounded-2xl p-5 space-y-3">
       <div className="flex items-center gap-2">
-        <div className="h-5 w-24 bg-gray-200 rounded-full" />
+        <div className="h-5 w-24 bg-slate-200 rounded-full" />
       </div>
-      <div className="h-4 bg-gray-200 rounded w-3/4" />
-      <div className="h-3 bg-gray-100 rounded w-full" />
-      <div className="h-3 bg-gray-100 rounded w-4/5" />
+      <div className="h-4 bg-slate-200 rounded w-3/4" />
+      <div className="h-3 bg-slate-100 rounded w-full" />
+      <div className="h-3 bg-slate-100 rounded w-4/5" />
       <div className="flex gap-2 pt-1">
-        <div className="h-5 w-12 bg-gray-100 rounded-full" />
-        <div className="h-5 w-16 bg-gray-100 rounded-full" />
+        <div className="h-5 w-12 bg-slate-100 rounded-full" />
+        <div className="h-5 w-16 bg-slate-100 rounded-full" />
       </div>
     </div>
   )
@@ -144,14 +144,14 @@ function EmptyState({ onCreateNew }: { onCreateNew?: () => void }) {
     <div className="col-span-full flex flex-col items-center justify-center py-16 text-center gap-4">
       <IllustrationKnowledgeBase className="w-48 h-40" />
       <div>
-        <p className="text-base font-semibold text-gray-700">No articles yet</p>
-        <p className="text-sm text-gray-500 mt-1">Share your team&apos;s knowledge with the first article.</p>
+        <p className="text-base font-semibold text-slate-700">No articles yet</p>
+        <p className="text-sm text-slate-500 mt-1">Share your team&apos;s knowledge with the first article.</p>
       </div>
       {onCreateNew && (
         <button
           type="button"
           onClick={onCreateNew}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer active:scale-[0.97]"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer active:scale-[0.97]"
         >
           <Plus className="w-4 h-4" />
           Create Article
@@ -179,11 +179,11 @@ function ArticleCard({ article }: { article: Article }) {
         <KBArticleTypeBadge type={article.type} />
 
         {/* Title */}
-        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">{article.title}</h3>
+        <h3 className="text-sm font-semibold text-slate-900 line-clamp-2">{article.title}</h3>
 
         {/* Content preview */}
         {preview && (
-          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
             {preview}
             {hasMoreContent && '…'}
           </p>
@@ -195,18 +195,18 @@ function ArticleCard({ article }: { article: Article }) {
             {article.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-1.5 py-0.5 text-[10px] rounded-md bg-gray-100 text-gray-500"
+                className="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 text-slate-500"
               >
                 {tag}
               </span>
             ))}
             {article.tags.length > 3 && (
-              <span className="px-1.5 py-0.5 text-[10px] rounded-md bg-gray-100 text-gray-500">
+              <span className="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 text-slate-500">
                 +{article.tags.length - 3}
               </span>
             )}
           </div>
-          <span className="text-[10px] text-gray-400 flex-shrink-0">
+          <span className="text-[10px] text-slate-400 flex-shrink-0">
             {formatArticleDate(article.updatedAt)}
           </span>
         </div>
@@ -238,7 +238,7 @@ export default function KnowledgeBaseList({
   return (
     <div className="space-y-5">
       {/* Type filter tabs — sliding pill via Framer Motion layoutId */}
-      <div className="mb-4 inline-flex gap-1 rounded-full bg-gray-100 p-1">
+      <div className="mb-4 inline-flex gap-1 rounded-full bg-slate-100 p-1">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -247,13 +247,13 @@ export default function KnowledgeBaseList({
             className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
               activeType === tab.value
                 ? 'text-white'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {activeType === tab.value && (
               <motion.div
                 layoutId="kbFilterPill"
-                className="absolute inset-0 rounded-full bg-gray-900"
+                className="absolute inset-0 rounded-full bg-slate-900"
                 transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
               />
             )}

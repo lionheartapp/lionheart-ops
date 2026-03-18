@@ -783,14 +783,14 @@ export default function CalendarView() {
       <div className="flex items-center justify-center h-96 text-center">
         <div>
           <IllustrationCalendar className="w-52 h-44 mx-auto mb-2" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No calendars yet</h2>
-          <p className="text-gray-500 mb-6 max-w-sm">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">No calendars yet</h2>
+          <p className="text-slate-500 mb-6 max-w-sm">
             Create your first calendar to start organizing events for your school.
           </p>
           {!showCreateCalendar ? (
             <button
               onClick={() => setShowCreateCalendar(true)}
-              className="px-5 py-2.5 bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 transition-colors"
+              className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-full hover:bg-slate-800 transition-colors"
             >
               Create Calendar
             </button>
@@ -819,7 +819,7 @@ export default function CalendarView() {
                 ]}
               />
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">Color</label>
+                <label className="block text-xs font-medium text-slate-500 mb-2">Color</label>
                 <div className="flex items-center gap-2 flex-wrap">
                   {COLOR_PRESETS.map((c) => (
                     <button
@@ -840,14 +840,14 @@ export default function CalendarView() {
               <div className="flex gap-2">
                 <button
                   onClick={() => { setShowCreateCalendar(false); setNewCalendarColor('#3b82f6') }}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateCalendar}
                   disabled={!newCalendarName.trim() || createCalendar.isPending}
-                  className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {createCalendar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create
@@ -890,7 +890,7 @@ export default function CalendarView() {
             onClick={() => {
               window.open('/api/settings/export/events', '_blank')
             }}
-            className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-1.5"
+            className="px-4 py-1.5 rounded-full border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-1.5"
           >
             <Download className="w-3.5 h-3.5" />
             Export CSV
@@ -1023,15 +1023,15 @@ export default function CalendarView() {
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 pt-5 pb-3">
-                <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+                <span className="text-xs text-slate-400 uppercase tracking-wide font-medium">
                   New Calendar
                 </span>
                 <button
                   onClick={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
-                  className="p-2.5 rounded-full hover:bg-gray-100 transition-colors"
+                  className="p-2.5 rounded-full hover:bg-slate-100 transition-colors"
                   aria-label="Close"
                 >
-                  <X className="w-4 h-4 text-gray-400" />
+                  <X className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
 
@@ -1060,7 +1060,7 @@ export default function CalendarView() {
                   ]}
                 />
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">Color</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-2">Color</label>
                   <div className="flex items-center gap-2 flex-wrap">
                     {COLOR_PRESETS.map((c) => (
                       <button
@@ -1085,7 +1085,7 @@ export default function CalendarView() {
                 <button
                   onClick={handleCreateCalendar}
                   disabled={!newCalendarName.trim() || createCalendar.isPending}
-                  className="w-full py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
                   {createCalendar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create Calendar
@@ -1093,7 +1093,7 @@ export default function CalendarView() {
                 <button
                   type="button"
                   onClick={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
-                  className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors py-1"
+                  className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors py-1"
                 >
                   Cancel
                 </button>
@@ -1196,21 +1196,21 @@ export default function CalendarView() {
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
             >
-              <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/80 w-80 overflow-hidden pointer-events-auto">
+              <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-80 overflow-hidden pointer-events-auto">
                 {/* Header */}
-                <div className="px-5 pt-5 pb-4 border-b border-gray-100">
+                <div className="px-5 pt-5 pb-4 border-b border-slate-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-base font-semibold text-gray-900">What are you creating?</h3>
+                      <h3 className="text-base font-semibold text-slate-900">What are you creating?</h3>
                       {choiceModalStart && (
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-slate-400 mt-0.5">
                           {choiceModalStart.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </p>
                       )}
                     </div>
                     <button
                       onClick={() => setChoiceModalOpen(false)}
-                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                      className="p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -1227,8 +1227,8 @@ export default function CalendarView() {
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">Schedule Meeting</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Informal — added instantly, no approval</p>
+                      <p className="text-sm font-semibold text-slate-900">Schedule Meeting</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Informal — added instantly, no approval</p>
                     </div>
                   </button>
 
@@ -1240,8 +1240,8 @@ export default function CalendarView() {
                       <CalendarDays className="w-5 h-5 text-primary-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">Plan Event</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Formal — AV, facilities &amp; admin approval</p>
+                      <p className="text-sm font-semibold text-slate-900">Plan Event</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Formal — AV, facilities &amp; admin approval</p>
                     </div>
                   </button>
                 </div>

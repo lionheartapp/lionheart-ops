@@ -57,7 +57,7 @@ export default function AboutPage() {
   }
 
   const inputClass =
-    'w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition disabled:opacity-60 disabled:cursor-not-allowed'
+    'w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition disabled:opacity-60 disabled:cursor-not-allowed'
 
   const isLoading = formState === 'loading'
 
@@ -74,7 +74,7 @@ export default function AboutPage() {
             initial="hidden"
             animate="visible"
           >
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
               About Lionheart
             </h1>
           </motion.div>
@@ -84,7 +84,7 @@ export default function AboutPage() {
             variants={fadeInUp}
             initial="hidden"
             animate="visible"
-            className="prose prose-gray max-w-none space-y-6 text-base sm:text-lg text-gray-600 leading-relaxed"
+            className="prose prose-gray max-w-none space-y-6 text-base sm:text-lg text-slate-600 leading-relaxed"
           >
             <p>
               Lionheart was built because schools deserve better than email threads and shared spreadsheets.
@@ -113,7 +113,7 @@ export default function AboutPage() {
             animate="visible"
             className="mt-16"
           >
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">What Lionheart Does</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-8">What Lionheart Does</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { title: 'IT Help Desk', desc: 'Structured ticketing for hardware, software, and network issues with SLA tracking.' },
@@ -125,12 +125,12 @@ export default function AboutPage() {
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="bg-white border border-gray-200 rounded-xl p-5 flex items-start gap-3"
+                  className="bg-white border border-slate-200 rounded-xl p-5 flex items-start gap-3"
                 >
                   <CheckCircle2 className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm mb-1">{item.title}</p>
-                    <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                    <p className="font-semibold text-slate-900 text-sm mb-1">{item.title}</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -141,7 +141,7 @@ export default function AboutPage() {
         {/* Contact Section */}
         <section
           id="contact"
-          className="bg-gray-50 border-y border-gray-200 py-16 sm:py-24"
+          className="bg-slate-50 border-y border-slate-200 py-16 sm:py-24"
         >
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -150,8 +150,8 @@ export default function AboutPage() {
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Get in Touch</h2>
-              <p className="text-gray-600 mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Get in Touch</h2>
+              <p className="text-slate-600 mb-8">
                 Questions about Lionheart? We&apos;d love to hear from you.
               </p>
             </motion.div>
@@ -167,8 +167,8 @@ export default function AboutPage() {
                   <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
                     <CheckCircle2 className="w-7 h-7 text-green-600" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Message sent!</h3>
-                  <p className="text-gray-600">We&apos;ll get back to you soon.</p>
+                  <h3 className="text-lg font-semibold text-slate-900">Message sent!</h3>
+                  <p className="text-slate-600">We&apos;ll get back to you soon.</p>
                   <button
                     onClick={() => setFormState('idle')}
                     className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
@@ -177,7 +177,7 @@ export default function AboutPage() {
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4 bg-white border border-gray-200 rounded-2xl p-6 sm:p-8">
+                <form onSubmit={handleSubmit} className="space-y-4 bg-white border border-slate-200 rounded-2xl p-6 sm:p-8">
                   {formState === 'error' && errorMessage && (
                     <div
                       className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
@@ -191,7 +191,7 @@ export default function AboutPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="contact-name" className="block text-sm font-medium text-gray-900 mb-1.5">
+                      <label htmlFor="contact-name" className="block text-sm font-medium text-slate-900 mb-1.5">
                         Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -206,7 +206,7 @@ export default function AboutPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="contact-email" className="block text-sm font-medium text-gray-900 mb-1.5">
+                      <label htmlFor="contact-email" className="block text-sm font-medium text-slate-900 mb-1.5">
                         Email <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -223,8 +223,8 @@ export default function AboutPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="contact-subject" className="block text-sm font-medium text-gray-900 mb-1.5">
-                      Subject <span className="text-gray-400 font-normal">(optional)</span>
+                    <label htmlFor="contact-subject" className="block text-sm font-medium text-slate-900 mb-1.5">
+                      Subject <span className="text-slate-400 font-normal">(optional)</span>
                     </label>
                     <input
                       id="contact-subject"
@@ -238,7 +238,7 @@ export default function AboutPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="contact-message" className="block text-sm font-medium text-gray-900 mb-1.5">
+                    <label htmlFor="contact-message" className="block text-sm font-medium text-slate-900 mb-1.5">
                       Message <span className="text-red-500">*</span>
                     </label>
                     <textarea

@@ -110,14 +110,14 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: 'bg-gray-100 text-gray-600',
+  BACKLOG: 'bg-slate-100 text-slate-600',
   TODO: 'bg-blue-100 text-blue-700',
   IN_PROGRESS: 'bg-amber-100 text-amber-700',
   ON_HOLD: 'bg-orange-100 text-orange-700',
   SCHEDULED: 'bg-purple-100 text-purple-700',
   QA: 'bg-pink-100 text-pink-700',
   DONE: 'bg-primary-100 text-primary-700',
-  CANCELLED: 'bg-gray-100 text-gray-400',
+  CANCELLED: 'bg-slate-100 text-slate-400',
 }
 
 // Client-side allowed transitions — simplified for action button display
@@ -251,11 +251,11 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gray-200 rounded-lg" />
-          <div className="h-6 bg-gray-200 rounded w-32" />
-          <div className="h-5 bg-gray-100 rounded w-16 ml-2" />
+          <div className="w-8 h-8 bg-slate-200 rounded-lg" />
+          <div className="h-6 bg-slate-200 rounded w-32" />
+          <div className="h-5 bg-slate-100 rounded w-16 ml-2" />
         </div>
-        <div className="h-12 bg-gray-100 rounded-2xl" />
+        <div className="h-12 bg-slate-100 rounded-2xl" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <div className="ui-glass p-5 rounded-2xl h-32" />
@@ -273,9 +273,9 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
   if (isError || !ticket) {
     return (
       <div className="text-center py-16">
-        <AlertCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-700 font-medium">Ticket not found</p>
-        <p className="text-sm text-gray-500 mt-1">
+        <AlertCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+        <p className="text-slate-700 font-medium">Ticket not found</p>
+        <p className="text-sm text-slate-500 mt-1">
           This ticket may have been deleted or you may not have permission to view it.
         </p>
         <button
@@ -332,19 +332,19 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => router.back()}
-                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer text-gray-500 hover:text-gray-700 flex-shrink-0"
+                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer text-slate-500 hover:text-slate-700 flex-shrink-0"
                 title="Go back"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
                     {ticket.ticketNumber}
                   </span>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      STATUS_COLORS[ticket.status] ?? 'bg-gray-100 text-gray-600'
+                      STATUS_COLORS[ticket.status] ?? 'bg-slate-100 text-slate-600'
                     }`}
                   >
                     {STATUS_LABELS[ticket.status] ?? ticket.status}
@@ -360,7 +360,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                     </a>
                   )}
                 </div>
-                <h1 className="text-xl font-semibold text-gray-900 mt-1 leading-tight truncate">
+                <h1 className="text-xl font-semibold text-slate-900 mt-1 leading-tight truncate">
                   {ticket.title}
                 </h1>
               </div>
@@ -518,7 +518,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                     onChange={(e) => setCancellationReason(e.target.value)}
                     placeholder="Explain why this ticket is being cancelled..."
                     rows={2}
-                    className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 placeholder:text-gray-400"
+                    className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 placeholder:text-slate-400"
                   />
                 </div>
                 {cancelError && <p className="text-xs text-red-600">{cancelError}</p>}
@@ -540,7 +540,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                       setShowCancelForm(false)
                       setCancellationReason('')
                     }}
-                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                     Cancel
@@ -575,7 +575,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
             className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
               ticket.status === 'DONE'
                 ? 'bg-primary-50 border-primary-200'
-                : 'bg-gray-50 border-gray-200'
+                : 'bg-slate-50 border-slate-200'
             }`}
           >
             {ticket.status === 'DONE' ? (
@@ -587,8 +587,8 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
               </>
             ) : (
               <>
-                <XCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                <p className="text-sm font-medium text-gray-600">Ticket has been cancelled</p>
+                <XCircle className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <p className="text-sm font-medium text-slate-600">Ticket has been cancelled</p>
               </>
             )}
           </motion.div>
@@ -611,7 +611,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
             {/* Issue summary card */}
             <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl space-y-3">
               {ticket.description && (
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">
                   {ticket.description}
                 </p>
               )}
@@ -619,7 +619,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
               {/* Photos */}
               {ticket.photos && ticket.photos.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-2">
                     <ImageIcon className="w-3 h-3" />
                     {ticket.photos.length} photo{ticket.photos.length !== 1 ? 's' : ''}
                   </div>
@@ -628,7 +628,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                       <button
                         key={url}
                         onClick={() => setLightboxUrl(url)}
-                        className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity group flex-shrink-0"
+                        className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity group flex-shrink-0"
                         title="Click to view full size"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -648,7 +648,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
 
               {!ticket.description &&
                 (!ticket.photos || ticket.photos.length === 0) && (
-                  <p className="text-xs text-gray-400">No additional details provided</p>
+                  <p className="text-xs text-slate-400">No additional details provided</p>
                 )}
             </motion.div>
 
@@ -677,10 +677,10 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
             {/* Activity feed */}
             <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
-                <h3 className="text-sm font-semibold text-gray-700">Activity</h3>
+                <h3 className="text-sm font-semibold text-slate-700">Activity</h3>
                 <button
                   onClick={() => refetch()}
-                  className="ml-auto text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                  className="ml-auto text-xs text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
                   Refresh
                 </button>

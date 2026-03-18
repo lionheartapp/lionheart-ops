@@ -95,7 +95,7 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
         trailing={
           <button
             onClick={onCreateTicket}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all whitespace-nowrap"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             New Request
@@ -107,18 +107,18 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
       {tickets.length === 0 ? (
         <div className="ui-glass py-14 text-center">
           <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
-          <p className="text-sm font-medium text-gray-600 mb-1">No tickets found</p>
-          <p className="text-xs text-gray-400 mb-4">Try adjusting your filters or create a new request</p>
+          <p className="text-sm font-medium text-slate-600 mb-1">No tickets found</p>
+          <p className="text-xs text-slate-400 mb-4">Try adjusting your filters or create a new request</p>
         </div>
       ) : (
         <>
-          <p className="text-xs text-gray-500">{total} ticket{total !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-slate-500">{total} ticket{total !== 1 ? 's' : ''}</p>
 
           {/* Desktop table */}
           <div className="hidden sm:block ui-glass-table">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-gray-500 border-b border-gray-200/50">
+                <tr className="text-left text-xs text-slate-500 border-b border-slate-200/50">
                   <th className="px-4 py-3 font-medium">Ticket</th>
                   <th className="px-4 py-3 font-medium">Title</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -133,10 +133,10 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
                   <tr
                     key={t.id}
                     onClick={() => onViewTicket(t.id)}
-                    className="border-b border-gray-100/50 hover:bg-gray-50/50 cursor-pointer transition-colors"
+                    className="border-b border-slate-100/50 hover:bg-slate-50/50 cursor-pointer transition-colors"
                   >
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{t.ticketNumber}</td>
-                    <td className="px-4 py-3 text-gray-900 max-w-[250px] truncate">{t.title}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-slate-500">{t.ticketNumber}</td>
+                    <td className="px-4 py-3 text-slate-900 max-w-[250px] truncate">{t.title}</td>
                     <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
                     <td className="px-4 py-3"><PriorityBadge priority={t.priority} /></td>
                     <td className="px-4 py-3"><TypeBadge type={t.issueType} /></td>
@@ -147,16 +147,16 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
                             <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
                               {t.assignedTo.firstName[0]}{t.assignedTo.lastName[0]}
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-slate-600">
                               {t.assignedTo.firstName} {t.assignedTo.lastName}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">Unassigned</span>
+                          <span className="text-xs text-slate-400">Unassigned</span>
                         )}
                       </td>
                     )}
-                    <td className="px-4 py-3 text-xs text-gray-500">
+                    <td className="px-4 py-3 text-xs text-slate-500">
                       {new Date(t.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
@@ -174,15 +174,15 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
                 className="w-full text-left ui-glass-hover p-4"
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-mono text-xs text-gray-500">{t.ticketNumber}</span>
+                  <span className="font-mono text-xs text-slate-500">{t.ticketNumber}</span>
                   <StatusBadge status={t.status} />
                 </div>
-                <p className="text-sm font-medium text-gray-900 truncate mb-2">{t.title}</p>
+                <p className="text-sm font-medium text-slate-900 truncate mb-2">{t.title}</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <PriorityBadge priority={t.priority} />
                   <TypeBadge type={t.issueType} />
                   {t.assignedTo && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-slate-500">
                       {t.assignedTo.firstName} {t.assignedTo.lastName}
                     </span>
                   )}

@@ -59,7 +59,7 @@ interface AssetRegisterTableProps {
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
-  INACTIVE: 'bg-gray-100 text-gray-600',
+  INACTIVE: 'bg-slate-100 text-slate-600',
   DECOMMISSIONED: 'bg-red-100 text-red-700',
   PENDING_DISPOSAL: 'bg-amber-100 text-amber-700',
 }
@@ -99,7 +99,7 @@ function buildQueryString(filters: AssetFilterState): string {
 }
 
 function getWarrantyColor(warrantyExpiry: string | null): string {
-  if (!warrantyExpiry) return 'text-gray-400'
+  if (!warrantyExpiry) return 'text-slate-400'
   const expiry = new Date(warrantyExpiry)
   const now = new Date()
   const daysUntil = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
@@ -135,15 +135,15 @@ function AssetTableSkeleton() {
   return (
     <div className="animate-pulse">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100">
-          <div className="h-4 bg-gray-200 rounded w-24" />
-          <div className="h-4 bg-gray-200 rounded flex-1" />
-          <div className="h-4 bg-gray-200 rounded w-20" />
-          <div className="h-4 bg-gray-200 rounded w-24" />
-          <div className="h-4 bg-gray-200 rounded w-28" />
-          <div className="h-6 bg-gray-200 rounded-full w-16" />
-          <div className="h-4 bg-gray-200 rounded w-20" />
-          <div className="h-4 bg-gray-200 rounded w-16" />
+        <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-slate-100">
+          <div className="h-4 bg-slate-200 rounded w-24" />
+          <div className="h-4 bg-slate-200 rounded flex-1" />
+          <div className="h-4 bg-slate-200 rounded w-20" />
+          <div className="h-4 bg-slate-200 rounded w-24" />
+          <div className="h-4 bg-slate-200 rounded w-28" />
+          <div className="h-6 bg-slate-200 rounded-full w-16" />
+          <div className="h-4 bg-slate-200 rounded w-20" />
+          <div className="h-4 bg-slate-200 rounded w-16" />
         </div>
       ))}
     </div>
@@ -176,8 +176,8 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
     return (
       <div className="ui-glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
         <IllustrationMaintenance className="w-48 h-40 mb-2" />
-        <h3 className="text-base font-semibold text-gray-900 mb-1">No assets found</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <h3 className="text-base font-semibold text-slate-900 mb-1">No assets found</h3>
+        <p className="text-sm text-slate-500 mb-4">
           {filters.search || filters.category || filters.status
             ? 'Try adjusting your filters to find assets.'
             : 'Get started by adding your first asset to the register.'}
@@ -185,7 +185,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
         {!filters.search && !filters.category && !filters.status && (
           <button
             onClick={onAddAsset}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors cursor-pointer active:scale-[0.97]"
+            className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors cursor-pointer active:scale-[0.97]"
           >
             <Plus className="w-4 h-4" />
             Add your first asset
@@ -200,16 +200,16 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50/60">
-              <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Asset #</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Category</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Make / Model</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Location</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Alerts</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Warranty Exp.</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Replacement</th>
+            <tr className="border-b border-slate-200 bg-slate-50/60">
+              <th className="text-left px-4 py-3 font-medium text-slate-600 whitespace-nowrap">Asset #</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600 whitespace-nowrap">Category</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600 whitespace-nowrap">Make / Model</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600">Location</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600">Status</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600">Alerts</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600 whitespace-nowrap">Warranty Exp.</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-600 whitespace-nowrap">Replacement</th>
             </tr>
           </thead>
           <motion.tbody
@@ -222,29 +222,29 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
                 key={asset.id}
                 variants={listItem}
                 onClick={() => router.push(`/maintenance/assets/${asset.id}`)}
-                className="border-b border-gray-100 hover:bg-primary-50/30 transition-colors cursor-pointer"
+                className="border-b border-slate-100 hover:bg-primary-50/30 transition-colors cursor-pointer"
               >
                 <td className="px-4 py-3 whitespace-nowrap font-mono text-xs text-primary-700 font-semibold">
                   {asset.assetNumber}
                 </td>
-                <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">
+                <td className="px-4 py-3 font-medium text-slate-900 max-w-[200px] truncate">
                   {asset.name}
                 </td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                   {asset.category ? (CATEGORY_LABELS[asset.category] || asset.category) : '—'}
                 </td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                   {asset.make && asset.model
                     ? `${asset.make} ${asset.model}`
                     : asset.make || asset.model || '—'}
                 </td>
-                <td className="px-4 py-3 text-gray-600 max-w-[160px] truncate">
+                <td className="px-4 py-3 text-slate-600 max-w-[160px] truncate">
                   {getLocationText(asset)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      STATUS_COLORS[asset.status] || 'bg-gray-100 text-gray-600'
+                      STATUS_COLORS[asset.status] || 'bg-slate-100 text-slate-600'
                     }`}
                   >
                     {STATUS_LABELS[asset.status] || asset.status}
@@ -263,19 +263,19 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
                       </span>
                     )}
                     {asset.eolAlertSentAt && (
-                      <span title="End of Life" className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Clock className="w-3 h-3 text-gray-600" />
+                      <span title="End of Life" className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center">
+                        <Clock className="w-3 h-3 text-slate-600" />
                       </span>
                     )}
                     {!asset.repeatAlertSentAt && !asset.costAlertSentAt && !asset.eolAlertSentAt && (
-                      <span className="text-gray-300 text-xs">—</span>
+                      <span className="text-slate-300 text-xs">—</span>
                     )}
                   </div>
                 </td>
                 <td className={`px-4 py-3 whitespace-nowrap text-xs ${getWarrantyColor(asset.warrantyExpiry)}`}>
                   {formatDate(asset.warrantyExpiry)}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                <td className="px-4 py-3 whitespace-nowrap text-slate-700">
                   {formatCurrency(asset.replacementCost)}
                 </td>
               </motion.tr>
@@ -284,7 +284,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
         </table>
       </div>
       {data && data.total > data.limit && (
-        <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-500 text-right">
+        <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-500 text-right">
           Showing {assets.length} of {data.total} assets
         </div>
       )}

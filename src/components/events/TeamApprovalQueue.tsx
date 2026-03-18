@@ -27,7 +27,7 @@ const GATE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: stri
   PENDING: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' },
   APPROVED: { label: 'Approved', bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-400' },
   REJECTED: { label: 'Rejected', bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-400' },
-  SKIPPED: { label: 'Skipped', bg: 'bg-gray-50', text: 'text-gray-500', dot: 'bg-gray-300' },
+  SKIPPED: { label: 'Skipped', bg: 'bg-slate-50', text: 'text-slate-500', dot: 'bg-slate-300' },
 }
 
 // ─── Approval Card ───────────────────────────────────────────────────────────
@@ -76,17 +76,17 @@ function ApprovalCard({
     <motion.div variants={cardEntrance} className="ui-glass-hover p-5 rounded-2xl">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-2">
-        <h3 className="text-sm font-semibold text-gray-900 flex-1 min-w-0 truncate">
+        <h3 className="text-sm font-semibold text-slate-900 flex-1 min-w-0 truncate">
           {project.title}
         </h3>
       </div>
 
       {project.description && (
-        <p className="text-xs text-gray-500 mb-3 line-clamp-2">{project.description}</p>
+        <p className="text-xs text-slate-500 mb-3 line-clamp-2">{project.description}</p>
       )}
 
       {/* Meta */}
-      <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+      <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
         <div className="flex items-center gap-1">
           <CalendarRange className="w-3.5 h-3.5" />
           {dateDisplay}
@@ -97,7 +97,7 @@ function ApprovalCard({
       </div>
 
       {creatorName && (
-        <p className="text-xs text-gray-400 mb-3">Submitted by {creatorName}</p>
+        <p className="text-xs text-slate-400 mb-3">Submitted by {creatorName}</p>
       )}
 
       {/* Other gate statuses */}
@@ -136,7 +136,7 @@ function ApprovalCard({
           <button
             onClick={() => setShowRejectForm(true)}
             disabled={isApproving}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-700 text-xs font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
           >
             <XCircle className="w-3.5 h-3.5" />
             Reject
@@ -148,7 +148,7 @@ function ApprovalCard({
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder="Reason for rejection (required)..."
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 resize-none"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 resize-none"
             rows={2}
             autoFocus
           />
@@ -162,7 +162,7 @@ function ApprovalCard({
             </button>
             <button
               onClick={() => { setShowRejectForm(false); setRejectReason('') }}
-              className="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-all cursor-pointer"
             >
               Cancel
             </button>
@@ -179,7 +179,7 @@ function QueueSkeleton() {
   return (
     <div className="space-y-3 animate-pulse">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="rounded-2xl bg-gray-100 h-36" />
+        <div key={i} className="rounded-2xl bg-slate-100 h-36" />
       ))}
     </div>
   )
@@ -256,7 +256,7 @@ export default function TeamApprovalQueue({ gateType, teamLabel }: TeamApprovalQ
     return (
       <div className="ui-glass p-6 text-center">
         <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-        <p className="text-sm text-gray-600">Failed to load approval queue. Please refresh.</p>
+        <p className="text-sm text-slate-600">Failed to load approval queue. Please refresh.</p>
       </div>
     )
   }
@@ -267,8 +267,8 @@ export default function TeamApprovalQueue({ gateType, teamLabel }: TeamApprovalQ
         <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
           <PartyPopper className="w-6 h-6 text-green-500" />
         </div>
-        <h3 className="text-sm font-semibold text-gray-900">All clear!</h3>
-        <p className="text-xs text-gray-500 mt-1">No events waiting for {teamLabel} approval.</p>
+        <h3 className="text-sm font-semibold text-slate-900">All clear!</h3>
+        <p className="text-xs text-slate-500 mt-1">No events waiting for {teamLabel} approval.</p>
       </motion.div>
     )
   }

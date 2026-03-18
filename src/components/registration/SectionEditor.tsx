@@ -74,9 +74,9 @@ export function SectionEditor({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
       {/* Section header */}
-      <div className="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-200">
+      <div className="bg-slate-50 px-4 py-3 flex items-center gap-3 border-b border-slate-200">
         {/* Title input */}
         <div className="flex-1">
           <input
@@ -84,7 +84,7 @@ export function SectionEditor({
             value={section.title}
             onChange={(e) => update({ title: e.target.value })}
             placeholder="Section name"
-            className="w-full text-sm font-semibold text-gray-800 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-gray-400"
+            className="w-full text-sm font-semibold text-slate-800 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-slate-400"
           />
         </div>
 
@@ -96,8 +96,8 @@ export function SectionEditor({
             disabled={!canMoveUp}
             className={`p-1.5 rounded-lg transition-colors duration-200 ${
               canMoveUp
-                ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 cursor-pointer'
-                : 'text-gray-300 cursor-not-allowed'
+                ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100 cursor-pointer'
+                : 'text-slate-300 cursor-not-allowed'
             }`}
             aria-label="Move section up"
           >
@@ -109,8 +109,8 @@ export function SectionEditor({
             disabled={!canMoveDown}
             className={`p-1.5 rounded-lg transition-colors duration-200 ${
               canMoveDown
-                ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 cursor-pointer'
-                : 'text-gray-300 cursor-not-allowed'
+                ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100 cursor-pointer'
+                : 'text-slate-300 cursor-not-allowed'
             }`}
             aria-label="Move section down"
           >
@@ -125,7 +125,7 @@ export function SectionEditor({
           className={`p-1.5 rounded-lg transition-colors duration-200 cursor-pointer text-sm ${
             confirmRemove
               ? 'bg-red-100 text-red-600 font-medium px-2'
-              : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+              : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
           }`}
           aria-label="Remove section"
         >
@@ -140,7 +140,7 @@ export function SectionEditor({
           <button
             type="button"
             onClick={() => setShowDescription(!showDescription)}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer mb-2"
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors duration-200 cursor-pointer mb-2"
           >
             <ChevronDownIcon className={`w-3 h-3 transition-transform ${showDescription ? 'rotate-180' : ''}`} />
             Section description (optional)
@@ -151,7 +151,7 @@ export function SectionEditor({
               onChange={(e) => update({ description: e.target.value || null })}
               placeholder="Brief description displayed above the fields in this section"
               rows={2}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
             />
           )}
         </div>
@@ -174,7 +174,7 @@ export function SectionEditor({
         <button
           type="button"
           onClick={addCustomField}
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors duration-200 cursor-pointer"
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg border border-dashed border-slate-300 text-sm text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors duration-200 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Custom Field

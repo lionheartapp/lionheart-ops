@@ -29,7 +29,7 @@ function formatCurrency(value: number): string {
 export default function CostByBuildingChart({ data }: CostByBuildingChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
         No cost data for this period
       </div>
     )
@@ -85,16 +85,16 @@ export default function CostByBuildingChart({ data }: CostByBuildingChartProps) 
           fontSize: '12px',
         }}
       >
-        <p className="font-medium text-gray-900 mb-1">{label}</p>
+        <p className="font-medium text-slate-900 mb-1">{label}</p>
         {payload.map((p) => {
           const bData = monthData?.buildings.find((b) => b.buildingName === p.name)
           return (
-            <div key={p.name} className="text-gray-700">
+            <div key={p.name} className="text-slate-700">
               <span style={{ color: p.color }}>■</span>{' '}
               <span className="font-medium">{p.name}</span>:{' '}
               <span>{formatCurrency(p.value)}</span>
               {bData && (
-                <span className="text-gray-400 ml-1">
+                <span className="text-slate-400 ml-1">
                   (labor: {formatCurrency(bData.laborCost)}, materials:{' '}
                   {formatCurrency(bData.materialsCost)})
                 </span>

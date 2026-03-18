@@ -20,7 +20,7 @@ function getFileIcon(url: string) {
   const lower = url.toLowerCase()
   if (lower.includes('.pdf')) return <FileText className="w-4 h-4 text-red-500" />
   if (lower.match(/\.(png|jpg|jpeg|gif|webp)/)) return <Image className="w-4 h-4 text-blue-500" />
-  return <FileText className="w-4 h-4 text-gray-400" />
+  return <FileText className="w-4 h-4 text-slate-400" />
 }
 
 function getFileName(url: string): string {
@@ -129,14 +129,14 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
   const canAddMore = attachments.length < MAX_ATTACHMENTS && !uploading
 
   return (
-    <div className="bg-gray-50/50 border border-gray-200/50 rounded-xl p-4">
+    <div className="bg-slate-50/50 border border-slate-200/50 rounded-xl p-4">
       {/* Header row */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Paperclip className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Attachments</span>
+          <Paperclip className="w-4 h-4 text-slate-500" />
+          <span className="text-sm font-medium text-slate-700">Attachments</span>
         </div>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-slate-400">
           {attachments.length}/{MAX_ATTACHMENTS} documents
         </span>
       </div>
@@ -145,20 +145,20 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
       {attachments.length > 0 && (
         <ul className="space-y-1.5 mb-3">
           {attachments.map((url, idx) => (
-            <li key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 group">
+            <li key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-100 group">
               {getFileIcon(url)}
               <a
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 text-xs text-gray-700 hover:text-primary-600 truncate cursor-pointer transition-colors"
+                className="flex-1 text-xs text-slate-700 hover:text-primary-600 truncate cursor-pointer transition-colors"
                 title={getFileName(url)}
               >
                 {getFileName(url)}
               </a>
               <button
                 onClick={() => handleDelete(url)}
-                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-gray-400 hover:text-red-500 transition-all cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                 title="Remove attachment"
               >
                 <X className="w-3.5 h-3.5" />
@@ -180,7 +180,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
       )}
 
       {uploading && (
-        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
           <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-600" />
           Uploading...
         </div>
@@ -191,7 +191,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
       )}
 
       {attachments.length >= MAX_ATTACHMENTS && (
-        <p className="text-xs text-gray-400 mt-2">Maximum {MAX_ATTACHMENTS} attachments reached.</p>
+        <p className="text-xs text-slate-400 mt-2">Maximum {MAX_ATTACHMENTS} attachments reached.</p>
       )}
 
       {/* Hidden file input */}

@@ -26,10 +26,10 @@ function TableSkeleton() {
   return (
     <div className="space-y-2 animate-pulse">
       {[...Array(10)].map((_, i) => (
-        <div key={i} className="flex gap-3 items-center h-9 px-3 rounded-xl bg-gray-50">
-          <div className="h-3 w-40 bg-gray-200 rounded" />
-          <div className="h-5 w-16 bg-gray-200 rounded-full ml-auto" />
-          <div className="h-3 w-10 bg-gray-200 rounded" />
+        <div key={i} className="flex gap-3 items-center h-9 px-3 rounded-xl bg-slate-50">
+          <div className="h-3 w-40 bg-slate-200 rounded" />
+          <div className="h-5 w-16 bg-slate-200 rounded-full ml-auto" />
+          <div className="h-3 w-10 bg-slate-200 rounded" />
         </div>
       ))}
     </div>
@@ -70,8 +70,8 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-800">Compliance Status</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Regulatory domain current status</p>
+          <h3 className="text-sm font-semibold text-slate-800">Compliance Status</h3>
+          <p className="text-xs text-slate-500 mt-0.5">Regulatory domain current status</p>
         </div>
         <div className="flex items-center gap-2">
           {totalAll > 0 && <PctBadge pct={overallPct} />}
@@ -89,7 +89,7 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
         <TableSkeleton />
       ) : domains.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-sm text-gray-500">No compliance records yet.</p>
+          <p className="text-sm text-slate-500">No compliance records yet.</p>
           <a href="/maintenance/compliance" className="text-xs text-primary-600 hover:underline cursor-pointer">
             Configure compliance domains
           </a>
@@ -98,11 +98,11 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
         <div className="ui-glass-table overflow-hidden rounded-xl">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50/80 text-left">
-                <th className="px-3 py-2.5 text-xs font-semibold text-gray-500">Domain</th>
-                <th className="px-3 py-2.5 text-xs font-semibold text-gray-500 text-center">Current</th>
-                <th className="px-3 py-2.5 text-xs font-semibold text-gray-500 text-center">Overdue</th>
-                <th className="px-3 py-2.5 text-xs font-semibold text-gray-500 text-right">% Current</th>
+              <tr className="bg-slate-50/80 text-left">
+                <th className="px-3 py-2.5 text-xs font-semibold text-slate-500">Domain</th>
+                <th className="px-3 py-2.5 text-xs font-semibold text-slate-500 text-center">Current</th>
+                <th className="px-3 py-2.5 text-xs font-semibold text-slate-500 text-center">Overdue</th>
+                <th className="px-3 py-2.5 text-xs font-semibold text-slate-500 text-right">% Current</th>
               </tr>
             </thead>
             <motion.tbody
@@ -114,9 +114,9 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
                 <motion.tr
                   key={domain}
                   variants={listItem}
-                  className="border-t border-gray-100/60 hover:bg-primary-50/30 transition-colors duration-150"
+                  className="border-t border-slate-100/60 hover:bg-primary-50/30 transition-colors duration-150"
                 >
-                  <td className="px-3 py-2.5 text-gray-700 font-medium text-xs">
+                  <td className="px-3 py-2.5 text-slate-700 font-medium text-xs">
                     {DOMAIN_LABELS[domain] ?? domain.replace(/_/g, ' ')}
                   </td>
                   <td className="px-3 py-2.5 text-center">
@@ -126,7 +126,7 @@ export function ComplianceStatusPanel({ byDomain, loading }: ComplianceStatusPan
                     {d.overdue > 0 ? (
                       <span className="text-xs font-semibold text-red-600">{d.overdue}</span>
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      <span className="text-xs text-slate-400">—</span>
                     )}
                   </td>
                   <td className="px-3 py-2.5 text-right">

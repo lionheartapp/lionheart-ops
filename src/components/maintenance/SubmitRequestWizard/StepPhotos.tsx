@@ -176,8 +176,8 @@ export default function StepPhotos({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-1">Add Photos</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="text-base font-semibold text-slate-900 mb-1">Add Photos</h3>
+        <p className="text-sm text-slate-500">
           Photos help the maintenance team diagnose the issue faster
           {photos.length > 0 && (
             <span className="ml-2 text-primary-600 font-medium">{photos.length}/{MAX_PHOTOS} photos</span>
@@ -200,7 +200,7 @@ export default function StepPhotos({
             relative rounded-xl border-2 border-dashed p-6 text-center transition-all cursor-pointer
             ${dragOver
               ? 'border-primary-400 bg-primary-50'
-              : 'border-gray-200 hover:border-primary-300 hover:bg-primary-50/30'
+              : 'border-slate-200 hover:border-primary-300 hover:bg-primary-50/30'
             }
           `}
         >
@@ -208,13 +208,13 @@ export default function StepPhotos({
             {dragOver ? (
               <Upload className="w-8 h-8 text-primary-500" />
             ) : (
-              <Camera className="w-8 h-8 text-gray-400" />
+              <Camera className="w-8 h-8 text-slate-400" />
             )}
             <div>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-slate-700">
                 {dragOver ? 'Drop photos here' : 'Add Photos'}
               </p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Tap to open camera or choose from library · JPG, PNG, WebP, HEIC up to 10MB
               </p>
             </div>
@@ -250,7 +250,7 @@ export default function StepPhotos({
                 initial="hidden"
                 animate="visible"
                 exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                className="relative aspect-square rounded-xl overflow-hidden group bg-gray-100"
+                className="relative aspect-square rounded-xl overflow-hidden group bg-slate-100"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -278,7 +278,7 @@ export default function StepPhotos({
           {uploading.map((u) => (
             <div
               key={u.id}
-              className="relative aspect-square rounded-xl overflow-hidden bg-gray-100"
+              className="relative aspect-square rounded-xl overflow-hidden bg-slate-100"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -309,8 +309,8 @@ export default function StepPhotos({
 
       {photos.length === 0 && uploading.length === 0 && (
         <div className="flex items-center gap-2 py-2">
-          <ImageIcon className="w-4 h-4 text-gray-300" />
-          <p className="text-sm text-gray-400">Photos are optional but recommended</p>
+          <ImageIcon className="w-4 h-4 text-slate-300" />
+          <p className="text-sm text-slate-400">Photos are optional but recommended</p>
         </div>
       )}
     </div>

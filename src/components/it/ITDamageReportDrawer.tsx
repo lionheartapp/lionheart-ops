@@ -55,7 +55,7 @@ function ConditionBadge({ condition }: { condition: string }) {
   const style = CONDITION_STYLES[condition]
   if (!style) {
     return (
-      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
         {condition}
       </span>
     )
@@ -75,9 +75,9 @@ function DamageReportSkeleton() {
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="p-3 rounded-xl border border-gray-100">
-            <div className="h-3 w-16 bg-gray-100 rounded mb-2" />
-            <div className="h-6 w-10 bg-gray-100 rounded" />
+          <div key={i} className="p-3 rounded-xl border border-slate-100">
+            <div className="h-3 w-16 bg-slate-100 rounded mb-2" />
+            <div className="h-6 w-10 bg-slate-100 rounded" />
           </div>
         ))}
       </div>
@@ -85,10 +85,10 @@ function DamageReportSkeleton() {
       <div className="space-y-2">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="flex items-center gap-3 py-2">
-            <div className="h-4 w-20 bg-gray-100 rounded" />
-            <div className="h-4 flex-1 bg-gray-100 rounded" />
-            <div className="h-5 w-16 bg-gray-100 rounded-full" />
-            <div className="h-4 w-14 bg-gray-100 rounded" />
+            <div className="h-4 w-20 bg-slate-100 rounded" />
+            <div className="h-4 flex-1 bg-slate-100 rounded" />
+            <div className="h-5 w-16 bg-slate-100 rounded-full" />
+            <div className="h-4 w-14 bg-slate-100 rounded" />
           </div>
         ))}
       </div>
@@ -144,14 +144,14 @@ export default function ITDamageReportDrawer({ batchId, isOpen, onClose }: Props
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold text-gray-900">{summary.batchName}</h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <h3 className="text-base font-semibold text-slate-900">{summary.batchName}</h3>
+              <p className="text-xs text-slate-400 mt-0.5">
                 {summary.totalDevices} device{summary.totalDevices !== 1 ? 's' : ''} assessed
               </p>
             </div>
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -161,34 +161,34 @@ export default function ITDamageReportDrawer({ batchId, isOpen, onClose }: Props
           {/* Stats row */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* Total devices */}
-            <div className="p-3 rounded-xl border border-gray-200/50 bg-gray-50/50">
-              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">Total</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{summary.totalDevices}</p>
+            <div className="p-3 rounded-xl border border-slate-200/50 bg-slate-50/50">
+              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide">Total</p>
+              <p className="text-xl font-bold text-slate-900 mt-1">{summary.totalDevices}</p>
             </div>
 
             {/* By condition */}
             {conditions.map((cond) => {
               const count = summary.byCondition[cond] ?? 0
-              const cardStyle = CONDITION_CARD_STYLES[cond] || 'bg-gray-50 border-gray-200/50'
+              const cardStyle = CONDITION_CARD_STYLES[cond] || 'bg-slate-50 border-slate-200/50'
               const condStyle = CONDITION_STYLES[cond]
               const Icon = condStyle?.icon || AlertTriangle
               return (
                 <div key={cond} className={`p-3 rounded-xl border ${cardStyle}`}>
                   <div className="flex items-center gap-1.5">
-                    <Icon className={`w-3 h-3 ${condStyle?.text || 'text-gray-500'}`} />
-                    <p className={`text-[10px] font-medium uppercase tracking-wide ${condStyle?.text || 'text-gray-400'}`}>
+                    <Icon className={`w-3 h-3 ${condStyle?.text || 'text-slate-500'}`} />
+                    <p className={`text-[10px] font-medium uppercase tracking-wide ${condStyle?.text || 'text-slate-400'}`}>
                       {cond}
                     </p>
                   </div>
-                  <p className="text-xl font-bold text-gray-900 mt-1">{count}</p>
+                  <p className="text-xl font-bold text-slate-900 mt-1">{count}</p>
                 </div>
               )
             })}
 
             {/* Total fees */}
-            <div className="p-3 rounded-xl border border-gray-200/50 bg-gradient-to-br from-primary-50/80 to-primary-100/80">
+            <div className="p-3 rounded-xl border border-slate-200/50 bg-gradient-to-br from-primary-50/80 to-primary-100/80">
               <p className="text-[10px] font-medium text-primary-600 uppercase tracking-wide">Total Fees</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">
+              <p className="text-xl font-bold text-slate-900 mt-1">
                 ${(summary.totalFeeCents / 100).toFixed(2)}
               </p>
             </div>
@@ -197,8 +197,8 @@ export default function ITDamageReportDrawer({ batchId, isOpen, onClose }: Props
           {/* Items table */}
           {summary.items.length === 0 ? (
             <div className="text-center py-8">
-              <AlertTriangle className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">No damage assessments recorded</p>
+              <AlertTriangle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No damage assessments recorded</p>
             </div>
           ) : (
             <>
@@ -206,7 +206,7 @@ export default function ITDamageReportDrawer({ batchId, isOpen, onClose }: Props
               <div className="hidden sm:block">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-xs text-gray-500 border-b border-gray-200/50">
+                    <tr className="text-left text-xs text-slate-500 border-b border-slate-200/50">
                       <th className="pb-2 font-medium">Device</th>
                       <th className="pb-2 font-medium">Student</th>
                       <th className="pb-2 font-medium">Condition</th>
@@ -218,24 +218,24 @@ export default function ITDamageReportDrawer({ batchId, isOpen, onClose }: Props
                     {summary.items.map((item) => (
                       <tr
                         key={item.id}
-                        className="border-b border-gray-100/50 hover:bg-gray-50/30 transition-colors"
+                        className="border-b border-slate-100/50 hover:bg-slate-50/30 transition-colors"
                       >
                         <td className="py-2.5 pr-3">
-                          <span className="font-mono text-xs text-gray-700">{item.assetTag}</span>
+                          <span className="font-mono text-xs text-slate-700">{item.assetTag}</span>
                         </td>
-                        <td className="py-2.5 pr-3 text-xs text-gray-600">
-                          {item.studentName || <span className="text-gray-400">—</span>}
+                        <td className="py-2.5 pr-3 text-xs text-slate-600">
+                          {item.studentName || <span className="text-slate-400">—</span>}
                         </td>
                         <td className="py-2.5 pr-3">
                           <ConditionBadge condition={item.condition} />
                         </td>
-                        <td className="py-2.5 pr-3 text-xs text-gray-700 text-right">
+                        <td className="py-2.5 pr-3 text-xs text-slate-700 text-right">
                           {item.damageFeeCents > 0
                             ? `$${(item.damageFeeCents / 100).toFixed(2)}`
-                            : <span className="text-gray-400">$0.00</span>}
+                            : <span className="text-slate-400">$0.00</span>}
                         </td>
-                        <td className="py-2.5 text-xs text-gray-500 max-w-[180px] truncate">
-                          {item.damageNotes || <span className="text-gray-300">—</span>}
+                        <td className="py-2.5 text-xs text-slate-500 max-w-[180px] truncate">
+                          {item.damageNotes || <span className="text-slate-300">—</span>}
                         </td>
                       </tr>
                     ))}
@@ -246,25 +246,25 @@ export default function ITDamageReportDrawer({ batchId, isOpen, onClose }: Props
               {/* Mobile card view */}
               <div className="sm:hidden space-y-2">
                 {summary.items.map((item) => (
-                  <div key={item.id} className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 space-y-1.5">
+                  <div key={item.id} className="p-3 rounded-xl bg-slate-50/50 border border-slate-100 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs text-gray-700">{item.assetTag}</span>
+                      <span className="font-mono text-xs text-slate-700">{item.assetTag}</span>
                       <ConditionBadge condition={item.condition} />
                     </div>
                     {item.studentName && (
-                      <p className="text-xs text-gray-600">{item.studentName}</p>
+                      <p className="text-xs text-slate-600">{item.studentName}</p>
                     )}
                     <div className="flex items-center justify-between">
                       {item.damageFeeCents > 0 ? (
-                        <span className="text-xs font-medium text-gray-700">
+                        <span className="text-xs font-medium text-slate-700">
                           ${(item.damageFeeCents / 100).toFixed(2)}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-400">No fee</span>
+                        <span className="text-xs text-slate-400">No fee</span>
                       )}
                     </div>
                     {item.damageNotes && (
-                      <p className="text-[11px] text-gray-500">{item.damageNotes}</p>
+                      <p className="text-[11px] text-slate-500">{item.damageNotes}</p>
                     )}
                   </div>
                 ))}

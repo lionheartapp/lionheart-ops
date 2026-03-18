@@ -53,7 +53,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
                 ? 'bg-green-500 text-white'
                 : i === currentIdx
                   ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-400'
+                  : 'bg-slate-100 text-slate-400'
             }`}
           >
             {i < currentIdx ? (
@@ -65,7 +65,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
           {i < steps.length - 1 && (
             <div
               className={`w-8 h-0.5 rounded-full transition-colors duration-200 ${
-                i < currentIdx ? 'bg-green-500' : 'bg-gray-200'
+                i < currentIdx ? 'bg-green-500' : 'bg-slate-200'
               }`}
             />
           )}
@@ -282,16 +282,16 @@ export default function PasswordResetPage() {
                 exit="exit"
                 className="p-6 sm:p-8"
               >
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">
                   Find Your School
                 </h2>
-                <p className="text-sm text-gray-500 mb-6">
+                <p className="text-sm text-slate-500 mb-6">
                   Enter your school&apos;s identifier to get started
                 </p>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
                       School Slug
                     </label>
                     <input
@@ -302,11 +302,11 @@ export default function PasswordResetPage() {
                         setError(null)
                       }}
                       placeholder="e.g. linfield"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
                       autoFocus
                       onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
                     />
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                       This is the part before .lionheartapp.com in your school&apos;s URL
                     </p>
                   </div>
@@ -321,7 +321,7 @@ export default function PasswordResetPage() {
                   <button
                     onClick={handleLookup}
                     disabled={!schoolSlug.trim()}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Continue
                     <ArrowRight className="w-4 h-4" />
@@ -340,22 +340,22 @@ export default function PasswordResetPage() {
                 exit="exit"
                 className="p-6 sm:p-8"
               >
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">
                   Verify Your Identity
                 </h2>
-                <p className="text-sm text-gray-500 mb-6">
+                <p className="text-sm text-slate-500 mb-6">
                   Enter your student ID and email to verify your account
                 </p>
 
                 <div className="space-y-4">
                   {/* School indicator */}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">
-                    <GraduationCap className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600 font-medium">{schoolSlug}</span>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100">
+                    <GraduationCap className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm text-slate-600 font-medium">{schoolSlug}</span>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
                       Student ID
                     </label>
                     <input
@@ -363,13 +363,13 @@ export default function PasswordResetPage() {
                       value={studentId}
                       onChange={(e) => { setStudentId(e.target.value); setError(null) }}
                       placeholder="Enter your student ID"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
                       autoFocus
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
                       Email Address
                     </label>
                     <input
@@ -377,7 +377,7 @@ export default function PasswordResetPage() {
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setError(null) }}
                       placeholder="your.email@school.edu"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
                       onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
                     />
                   </div>
@@ -392,7 +392,7 @@ export default function PasswordResetPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => { setStep('school'); setError(null) }}
-                      className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-all cursor-pointer"
+                      className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Back
@@ -400,7 +400,7 @@ export default function PasswordResetPage() {
                     <button
                       onClick={handleVerify}
                       disabled={isLoading || !studentId.trim() || !email.trim()}
-                      className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {isLoading ? (
                         <>
@@ -429,13 +429,13 @@ export default function PasswordResetPage() {
                 exit="exit"
                 className="p-6 sm:p-8"
               >
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">
                   Set New Password
                 </h2>
 
                 {lookupResult?.studentName && (
-                  <p className="text-sm text-gray-500 mb-6">
-                    Hello, <span className="font-medium text-gray-700">{lookupResult.studentName}</span>.
+                  <p className="text-sm text-slate-500 mb-6">
+                    Hello, <span className="font-medium text-slate-700">{lookupResult.studentName}</span>.
                     Choose a new password for your account.
                   </p>
                 )}
@@ -443,7 +443,7 @@ export default function PasswordResetPage() {
                 <div className="space-y-4">
                   {/* New password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
                       New Password
                     </label>
                     <div className="relative">
@@ -452,13 +452,13 @@ export default function PasswordResetPage() {
                         value={newPassword}
                         onChange={(e) => { setNewPassword(e.target.value); setError(null) }}
                         placeholder="Enter new password"
-                        className="w-full rounded-xl border border-gray-200 px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
                         autoFocus
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -467,20 +467,20 @@ export default function PasswordResetPage() {
                     {/* Password strength indicator */}
                     {newPassword && (
                       <div className="mt-2">
-                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full ${strength.color} transition-all duration-300`}
                             style={{ width: strength.width }}
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">{strength.label}</p>
+                        <p className="text-xs text-slate-500 mt-1">{strength.label}</p>
                       </div>
                     )}
                   </div>
 
                   {/* Confirm password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
                       Confirm Password
                     </label>
                     <div className="relative">
@@ -489,13 +489,13 @@ export default function PasswordResetPage() {
                         value={confirmPassword}
                         onChange={(e) => { setConfirmPassword(e.target.value); setError(null) }}
                         placeholder="Confirm new password"
-                        className="w-full rounded-xl border border-gray-200 px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
                         onKeyDown={(e) => e.key === 'Enter' && handleReset()}
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirm(!showConfirm)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -521,7 +521,7 @@ export default function PasswordResetPage() {
                   <button
                     onClick={handleReset}
                     disabled={isLoading || !newPassword || !confirmPassword}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isLoading ? (
                       <>
@@ -553,16 +553,16 @@ export default function PasswordResetPage() {
                   <CheckCircle2 className="w-8 h-8 text-green-500" />
                 </div>
 
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                <h2 className="text-lg font-semibold text-slate-900 mb-2">
                   Password Reset Successful
                 </h2>
-                <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                <p className="text-sm text-slate-500 mb-6 leading-relaxed">
                   Your password has been updated. You can now sign in with your new password.
                 </p>
 
                 <a
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
                 >
                   Return to Login
                   <ArrowRight className="w-4 h-4" />

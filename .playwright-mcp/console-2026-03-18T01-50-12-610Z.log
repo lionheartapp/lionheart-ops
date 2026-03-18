@@ -1,0 +1,9 @@
+[     616ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://linfieldchristianschool.lionheartapp.com/api/auth/me:0
+[    1143ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://linfieldchristianschool.lionheartapp.com/api/modules:0
+[    1153ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://linfieldchristianschool.lionheartapp.com/api/events/projects?limit=5:0
+[    1181ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://linfieldchristianschool.lionheartapp.com/api/auth/permissions:0
+[    1182ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://linfieldchristianschool.lionheartapp.com/api/auth/me:0
+[    1368ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://linfieldchristianschool.lionheartapp.com/api/events/templates:0
+[    1394ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://linfieldchristianschool.lionheartapp.com/api/events/projects?createdBy=me:0
+[   78827ms] [ERROR] Failed to load resource: the server responded with a status of 409 (Conflict) @ https://mcp.figma.com/mcp/capture/2a07a855-313c-4a18-97fd-801bbdd29dcd/submit:0
+[  670537ms] [ERROR] Failed to load resource: the server responded with a status of 409 (Conflict) @ https://mcp.figma.com/mcp/capture/2a07a855-313c-4a18-97fd-801bbdd29dcd/submit:0

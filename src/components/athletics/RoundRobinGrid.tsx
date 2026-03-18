@@ -78,7 +78,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
-                  <span className="font-medium text-gray-900 text-sm">{team.name}</span>
+                  <span className="font-medium text-slate-900 text-sm">{team.name}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-green-700 font-semibold">{s.wins}W</span>
@@ -95,16 +95,16 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                   return (
                     <div
                       key={opponent.id}
-                      className="flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
                       onClick={() => onMatchClick(match)}
                     >
-                      <span className="text-sm text-gray-600">vs {opponent.name}</span>
+                      <span className="text-sm text-slate-600">vs {opponent.name}</span>
                       {hasResult ? (
                         <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${isWinner ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                           {isWinner ? 'W' : 'L'}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-slate-400">—</span>
                       )}
                     </div>
                   )
@@ -120,13 +120,13 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
         <table className="min-w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 sticky left-0 z-10">
+              <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 sticky left-0 z-10">
                 Team
               </th>
               {teams.map((t) => (
                 <th
                   key={t.id}
-                  className="px-3 py-2 text-center text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 min-w-[100px]"
+                  className="px-3 py-2 text-center text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 min-w-[100px]"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <SportIcon sport={t.sport?.name || ''} size={12} style={{ color: t.sport?.color || '#6b7280' }} className="flex-shrink-0" />
@@ -139,7 +139,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
           <tbody>
             {teams.map((rowTeam) => (
               <tr key={rowTeam.id}>
-                <td className="px-3 py-2.5 font-medium text-gray-900 bg-white border border-gray-200 sticky left-0 z-10 whitespace-nowrap">
+                <td className="px-3 py-2.5 font-medium text-slate-900 bg-white border border-slate-200 sticky left-0 z-10 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     <SportIcon sport={rowTeam.sport?.name || ''} size={14} style={{ color: rowTeam.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                     {rowTeam.name}
@@ -148,8 +148,8 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                 {teams.map((colTeam) => {
                   if (rowTeam.id === colTeam.id) {
                     return (
-                      <td key={colTeam.id} className="px-3 py-2.5 text-center bg-gray-100 border border-gray-200">
-                        <span className="text-gray-300">&mdash;</span>
+                      <td key={colTeam.id} className="px-3 py-2.5 text-center bg-slate-100 border border-slate-200">
+                        <span className="text-slate-300">&mdash;</span>
                       </td>
                     )
                   }
@@ -157,7 +157,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                   const match = matchLookup.get(`${rowTeam.id}-${colTeam.id}`)
                   if (!match) {
                     return (
-                      <td key={colTeam.id} className="px-3 py-2.5 text-center border border-gray-200 text-gray-300">
+                      <td key={colTeam.id} className="px-3 py-2.5 text-center border border-slate-200 text-slate-300">
                         &mdash;
                       </td>
                     )
@@ -171,12 +171,12 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                     <td
                       key={colTeam.id}
                       onClick={() => onMatchClick(match)}
-                      className={`px-3 py-2.5 text-center border border-gray-200 cursor-pointer transition-colors ${
+                      className={`px-3 py-2.5 text-center border border-slate-200 cursor-pointer transition-colors ${
                         isWinner
                           ? 'bg-green-50 text-green-700 font-semibold hover:bg-green-100'
                           : isLoser
                             ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                            : 'hover:bg-gray-50 text-gray-400'
+                            : 'hover:bg-slate-50 text-slate-400'
                       }`}
                     >
                       {hasResult ? (isWinner ? 'W' : 'L') : '—'}
@@ -191,25 +191,25 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
 
       {/* Standings */}
       <div>
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Standings</h4>
+        <h4 className="text-sm font-semibold text-slate-700 mb-2">Standings</h4>
         <div className="ui-glass-table">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">#</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Team</th>
-                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500">W</th>
-                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500">L</th>
-                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500">GP</th>
+              <tr className="bg-slate-50">
+                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">#</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">Team</th>
+                <th className="px-3 py-2 text-center text-xs font-medium text-slate-500">W</th>
+                <th className="px-3 py-2 text-center text-xs font-medium text-slate-500">L</th>
+                <th className="px-3 py-2 text-center text-xs font-medium text-slate-500">GP</th>
               </tr>
             </thead>
             <tbody>
               {sortedTeams.map((team, idx) => {
                 const s = standings[team.id]
                 return (
-                  <tr key={team.id} className="border-t border-gray-100">
-                    <td className="px-3 py-2 text-gray-400 font-medium">{idx + 1}</td>
-                    <td className="px-3 py-2 font-medium text-gray-900">
+                  <tr key={team.id} className="border-t border-slate-100">
+                    <td className="px-3 py-2 text-slate-400 font-medium">{idx + 1}</td>
+                    <td className="px-3 py-2 font-medium text-slate-900">
                       <div className="flex items-center gap-2">
                         <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
                         {team.name}
@@ -217,7 +217,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                     </td>
                     <td className="px-3 py-2 text-center text-green-700 font-semibold">{s.wins}</td>
                     <td className="px-3 py-2 text-center text-red-600">{s.losses}</td>
-                    <td className="px-3 py-2 text-center text-gray-500">{s.played}</td>
+                    <td className="px-3 py-2 text-center text-slate-500">{s.played}</td>
                   </tr>
                 )
               })}

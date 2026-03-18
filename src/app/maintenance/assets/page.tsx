@@ -78,8 +78,8 @@ function AssetRegisterContent() {
 
   if (!isClient || !token || !orgId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     )
   }
@@ -105,10 +105,10 @@ function AssetRegisterContent() {
               variants={staggerContainer(0.08, 0.05)}
             >
               <div>
-                <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">
+                <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-slate-900">
                   Asset Register
                 </motion.h1>
-                <motion.p variants={fadeInUp} className="text-sm text-gray-500">
+                <motion.p variants={fadeInUp} className="text-sm text-slate-500">
                   Track and manage all facilities assets
                 </motion.p>
               </div>
@@ -184,8 +184,8 @@ function AssetRegisterContent() {
 export default function AssetRegisterPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
       </div>
     }>
       <AssetRegisterContent />

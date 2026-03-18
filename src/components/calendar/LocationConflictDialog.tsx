@@ -69,10 +69,10 @@ export default function LocationConflictDialog({ isOpen, conflict, onClose, onOv
                   <AlertTriangle className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
-                  <h3 id="location-conflict-title" className="text-sm font-semibold text-gray-900">
+                  <h3 id="location-conflict-title" className="text-sm font-semibold text-slate-900">
                     Location Conflict
                   </h3>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-slate-500 mt-0.5">
                     This location already has an event scheduled nearby.
                   </p>
                 </div>
@@ -80,23 +80,23 @@ export default function LocationConflictDialog({ isOpen, conflict, onClose, onOv
 
               {/* Conflict details card */}
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-slate-900">
                   {conflict.conflictingEventTitle}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
                   <span>
                     {formatDate(conflict.conflictingStart)}, {formatTime(conflict.conflictingStart)} &ndash; {formatTime(conflict.conflictingEnd)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
                   <span>{conflict.location}</span>
                 </div>
               </div>
 
               {/* Buffer note */}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 Your organization requires a {conflict.bufferMinutes}-minute buffer between events at the same location.
               </p>
             </div>
@@ -104,7 +104,7 @@ export default function LocationConflictDialog({ isOpen, conflict, onClose, onOv
             <div className="flex items-center justify-end gap-2 px-6 pb-5 pt-1">
               <button
                 onClick={onClose}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
               >
                 Cancel
               </button>

@@ -220,12 +220,12 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
           ]}
         />
         <div className="flex items-center gap-3 mt-2 px-1">
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={filterUnassigned}
               onChange={(e) => setFilterUnassigned(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
             />
             Unassigned only
           </label>
@@ -236,7 +236,7 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
                 setFilterPriority('')
                 setFilterUnassigned(false)
               }}
-              className="ml-auto text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              className="ml-auto text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
             >
               Clear filters
             </button>

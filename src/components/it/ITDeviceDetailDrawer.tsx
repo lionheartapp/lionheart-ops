@@ -189,15 +189,15 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
     <DetailDrawer isOpen={isOpen} onClose={onClose} title={device?.assetTag ?? 'Device'} width="lg">
       {isLoading || !device ? (
         <div className="space-y-4 animate-pulse p-4">
-          <div className="h-6 w-48 bg-gray-200 rounded" />
-          <div className="h-4 w-32 bg-gray-100 rounded" />
-          <div className="h-20 w-full bg-gray-100 rounded-xl" />
+          <div className="h-6 w-48 bg-slate-200 rounded" />
+          <div className="h-4 w-32 bg-slate-100 rounded" />
+          <div className="h-20 w-full bg-slate-100 rounded-xl" />
         </div>
       ) : (
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="px-6 pb-4 border-b border-gray-200/50">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <div className="px-6 pb-4 border-b border-slate-200/50">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">
               {[device.make, device.model].filter(Boolean).join(' ') || device.deviceType}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
@@ -212,57 +212,57 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
           </div>
 
           {/* Device info */}
-          <div className="px-6 py-4 space-y-3 border-b border-gray-200/50">
+          <div className="px-6 py-4 space-y-3 border-b border-slate-200/50">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
-                <Laptop className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-slate-600">
+                <Laptop className="w-4 h-4 text-slate-400" />
                 <span>Asset: <span className="font-mono">{device.assetTag}</span></span>
               </div>
               {device.serialNumber && (
-                <div className="text-gray-600 text-xs">
+                <div className="text-slate-600 text-xs">
                   Serial: <span className="font-mono">{device.serialNumber}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-gray-600">
-                <Calendar className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-slate-600">
+                <Calendar className="w-4 h-4 text-slate-400" />
                 <span>Added {new Date(device.createdAt).toLocaleDateString()}</span>
               </div>
               {(location || device.school?.name) && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2 text-slate-600">
+                  <MapPin className="w-4 h-4 text-slate-400" />
                   <span>{location || device.school?.name}</span>
                 </div>
               )}
             </div>
 
             {device.purchaseDate && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-slate-500">
                 Purchased: {new Date(device.purchaseDate).toLocaleDateString()}
                 {device.purchasePrice != null && ` — $${device.purchasePrice.toFixed(2)}`}
               </div>
             )}
             {device.warrantyExpiry && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-slate-500">
                 Warranty expires: {new Date(device.warrantyExpiry).toLocaleDateString()}
               </div>
             )}
             {device.osVersion && (
-              <div className="text-xs text-gray-500">OS: {device.osVersion}</div>
+              <div className="text-xs text-slate-500">OS: {device.osVersion}</div>
             )}
             {device.notes && (
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{device.notes}</p>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">{device.notes}</p>
             )}
           </div>
 
           {/* Current Assignment */}
-          <div className="px-6 py-4 border-b border-gray-200/50">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Current Assignment</h3>
+          <div className="px-6 py-4 border-b border-slate-200/50">
+            <h3 className="text-sm font-semibold text-slate-900 mb-2">Current Assignment</h3>
             <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-gray-400" />
+              <User className="w-4 h-4 text-slate-400" />
               {assigneeName ? (
-                <span className="text-sm text-gray-700">{assigneeName}</span>
+                <span className="text-sm text-slate-700">{assigneeName}</span>
               ) : (
-                <span className="text-sm text-gray-400">Unassigned</span>
+                <span className="text-sm text-slate-400">Unassigned</span>
               )}
               {canManage && (
                 <div className="flex gap-2 ml-auto">
@@ -291,13 +291,13 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
             {showAssign && canManage && (
               <div className="mt-3 space-y-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search students by name or ID..."
                     value={assignSearch}
                     onChange={(e) => setAssignSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                    className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
                     autoFocus
                   />
                 </div>
@@ -308,17 +308,17 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
                         key={s.id}
                         onClick={() => assignMutation.mutate({ studentId: s.id })}
                         disabled={assignMutation.isPending}
-                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-100 transition-colors flex items-center justify-between"
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-100 transition-colors flex items-center justify-between"
                       >
                         <div>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-slate-900">
                             {s.firstName} {s.lastName}
                           </span>
                           {s.studentId && (
-                            <span className="ml-2 text-xs text-gray-500 font-mono">#{s.studentId}</span>
+                            <span className="ml-2 text-xs text-slate-500 font-mono">#{s.studentId}</span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-slate-400">
                           {s.grade && `Grade ${s.grade}`}
                           {s.school && ` · ${s.school.name}`}
                         </div>
@@ -327,7 +327,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
                   </div>
                 )}
                 {assignSearch.trim().length >= 2 && studentResults.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-2">No students found</p>
+                  <p className="text-xs text-slate-400 text-center py-2">No students found</p>
                 )}
               </div>
             )}
@@ -335,8 +335,8 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
 
           {/* Assignment History */}
           {device.assignmentHistory && device.assignmentHistory.length > 0 && (
-            <div className="px-6 py-4 border-b border-gray-200/50">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Assignment History</h3>
+            <div className="px-6 py-4 border-b border-slate-200/50">
+              <h3 className="text-sm font-semibold text-slate-900 mb-2">Assignment History</h3>
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {device.assignmentHistory.map((a) => {
                   const name = a.student
@@ -345,9 +345,9 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
                       ? `${a.user.firstName} ${a.user.lastName}`
                       : 'Unknown'
                   return (
-                    <div key={a.id} className="flex items-center justify-between text-xs text-gray-600 py-1">
+                    <div key={a.id} className="flex items-center justify-between text-xs text-slate-600 py-1">
                       <span>{name}</span>
-                      <span className="text-gray-400">
+                      <span className="text-slate-400">
                         {new Date(a.assignedAt).toLocaleDateString()}
                         {a.returnedAt && ` → ${new Date(a.returnedAt).toLocaleDateString()}`}
                         {!a.returnedAt && ' → present'}
@@ -361,26 +361,26 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
 
           {/* Repair History */}
           {device.repairs && device.repairs.length > 0 && (
-            <div className="px-6 py-4 border-b border-gray-200/50">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-gray-400" />
+            <div className="px-6 py-4 border-b border-slate-200/50">
+              <h3 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-slate-400" />
                 Repair History
               </h3>
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {device.repairs.map((r) => (
-                  <div key={r.id} className="bg-gray-50 rounded-lg p-2.5 text-xs">
+                  <div key={r.id} className="bg-slate-50 rounded-lg p-2.5 text-xs">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-700">
                         {r.repairType || 'Repair'}
                       </span>
-                      <span className="text-gray-400">
+                      <span className="text-slate-400">
                         {new Date(r.repairDate).toLocaleDateString()}
                       </span>
                     </div>
                     {r.description && (
-                      <p className="text-gray-600">{r.description}</p>
+                      <p className="text-slate-600">{r.description}</p>
                     )}
-                    <div className="flex gap-3 mt-1 text-gray-400">
+                    <div className="flex gap-3 mt-1 text-slate-400">
                       {r.repairCost > 0 && <span>${r.repairCost.toFixed(2)}</span>}
                       {r.vendor && <span>{r.vendor}</span>}
                     </div>
@@ -395,7 +395,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
             <div className="px-6 py-4">
               {showDeleteConfirm ? (
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-700">Delete this device? This action cannot be undone.</p>
+                  <p className="text-sm text-slate-700">Delete this device? This action cannot be undone.</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => deleteMutation.mutate()}
@@ -407,7 +407,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
+                      className="px-4 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50"
                     >
                       Cancel
                     </button>

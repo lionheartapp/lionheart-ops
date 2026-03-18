@@ -97,7 +97,7 @@ export default function PmChecklistSection({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <ClipboardList className="w-4 h-4 text-primary-600" />
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">PM Checklist</h3>
+          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">PM Checklist</h3>
         </div>
         <span
           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
@@ -105,7 +105,7 @@ export default function PmChecklistSection({
               ? 'bg-primary-100 text-primary-700'
               : completedCount > 0
               ? 'bg-amber-100 text-amber-700'
-              : 'bg-gray-100 text-gray-500'
+              : 'bg-slate-100 text-slate-500'
           }`}
         >
           {completedCount}/{totalCount} complete
@@ -113,7 +113,7 @@ export default function PmChecklistSection({
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
         <div
           className="h-2 rounded-full bg-primary-500 transition-all duration-300"
           style={{ width: `${progressPercent}%` }}
@@ -146,7 +146,7 @@ export default function PmChecklistSection({
                   className={`w-4.5 h-4.5 w-[18px] h-[18px] rounded flex items-center justify-center border-2 transition-all duration-150 active:scale-95 ${
                     isChecked
                       ? 'bg-primary-500 border-primary-500'
-                      : 'bg-white border-gray-300 hover:border-primary-400'
+                      : 'bg-white border-slate-300 hover:border-primary-400'
                   } ${!canEdit ? 'opacity-60' : ''}`}
                   onClick={canEdit ? () => handleToggle(index) : undefined}
                 >
@@ -162,8 +162,8 @@ export default function PmChecklistSection({
               <span
                 className={`text-sm leading-snug transition-all duration-150 ${
                   isChecked
-                    ? 'line-through text-gray-400'
-                    : 'text-gray-700'
+                    ? 'line-through text-slate-400'
+                    : 'text-slate-700'
                 }`}
               >
                 {item}

@@ -77,7 +77,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   URGENT: 'bg-red-100 text-red-700',
   HIGH: 'bg-orange-100 text-orange-700',
   MEDIUM: 'bg-amber-100 text-amber-700',
-  LOW: 'bg-gray-100 text-gray-500',
+  LOW: 'bg-slate-100 text-slate-500',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -131,17 +131,17 @@ function CollapsibleSection({
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   return (
-    <div className="border-t border-gray-100 pt-4">
+    <div className="border-t border-slate-100 pt-4">
       <button
         onClick={() => setIsOpen((v) => !v)}
         className="flex items-center gap-2 w-full text-left cursor-pointer group"
       >
         {icon}
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex-1">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex-1">
           {title}
         </span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
       <AnimatePresence initial={false}>
@@ -180,8 +180,8 @@ export default function TicketDetailSidebar({
       {/* Assignee */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <User className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <User className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Assignee
           </span>
         </div>
@@ -193,16 +193,16 @@ export default function TicketDetailSidebar({
       </div>
 
       {/* Priority & Category */}
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-slate-100 pt-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <div className="flex items-center gap-1.5 mb-1.5">
-              <AlertCircle className="w-3 h-3 text-gray-400" />
-              <span className="text-[10px] font-semibold text-gray-400 uppercase">Priority</span>
+              <AlertCircle className="w-3 h-3 text-slate-400" />
+              <span className="text-[10px] font-semibold text-slate-400 uppercase">Priority</span>
             </div>
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                PRIORITY_COLORS[ticket.priority] ?? 'bg-gray-100 text-gray-600'
+                PRIORITY_COLORS[ticket.priority] ?? 'bg-slate-100 text-slate-600'
               }`}
             >
               {ticket.priority}
@@ -210,10 +210,10 @@ export default function TicketDetailSidebar({
           </div>
           <div>
             <div className="flex items-center gap-1.5 mb-1.5">
-              <Tag className="w-3 h-3 text-gray-400" />
-              <span className="text-[10px] font-semibold text-gray-400 uppercase">Category</span>
+              <Tag className="w-3 h-3 text-slate-400" />
+              <span className="text-[10px] font-semibold text-slate-400 uppercase">Category</span>
             </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
               {CATEGORY_LABELS[ticket.category] ?? ticket.category}
             </span>
           </div>
@@ -221,40 +221,40 @@ export default function TicketDetailSidebar({
       </div>
 
       {/* Location */}
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-slate-100 pt-4">
         <div className="flex items-center gap-2 mb-2">
-          <MapPin className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Location
           </span>
         </div>
         {ticket.school || ticket.building || ticket.area || ticket.room ? (
           <div className="space-y-1">
             {ticket.school && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+              <div className="flex items-center gap-1.5 text-xs text-slate-600">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-400 flex-shrink-0" />
                 <span className="font-medium">{ticket.school.name}</span>
               </div>
             )}
             {ticket.building && (
               <div
-                className={`flex items-center gap-1.5 text-xs text-gray-600 ${
+                className={`flex items-center gap-1.5 text-xs text-slate-600 ${
                   ticket.school ? 'pl-3' : ''
                 }`}
               >
-                <ChevronRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                <ChevronRight className="w-3 h-3 text-slate-300 flex-shrink-0" />
                 <span>{ticket.building.name}</span>
               </div>
             )}
             {ticket.area && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-600 pl-6">
-                <ChevronRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 pl-6">
+                <ChevronRight className="w-3 h-3 text-slate-300 flex-shrink-0" />
                 <span>{ticket.area.name}</span>
               </div>
             )}
             {roomLabel && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-600 pl-9">
-                <ChevronRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 pl-9">
+                <ChevronRight className="w-3 h-3 text-slate-300 flex-shrink-0" />
                 <span className="font-medium">{roomLabel}</span>
               </div>
             )}
@@ -271,15 +271,15 @@ export default function TicketDetailSidebar({
             )}
           </div>
         ) : (
-          <p className="text-xs text-gray-400">No location specified</p>
+          <p className="text-xs text-slate-400">No location specified</p>
         )}
       </div>
 
       {/* Submitted */}
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-slate-100 pt-4">
         <div className="flex items-center gap-2 mb-2">
-          <Layers className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <Layers className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Submitted
           </span>
         </div>
@@ -289,11 +289,11 @@ export default function TicketDetailSidebar({
             {ticket.submittedBy.lastName[0]}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-900">
+            <p className="text-xs font-medium text-slate-900">
               {ticket.submittedBy.firstName} {ticket.submittedBy.lastName}
             </p>
             {ticket.submittedBy.userRole && (
-              <p className="text-[10px] text-gray-500">{ticket.submittedBy.userRole.name}</p>
+              <p className="text-[10px] text-slate-500">{ticket.submittedBy.userRole.name}</p>
             )}
             <a
               href={`mailto:${ticket.submittedBy.email}`}
@@ -304,11 +304,11 @@ export default function TicketDetailSidebar({
             </a>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-gray-400 mt-2">
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-2">
           <Clock className="w-3 h-3 flex-shrink-0" />
           <span>
             {formatAbsolute(ticket.createdAt)}{' '}
-            <span className="text-gray-300">({formatRelative(ticket.createdAt)})</span>
+            <span className="text-slate-300">({formatRelative(ticket.createdAt)})</span>
           </span>
         </div>
 
@@ -340,13 +340,13 @@ export default function TicketDetailSidebar({
       </div>
 
       {/* Watchers */}
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-slate-100 pt-4">
         <div className="flex items-center gap-2 mb-2">
-          <Eye className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <Eye className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Watchers
           </span>
-          <span className="text-[10px] text-gray-400 ml-auto">
+          <span className="text-[10px] text-slate-400 ml-auto">
             {(ticket.watchers ?? []).length}
           </span>
         </div>
@@ -372,7 +372,7 @@ export default function TicketDetailSidebar({
       {/* AI Diagnostics */}
       <CollapsibleSection
         title="AI Diagnostics"
-        icon={<Layers className="w-3.5 h-3.5 text-gray-400" />}
+        icon={<Layers className="w-3.5 h-3.5 text-slate-400" />}
       >
         <AIDiagnosticPanel
           ticketId={ticket.id}
@@ -386,7 +386,7 @@ export default function TicketDetailSidebar({
       {isPrivileged && (
         <CollapsibleSection
           title="Labor & Costs"
-          icon={<Clock className="w-3.5 h-3.5 text-gray-400" />}
+          icon={<Clock className="w-3.5 h-3.5 text-slate-400" />}
         >
           <LaborCostPanel ticketId={ticket.id} currentUserId={currentUserId} />
         </CollapsibleSection>

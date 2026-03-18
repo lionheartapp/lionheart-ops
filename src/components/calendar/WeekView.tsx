@@ -141,8 +141,8 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* All-day events row */}
       {allDayEvents.length > 0 && (
-        <div className="flex items-center gap-3 py-4 border-b border-gray-100 mb-0 px-4 sm:px-10">
-          <span className="w-14 flex-shrink-0 text-xs text-gray-400 text-right pr-3">All day</span>
+        <div className="flex items-center gap-3 py-4 border-b border-slate-100 mb-0 px-4 sm:px-10">
+          <span className="w-14 flex-shrink-0 text-xs text-slate-400 text-right pr-3">All day</span>
           <div className="flex-1 grid grid-cols-7 gap-1">
             {weekDates.map((date, i) => {
               const dayAllDay = allDayEvents.filter((e) => {
@@ -181,7 +181,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
 
       {/* Meet-with person headers — static above scroll */}
       {hasMeetWith && (
-        <div className="flex items-center py-4 border-b border-gray-100 px-4 sm:px-10">
+        <div className="flex items-center py-4 border-b border-slate-100 px-4 sm:px-10">
           <div className="w-14 flex-shrink-0" />
           <div className="flex-1 grid grid-cols-7 gap-0">
             {weekDates.map((date, dayIndex) => {
@@ -211,7 +211,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
 
       {/* Special day banners row */}
       {specialDays.length > 0 && (
-        <div className="flex items-center px-4 sm:px-10 border-b border-gray-100">
+        <div className="flex items-center px-4 sm:px-10 border-b border-slate-100">
           <div className="w-14 flex-shrink-0" />
           <div className="flex-1 grid grid-cols-7 gap-0">
             {weekDates.map((date, i) => {
@@ -242,7 +242,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="absolute right-3 text-xs text-gray-400"
+                className="absolute right-3 text-xs text-slate-400"
                 style={{ top: (hour - START_HOUR) * HOUR_HEIGHT - 7 }}
               >
                 {formatHour(hour)}
@@ -256,7 +256,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="absolute left-0 right-0 border-t border-gray-100"
+                className="absolute left-0 right-0 border-t border-slate-100"
                 style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
               />
             ))}
@@ -300,7 +300,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                     return (
                       <div
                         key={`sep-${col.personId}`}
-                        className="absolute top-0 bottom-0 border-l border-dashed border-gray-200 pointer-events-none z-[1]"
+                        className="absolute top-0 bottom-0 border-l border-dashed border-slate-200 pointer-events-none z-[1]"
                         style={{ left: style.left }}
                       />
                     )

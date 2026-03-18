@@ -284,13 +284,13 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         </div>
 
         <div className="relative w-full sm:w-52">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search players..."
-            className="w-full pl-9 pr-3 py-3.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gray-900 focus-visible:ring-1 focus-visible:ring-gray-900/10 transition-colors"
+            className="w-full pl-9 pr-3 py-3.5 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
           />
         </div>
 
@@ -300,7 +300,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             onClick={openCreate}
             disabled={!selectedTeamId}
             title={!selectedTeamId ? 'Select a team first' : undefined}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-full hover:bg-gray-800 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-full hover:bg-slate-800 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Add Player
@@ -315,8 +315,8 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         ) : teamDirectory.length === 0 ? (
           <div className="ui-glass p-8 text-center">
             <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
-            <h2 className="text-lg font-medium text-gray-700 mb-1">No teams available</h2>
-            <p className="text-sm text-gray-500">Create teams in the Teams tab first</p>
+            <h2 className="text-lg font-medium text-slate-700 mb-1">No teams available</h2>
+            <p className="text-sm text-slate-500">Create teams in the Teams tab first</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -329,13 +329,13 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
               >
                 <GlassSportTile sport={team.sport.name} color={team.sport.color} size="sm" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-gray-900 truncate">{team.name}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">
+                  <div className="text-sm font-semibold text-slate-900 truncate">{team.name}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">
                     {team.sport.name} &middot; {team.level}
                   </div>
                   <div className="flex items-center gap-1 mt-2">
-                    <Users className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs font-medium text-gray-600">
+                    <Users className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs font-medium text-slate-600">
                       {team.playerCount} player{team.playerCount !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -350,45 +350,45 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         ) : filteredRoster.length === 0 ? (
           <div className="ui-glass p-8 text-center">
             <IllustrationTeam className="w-48 h-40 mx-auto mb-2" />
-            <h2 className="text-lg font-medium text-gray-700 mb-1">No matching players</h2>
-            <p className="text-sm text-gray-500">Try a different search</p>
+            <h2 className="text-lg font-medium text-slate-700 mb-1">No matching players</h2>
+            <p className="text-sm text-slate-500">Try a different search</p>
           </div>
         ) : (
           <div className="ui-glass-table">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-100">
+              <table className="min-w-full divide-y divide-slate-100">
                 <thead>
-                  <tr className="bg-gray-50/50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Team</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Position</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Grade</th>
+                  <tr className="bg-slate-50/50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-12">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Team</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Position</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Grade</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-50">
                   {filteredRoster.map((player) => (
-                    <tr key={player.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                    <tr key={player.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
                         {player.jerseyNumber || '—'}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
                         {player.firstName} {player.lastName}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
                           <SportIcon sport={player.athleticTeam?.sport?.name || ''} size={14} style={{ color: player.athleticTeam?.sport?.color || '#6b7280' }} className="flex-shrink-0" />
-                          <span className="text-sm text-gray-600">{player.athleticTeam?.name}</span>
+                          <span className="text-sm text-slate-600">{player.athleticTeam?.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{player.position || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{player.grade || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{player.position || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 hidden sm:table-cell">{player.grade || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-gray-100 px-4 py-2.5 text-xs text-gray-500">
+            <div className="border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
               {filteredRoster.length} player{filteredRoster.length !== 1 ? 's' : ''} found
             </div>
           </div>
@@ -400,42 +400,42 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           {roster.length === 0 ? (
             <>
               <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <p className="text-base font-semibold text-gray-700 mb-1">No players on this roster</p>
-              <p className="text-sm text-gray-500 mb-4">Get started by adding a player</p>
+              <p className="text-base font-semibold text-slate-700 mb-1">No players on this roster</p>
+              <p className="text-sm text-slate-500 mb-4">Get started by adding a player</p>
               <button
                 type="button"
                 onClick={openCreate}
-                className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors active:scale-[0.97] cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
               >
                 Add First Player
               </button>
             </>
           ) : (
             <>
-              <p className="text-base font-semibold text-gray-700 mb-1">No matching players</p>
-              <p className="text-sm text-gray-500">Try a different search</p>
+              <p className="text-base font-semibold text-slate-700 mb-1">No matching players</p>
+              <p className="text-sm text-slate-500">Try a different search</p>
             </>
           )}
         </div>
       ) : (
         <div className="ui-glass-table">
           {/* Mobile card list */}
-          <div className="sm:hidden divide-y divide-gray-100">
+          <div className="sm:hidden divide-y divide-slate-100">
             {filteredRoster.map((player) => (
               <div key={player.id} className="flex items-center gap-3 px-4 py-3">
-                <div className="w-8 text-center text-sm font-semibold text-gray-900 flex-shrink-0">
+                <div className="w-8 text-center text-sm font-semibold text-slate-900 flex-shrink-0">
                   {player.jerseyNumber || '—'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-slate-900">
                     {player.firstName} {player.lastName}
                     {!player.isActive && (
                       <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-medium">Inactive</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
                     <span>{player.position || '—'}</span>
-                    {player.grade && <><span className="text-gray-300">|</span><span>{player.grade}</span></>}
+                    {player.grade && <><span className="text-slate-300">|</span><span>{player.grade}</span></>}
                   </div>
                 </div>
                 <RowActionMenu
@@ -450,26 +450,26 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
 
           {/* Desktop table */}
           <div className="overflow-x-auto hidden sm:block">
-            <table className="min-w-full divide-y divide-gray-100">
+            <table className="min-w-full divide-y divide-slate-100">
               <thead>
-                <tr className="bg-gray-50/50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">#</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Position</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Grade</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Ht/Wt</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Linked User</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-12" />
+                <tr className="bg-slate-50/50">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-12">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Position</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Grade</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Ht/Wt</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Linked User</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider w-12" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-slate-50">
                 {filteredRoster.map((player) => (
-                  <tr key={player.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                  <tr key={player.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-4 py-3 text-sm font-semibold text-slate-900">
                       {player.jerseyNumber || '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-slate-900">
                         {player.firstName} {player.lastName}
                       </div>
                       {!player.isActive && (
@@ -478,14 +478,14 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{player.position || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{player.grade || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">
+                    <td className="px-4 py-3 text-sm text-slate-600">{player.position || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600">{player.grade || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 hidden md:table-cell">
                       {player.height || player.weight
                         ? `${player.height || '—'} / ${player.weight || '—'}`
                         : '—'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
+                    <td className="px-4 py-3 text-sm text-slate-500 hidden lg:table-cell">
                       {player.user
                         ? `${player.user.firstName || ''} ${player.user.lastName || ''}`.trim() || player.user.email
                         : '—'}
@@ -508,7 +508,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
               </tbody>
             </table>
           </div>
-          <div className="border-t border-gray-100 px-4 py-2.5 text-xs text-gray-500">
+          <div className="border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
             {filteredRoster.length} player{filteredRoster.length !== 1 ? 's' : ''}
           </div>
         </div>
@@ -525,7 +525,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
               type="button"
               onClick={() => setDrawerOpen(false)}
               disabled={saving}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition disabled:opacity-50"
+              className="flex-1 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition disabled:opacity-50"
             >
               Cancel
             </button>
@@ -533,7 +533,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50"
             >
               {saving ? 'Saving...' : editing ? 'Update Player' : 'Add Player'}
             </button>

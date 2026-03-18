@@ -120,16 +120,16 @@ function ITContent() {
         animate="visible"
         variants={staggerContainer(0.08, 0.05)}
       >
-        <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-gray-900">
+        <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-slate-900">
           IT Help Desk
         </motion.h1>
-        <motion.p variants={fadeInUp} className="text-sm text-gray-500 mt-1">
+        <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
           {p.canManage ? 'Manage IT support tickets and assignments' : 'Submit and track your IT requests'}
         </motion.p>
       </motion.div>
 
       {/* Sub-navigation tabs */}
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-gray-200 mb-6">
+      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6">
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -137,8 +137,8 @@ function ITContent() {
             onClick={() => handleTabChange(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === key
-                ? 'text-gray-900'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-slate-900'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <Icon className="w-4 h-4" />

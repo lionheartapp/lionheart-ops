@@ -46,7 +46,7 @@ function ConfidenceBadge({ confidence, reason }: { confidence: AiDiagnosis['conf
       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold w-fit ${styles[confidence]}`}>
         {confidence} Confidence
       </span>
-      <p className="text-xs text-gray-500 italic">{reason}</p>
+      <p className="text-xs text-slate-500 italic">{reason}</p>
     </div>
   )
 }
@@ -67,12 +67,12 @@ function ConversationBubble({ turn }: { turn: AiConversationTurn }) {
         className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
           isUser
             ? 'bg-primary-50 text-primary-900 rounded-br-sm border border-primary-100'
-            : 'bg-gray-50 text-gray-800 rounded-bl-sm border border-gray-100'
+            : 'bg-slate-50 text-slate-800 rounded-bl-sm border border-slate-100'
         }`}
       >
         <p className="whitespace-pre-wrap">{turn.content}</p>
       </div>
-      <span className="text-[10px] text-gray-400 px-1 flex items-center gap-1">
+      <span className="text-[10px] text-slate-400 px-1 flex items-center gap-1">
         <Clock className="w-2.5 h-2.5" />
         {time}
       </span>
@@ -85,28 +85,28 @@ function ConversationBubble({ turn }: { turn: AiConversationTurn }) {
 function DiagnosisSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="text-xs text-gray-400 flex items-center gap-1.5">
+      <div className="text-xs text-slate-400 flex items-center gap-1.5">
         <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-500" />
         Analyzing photos...
       </div>
       {/* Diagnosis block */}
       <div className="space-y-2">
-        <div className="h-3 bg-gray-200 rounded w-24" />
-        <div className="h-4 bg-gray-200 rounded w-full" />
-        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-slate-200 rounded w-24" />
+        <div className="h-4 bg-slate-200 rounded w-full" />
+        <div className="h-4 bg-slate-200 rounded w-3/4" />
       </div>
       {/* Tools block */}
       <div className="space-y-2">
-        <div className="h-3 bg-gray-200 rounded w-20" />
-        <div className="h-3 bg-gray-100 rounded w-1/2" />
-        <div className="h-3 bg-gray-100 rounded w-2/5" />
+        <div className="h-3 bg-slate-200 rounded w-20" />
+        <div className="h-3 bg-slate-100 rounded w-1/2" />
+        <div className="h-3 bg-slate-100 rounded w-2/5" />
       </div>
       {/* Steps block */}
       <div className="space-y-2">
-        <div className="h-3 bg-gray-200 rounded w-20" />
-        <div className="h-3 bg-gray-100 rounded w-full" />
-        <div className="h-3 bg-gray-100 rounded w-4/5" />
-        <div className="h-3 bg-gray-100 rounded w-3/4" />
+        <div className="h-3 bg-slate-200 rounded w-20" />
+        <div className="h-3 bg-slate-100 rounded w-full" />
+        <div className="h-3 bg-slate-100 rounded w-4/5" />
+        <div className="h-3 bg-slate-100 rounded w-3/4" />
       </div>
     </div>
   )
@@ -274,14 +274,14 @@ export default function AIDiagnosticPanel({
       {/* ── Panel header (always visible) ── */}
       <button
         onClick={handleExpand}
-        className="w-full flex items-center gap-3 p-4 hover:bg-gray-50/50 transition-colors cursor-pointer text-left"
+        className="w-full flex items-center gap-3 p-4 hover:bg-slate-50/50 transition-colors cursor-pointer text-left"
       >
         <div className="w-7 h-7 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
           <Bot className="w-4 h-4 text-primary-600" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-gray-800">AI Diagnostics</span>
+            <span className="text-sm font-semibold text-slate-800">AI Diagnostics</span>
             {hasCachedDiagnosis && !isExpanded && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 font-medium flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" />
@@ -289,7 +289,7 @@ export default function AIDiagnosticPanel({
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-400 truncate">
+          <p className="text-xs text-slate-400 truncate">
             {hasCachedDiagnosis
               ? 'AI diagnosis available — click to view'
               : photos.length > 0
@@ -298,9 +298,9 @@ export default function AIDiagnosticPanel({
           </p>
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
         )}
       </button>
 
@@ -315,7 +315,7 @@ export default function AIDiagnosticPanel({
             exit="collapsed"
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-4 border-t border-gray-100">
+            <div className="px-4 pb-4 space-y-4 border-t border-slate-100">
 
               {/* AI disclaimer banner */}
               <div className="flex items-center gap-2 py-2 px-3 bg-amber-50/80 border border-amber-100 rounded-xl mt-3">
@@ -328,18 +328,18 @@ export default function AIDiagnosticPanel({
               {/* AI not configured */}
               {aiAvailable === false && (
                 <div className="text-center py-6">
-                  <Bot className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500 font-medium">AI diagnostics not configured</p>
-                  <p className="text-xs text-gray-400 mt-1">Contact your administrator to enable AI features.</p>
+                  <Bot className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+                  <p className="text-sm text-slate-500 font-medium">AI diagnostics not configured</p>
+                  <p className="text-xs text-slate-400 mt-1">Contact your administrator to enable AI features.</p>
                 </div>
               )}
 
               {/* No photos */}
               {aiAvailable !== false && noPhotosReason && (
                 <div className="text-center py-6">
-                  <ImageOff className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500 font-medium">Upload photos to enable AI diagnosis</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <ImageOff className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+                  <p className="text-sm text-slate-500 font-medium">Upload photos to enable AI diagnosis</p>
+                  <p className="text-xs text-slate-400 mt-1">
                     AI analysis requires at least one photo to diagnose the issue.
                   </p>
                 </div>
@@ -365,9 +365,9 @@ export default function AIDiagnosticPanel({
                   )}
 
                   {/* Likely diagnosis */}
-                  <motion.div variants={fadeInUp} className="p-3 bg-gray-50 border border-gray-100 rounded-xl space-y-2">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Likely Diagnosis</p>
-                    <p className="text-sm font-semibold text-gray-900">{diagnosis.likelyDiagnosis}</p>
+                  <motion.div variants={fadeInUp} className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Likely Diagnosis</p>
+                    <p className="text-sm font-semibold text-slate-900">{diagnosis.likelyDiagnosis}</p>
                     <ConfidenceBadge confidence={diagnosis.confidence} reason={diagnosis.confidenceReason} />
                   </motion.div>
 
@@ -375,13 +375,13 @@ export default function AIDiagnosticPanel({
                   {diagnosis.suggestedTools.length > 0 && (
                     <motion.div variants={fadeInUp}>
                       <div className="flex items-center gap-1.5 mb-2">
-                        <Wrench className="w-3.5 h-3.5 text-gray-400" />
-                        <p className="text-xs font-semibold text-gray-600">Suggested Tools</p>
+                        <Wrench className="w-3.5 h-3.5 text-slate-400" />
+                        <p className="text-xs font-semibold text-slate-600">Suggested Tools</p>
                       </div>
                       <ul className="space-y-1">
                         {diagnosis.suggestedTools.map((tool, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
+                          <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 flex-shrink-0" />
                             {tool}
                           </li>
                         ))}
@@ -393,12 +393,12 @@ export default function AIDiagnosticPanel({
                   {diagnosis.suggestedParts.length > 0 && (
                     <motion.div variants={fadeInUp}>
                       <div className="flex items-center gap-1.5 mb-2">
-                        <Package className="w-3.5 h-3.5 text-gray-400" />
-                        <p className="text-xs font-semibold text-gray-600">Suggested Parts / Supplies</p>
+                        <Package className="w-3.5 h-3.5 text-slate-400" />
+                        <p className="text-xs font-semibold text-slate-600">Suggested Parts / Supplies</p>
                       </div>
                       <ul className="space-y-1">
                         {diagnosis.suggestedParts.map((part, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
+                          <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-300 mt-1.5 flex-shrink-0" />
                             {part}
                           </li>
@@ -410,14 +410,14 @@ export default function AIDiagnosticPanel({
                   {/* Step-by-step fix */}
                   {diagnosis.steps.length > 0 && (
                     <motion.div variants={fadeInUp}>
-                      <p className="text-xs font-semibold text-gray-600 mb-2">Step-by-Step Fix</p>
+                      <p className="text-xs font-semibold text-slate-600 mb-2">Step-by-Step Fix</p>
                       <ol className="space-y-2">
                         {diagnosis.steps.map((step, i) => (
                           <li key={i} className="flex items-start gap-2.5">
                             <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                               {i + 1}
                             </span>
-                            <span className="text-xs text-gray-700 leading-relaxed">{step}</span>
+                            <span className="text-xs text-slate-700 leading-relaxed">{step}</span>
                           </li>
                         ))}
                       </ol>
@@ -434,17 +434,17 @@ export default function AIDiagnosticPanel({
                   animate="expanded"
                   className="overflow-hidden"
                 >
-                  <div className="pt-2 border-t border-gray-100">
+                  <div className="pt-2 border-t border-slate-100">
                     <div className="flex items-center gap-1.5 mb-2">
                       <BookOpen className="w-3.5 h-3.5 text-primary-600" />
-                      <p className="text-xs font-semibold text-gray-600">Relevant Knowledge Base Articles</p>
+                      <p className="text-xs font-semibold text-slate-600">Relevant Knowledge Base Articles</p>
                     </div>
                     <ul className="space-y-1.5">
                       {relevantArticles.map((article) => (
-                        <li key={article.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50/80 hover:bg-gray-100/80 transition-colors">
+                        <li key={article.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50/80 hover:bg-slate-100/80 transition-colors">
                           <div className="flex items-center gap-2 min-w-0">
                             <KBArticleTypeBadge type={article.type} />
-                            <span className="text-xs text-gray-700 truncate">{article.title}</span>
+                            <span className="text-xs text-slate-700 truncate">{article.title}</span>
                           </div>
                           <a
                             href={`/maintenance/knowledge-base/${article.id}`}
@@ -464,8 +464,8 @@ export default function AIDiagnosticPanel({
 
               {/* ── Ask AI section ── */}
               {aiAvailable !== false && (
-                <div className="pt-2 border-t border-gray-100 space-y-3">
-                  <p className="text-xs font-semibold text-gray-500">Ask AI a Follow-up Question</p>
+                <div className="pt-2 border-t border-slate-100 space-y-3">
+                  <p className="text-xs font-semibold text-slate-500">Ask AI a Follow-up Question</p>
 
                   {/* Conversation thread */}
                   {conversation.length > 0 && (
@@ -485,7 +485,7 @@ export default function AIDiagnosticPanel({
                       placeholder="Ask a follow-up question..."
                       rows={2}
                       disabled={isSending}
-                      className="flex-1 px-3 py-2 text-xs border border-gray-200 rounded-xl bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 placeholder:text-gray-400 disabled:opacity-50"
+                      className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 placeholder:text-slate-400 disabled:opacity-50"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault()
@@ -496,7 +496,7 @@ export default function AIDiagnosticPanel({
                     <button
                       type="submit"
                       disabled={!question.trim() || isSending}
-                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-900 text-white rounded-xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer mb-0.5"
+                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer mb-0.5"
                       title="Send question"
                     >
                       {isSending ? (

@@ -78,7 +78,7 @@ export default function WeatherWidget() {
     return (
       <div className="ui-glass p-5">
         <div className="flex items-center justify-center py-4">
-          <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+          <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
         </div>
       </div>
     )
@@ -91,19 +91,19 @@ export default function WeatherWidget() {
   return (
     <div className="bg-gradient-to-br from-sky-50/80 to-blue-50/80 backdrop-blur-sm border border-sky-200/30 rounded-2xl shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700">Weather</h3>
-        <span className="text-xs text-gray-500">Now</span>
+        <h3 className="text-sm font-semibold text-slate-700">Weather</h3>
+        <span className="text-xs text-slate-500">Now</span>
       </div>
 
       <div className="flex items-center gap-4">
         <WeatherIcon className="w-10 h-10 text-sky-500 flex-shrink-0" />
         <div>
-          <div className="text-3xl font-bold text-gray-900">{weather.temp}°</div>
-          <div className="text-sm text-gray-600">{weather.condition}</div>
+          <div className="text-3xl font-bold text-slate-900">{weather.temp}°</div>
+          <div className="text-sm text-slate-600">{weather.condition}</div>
         </div>
       </div>
 
-      <div className="mt-4 flex gap-4 text-xs text-gray-500">
+      <div className="mt-4 flex gap-4 text-xs text-slate-500">
         <div className="flex items-center gap-1">
           <Droplets className="w-3.5 h-3.5" />
           <span>{weather.humidity}%</span>

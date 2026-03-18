@@ -226,7 +226,7 @@ export default function AVEquipmentWizard({
                         ? 'bg-indigo-600 text-white shadow-sm'
                         : isComplete
                         ? 'bg-indigo-100 text-indigo-700'
-                        : 'bg-gray-200 text-gray-500'
+                        : 'bg-slate-200 text-slate-500'
                     }`}
                   >
                     {isComplete ? '✓' : i + 1}
@@ -234,18 +234,18 @@ export default function AVEquipmentWizard({
                   <div className="hidden sm:block">
                     <p
                       className={`text-xs font-semibold ${
-                        isActive ? 'text-gray-900' : 'text-gray-500'
+                        isActive ? 'text-slate-900' : 'text-slate-500'
                       }`}
                     >
                       {step.label}
                     </p>
-                    <p className="text-[10px] text-gray-400">{step.sublabel}</p>
+                    <p className="text-[10px] text-slate-400">{step.sublabel}</p>
                   </div>
                 </button>
                 {i < STEPS.length - 1 && (
                   <div
                     className={`flex-1 h-0.5 mx-3 rounded-full transition-colors ${
-                      isComplete ? 'bg-indigo-400' : 'bg-gray-200'
+                      isComplete ? 'bg-indigo-400' : 'bg-slate-200'
                     }`}
                   />
                 )}
@@ -315,7 +315,7 @@ export default function AVEquipmentWizard({
       </div>
 
       {/* ── Footer Navigation ── */}
-      <div className="border-t border-gray-200 px-6 py-4 bg-white">
+      <div className="border-t border-slate-200 px-6 py-4 bg-white">
         <div className="flex gap-3">
           {/* Save / Submit */}
           {currentStep === lastStep ? (
@@ -349,7 +349,7 @@ export default function AVEquipmentWizard({
               type="button"
               onClick={goBack}
               disabled={mutation.isPending}
-              className="px-5 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              className="px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
@@ -360,7 +360,7 @@ export default function AVEquipmentWizard({
             type="button"
             onClick={onCancel}
             disabled={mutation.isPending}
-            className="px-5 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            className="px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
           >
             <X className="w-4 h-4" /> Cancel
           </button>

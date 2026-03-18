@@ -141,13 +141,13 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 id="modal-title" className="text-2xl font-bold text-gray-900">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <h2 id="modal-title" className="text-2xl font-bold text-slate-900">
             Get Started
           </h2>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition"
+            className="p-1 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-100 transition"
             aria-label="Close signup modal"
           >
             <X className="w-6 h-6" />
@@ -172,7 +172,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
           <div className="space-y-3">
             <button
               onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-gray-700"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition font-medium text-slate-700"
               disabled={loading}
             >
               <GoogleIcon />
@@ -180,7 +180,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
             </button>
             <button
               onClick={handleMicrosoftSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-gray-700"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition font-medium text-slate-700"
               disabled={loading}
             >
               <MicrosoftIcon />
@@ -191,17 +191,17 @@ export default function SignupModal({ onClose }: SignupModalProps) {
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-slate-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">or</span>
+              <span className="px-2 bg-white text-slate-500">or</span>
             </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Your Name
               </label>
               <input
@@ -211,14 +211,14 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sarah Mitchell"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Email Address
               </label>
               <input
@@ -227,14 +227,14 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g., sarah@mitchell.edu"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Password
               </label>
               <input
@@ -243,18 +243,18 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min 8 characters"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 aria-describedby="password-hint"
                 disabled={loading}
                 required
               />
-              <p id="password-hint" className="text-xs text-gray-500 mt-1">
+              <p id="password-hint" className="text-xs text-slate-500 mt-1">
                 At least 8 characters
               </p>
             </div>
 
             <div>
-              <label htmlFor="school" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="school" className="block text-sm font-medium text-slate-900 mb-1.5">
                 School Name
               </label>
               <input
@@ -263,14 +263,14 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
                 placeholder="e.g., Mitchell Academy"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="website" className="block text-sm font-medium text-gray-900 mb-1.5">
+              <label htmlFor="website" className="block text-sm font-medium text-slate-900 mb-1.5">
                 School Website
               </label>
               <input
@@ -279,10 +279,10 @@ export default function SignupModal({ onClose }: SignupModalProps) {
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="e.g., mitchell.edu (optional)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ui-input"
                 disabled={loading}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 We&apos;ll use this to set up your school automatically
               </p>
             </div>
@@ -299,7 +299,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
           </form>
 
           {/* Footer */}
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-slate-500 text-center">
             By signing up, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>

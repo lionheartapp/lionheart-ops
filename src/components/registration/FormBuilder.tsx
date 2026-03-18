@@ -81,18 +81,18 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center gap-2">
-        <Settings className="w-4 h-4 text-gray-500" />
-        <span className="text-sm font-semibold text-gray-700">Form Settings</span>
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+        <Settings className="w-4 h-4 text-slate-500" />
+        <span className="text-sm font-semibold text-slate-700">Form Settings</span>
       </div>
 
       <div className="p-4 space-y-4">
         {/* Payment */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 cursor-pointer">
-              <DollarSign className="w-4 h-4 text-gray-400" />
+            <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 cursor-pointer">
+              <DollarSign className="w-4 h-4 text-slate-400" />
               Requires Payment
             </label>
             <button
@@ -101,7 +101,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
               aria-checked={config.requiresPayment}
               onClick={() => onChange({ requiresPayment: !config.requiresPayment })}
               className={`relative inline-flex h-5 w-9 rounded-full border-2 border-transparent transition-colors duration-200 cursor-pointer ${
-                config.requiresPayment ? 'bg-indigo-600' : 'bg-gray-200'
+                config.requiresPayment ? 'bg-indigo-600' : 'bg-slate-200'
               }`}
             >
               <span
@@ -115,7 +115,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
           {config.requiresPayment && (
             <div className="space-y-2 mt-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Base Price ($)</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Base Price ($)</label>
                 <input
                   type="number"
                   min="0"
@@ -126,11 +126,11 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
                     onChange({ basePrice: isNaN(dollars) ? null : Math.round(dollars * 100) })
                   }}
                   placeholder="0.00"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Deposit % (optional)</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Deposit % (optional)</label>
                 <input
                   type="number"
                   min="0"
@@ -141,7 +141,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
                     onChange({ depositPercent: isNaN(val) ? null : val })
                   }}
                   placeholder="Leave blank to require full payment"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
               </div>
             </div>
@@ -151,8 +151,8 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
         {/* Capacity */}
         <div>
           <div className="flex items-center gap-1.5 mb-1">
-            <Users className="w-4 h-4 text-gray-400" />
-            <label className="text-sm font-medium text-gray-700">Max Capacity (optional)</label>
+            <Users className="w-4 h-4 text-slate-400" />
+            <label className="text-sm font-medium text-slate-700">Max Capacity (optional)</label>
           </div>
           <input
             type="number"
@@ -163,19 +163,19 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
               onChange({ maxCapacity: isNaN(val) ? null : val })
             }}
             placeholder="Unlimited"
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
 
           {/* Waitlist toggle */}
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-600">Enable Waitlist</span>
+            <span className="text-xs text-slate-600">Enable Waitlist</span>
             <button
               type="button"
               role="switch"
               aria-checked={config.waitlistEnabled}
               onClick={() => onChange({ waitlistEnabled: !config.waitlistEnabled })}
               className={`relative inline-flex h-5 w-9 rounded-full border-2 border-transparent transition-colors duration-200 cursor-pointer ${
-                config.waitlistEnabled ? 'bg-indigo-600' : 'bg-gray-200'
+                config.waitlistEnabled ? 'bg-indigo-600' : 'bg-slate-200'
               }`}
             >
               <span
@@ -189,14 +189,14 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
 
         {/* COPPA consent */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">Require COPPA Consent</span>
+          <span className="text-sm font-medium text-slate-700">Require COPPA Consent</span>
           <button
             type="button"
             role="switch"
             aria-checked={config.requiresCoppaConsent}
             onClick={() => onChange({ requiresCoppaConsent: !config.requiresCoppaConsent })}
             className={`relative inline-flex h-5 w-9 rounded-full border-2 border-transparent transition-colors duration-200 cursor-pointer ${
-              config.requiresCoppaConsent ? 'bg-indigo-600' : 'bg-gray-200'
+              config.requiresCoppaConsent ? 'bg-indigo-600' : 'bg-slate-200'
             }`}
           >
             <span
@@ -210,26 +210,26 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
         {/* Open / close dates */}
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Registration Window</span>
+            <Clock className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-medium text-slate-700">Registration Window</span>
           </div>
           <div className="space-y-2">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Opens at</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Opens at</label>
               <input
                 type="datetime-local"
                 value={config.openAt ? config.openAt.slice(0, 16) : ''}
                 onChange={(e) => onChange({ openAt: e.target.value ? `${e.target.value}:00Z` : null })}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Closes at</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Closes at</label>
               <input
                 type="datetime-local"
                 value={config.closeAt ? config.closeAt.slice(0, 16) : ''}
                 onChange={(e) => onChange({ closeAt: e.target.value ? `${e.target.value}:00Z` : null })}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
           </div>
@@ -238,26 +238,26 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
         {/* Discount codes */}
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <Tag className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Discount Codes</span>
+            <Tag className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-medium text-slate-700">Discount Codes</span>
           </div>
 
           {(config.discountCodes ?? []).length > 0 && (
             <div className="space-y-1 mb-2">
               {(config.discountCodes ?? []).map((dc, i) => (
-                <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-sm">
-                  <span className="font-mono font-medium text-gray-700">{dc.code}</span>
+                <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-1.5 text-sm">
+                  <span className="font-mono font-medium text-slate-700">{dc.code}</span>
                   <div className="flex items-center gap-2">
                     {dc.percentOff != null && (
                       <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
                         {dc.percentOff}% off
                       </span>
                     )}
-                    <span className="text-xs text-gray-500">{dc.usedCount} uses</span>
+                    <span className="text-xs text-slate-500">{dc.usedCount} uses</span>
                     <button
                       type="button"
                       onClick={() => removeDiscountCode(i)}
-                      className="text-gray-400 hover:text-red-500 transition-colors duration-200 cursor-pointer text-xs"
+                      className="text-slate-400 hover:text-red-500 transition-colors duration-200 cursor-pointer text-xs"
                     >
                       Remove
                     </button>
@@ -273,7 +273,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
               value={newCode}
               onChange={(e) => setNewCode(e.target.value.toUpperCase())}
               placeholder="CODE"
-              className="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"
+              className="w-24 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"
             />
             <input
               type="number"
@@ -282,13 +282,13 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
               placeholder="% off"
               min="0"
               max="100"
-              className="w-20 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-20 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <button
               type="button"
               onClick={addDiscountCode}
               disabled={!newCode.trim()}
-              className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add
             </button>
@@ -426,9 +426,9 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-gray-100 rounded-xl w-48" />
-        <div className="h-32 bg-gray-100 rounded-xl" />
-        <div className="h-32 bg-gray-100 rounded-xl" />
+        <div className="h-8 bg-slate-100 rounded-xl w-48" />
+        <div className="h-32 bg-slate-100 rounded-xl" />
+        <div className="h-32 bg-slate-100 rounded-xl" />
       </div>
     )
   }
@@ -452,12 +452,12 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Registration Form Builder</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Registration Form Builder</h2>
         <button
           type="button"
           onClick={handleSave}
           disabled={updateMutation.isPending}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {updateMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -473,8 +473,8 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
         {/* Left: Section editors (2/3) */}
         <div className="lg:col-span-2 space-y-4">
           {sections.length === 0 && (
-            <div className="text-center py-10 bg-white border border-dashed border-gray-200 rounded-xl">
-              <p className="text-sm text-gray-500 mb-3">No sections yet. Add a section or toggle on common fields to get started.</p>
+            <div className="text-center py-10 bg-white border border-dashed border-slate-200 rounded-xl">
+              <p className="text-sm text-slate-500 mb-3">No sections yet. Add a section or toggle on common fields to get started.</p>
             </div>
           )}
 
@@ -494,7 +494,7 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
           <button
             type="button"
             onClick={addSection}
-            className="flex items-center gap-2 w-full px-4 py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/20 transition-colors duration-200 cursor-pointer font-medium justify-center"
+            className="flex items-center gap-2 w-full px-4 py-3 rounded-xl border-2 border-dashed border-slate-200 text-sm text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/20 transition-colors duration-200 cursor-pointer font-medium justify-center"
           >
             <Plus className="w-4 h-4" />
             Add Section

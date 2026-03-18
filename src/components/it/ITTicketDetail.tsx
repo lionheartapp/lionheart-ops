@@ -156,15 +156,15 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
     <DetailDrawer isOpen={isOpen} onClose={onClose} title={ticket?.ticketNumber ?? 'Ticket'} width="lg">
       {isLoading || !ticket ? (
         <div className="space-y-4 animate-pulse p-4">
-          <div className="h-6 w-48 bg-gray-200 rounded" />
-          <div className="h-4 w-32 bg-gray-100 rounded" />
-          <div className="h-20 w-full bg-gray-100 rounded-xl" />
+          <div className="h-6 w-48 bg-slate-200 rounded" />
+          <div className="h-4 w-32 bg-slate-100 rounded" />
+          <div className="h-20 w-full bg-slate-100 rounded-xl" />
         </div>
       ) : (
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="px-6 pb-4 border-b border-gray-200/50">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">{ticket.title}</h2>
+          <div className="px-6 pb-4 border-b border-slate-200/50">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">{ticket.title}</h2>
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={ticket.status} />
               <PriorityBadge priority={ticket.priority} />
@@ -178,14 +178,14 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
           </div>
 
           {/* Meta info */}
-          <div className="px-6 py-4 space-y-3 border-b border-gray-200/50">
+          <div className="px-6 py-4 space-y-3 border-b border-slate-200/50">
             {ticket.description && (
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{ticket.description}</p>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">{ticket.description}</p>
             )}
 
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
-                <User className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-slate-600">
+                <User className="w-4 h-4 text-slate-400" />
                 <span>
                   {ticket.submittedBy
                     ? `${ticket.submittedBy.firstName} ${ticket.submittedBy.lastName}`
@@ -194,18 +194,18 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                     : 'Unknown'}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Calendar className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-slate-600">
+                <Calendar className="w-4 h-4 text-slate-400" />
                 <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
               </div>
               {(location || ticket.subRoomText) && (
-                <div className="flex items-center gap-2 text-gray-600 col-span-2">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2 text-slate-600 col-span-2">
+                  <MapPin className="w-4 h-4 text-slate-400" />
                   <span>{location || ticket.subRoomText}</span>
                 </div>
               )}
               {ticket.school && (
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-slate-500">
                   Campus: {ticket.school.name}
                 </div>
               )}
@@ -213,13 +213,13 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
 
             {/* Assignee */}
             <div className="flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-gray-400" />
+              <UserPlus className="w-4 h-4 text-slate-400" />
               {ticket.assignedTo ? (
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-slate-700">
                   {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
                 </span>
               ) : (
-                <span className="text-sm text-gray-400">Unassigned</span>
+                <span className="text-sm text-slate-400">Unassigned</span>
               )}
               {canManage && (
                 <button
@@ -239,7 +239,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                     key={m.id}
                     onClick={() => assignMutation.mutate(m.id)}
                     disabled={assignMutation.isPending}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-100 transition-colors flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-100 transition-colors flex items-center gap-2"
                   >
                     <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
                       {m.firstName[0]}{m.lastName[0]}
@@ -271,7 +271,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
 
           {/* Status transition buttons */}
           {canManage && NEXT_STATUS_ACTIONS[ticket.status] && (
-            <div className="px-6 py-3 border-b border-gray-200/50">
+            <div className="px-6 py-3 border-b border-slate-200/50">
               {pendingStatus ? (
                 <div className="space-y-2">
                   {pendingStatus === 'ON_HOLD' ? (
@@ -279,7 +279,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                       <select
                         value={holdReason}
                         onChange={(e) => setHoldReason(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 bg-white"
                       >
                         <option value="">Select hold reason...</option>
                         <option value="PARTS">Waiting for parts</option>
@@ -293,7 +293,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                         value={transitionNote}
                         onChange={(e) => setTransitionNote(e.target.value)}
                         placeholder="Additional notes (optional)..."
-                        className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
                       />
                     </>
                   ) : (
@@ -306,21 +306,21 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                           ? 'Cancellation reason...'
                           : 'Resolution note (optional)...'
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
                     />
                   )}
                   <div className="flex gap-2">
                     <button
                       onClick={confirmStatusChange}
                       disabled={statusMutation.isPending || (pendingStatus === 'ON_HOLD' && !holdReason.trim())}
-                      className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 flex items-center gap-2"
                     >
                       {statusMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
                       Confirm
                     </button>
                     <button
                       onClick={() => { setPendingStatus(null); setTransitionNote(''); setHoldReason('') }}
-                      className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
+                      className="px-4 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50"
                     >
                       Cancel
                     </button>
@@ -346,7 +346,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
 
           {/* Activity feed */}
           <div className="flex-1 overflow-hidden px-6 py-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Activity</h3>
+            <h3 className="text-sm font-semibold text-slate-900 mb-3">Activity</h3>
             <ITActivityFeed ticketId={ticket.id} isPrivileged={canManage} />
           </div>
         </div>

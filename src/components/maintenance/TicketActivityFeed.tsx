@@ -62,14 +62,14 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: 'bg-gray-100 text-gray-600',
+  BACKLOG: 'bg-slate-100 text-slate-600',
   TODO: 'bg-blue-100 text-blue-700',
   IN_PROGRESS: 'bg-amber-100 text-amber-700',
   ON_HOLD: 'bg-orange-100 text-orange-700',
   SCHEDULED: 'bg-purple-100 text-purple-700',
   QA: 'bg-pink-100 text-pink-700',
   DONE: 'bg-primary-100 text-primary-700',
-  CANCELLED: 'bg-gray-100 text-gray-400',
+  CANCELLED: 'bg-slate-100 text-slate-400',
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -116,7 +116,7 @@ function getActivityDotColor(type: ActivityType, isInternal: boolean): string {
     case 'COMMENT': return 'bg-primary-500'
     case 'ASSIGNMENT': return 'bg-orange-500'
     case 'PHOTO_ADDED': return 'bg-teal-500'
-    default: return 'bg-gray-400'
+    default: return 'bg-slate-400'
   }
 }
 
@@ -154,10 +154,10 @@ function ActivityEntry({ activity }: { activity: Activity }) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             {/* Actor avatar */}
-            <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[9px] font-bold flex-shrink-0">
+            <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[9px] font-bold flex-shrink-0">
               {getInitials(activity.actor)}
             </div>
-            <span className="text-sm font-medium text-gray-900">{name}</span>
+            <span className="text-sm font-medium text-slate-900">{name}</span>
             {activity.isInternal && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-medium">
                 <Lock className="w-2.5 h-2.5" />
@@ -168,7 +168,7 @@ function ActivityEntry({ activity }: { activity: Activity }) {
           <time
             dateTime={activity.createdAt}
             title={formatAbsolute(activity.createdAt)}
-            className="text-xs text-gray-400 flex-shrink-0 mt-0.5 cursor-help"
+            className="text-xs text-slate-400 flex-shrink-0 mt-0.5 cursor-help"
           >
             {formatRelative(activity.createdAt)}
           </time>
@@ -179,27 +179,27 @@ function ActivityEntry({ activity }: { activity: Activity }) {
           <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
             {activity.fromStatus && (
               <>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[activity.fromStatus] ?? 'bg-gray-100 text-gray-600'}`}>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[activity.fromStatus] ?? 'bg-slate-100 text-slate-600'}`}>
                   {STATUS_LABELS[activity.fromStatus] ?? activity.fromStatus}
                 </span>
-                <ArrowRight className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                <ArrowRight className="w-3 h-3 text-slate-400 flex-shrink-0" />
               </>
             )}
             {activity.toStatus && (
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[activity.toStatus] ?? 'bg-gray-100 text-gray-600'}`}>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[activity.toStatus] ?? 'bg-slate-100 text-slate-600'}`}>
                 {STATUS_LABELS[activity.toStatus] ?? activity.toStatus}
               </span>
             )}
             {activity.content && (
-              <p className="text-xs text-gray-500 mt-1 w-full">{activity.content}</p>
+              <p className="text-xs text-slate-500 mt-1 w-full">{activity.content}</p>
             )}
           </div>
         ) : activity.type === 'ASSIGNMENT' ? (
           <div className="mt-1.5">
-            <p className="text-sm text-gray-600">{activity.content}</p>
+            <p className="text-sm text-slate-600">{activity.content}</p>
           </div>
         ) : (
-          <div className={`mt-1.5 rounded-xl px-3 py-2 text-sm text-gray-700 ${activity.isInternal ? 'bg-purple-50/60 border border-purple-100' : 'bg-gray-50 border border-gray-100'}`}>
+          <div className={`mt-1.5 rounded-xl px-3 py-2 text-sm text-slate-700 ${activity.isInternal ? 'bg-purple-50/60 border border-purple-100' : 'bg-slate-50 border border-slate-100'}`}>
             {activity.content}
           </div>
         )}
@@ -249,10 +249,10 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="flex gap-3 animate-pulse">
-            <div className="w-7 h-7 rounded-full bg-gray-200 flex-shrink-0" />
+            <div className="w-7 h-7 rounded-full bg-slate-200 flex-shrink-0" />
             <div className="flex-1 space-y-2 pt-1">
-              <div className="h-3 bg-gray-200 rounded w-1/3" />
-              <div className="h-10 bg-gray-100 rounded-xl w-full" />
+              <div className="h-3 bg-slate-200 rounded w-1/3" />
+              <div className="h-10 bg-slate-100 rounded-xl w-full" />
             </div>
           </div>
         ))}
@@ -267,7 +267,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
         {activities.length === 0 ? (
           <div className="text-center py-8">
             <IllustrationMaintenance className="w-32 h-24 mx-auto mb-1" />
-            <p className="text-sm text-gray-400">No activity yet — actions and comments will appear here.</p>
+            <p className="text-sm text-slate-400">No activity yet — actions and comments will appear here.</p>
           </div>
         ) : (
           <motion.div
@@ -277,7 +277,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
             variants={staggerContainer(0.04, 0)}
           >
             {/* Vertical line behind entries */}
-            <div className="absolute left-3.5 top-3.5 bottom-0 w-px bg-gray-100" aria-hidden />
+            <div className="absolute left-3.5 top-3.5 bottom-0 w-px bg-slate-100" aria-hidden />
             {activities.map((activity) => (
               <ActivityEntry key={activity.id} activity={activity} />
             ))}
@@ -286,24 +286,24 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
       </div>
 
       {/* Comment box */}
-      <div className="pt-4 border-t border-gray-100 space-y-2">
+      <div className="pt-4 border-t border-slate-100 space-y-2">
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Add a comment..."
           rows={3}
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus:border-primary-400 placeholder:text-gray-400 transition-colors"
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus:border-primary-400 placeholder:text-slate-400 transition-colors"
         />
 
         <div className="flex items-center justify-between gap-3">
           {/* Internal note checkbox — techs / head only */}
           {isPrivileged && (
-            <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isInternal}
                 onChange={(e) => setIsInternal(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600 focus-visible:ring-purple-400 cursor-pointer"
+                className="w-3.5 h-3.5 rounded border-slate-300 text-purple-600 focus-visible:ring-purple-400 cursor-pointer"
               />
               <Lock className="w-3 h-3 text-purple-500" />
               Internal note (not visible to submitter)

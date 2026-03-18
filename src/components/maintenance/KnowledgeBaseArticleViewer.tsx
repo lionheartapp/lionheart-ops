@@ -44,23 +44,23 @@ function MarkdownContent({ content }: { content: string }) {
   // Convert basic markdown to HTML manually (no external library needed)
   const html = content
     // Headers
-    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold text-gray-900 mt-4 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-semibold text-gray-900 mt-5 mb-2">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-gray-900 mt-6 mb-3">$1</h1>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold text-slate-900 mt-4 mb-2">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-semibold text-slate-900 mt-5 mb-2">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-slate-900 mt-6 mb-3">$1</h1>')
     // Bold
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
     // Italic
     .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
     // Inline code
-    .replace(/`(.+?)`/g, '<code class="px-1 py-0.5 bg-gray-100 rounded text-xs font-mono text-gray-800">$1</code>')
+    .replace(/`(.+?)`/g, '<code class="px-1 py-0.5 bg-slate-100 rounded text-xs font-mono text-slate-800">$1</code>')
     // Unordered lists
-    .replace(/^- (.+)$/gm, '<li class="flex items-start gap-2 text-sm text-gray-700 leading-relaxed"><span class="w-1.5 h-1.5 rounded-full bg-gray-400 mt-2 flex-shrink-0"></span><span>$1</span></li>')
+    .replace(/^- (.+)$/gm, '<li class="flex items-start gap-2 text-sm text-slate-700 leading-relaxed"><span class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2 flex-shrink-0"></span><span>$1</span></li>')
     // Ordered lists (simple)
-    .replace(/^\d+\. (.+)$/gm, '<li class="text-sm text-gray-700 leading-relaxed list-decimal ml-4">$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li class="text-sm text-slate-700 leading-relaxed list-decimal ml-4">$1</li>')
     // Paragraphs (double newline)
-    .replace(/\n\n/g, '</p><p class="text-sm text-gray-700 leading-relaxed mb-3">')
+    .replace(/\n\n/g, '</p><p class="text-sm text-slate-700 leading-relaxed mb-3">')
     // Wrap in paragraph tags
-  const wrapped = `<p class="text-sm text-gray-700 leading-relaxed mb-3">${html}</p>`
+  const wrapped = `<p class="text-sm text-slate-700 leading-relaxed mb-3">${html}</p>`
 
   return (
     <div
@@ -100,8 +100,8 @@ export default function KnowledgeBaseArticleViewer({
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2 flex-1 min-w-0">
             <KBArticleTypeBadge type={article.type} />
-            <h1 className="text-xl font-bold text-gray-900">{article.title}</h1>
-            <p className="text-xs text-gray-500">
+            <h1 className="text-xl font-bold text-slate-900">{article.title}</h1>
+            <p className="text-xs text-slate-500">
               By {authorName} &middot; Updated {formatArticleDate(article.updatedAt)}
             </p>
           </div>
@@ -120,11 +120,11 @@ export default function KnowledgeBaseArticleViewer({
         {/* Tags */}
         {article.tags.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Tag className="w-3 h-3 text-gray-400 flex-shrink-0" />
+            <Tag className="w-3 h-3 text-slate-400 flex-shrink-0" />
             {article.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
+                className="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600"
               >
                 {tag}
               </span>
@@ -133,21 +133,21 @@ export default function KnowledgeBaseArticleViewer({
         )}
 
         {/* Content */}
-        <div className="border-t border-gray-100 pt-5">
+        <div className="border-t border-slate-100 pt-5">
           {article.content ? (
             <MarkdownContent content={article.content} />
           ) : (
             <div className="flex items-center gap-2 py-8 text-center justify-center">
-              <BookOpen className="w-6 h-6 text-gray-200" />
-              <p className="text-sm text-gray-400">No content yet</p>
+              <BookOpen className="w-6 h-6 text-slate-200" />
+              <p className="text-sm text-slate-400">No content yet</p>
             </div>
           )}
         </div>
 
         {/* Embedded calculator for CALCULATION_TOOL articles */}
         {article.type === 'CALCULATION_TOOL' && article.calculatorType === 'POND_CARE_DOSAGE' && (
-          <div className="border-t border-gray-100 pt-5">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
+          <div className="border-t border-slate-100 pt-5">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Embedded Calculator
             </p>
             <PondCareDosageCalculator />
@@ -156,17 +156,17 @@ export default function KnowledgeBaseArticleViewer({
 
         {/* Related asset link */}
         {article.asset && (
-          <div className="border-t border-gray-100 pt-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
               Related Asset
             </p>
             <Link
               href={`/maintenance/assets/${article.asset.id}`}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
+              className="inline-flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm text-slate-700 transition-colors"
             >
               <span className="font-medium">{article.asset.assetNumber}</span>
               <span>{article.asset.name}</span>
-              <ExternalLink className="w-3 h-3 text-gray-400" />
+              <ExternalLink className="w-3 h-3 text-slate-400" />
             </Link>
           </div>
         )}

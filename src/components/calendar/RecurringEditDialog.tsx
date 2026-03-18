@@ -70,7 +70,7 @@ export default function RecurringEditDialog({
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[340px] bg-white rounded-2xl shadow-heavy"
           >
             <div className="px-6 pt-5 pb-4">
-              <h2 id="recurring-edit-title" className="text-base font-semibold text-gray-900 mb-4">
+              <h2 id="recurring-edit-title" className="text-base font-semibold text-slate-900 mb-4">
                 {title}
               </h2>
 
@@ -84,7 +84,7 @@ export default function RecurringEditDialog({
                       <span className={`w-5 h-5 rounded-full border-2 transition-colors ${
                         selected === opt.value
                           ? 'border-primary-600'
-                          : 'border-gray-300 group-hover:border-gray-400'
+                          : 'border-slate-300 group-hover:border-slate-400'
                       }`} />
                       {selected === opt.value && (
                         <span className="absolute w-2.5 h-2.5 rounded-full bg-primary-600" />
@@ -98,7 +98,7 @@ export default function RecurringEditDialog({
                       onChange={() => setSelected(opt.value)}
                       className="sr-only"
                     />
-                    <span className="text-sm text-gray-700">{opt.label}</span>
+                    <span className="text-sm text-slate-700">{opt.label}</span>
                   </label>
                 ))}
               </div>
@@ -107,7 +107,7 @@ export default function RecurringEditDialog({
             <div className="flex items-center justify-end gap-2 px-6 pb-5">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
               >
                 Cancel
               </button>
@@ -116,7 +116,7 @@ export default function RecurringEditDialog({
                 className={`px-4 py-2 text-sm font-semibold text-white rounded-full transition-colors ${
                   variant === 'danger'
                     ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-gray-900 hover:bg-gray-800'
+                    : 'bg-slate-900 hover:bg-slate-800'
                 }`}
               >
                 {confirmLabel}

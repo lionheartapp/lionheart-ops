@@ -135,33 +135,33 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900">View As...</h2>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <h2 className="text-lg font-semibold text-slate-900">View As...</h2>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
 
               {/* Filters */}
-              <div className="px-5 py-3 border-b border-gray-100 flex gap-3">
+              <div className="px-5 py-3 border-b border-slate-100 flex gap-3">
                 <div className="flex-1 relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search by name or email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
                     autoFocus
                   />
                 </div>
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 bg-white cursor-pointer"
+                  className="px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 bg-white cursor-pointer"
                 >
                   <option value="">All Roles</option>
                   {roles.map((r) => (
@@ -173,11 +173,11 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
               {/* User list */}
               <div className="flex-1 overflow-y-auto">
                 {loading ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">Loading users...</div>
+                  <div className="p-8 text-center text-slate-500 text-sm">Loading users...</div>
                 ) : filtered.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">No users found</div>
+                  <div className="p-8 text-center text-slate-500 text-sm">No users found</div>
                 ) : (
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-slate-50">
                     {filtered.map((user) => {
                       const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
                       const teamNames = user.teams?.map((t) => t.team.name).filter(Boolean) || []
@@ -187,33 +187,33 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
                           key={user.id}
                           onClick={() => handleImpersonate(user)}
                           disabled={!!impersonating}
-                          className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 disabled:opacity-50 cursor-pointer"
+                          className="w-full text-left px-5 py-3 hover:bg-slate-50 transition-colors flex items-center gap-3 disabled:opacity-50 cursor-pointer"
                         >
                           {/* Avatar */}
-                          <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                             {user.avatar ? (
                               <img src={user.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
                             ) : (
-                              <UserCircle className="w-6 h-6 text-gray-400" />
+                              <UserCircle className="w-6 h-6 text-slate-400" />
                             )}
                           </div>
 
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-900 truncate">
+                              <span className="text-sm font-medium text-slate-900 truncate">
                                 {displayName}
                               </span>
                               {user.userRole?.name && (
-                                <span className="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 flex-shrink-0">
+                                <span className="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-slate-100 text-slate-600 flex-shrink-0">
                                   {user.userRole.name}
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-gray-500 truncate">
+                            <div className="text-xs text-slate-500 truncate">
                               {user.email}
                               {teamNames.length > 0 && (
-                                <span className="ml-1.5 text-gray-400">&middot; {teamNames.join(', ')}</span>
+                                <span className="ml-1.5 text-slate-400">&middot; {teamNames.join(', ')}</span>
                               )}
                             </div>
                           </div>
@@ -230,7 +230,7 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-3 border-t border-gray-100 text-xs text-gray-400">
+              <div className="px-5 py-3 border-t border-slate-100 text-xs text-slate-400">
                 {filtered.length} user{filtered.length !== 1 ? 's' : ''}
                 {' '}&middot; Click to view the app as that user
               </div>

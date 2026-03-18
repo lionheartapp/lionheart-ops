@@ -131,13 +131,13 @@ function ContentFiltersSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="ui-glass p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+              <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse" />
               <div className="space-y-2 flex-1">
-                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
+                <div className="h-3 w-16 bg-slate-200 rounded animate-pulse" />
               </div>
             </div>
-            <div className="h-3 w-40 bg-gray-200 rounded animate-pulse" />
+            <div className="h-3 w-40 bg-slate-200 rounded animate-pulse" />
           </div>
         ))}
       </div>
@@ -146,23 +146,23 @@ function ContentFiltersSkeleton() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="ui-glass p-4 text-center">
-            <div className="h-8 w-12 mx-auto bg-gray-200 rounded animate-pulse mb-2" />
-            <div className="h-3 w-20 mx-auto bg-gray-200 rounded animate-pulse" />
+            <div className="h-8 w-12 mx-auto bg-slate-200 rounded animate-pulse mb-2" />
+            <div className="h-3 w-20 mx-auto bg-slate-200 rounded animate-pulse" />
           </div>
         ))}
       </div>
 
       {/* Table skeleton */}
       <div className="ui-glass p-6">
-        <div className="h-5 w-32 bg-gray-200 rounded animate-pulse mb-4" />
+        <div className="h-5 w-32 bg-slate-200 rounded animate-pulse mb-4" />
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex gap-4">
-              <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 flex-1 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-20 bg-slate-200 rounded animate-pulse" />
+              <div className="h-4 w-16 bg-slate-200 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
+              <div className="h-4 flex-1 bg-slate-200 rounded animate-pulse" />
+              <div className="h-4 w-16 bg-slate-200 rounded animate-pulse" />
             </div>
           ))}
         </div>
@@ -320,7 +320,7 @@ export default function ITContentFiltersTab({
     >
       {/* ── Section 1: Platform Connection Cards ───────────────────── */}
       <motion.div variants={fadeInUp}>
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
           Platform Connections
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -341,17 +341,17 @@ export default function ITContentFiltersTab({
                       {platform.label.charAt(0)}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{platform.label}</p>
+                      <p className="text-sm font-semibold text-slate-900">{platform.label}</p>
                       <span
                         className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
                           isConnected
                             ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
+                            : 'bg-slate-100 text-slate-500'
                         }`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            isConnected ? 'bg-green-500' : 'bg-gray-400'
+                            isConnected ? 'bg-green-500' : 'bg-slate-400'
                           }`}
                         />
                         {isConnected ? 'Connected' : 'Not Connected'}
@@ -361,7 +361,7 @@ export default function ITContentFiltersTab({
                   {canConfigure && !isConfiguring && (
                     <button
                       onClick={() => handleStartConfigure(platform.key, config)}
-                      className="px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-700 text-xs font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
+                      className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
                     >
                       <Settings className="w-3.5 h-3.5 inline mr-1" />
                       Configure
@@ -371,7 +371,7 @@ export default function ITContentFiltersTab({
 
                 {/* Last sync */}
                 {config?.lastSyncAt && (
-                  <p className="text-xs text-gray-500 mb-2">
+                  <p className="text-xs text-slate-500 mb-2">
                     <Clock className="w-3 h-3 inline mr-1" />
                     Last sync: {new Date(config.lastSyncAt).toLocaleString()}
                   </p>
@@ -379,27 +379,27 @@ export default function ITContentFiltersTab({
 
                 {/* Webhook URL (read-only, copyable) */}
                 <div className="flex items-center gap-2 mt-2">
-                  <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-600 font-mono truncate">
+                  <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-600 font-mono truncate">
                     /api/it/content-filters/webhook/{platform.key.toLowerCase()}?org=...
                   </div>
                   <button
                     onClick={() => handleCopyWebhook(platform.key)}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200 cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
                     title="Copy webhook URL"
                   >
                     {copiedWebhook === platform.key ? (
                       <Check className="w-4 h-4 text-green-600" />
                     ) : (
-                      <Copy className="w-4 h-4 text-gray-500" />
+                      <Copy className="w-4 h-4 text-slate-500" />
                     )}
                   </button>
                 </div>
 
                 {/* Inline config form */}
                 {isConfiguring && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                  <div className="mt-4 pt-4 border-t border-slate-200 space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
                         Webhook Secret
                       </label>
                       <input
@@ -407,7 +407,7 @@ export default function ITContentFiltersTab({
                         value={configForm.webhookSecret}
                         onChange={(e) => setConfigForm((s) => ({ ...s, webhookSecret: e.target.value }))}
                         placeholder="Enter webhook secret..."
-                        className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all duration-200"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all duration-200"
                       />
                     </div>
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -415,21 +415,21 @@ export default function ITContentFiltersTab({
                         type="checkbox"
                         checked={configForm.isEnabled}
                         onChange={(e) => setConfigForm((s) => ({ ...s, isEnabled: e.target.checked }))}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
-                      <span className="text-sm text-gray-700">Enable integration</span>
+                      <span className="text-sm text-slate-700">Enable integration</span>
                     </label>
                     <div className="flex gap-2">
                       <button
                         onClick={handleSaveConfig}
                         disabled={configMutation.isPending}
-                        className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-50"
+                        className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-50"
                       >
                         {configMutation.isPending ? 'Saving...' : 'Save'}
                       </button>
                       <button
                         onClick={() => setConfiguringProvider(null)}
-                        className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
+                        className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -453,53 +453,53 @@ export default function ITContentFiltersTab({
           <div className="w-10 h-10 mx-auto rounded-xl bg-blue-50 flex items-center justify-center mb-2">
             <Globe className="w-5 h-5 text-blue-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-slate-900">
             <AnimatedCounter value={stats.totalEvents} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Total Events</p>
+          <p className="text-xs text-slate-500 mt-1">Total Events</p>
         </div>
 
         <div className="ui-glass p-4 text-center">
           <div className="w-10 h-10 mx-auto rounded-xl bg-yellow-50 flex items-center justify-center mb-2">
             <Clock className="w-5 h-5 text-yellow-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-slate-900">
             <AnimatedCounter value={stats.pendingCount} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Pending Requests</p>
+          <p className="text-xs text-slate-500 mt-1">Pending Requests</p>
         </div>
 
         <div className="ui-glass p-4 text-center">
           <div className="w-10 h-10 mx-auto rounded-xl bg-red-50 flex items-center justify-center mb-2">
             <ShieldAlert className="w-5 h-5 text-red-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-slate-900">
             <AnimatedCounter value={stats.safetyAlertCount} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Safety Alerts</p>
+          <p className="text-xs text-slate-500 mt-1">Safety Alerts</p>
         </div>
 
         <div className="ui-glass p-4 text-center">
           <div className="w-10 h-10 mx-auto rounded-xl bg-green-50 flex items-center justify-center mb-2">
             <Wifi className="w-5 h-5 text-green-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-slate-900">
             <AnimatedCounter value={stats.activePlatforms} />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Active Platforms</p>
+          <p className="text-xs text-slate-500 mt-1">Active Platforms</p>
         </div>
       </motion.div>
 
       {/* ── Section 3: Filter Events Table ──────────────────────────── */}
       <motion.div variants={fadeInUp} className="ui-glass p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">Filter Events</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Filter Events</h3>
           <div className="flex flex-wrap gap-2">
             {/* Platform filter */}
             <select
               value={platformFilter}
               onChange={(e) => { setPlatformFilter(e.target.value); setPage(0) }}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">All Platforms</option>
               {PLATFORMS.map((p) => (
@@ -511,7 +511,7 @@ export default function ITContentFiltersTab({
             <select
               value={typeFilter}
               onChange={(e) => { setTypeFilter(e.target.value); setPage(0) }}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">All Types</option>
               {EVENT_TYPES.map((t) => (
@@ -523,7 +523,7 @@ export default function ITContentFiltersTab({
             <select
               value={dispositionFilter}
               onChange={(e) => { setDispositionFilter(e.target.value); setPage(0) }}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
             >
               <option value="">All Dispositions</option>
               {DISPOSITIONS.map((d) => (
@@ -537,45 +537,45 @@ export default function ITContentFiltersTab({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Disposition</th>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Platform</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Student</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">URL</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Disposition</th>
                 {canManage && (
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {eventsQuery.isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: canManage ? 7 : 6 }).map((__, j) => (
                       <td key={j} className="py-3 px-3">
-                        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                        <div className="h-4 bg-slate-200 rounded animate-pulse" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : events.length === 0 ? (
                 <tr>
-                  <td colSpan={canManage ? 7 : 6} className="py-12 text-center text-sm text-gray-500">
+                  <td colSpan={canManage ? 7 : 6} className="py-12 text-center text-sm text-slate-500">
                     <IllustrationSecurity className="w-32 h-24 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-600 mb-1">No filter events found</p>
+                    <p className="text-sm font-medium text-slate-600 mb-1">No filter events found</p>
                   </td>
                 </tr>
               ) : (
                 events.map((event) => (
                   <tr
                     key={event.id}
-                    className={`hover:bg-gray-50/50 transition-colors duration-150 ${
+                    className={`hover:bg-slate-50/50 transition-colors duration-150 ${
                       event.eventType === 'SAFETY_ALERT' ? 'bg-red-50/50' : ''
                     }`}
                   >
-                    <td className="py-2.5 px-3 text-gray-700 whitespace-nowrap">
+                    <td className="py-2.5 px-3 text-slate-700 whitespace-nowrap">
                       {new Date(event.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-2.5 px-3">
@@ -584,19 +584,19 @@ export default function ITContentFiltersTab({
                           className="w-2 h-2 rounded-full"
                           style={{ backgroundColor: platformColor(event.platform) }}
                         />
-                        <span className="text-gray-700">{platformLabel(event.platform)}</span>
+                        <span className="text-slate-700">{platformLabel(event.platform)}</span>
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-gray-700">
+                    <td className="py-2.5 px-3 text-slate-700">
                       {event.eventType === 'SAFETY_ALERT' && (
                         <AlertTriangle className="w-3.5 h-3.5 inline mr-1 text-red-500" />
                       )}
                       {eventTypeLabel(event.eventType)}
                     </td>
-                    <td className="py-2.5 px-3 text-gray-700">
+                    <td className="py-2.5 px-3 text-slate-700">
                       {event.studentName ?? event.studentEmail ?? 'Unknown'}
                     </td>
-                    <td className="py-2.5 px-3 text-gray-500 font-mono text-xs">
+                    <td className="py-2.5 px-3 text-slate-500 font-mono text-xs">
                       {event.url ? truncateUrl(event.url) : '-'}
                     </td>
                     <td className="py-2.5 px-3">
@@ -639,22 +639,22 @@ export default function ITContentFiltersTab({
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-500">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+            <p className="text-xs text-slate-500">
               Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, totalEvents)} of {totalEvents}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
+                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
               >
                 Previous
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
+                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
               >
                 Next
               </button>
@@ -670,24 +670,24 @@ export default function ITContentFiltersTab({
           className="flex items-center gap-2 w-full text-left cursor-pointer"
         >
           {showCIPAEvidence ? (
-            <ChevronDown className="w-4 h-4 text-gray-500" />
+            <ChevronDown className="w-4 h-4 text-slate-500" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-gray-500" />
+            <ChevronRight className="w-4 h-4 text-slate-500" />
           )}
-          <FileText className="w-4 h-4 text-gray-600" />
-          <span className="text-sm font-semibold text-gray-900">CIPA Compliance Evidence</span>
+          <FileText className="w-4 h-4 text-slate-600" />
+          <span className="text-sm font-semibold text-slate-900">CIPA Compliance Evidence</span>
         </button>
 
         {showCIPAEvidence && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-4">
-              <span className="font-medium text-gray-900">{totalEvents.toLocaleString()}</span>{' '}
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <p className="text-sm text-slate-600 mb-4">
+              <span className="font-medium text-slate-900">{totalEvents.toLocaleString()}</span>{' '}
               total filter events logged for CIPA compliance. Export this data as evidence for E-Rate applications or audit reviews.
             </p>
             <button
               onClick={handleExportCSV}
               disabled={events.length === 0}
-              className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4 inline mr-1.5" />
               Export CSV

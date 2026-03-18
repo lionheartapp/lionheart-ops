@@ -145,7 +145,7 @@ export default function ImageDropZone({
 
   return (
     <div>
-      <label className="block text-xs text-gray-500 font-medium mb-1.5">{label}</label>
+      <label className="block text-xs text-slate-500 font-medium mb-1.5">{label}</label>
       <div
         onDrop={onDrop}
         onDragOver={onDragOver}
@@ -164,15 +164,15 @@ export default function ImageDropZone({
           relative overflow-hidden rounded-lg border-2 border-dashed transition-colors
           ${compact ? 'aspect-[3/2]' : aspectRatio}
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          ${hasImage ? 'border-gray-200' : ''}
-          ${!hasImage && !dragOver ? 'border-gray-300 hover:border-gray-400 cursor-pointer' : ''}
+          ${hasImage ? 'border-slate-200' : ''}
+          ${!hasImage && !dragOver ? 'border-slate-300 hover:border-slate-400 cursor-pointer' : ''}
           ${dragOver ? 'border-blue-500 bg-blue-50' : ''}
           ${uploading ? 'pointer-events-none' : ''}
         `}
       >
         {uploading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-            <Loader2 className="w-6 h-6 text-gray-500 animate-spin" />
+            <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
           </div>
         )}
 
@@ -199,13 +199,13 @@ export default function ImageDropZone({
             )}
           </div>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
             <Upload className={compact ? 'w-6 h-6' : 'w-8 h-8'} />
             <span className={compact ? 'text-xs' : 'text-sm'}>
               {dragOver ? 'Drop image here' : 'Drag & drop or click to upload'}
             </span>
             {!compact && (
-              <span className="text-xs text-gray-400">JPEG, PNG, WebP, GIF up to 5MB</span>
+              <span className="text-xs text-slate-400">JPEG, PNG, WebP, GIF up to 5MB</span>
             )}
           </div>
         )}

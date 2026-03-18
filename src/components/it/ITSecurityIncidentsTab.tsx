@@ -60,7 +60,7 @@ interface Props {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const SEVERITY_COLORS: Record<string, string> = {
-  LOW: 'bg-gray-100 text-gray-700',
+  LOW: 'bg-slate-100 text-slate-700',
   MEDIUM: 'bg-yellow-100 text-yellow-700',
   HIGH: 'bg-orange-100 text-orange-700',
   CRITICAL: 'bg-red-100 text-red-700',
@@ -71,7 +71,7 @@ const STATUS_COLORS: Record<string, string> = {
   INVESTIGATING: 'bg-purple-100 text-purple-700',
   CONTAINED: 'bg-teal-100 text-teal-700',
   REMEDIATING: 'bg-amber-100 text-amber-700',
-  CLOSED: 'bg-gray-100 text-gray-600',
+  CLOSED: 'bg-slate-100 text-slate-600',
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -227,29 +227,29 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
           <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-2">
             <AlertTriangle className="w-5 h-5 text-blue-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">{openCount}</div>
-          <div className="text-xs text-gray-500">Open Incidents</div>
+          <div className="text-2xl font-bold text-slate-900">{openCount}</div>
+          <div className="text-xs text-slate-500">Open Incidents</div>
         </div>
         <div className="ui-glass p-4 text-center">
           <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center mx-auto mb-2">
             <Activity className="w-5 h-5 text-purple-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">{investigatingCount}</div>
-          <div className="text-xs text-gray-500">Investigating</div>
+          <div className="text-2xl font-bold text-slate-900">{investigatingCount}</div>
+          <div className="text-xs text-slate-500">Investigating</div>
         </div>
         <div className="ui-glass p-4 text-center">
           <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center mx-auto mb-2">
             <ShieldAlert className="w-5 h-5 text-red-600" />
           </div>
-          <div className={`text-2xl font-bold ${criticalCount > 0 ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>{criticalCount}</div>
-          <div className="text-xs text-gray-500">Critical Active</div>
+          <div className={`text-2xl font-bold ${criticalCount > 0 ? 'text-red-600 animate-pulse' : 'text-slate-900'}`}>{criticalCount}</div>
+          <div className="text-xs text-slate-500">Critical Active</div>
         </div>
         <div className="ui-glass p-4 text-center">
-          <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-2">
-            <FileText className="w-5 h-5 text-gray-600" />
+          <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center mx-auto mb-2">
+            <FileText className="w-5 h-5 text-slate-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">{total}</div>
-          <div className="text-xs text-gray-500">Total Incidents</div>
+          <div className="text-2xl font-bold text-slate-900">{total}</div>
+          <div className="text-xs text-slate-500">Total Incidents</div>
         </div>
       </div>
 
@@ -258,32 +258,32 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
         <div className="ui-glass-table animate-pulse p-4 space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex items-center gap-4 py-2">
-              <div className="h-4 w-20 bg-gray-100 rounded" />
-              <div className="h-4 flex-1 bg-gray-100 rounded" />
-              <div className="h-5 w-20 bg-gray-100 rounded-md" />
-              <div className="h-5 w-16 bg-gray-100 rounded-md" />
-              <div className="h-4 w-24 bg-gray-100 rounded" />
+              <div className="h-4 w-20 bg-slate-100 rounded" />
+              <div className="h-4 flex-1 bg-slate-100 rounded" />
+              <div className="h-5 w-20 bg-slate-100 rounded-md" />
+              <div className="h-5 w-16 bg-slate-100 rounded-md" />
+              <div className="h-4 w-24 bg-slate-100 rounded" />
             </div>
           ))}
         </div>
       ) : incidents.length === 0 ? (
         <div className="ui-glass p-12 text-center">
           <IllustrationSecurity className="w-48 h-40 mx-auto mb-2" />
-          <p className="text-sm font-medium text-gray-600 mb-1">No incidents found</p>
-          <p className="text-xs text-gray-400">No security incidents match your current filters.</p>
+          <p className="text-sm font-medium text-slate-600 mb-1">No incidents found</p>
+          <p className="text-xs text-slate-400">No security incidents match your current filters.</p>
         </div>
       ) : (
         <div className="ui-glass-table overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left p-3 pl-4 font-medium text-gray-500">ID</th>
-                <th className="text-left p-3 font-medium text-gray-500">Title</th>
-                <th className="text-left p-3 font-medium text-gray-500">Type</th>
-                <th className="text-left p-3 font-medium text-gray-500">Severity</th>
-                <th className="text-left p-3 font-medium text-gray-500">Status</th>
-                <th className="text-left p-3 font-medium text-gray-500">Reported</th>
-                <th className="text-left p-3 font-medium text-gray-500">Responders</th>
+              <tr className="border-b border-slate-100">
+                <th className="text-left p-3 pl-4 font-medium text-slate-500">ID</th>
+                <th className="text-left p-3 font-medium text-slate-500">Title</th>
+                <th className="text-left p-3 font-medium text-slate-500">Type</th>
+                <th className="text-left p-3 font-medium text-slate-500">Severity</th>
+                <th className="text-left p-3 font-medium text-slate-500">Status</th>
+                <th className="text-left p-3 font-medium text-slate-500">Reported</th>
+                <th className="text-left p-3 font-medium text-slate-500">Responders</th>
                 <th className="p-3 pr-4" />
               </tr>
             </thead>
@@ -292,16 +292,16 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
                 <tr
                   key={inc.id}
                   onClick={() => setDetailId(inc.id)}
-                  className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                  className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer"
                 >
-                  <td className="p-3 pl-4 font-mono text-xs text-gray-500">{inc.incidentNumber}</td>
+                  <td className="p-3 pl-4 font-mono text-xs text-slate-500">{inc.incidentNumber}</td>
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       {inc.piiInvolved && <Lock className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />}
-                      <span className="font-medium text-gray-900 truncate max-w-xs">{inc.title}</span>
+                      <span className="font-medium text-slate-900 truncate max-w-xs">{inc.title}</span>
                     </div>
                   </td>
-                  <td className="p-3 text-gray-600">{TYPE_LABELS[inc.type] || inc.type}</td>
+                  <td className="p-3 text-slate-600">{TYPE_LABELS[inc.type] || inc.type}</td>
                   <td className="p-3">
                     <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-medium ${SEVERITY_COLORS[inc.severity]} ${inc.severity === 'CRITICAL' ? 'animate-pulse' : ''}`}>
                       {SEVERITY_LABELS[inc.severity]}
@@ -312,15 +312,15 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
                       {STATUS_LABELS[inc.status]}
                     </span>
                   </td>
-                  <td className="p-3 text-gray-500 text-xs">{new Date(inc.createdAt).toLocaleDateString()}</td>
+                  <td className="p-3 text-slate-500 text-xs">{new Date(inc.createdAt).toLocaleDateString()}</td>
                   <td className="p-3">
-                    <div className="flex items-center gap-1 text-gray-400">
+                    <div className="flex items-center gap-1 text-slate-400">
                       <Users className="w-3.5 h-3.5" />
                       <span className="text-xs">{inc.responderIds.length}</span>
                     </div>
                   </td>
                   <td className="p-3 pr-4">
-                    <ChevronRight className="w-4 h-4 text-gray-300" />
+                    <ChevronRight className="w-4 h-4 text-slate-300" />
                   </td>
                 </tr>
               ))}
@@ -334,44 +334,44 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowCreate(false)} />
           <div className="relative w-full max-w-lg bg-white shadow-2xl overflow-y-auto animate-[fadeIn_200ms_ease-out]">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Report Security Incident</h2>
-              <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer"><X className="w-5 h-5" /></button>
+            <div className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
+              <h2 className="text-lg font-semibold text-slate-900">Report Security Incident</h2>
+              <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-slate-100 rounded-lg cursor-pointer"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Incident Type</label>
-                <select value={formType} onChange={(e) => setFormType(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm cursor-pointer">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Incident Type</label>
+                <select value={formType} onChange={(e) => setFormType(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm cursor-pointer">
                   {INCIDENT_TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Severity</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Severity</label>
                 <div className="flex gap-2">
                   {SEVERITIES.map((s) => (
-                    <button key={s} onClick={() => setFormSeverity(s)} className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${formSeverity === s ? SEVERITY_COLORS[s] + ' ring-2 ring-offset-1 ring-current' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}>
+                    <button key={s} onClick={() => setFormSeverity(s)} className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${formSeverity === s ? SEVERITY_COLORS[s] + ' ring-2 ring-offset-1 ring-current' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}>
                       {SEVERITY_LABELS[s]}
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
-                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Brief incident title" className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Title</label>
+                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Brief incident title" className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
-                <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={4} placeholder="What happened? When was it discovered?" className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm resize-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+                <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={4} placeholder="What happened? When was it discovered?" className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm resize-none" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Affected Systems (comma-separated)</label>
-                <input type="text" value={formSystems} onChange={(e) => setFormSystems(e.target.value)} placeholder="e.g. Email, Student Portal, WiFi" className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Affected Systems (comma-separated)</label>
+                <input type="text" value={formSystems} onChange={(e) => setFormSystems(e.target.value)} placeholder="e.g. Email, Student Portal, WiFi" className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm" />
               </div>
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-                <input type="checkbox" checked={formPii} onChange={(e) => setFormPii(e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500" />
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                <input type="checkbox" checked={formPii} onChange={(e) => setFormPii(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500" />
                 <div>
-                  <span className="text-sm font-medium text-gray-900">PII Involved</span>
-                  <p className="text-xs text-gray-500">Personally identifiable information may have been compromised</p>
+                  <span className="text-sm font-medium text-slate-900">PII Involved</span>
+                  <p className="text-xs text-slate-500">Personally identifiable information may have been compromised</p>
                 </div>
               </label>
               <button
@@ -391,10 +391,10 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => { setDetailId(null); setShowCloseForm(false) }} />
           <div className="relative w-full max-w-2xl bg-white shadow-2xl overflow-y-auto animate-[fadeIn_200ms_ease-out]">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm text-gray-500">{detailData.incidentNumber}</span>
+                  <span className="font-mono text-sm text-slate-500">{detailData.incidentNumber}</span>
                   <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${SEVERITY_COLORS[detailData.severity]} ${detailData.severity === 'CRITICAL' ? 'animate-pulse' : ''}`}>
                     {SEVERITY_LABELS[detailData.severity]}
                   </span>
@@ -403,35 +403,35 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
                   </span>
                   {detailData.piiInvolved && <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-700">PII</span>}
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900 mt-1">{detailData.title}</h2>
+                <h2 className="text-lg font-semibold text-slate-900 mt-1">{detailData.title}</h2>
               </div>
-              <button onClick={() => { setDetailId(null); setShowCloseForm(false) }} className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer"><X className="w-5 h-5" /></button>
+              <button onClick={() => { setDetailId(null); setShowCloseForm(false) }} className="p-2 hover:bg-slate-100 rounded-lg cursor-pointer"><X className="w-5 h-5" /></button>
             </div>
 
             <div className="p-6 space-y-6">
               {/* Info section */}
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-gray-500">Type:</span> <span className="ml-1 font-medium">{TYPE_LABELS[detailData.type]}</span></div>
-                <div><span className="text-gray-500">Reported by:</span> <span className="ml-1 font-medium">{detailData.reportedBy?.firstName} {detailData.reportedBy?.lastName}</span></div>
-                <div><span className="text-gray-500">Created:</span> <span className="ml-1">{new Date(detailData.createdAt).toLocaleString()}</span></div>
-                {detailData.closedAt && <div><span className="text-gray-500">Closed:</span> <span className="ml-1">{new Date(detailData.closedAt).toLocaleString()}</span></div>}
-                <div><span className="text-gray-500">Retain until:</span> <span className="ml-1">{new Date(detailData.retainUntil).toLocaleDateString()}</span></div>
-                {detailData.school && <div><span className="text-gray-500">School:</span> <span className="ml-1">{detailData.school.name}</span></div>}
+                <div><span className="text-slate-500">Type:</span> <span className="ml-1 font-medium">{TYPE_LABELS[detailData.type]}</span></div>
+                <div><span className="text-slate-500">Reported by:</span> <span className="ml-1 font-medium">{detailData.reportedBy?.firstName} {detailData.reportedBy?.lastName}</span></div>
+                <div><span className="text-slate-500">Created:</span> <span className="ml-1">{new Date(detailData.createdAt).toLocaleString()}</span></div>
+                {detailData.closedAt && <div><span className="text-slate-500">Closed:</span> <span className="ml-1">{new Date(detailData.closedAt).toLocaleString()}</span></div>}
+                <div><span className="text-slate-500">Retain until:</span> <span className="ml-1">{new Date(detailData.retainUntil).toLocaleDateString()}</span></div>
+                {detailData.school && <div><span className="text-slate-500">School:</span> <span className="ml-1">{detailData.school.name}</span></div>}
               </div>
 
               {/* Description */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Description</h3>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded-xl">{detailData.description}</p>
+                <h3 className="text-sm font-medium text-slate-700 mb-2">Description</h3>
+                <p className="text-sm text-slate-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-xl">{detailData.description}</p>
               </div>
 
               {/* Affected systems */}
               {detailData.affectedSystems.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Affected Systems</h3>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Affected Systems</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {detailData.affectedSystems.map((s, i) => (
-                      <span key={i} className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg">{s}</span>
+                      <span key={i} className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs rounded-lg">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -440,27 +440,27 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
               {/* Resolution */}
               {detailData.resolutionSummary && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Resolution Summary</h3>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap bg-green-50 p-3 rounded-xl border border-green-100">{detailData.resolutionSummary}</p>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Resolution Summary</h3>
+                  <p className="text-sm text-slate-600 whitespace-pre-wrap bg-green-50 p-3 rounded-xl border border-green-100">{detailData.resolutionSummary}</p>
                 </div>
               )}
               {detailData.lessonsLearned && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Lessons Learned</h3>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap bg-blue-50 p-3 rounded-xl border border-blue-100">{detailData.lessonsLearned}</p>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Lessons Learned</h3>
+                  <p className="text-sm text-slate-600 whitespace-pre-wrap bg-blue-50 p-3 rounded-xl border border-blue-100">{detailData.lessonsLearned}</p>
                 </div>
               )}
 
               {/* Evidence */}
               {detailData.evidenceFiles.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Evidence Files</h3>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Evidence Files</h3>
                   <div className="space-y-1.5">
                     {detailData.evidenceFiles.map((f, i) => (
-                      <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg text-sm">
-                        <FileText className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-700">{f.fileName}</span>
-                        <span className="text-xs text-gray-400 ml-auto">{new Date(f.uploadedAt).toLocaleString()}</span>
+                      <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg text-sm">
+                        <FileText className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-700">{f.fileName}</span>
+                        <span className="text-xs text-slate-400 ml-auto">{new Date(f.uploadedAt).toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -470,14 +470,14 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
               {/* External notifications */}
               {detailData.externalNotifications.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">External Notifications</h3>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">External Notifications</h3>
                   <div className="space-y-1.5">
                     {detailData.externalNotifications.map((n, i) => (
-                      <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg text-sm">
-                        <Send className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-700">{n.recipientType}</span>
-                        <span className="text-gray-400">via {n.method}</span>
-                        <span className="text-xs text-gray-400 ml-auto">{new Date(n.sentAt).toLocaleString()}</span>
+                      <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg text-sm">
+                        <Send className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-700">{n.recipientType}</span>
+                        <span className="text-slate-400">via {n.method}</span>
+                        <span className="text-xs text-slate-400 ml-auto">{new Date(n.sentAt).toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -500,39 +500,39 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
                     <button onClick={() => statusMut.mutate({ id: detailId, status: 'REMEDIATING' })} className="px-4 py-2 rounded-full bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 active:scale-[0.97] transition-all cursor-pointer">Begin Remediation</button>
                   )}
                   {canManage && (
-                    <button onClick={() => setShowCloseForm(true)} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer">Close Incident</button>
+                    <button onClick={() => setShowCloseForm(true)} className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer">Close Incident</button>
                   )}
                 </div>
               )}
 
               {/* Close form */}
               {showCloseForm && detailData.status !== 'CLOSED' && (
-                <div className="p-4 bg-gray-50 rounded-xl space-y-3 border border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-900">Close Incident</h3>
+                <div className="p-4 bg-slate-50 rounded-xl space-y-3 border border-slate-200">
+                  <h3 className="text-sm font-semibold text-slate-900">Close Incident</h3>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Resolution Summary *</label>
-                    <textarea value={closeResolution} onChange={(e) => setCloseResolution(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm resize-none" placeholder="How was this incident resolved?" />
+                    <label className="block text-sm text-slate-600 mb-1">Resolution Summary *</label>
+                    <textarea value={closeResolution} onChange={(e) => setCloseResolution(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm resize-none" placeholder="How was this incident resolved?" />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Lessons Learned</label>
-                    <textarea value={closeLessons} onChange={(e) => setCloseLessons(e.target.value)} rows={2} className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm resize-none" placeholder="What can be improved?" />
+                    <label className="block text-sm text-slate-600 mb-1">Lessons Learned</label>
+                    <textarea value={closeLessons} onChange={(e) => setCloseLessons(e.target.value)} rows={2} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm resize-none" placeholder="What can be improved?" />
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => closeMut.mutate({ id: detailId, body: { resolutionSummary: closeResolution, lessonsLearned: closeLessons || undefined } })}
                       disabled={!closeResolution || closeMut.isPending}
-                      className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50 cursor-pointer"
+                      className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
                     >
                       {closeMut.isPending ? 'Closing...' : 'Confirm Close'}
                     </button>
-                    <button onClick={() => setShowCloseForm(false)} className="px-4 py-2 rounded-full bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer">Cancel</button>
+                    <button onClick={() => setShowCloseForm(false)} className="px-4 py-2 rounded-full bg-white border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer">Cancel</button>
                   </div>
                 </div>
               )}
 
               {/* Chain-of-custody timeline */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Chain of Custody</h3>
+                <h3 className="text-sm font-medium text-slate-700 mb-3">Chain of Custody</h3>
                 <div className="space-y-0">
                   {(detailData.activities ?? [])
                     .filter((a) => a.type !== 'VIEWED')
@@ -543,23 +543,23 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
                             activity.type === 'CREATED' ? 'bg-blue-500' :
                             activity.type === 'STATUS_CHANGE' ? 'bg-purple-500' :
                             activity.type === 'SEVERITY_CHANGE' ? 'bg-orange-500' :
-                            activity.type === 'CLOSED' ? 'bg-gray-500' :
+                            activity.type === 'CLOSED' ? 'bg-slate-500' :
                             activity.type === 'COMMENT' ? 'bg-green-500' :
-                            'bg-gray-300'
+                            'bg-slate-300'
                           }`} />
                           {idx < (detailData.activities?.filter((a) => a.type !== 'VIEWED').length ?? 0) - 1 && (
-                            <div className="w-px flex-1 bg-gray-200 mt-1" />
+                            <div className="w-px flex-1 bg-slate-200 mt-1" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0 pb-1">
                           <div className="flex items-center gap-2 text-xs">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-slate-700">
                               {activity.actor ? `${activity.actor.firstName ?? ''} ${activity.actor.lastName ?? ''}`.trim() : 'System'}
                             </span>
-                            <span className="text-gray-400">&middot;</span>
-                            <span className="text-gray-400">{new Date(activity.createdAt).toLocaleString()}</span>
+                            <span className="text-slate-400">&middot;</span>
+                            <span className="text-slate-400">{new Date(activity.createdAt).toLocaleString()}</span>
                           </div>
-                          <p className="text-sm text-gray-600 mt-0.5">
+                          <p className="text-sm text-slate-600 mt-0.5">
                             {activity.type === 'STATUS_CHANGE' && `Status: ${STATUS_LABELS[activity.fromStatus ?? ''] ?? activity.fromStatus} → ${STATUS_LABELS[activity.toStatus ?? ''] ?? activity.toStatus}`}
                             {activity.type === 'SEVERITY_CHANGE' && `Severity: ${SEVERITY_LABELS[activity.fromSeverity ?? ''] ?? activity.fromSeverity} → ${SEVERITY_LABELS[activity.toSeverity ?? ''] ?? activity.toSeverity}`}
                             {activity.type === 'CREATED' && (activity.content || 'Incident created')}

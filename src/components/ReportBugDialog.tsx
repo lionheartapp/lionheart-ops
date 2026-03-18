@@ -94,19 +94,19 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
           >
             <div className="ui-glass-overlay w-full max-w-lg rounded-2xl shadow-heavy overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/60">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
                     <Bug className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Report a Bug</h2>
-                    <p className="text-xs text-gray-500">Help us improve Lionheart</p>
+                    <h2 className="text-lg font-semibold text-slate-900">Report a Bug</h2>
+                    <p className="text-xs text-slate-500">Help us improve Lionheart</p>
                   </div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors duration-200 cursor-pointer"
+                  className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
                   aria-label="Close dialog"
                 >
                   <X className="w-5 h-5" />
@@ -124,13 +124,13 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                     <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-4">
                       <CheckCircle2 className="w-7 h-7 text-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Bug Report Submitted</h3>
-                    <p className="text-sm text-gray-500 mb-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-1">Bug Report Submitted</h3>
+                    <p className="text-sm text-slate-500 mb-6">
                       Thanks for letting us know. We&apos;ll look into it and get back to you.
                     </p>
                     <button
                       onClick={onClose}
-                      className="px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors duration-200 cursor-pointer active:scale-[0.97]"
+                      className="px-6 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer active:scale-[0.97]"
                     >
                       Done
                     </button>
@@ -139,7 +139,7 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Subject */}
                     <div>
-                      <label htmlFor="bug-subject" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label htmlFor="bug-subject" className="block text-sm font-medium text-slate-700 mb-1.5">
                         Subject
                       </label>
                       <input
@@ -149,14 +149,14 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
                         placeholder="Brief summary of the issue"
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-gray-400"
+                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-slate-400"
                         required
                       />
                     </div>
 
                     {/* Description */}
                     <div>
-                      <label htmlFor="bug-description" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label htmlFor="bug-description" className="block text-sm font-medium text-slate-700 mb-1.5">
                         What happened?
                       </label>
                       <textarea
@@ -165,7 +165,7 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Describe the bug: what you expected vs. what happened, and any steps to reproduce it."
                         rows={4}
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-gray-400 resize-none"
+                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-slate-400 resize-none"
                         required
                       />
                     </div>
@@ -183,14 +183,14 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                       <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2.5 text-sm font-medium text-gray-600 rounded-xl hover:bg-gray-100 transition-colors duration-200 cursor-pointer"
+                        className="px-4 py-2.5 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={submitting || !subject.trim() || !description.trim()}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors duration-200 cursor-pointer active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {submitting ? (
                           <>

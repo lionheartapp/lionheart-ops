@@ -66,11 +66,11 @@ function StatusBadge({ isConnected, label }: { isConnected: boolean; label?: str
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
         isConnected
           ? 'bg-green-100 text-green-700'
-          : 'bg-gray-100 text-gray-500'
+          : 'bg-slate-100 text-slate-500'
       }`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`}
+        className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-slate-400'}`}
       />
       {text}
     </span>
@@ -171,15 +171,15 @@ function PlanningCenterCard({
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Planning Center</h3>
-            <p className="text-xs text-gray-500">Org-level connection</p>
+            <h3 className="text-sm font-semibold text-slate-900">Planning Center</h3>
+            <p className="text-xs text-slate-500">Org-level connection</p>
           </div>
         </div>
         <StatusBadge isConnected={status.isConnected} />
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-600 leading-relaxed">
+      <p className="text-sm text-slate-600 leading-relaxed">
         Sync worship teams, service plans, people data, and check-ins with Planning Center Online.
       </p>
 
@@ -189,11 +189,11 @@ function PlanningCenterCard({
         <>
           {/* Connected state */}
           {status.orgName && (
-            <p className="text-xs text-gray-500">
-              Connected to: <span className="font-medium text-gray-700">{status.orgName}</span>
+            <p className="text-xs text-slate-500">
+              Connected to: <span className="font-medium text-slate-700">{status.orgName}</span>
             </p>
           )}
-          <p className="text-xs text-gray-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
+          <p className="text-xs text-slate-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
 
           <div className="flex items-center gap-2 pt-1">
             {/* Sync dropdown */}
@@ -201,7 +201,7 @@ function PlanningCenterCard({
               <button
                 onClick={() => setSyncMenuOpen((v) => !v)}
                 disabled={syncing}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
               >
                 {syncing ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -216,13 +216,13 @@ function PlanningCenterCard({
                 <div className="ui-glass-dropdown absolute top-full left-0 mt-1 w-44 z-10 py-1">
                   <button
                     onClick={() => handleSync('people')}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Sync People
                   </button>
                   <button
                     onClick={() => handleSync('services')}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Sync Services
                   </button>
@@ -233,7 +233,7 @@ function PlanningCenterCard({
             <button
               onClick={handleDisconnect}
               disabled={disconnecting}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             >
               <Unlink className="w-3.5 h-3.5" />
               Disconnect
@@ -244,7 +244,7 @@ function PlanningCenterCard({
         /* Not connected state */
         <button
           onClick={handleConnect}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <Link2 className="w-4 h-4" />
           Connect Planning Center
@@ -310,15 +310,15 @@ function GoogleCalendarCard({
             <Calendar className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Google Calendar</h3>
-            <p className="text-xs text-gray-500">Personal connection</p>
+            <h3 className="text-sm font-semibold text-slate-900">Google Calendar</h3>
+            <p className="text-xs text-slate-500">Personal connection</p>
           </div>
         </div>
         <StatusBadge isConnected={status.isConnected} />
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-600 leading-relaxed">
+      <p className="text-sm text-slate-600 leading-relaxed">
         Sync events to your personal Google Calendar so they appear alongside your other meetings.
       </p>
 
@@ -328,17 +328,17 @@ function GoogleCalendarCard({
         <>
           {/* Connected state */}
           {status.userName && (
-            <p className="text-xs text-gray-500">
-              Connected as: <span className="font-medium text-gray-700">{status.userName}</span>
+            <p className="text-xs text-slate-500">
+              Connected as: <span className="font-medium text-slate-700">{status.userName}</span>
             </p>
           )}
-          <p className="text-xs text-gray-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
+          <p className="text-xs text-slate-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
 
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={handleDisconnect}
               disabled={disconnecting}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             >
               <Unlink className="w-3.5 h-3.5" />
               Disconnect
@@ -348,7 +348,7 @@ function GoogleCalendarCard({
               href="https://calendar.google.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               Open Google Calendar
@@ -359,7 +359,7 @@ function GoogleCalendarCard({
         /* Not connected state */
         <button
           onClick={handleConnect}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <Link2 className="w-4 h-4" />
           Connect Google Calendar
@@ -469,15 +469,15 @@ function TwilioCard({
             <MessageSquare className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Twilio SMS</h3>
-            <p className="text-xs text-gray-500">Org-level configuration</p>
+            <h3 className="text-sm font-semibold text-slate-900">Twilio SMS</h3>
+            <p className="text-xs text-slate-500">Org-level configuration</p>
           </div>
         </div>
         <StatusBadge isConnected={status.isConnected} label={status.isConnected ? 'Active' : 'Not Configured'} />
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-600 leading-relaxed">
+      <p className="text-sm text-slate-600 leading-relaxed">
         Send SMS notifications for day-of updates and deadline reminders. Standard messaging rates apply.
       </p>
 
@@ -485,16 +485,16 @@ function TwilioCard({
         <>
           {/* Active state */}
           {status.phoneNumber && (
-            <p className="text-xs text-gray-500">
-              Sending from: <span className="font-medium text-gray-700 font-mono">{status.phoneNumber}</span>
+            <p className="text-xs text-slate-500">
+              Sending from: <span className="font-medium text-slate-700 font-mono">{status.phoneNumber}</span>
             </p>
           )}
-          <p className="text-xs text-gray-400">Last used: {formatRelative(status.lastSyncAt)}</p>
+          <p className="text-xs text-slate-400">Last used: {formatRelative(status.lastSyncAt)}</p>
 
           {/* Test SMS form */}
           {showTestForm ? (
-            <form onSubmit={handleTestSMS} className="space-y-3 p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs font-medium text-gray-700">Send a test SMS</p>
+            <form onSubmit={handleTestSMS} className="space-y-3 p-4 bg-slate-50 rounded-xl">
+              <p className="text-xs font-medium text-slate-700">Send a test SMS</p>
               <FloatingInput
                 id="test-to"
                 label="Recipient phone (+15555551234)"
@@ -506,14 +506,14 @@ function TwilioCard({
                 <button
                   type="submit"
                   disabled={testingSMS || !testTo}
-                  className="px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {testingSMS ? 'Sending...' : 'Send Test'}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowTestForm(false); setTestTo('') }}
-                  className="px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -525,7 +525,7 @@ function TwilioCard({
             {!showTestForm && (
               <button
                 onClick={() => setShowTestForm(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 Test SMS
@@ -533,7 +533,7 @@ function TwilioCard({
             )}
             <button
               onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Update
             </button>
@@ -578,14 +578,14 @@ function TwilioCard({
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Configuration'}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setAccountSid(''); setAuthToken(''); setPhoneNumber('') }}
-              className="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -595,7 +595,7 @@ function TwilioCard({
         /* Not configured state */
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <MessageSquare className="w-4 h-4" />
           Configure Twilio SMS
@@ -603,7 +603,7 @@ function TwilioCard({
       )}
 
       {/* Footer note */}
-      <p className="text-xs text-gray-400 border-t border-gray-100 pt-3">
+      <p className="text-xs text-slate-400 border-t border-slate-100 pt-3">
         SMS is used for urgent day-of updates and deadline reminders only. Standard messaging rates apply.
       </p>
     </div>
@@ -637,26 +637,26 @@ export default function IntegrationsTab() {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center shadow-sm">
             <Link2 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Integrations</h2>
-            <p className="text-sm text-gray-500">Connect external services and tools</p>
+            <h2 className="text-lg font-semibold text-slate-900">Integrations</h2>
+            <p className="text-sm text-slate-500">Connect external services and tools</p>
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="ui-glass p-6 animate-pulse">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gray-200" />
+                <div className="w-10 h-10 rounded-xl bg-slate-200" />
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded w-32 mb-1" />
-                  <div className="h-3 bg-gray-100 rounded w-20" />
+                  <div className="h-4 bg-slate-200 rounded w-32 mb-1" />
+                  <div className="h-3 bg-slate-100 rounded w-20" />
                 </div>
               </div>
-              <div className="h-3 bg-gray-100 rounded w-full mb-2" />
-              <div className="h-3 bg-gray-100 rounded w-3/4" />
+              <div className="h-3 bg-slate-100 rounded w-full mb-2" />
+              <div className="h-3 bg-slate-100 rounded w-3/4" />
             </div>
           ))}
         </div>
@@ -666,8 +666,8 @@ export default function IntegrationsTab() {
 
   if (isError || !data) {
     return (
-      <div className="ui-glass p-6 text-center text-gray-500">
-        <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+      <div className="ui-glass p-6 text-center text-slate-500">
+        <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-300" />
         <p className="text-sm">Failed to load integration status.</p>
         <button
           onClick={handleRefresh}
@@ -687,8 +687,8 @@ export default function IntegrationsTab() {
           <Link2 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Integrations</h2>
-          <p className="text-sm text-gray-500">Connect external services to sync data and send notifications</p>
+          <h2 className="text-lg font-semibold text-slate-900">Integrations</h2>
+          <p className="text-sm text-slate-500">Connect external services to sync data and send notifications</p>
         </div>
       </div>
 
