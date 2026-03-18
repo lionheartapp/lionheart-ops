@@ -1728,7 +1728,7 @@ export default function Sidebar({
   const settingsNavContent = (
     <div className="flex flex-col h-full">
       {/* Settings Header */}
-      <div className="px-5 py-4 border-b border-white/30">
+      <div className="px-5 pt-10 pb-4 border-b border-white/30">
         <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Settings</h2>
       </div>
 
@@ -1802,7 +1802,7 @@ export default function Sidebar({
   const calendarNavContent = (
     <div className="flex flex-col h-full">
       {/* Calendar Header */}
-      <div className="px-5 py-4 border-b border-white/30 flex items-center justify-between">
+      <div className="px-5 pt-10 pb-4 border-b border-white/30 flex items-center justify-between">
         <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Calendars</h2>
         {canManageWorkspace && (
           <button
@@ -2153,7 +2153,7 @@ export default function Sidebar({
   const eventsNavContent = (
     <div className="flex flex-col h-full">
       {/* Events Header */}
-      <div className="px-5 py-4 border-b border-white/30 flex items-center gap-2">
+      <div className="px-5 pt-10 pb-4 border-b border-white/30 flex items-center gap-2">
         <CalendarClock className="w-5 h-5 text-primary-500 flex-shrink-0" aria-hidden="true" />
         <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Events</h2>
       </div>
@@ -2229,7 +2229,7 @@ export default function Sidebar({
   const athleticsNavContent = (
     <div className="flex flex-col h-full">
       {/* Athletics Header */}
-      <div className="px-5 py-4 border-b border-white/30">
+      <div className="px-5 pt-10 pb-4 border-b border-white/30">
         <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Athletics</h2>
       </div>
 
