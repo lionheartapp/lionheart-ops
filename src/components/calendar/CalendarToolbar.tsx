@@ -39,6 +39,10 @@ interface CalendarToolbarProps {
   calendarFilter: CalendarFilter
   onCalendarFilterChange: (filter: CalendarFilter) => void
   athleticsVisible?: boolean
+  allCampuses?: CampusChip[]
+  visibleAthleticsCampusIds?: Set<string>
+  onToggleAthleticsCampus?: (campusId: string) => void
+  onToggleAllAthletics?: (enabled: boolean) => void
   campuses?: CampusChip[]
   sports?: SportChip[]
 }
@@ -99,6 +103,10 @@ export default function CalendarToolbar({
   calendarFilter,
   onCalendarFilterChange,
   athleticsVisible = false,
+  allCampuses = [],
+  visibleAthleticsCampusIds = new Set<string>(),
+  onToggleAthleticsCampus,
+  onToggleAllAthletics,
   campuses = [],
   sports = [],
 }: CalendarToolbarProps) {
@@ -280,7 +288,7 @@ export default function CalendarToolbar({
         </div>
 
         {/* Filter button — opens filter popover with categories + athletics */}
-        {(categories.length > 0 || athleticsVisible) && (
+        {(categories.length > 0 || allCampuses.length > 0) && (
           <>
             <button
               ref={filterBtnRef}
@@ -306,6 +314,10 @@ export default function CalendarToolbar({
               onFilterChange={onCalendarFilterChange}
               categories={categories}
               athleticsVisible={athleticsVisible}
+              allCampuses={allCampuses}
+              visibleAthleticsCampusIds={visibleAthleticsCampusIds}
+              onToggleAthleticsCampus={onToggleAthleticsCampus}
+              onToggleAllAthletics={onToggleAllAthletics}
               campuses={campuses}
               sports={sports}
               anchorRef={filterBtnRef}

@@ -36,6 +36,8 @@ import LocationConflictDialog from './LocationConflictDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { useAthleticsCalendarEvents, useAthleticsSports } from '@/lib/hooks/useAthleticsCalendar'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
+import { useQuery } from '@tanstack/react-query'
+import { queryOptions } from '@/lib/queries'
 import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -240,6 +242,13 @@ export default function CalendarView() {
     : []
 
   // ── Athletics calendar overlay ──────────────────────────────────────
+  // Fetch all campuses for the filter popover
+  const { data: allCampusesRaw = [] } = useQuery(queryOptions.campuses())
+  const allCampuses = useMemo(
+    () => (allCampusesRaw as Array<{ id: string; name: string; isActive: boolean }>).filter((c) => c.isActive),
+    [allCampusesRaw],
+  )
+
   const [visibleAthleticsCampusIds, setVisibleAthleticsCampusIds] = useState<Set<string>>(new Set())
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>({
     categoryIds: new Set(),
@@ -334,26 +343,13 @@ export default function CalendarView() {
       result = result.filter((e) => e.title.toLowerCase().includes(q))
     }
 
-    // Separate athletics filter key from real category IDs
-    const wantsAthletics = calendarFilter.categoryIds.has('__athletics__')
-    const realCategoryIds = new Set(calendarFilter.categoryIds)
-    realCategoryIds.delete('__athletics__')
-
-    // Filter regular events by category (if any real categories selected)
-    if (realCategoryIds.size > 0 || wantsAthletics) {
-      if (realCategoryIds.size > 0) {
-        result = result.filter((e) => e.categoryId && realCategoryIds.has(e.categoryId))
-      } else if (wantsAthletics && !realCategoryIds.size) {
-        // Only athletics is selected — hide regular events
-        result = []
-      }
+    // Filter regular events by category
+    if (calendarFilter.categoryIds.size > 0) {
+      result = result.filter((e) => e.categoryId && calendarFilter.categoryIds.has(e.categoryId))
     }
 
-    // Merge athletics events when:
-    // - No category filters are active (show everything), OR
-    // - __athletics__ is explicitly selected
-    const showAthletics = calendarFilter.categoryIds.size === 0 || wantsAthletics
-    if (showAthletics && filteredAthleticsEvents.length > 0) {
+    // Merge athletics events (controlled by visibleAthleticsCampusIds via Filters popover)
+    if (filteredAthleticsEvents.length > 0) {
       let athEvents = filteredAthleticsEvents
       if (q) {
         athEvents = athEvents.filter((e) => e.title.toLowerCase().includes(q))
@@ -895,6 +891,23 @@ export default function CalendarView() {
           calendarFilter={calendarFilter}
           onCalendarFilterChange={setCalendarFilter}
           athleticsVisible={anyAthleticsVisible}
+          allCampuses={allCampuses}
+          visibleAthleticsCampusIds={visibleAthleticsCampusIds}
+          onToggleAthleticsCampus={(campusId: string) => {
+            setVisibleAthleticsCampusIds((prev) => {
+              const next = new Set(prev)
+              if (next.has(campusId)) next.delete(campusId)
+              else next.add(campusId)
+              return next
+            })
+          }}
+          onToggleAllAthletics={(enabled: boolean) => {
+            if (enabled) {
+              setVisibleAthleticsCampusIds(new Set(allCampuses.map((c) => c.id)))
+            } else {
+              setVisibleAthleticsCampusIds(new Set())
+            }
+          }}
           campuses={athleticsCampuses}
           sports={athleticsSports}
         />

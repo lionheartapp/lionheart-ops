@@ -36,6 +36,10 @@ interface CalendarFilterPopoverProps {
   onFilterChange: (filter: CalendarFilter) => void
   categories: CategoryChip[]
   athleticsVisible: boolean
+  allCampuses?: CampusChip[]
+  visibleAthleticsCampusIds?: Set<string>
+  onToggleAthleticsCampus?: (campusId: string) => void
+  onToggleAllAthletics?: (enabled: boolean) => void
   campuses: CampusChip[]
   sports: Sport[]
   anchorRef: React.RefObject<HTMLButtonElement | null>
@@ -73,6 +77,10 @@ export default function CalendarFilterPopover({
   onFilterChange,
   categories,
   athleticsVisible,
+  allCampuses = [],
+  visibleAthleticsCampusIds = new Set(),
+  onToggleAthleticsCampus,
+  onToggleAllAthletics,
   campuses,
   sports,
   anchorRef,
@@ -152,7 +160,7 @@ export default function CalendarFilterPopover({
       </div>
 
       {/* Category */}
-      {(categories.length > 0 || athleticsVisible) && (
+      {categories.length > 0 && (
         <div className="px-5 py-3">
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Category</p>
           <div className="flex flex-wrap gap-2">
@@ -177,24 +185,52 @@ export default function CalendarFilterPopover({
                 </button>
               )
             })}
-            {/* Athletics chip — appears alongside categories when athletics module is active */}
-            {athleticsVisible && (
-              <button
-                onClick={() => onFilterChange({ ...filter, categoryIds: toggleInSet(filter.categoryIds, '__athletics__') })}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  filter.categoryIds.has('__athletics__')
-                    ? 'text-white bg-red-500'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: filter.categoryIds.has('__athletics__') ? '#fff' : '#ef4444' }}
-                />
-                Athletics
-              </button>
-            )}
           </div>
+        </div>
+      )}
+
+      {/* Athletics — toggle on/off with campus selection */}
+      {allCampuses.length > 0 && (
+        <div className="px-5 py-3 border-t border-slate-100">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Athletics</p>
+            <button
+              onClick={() => onToggleAllAthletics?.(!athleticsVisible)}
+              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-colors ${
+                athleticsVisible
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              {athleticsVisible ? 'On' : 'Off'}
+            </button>
+          </div>
+          {athleticsVisible ? (
+            <div className="flex flex-wrap gap-2">
+              {allCampuses.map(({ id, name }) => {
+                const active = visibleAthleticsCampusIds.has(id)
+                return (
+                  <button
+                    key={id}
+                    onClick={() => onToggleAthleticsCampus?.(id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      active
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: active ? '#fff' : '#f97316' }}
+                    />
+                    {name}
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400">Toggle on to see athletic events by campus</p>
+          )}
         </div>
       )}
 
