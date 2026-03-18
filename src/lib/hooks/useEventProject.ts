@@ -32,6 +32,14 @@ export interface EventProject {
   updatedAt: string
   deletedAt: string | null
   metadata: Record<string, unknown> | null
+  requiresAV?: boolean
+  requiresFacilities?: boolean
+  approvalGates?: {
+    av?: { status: string; respondedById?: string | null; reason?: string | null; respondedAt?: string | null }
+    facilities?: { status: string; respondedById?: string | null; reason?: string | null; respondedAt?: string | null }
+    admin: { status: string; respondedById?: string | null; reason?: string | null; respondedAt?: string | null }
+  } | null
+  rejectionReason?: string | null
   building?: { id: string; name: string } | null
   area?: { id: string; name: string } | null
   room?: { id: string; name: string } | null
@@ -215,6 +223,62 @@ export function useApproveEventProject(id: string | null | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['event-project', id] })
       queryClient.invalidateQueries({ queryKey: ['event-projects'] })
+    },
+  })
+}
+
+/**
+ * Approve a specific gate (av, facilities, admin) on an event project.
+ */
+export function useApproveGate(id: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (gateType: 'av' | 'facilities' | 'admin') =>
+      fetchApi<EventProject>(`/api/events/projects/${id}/approve-gate`, {
+        method: 'POST',
+        body: JSON.stringify({ gateType }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-project', id] })
+      queryClient.invalidateQueries({ queryKey: ['event-projects'] })
+      queryClient.invalidateQueries({ queryKey: ['event-dashboard'] })
+    },
+  })
+}
+
+/**
+ * Reject a specific gate on an event project.
+ */
+export function useRejectGate(id: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { gateType: 'av' | 'facilities' | 'admin'; reason: string }) =>
+      fetchApi<EventProject>(`/api/events/projects/${id}/reject-gate`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-project', id] })
+      queryClient.invalidateQueries({ queryKey: ['event-projects'] })
+      queryClient.invalidateQueries({ queryKey: ['event-dashboard'] })
+    },
+  })
+}
+
+/**
+ * Resubmit an event project after revision following a rejection.
+ */
+export function useResubmitForApproval(id: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      fetchApi<EventProject>(`/api/events/projects/${id}/resubmit`, {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-project', id] })
+      queryClient.invalidateQueries({ queryKey: ['event-projects'] })
+      queryClient.invalidateQueries({ queryKey: ['event-dashboard'] })
     },
   })
 }

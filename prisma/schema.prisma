@@ -3797,6 +3797,10 @@ model EventProject {
   approvedById       String?
   approvedAt         DateTime?
   completedAt        DateTime?
+  requiresAV         Boolean             @default(false)
+  requiresFacilities Boolean             @default(false)
+  approvalGates      Json?               // { av?: GateState, facilities?: GateState, admin: GateState }
+  rejectionReason    String?             // Latest rejection reason (for revision flow)
   metadata           Json?               // Extensible data bag
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt

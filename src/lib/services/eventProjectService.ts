@@ -57,6 +57,10 @@ export async function createEventProject(
   const isDirectRequest = source === 'DIRECT_REQUEST'
   const initialStatus = isDirectRequest ? 'PENDING_APPROVAL' : 'CONFIRMED'
 
+  const requiresAV = !!(data as any).requiresAV
+  const requiresFacilities = !!(data as any).requiresFacilities
+  const approvalGates = isDirectRequest ? buildApprovalGates(requiresAV, requiresFacilities) : null
+
   const project = await db.eventProject.create({
     data: {
       title: data.title,
@@ -77,6 +81,9 @@ export async function createEventProject(
       source,
       sourceId: sourceId ?? null,
       createdById,
+      requiresAV,
+      requiresFacilities,
+      approvalGates: approvalGates ?? undefined,
       metadata: data.metadata ?? null,
     },
     include: {
@@ -259,8 +266,12 @@ export async function updateEventProject(
 
 /**
  * Approves a PENDING_APPROVAL EventProject.
- * Validates current status, transitions to CONFIRMED, records approver, then
- * creates the CalendarEvent bridge via confirmEventProject.
+ *
+ * If the project has approval gates (multi-gate workflow), delegates to
+ * approveGate('admin', ...) which enforces prerequisite checks.
+ *
+ * Legacy behavior (no gates): transitions directly to CONFIRMED and creates
+ * the CalendarEvent bridge.
  */
 export async function approveEventProject(
   id: string,
@@ -274,6 +285,12 @@ export async function approveEventProject(
     )
   }
 
+  // If gates exist, use the multi-gate workflow (approve admin gate)
+  if (existing.approvalGates) {
+    return approveGate(id, 'admin', approverId)
+  }
+
+  // Legacy: direct approval (no gates)
   const updated = await db.eventProject.update({
     where: { id },
     data: {
@@ -327,6 +344,251 @@ export async function rejectEventProject(
     fromStatus: existing.status,
     toStatus: 'CANCELLED',
     reason: reason ?? null,
+  })
+
+  return updated
+}
+
+// ─── Multi-Gate Approval Workflow ────────────────────────────────────────────
+
+/**
+ * Gate state stored in EventProject.approvalGates JSON field.
+ */
+export interface GateState {
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SKIPPED'
+  respondedById?: string | null
+  respondedAt?: string | null
+  reason?: string | null
+}
+
+export interface ApprovalGates {
+  av?: GateState
+  facilities?: GateState
+  admin: GateState
+}
+
+export type GateType = 'av' | 'facilities' | 'admin'
+
+/**
+ * Initializes approval gates on an EventProject when it's submitted.
+ * Called from createEventProject for DIRECT_REQUEST source.
+ *
+ * Gate logic:
+ * - requiresAV=true → creates an 'av' gate (PENDING)
+ * - requiresFacilities=true → creates a 'facilities' gate (PENDING)
+ * - Admin gate is always created but starts PENDING
+ * - If no AV/Facilities needed, admin gate is immediately actionable
+ */
+export function buildApprovalGates(requiresAV: boolean, requiresFacilities: boolean): ApprovalGates {
+  const gates: ApprovalGates = {
+    admin: { status: 'PENDING' },
+  }
+  if (requiresAV) {
+    gates.av = { status: 'PENDING' }
+  }
+  if (requiresFacilities) {
+    gates.facilities = { status: 'PENDING' }
+  }
+  return gates
+}
+
+/**
+ * Check if prerequisite gates (AV, Facilities) are cleared,
+ * meaning the Admin gate is actionable.
+ */
+export function isAdminGateActionable(gates: ApprovalGates): boolean {
+  const avCleared = !gates.av || gates.av.status === 'APPROVED' || gates.av.status === 'SKIPPED'
+  const facilitiesCleared = !gates.facilities || gates.facilities.status === 'APPROVED' || gates.facilities.status === 'SKIPPED'
+  return avCleared && facilitiesCleared
+}
+
+/**
+ * Check if ALL gates are approved (event can be confirmed).
+ */
+export function allGatesApproved(gates: ApprovalGates): boolean {
+  const adminOk = gates.admin.status === 'APPROVED'
+  const avOk = !gates.av || gates.av.status === 'APPROVED' || gates.av.status === 'SKIPPED'
+  const facilitiesOk = !gates.facilities || gates.facilities.status === 'APPROVED' || gates.facilities.status === 'SKIPPED'
+  return adminOk && avOk && facilitiesOk
+}
+
+/**
+ * Approves a specific gate on an EventProject.
+ *
+ * Rules:
+ * - AV/Facilities gates can be approved independently
+ * - Admin gate can only be approved if all prerequisite gates are cleared
+ * - If all gates are now approved, event transitions to CONFIRMED
+ */
+export async function approveGate(
+  eventProjectId: string,
+  gateType: GateType,
+  approverId: string,
+): Promise<Record<string, unknown>> {
+  const existing = await db.eventProject.findUnique({ where: { id: eventProjectId } })
+  if (!existing) throw new Error(`EventProject not found: ${eventProjectId}`)
+  if (existing.status !== 'PENDING_APPROVAL') {
+    throw new Error(`Cannot approve gate on EventProject in status ${existing.status}. Expected PENDING_APPROVAL.`)
+  }
+
+  const gates: ApprovalGates = existing.approvalGates ?? { admin: { status: 'PENDING' } }
+
+  // Validate gate exists
+  if (gateType !== 'admin' && !gates[gateType]) {
+    throw new Error(`No ${gateType} gate exists on this event. It may not require ${gateType} approval.`)
+  }
+
+  // Admin gate: check prerequisites
+  if (gateType === 'admin' && !isAdminGateActionable(gates)) {
+    const pendingGates: string[] = []
+    if (gates.av && gates.av.status === 'PENDING') pendingGates.push('AV')
+    if (gates.facilities && gates.facilities.status === 'PENDING') pendingGates.push('Facilities')
+    throw new Error(`Cannot approve admin gate. Waiting on: ${pendingGates.join(', ')}`)
+  }
+
+  // Update the gate
+  const gate = gates[gateType]!
+  gate.status = 'APPROVED'
+  gate.respondedById = approverId
+  gate.respondedAt = new Date().toISOString()
+
+  // Check if event should be fully confirmed
+  const shouldConfirm = allGatesApproved(gates)
+
+  const updateData: Record<string, unknown> = {
+    approvalGates: gates,
+  }
+  if (shouldConfirm) {
+    updateData.status = 'CONFIRMED'
+    updateData.approvedById = approverId
+    updateData.approvedAt = new Date()
+  }
+
+  const updated = await db.eventProject.update({
+    where: { id: eventProjectId },
+    data: updateData,
+  })
+
+  await appendActivityLog(eventProjectId, approverId, 'GATE_APPROVED', {
+    gateType,
+    allGatesCleared: shouldConfirm,
+    gates,
+  })
+
+  // If fully approved, create CalendarEvent bridge + sync
+  if (shouldConfirm) {
+    await confirmEventProject(eventProjectId, approverId)
+
+    try {
+      const { syncEventToCalendar } = await import(
+        '@/lib/services/integrations/googleCalendarService'
+      )
+      const freshProject = await db.eventProject.findUnique({ where: { id: eventProjectId } })
+      if (freshProject) {
+        await syncEventToCalendar(approverId, freshProject.organizationId, freshProject)
+      }
+    } catch (err) {
+      log.error({ err, eventProjectId }, 'Google Calendar sync failed after gate approval — non-fatal')
+    }
+  }
+
+  return updated
+}
+
+/**
+ * Rejects a specific gate on an EventProject.
+ * Sends the event back to DRAFT so the submitter can revise and resubmit.
+ * Only resets the rejected gate — other approved gates are preserved.
+ */
+export async function rejectGate(
+  eventProjectId: string,
+  gateType: GateType,
+  actorId: string,
+  reason: string,
+): Promise<Record<string, unknown>> {
+  const existing = await db.eventProject.findUnique({ where: { id: eventProjectId } })
+  if (!existing) throw new Error(`EventProject not found: ${eventProjectId}`)
+  if (existing.status !== 'PENDING_APPROVAL') {
+    throw new Error(`Cannot reject gate on EventProject in status ${existing.status}. Expected PENDING_APPROVAL.`)
+  }
+
+  const gates: ApprovalGates = existing.approvalGates ?? { admin: { status: 'PENDING' } }
+
+  if (gateType !== 'admin' && !gates[gateType]) {
+    throw new Error(`No ${gateType} gate exists on this event.`)
+  }
+
+  // Mark the gate as rejected
+  const gate = gates[gateType]!
+  gate.status = 'REJECTED'
+  gate.respondedById = actorId
+  gate.respondedAt = new Date().toISOString()
+  gate.reason = reason
+
+  // Send event back to DRAFT for revision
+  const updated = await db.eventProject.update({
+    where: { id: eventProjectId },
+    data: {
+      status: 'DRAFT',
+      approvalGates: gates,
+      rejectionReason: reason,
+    },
+  })
+
+  await appendActivityLog(eventProjectId, actorId, 'GATE_REJECTED', {
+    gateType,
+    reason,
+    gates,
+  })
+
+  return updated
+}
+
+/**
+ * Resubmits an event after revision following a rejection.
+ * Resets only the rejected gate(s) back to PENDING, preserving approved gates.
+ * Transitions status from DRAFT back to PENDING_APPROVAL.
+ */
+export async function resubmitForApproval(
+  eventProjectId: string,
+  userId: string,
+): Promise<Record<string, unknown>> {
+  const existing = await db.eventProject.findUnique({ where: { id: eventProjectId } })
+  if (!existing) throw new Error(`EventProject not found: ${eventProjectId}`)
+  if (existing.status !== 'DRAFT') {
+    throw new Error(`Cannot resubmit EventProject in status ${existing.status}. Expected DRAFT.`)
+  }
+  if (existing.createdById !== userId) {
+    throw new Error('Only the creator can resubmit for approval.')
+  }
+  if (!existing.approvalGates) {
+    throw new Error('No approval gates found. Use the standard submission flow.')
+  }
+
+  const gates: ApprovalGates = existing.approvalGates as ApprovalGates
+
+  // Reset any rejected gates back to PENDING
+  for (const key of ['av', 'facilities', 'admin'] as GateType[]) {
+    const gate = gates[key]
+    if (gate && gate.status === 'REJECTED') {
+      gate.status = 'PENDING'
+      gate.respondedById = null
+      gate.respondedAt = null
+      gate.reason = null
+    }
+  }
+
+  const updated = await db.eventProject.update({
+    where: { id: eventProjectId },
+    data: {
+      status: 'PENDING_APPROVAL',
+      approvalGates: gates,
+      rejectionReason: null,
+    },
+  })
+
+  await appendActivityLog(eventProjectId, userId, 'RESUBMITTED', {
+    gates,
   })
 
   return updated

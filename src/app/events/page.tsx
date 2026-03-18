@@ -127,6 +127,46 @@ function StatCard({ label, value, icon: Icon, iconBg, iconColor }: StatCardProps
   )
 }
 
+// ─── Gate Status Helpers ─────────────────────────────────────────────────────
+
+const GATE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
+  PENDING: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' },
+  APPROVED: { label: 'Approved', bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-400' },
+  REJECTED: { label: 'Rejected', bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-400' },
+  SKIPPED: { label: 'Skipped', bg: 'bg-gray-50', text: 'text-gray-500', dot: 'bg-gray-300' },
+}
+
+const GATE_LABELS: Record<string, string> = {
+  av: 'AV',
+  facilities: 'Facilities',
+  admin: 'Admin',
+}
+
+function GateIndicators({ gates }: { gates: EventProject['approvalGates'] }) {
+  if (!gates) return null
+
+  const entries = Object.entries(gates).filter(([, v]) => v != null) as [string, { status: string }][]
+  if (entries.length === 0) return null
+
+  return (
+    <div className="flex items-center gap-1.5 mt-2.5">
+      {entries.map(([key, gate]) => {
+        const config = GATE_STATUS_CONFIG[gate.status] ?? GATE_STATUS_CONFIG.PENDING
+        return (
+          <span
+            key={key}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${config.bg} ${config.text}`}
+            title={`${GATE_LABELS[key] ?? key}: ${config.label}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+            {GATE_LABELS[key] ?? key}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Event Card ──────────────────────────────────────────────────────────────
 
 function EventCard({ project, onClick }: { project: EventProject; onClick: () => void }) {
@@ -179,6 +219,19 @@ function EventCard({ project, onClick }: { project: EventProject; onClick: () =>
 
       {creatorName && (
         <p className="text-xs text-gray-400 mt-2">By {creatorName}</p>
+      )}
+
+      {/* Approval gate indicators */}
+      {project.approvalGates && project.status === 'PENDING_APPROVAL' && (
+        <GateIndicators gates={project.approvalGates} />
+      )}
+
+      {/* Rejection reason banner */}
+      {project.rejectionReason && project.status === 'DRAFT' && (
+        <div className="mt-2.5 px-3 py-2 rounded-lg bg-red-50 border border-red-100">
+          <p className="text-xs text-red-700 font-medium">Revision needed</p>
+          <p className="text-xs text-red-600 mt-0.5">{project.rejectionReason}</p>
+        </div>
       )}
     </motion.div>
   )
