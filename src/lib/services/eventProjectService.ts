@@ -157,7 +157,7 @@ export async function getEventProject(id: string): Promise<Record<string, unknow
       school: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       area: { select: { id: true, name: true } },
-      room: { select: { id: true, name: true } },
+      room: { select: { id: true, displayName: true, roomNumber: true } },
     },
   })
 }
@@ -201,7 +201,7 @@ export async function listPendingGateApprovals(gateType: GateType): Promise<Reco
     include: {
       createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
       building: { select: { id: true, name: true } },
-      room: { select: { id: true, name: true } },
+      room: { select: { id: true, displayName: true, roomNumber: true } },
       _count: { select: { tasks: true, scheduleBlocks: true } },
     },
     orderBy: { startsAt: 'asc' },
