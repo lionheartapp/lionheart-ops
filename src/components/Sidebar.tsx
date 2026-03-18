@@ -171,8 +171,13 @@ export default function Sidebar({
   const isITPath = (p: string, params?: URLSearchParams) =>
     p.startsWith('/it') || (p === '/inventory' && params?.get('dept') === 'it')
 
+  // Helper: is this path in the AV context? (includes /inventory without dept param)
+  const isAVPath = (p: string, params?: URLSearchParams) =>
+    p.startsWith('/av') || (p === '/inventory' && !params?.get('dept'))
+
   const [facilitiesOpen, setFacilitiesOpen] = useState(() => isMaintenancePath(pathname, pageSearchParams))
   const [itOpen, setItOpen] = useState(() => isITPath(pathname, pageSearchParams))
+  const [avOpen, setAvOpen] = useState(() => isAVPath(pathname, pageSearchParams))
 
   // ── Facilities nav indicator ──
   // Uses Framer Motion's useMotionValue + animate() for the indicator position.
@@ -366,6 +371,7 @@ export default function Sidebar({
     if (isMaintenancePath(pathname, pageSearchParams)) {
       setFacilitiesOpen(true)
       setItOpen(false)
+      setAvOpen(false)
     }
   }, [pathname, pageSearchParams])
 
@@ -374,6 +380,16 @@ export default function Sidebar({
     if (isITPath(pathname, pageSearchParams)) {
       setItOpen(true)
       setFacilitiesOpen(false)
+      setAvOpen(false)
+    }
+  }, [pathname, pageSearchParams])
+
+  // Auto-expand AV section when on an AV route (includes /inventory without dept)
+  useIsomorphicLayoutEffect(() => {
+    if (isAVPath(pathname, pageSearchParams)) {
+      setAvOpen(true)
+      setFacilitiesOpen(false)
+      setItOpen(false)
     }
   }, [pathname, pageSearchParams])
 
@@ -1102,8 +1118,13 @@ export default function Sidebar({
                   >
                     <Wrench className={`w-5 h-5 flex-shrink-0 ${facilitiesOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
                     <span className="text-sm">Maintenance</span>
+                    {!facilitiesOpen && (facilitiesGateCount?.count ?? 0) > 0 && (
+                      <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto">
+                        {facilitiesGateCount!.count}
+                      </span>
+                    )}
                     <motion.span
-                      className="ml-auto block"
+                      className={`${!facilitiesOpen && (facilitiesGateCount?.count ?? 0) > 0 ? '' : 'ml-auto'} block`}
                       animate={{ rotate: facilitiesOpen ? 180 : 0 }}
                       transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                     >
@@ -1512,58 +1533,85 @@ export default function Sidebar({
                 </li>
               )}
 
-              {/* AV Inventory — visible to AV team + admin + super-admin with inventory read permission */}
-              {canReadInventory && (isOnAVTeam || canManageWorkspace) && (
-                <li>
-                  <PrefetchLink
-                    href="/inventory"
-                    onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setFacilitiesOpen(false)
-                      setItOpen(false)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
-                      pathname === '/inventory' && !pageSearchParams.get('dept')
-                        ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                        : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
-                    }`}
-                    aria-current={pathname === '/inventory' && !pageSearchParams.get('dept') ? 'page' : undefined}
-                  >
-                    <Package className={`w-5 h-5 flex-shrink-0 ${pathname === '/inventory' && !pageSearchParams.get('dept') ? 'text-primary-500' : ''}`} aria-hidden="true" />
-                    <span className="text-sm">AV Inventory</span>
-                  </PrefetchLink>
-                </li>
-              )}
-
-              {/* AV Event Approvals — events needing A/V sign-off */}
+              {/* A/V Production — collapsible dropdown (like Maintenance) */}
               {(isOnAVTeam || canManageWorkspace) && (
                 <li>
-                  <PrefetchLink
-                    href="/av/event-approvals"
+                  <button
                     onClick={() => {
-                      setSettingsOpen(false)
-                      setAthleticsOpen(false)
-                      setFacilitiesOpen(false)
-                      setItOpen(false)
-                      setIsOpen(false)
+                      setAvOpen((prev) => {
+                        if (!prev) { setFacilitiesOpen(false); setItOpen(false) }
+                        return !prev
+                      })
                     }}
-                    className={`flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
-                      pathname === '/av/event-approvals'
+                    className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                      avOpen
                         ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                        : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                        : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
                     }`}
-                    aria-current={pathname === '/av/event-approvals' ? 'page' : undefined}
+                    aria-expanded={avOpen}
+                    aria-label={avOpen ? 'Collapse A/V Production' : 'Expand A/V Production'}
                   >
-                    <Calendar className={`w-5 h-5 flex-shrink-0 ${pathname === '/av/event-approvals' ? 'text-primary-500' : ''}`} aria-hidden="true" />
-                    <span className="text-sm flex-1">AV Event Approvals</span>
-                    {(avGateCount?.count ?? 0) > 0 && (
-                      <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none">
+                    <Package className={`w-5 h-5 flex-shrink-0 ${avOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
+                    <span className="text-sm">A/V Production</span>
+                    {!avOpen && (avGateCount?.count ?? 0) > 0 && (
+                      <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto">
                         {avGateCount!.count}
                       </span>
                     )}
-                  </PrefetchLink>
+                    <motion.span
+                      className={`${!avOpen && (avGateCount?.count ?? 0) > 0 ? '' : 'ml-auto'} block`}
+                      animate={{ rotate: avOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                    >
+                      <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                    </motion.span>
+                  </button>
+                  {/* Child links */}
+                  <div
+                    className="relative ml-8 mt-1 overflow-hidden"
+                    style={{
+                      maxHeight: avOpen ? '200px' : '0px',
+                      opacity: avOpen ? 1 : 0,
+                      transition: 'max-height 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.2s ease',
+                    }}
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-slate-300/40" />
+                    <div className="space-y-0.5 py-1">
+                      {/* Inventory */}
+                      {canReadInventory && (
+                        <PrefetchLink
+                          href="/inventory"
+                          onClick={() => { setSettingsOpen(false); setAthleticsOpen(false); setIsOpen(false) }}
+                          className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                            pathname === '/inventory' && !pageSearchParams.get('dept')
+                              ? 'text-slate-900 font-medium'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                          aria-current={pathname === '/inventory' && !pageSearchParams.get('dept') ? 'page' : undefined}
+                        >
+                          <span className="text-sm">Inventory</span>
+                        </PrefetchLink>
+                      )}
+                      {/* Event Approvals */}
+                      <PrefetchLink
+                        href="/av/event-approvals"
+                        onClick={() => { setSettingsOpen(false); setAthleticsOpen(false); setIsOpen(false) }}
+                        className={`flex items-center justify-between pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                          pathname === '/av/event-approvals'
+                            ? 'text-slate-900 font-medium'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                        aria-current={pathname === '/av/event-approvals' ? 'page' : undefined}
+                      >
+                        <span className="text-sm">Event Approvals</span>
+                        {(avGateCount?.count ?? 0) > 0 && (
+                          <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none">
+                            {avGateCount!.count}
+                          </span>
+                        )}
+                      </PrefetchLink>
+                    </div>
+                  </div>
                 </li>
               )}
             </ul>
