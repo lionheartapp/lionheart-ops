@@ -28,8 +28,8 @@ const ACTIVITY_LABELS: Record<string, { label: string; color: string }> = {
 // ─── Description builder ─────────────────────────────────────────────────────
 
 function buildDescription(entry: ActivityEntry): string {
-  const details = entry.details as Record<string, unknown> | null
-  switch (entry.action) {
+  const details = entry.metadata as Record<string, unknown> | null
+  switch (entry.type) {
     case 'CREATED':
       return 'created this event'
     case 'STATUS_CHANGE':
@@ -64,7 +64,7 @@ function buildDescription(entry: ActivityEntry): string {
     case 'CANCELLED':
       return 'cancelled this event'
     default:
-      return entry.action.replace(/_/g, ' ').toLowerCase()
+      return (entry.type || 'activity').replace(/_/g, ' ').toLowerCase()
   }
 }
 
@@ -139,7 +139,7 @@ export function EventActivityLog({ eventProjectId, limit }: EventActivityLogProp
       className="space-y-1"
     >
       {displayed.map((entry) => {
-        const typeConfig = ACTIVITY_LABELS[entry.action] || { label: entry.action, color: 'bg-gray-100 text-gray-600' }
+        const typeConfig = ACTIVITY_LABELS[entry.type] || { label: entry.type, color: 'bg-gray-100 text-gray-600' }
         const description = buildDescription(entry)
         const timeAgo = formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })
 

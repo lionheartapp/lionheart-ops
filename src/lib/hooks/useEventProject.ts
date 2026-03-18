@@ -110,8 +110,8 @@ export interface EventActivityLog {
   id: string
   eventProjectId: string
   actorId: string
-  action: string
-  details: Record<string, unknown> | null
+  type: string
+  metadata: Record<string, unknown> | null
   createdAt: string
   actor?: {
     id: string
