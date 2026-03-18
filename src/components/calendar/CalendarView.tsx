@@ -329,23 +329,38 @@ export default function CalendarView() {
 
   const filteredEvents = useMemo(() => {
     let result = events
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
+    const q = searchQuery.trim().toLowerCase()
+    if (q) {
       result = result.filter((e) => e.title.toLowerCase().includes(q))
     }
-    if (calendarFilter.categoryIds.size > 0) {
-      result = result.filter((e) => e.categoryId && calendarFilter.categoryIds.has(e.categoryId))
+
+    // Separate athletics filter key from real category IDs
+    const wantsAthletics = calendarFilter.categoryIds.has('__athletics__')
+    const realCategoryIds = new Set(calendarFilter.categoryIds)
+    realCategoryIds.delete('__athletics__')
+
+    // Filter regular events by category (if any real categories selected)
+    if (realCategoryIds.size > 0 || wantsAthletics) {
+      if (realCategoryIds.size > 0) {
+        result = result.filter((e) => e.categoryId && realCategoryIds.has(e.categoryId))
+      } else if (wantsAthletics && !realCategoryIds.size) {
+        // Only athletics is selected — hide regular events
+        result = []
+      }
     }
-    // Merge athletics events (already filtered by athletics filter)
-    if (filteredAthleticsEvents.length > 0) {
-      // Apply search filter to athletics events too
+
+    // Merge athletics events when:
+    // - No category filters are active (show everything), OR
+    // - __athletics__ is explicitly selected
+    const showAthletics = calendarFilter.categoryIds.size === 0 || wantsAthletics
+    if (showAthletics && filteredAthleticsEvents.length > 0) {
       let athEvents = filteredAthleticsEvents
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase()
+      if (q) {
         athEvents = athEvents.filter((e) => e.title.toLowerCase().includes(q))
       }
       result = [...result, ...athEvents]
     }
+
     return result
   }, [events, searchQuery, calendarFilter.categoryIds, filteredAthleticsEvents])
 

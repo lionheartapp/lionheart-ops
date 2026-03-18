@@ -152,7 +152,7 @@ export default function CalendarFilterPopover({
       </div>
 
       {/* Category */}
-      {categories.length > 0 && (
+      {(categories.length > 0 || athleticsVisible) && (
         <div className="px-5 py-3">
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Category</p>
           <div className="flex flex-wrap gap-2">
@@ -177,6 +177,23 @@ export default function CalendarFilterPopover({
                 </button>
               )
             })}
+            {/* Athletics chip — appears alongside categories when athletics module is active */}
+            {athleticsVisible && (
+              <button
+                onClick={() => onFilterChange({ ...filter, categoryIds: toggleInSet(filter.categoryIds, '__athletics__') })}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  filter.categoryIds.has('__athletics__')
+                    ? 'text-white bg-red-500'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: filter.categoryIds.has('__athletics__') ? '#fff' : '#ef4444' }}
+                />
+                Athletics
+              </button>
+            )}
           </div>
         </div>
       )}
