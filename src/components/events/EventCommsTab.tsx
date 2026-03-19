@@ -42,25 +42,25 @@ function SubTabBar({ activeTab, onChange, announcementCount, activeSurveyCount, 
   ]
 
   return (
-    <div className="flex gap-1 p-1 bg-slate-100 rounded-xl w-fit">
+    <div className="flex bg-slate-100 rounded-full p-1 w-fit">
       {tabs.map(({ id, label, count, icon: Icon }) => (
         <button
           key={id}
           type="button"
           onClick={() => onChange(id)}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
             activeTab === id
-              ? 'bg-white text-slate-900 shadow-sm'
+              ? 'bg-slate-900 text-white shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          <Icon className="w-4 h-4" />
+          <Icon className={`w-4 h-4 ${activeTab === id ? 'text-white' : ''}`} />
           {label}
           {count > 0 && (
             <span
               className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
                 activeTab === id
-                  ? 'bg-indigo-100 text-indigo-700'
+                  ? 'bg-white/20 text-white'
                   : 'bg-slate-200 text-slate-600'
               }`}
             >

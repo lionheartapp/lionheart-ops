@@ -518,12 +518,11 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900">Tasks</h3>
-          {totalCount > 0 && (
-            <p className="text-xs text-slate-500 mt-0.5">{completedCount}/{totalCount} complete</p>
-          )}
-        </div>
+        {totalCount > 0 ? (
+          <p className="text-xs text-slate-500">{completedCount}/{totalCount} complete</p>
+        ) : (
+          <div />
+        )}
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}

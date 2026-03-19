@@ -352,7 +352,7 @@ export function RegistrationTab({
       <div>
         {/* Sub-tab bar with AI generate button */}
         <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-          <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
+          <div className="flex bg-slate-100 rounded-full p-1 w-fit">
             {SUB_TABS.map((tab) => {
               const Icon = tab.icon
               const isActive = tab.id === activeSubTab
@@ -360,13 +360,13 @@ export function RegistrationTab({
                 <button
                   key={tab.id}
                   onClick={() => setActiveSubTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-white text-slate-900 shadow-sm'
+                      ? 'bg-slate-900 text-white shadow-sm'
                       : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-500' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                   {tab.label}
                 </button>
               )

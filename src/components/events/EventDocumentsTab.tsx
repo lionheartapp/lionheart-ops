@@ -272,18 +272,18 @@ const SUB_TABS: { id: SubTab; label: string; icon: React.ComponentType<{ classNa
 
 function SubTabBar({ active, onChange }: SubTabBarProps) {
   return (
-    <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit">
+    <div className="flex items-center bg-slate-100 rounded-full p-1 w-fit">
       {SUB_TABS.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           onClick={() => onChange(id)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
             active === id
-              ? 'bg-white text-slate-900 shadow-sm'
+              ? 'bg-slate-900 text-white shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          <Icon className={`w-3.5 h-3.5 ${active === id ? 'text-indigo-500' : 'text-slate-400'}`} />
+          <Icon className={`w-3.5 h-3.5 ${active === id ? 'text-white' : 'text-slate-400'}`} />
           {label}
         </button>
       ))}

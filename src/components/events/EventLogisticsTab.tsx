@@ -406,7 +406,6 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
         {/* Header row */}
         <motion.div variants={fadeInUp} className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Logistics & Groups</h2>
             <QuickStats eventProjectId={eventProjectId} />
           </div>
 

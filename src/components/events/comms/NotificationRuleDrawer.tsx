@@ -405,7 +405,7 @@ export function NotificationRuleDrawer({
           <SectionLabel>Trigger Configuration</SectionLabel>
 
           {/* Trigger type segmented control */}
-          <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-4">
+          <div className="flex bg-slate-100 rounded-full p-1 mb-4">
             {TRIGGER_TABS.map(({ id, label: tabLabel, icon: Icon }) => (
               <button
                 key={id}
@@ -413,15 +413,15 @@ export function NotificationRuleDrawer({
                 disabled={isReadOnly}
                 onClick={() => setTriggerType(id)}
                 className={`
-                  flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium
+                  flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-full text-xs font-medium
                   transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                   ${triggerType === id
-                    ? 'bg-white text-slate-900 shadow-sm'
+                    ? 'bg-slate-900 text-white shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
                   }
                 `}
               >
-                <Icon className="w-3 h-3" />
+                <Icon className={`w-3 h-3 ${triggerType === id ? 'text-white' : ''}`} />
                 <span className="hidden sm:inline">{tabLabel}</span>
               </button>
             ))}
@@ -443,7 +443,7 @@ export function NotificationRuleDrawer({
                   className="w-16 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50"
                 />
                 <span className="text-sm text-slate-600">days</span>
-                <div className="flex gap-1 p-0.5 bg-slate-100 rounded-lg">
+                <div className="flex bg-slate-100 rounded-full p-0.5">
                   {(['before', 'after'] as const).map((opt) => (
                     <button
                       key={opt}
@@ -451,8 +451,8 @@ export function NotificationRuleDrawer({
                       disabled={isReadOnly}
                       onClick={() => setBeforeAfter(opt)}
                       className={`
-                        px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer disabled:cursor-not-allowed
-                        ${beforeAfter === opt ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}
+                        px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer disabled:cursor-not-allowed
+                        ${beforeAfter === opt ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}
                       `}
                     >
                       {opt}

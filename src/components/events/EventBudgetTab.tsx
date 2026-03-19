@@ -230,7 +230,7 @@ export function EventBudgetTab({ eventProjectId }: EventBudgetTabProps) {
               onClick={() => setActiveSubTab(tab.id)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeSubTab === tab.id
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-700'
               }`}
             >
