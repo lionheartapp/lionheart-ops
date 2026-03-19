@@ -931,9 +931,11 @@ function ScheduleSection({
 interface EventScheduleTabProps {
   eventProjectId: string
   defaultDate?: string
+  eventStartDate?: string  // ISO date string (e.g. '2026-04-09')
+  eventEndDate?: string    // ISO date string (e.g. '2026-04-11')
 }
 
-export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleTabProps) {
+export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, eventEndDate }: EventScheduleTabProps) {
   const { data: blocks, isLoading } = useScheduleBlocks(eventProjectId)
   const createBlock = useCreateScheduleBlock(eventProjectId)
   const updateBlock = useUpdateScheduleBlock(eventProjectId)
@@ -951,6 +953,29 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
     return new Date(format(new Date(), 'yyyy-MM-dd') + 'T00:00:00')
   })
   const [customTypes, setCustomTypes] = useState<BlockTypeConfig[]>(() => loadCustomTypes(eventProjectId))
+
+  // Build array of valid event dates for bounded navigation
+  const eventDates = useMemo(() => {
+    if (!eventStartDate || !eventEndDate) return null
+    const start = new Date(eventStartDate + 'T00:00:00')
+    const end = new Date(eventEndDate + 'T00:00:00')
+    const dates: Date[] = []
+    let cursor = start
+    while (cursor <= end) {
+      dates.push(cursor)
+      cursor = addDays(cursor, 1)
+    }
+    return dates
+  }, [eventStartDate, eventEndDate])
+
+  const currentDateIndex = useMemo(() => {
+    if (!eventDates) return -1
+    const key = format(selectedDate, 'yyyy-MM-dd')
+    return eventDates.findIndex((d) => format(d, 'yyyy-MM-dd') === key)
+  }, [eventDates, selectedDate])
+
+  const canGoPrev = eventDates ? currentDateIndex > 0 : true
+  const canGoNext = eventDates ? currentDateIndex < eventDates.length - 1 : true
 
   const allTypes = useMemo(() => getAllBlockTypes(eventProjectId, customTypes), [eventProjectId, customTypes])
 
@@ -1104,8 +1129,44 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
 
   return (
     <div className="space-y-5">
-      {/* View mode toggle + Day navigator */}
+      {/* Day navigator + View mode toggle */}
       <div className="flex items-center justify-between">
+        {/* Day navigator — bounded to event dates */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => canGoPrev && setSelectedDate((d) => subDays(d, 1))}
+            disabled={!canGoPrev}
+            className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-all ${
+              canGoPrev
+                ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 cursor-pointer'
+                : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="px-4 py-2 min-w-[200px] text-center">
+            <h4 className="text-sm font-semibold text-slate-900">
+              {format(selectedDate, 'EEEE, MMMM d')}
+            </h4>
+            {eventDates && eventDates.length > 1 && currentDateIndex >= 0 && (
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Day {currentDateIndex + 1} of {eventDates.length}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => canGoNext && setSelectedDate((d) => addDays(d, 1))}
+            disabled={!canGoNext}
+            className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-all ${
+              canGoNext
+                ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 cursor-pointer'
+                : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+            }`}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Order / Timeline pill toggle */}
         <div className="flex items-center bg-slate-100 rounded-full p-1">
           <button
@@ -1127,27 +1188,6 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
             }`}
           >
             Timeline
-          </button>
-        </div>
-
-        {/* Day navigator */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSelectedDate((d) => subDays(d, 1))}
-            className="flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <div className="px-4 py-2 min-w-[200px] text-center">
-            <h4 className="text-sm font-semibold text-slate-900">
-              {format(selectedDate, 'EEEE, MMMM d')}
-            </h4>
-          </div>
-          <button
-            onClick={() => setSelectedDate((d) => addDays(d, 1))}
-            className="flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

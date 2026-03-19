@@ -157,13 +157,22 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
   const defaultDate = project.startsAt
     ? project.startsAt.split('T')[0]
     : undefined
+  const eventStartDate = project.startsAt ? project.startsAt.split('T')[0] : undefined
+  const eventEndDate = project.endsAt ? project.endsAt.split('T')[0] : undefined
 
   function renderTab() {
     switch (activeTab) {
       case 'overview':
         return <EventOverviewTab project={project} />
       case 'schedule':
-        return <EventScheduleTab eventProjectId={project.id} defaultDate={defaultDate} />
+        return (
+          <EventScheduleTab
+            eventProjectId={project.id}
+            defaultDate={defaultDate}
+            eventStartDate={eventStartDate}
+            eventEndDate={eventEndDate}
+          />
+        )
       case 'people':
         return <EventPeopleTab eventProjectId={project.id} />
       case 'registration':
