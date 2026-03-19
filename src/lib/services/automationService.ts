@@ -10,6 +10,7 @@
  * Each function is idempotent — safe to run multiple times.
  */
 
+import { Prisma } from '@prisma/client'
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import * as notificationService from '@/lib/services/notificationService'
@@ -185,7 +186,7 @@ export async function processApprovalGateTimeouts(): Promise<{ reminded: number 
       where: {
         status: 'PENDING_APPROVAL',
         updatedAt: { lte: seventyTwoHoursAgo },
-        approvalGates: { not: null },
+        approvalGates: { not: Prisma.JsonNullValueFilter.JsonNull },
         deletedAt: null,
       },
       include: {
