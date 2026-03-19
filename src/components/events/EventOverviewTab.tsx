@@ -20,6 +20,7 @@ import {
   ThumbsDown,
   Minus,
   BookmarkPlus,
+  Check,
 } from 'lucide-react'
 import { fadeInUp, staggerContainer, listItem } from '@/lib/animations'
 import { EventActivityLog } from './EventActivityLog'
@@ -68,19 +69,23 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
 
           return (
             <div key={step.key} className="flex items-center flex-1 last:flex-none">
+              {/* Circle — larger, with checkmark for completed steps */}
               <div
-                className={`w-3 h-3 rounded-full border-2 transition-colors flex-shrink-0 ${
+                className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
                   isCurrent
-                    ? 'border-indigo-500 bg-indigo-500'
+                    ? 'bg-indigo-500 ring-4 ring-indigo-100'
                     : isDone
-                    ? 'border-indigo-300 bg-indigo-300'
-                    : 'border-slate-200 bg-white'
+                    ? 'bg-slate-300'
+                    : 'border-2 border-slate-200 bg-white'
                 }`}
-              />
+              >
+                {isDone && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                {isCurrent && <div className="w-2 h-2 rounded-full bg-white" />}
+              </div>
               {i < STATUS_STEPS.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 transition-colors ${
-                    isDone ? 'bg-indigo-300' : 'bg-slate-200'
+                    isDone ? 'bg-slate-300' : 'bg-slate-200'
                   }`}
                 />
               )}
@@ -89,18 +94,17 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
         })}
       </div>
       {/* Labels row — evenly spaced */}
-      <div className="flex justify-between mt-1.5">
+      <div className="flex justify-between mt-2">
         {STATUS_STEPS.map((step, i) => {
           const isDone = i < currentIndex
           const isCurrent = i === currentIndex
-          const isUpcoming = i > currentIndex
 
           return (
             <span
               key={step.key}
               className={`text-[10px] font-medium text-center leading-tight ${
-                isCurrent ? 'text-indigo-600' : isDone ? 'text-indigo-400' : 'text-slate-400'
-              } ${isUpcoming ? 'opacity-60' : ''}`}
+                isCurrent ? 'text-indigo-600 font-semibold' : isDone ? 'text-slate-500' : 'text-slate-300'
+              }`}
             >
               {step.label}
             </span>
@@ -445,19 +449,6 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       animate="visible"
       className="space-y-6"
     >
-      {/* Save as Template button */}
-      {canSaveAsTemplate && (
-        <motion.div variants={listItem} className="flex justify-end">
-          <button
-            onClick={() => setIsTemplateDialogOpen(true)}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
-          >
-            <BookmarkPlus className="w-4 h-4" />
-            Save as Template
-          </button>
-        </motion.div>
-      )}
-
       {/* Event Details — moved above stats for context-first reading */}
       <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
         <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">

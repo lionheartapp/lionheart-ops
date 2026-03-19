@@ -4,7 +4,7 @@ import { use, useState, useEffect, Component, type ReactNode, type ErrorInfo } f
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
-import { CalendarDays, MapPin, Loader2, AlertCircle, QrCode } from 'lucide-react'
+import { CalendarDays, MapPin, Loader2, AlertCircle, QrCode, BookmarkPlus } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import EventSidebar, { type TabId } from '@/components/events/EventSidebar'
 import { staggerContainer, listItem, tabContent } from '@/lib/animations'
@@ -19,6 +19,7 @@ import { EventBudgetTab } from '@/components/events/EventBudgetTab'
 import { EventCommsTab } from '@/components/events/EventCommsTab'
 import { RegistrationTab } from '@/components/events/project/RegistrationTab'
 import { PresenceBar } from '@/components/events/comms/PresenceBar'
+import { SaveAsTemplateDialog } from '@/components/events/templates/SaveAsTemplateDialog'
 import { useToast } from '@/components/Toast'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 
@@ -225,13 +226,18 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
     }
   }, [])
 
-  // Read org logo from localStorage
+  // Read org branding from localStorage
   const [orgLogoUrl, setOrgLogoUrl] = useState<string | undefined>(undefined)
+  const [orgName, setOrgName] = useState<string | undefined>(undefined)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setOrgLogoUrl(localStorage.getItem('org-logo-url') || undefined)
+      setOrgName(localStorage.getItem('org-name') || undefined)
     }
   }, [])
+
+  // Save as template dialog
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
 
   function handleTabChange(tab: TabId) {
     setActiveTab(tab)
@@ -289,6 +295,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       organizationLogoUrl={orgLogoUrl}
+      organizationName={orgName}
     />
   )
 
@@ -365,9 +372,18 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
             </div>
           </motion.div>
 
-          {/* Section label — shows which tab is active */}
-          <motion.div variants={listItem} className="mb-4">
+          {/* Section label — shows which tab is active, with inline actions */}
+          <motion.div variants={listItem} className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">{TAB_LABELS[activeTab]}</h2>
+            {activeTab === 'overview' && ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(project.status) && (
+              <button
+                onClick={() => setIsTemplateDialogOpen(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
+              >
+                <BookmarkPlus className="w-4 h-4" />
+                Save as Template
+              </button>
+            )}
           </motion.div>
 
           {/* Tab content */}
@@ -386,6 +402,13 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
           </AnimatePresence>
         </motion.div>
       </div>
+      <SaveAsTemplateDialog
+        eventProjectId={project.id}
+        eventTitle={project.title}
+        eventType={null}
+        isOpen={isTemplateDialogOpen}
+        onClose={() => setIsTemplateDialogOpen(false)}
+      />
     </DashboardLayout>
   )
 }
