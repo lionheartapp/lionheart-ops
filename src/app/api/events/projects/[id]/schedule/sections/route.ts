@@ -6,21 +6,20 @@ import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
-import { createScheduleBlock } from '@/lib/services/eventProjectService'
-import { CreateScheduleBlockSchema } from '@/lib/types/event-project'
+import { CreateScheduleSectionSchema } from '@/lib/types/event-project'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
-const log = logger.child({ route: '/api/events/projects/[id]/schedule' })
+const log = logger.child({ route: '/api/events/projects/[id]/schedule/sections' })
 
 type RouteParams = {
   params: Promise<{ id: string }>
 }
 
 /**
- * GET /api/events/projects/[id]/schedule
+ * GET /api/events/projects/[id]/schedule/sections
  *
- * Returns all schedule blocks for an EventProject, ordered by startsAt then sortOrder.
+ * Returns all schedule sections for an EventProject, ordered by sortOrder.
  */
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
@@ -33,20 +32,17 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const db = prisma as any
-      const blocks = await db.eventScheduleBlock.findMany({
+      const sections = await db.eventScheduleSection.findMany({
         where: { eventProjectId: id },
-        orderBy: [{ startsAt: 'asc' }, { sortOrder: 'asc' }],
-        include: {
-          lead: { select: { id: true, firstName: true, lastName: true, email: true } },
-        },
+        orderBy: { sortOrder: 'asc' },
       })
-      return NextResponse.json(ok(blocks))
+      return NextResponse.json(ok(sections))
     })
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    log.error({ err: error }, 'Failed to list schedule blocks')
+    log.error({ err: error }, 'Failed to list schedule sections')
     Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
@@ -56,10 +52,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * POST /api/events/projects/[id]/schedule
+ * POST /api/events/projects/[id]/schedule/sections
  *
- * Creates a new schedule block within an EventProject.
- * Requires EVENT_PROJECT_UPDATE_ALL permission.
+ * Creates a new schedule section within an EventProject.
  */
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
@@ -73,9 +68,27 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const body = await req.json()
 
     return await runWithOrgContext(orgId, async () => {
-      const validated = CreateScheduleBlockSchema.parse(body)
-      const block = await createScheduleBlock(id, validated, ctx.userId)
-      return NextResponse.json(ok(block), { status: 201 })
+      const validated = CreateScheduleSectionSchema.parse(body)
+      const db = prisma as any
+
+      // Auto-assign sortOrder if not provided
+      if (validated.sortOrder === 0) {
+        const lastSection = await db.eventScheduleSection.findFirst({
+          where: { eventProjectId: id },
+          orderBy: { sortOrder: 'desc' },
+          select: { sortOrder: true },
+        })
+        validated.sortOrder = lastSection ? lastSection.sortOrder + 1 : 0
+      }
+
+      const section = await db.eventScheduleSection.create({
+        data: {
+          eventProjectId: id,
+          title: validated.title,
+          sortOrder: validated.sortOrder,
+        },
+      })
+      return NextResponse.json(ok(section), { status: 201 })
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -84,7 +97,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    log.error({ err: error }, 'Failed to create schedule block')
+    log.error({ err: error }, 'Failed to create schedule section')
     Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),

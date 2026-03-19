@@ -46,6 +46,24 @@ export type UpdateEventProjectInput = z.infer<typeof UpdateEventProjectSchema>
 
 // ─── Schedule Block ─────────────────────────────────────────────────────────
 
+// ─── Schedule Sections ──────────────────────────────────────────────────────
+
+export const CreateScheduleSectionSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200),
+  sortOrder: z.number().int().min(0).optional().default(0),
+})
+
+export type CreateScheduleSectionInput = z.infer<typeof CreateScheduleSectionSchema>
+
+export const UpdateScheduleSectionSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  sortOrder: z.number().int().min(0).optional(),
+})
+
+export type UpdateScheduleSectionInput = z.infer<typeof UpdateScheduleSectionSchema>
+
+// ─── Schedule Blocks ────────────────────────────────────────────────────────
+
 export const CreateScheduleBlockSchema = z.object({
   type: z.enum(['SESSION', 'ACTIVITY', 'MEAL', 'FREE_TIME', 'TRAVEL', 'SETUP']),
   title: z.string().min(1, 'Title is required').max(200),
@@ -54,6 +72,7 @@ export const CreateScheduleBlockSchema = z.object({
   endsAt: z.coerce.date(),
   locationText: z.string().max(500).optional(),
   leadId: z.string().optional(),
+  sectionId: z.string().nullable().optional(),
   sortOrder: z.number().int().min(0).optional().default(0),
   metadata: z.record(z.string(), z.unknown()).optional(),
 })
@@ -68,6 +87,7 @@ export const UpdateScheduleBlockSchema = z.object({
   endsAt: z.coerce.date().optional(),
   locationText: z.string().max(500).nullable().optional(),
   leadId: z.string().nullable().optional(),
+  sectionId: z.string().nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 })

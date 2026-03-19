@@ -93,6 +93,7 @@ const orgScopedModels = new Set([
 	// Event Project module
 	'EventProject',
 	'EventSeries',
+	'EventScheduleSection',
 	'EventScheduleBlock',
 	'EventTask',
 	'EventActivityLog',

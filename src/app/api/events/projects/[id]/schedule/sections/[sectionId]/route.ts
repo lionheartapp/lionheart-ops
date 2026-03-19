@@ -6,64 +6,24 @@ import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
-import { createScheduleBlock } from '@/lib/services/eventProjectService'
-import { CreateScheduleBlockSchema } from '@/lib/types/event-project'
+import { UpdateScheduleSectionSchema } from '@/lib/types/event-project'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
-const log = logger.child({ route: '/api/events/projects/[id]/schedule' })
+const log = logger.child({ route: '/api/events/projects/[id]/schedule/sections/[sectionId]' })
 
 type RouteParams = {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; sectionId: string }>
 }
 
 /**
- * GET /api/events/projects/[id]/schedule
+ * PATCH /api/events/projects/[id]/schedule/sections/[sectionId]
  *
- * Returns all schedule blocks for an EventProject, ordered by startsAt then sortOrder.
+ * Updates a schedule section (title, sortOrder).
  */
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-
-    await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_READ)
-
-    return await runWithOrgContext(orgId, async () => {
-      const db = prisma as any
-      const blocks = await db.eventScheduleBlock.findMany({
-        where: { eventProjectId: id },
-        orderBy: [{ startsAt: 'asc' }, { sortOrder: 'asc' }],
-        include: {
-          lead: { select: { id: true, firstName: true, lastName: true, email: true } },
-        },
-      })
-      return NextResponse.json(ok(blocks))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to list schedule blocks')
-    Sentry.captureException(error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
-      { status: 500 },
-    )
-  }
-}
-
-/**
- * POST /api/events/projects/[id]/schedule
- *
- * Creates a new schedule block within an EventProject.
- * Requires EVENT_PROJECT_UPDATE_ALL permission.
- */
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
+    const { id, sectionId } = await params
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
     Sentry.setTag('org_id', orgId)
@@ -73,9 +33,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const body = await req.json()
 
     return await runWithOrgContext(orgId, async () => {
-      const validated = CreateScheduleBlockSchema.parse(body)
-      const block = await createScheduleBlock(id, validated, ctx.userId)
-      return NextResponse.json(ok(block), { status: 201 })
+      const validated = UpdateScheduleSectionSchema.parse(body)
+      const db = prisma as any
+
+      const section = await db.eventScheduleSection.update({
+        where: { id: sectionId },
+        data: validated,
+      })
+      return NextResponse.json(ok(section))
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -84,7 +49,50 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    log.error({ err: error }, 'Failed to create schedule block')
+    log.error({ err: error }, 'Failed to update schedule section')
+    Sentry.captureException(error)
+    return NextResponse.json(
+      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
+      { status: 500 },
+    )
+  }
+}
+
+/**
+ * DELETE /api/events/projects/[id]/schedule/sections/[sectionId]
+ *
+ * Deletes a schedule section. Blocks in the section are unassigned (sectionId → null).
+ */
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id, sectionId } = await params
+    const orgId = getOrgIdFromRequest(req)
+    const ctx = await getUserContext(req)
+    Sentry.setTag('org_id', orgId)
+
+    await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_UPDATE_ALL)
+
+    return await runWithOrgContext(orgId, async () => {
+      const db = prisma as any
+
+      // Unassign all blocks from this section first
+      await db.eventScheduleBlock.updateMany({
+        where: { sectionId, eventProjectId: id },
+        data: { sectionId: null },
+      })
+
+      // Delete the section
+      await db.eventScheduleSection.delete({
+        where: { id: sectionId },
+      })
+
+      return NextResponse.json(ok({ deleted: true }))
+    })
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    log.error({ err: error }, 'Failed to delete schedule section')
     Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),

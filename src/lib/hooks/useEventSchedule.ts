@@ -2,10 +2,95 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
-import type { CreateScheduleBlockInput, UpdateScheduleBlockInput } from '@/lib/types/event-project'
+import type {
+  CreateScheduleBlockInput,
+  UpdateScheduleBlockInput,
+  CreateScheduleSectionInput,
+  UpdateScheduleSectionInput,
+} from '@/lib/types/event-project'
 import type { EventScheduleBlock } from './useEventProject'
 
-// ─── Hooks ─────────────────────────────────────────────────────────────
+// ─── Section Types ────────────────────────────────────────────────────
+
+export interface EventScheduleSection {
+  id: string
+  eventProjectId: string
+  title: string
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+// ─── Section Hooks ────────────────────────────────────────────────────
+
+/**
+ * Fetch all schedule sections for an event project.
+ */
+export function useScheduleSections(eventProjectId: string | null | undefined) {
+  return useQuery<EventScheduleSection[]>({
+    queryKey: ['event-schedule-sections', eventProjectId],
+    queryFn: () =>
+      fetchApi<EventScheduleSection[]>(
+        `/api/events/projects/${eventProjectId}/schedule/sections`,
+      ),
+    enabled: !!eventProjectId,
+    staleTime: 2 * 60_000,
+  })
+}
+
+/**
+ * Create a new schedule section.
+ */
+export function useCreateScheduleSection(eventProjectId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateScheduleSectionInput) =>
+      fetchApi<EventScheduleSection>(
+        `/api/events/projects/${eventProjectId}/schedule/sections`,
+        { method: 'POST', body: JSON.stringify(data) },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId] })
+    },
+  })
+}
+
+/**
+ * Update a schedule section (rename, reorder).
+ */
+export function useUpdateScheduleSection(eventProjectId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ sectionId, data }: { sectionId: string; data: UpdateScheduleSectionInput }) =>
+      fetchApi<EventScheduleSection>(
+        `/api/events/projects/${eventProjectId}/schedule/sections/${sectionId}`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId] })
+    },
+  })
+}
+
+/**
+ * Delete a schedule section. Blocks in the section become unassigned.
+ */
+export function useDeleteScheduleSection(eventProjectId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (sectionId: string) =>
+      fetchApi<{ deleted: true }>(
+        `/api/events/projects/${eventProjectId}/schedule/sections/${sectionId}`,
+        { method: 'DELETE' },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId] })
+      queryClient.invalidateQueries({ queryKey: ['event-schedule', eventProjectId] })
+    },
+  })
+}
+
+// ─── Block Hooks ──────────────────────────────────────────────────────
 
 /**
  * Fetch all schedule blocks for an event project.
@@ -121,6 +206,47 @@ export function useReorderScheduleBlocks(eventProjectId: string | null | undefin
     },
     onError: (_err, _blockIds, context) => {
       // Rollback on error
+      if (context?.previous) {
+        queryClient.setQueryData(['event-schedule', eventProjectId], context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-schedule', eventProjectId] })
+    },
+  })
+}
+
+/**
+ * Assign a block to a section (or unassign by passing null).
+ * Used when dragging a block into/out of a section.
+ */
+export function useAssignBlockToSection(eventProjectId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ blockId, sectionId }: { blockId: string; sectionId: string | null }) =>
+      fetchApi<EventScheduleBlock>(
+        `/api/events/projects/${eventProjectId}/schedule/${blockId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ sectionId }),
+        },
+      ),
+    onMutate: async ({ blockId, sectionId }) => {
+      await queryClient.cancelQueries({ queryKey: ['event-schedule', eventProjectId] })
+      const previous = queryClient.getQueryData<EventScheduleBlock[]>(['event-schedule', eventProjectId])
+
+      if (previous) {
+        queryClient.setQueryData<EventScheduleBlock[]>(
+          ['event-schedule', eventProjectId],
+          previous.map((b) =>
+            b.id === blockId ? { ...b, sectionId } : b,
+          ),
+        )
+      }
+
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(['event-schedule', eventProjectId], context.previous)
       }

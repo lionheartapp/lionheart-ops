@@ -3815,6 +3815,7 @@ model EventProject {
   series         EventSeries?        @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdBy      User                @relation("EventProjectCreator", fields: [createdById], references: [id], onDelete: Restrict)
   approvedBy     User?               @relation("EventProjectApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  scheduleSections      EventScheduleSection[]
   scheduleBlocks        EventScheduleBlock[]
   tasks                 EventTask[]
   activityLog           EventActivityLog[]
@@ -3896,10 +3897,28 @@ model EventTemplate {
   @@index([organizationId, eventType])
 }
 
+model EventScheduleSection {
+  id             String   @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  title          String
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject         @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  blocks       EventScheduleBlock[]
+
+  @@index([eventProjectId, sortOrder])
+  @@index([organizationId])
+}
+
 model EventScheduleBlock {
   id             String                 @id @default(cuid())
   organizationId String
   eventProjectId String
+  sectionId      String?                // FK to EventScheduleSection (nullable for unassigned blocks)
   type           EventScheduleBlockType @default(SESSION)
   title          String
   description    String?
@@ -3912,11 +3931,13 @@ model EventScheduleBlock {
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  eventProject EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
-  lead         User?        @relation("ScheduleBlockLead", fields: [leadId], references: [id], onDelete: SetNull)
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject           @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  section      EventScheduleSection?  @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  lead         User?                  @relation("ScheduleBlockLead", fields: [leadId], references: [id], onDelete: SetNull)
 
   @@index([eventProjectId, startsAt])
+  @@index([sectionId, sortOrder])
   @@index([organizationId])
 }
 

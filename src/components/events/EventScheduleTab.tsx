@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO, addMinutes, addDays, subDays } from 'date-fns'
 import {
   DndContext,
@@ -14,6 +14,7 @@ import {
   DragOverlay,
   type DragEndEvent,
   type DragStartEvent,
+  useDroppable,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -23,7 +24,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import {
   CalendarDays,
   Plus,
@@ -35,9 +36,10 @@ import {
   ChevronRight,
   Loader2,
   GripVertical,
-  Sunrise,
-  Sunset,
-  Sun,
+  Pencil,
+  Trash2,
+  FolderOpen,
+  X,
 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { staggerContainer, listItem, fadeInUp } from '@/lib/animations'
@@ -47,6 +49,12 @@ import {
   useUpdateScheduleBlock,
   useDeleteScheduleBlock,
   useReorderScheduleBlocks,
+  useScheduleSections,
+  useCreateScheduleSection,
+  useUpdateScheduleSection,
+  useDeleteScheduleSection,
+  useAssignBlockToSection,
+  type EventScheduleSection,
 } from '@/lib/hooks/useEventSchedule'
 import { type EventScheduleBlock } from '@/lib/hooks/useEventProject'
 import { useToast } from '@/components/Toast'
@@ -133,26 +141,6 @@ function formatDuration(mins: number): string {
   return `${h}h ${m}m`
 }
 
-/** Classify a Date into Morning / Afternoon / Evening */
-function getTimeOfDay(date: Date): 'morning' | 'afternoon' | 'evening' {
-  const h = date.getHours()
-  if (h < 12) return 'morning'
-  if (h < 17) return 'afternoon'
-  return 'evening'
-}
-
-const TIME_OF_DAY_CONFIG = {
-  morning: { label: 'Morning', icon: Sunrise, accent: 'text-amber-600', defaultStartHour: 8 },
-  afternoon: { label: 'Afternoon', icon: Sun, accent: 'text-orange-500', defaultStartHour: 12 },
-  evening: { label: 'Evening', icon: Sunset, accent: 'text-indigo-500', defaultStartHour: 17 },
-}
-
-const SECTIONS = [
-  { value: 'morning', label: 'Morning' },
-  { value: 'afternoon', label: 'Afternoon' },
-  { value: 'evening', label: 'Evening' },
-] as const
-
 // ─── Duration presets ────────────────────────────────────────────────────────
 
 const DURATION_PRESETS = [5, 10, 15, 30, 45, 60, 90, 120] as const
@@ -213,7 +201,6 @@ interface DrawerFormData {
   type: string
   title: string
   description: string
-  section: 'morning' | 'afternoon' | 'evening'
   durationMinutes: number
   locationText: string
 }
@@ -222,7 +209,6 @@ const defaultDrawerForm: DrawerFormData = {
   type: 'SESSION',
   title: '',
   description: '',
-  section: 'morning',
   durationMinutes: 30,
   locationText: '',
 }
@@ -253,9 +239,7 @@ function AddBlockDrawer({
   const [showCreateType, setShowCreateType] = useState(false)
   const [newTypeLabel, setNewTypeLabel] = useState('')
   const [newTypeColor, setNewTypeColor] = useState(TYPE_COLORS[0].value)
-  const [sectionOpen, setSectionOpen] = useState(false)
   const [customDuration, setCustomDuration] = useState('')
-  const sectionRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   // Reset form when drawer opens
@@ -269,17 +253,6 @@ function AddBlockDrawer({
       setCustomDuration('')
     }
   }, [open, initialData])
-
-  // Close section dropdown on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (sectionRef.current && !sectionRef.current.contains(e.target as Node)) {
-        setSectionOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
 
   function update<K extends keyof DrawerFormData>(key: K, value: DrawerFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -327,7 +300,7 @@ function AddBlockDrawer({
 
   // Split types into default and custom
   const defaultTypes = allTypes.filter((t) => !t.isCustom)
-  const customTypes = allTypes.filter((t) => t.isCustom)
+  const customTypesList = allTypes.filter((t) => t.isCustom)
 
   const drawerTitle = initialData?.title ? 'Edit Block' : 'Add Block'
   const isPresetSelected = (DURATION_PRESETS as readonly number[]).includes(form.durationMinutes)
@@ -399,11 +372,11 @@ function AddBlockDrawer({
               </div>
             </>
           )}
-          {customTypes.length > 0 && (
+          {customTypesList.length > 0 && (
             <>
               <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Custom</div>
               <div className="flex flex-wrap gap-2 mb-3">
-                {customTypes.map((t) => {
+                {customTypesList.map((t) => {
                   const isSelected = form.type === t.value
                   return (
                     <button
@@ -486,51 +459,6 @@ function AddBlockDrawer({
                     Add type
                   </button>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Section */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Section</label>
-          <div ref={sectionRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setSectionOpen((prev) => !prev)}
-              className="w-full flex items-center justify-between px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl hover:border-slate-300 focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer"
-            >
-              <span className="text-slate-900">
-                {SECTIONS.find((s) => s.value === form.section)?.label ?? 'Morning'}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform ${sectionOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-            {sectionOpen && (
-              <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
-                {SECTIONS.map((s) => {
-                  const cfg = TIME_OF_DAY_CONFIG[s.value]
-                  const SectionIcon = cfg.icon
-                  return (
-                    <button
-                      key={s.value}
-                      type="button"
-                      onClick={() => {
-                        update('section', s.value)
-                        setSectionOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors cursor-pointer ${
-                        form.section === s.value
-                          ? 'bg-slate-50 text-slate-900 font-medium'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <SectionIcon className={`w-4 h-4 ${cfg.accent}`} />
-                      {s.label}
-                    </button>
-                  )
-                })}
               </div>
             )}
           </div>
@@ -623,28 +551,100 @@ function AddBlockDrawer({
   )
 }
 
+// ─── Block Row (used in both sortable list and drag overlay) ─────────────────
+
+interface BlockRowContentProps {
+  block: EventScheduleBlock
+  allTypes: BlockTypeConfig[]
+  durationMins: number
+  timeRange: string
+  isDragging?: boolean
+  isOverlay?: boolean
+}
+
+function BlockRowContent({ block, allTypes, durationMins, timeRange, isDragging, isOverlay }: BlockRowContentProps) {
+  const displayType = (block.metadata as Record<string, unknown>)?.customType as string | undefined
+  const typeConfig = getBlockTypeConfig(displayType || block.type, allTypes)
+
+  return (
+    <>
+      {/* Category dot */}
+      <div className="flex-shrink-0">
+        {typeConfig.hexColor ? (
+          <span className="block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: typeConfig.hexColor }} />
+        ) : (
+          <span className={`block w-2.5 h-2.5 rounded-full ${typeConfig.dotColor}`} />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-900 truncate">{block.title}</span>
+        </div>
+        <div className="flex items-center gap-3 mt-0.5">
+          {block.locationText && (
+            <div className="flex items-center gap-1 text-xs text-slate-400">
+              <MapPin className="w-3 h-3" />
+              <span className="truncate max-w-[120px]">{block.locationText}</span>
+            </div>
+          )}
+          {block.lead && (
+            <div className="flex items-center gap-1 text-xs text-slate-400">
+              <User className="w-3 h-3" />
+              <span className="truncate max-w-[100px]">
+                {block.lead.firstName
+                  ? `${block.lead.firstName} ${block.lead.lastName || ''}`.trim()
+                  : block.lead.email}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Duration pill */}
+      {!isOverlay && (
+        <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100">
+          <span className="text-xs font-medium text-slate-500">{formatDuration(durationMins)}</span>
+        </div>
+      )}
+
+      {/* Auto-calculated time range */}
+      {!isOverlay && timeRange && (
+        <div className="flex-shrink-0 flex items-center gap-1.5 text-xs text-slate-500 min-w-[130px] justify-end">
+          <Clock className="w-3 h-3 text-slate-400" />
+          {timeRange}
+        </div>
+      )}
+    </>
+  )
+}
+
 // ─── Sortable Block Row ─────────────────────────────────────────────────────
 
 interface SortableBlockRowProps {
   block: EventScheduleBlock
   allTypes: BlockTypeConfig[]
-  calculatedStart: string
-  calculatedEnd: string
   durationMins: number
+  timeRange: string
   onEdit: (block: EventScheduleBlock) => void
   onDelete: (blockId: string) => Promise<void>
   isDeleting?: boolean
+  /** Column offset index for concurrent blocks (0 = no offset) */
+  concurrentOffset?: number
+  concurrentTotal?: number
 }
 
 function SortableBlockRow({
   block,
   allTypes,
-  calculatedStart,
-  calculatedEnd,
   durationMins,
+  timeRange,
   onEdit,
   onDelete,
   isDeleting,
+  concurrentOffset = 0,
+  concurrentTotal = 1,
 }: SortableBlockRowProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
@@ -657,10 +657,12 @@ function SortableBlockRow({
     position: 'relative' as const,
   }
 
-  // Check metadata for custom type
-  const displayType = (block.metadata as Record<string, unknown>)?.customType as string | undefined
-  const typeConfig = getBlockTypeConfig(displayType || block.type, allTypes)
-  const timeRange = `${calculatedStart} – ${calculatedEnd}`
+  // If this block is part of a concurrent group, adjust width
+  if (concurrentTotal > 1) {
+    const widthPct = Math.floor(100 / concurrentTotal)
+    style.width = `${widthPct}%`
+    style.display = 'inline-flex'
+  }
 
   return (
     <div
@@ -672,7 +674,7 @@ function SortableBlockRow({
         isDragging ? 'border-indigo-300 shadow-lg ring-2 ring-indigo-100' : 'border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
       }`}
     >
-      {/* Drag handle — larger touch target */}
+      {/* Drag handle */}
       <div
         {...attributes}
         {...listeners}
@@ -683,71 +685,25 @@ function SortableBlockRow({
         <GripVertical className="w-4 h-4 text-slate-400" />
       </div>
 
-      {/* Category dot */}
-      <div className="flex-shrink-0">
-        {typeConfig.hexColor ? (
-          <span className="block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: typeConfig.hexColor }} />
-        ) : (
-          <span className={`block w-2.5 h-2.5 rounded-full ${typeConfig.dotColor}`} />
-        )}
-      </div>
+      <BlockRowContent
+        block={block}
+        allTypes={allTypes}
+        durationMins={durationMins}
+        timeRange={timeRange}
+      />
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 flex items-center gap-4">
-        {/* Title + metadata */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-900 truncate">{block.title}</span>
-            {block.description && (
-              <span className="hidden sm:inline text-xs text-slate-400 truncate max-w-[200px]">
-                — {block.description}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3 mt-0.5">
-            {block.locationText && (
-              <div className="flex items-center gap-1 text-xs text-slate-400">
-                <MapPin className="w-3 h-3" />
-                <span className="truncate max-w-[120px]">{block.locationText}</span>
-              </div>
-            )}
-            {block.lead && (
-              <div className="flex items-center gap-1 text-xs text-slate-400">
-                <User className="w-3 h-3" />
-                <span className="truncate max-w-[100px]">
-                  {block.lead.firstName
-                    ? `${block.lead.firstName} ${block.lead.lastName || ''}`.trim()
-                    : block.lead.email}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Duration pill */}
-        <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100">
-          <span className="text-xs font-medium text-slate-500">{formatDuration(durationMins)}</span>
-        </div>
-
-        {/* Auto-calculated time range */}
-        <div className="flex-shrink-0 flex items-center gap-1.5 text-xs text-slate-500 min-w-[140px] justify-end">
-          <Clock className="w-3 h-3 text-slate-400" />
-          {timeRange}
-        </div>
-      </div>
-
-      {/* Hover actions — Edit / Delete buttons */}
+      {/* Hover actions */}
       <div className={`flex items-center gap-2 transition-opacity ${isHovered && !isDragging ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <button
           onClick={() => onEdit(block)}
-          className="px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
+          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
         >
           Edit
         </button>
         <button
           onClick={() => onDelete(block.id)}
           disabled={isDeleting}
-          className="px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-red-500 hover:bg-red-50 hover:border-red-200 transition-all cursor-pointer disabled:opacity-60"
+          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-red-500 hover:bg-red-50 hover:border-red-200 transition-all cursor-pointer disabled:opacity-60"
         >
           {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
         </button>
@@ -759,170 +715,309 @@ function SortableBlockRow({
 // ─── Drag Overlay Preview ────────────────────────────────────────────────────
 
 function BlockRowOverlay({ block, allTypes }: { block: EventScheduleBlock; allTypes: BlockTypeConfig[] }) {
-  const displayType = (block.metadata as Record<string, unknown>)?.customType as string | undefined
-  const typeConfig = getBlockTypeConfig(displayType || block.type, allTypes)
-
   return (
-    <div className="flex items-center gap-3 px-3 py-3 bg-white border-2 border-indigo-300 rounded-xl shadow-xl ring-4 ring-indigo-50 cursor-grabbing max-w-[600px]">
+    <div className="flex items-center gap-3 px-3 py-3 bg-white border-2 border-indigo-300 rounded-xl shadow-xl ring-4 ring-indigo-50 cursor-grabbing max-w-[500px]">
       <div className="flex-shrink-0 p-1.5">
         <GripVertical className="w-4 h-4 text-indigo-400" />
       </div>
-      <div className="flex-shrink-0">
-        {typeConfig.hexColor ? (
-          <span className="block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: typeConfig.hexColor }} />
+      <BlockRowContent block={block} allTypes={allTypes} durationMins={0} timeRange="" isOverlay />
+    </div>
+  )
+}
+
+// ─── Droppable Section Container ─────────────────────────────────────────────
+
+interface DroppableSectionProps {
+  sectionId: string
+  children: React.ReactNode
+  isOver?: boolean
+}
+
+function DroppableSection({ sectionId, children, isOver }: DroppableSectionProps) {
+  const { setNodeRef, isOver: dropIsOver } = useDroppable({ id: `section-${sectionId}` })
+  const active = isOver || dropIsOver
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[48px] rounded-xl transition-all ${
+        active ? 'bg-indigo-50/50 ring-2 ring-indigo-200 ring-dashed' : ''
+      }`}
+    >
+      {children}
+    </div>
+  )
+}
+
+// ─── Section Header (editable inline) ────────────────────────────────────────
+
+interface SectionHeaderProps {
+  section: EventScheduleSection
+  blockCount: number
+  totalDuration: number
+  onRename: (newTitle: string) => void
+  onDelete: () => void
+  onAddBlock: () => void
+}
+
+function SectionHeader({ section, blockCount, totalDuration, onRename, onDelete, onAddBlock }: SectionHeaderProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(section.title)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
+
+  function handleSave() {
+    const trimmed = editValue.trim()
+    if (trimmed && trimmed !== section.title) {
+      onRename(trimmed)
+    } else {
+      setEditValue(section.title)
+    }
+    setIsEditing(false)
+  }
+
+  return (
+    <div className="flex items-center justify-between mb-2 group/header">
+      <div className="flex items-center gap-2.5">
+        <FolderOpen className="w-4 h-4 text-slate-400" />
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSave()
+              if (e.key === 'Escape') { setEditValue(section.title); setIsEditing(false) }
+            }}
+            className="text-sm font-semibold text-slate-900 bg-transparent border-b border-indigo-400 outline-none px-0 py-0"
+          />
         ) : (
-          <span className={`block w-2.5 h-2.5 rounded-full ${typeConfig.dotColor}`} />
+          <h4
+            className="text-sm font-semibold text-slate-900 cursor-pointer hover:text-indigo-600 transition-colors"
+            onClick={() => setIsEditing(true)}
+            title="Click to rename"
+          >
+            {section.title}
+          </h4>
         )}
+        <span className="text-xs text-slate-400">
+          {blockCount} block{blockCount !== 1 ? 's' : ''}
+          {totalDuration > 0 && ` · ${formatDuration(totalDuration)}`}
+        </span>
       </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-sm font-medium text-slate-900 truncate">{block.title}</span>
-        {block.locationText && (
-          <div className="flex items-center gap-1 text-xs text-slate-400 mt-0.5">
-            <MapPin className="w-3 h-3" />
-            <span className="truncate">{block.locationText}</span>
-          </div>
-        )}
+
+      <div className="flex items-center gap-1 opacity-0 group-hover/header:opacity-100 transition-opacity">
+        <button
+          onClick={onAddBlock}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+          title="Add block to section"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={() => setIsEditing(true)}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+          title="Rename section"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+          title="Delete section (blocks are kept)"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   )
 }
 
-// ─── Section Component ───────────────────────────────────────────────────────
+// ─── Concurrent Time Slot Grouping ───────────────────────────────────────────
 
-interface ScheduleSectionProps {
-  period: 'morning' | 'afternoon' | 'evening'
+interface TimeSlotGroup {
+  blocks: EventScheduleBlock[]
+  startTime: Date
+  endTime: Date
+}
+
+/** Group blocks that overlap in time into concurrent groups */
+function groupConcurrentBlocks(blocks: EventScheduleBlock[]): TimeSlotGroup[] {
+  if (blocks.length === 0) return []
+
+  const sorted = [...blocks].sort((a, b) =>
+    new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+  )
+
+  const groups: TimeSlotGroup[] = []
+  let currentGroup: TimeSlotGroup = {
+    blocks: [sorted[0]],
+    startTime: parseISO(sorted[0].startsAt),
+    endTime: parseISO(sorted[0].endsAt),
+  }
+
+  for (let i = 1; i < sorted.length; i++) {
+    const block = sorted[i]
+    const blockStart = parseISO(block.startsAt)
+    const blockEnd = parseISO(block.endsAt)
+
+    // If this block starts before the current group ends, it's concurrent
+    if (blockStart.getTime() < currentGroup.endTime.getTime()) {
+      currentGroup.blocks.push(block)
+      if (blockEnd.getTime() > currentGroup.endTime.getTime()) {
+        currentGroup.endTime = blockEnd
+      }
+    } else {
+      groups.push(currentGroup)
+      currentGroup = { blocks: [block], startTime: blockStart, endTime: blockEnd }
+    }
+  }
+  groups.push(currentGroup)
+
+  return groups
+}
+
+// ─── Section Block List ─────────────────────────────────────────────────────
+
+interface SectionBlockListProps {
   blocks: EventScheduleBlock[]
   allTypes: BlockTypeConfig[]
-  sectionStartTime: Date
   onEditBlock: (block: EventScheduleBlock) => void
   onDelete: (blockId: string) => Promise<void>
-  onReorder: (blockIds: string[]) => void
   deletingId: string | null
 }
 
-function ScheduleSection({
-  period,
-  blocks,
-  allTypes,
-  sectionStartTime,
-  onEditBlock,
-  onDelete,
-  onReorder,
-  deletingId,
-}: ScheduleSectionProps) {
-  const config = TIME_OF_DAY_CONFIG[period]
-  const Icon = config.icon
-  const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  )
-
-  // Calculate auto-stacked times for each block
-  const blockTimings = useMemo(() => {
-    const timings: { start: Date; end: Date; durationMins: number }[] = []
-    let cursor = sectionStartTime
-
-    for (const block of blocks) {
-      const startsAt = parseISO(block.startsAt)
-      const endsAt = parseISO(block.endsAt)
-      // Calculate duration from stored times
-      const durationMs = endsAt.getTime() - startsAt.getTime()
-      const durationMins = Math.max(Math.round(durationMs / 60000), 1)
-
-      const start = cursor
-      const end = addMinutes(cursor, durationMins)
-      timings.push({ start, end, durationMins })
-      cursor = end
-    }
-    return timings
-  }, [blocks, sectionStartTime])
-
-  const totalMins = blockTimings.reduce((sum, t) => sum + t.durationMins, 0)
-
-  const sectionStartStr = format(sectionStartTime, 'h:mm a')
-  const sectionEndStr = totalMins > 0 ? format(addMinutes(sectionStartTime, totalMins), 'h:mm a') : sectionStartStr
-
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveBlockId(event.active.id as string)
-  }, [])
-
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    setActiveBlockId(null)
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-
-    const oldIndex = blocks.findIndex((b) => b.id === active.id)
-    const newIndex = blocks.findIndex((b) => b.id === over.id)
-    if (oldIndex === -1 || newIndex === -1) return
-
-    const reordered = arrayMove(blocks, oldIndex, newIndex)
-    onReorder(reordered.map((b) => b.id))
-  }, [blocks, onReorder])
-
-  const handleDragCancel = useCallback(() => {
-    setActiveBlockId(null)
-  }, [])
-
-  const blockIds = blocks.map((b) => b.id)
-  const activeBlock = activeBlockId ? blocks.find((b) => b.id === activeBlockId) : null
+function SectionBlockList({ blocks, allTypes, onEditBlock, onDelete, deletingId }: SectionBlockListProps) {
+  const timeGroups = useMemo(() => groupConcurrentBlocks(blocks), [blocks])
 
   return (
-    <div>
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-2.5">
-        <div className="flex items-center gap-2">
-          <Icon className={`w-4 h-4 ${config.accent}`} />
-          <h4 className="text-sm font-semibold text-slate-900">{config.label}</h4>
-          <span className="text-xs text-slate-400">
-            {blocks.length} block{blocks.length !== 1 ? 's' : ''} · {formatDuration(totalMins)}
-          </span>
-          {blocks.length > 0 && (
-            <span className="text-[10px] text-slate-400 font-medium ml-1">
-              {sectionStartStr} → {sectionEndStr}
-            </span>
-          )}
-        </div>
-      </div>
+    <div className="space-y-1.5">
+      {timeGroups.map((group, gi) => {
+        const isConcurrent = group.blocks.length > 1
 
-      {/* Sortable block list */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
-        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-      >
-        <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
-          <div className="space-y-1.5">
-            {blocks.map((block, i) => {
-              const timing = blockTimings[i]
-              return (
-                <SortableBlockRow
-                  key={block.id}
-                  block={block}
-                  allTypes={allTypes}
-                  calculatedStart={timing ? format(timing.start, 'h:mm a') : ''}
-                  calculatedEnd={timing ? format(timing.end, 'h:mm a') : ''}
-                  durationMins={timing?.durationMins ?? 0}
-                  onEdit={onEditBlock}
-                  onDelete={onDelete}
-                  isDeleting={deletingId === block.id}
-                />
-              )
-            })}
-          </div>
-        </SortableContext>
+        if (isConcurrent) {
+          // Side-by-side layout for concurrent blocks
+          return (
+            <div key={`group-${gi}`} className="flex gap-2">
+              {group.blocks.map((block) => {
+                const startsAt = parseISO(block.startsAt)
+                const endsAt = parseISO(block.endsAt)
+                const durationMins = Math.max(Math.round((endsAt.getTime() - startsAt.getTime()) / 60000), 1)
+                const timeRange = `${format(startsAt, 'h:mm a')} – ${format(endsAt, 'h:mm a')}`
 
-        {/* Drag overlay — renders outside the sortable flow for smooth dragging */}
-        <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
-          {activeBlock ? <BlockRowOverlay block={activeBlock} allTypes={allTypes} /> : null}
-        </DragOverlay>
-      </DndContext>
+                return (
+                  <SortableBlockRow
+                    key={block.id}
+                    block={block}
+                    allTypes={allTypes}
+                    durationMins={durationMins}
+                    timeRange={timeRange}
+                    onEdit={onEditBlock}
+                    onDelete={onDelete}
+                    isDeleting={deletingId === block.id}
+                    concurrentOffset={group.blocks.indexOf(block)}
+                    concurrentTotal={group.blocks.length}
+                  />
+                )
+              })}
+            </div>
+          )
+        }
+
+        // Single block — normal row
+        const block = group.blocks[0]
+        const startsAt = parseISO(block.startsAt)
+        const endsAt = parseISO(block.endsAt)
+        const durationMins = Math.max(Math.round((endsAt.getTime() - startsAt.getTime()) / 60000), 1)
+        const timeRange = `${format(startsAt, 'h:mm a')} – ${format(endsAt, 'h:mm a')}`
+
+        return (
+          <SortableBlockRow
+            key={block.id}
+            block={block}
+            allTypes={allTypes}
+            durationMins={durationMins}
+            timeRange={timeRange}
+            onEdit={onEditBlock}
+            onDelete={onDelete}
+            isDeleting={deletingId === block.id}
+          />
+        )
+      })}
     </div>
+  )
+}
+
+// ─── Add Section Inline ─────────────────────────────────────────────────────
+
+function AddSectionButton({ onAdd }: { onAdd: (title: string) => void }) {
+  const [isAdding, setIsAdding] = useState(false)
+  const [title, setTitle] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isAdding && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [isAdding])
+
+  function handleSubmit() {
+    const trimmed = title.trim()
+    if (trimmed) {
+      onAdd(trimmed)
+      setTitle('')
+      setIsAdding(false)
+    }
+  }
+
+  if (isAdding) {
+    return (
+      <div className="flex items-center gap-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSubmit()
+            if (e.key === 'Escape') { setTitle(''); setIsAdding(false) }
+          }}
+          placeholder="Section name..."
+          className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition-all"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!title.trim()}
+          className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 disabled:opacity-40 transition-all cursor-pointer"
+        >
+          Add
+        </button>
+        <button
+          onClick={() => { setTitle(''); setIsAdding(false) }}
+          className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => setIsAdding(true)}
+      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-dashed border-slate-300 text-xs font-medium text-slate-500 hover:border-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+    >
+      <Plus className="w-3.5 h-3.5" />
+      Add Section
+    </button>
   )
 }
 
@@ -931,28 +1026,34 @@ function ScheduleSection({
 interface EventScheduleTabProps {
   eventProjectId: string
   defaultDate?: string
-  eventStartDate?: string  // ISO date string (e.g. '2026-04-09')
-  eventEndDate?: string    // ISO date string (e.g. '2026-04-11')
+  eventStartDate?: string
+  eventEndDate?: string
 }
 
 export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, eventEndDate }: EventScheduleTabProps) {
-  const { data: blocks, isLoading } = useScheduleBlocks(eventProjectId)
+  const { data: blocks, isLoading: blocksLoading } = useScheduleBlocks(eventProjectId)
+  const { data: sections, isLoading: sectionsLoading } = useScheduleSections(eventProjectId)
   const createBlock = useCreateScheduleBlock(eventProjectId)
   const updateBlock = useUpdateScheduleBlock(eventProjectId)
   const deleteBlock = useDeleteScheduleBlock(eventProjectId)
   const reorderBlocks = useReorderScheduleBlocks(eventProjectId)
+  const createSection = useCreateScheduleSection(eventProjectId)
+  const updateSection = useUpdateScheduleSection(eventProjectId)
+  const deleteSection = useDeleteScheduleSection(eventProjectId)
+  const assignBlock = useAssignBlockToSection(eventProjectId)
   const { toast } = useToast()
 
   const [viewMode, setViewMode] = useState<'order' | 'timeline'>('order')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingBlock, setEditingBlock] = useState<EventScheduleBlock | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [drawerSection, setDrawerSection] = useState<'morning' | 'afternoon' | 'evening'>('morning')
+  const [addToSectionId, setAddToSectionId] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     if (defaultDate) return new Date(defaultDate + 'T00:00:00')
     return new Date(format(new Date(), 'yyyy-MM-dd') + 'T00:00:00')
   })
   const [customTypes, setCustomTypes] = useState<BlockTypeConfig[]>(() => loadCustomTypes(eventProjectId))
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
 
   // Build array of valid event dates for bounded navigation
   const eventDates = useMemo(() => {
@@ -985,28 +1086,16 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
     saveCustomTypes(eventProjectId, updated)
   }
 
-  /** Use the currently selected date for block creation. */
   function getDateStr(): string {
     return format(selectedDate, 'yyyy-MM-dd')
   }
 
-  /** Build a section start time as a Date. */
-  function getSectionStartTime(
-    section: 'morning' | 'afternoon' | 'evening',
-    dateStr: string,
-    periodBlocks: EventScheduleBlock[]
-  ): Date {
-    // Section defaults
-    const defaultHour = TIME_OF_DAY_CONFIG[section].defaultStartHour
-    return new Date(`${dateStr}T${String(defaultHour).padStart(2, '0')}:00:00`)
-  }
+  // ─── Block CRUD ───────────────────────────────────────────────────────
 
   async function handleCreate(data: DrawerFormData) {
     const dateStr = getDateStr()
-    const defaultHour = TIME_OF_DAY_CONFIG[data.section].defaultStartHour
-    // Start time = section default start (blocks stack sequentially on the server,
-    // but we still need valid startsAt/endsAt for the API)
-    const startsAt = new Date(`${dateStr}T${String(defaultHour).padStart(2, '0')}:00:00`)
+    // Default to 8am start; the actual time is mostly a label since blocks are label-only sections
+    const startsAt = new Date(`${dateStr}T08:00:00`)
     const endsAt = addMinutes(startsAt, data.durationMinutes)
 
     const isCustomType = !VALID_API_TYPES.includes(data.type as ApiBlockType)
@@ -1017,6 +1106,7 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
       startsAt,
       endsAt,
       locationText: data.locationText || undefined,
+      sectionId: addToSectionId ?? undefined,
       sortOrder: blocks?.length ?? 0,
       ...(isCustomType ? { metadata: { customType: data.type } } : {}),
     }
@@ -1024,6 +1114,7 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
       await createBlock.mutateAsync(payload)
       toast('Schedule block added', 'success')
       setDrawerOpen(false)
+      setAddToSectionId(null)
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to add block', 'error')
     }
@@ -1032,8 +1123,7 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
   async function handleUpdate(data: DrawerFormData) {
     if (!editingBlock) return
     const dateStr = getDateStr()
-    const defaultHour = TIME_OF_DAY_CONFIG[data.section].defaultStartHour
-    const startsAt = new Date(`${dateStr}T${String(defaultHour).padStart(2, '0')}:00:00`)
+    const startsAt = parseISO(editingBlock.startsAt)
     const endsAt = addMinutes(startsAt, data.durationMinutes)
 
     const isCustomType = !VALID_API_TYPES.includes(data.type as ApiBlockType)
@@ -1072,9 +1162,9 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
     reorderBlocks.mutate(blockIds)
   }
 
-  function openAddDrawer(section?: 'morning' | 'afternoon' | 'evening') {
+  function openAddDrawer(sectionId?: string | null) {
     setEditingBlock(null)
-    if (section) setDrawerSection(section)
+    setAddToSectionId(sectionId ?? null)
     setDrawerOpen(true)
   }
 
@@ -1083,9 +1173,107 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
     setDrawerOpen(true)
   }
 
-  // Build initial form data for editing
+  // ─── Section CRUD ─────────────────────────────────────────────────────
+
+  async function handleCreateSection(title: string) {
+    try {
+      await createSection.mutateAsync({ title })
+      toast('Section created', 'success')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to create section', 'error')
+    }
+  }
+
+  async function handleRenameSection(sectionId: string, title: string) {
+    try {
+      await updateSection.mutateAsync({ sectionId, data: { title } })
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to rename section', 'error')
+    }
+  }
+
+  async function handleDeleteSection(sectionId: string) {
+    try {
+      await deleteSection.mutateAsync(sectionId)
+      toast('Section removed — blocks kept', 'success')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to remove section', 'error')
+    }
+  }
+
+  // ─── Drag-and-drop ────────────────────────────────────────────────────
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveBlockId(event.active.id as string)
+  }, [])
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveBlockId(null)
+    const { active, over } = event
+    if (!over) return
+
+    const activeId = active.id as string
+    const overId = over.id as string
+
+    // Check if dropped onto a section drop zone
+    if (overId.startsWith('section-')) {
+      const targetSectionId = overId.replace('section-', '')
+      const block = blocks?.find((b) => b.id === activeId)
+      if (block && block.sectionId !== targetSectionId) {
+        assignBlock.mutate({ blockId: activeId, sectionId: targetSectionId })
+      }
+      return
+    }
+
+    // Check if dropped on the unsectioned zone
+    if (overId === 'section-unsectioned') {
+      const block = blocks?.find((b) => b.id === activeId)
+      if (block && block.sectionId) {
+        assignBlock.mutate({ blockId: activeId, sectionId: null })
+      }
+      return
+    }
+
+    // Otherwise, it's a reorder within the same list
+    if (activeId === overId) return
+
+    // Find both blocks and check if they're in the same section
+    const activeBlock = blocks?.find((b) => b.id === activeId)
+    const overBlock = blocks?.find((b) => b.id === overId)
+    if (!activeBlock || !overBlock) return
+
+    if (activeBlock.sectionId === overBlock.sectionId) {
+      // Reorder within section
+      const sectionBlocks = (blocks || [])
+        .filter((b) => b.sectionId === activeBlock.sectionId)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+
+      const oldIndex = sectionBlocks.findIndex((b) => b.id === activeId)
+      const newIndex = sectionBlocks.findIndex((b) => b.id === overId)
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reordered = arrayMove(sectionBlocks, oldIndex, newIndex)
+        handleReorder(reordered.map((b) => b.id))
+      }
+    } else {
+      // Dragged from one section to another — assign to the target section
+      assignBlock.mutate({ blockId: activeId, sectionId: overBlock.sectionId })
+    }
+  }, [blocks, assignBlock, handleReorder])
+
+  const handleDragCancel = useCallback(() => {
+    setActiveBlockId(null)
+  }, [])
+
+  // ─── Build view data ──────────────────────────────────────────────────
+
   const editInitial = useMemo<Partial<DrawerFormData> | undefined>(() => {
-    if (!editingBlock) return { section: drawerSection }
+    if (!editingBlock) return undefined
     const startsAt = parseISO(editingBlock.startsAt)
     const endsAt = parseISO(editingBlock.endsAt)
     const durationMs = endsAt.getTime() - startsAt.getTime()
@@ -1095,37 +1283,45 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
       type: customType || editingBlock.type,
       title: editingBlock.title,
       description: editingBlock.description || '',
-      section: getTimeOfDay(startsAt),
       durationMinutes,
       locationText: editingBlock.locationText || '',
     }
-  }, [editingBlock, drawerSection])
+  }, [editingBlock])
 
-  // Group blocks by date, then by time-of-day within each date
-  const grouped = useMemo(() => {
-    if (!blocks || blocks.length === 0) return {}
+  // Filter blocks for the selected date
+  const dayBlocks = useMemo(() => {
+    if (!blocks) return []
+    const dateKey = format(selectedDate, 'yyyy-MM-dd')
+    return blocks.filter((b) => format(parseISO(b.startsAt), 'yyyy-MM-dd') === dateKey)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+  }, [blocks, selectedDate])
 
-    const byDate: Record<string, EventScheduleBlock[]> = {}
-    for (const block of blocks) {
-      const dateKey = format(parseISO(block.startsAt), 'yyyy-MM-dd')
-      if (!byDate[dateKey]) byDate[dateKey] = []
-      byDate[dateKey].push(block)
+  // Group blocks by section
+  const sectionedBlocks = useMemo(() => {
+    const map: Record<string, EventScheduleBlock[]> = {}
+    const unsectioned: EventScheduleBlock[] = []
+
+    for (const block of dayBlocks) {
+      if (block.sectionId) {
+        if (!map[block.sectionId]) map[block.sectionId] = []
+        map[block.sectionId].push(block)
+      } else {
+        unsectioned.push(block)
+      }
     }
 
-    // Sort by sortOrder first, then by startsAt as fallback
-    for (const dateKey of Object.keys(byDate)) {
-      byDate[dateKey].sort((a, b) => {
-        if (a.sortOrder !== undefined && b.sortOrder !== undefined && a.sortOrder !== b.sortOrder) {
-          return a.sortOrder - b.sortOrder
-        }
-        return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-      })
-    }
+    return { map, unsectioned }
+  }, [dayBlocks])
 
-    return byDate
-  }, [blocks])
+  const allBlockIds = dayBlocks.map((b) => b.id)
+  const activeBlock = activeBlockId ? dayBlocks.find((b) => b.id === activeBlockId) : null
+
+  const isLoading = blocksLoading || sectionsLoading
 
   if (isLoading) return <ScheduleSkeleton />
+
+  const hasSections = sections && sections.length > 0
+  const hasBlocks = dayBlocks.length > 0
 
   return (
     <div className="space-y-5">
@@ -1167,73 +1363,126 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
           </button>
         </div>
 
-        {/* Order / Timeline pill toggle */}
-        <div className="flex items-center bg-slate-100 rounded-full p-1">
+        {/* Order / Timeline pill toggle + Add Block */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-100 rounded-full p-1">
+            <button
+              onClick={() => setViewMode('order')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                viewMode === 'order'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Order
+            </button>
+            <button
+              onClick={() => setViewMode('timeline')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                viewMode === 'timeline'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Timeline
+            </button>
+          </div>
+
           <button
-            onClick={() => setViewMode('order')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
-              viewMode === 'order'
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
+            onClick={() => openAddDrawer()}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
           >
-            Order
-          </button>
-          <button
-            onClick={() => setViewMode('timeline')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
-              viewMode === 'timeline'
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Timeline
+            <Plus className="w-4 h-4" />
+            Add Block
           </button>
         </div>
       </div>
 
-      {/* Current day blocks or empty state */}
-      {(() => {
-        const dateKey = format(selectedDate, 'yyyy-MM-dd')
-        const dayBlocks = grouped[dateKey] || []
+      {/* Schedule content */}
+      {!hasBlocks && !hasSections ? (
+        <ScheduleEmptyState onAdd={() => openAddDrawer()} />
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          <SortableContext items={allBlockIds} strategy={verticalListSortingStrategy}>
+            <div className="space-y-4">
+              {/* Render sections */}
+              {(sections || []).map((section) => {
+                const sectionBlocks = sectionedBlocks.map[section.id] || []
+                const totalMins = sectionBlocks.reduce((sum, b) => {
+                  const s = parseISO(b.startsAt)
+                  const e = parseISO(b.endsAt)
+                  return sum + Math.max(Math.round((e.getTime() - s.getTime()) / 60000), 1)
+                }, 0)
 
-        if (dayBlocks.length === 0) {
-          return <ScheduleEmptyState onAdd={() => openAddDrawer()} />
-        }
+                return (
+                  <div key={section.id} className="bg-slate-50/50 rounded-xl p-3 border border-slate-100">
+                    <SectionHeader
+                      section={section}
+                      blockCount={sectionBlocks.length}
+                      totalDuration={totalMins}
+                      onRename={(title) => handleRenameSection(section.id, title)}
+                      onDelete={() => handleDeleteSection(section.id)}
+                      onAddBlock={() => openAddDrawer(section.id)}
+                    />
+                    <DroppableSection sectionId={section.id}>
+                      {sectionBlocks.length > 0 ? (
+                        <SectionBlockList
+                          blocks={sectionBlocks}
+                          allTypes={allTypes}
+                          onEditBlock={openEditDrawer}
+                          onDelete={handleDelete}
+                          deletingId={deletingId}
+                        />
+                      ) : (
+                        <div className="py-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+                          Drag blocks here or click + to add
+                        </div>
+                      )}
+                    </DroppableSection>
+                  </div>
+                )
+              })}
 
-        // Group by time of day
-        const byPeriod: Record<'morning' | 'afternoon' | 'evening', EventScheduleBlock[]> = {
-          morning: [],
-          afternoon: [],
-          evening: [],
-        }
-        for (const block of dayBlocks) {
-          const period = getTimeOfDay(parseISO(block.startsAt))
-          byPeriod[period].push(block)
-        }
+              {/* Unsectioned blocks */}
+              {sectionedBlocks.unsectioned.length > 0 && (
+                <div>
+                  {hasSections && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Unsectioned</span>
+                      <span className="text-xs text-slate-400">{sectionedBlocks.unsectioned.length} block{sectionedBlocks.unsectioned.length !== 1 ? 's' : ''}</span>
+                    </div>
+                  )}
+                  <DroppableSection sectionId="unsectioned">
+                    <SectionBlockList
+                      blocks={sectionedBlocks.unsectioned}
+                      allTypes={allTypes}
+                      onEditBlock={openEditDrawer}
+                      onDelete={handleDelete}
+                      deletingId={deletingId}
+                    />
+                  </DroppableSection>
+                </div>
+              )}
+            </div>
+          </SortableContext>
 
-        const activePeriods = (['morning', 'afternoon', 'evening'] as const).filter(
-          (p) => byPeriod[p].length > 0
-        )
+          {/* Drag overlay */}
+          <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
+            {activeBlock ? <BlockRowOverlay block={activeBlock} allTypes={allTypes} /> : null}
+          </DragOverlay>
+        </DndContext>
+      )}
 
-        return (
-          <div className="space-y-5">
-            {activePeriods.map((period) => (
-              <ScheduleSection
-                key={period}
-                period={period}
-                blocks={byPeriod[period]}
-                allTypes={allTypes}
-                sectionStartTime={getSectionStartTime(period, dateKey, byPeriod[period])}
-                onEditBlock={openEditDrawer}
-                onDelete={handleDelete}
-                onReorder={handleReorder}
-                deletingId={deletingId}
-              />
-            ))}
-          </div>
-        )
-      })()}
+      {/* Add Section button */}
+      <div className="pt-1">
+        <AddSectionButton onAdd={handleCreateSection} />
+      </div>
 
       {/* Add / Edit Block Drawer */}
       <AddBlockDrawer
@@ -1241,6 +1490,7 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
         onClose={() => {
           setDrawerOpen(false)
           setEditingBlock(null)
+          setAddToSectionId(null)
         }}
         onSubmit={editingBlock ? handleUpdate : handleCreate}
         isSubmitting={editingBlock ? updateBlock.isPending : createBlock.isPending}

@@ -65,6 +65,7 @@ export interface EventProject {
 export interface EventScheduleBlock {
   id: string
   eventProjectId: string
+  sectionId: string | null
   type: string
   title: string
   description: string | null
