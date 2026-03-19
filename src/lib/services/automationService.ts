@@ -105,7 +105,7 @@ export async function processStaleTicketEscalations(): Promise<{ escalated: numb
         deletedAt: null,
       },
       include: {
-        assignee: { select: { id: true, email: true, firstName: true } },
+        assignedTo: { select: { id: true, email: true, firstName: true } },
         submittedBy: { select: { id: true, email: true, firstName: true } },
       },
       take: 50,
@@ -113,9 +113,9 @@ export async function processStaleTicketEscalations(): Promise<{ escalated: numb
 
     for (const ticket of staleTickets) {
       // Notify the assignee
-      if ((ticket as any).assignee?.id) {
+      if (ticket.assignedTo?.id) {
         notificationService.createNotification({
-          userId: (ticket as any).assignee.id,
+          userId: ticket.assignedTo.id,
           type: 'maintenance_stale',
           title: `Ticket "${ticket.title}" has been open for 3+ days`,
           body: 'This ticket needs attention. Please update the status or add a comment.',
@@ -124,9 +124,9 @@ export async function processStaleTicketEscalations(): Promise<{ escalated: numb
       }
 
       // Also notify the submitter that their ticket is being escalated
-      if ((ticket as any).submittedBy?.id && (ticket as any).submittedBy.id !== (ticket as any).assignee?.id) {
+      if (ticket.submittedBy?.id && ticket.submittedBy.id !== ticket.assignedTo?.id) {
         notificationService.createNotification({
-          userId: (ticket as any).submittedBy.id,
+          userId: ticket.submittedBy.id,
           type: 'maintenance_stale',
           title: `Your ticket "${ticket.title}" is being escalated`,
           body: 'This ticket has been open for 3+ days without update. We\'re escalating it for attention.',
@@ -145,16 +145,16 @@ export async function processStaleTicketEscalations(): Promise<{ escalated: numb
         deletedAt: null,
       },
       include: {
-        assignee: { select: { id: true, email: true, firstName: true } },
+        assignedTo: { select: { id: true, email: true, firstName: true } },
         submittedBy: { select: { id: true, email: true, firstName: true } },
       },
       take: 50,
     })
 
     for (const ticket of staleITTickets) {
-      if ((ticket as any).assignee?.id) {
+      if (ticket.assignedTo?.id) {
         notificationService.createNotification({
-          userId: (ticket as any).assignee.id,
+          userId: ticket.assignedTo.id,
           type: 'it_stale_ticket',
           title: `IT ticket "${ticket.title}" has been open for 3+ days`,
           body: 'This ticket needs attention. Please update the status or add a comment.',
