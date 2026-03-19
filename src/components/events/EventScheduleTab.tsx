@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { format, parseISO, addMinutes, addDays, subDays } from 'date-fns'
 import {
@@ -8,9 +8,12 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
+  DragOverlay,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -20,6 +23,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import {
   CalendarDays,
   Plus,
@@ -645,11 +649,12 @@ function SortableBlockRow({
   const [isHovered, setIsHovered] = useState(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 50 : undefined,
+    position: 'relative' as const,
   }
 
   // Check metadata for custom type
@@ -663,15 +668,17 @@ function SortableBlockRow({
       style={style}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group relative flex items-center gap-3 px-3 py-3 bg-white border rounded-xl hover:border-slate-300 hover:shadow-sm transition-all cursor-default ${
-        isDragging ? 'border-slate-300 shadow-lg' : 'border-slate-200/80'
+      className={`group relative flex items-center gap-3 px-3 py-3 bg-white border rounded-xl transition-all cursor-default ${
+        isDragging ? 'border-indigo-300 shadow-lg ring-2 ring-indigo-100' : 'border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
       }`}
     >
-      {/* Drag handle */}
+      {/* Drag handle — larger touch target */}
       <div
         {...attributes}
         {...listeners}
-        className="flex-shrink-0 opacity-30 group-hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing touch-none"
+        className="flex-shrink-0 p-1.5 -m-1.5 rounded-lg opacity-40 group-hover:opacity-70 hover:bg-slate-100 transition-all cursor-grab active:cursor-grabbing"
+        role="button"
+        aria-label={`Reorder ${block.title}`}
       >
         <GripVertical className="w-4 h-4 text-slate-400" />
       </div>
@@ -730,7 +737,7 @@ function SortableBlockRow({
       </div>
 
       {/* Hover actions — Edit / Delete buttons */}
-      <div className={`flex items-center gap-2 transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`flex items-center gap-2 transition-opacity ${isHovered && !isDragging ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <button
           onClick={() => onEdit(block)}
           className="px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
@@ -744,6 +751,37 @@ function SortableBlockRow({
         >
           {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
         </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Drag Overlay Preview ────────────────────────────────────────────────────
+
+function BlockRowOverlay({ block, allTypes }: { block: EventScheduleBlock; allTypes: BlockTypeConfig[] }) {
+  const displayType = (block.metadata as Record<string, unknown>)?.customType as string | undefined
+  const typeConfig = getBlockTypeConfig(displayType || block.type, allTypes)
+
+  return (
+    <div className="flex items-center gap-3 px-3 py-3 bg-white border-2 border-indigo-300 rounded-xl shadow-xl ring-4 ring-indigo-50 cursor-grabbing max-w-[600px]">
+      <div className="flex-shrink-0 p-1.5">
+        <GripVertical className="w-4 h-4 text-indigo-400" />
+      </div>
+      <div className="flex-shrink-0">
+        {typeConfig.hexColor ? (
+          <span className="block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: typeConfig.hexColor }} />
+        ) : (
+          <span className={`block w-2.5 h-2.5 rounded-full ${typeConfig.dotColor}`} />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="text-sm font-medium text-slate-900 truncate">{block.title}</span>
+        {block.locationText && (
+          <div className="flex items-center gap-1 text-xs text-slate-400 mt-0.5">
+            <MapPin className="w-3 h-3" />
+            <span className="truncate">{block.locationText}</span>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -774,9 +812,11 @@ function ScheduleSection({
 }: ScheduleSectionProps) {
   const config = TIME_OF_DAY_CONFIG[period]
   const Icon = config.icon
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
@@ -805,7 +845,12 @@ function ScheduleSection({
   const sectionStartStr = format(sectionStartTime, 'h:mm a')
   const sectionEndStr = totalMins > 0 ? format(addMinutes(sectionStartTime, totalMins), 'h:mm a') : sectionStartStr
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveBlockId(event.active.id as string)
+  }, [])
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveBlockId(null)
     const { active, over } = event
     if (!over || active.id === over.id) return
 
@@ -815,9 +860,14 @@ function ScheduleSection({
 
     const reordered = arrayMove(blocks, oldIndex, newIndex)
     onReorder(reordered.map((b) => b.id))
-  }
+  }, [blocks, onReorder])
+
+  const handleDragCancel = useCallback(() => {
+    setActiveBlockId(null)
+  }, [])
 
   const blockIds = blocks.map((b) => b.id)
+  const activeBlock = activeBlockId ? blocks.find((b) => b.id === activeBlockId) : null
 
   return (
     <div>
@@ -838,7 +888,14 @@ function ScheduleSection({
       </div>
 
       {/* Sortable block list */}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+      >
         <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
           <div className="space-y-1.5">
             {blocks.map((block, i) => {
@@ -859,6 +916,11 @@ function ScheduleSection({
             })}
           </div>
         </SortableContext>
+
+        {/* Drag overlay — renders outside the sortable flow for smooth dragging */}
+        <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
+          {activeBlock ? <BlockRowOverlay block={activeBlock} allTypes={allTypes} /> : null}
+        </DragOverlay>
       </DndContext>
     </div>
   )
