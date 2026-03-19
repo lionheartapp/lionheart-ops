@@ -1,8 +1,25 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { format, parseISO, differenceInMinutes } from 'date-fns'
+import { motion } from 'framer-motion'
+import { format, parseISO, addMinutes, addDays, subDays } from 'date-fns'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import {
   CalendarDays,
   Plus,
@@ -10,21 +27,22 @@ import {
   User,
   Clock,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   GripVertical,
-  List,
-  Timer,
   Sunrise,
   Sunset,
   Sun,
-  X,
 } from 'lucide-react'
+import DetailDrawer from '@/components/DetailDrawer'
 import { staggerContainer, listItem, fadeInUp } from '@/lib/animations'
 import {
   useScheduleBlocks,
   useCreateScheduleBlock,
   useUpdateScheduleBlock,
   useDeleteScheduleBlock,
+  useReorderScheduleBlocks,
 } from '@/lib/hooks/useEventSchedule'
 import { type EventScheduleBlock } from '@/lib/hooks/useEventProject'
 import { useToast } from '@/components/Toast'
@@ -67,7 +85,7 @@ const DEFAULT_BLOCK_TYPES: BlockTypeConfig[] = [
 
 // Valid API enum values
 const VALID_API_TYPES = ['SESSION', 'ACTIVITY', 'MEAL', 'FREE_TIME', 'TRAVEL', 'SETUP'] as const
-type ApiBlockType = typeof VALID_API_TYPES[number]
+type ApiBlockType = (typeof VALID_API_TYPES)[number]
 
 /** Load custom types from localStorage for this event */
 function loadCustomTypes(eventProjectId: string): BlockTypeConfig[] {
@@ -82,7 +100,9 @@ function loadCustomTypes(eventProjectId: string): BlockTypeConfig[] {
 function saveCustomTypes(eventProjectId: string, types: BlockTypeConfig[]) {
   try {
     localStorage.setItem(`schedule-custom-types-${eventProjectId}`, JSON.stringify(types))
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function getAllBlockTypes(eventProjectId: string, customTypes: BlockTypeConfig[]): BlockTypeConfig[] {
@@ -118,9 +138,9 @@ function getTimeOfDay(date: Date): 'morning' | 'afternoon' | 'evening' {
 }
 
 const TIME_OF_DAY_CONFIG = {
-  morning: { label: 'Morning', icon: Sunrise, accent: 'text-amber-600' },
-  afternoon: { label: 'Afternoon', icon: Sun, accent: 'text-orange-500' },
-  evening: { label: 'Evening', icon: Sunset, accent: 'text-indigo-500' },
+  morning: { label: 'Morning', icon: Sunrise, accent: 'text-amber-600', defaultStartHour: 8 },
+  afternoon: { label: 'Afternoon', icon: Sun, accent: 'text-orange-500', defaultStartHour: 12 },
+  evening: { label: 'Evening', icon: Sunset, accent: 'text-indigo-500', defaultStartHour: 17 },
 }
 
 const SECTIONS = [
@@ -128,6 +148,17 @@ const SECTIONS = [
   { value: 'afternoon', label: 'Afternoon' },
   { value: 'evening', label: 'Evening' },
 ] as const
+
+// ─── Duration presets ────────────────────────────────────────────────────────
+
+const DURATION_PRESETS = [5, 10, 15, 30, 45, 60, 90, 120] as const
+
+function formatPreset(mins: number): string {
+  if (mins < 60) return `${mins}m`
+  const h = mins / 60
+  if (Number.isInteger(h)) return `${h}h`
+  return `${Math.floor(h)}h ${mins % 60}m`
+}
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 
@@ -179,8 +210,7 @@ interface DrawerFormData {
   title: string
   description: string
   section: 'morning' | 'afternoon' | 'evening'
-  startTime: string
-  endTime: string
+  durationMinutes: number
   locationText: string
 }
 
@@ -189,8 +219,7 @@ const defaultDrawerForm: DrawerFormData = {
   title: '',
   description: '',
   section: 'morning',
-  startTime: '09:00',
-  endTime: '10:00',
+  durationMinutes: 30,
   locationText: '',
 }
 
@@ -221,7 +250,9 @@ function AddBlockDrawer({
   const [newTypeLabel, setNewTypeLabel] = useState('')
   const [newTypeColor, setNewTypeColor] = useState(TYPE_COLORS[0].value)
   const [sectionOpen, setSectionOpen] = useState(false)
+  const [customDuration, setCustomDuration] = useState('')
   const sectionRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   // Reset form when drawer opens
   useEffect(() => {
@@ -231,6 +262,7 @@ function AddBlockDrawer({
       setShowCreateType(false)
       setNewTypeLabel('')
       setNewTypeColor(TYPE_COLORS[0].value)
+      setCustomDuration('')
     }
   }, [open, initialData])
 
@@ -250,12 +282,11 @@ function AddBlockDrawer({
     setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault()
     const newErrors: Partial<Record<keyof DrawerFormData, string>> = {}
     if (!form.title.trim()) newErrors.title = 'Title is required'
-    if (!form.startTime) newErrors.startTime = 'Required'
-    if (!form.endTime) newErrors.endTime = 'Required'
+    if (!form.durationMinutes || form.durationMinutes <= 0) newErrors.durationMinutes = 'Duration is required'
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
@@ -283,354 +314,365 @@ function AddBlockDrawer({
     setNewTypeColor(TYPE_COLORS[0].value)
   }
 
+  function handleCustomDurationApply() {
+    const mins = parseInt(customDuration, 10)
+    if (mins > 0) {
+      update('durationMinutes', mins)
+    }
+  }
+
   // Split types into default and custom
   const defaultTypes = allTypes.filter((t) => !t.isCustom)
   const customTypes = allTypes.filter((t) => t.isCustom)
 
+  const drawerTitle = initialData?.title ? 'Edit Block' : 'Add Block'
+  const isPresetSelected = (DURATION_PRESETS as readonly number[]).includes(form.durationMinutes)
+
+  const footerContent = (
+    <div className="flex gap-3">
+      <button
+        type="button"
+        onClick={onClose}
+        className="px-5 py-3.5 rounded-full border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        onClick={() => handleSubmit()}
+        disabled={isSubmitting}
+        className="flex-1 py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-60 transition cursor-pointer flex items-center justify-center gap-2"
+      >
+        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+        {submitLabel}
+      </button>
+    </div>
+  )
+
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40"
-            onClick={onClose}
+    <DetailDrawer isOpen={open} onClose={onClose} title={drawerTitle} width="lg" footer={footerContent}>
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+        {/* Block title */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Block title</label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => update('title', e.target.value)}
+            placeholder="e.g. Morning Worship, Lunch..."
+            className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all ${
+              errors.title ? 'border-red-300' : 'border-slate-200'
+            }`}
           />
+          {errors.title && <p className="text-xs text-red-500 mt-1.5">{errors.title}</p>}
+        </div>
 
-          {/* Drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-[420px] bg-white shadow-2xl z-50 flex flex-col"
-          >
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-900">
-                {initialData?.title ? 'Edit Block' : 'Add Block'}
-              </h2>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Drawer body */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-              <div className="px-6 py-5 space-y-6">
-                {/* Block title */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Block title</label>
-                  <input
-                    type="text"
-                    value={form.title}
-                    onChange={(e) => update('title', e.target.value)}
-                    placeholder="e.g. Morning Worship, Lunch..."
-                    autoFocus
-                    className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all ${
-                      errors.title ? 'border-red-300' : 'border-slate-200'
-                    }`}
-                  />
-                  {errors.title && <p className="text-xs text-red-500 mt-1.5">{errors.title}</p>}
-                </div>
-
-                {/* Type */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Type</label>
-                  {defaultTypes.length > 0 && (
-                    <>
-                      <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Default</div>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {defaultTypes.map((t) => {
-                          const isSelected = form.type === t.value
-                          return (
-                            <button
-                              key={t.value}
-                              type="button"
-                              onClick={() => update('type', t.value)}
-                              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                                isSelected
-                                  ? `${t.bg} ${t.color} ring-2 ring-offset-1 ring-slate-300`
-                                  : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                              }`}
-                            >
-                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${t.dotColor}`} />
-                              {t.label}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </>
-                  )}
-                  {customTypes.length > 0 && (
-                    <>
-                      <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Custom</div>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {customTypes.map((t) => {
-                          const isSelected = form.type === t.value
-                          return (
-                            <button
-                              key={t.value}
-                              type="button"
-                              onClick={() => update('type', t.value)}
-                              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                                isSelected
-                                  ? `ring-2 ring-offset-1 ring-slate-300`
-                                  : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                              }`}
-                              style={isSelected ? { backgroundColor: `${t.hexColor}18`, color: t.hexColor } : undefined}
-                            >
-                              <span
-                                className="w-2 h-2 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: t.hexColor }}
-                              />
-                              {t.label}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </>
-                  )}
-
-                  {/* Divider */}
-                  <div className="border-t border-slate-100 pt-3 mt-1">
-                    {!showCreateType ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowCreateType(true)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-dashed border-slate-300 text-xs font-medium text-slate-500 hover:border-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        Create type
-                      </button>
-                    ) : (
-                      <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-3">
-                        <div>
-                          <label className="block text-xs font-medium text-slate-600 mb-1.5">Label</label>
-                          <input
-                            type="text"
-                            value={newTypeLabel}
-                            onChange={(e) => setNewTypeLabel(e.target.value)}
-                            placeholder="e.g. Chapel, Workshop, Keynote"
-                            className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-                            autoFocus
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-600 mb-2">Color</label>
-                          <div className="flex flex-wrap gap-2">
-                            {TYPE_COLORS.map((c) => (
-                              <button
-                                key={c.value}
-                                type="button"
-                                onClick={() => setNewTypeColor(c.value)}
-                                className={`w-8 h-8 rounded-full transition-all cursor-pointer ${
-                                  newTypeColor === c.value
-                                    ? 'ring-2 ring-offset-2 ring-slate-400 scale-110'
-                                    : 'hover:scale-105'
-                                }`}
-                                style={{ backgroundColor: c.value }}
-                                title={c.name}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex gap-2 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowCreateType(false)
-                              setNewTypeLabel('')
-                            }}
-                            className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-white transition-colors cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleAddType}
-                            disabled={!newTypeLabel.trim()}
-                            className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 disabled:opacity-40 transition-all cursor-pointer"
-                          >
-                            Add type
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Section */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Section</label>
-                  <div ref={sectionRef} className="relative">
+        {/* Type */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Type</label>
+          {defaultTypes.length > 0 && (
+            <>
+              <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Default</div>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {defaultTypes.map((t) => {
+                  const isSelected = form.type === t.value
+                  return (
                     <button
+                      key={t.value}
                       type="button"
-                      onClick={() => setSectionOpen((prev) => !prev)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl hover:border-slate-300 focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer"
+                      onClick={() => update('type', t.value)}
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                        isSelected
+                          ? `${t.bg} ${t.color} ring-2 ring-offset-1 ring-slate-300`
+                          : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
                     >
-                      <span className="text-slate-900">
-                        {SECTIONS.find((s) => s.value === form.section)?.label ?? 'Morning'}
-                      </span>
-                      <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${sectionOpen ? 'rotate-180' : ''}`} />
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${t.dotColor}`} />
+                      {t.label}
                     </button>
-                    <AnimatePresence>
-                      {sectionOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
-                        >
-                          {SECTIONS.map((s) => {
-                            const cfg = TIME_OF_DAY_CONFIG[s.value]
-                            const Icon = cfg.icon
-                            return (
-                              <button
-                                key={s.value}
-                                type="button"
-                                onClick={() => {
-                                  update('section', s.value)
-                                  setSectionOpen(false)
-                                }}
-                                className={`w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors cursor-pointer ${
-                                  form.section === s.value
-                                    ? 'bg-slate-50 text-slate-900 font-medium'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                }`}
-                              >
-                                <Icon className={`w-4 h-4 ${cfg.accent}`} />
-                                {s.label}
-                              </button>
-                            )
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+          {customTypes.length > 0 && (
+            <>
+              <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Custom</div>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {customTypes.map((t) => {
+                  const isSelected = form.type === t.value
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => update('type', t.value)}
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                        isSelected
+                          ? `ring-2 ring-offset-1 ring-slate-300`
+                          : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                      style={isSelected ? { backgroundColor: `${t.hexColor}18`, color: t.hexColor } : undefined}
+                    >
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: t.hexColor }} />
+                      {t.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
 
-                {/* Duration */}
+          {/* Create custom type */}
+          <div className="border-t border-slate-100 pt-3 mt-1">
+            {!showCreateType ? (
+              <button
+                type="button"
+                onClick={() => setShowCreateType(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-dashed border-slate-300 text-xs font-medium text-slate-500 hover:border-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                Create type
+              </button>
+            ) : (
+              <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Duration</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <input
-                        type="time"
-                        value={form.startTime}
-                        onChange={(e) => update('startTime', e.target.value)}
-                        className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all ${
-                          errors.startTime ? 'border-red-300' : 'border-slate-200'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="time"
-                        value={form.endTime}
-                        onChange={(e) => update('endTime', e.target.value)}
-                        className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all ${
-                          errors.endTime ? 'border-red-300' : 'border-slate-200'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 mt-1.5 text-xs text-slate-400">
-                    <span>Start</span>
-                    <span className="mx-1">&rarr;</span>
-                    <span>End</span>
-                  </div>
-                </div>
-
-                {/* Location */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Location (optional)</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">Label</label>
                   <input
                     type="text"
-                    value={form.locationText}
-                    onChange={(e) => update('locationText', e.target.value)}
-                    placeholder="e.g. Main Hall, Beach Pavilion"
-                    className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
+                    value={newTypeLabel}
+                    onChange={(e) => setNewTypeLabel(e.target.value)}
+                    placeholder="e.g. Chapel, Workshop, Keynote"
+                    className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
                   />
                 </div>
-
-                {/* Notes */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Notes (optional)</label>
-                  <textarea
-                    value={form.description}
-                    onChange={(e) => update('description', e.target.value)}
-                    rows={3}
-                    placeholder="Instructions, details, leaders..."
-                    className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 resize-y transition-all"
-                  />
+                  <label className="block text-xs font-medium text-slate-600 mb-2">Color</label>
+                  <div className="flex flex-wrap gap-2">
+                    {TYPE_COLORS.map((c) => (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => setNewTypeColor(c.value)}
+                        className={`w-8 h-8 rounded-full transition-all cursor-pointer ${
+                          newTypeColor === c.value ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : 'hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: c.value }}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateType(false)
+                      setNewTypeLabel('')
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-white transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddType}
+                    disabled={!newTypeLabel.trim()}
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 disabled:opacity-40 transition-all cursor-pointer"
+                  >
+                    Add type
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
 
-              {/* Drawer footer */}
-              <div className="sticky bottom-0 px-6 py-4 border-t border-slate-200 bg-white flex gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-60 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {submitLabel}
-                </button>
+        {/* Section */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Section</label>
+          <div ref={sectionRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setSectionOpen((prev) => !prev)}
+              className="w-full flex items-center justify-between px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl hover:border-slate-300 focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer"
+            >
+              <span className="text-slate-900">
+                {SECTIONS.find((s) => s.value === form.section)?.label ?? 'Morning'}
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-slate-400 transition-transform ${sectionOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            {sectionOpen && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+                {SECTIONS.map((s) => {
+                  const cfg = TIME_OF_DAY_CONFIG[s.value]
+                  const SectionIcon = cfg.icon
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => {
+                        update('section', s.value)
+                        setSectionOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors cursor-pointer ${
+                        form.section === s.value
+                          ? 'bg-slate-50 text-slate-900 font-medium'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <SectionIcon className={`w-4 h-4 ${cfg.accent}`} />
+                      {s.label}
+                    </button>
+                  )
+                })}
               </div>
-            </form>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            )}
+          </div>
+        </div>
+
+        {/* Duration — preset buttons + custom input */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Duration</label>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {DURATION_PRESETS.map((mins) => {
+              const isSelected = form.durationMinutes === mins
+              return (
+                <button
+                  key={mins}
+                  type="button"
+                  onClick={() => {
+                    update('durationMinutes', mins)
+                    setCustomDuration('')
+                  }}
+                  className={`px-3.5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {formatPreset(mins)}
+                </button>
+              )
+            })}
+          </div>
+          {/* Custom duration input */}
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={720}
+              value={customDuration}
+              onChange={(e) => setCustomDuration(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleCustomDurationApply()
+                }
+              }}
+              placeholder="Custom minutes"
+              className={`w-36 px-3 py-2 text-sm bg-white border rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition-all ${
+                !isPresetSelected && form.durationMinutes > 0 ? 'border-slate-400' : 'border-slate-200'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={handleCustomDurationApply}
+              disabled={!customDuration || parseInt(customDuration, 10) <= 0}
+              className="px-3 py-2 rounded-lg bg-slate-100 text-xs font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-40 transition-all cursor-pointer"
+            >
+              Set
+            </button>
+            {!isPresetSelected && form.durationMinutes > 0 && (
+              <span className="text-xs text-slate-500 font-medium">{formatDuration(form.durationMinutes)}</span>
+            )}
+          </div>
+          {errors.durationMinutes && <p className="text-xs text-red-500 mt-1.5">{errors.durationMinutes}</p>}
+        </div>
+
+        {/* Location */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Location (optional)</label>
+          <input
+            type="text"
+            value={form.locationText}
+            onChange={(e) => update('locationText', e.target.value)}
+            placeholder="e.g. Main Hall, Beach Pavilion"
+            className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
+          />
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Notes (optional)</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => update('description', e.target.value)}
+            rows={3}
+            placeholder="Instructions, details, leaders..."
+            className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 resize-y transition-all"
+          />
+        </div>
+      </form>
+    </DetailDrawer>
   )
 }
 
-// ─── Block Row ───────────────────────────────────────────────────────────────
+// ─── Sortable Block Row ─────────────────────────────────────────────────────
 
-interface BlockRowProps {
+interface SortableBlockRowProps {
   block: EventScheduleBlock
   allTypes: BlockTypeConfig[]
+  calculatedStart: string
+  calculatedEnd: string
+  durationMins: number
   onEdit: (block: EventScheduleBlock) => void
   onDelete: (blockId: string) => Promise<void>
   isDeleting?: boolean
 }
 
-function BlockRow({ block, allTypes, onEdit, onDelete, isDeleting }: BlockRowProps) {
+function SortableBlockRow({
+  block,
+  allTypes,
+  calculatedStart,
+  calculatedEnd,
+  durationMins,
+  onEdit,
+  onDelete,
+  isDeleting,
+}: SortableBlockRowProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  }
 
   // Check metadata for custom type
   const displayType = (block.metadata as Record<string, unknown>)?.customType as string | undefined
   const typeConfig = getBlockTypeConfig(displayType || block.type, allTypes)
-  const startsAt = parseISO(block.startsAt)
-  const endsAt = parseISO(block.endsAt)
-  const duration = differenceInMinutes(endsAt, startsAt)
-  const timeRange = `${format(startsAt, 'h:mm a')} – ${format(endsAt, 'h:mm a')}`
+  const timeRange = `${calculatedStart} – ${calculatedEnd}`
 
   return (
-    <motion.div
-      variants={listItem}
+    <div
+      ref={setNodeRef}
+      style={style}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex items-center gap-3 px-3 py-3 bg-white border border-slate-200/80 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all cursor-default"
+      className={`group relative flex items-center gap-3 px-3 py-3 bg-white border rounded-xl hover:border-slate-300 hover:shadow-sm transition-all cursor-default ${
+        isDragging ? 'border-slate-300 shadow-lg' : 'border-slate-200/80'
+      }`}
     >
       {/* Drag handle */}
-      <div className="flex-shrink-0 opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">
+      <div
+        {...attributes}
+        {...listeners}
+        className="flex-shrink-0 opacity-30 group-hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing touch-none"
+      >
         <GripVertical className="w-4 h-4 text-slate-400" />
       </div>
 
@@ -677,10 +719,10 @@ function BlockRow({ block, allTypes, onEdit, onDelete, isDeleting }: BlockRowPro
 
         {/* Duration pill */}
         <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100">
-          <span className="text-xs font-medium text-slate-500">{formatDuration(duration)}</span>
+          <span className="text-xs font-medium text-slate-500">{formatDuration(durationMins)}</span>
         </div>
 
-        {/* Time range */}
+        {/* Auto-calculated time range */}
         <div className="flex-shrink-0 flex items-center gap-1.5 text-xs text-slate-500 min-w-[140px] justify-end">
           <Clock className="w-3 h-3 text-slate-400" />
           {timeRange}
@@ -688,11 +730,7 @@ function BlockRow({ block, allTypes, onEdit, onDelete, isDeleting }: BlockRowPro
       </div>
 
       {/* Hover actions — Edit / Delete buttons */}
-      <div
-        className={`flex items-center gap-2 transition-opacity ${
-          isHovered ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
+      <div className={`flex items-center gap-2 transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
         <button
           onClick={() => onEdit(block)}
           className="px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
@@ -704,14 +742,10 @@ function BlockRow({ block, allTypes, onEdit, onDelete, isDeleting }: BlockRowPro
           disabled={isDeleting}
           className="px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-red-500 hover:bg-red-50 hover:border-red-200 transition-all cursor-pointer disabled:opacity-60"
         >
-          {isDeleting ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            'Delete'
-          )}
+          {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
         </button>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -721,11 +755,10 @@ interface ScheduleSectionProps {
   period: 'morning' | 'afternoon' | 'evening'
   blocks: EventScheduleBlock[]
   allTypes: BlockTypeConfig[]
-  viewMode: 'order' | 'timeline'
-  onViewModeChange: (mode: 'order' | 'timeline') => void
-  onAddBlock: () => void
+  sectionStartTime: Date
   onEditBlock: (block: EventScheduleBlock) => void
   onDelete: (blockId: string) => Promise<void>
+  onReorder: (blockIds: string[]) => void
   deletingId: string | null
 }
 
@@ -733,18 +766,58 @@ function ScheduleSection({
   period,
   blocks,
   allTypes,
-  viewMode,
-  onViewModeChange,
-  onAddBlock,
+  sectionStartTime,
   onEditBlock,
   onDelete,
+  onReorder,
   deletingId,
 }: ScheduleSectionProps) {
   const config = TIME_OF_DAY_CONFIG[period]
   const Icon = config.icon
-  const totalMins = blocks.reduce((sum, b) => {
-    return sum + differenceInMinutes(parseISO(b.endsAt), parseISO(b.startsAt))
-  }, 0)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
+  // Calculate auto-stacked times for each block
+  const blockTimings = useMemo(() => {
+    const timings: { start: Date; end: Date; durationMins: number }[] = []
+    let cursor = sectionStartTime
+
+    for (const block of blocks) {
+      const startsAt = parseISO(block.startsAt)
+      const endsAt = parseISO(block.endsAt)
+      // Calculate duration from stored times
+      const durationMs = endsAt.getTime() - startsAt.getTime()
+      const durationMins = Math.max(Math.round(durationMs / 60000), 1)
+
+      const start = cursor
+      const end = addMinutes(cursor, durationMins)
+      timings.push({ start, end, durationMins })
+      cursor = end
+    }
+    return timings
+  }, [blocks, sectionStartTime])
+
+  const totalMins = blockTimings.reduce((sum, t) => sum + t.durationMins, 0)
+
+  const sectionStartStr = format(sectionStartTime, 'h:mm a')
+  const sectionEndStr = totalMins > 0 ? format(addMinutes(sectionStartTime, totalMins), 'h:mm a') : sectionStartStr
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = blocks.findIndex((b) => b.id === active.id)
+    const newIndex = blocks.findIndex((b) => b.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reordered = arrayMove(blocks, oldIndex, newIndex)
+    onReorder(reordered.map((b) => b.id))
+  }
+
+  const blockIds = blocks.map((b) => b.id)
 
   return (
     <div>
@@ -756,63 +829,37 @@ function ScheduleSection({
           <span className="text-xs text-slate-400">
             {blocks.length} block{blocks.length !== 1 ? 's' : ''} · {formatDuration(totalMins)}
           </span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {/* View mode toggle */}
-          <div className="flex items-center bg-slate-100 rounded-lg p-0.5">
-            <button
-              onClick={() => onViewModeChange('order')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                viewMode === 'order'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <List className="w-3 h-3" />
-              Order
-            </button>
-            <button
-              onClick={() => onViewModeChange('timeline')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                viewMode === 'timeline'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <Timer className="w-3 h-3" />
-              Timeline
-            </button>
-          </div>
-
-          {/* Add block to section */}
-          <button
-            onClick={onAddBlock}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3 h-3" />
-            Add Block
-          </button>
+          {blocks.length > 0 && (
+            <span className="text-[10px] text-slate-400 font-medium ml-1">
+              {sectionStartStr} → {sectionEndStr}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Block list */}
-      <motion.div
-        variants={staggerContainer(0.03)}
-        initial="hidden"
-        animate="visible"
-        className="space-y-1.5"
-      >
-        {blocks.map((block) => (
-          <BlockRow
-            key={block.id}
-            block={block}
-            allTypes={allTypes}
-            onEdit={onEditBlock}
-            onDelete={onDelete}
-            isDeleting={deletingId === block.id}
-          />
-        ))}
-      </motion.div>
+      {/* Sortable block list */}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
+          <div className="space-y-1.5">
+            {blocks.map((block, i) => {
+              const timing = blockTimings[i]
+              return (
+                <SortableBlockRow
+                  key={block.id}
+                  block={block}
+                  allTypes={allTypes}
+                  calculatedStart={timing ? format(timing.start, 'h:mm a') : ''}
+                  calculatedEnd={timing ? format(timing.end, 'h:mm a') : ''}
+                  durationMins={timing?.durationMins ?? 0}
+                  onEdit={onEditBlock}
+                  onDelete={onDelete}
+                  isDeleting={deletingId === block.id}
+                />
+              )
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   )
 }
@@ -829,12 +876,18 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
   const createBlock = useCreateScheduleBlock(eventProjectId)
   const updateBlock = useUpdateScheduleBlock(eventProjectId)
   const deleteBlock = useDeleteScheduleBlock(eventProjectId)
+  const reorderBlocks = useReorderScheduleBlocks(eventProjectId)
   const { toast } = useToast()
 
+  const [viewMode, setViewMode] = useState<'order' | 'timeline'>('order')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingBlock, setEditingBlock] = useState<EventScheduleBlock | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'order' | 'timeline'>('order')
+  const [drawerSection, setDrawerSection] = useState<'morning' | 'afternoon' | 'evening'>('morning')
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    if (defaultDate) return new Date(defaultDate + 'T00:00:00')
+    return new Date(format(new Date(), 'yyyy-MM-dd') + 'T00:00:00')
+  })
   const [customTypes, setCustomTypes] = useState<BlockTypeConfig[]>(() => loadCustomTypes(eventProjectId))
 
   const allTypes = useMemo(() => getAllBlockTypes(eventProjectId, customTypes), [eventProjectId, customTypes])
@@ -845,20 +898,29 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
     saveCustomTypes(eventProjectId, updated)
   }
 
-  /** Convert section + times into a proper Date for the API */
-  function buildDateTime(section: 'morning' | 'afternoon' | 'evening', time: string, dateStr: string): Date {
-    return new Date(`${dateStr}T${time}:00`)
+  /** Use the currently selected date for block creation. */
+  function getDateStr(): string {
+    return format(selectedDate, 'yyyy-MM-dd')
   }
 
-  /** Pick a reasonable date string. Use defaultDate or today. */
-  function getDateForSection(section: 'morning' | 'afternoon' | 'evening'): string {
-    return defaultDate || format(new Date(), 'yyyy-MM-dd')
+  /** Build a section start time as a Date. */
+  function getSectionStartTime(
+    section: 'morning' | 'afternoon' | 'evening',
+    dateStr: string,
+    periodBlocks: EventScheduleBlock[]
+  ): Date {
+    // Section defaults
+    const defaultHour = TIME_OF_DAY_CONFIG[section].defaultStartHour
+    return new Date(`${dateStr}T${String(defaultHour).padStart(2, '0')}:00:00`)
   }
 
   async function handleCreate(data: DrawerFormData) {
-    const dateStr = getDateForSection(data.section)
-    const startsAt = buildDateTime(data.section, data.startTime, dateStr)
-    const endsAt = buildDateTime(data.section, data.endTime, dateStr)
+    const dateStr = getDateStr()
+    const defaultHour = TIME_OF_DAY_CONFIG[data.section].defaultStartHour
+    // Start time = section default start (blocks stack sequentially on the server,
+    // but we still need valid startsAt/endsAt for the API)
+    const startsAt = new Date(`${dateStr}T${String(defaultHour).padStart(2, '0')}:00:00`)
+    const endsAt = addMinutes(startsAt, data.durationMinutes)
 
     const isCustomType = !VALID_API_TYPES.includes(data.type as ApiBlockType)
     const payload: CreateScheduleBlockInput = {
@@ -882,10 +944,10 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
 
   async function handleUpdate(data: DrawerFormData) {
     if (!editingBlock) return
-    const startsAtOld = parseISO(editingBlock.startsAt)
-    const dateStr = format(startsAtOld, 'yyyy-MM-dd')
-    const startsAt = buildDateTime(data.section, data.startTime, dateStr)
-    const endsAt = buildDateTime(data.section, data.endTime, dateStr)
+    const dateStr = getDateStr()
+    const defaultHour = TIME_OF_DAY_CONFIG[data.section].defaultStartHour
+    const startsAt = new Date(`${dateStr}T${String(defaultHour).padStart(2, '0')}:00:00`)
+    const endsAt = addMinutes(startsAt, data.durationMinutes)
 
     const isCustomType = !VALID_API_TYPES.includes(data.type as ApiBlockType)
     const updateData: UpdateScheduleBlockInput = {
@@ -919,8 +981,13 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
     }
   }
 
+  function handleReorder(blockIds: string[]) {
+    reorderBlocks.mutate(blockIds)
+  }
+
   function openAddDrawer(section?: 'morning' | 'afternoon' | 'evening') {
     setEditingBlock(null)
+    if (section) setDrawerSection(section)
     setDrawerOpen(true)
   }
 
@@ -931,20 +998,21 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
 
   // Build initial form data for editing
   const editInitial = useMemo<Partial<DrawerFormData> | undefined>(() => {
-    if (!editingBlock) return undefined
+    if (!editingBlock) return { section: drawerSection }
     const startsAt = parseISO(editingBlock.startsAt)
     const endsAt = parseISO(editingBlock.endsAt)
+    const durationMs = endsAt.getTime() - startsAt.getTime()
+    const durationMinutes = Math.max(Math.round(durationMs / 60000), 1)
     const customType = (editingBlock.metadata as Record<string, unknown>)?.customType as string | undefined
     return {
       type: customType || editingBlock.type,
       title: editingBlock.title,
       description: editingBlock.description || '',
       section: getTimeOfDay(startsAt),
-      startTime: format(startsAt, 'HH:mm'),
-      endTime: format(endsAt, 'HH:mm'),
+      durationMinutes,
       locationText: editingBlock.locationText || '',
     }
-  }, [editingBlock])
+  }, [editingBlock, drawerSection])
 
   // Group blocks by date, then by time-of-day within each date
   const grouped = useMemo(() => {
@@ -957,101 +1025,113 @@ export function EventScheduleTab({ eventProjectId, defaultDate }: EventScheduleT
       byDate[dateKey].push(block)
     }
 
+    // Sort by sortOrder first, then by startsAt as fallback
     for (const dateKey of Object.keys(byDate)) {
-      byDate[dateKey].sort(
-        (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-      )
+      byDate[dateKey].sort((a, b) => {
+        if (a.sortOrder !== undefined && b.sortOrder !== undefined && a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder
+        }
+        return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+      })
     }
 
     return byDate
   }, [blocks])
 
-  const sortedDates = Object.keys(grouped).sort()
-
   if (isLoading) return <ScheduleSkeleton />
 
   return (
     <div className="space-y-5">
-      {/* Header */}
+      {/* View mode toggle + Day navigator */}
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900">Schedule</h3>
-          {blocks && blocks.length > 0 && (
-            <p className="text-xs text-slate-500 mt-0.5">
-              {blocks.length} block{blocks.length !== 1 ? 's' : ''} across{' '}
-              {sortedDates.length} day{sortedDates.length !== 1 ? 's' : ''}
-            </p>
-          )}
+        {/* Order / Timeline pill toggle */}
+        <div className="flex items-center bg-slate-100 rounded-full p-1">
+          <button
+            onClick={() => setViewMode('order')}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+              viewMode === 'order'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Order
+          </button>
+          <button
+            onClick={() => setViewMode('timeline')}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+              viewMode === 'timeline'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Timeline
+          </button>
         </div>
-        <button
-          onClick={() => openAddDrawer()}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Add Block
-        </button>
+
+        {/* Day navigator */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSelectedDate((d) => subDays(d, 1))}
+            className="flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="px-4 py-2 min-w-[200px] text-center">
+            <h4 className="text-sm font-semibold text-slate-900">
+              {format(selectedDate, 'EEEE, MMMM d')}
+            </h4>
+          </div>
+          <button
+            onClick={() => setSelectedDate((d) => addDays(d, 1))}
+            className="flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Block list or empty state */}
-      {!blocks || blocks.length === 0 ? (
-        <ScheduleEmptyState onAdd={() => openAddDrawer()} />
-      ) : (
-        <div className="space-y-6">
-          {sortedDates.map((dateKey) => {
-            const dayBlocks = grouped[dateKey]
-            const dayDate = new Date(dateKey + 'T00:00:00')
+      {/* Current day blocks or empty state */}
+      {(() => {
+        const dateKey = format(selectedDate, 'yyyy-MM-dd')
+        const dayBlocks = grouped[dateKey] || []
 
-            // Group by time of day
-            const byPeriod: Record<'morning' | 'afternoon' | 'evening', EventScheduleBlock[]> = {
-              morning: [],
-              afternoon: [],
-              evening: [],
-            }
-            for (const block of dayBlocks) {
-              const period = getTimeOfDay(parseISO(block.startsAt))
-              byPeriod[period].push(block)
-            }
+        if (dayBlocks.length === 0) {
+          return <ScheduleEmptyState onAdd={() => openAddDrawer()} />
+        }
 
-            const activePeriods = (['morning', 'afternoon', 'evening'] as const).filter(
-              (p) => byPeriod[p].length > 0
-            )
+        // Group by time of day
+        const byPeriod: Record<'morning' | 'afternoon' | 'evening', EventScheduleBlock[]> = {
+          morning: [],
+          afternoon: [],
+          evening: [],
+        }
+        for (const block of dayBlocks) {
+          const period = getTimeOfDay(parseISO(block.startsAt))
+          byPeriod[period].push(block)
+        }
 
-            return (
-              <div key={dateKey}>
-                {/* Day header */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 border border-slate-200">
-                    <span className="text-sm font-bold text-slate-700">{format(dayDate, 'd')}</span>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-900">{format(dayDate, 'EEEE')}</h4>
-                    <p className="text-xs text-slate-400">{format(dayDate, 'MMMM d, yyyy')}</p>
-                  </div>
-                  <div className="flex-1 h-px bg-slate-200 ml-3" />
-                </div>
+        const activePeriods = (['morning', 'afternoon', 'evening'] as const).filter(
+          (p) => byPeriod[p].length > 0
+        )
 
-                {/* Periods */}
-                <div className="space-y-5 ml-2">
-                  {activePeriods.map((period) => (
-                    <ScheduleSection
-                      key={period}
-                      period={period}
-                      blocks={byPeriod[period]}
-                      allTypes={allTypes}
-                      viewMode={viewMode}
-                      onViewModeChange={setViewMode}
-                      onAddBlock={() => openAddDrawer(period)}
-                      onEditBlock={openEditDrawer}
-                      onDelete={handleDelete}
-                      deletingId={deletingId}
-                    />
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+        return (
+          <div className="space-y-5">
+            {activePeriods.map((period) => (
+              <ScheduleSection
+                key={period}
+                period={period}
+                blocks={byPeriod[period]}
+                allTypes={allTypes}
+                sectionStartTime={getSectionStartTime(period, dateKey, byPeriod[period])}
+                onEditBlock={openEditDrawer}
+                onDelete={handleDelete}
+                onReorder={handleReorder}
+                deletingId={deletingId}
+              />
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Add / Edit Block Drawer */}
       <AddBlockDrawer

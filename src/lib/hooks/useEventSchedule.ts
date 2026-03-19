@@ -75,3 +75,58 @@ export function useDeleteScheduleBlock(eventProjectId: string | null | undefined
     },
   })
 }
+
+/**
+ * Reorder schedule blocks by sending an ordered array of block IDs.
+ * The server updates each block's sortOrder to match its array index.
+ * Uses optimistic updates for instant visual feedback during drag-and-drop.
+ */
+export function useReorderScheduleBlocks(eventProjectId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (blockIds: string[]) =>
+      fetchApi<{ reordered: number }>(`/api/events/projects/${eventProjectId}/schedule/reorder`, {
+        method: 'PATCH',
+        body: JSON.stringify({ blockIds }),
+      }),
+    onMutate: async (blockIds: string[]) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['event-schedule', eventProjectId] })
+
+      // Snapshot previous value
+      const previous = queryClient.getQueryData<EventScheduleBlock[]>(['event-schedule', eventProjectId])
+
+      // Optimistically reorder
+      if (previous) {
+        const blockMap = new Map(previous.map((b) => [b.id, b]))
+        const reordered = blockIds
+          .map((id, i) => {
+            const block = blockMap.get(id)
+            if (!block) return null
+            return { ...block, sortOrder: i }
+          })
+          .filter(Boolean) as EventScheduleBlock[]
+
+        // Include any blocks not in the reorder list (other sections)
+        const reorderedIds = new Set(blockIds)
+        const rest = previous.filter((b) => !reorderedIds.has(b.id))
+
+        queryClient.setQueryData<EventScheduleBlock[]>(
+          ['event-schedule', eventProjectId],
+          [...reordered, ...rest],
+        )
+      }
+
+      return { previous }
+    },
+    onError: (_err, _blockIds, context) => {
+      // Rollback on error
+      if (context?.previous) {
+        queryClient.setQueryData(['event-schedule', eventProjectId], context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-schedule', eventProjectId] })
+    },
+  })
+}

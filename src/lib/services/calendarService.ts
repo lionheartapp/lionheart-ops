@@ -790,6 +790,25 @@ export async function deleteEvent(
 
   if (!event) throw new Error('Event not found')
 
+  // If this CalendarEvent is a bridge to an active EventProject, sync the
+  // EventProject status so it doesn't stay "CONFIRMED" while orphaned.
+  if (event.sourceModule === 'event-project' && event.sourceId) {
+    try {
+      const linkedProject = await prisma.eventProject.findUnique({
+        where: { id: event.sourceId },
+        select: { id: true, status: true },
+      })
+      if (linkedProject && linkedProject.status === 'CONFIRMED') {
+        await prisma.eventProject.update({
+          where: { id: linkedProject.id },
+          data: { status: 'CANCELLED' },
+        })
+      }
+    } catch {
+      // Non-fatal: continue with delete even if sync fails
+    }
+  }
+
   // Non-recurring or 'all' mode: soft-delete parent + exceptions
   if (!event.rrule || editMode === 'all') {
     const parentId = event.parentEventId || eventId

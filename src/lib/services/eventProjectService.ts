@@ -781,30 +781,60 @@ export async function confirmEventProject(
     resolvedCalendarId = defaultCalendar.id
   }
 
-  await db.calendarEvent.create({
-    data: {
-      calendarId: resolvedCalendarId,
-      title: project.title,
-      description: project.description ?? null,
-      startTime: project.startsAt,
-      endTime: project.endsAt,
-      isAllDay: false,
-      calendarStatus: 'CONFIRMED',
+  // Check if a bridge already exists (possibly soft-deleted) — restore it instead of creating a duplicate
+  const existingBridge = await rawPrisma.calendarEvent.findFirst({
+    where: {
       sourceModule: 'event-project',
       sourceId: project.id,
-      createdById: actorId,
-      locationText: project.locationText ?? null,
-      buildingId: project.buildingId ?? null,
-      areaId: project.areaId ?? null,
-      metadata: { eventProjectId: project.id },
+      organizationId: project.organizationId,
     },
   })
+
+  if (existingBridge) {
+    // Restore the soft-deleted bridge and update it with current project data
+    await rawPrisma.calendarEvent.update({
+      where: { id: existingBridge.id },
+      data: {
+        deletedAt: null,
+        calendarId: resolvedCalendarId,
+        title: project.title,
+        description: project.description ?? null,
+        startTime: project.startsAt,
+        endTime: project.endsAt,
+        calendarStatus: 'CONFIRMED',
+        locationText: project.locationText ?? null,
+        buildingId: project.buildingId ?? null,
+        areaId: project.areaId ?? null,
+        metadata: { eventProjectId: project.id },
+      },
+    })
+  } else {
+    await db.calendarEvent.create({
+      data: {
+        calendarId: resolvedCalendarId,
+        title: project.title,
+        description: project.description ?? null,
+        startTime: project.startsAt,
+        endTime: project.endsAt,
+        isAllDay: false,
+        calendarStatus: 'CONFIRMED',
+        sourceModule: 'event-project',
+        sourceId: project.id,
+        createdById: actorId,
+        locationText: project.locationText ?? null,
+        buildingId: project.buildingId ?? null,
+        areaId: project.areaId ?? null,
+        metadata: { eventProjectId: project.id },
+      },
+    })
+  }
 
   await appendActivityLog(id, actorId, 'STATUS_CHANGE', {
     fromStatus: project.status,
     toStatus: 'CONFIRMED',
     calendarId: resolvedCalendarId,
     bridgeCreated: true,
+    restoredExisting: !!existingBridge,
   })
 }
 
