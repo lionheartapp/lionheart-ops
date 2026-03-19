@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
-import { Trophy } from 'lucide-react'
+import { Trophy, X } from 'lucide-react'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 import { useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
@@ -176,6 +177,31 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
     else cellRefs.current.delete(key)
   }, [])
 
+  // "+N more" popover state
+  const [expandedDay, setExpandedDay] = useState<string | null>(null)
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
+
+  const handleMoreClick = useCallback((e: React.MouseEvent, date: Date) => {
+    e.stopPropagation()
+    const btn = e.currentTarget as HTMLElement
+    const rect = btn.getBoundingClientRect()
+    setPopoverPos({ top: rect.bottom + 4, left: rect.left })
+    setExpandedDay(dateKey(date))
+  }, [])
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!expandedDay) return
+    const handler = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setExpandedDay(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [expandedDay])
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden" role="grid" aria-label="Calendar month view">
       {/* Day headers */}
@@ -328,10 +354,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                     ))}
                     {moreCount > 0 && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onDateClick(date)
-                        }}
+                        onClick={(e) => handleMoreClick(e, date)}
                         className="w-full text-left px-2 py-0.5 text-xs font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
                       >
                         +{moreCount} more
@@ -346,6 +369,95 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
           </div>
         ))}
       </div>
+
+      {/* "+N more" popover — portal to body so it floats above everything */}
+      {expandedDay && popoverPos && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={popoverRef}
+          className="fixed z-50 w-72 max-h-80 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 p-3 space-y-1"
+          style={{ top: popoverPos.top, left: popoverPos.left }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-slate-700">
+              {(() => {
+                const parts = expandedDay.split('-')
+                const d = new Date(+parts[0], +parts[1], +parts[2])
+                return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+              })()}
+            </span>
+            <button
+              onClick={() => setExpandedDay(null)}
+              className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* All events for this day */}
+          {(() => {
+            const dayEvents = eventsByDate.get(expandedDay) || []
+            const meetDayEvents = meetWithEventsByDate.get(expandedDay) || []
+            const allDay = dayEvents.filter((e) => e.isAllDay)
+            const timed = dayEvents.filter((e) => !e.isAllDay)
+            const sorted = [...allDay, ...timed]
+
+            return (
+              <>
+                {sorted.map((event) => (
+                  <button
+                    key={event.id}
+                    onClick={() => {
+                      setExpandedDay(null)
+                      onEventClick(event)
+                    }}
+                    className="w-full text-left flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs hover:bg-slate-50 transition-colors"
+                  >
+                    <CampusShapeIndicator
+                      shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
+                      color={getEventColor(event)}
+                      size={8}
+                    />
+                    {event.isAllDay ? (
+                      <span
+                        className="flex-1 truncate font-medium px-1.5 py-0.5 rounded text-white"
+                        style={{ backgroundColor: getEventColor(event) }}
+                      >
+                        {event.title}
+                      </span>
+                    ) : (
+                      <span className="flex-1 truncate" style={{ color: getEventColor(event) }}>
+                        <span className="font-medium">{formatTime(event.startTime)} </span>
+                        {event.title}
+                      </span>
+                    )}
+                  </button>
+                ))}
+                {meetDayEvents.map(({ event: mwEvent, person }) => (
+                  <button
+                    key={`mw-${person.id}-${mwEvent.id}`}
+                    onClick={() => {
+                      setExpandedDay(null)
+                      onEventClick(mwEvent)
+                    }}
+                    className="w-full text-left flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs opacity-60 hover:opacity-80 transition-opacity"
+                  >
+                    <div className="w-1.5 h-3.5 rounded-full flex-shrink-0" style={{ backgroundColor: person.color }} />
+                    <span className="flex-1 truncate" style={{ color: person.color }}>
+                      {!mwEvent.isAllDay && <span className="font-medium">{formatTime(mwEvent.startTime)} </span>}
+                      {mwEvent.title}
+                    </span>
+                  </button>
+                ))}
+                {sorted.length === 0 && meetDayEvents.length === 0 && (
+                  <p className="text-xs text-slate-400 py-2 text-center">No events</p>
+                )}
+              </>
+            )
+          })()}
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
