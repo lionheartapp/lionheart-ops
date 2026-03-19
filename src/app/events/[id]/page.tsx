@@ -92,7 +92,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   if (isLoading) {
     return (
       <DashboardLayout>
-      <div className="flex-1 min-h-0 overflow-y-auto pb-8">
+      <div className="min-h-screen">
         <EventProjectSkeleton />
       </div>
       </DashboardLayout>
@@ -102,7 +102,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   if (error || !project) {
     return (
       <DashboardLayout>
-      <div className="flex-1 min-h-0 overflow-y-auto pb-8">
+      <div className="min-h-screen">
         <EventNotFound onBack={() => router.push('/events')} />
       </div>
       </DashboardLayout>
@@ -123,7 +123,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
 
   return (
     <DashboardLayout>
-    <div className="flex-1 min-h-0 overflow-y-auto pb-8">
+    <div className="min-h-screen">
       <motion.div
         variants={staggerContainer(0.05)}
         initial="hidden"

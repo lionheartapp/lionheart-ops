@@ -446,7 +446,39 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
         </motion.div>
       )}
 
-      {/* Event Details — moved above stats for context-first reading */}
+      {/* Quick Stats */}
+      <motion.div variants={listItem}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard
+            icon={<CheckSquare className="w-5 h-5" />}
+            value={`${completedTasks}/${totalTasks}`}
+            label="Tasks Done"
+          />
+          <StatCard
+            icon={<Layers className="w-5 h-5" />}
+            value={scheduleBlocks}
+            label="Schedule Blocks"
+          />
+          <StatCard
+            icon={<Users className="w-5 h-5" />}
+            value={project.expectedAttendance ?? '—'}
+            label="Expected Attendance"
+          />
+          <StatCard
+            icon={<Clock className="w-5 h-5" />}
+            value={daysText}
+            label="Event Date"
+          />
+        </div>
+      </motion.div>
+
+      {/* AI Status Summary */}
+      <AIStatusSection
+        eventProjectId={project.id}
+        initialCompletionPercent={initialCompletionPercent}
+      />
+
+      {/* Event Details */}
       <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
         <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
           <FileText className="w-4 h-4 text-slate-400" />
@@ -510,51 +542,10 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
         </div>
       </motion.div>
 
-      {/* Quick Stats */}
-      <motion.div variants={listItem}>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            icon={<CheckSquare className="w-5 h-5" />}
-            value={`${completedTasks}/${totalTasks}`}
-            label="Tasks Done"
-          />
-          <StatCard
-            icon={<Layers className="w-5 h-5" />}
-            value={scheduleBlocks}
-            label="Schedule Blocks"
-          />
-          <StatCard
-            icon={<Users className="w-5 h-5" />}
-            value={project.expectedAttendance ?? '—'}
-            label="Expected Attendance"
-          />
-          <StatCard
-            icon={<Clock className="w-5 h-5" />}
-            value={daysText}
-            label="Event Date"
-          />
-        </div>
-      </motion.div>
-
-      {/* AI Summary + Event Status — side by side on desktop, stacked on mobile */}
-      <motion.div variants={listItem}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* AI Status Summary */}
-          <AIStatusSection
-            eventProjectId={project.id}
-            initialCompletionPercent={initialCompletionPercent}
-          />
-
-          {/* Status Timeline */}
-          <motion.div variants={listItem} className="ui-glass p-6 flex flex-col">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">Event Status</h3>
-            <div className="flex-1 flex items-center">
-              <div className="w-full">
-                <StatusTimeline currentStatus={project.status} />
-              </div>
-            </div>
-          </motion.div>
-        </div>
+      {/* Status Timeline */}
+      <motion.div variants={listItem} className="ui-glass p-6">
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">Event Status</h3>
+        <StatusTimeline currentStatus={project.status} />
       </motion.div>
 
       {/* Post-Event Feedback Analysis — only for completed events */}

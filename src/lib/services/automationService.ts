@@ -100,7 +100,7 @@ export async function processStaleTicketEscalations(): Promise<{ escalated: numb
     // Find stale maintenance tickets
     const staleTickets = await rawPrisma.maintenanceTicket.findMany({
       where: {
-        status: { in: ['OPEN', 'IN_PROGRESS'] },
+        status: { in: ['BACKLOG', 'TODO', 'IN_PROGRESS'] },
         updatedAt: { lte: threeDaysAgo },
         deletedAt: null,
       },
@@ -140,7 +140,7 @@ export async function processStaleTicketEscalations(): Promise<{ escalated: numb
     // Do the same for IT tickets
     const staleITTickets = await rawPrisma.iTTicket.findMany({
       where: {
-        status: { in: ['OPEN', 'IN_PROGRESS'] },
+        status: { in: ['BACKLOG', 'TODO', 'IN_PROGRESS'] },
         updatedAt: { lte: threeDaysAgo },
         deletedAt: null,
       },
