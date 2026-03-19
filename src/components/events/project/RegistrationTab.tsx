@@ -13,6 +13,7 @@ import {
 } from '@/lib/hooks/useRegistrationForm'
 import { FormBuilder } from '@/components/registration/FormBuilder'
 import { useToast } from '@/components/Toast'
+import { fetchApi } from '@/lib/api-client'
 import { COMMON_FIELDS } from '@/components/registration/CommonFieldPicker'
 import { RegistrationManagement } from './RegistrationManagement'
 import { ShareHub } from './ShareHub'
@@ -240,9 +241,8 @@ export function RegistrationTab({
   async function handleAIGenerate(evtType: string, evtDescription: string) {
     setAIGenerating(true)
     try {
-      const res = await fetch('/api/events/ai/generate-form', {
+      const result = await fetchApi<{ sections: Array<Record<string, unknown>> }>('/api/events/ai/generate-form', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventType: evtType,
           durationDays,
@@ -250,22 +250,21 @@ export function RegistrationTab({
           description: evtDescription || undefined,
         }),
       })
-      const json = await res.json()
-      if (json.ok && json.data?.sections) {
+      if (result?.sections) {
         // Convert AI sections to FormSection shape and save to the form
-        const newSections = aiSectionsToFormSections(json.data.sections)
+        const newSections = aiSectionsToFormSections(result.sections)
         await updateMutation.mutateAsync({ sections: newSections })
         setShowAIModal(false)
         toast(
-          `AI generated ${json.data.sections.length} form sections — review and edit as needed`,
+          `AI generated ${result.sections.length} form sections — review and edit as needed`,
           'success',
         )
         setActiveSubTab('form')
       } else {
-        toast(json.error?.message ?? 'Failed to generate form', 'error')
+        toast('Failed to generate form', 'error')
       }
-    } catch {
-      toast('Network error — please try again', 'error')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to generate form — please try again', 'error')
     } finally {
       setAIGenerating(false)
     }

@@ -88,8 +88,11 @@ export async function GET(
     await assertCan(ctx.userId, PERMISSIONS.EVENTS_REGISTRATION_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const form = await getRegistrationForm(eventProjectId)
-      return NextResponse.json(ok(form))
+      const raw = await getRegistrationForm(eventProjectId)
+      if (!raw) return NextResponse.json(ok(null))
+      // Transform into { form, sections } structure the client expects
+      const { sections, ...formConfig } = raw as Record<string, unknown> & { sections?: unknown[] }
+      return NextResponse.json(ok({ form: formConfig, sections: sections ?? [] }))
     })
   } catch (error) {
     if (isAuthError(error)) {
@@ -128,7 +131,7 @@ export async function POST(
     const data = parsed.data
 
     return await runWithOrgContext(orgId, async () => {
-      const form = await createRegistrationForm({
+      const raw = await createRegistrationForm({
         organizationId: orgId,
         eventProjectId,
         title: data.title,
@@ -145,7 +148,9 @@ export async function POST(
         discountCodes: data.discountCodes ?? undefined,
       })
 
-      return NextResponse.json(ok(form), { status: 201 })
+      // Transform into { form, sections } structure the client expects
+      const { sections, ...formConfig } = raw as Record<string, unknown> & { sections?: unknown[] }
+      return NextResponse.json(ok({ form: formConfig, sections: sections ?? [] }), { status: 201 })
     })
   } catch (error) {
     if (isAuthError(error)) {
@@ -216,8 +221,12 @@ export async function PUT(
         await upsertFormSections(formId, sections)
       }
 
-      const updated = await getRegistrationForm(eventProjectId)
-      return NextResponse.json(ok(updated))
+      const updatedRaw = await getRegistrationForm(eventProjectId)
+      if (!updatedRaw) {
+        return NextResponse.json(fail('NOT_FOUND', 'Registration form not found after update'), { status: 404 })
+      }
+      const { sections: updatedSections, ...updatedFormConfig } = updatedRaw as Record<string, unknown> & { sections?: unknown[] }
+      return NextResponse.json(ok({ form: updatedFormConfig, sections: updatedSections ?? [] }))
     })
   } catch (error) {
     if (isAuthError(error)) {
