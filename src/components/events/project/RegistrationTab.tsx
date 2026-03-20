@@ -241,7 +241,7 @@ export function RegistrationTab({
   async function handleAIGenerate(evtType: string, evtDescription: string) {
     setAIGenerating(true)
     try {
-      const result = await fetchApi<{ sections: Array<Record<string, unknown>> }>('/api/events/ai/generate-form', {
+      const result = await fetchApi<{ sections: AIFormSection[] }>('/api/events/ai/generate-form', {
         method: 'POST',
         body: JSON.stringify({
           eventType: evtType,
