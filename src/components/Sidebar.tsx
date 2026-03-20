@@ -1104,7 +1104,7 @@ export default function Sidebar({
                   <button
                     onClick={() => {
                       setFacilitiesOpen((prev) => {
-                        if (!prev) setItOpen(false)
+                        if (!prev) { setItOpen(false); setAvOpen(false) }
                         return !prev
                       })
                     }}
@@ -1330,7 +1330,7 @@ export default function Sidebar({
                   <button
                     onClick={() => {
                       setItOpen((prev) => {
-                        if (!prev) setFacilitiesOpen(false)
+                        if (!prev) { setFacilitiesOpen(false); setAvOpen(false) }
                         return !prev
                       })
                     }}

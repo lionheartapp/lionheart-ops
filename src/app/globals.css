@@ -380,8 +380,10 @@ a:visited {
     @apply rounded-2xl transition-all duration-200;
   }
   .ui-glass-hover:hover {
-    background: rgba(255, 255, 255, 0.82);
-    border-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
   }
 
   .ui-glass-table {

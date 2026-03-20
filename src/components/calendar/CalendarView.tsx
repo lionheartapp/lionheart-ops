@@ -942,7 +942,7 @@ export default function CalendarView() {
       <div className="sr-only" aria-live="polite">{eventsLoading ? 'Loading calendar events' : ''}</div>
 
       {/* Scrollable view area — white background fills to bottom */}
-      <div className="flex-1 min-h-0 flex flex-col bg-white overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col bg-white overflow-hidden relative z-0">
           {view === 'month' && (
             isMobile ? (
               <MobileMonthView
