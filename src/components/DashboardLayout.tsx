@@ -20,6 +20,8 @@ interface DashboardLayoutProps extends SidebarProps {
   organizationLogoUrl?: string
   schoolLabel?: string
   teamLabel?: string
+  /** Pass a custom sidebar element to replace the default Sidebar */
+  customSidebar?: ReactNode
 }
 
 export default function DashboardLayout({
@@ -32,6 +34,7 @@ export default function DashboardLayout({
   schoolLabel,
   teamLabel,
   onLogout: onLogoutProp,
+  customSidebar,
 }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -117,25 +120,27 @@ export default function DashboardLayout({
 
       <div className={`flex flex-1 min-h-0 ${isImpersonating ? 'pt-[40px]' : ''}`}>
         {/* Sidebar */}
-        <Sidebar
-          userName={userName}
-          userEmail={userEmail}
-          userAvatar={userAvatar || undefined}
-          organizationName={organizationName}
-          organizationLogoUrl={orgLogoUrl}
-          onLogout={onLogout}
-          onSearchOpen={() => setIsSearchOpen(true)}
-        />
+        {customSidebar || (
+          <Sidebar
+            userName={userName}
+            userEmail={userEmail}
+            userAvatar={userAvatar || undefined}
+            organizationName={organizationName}
+            organizationLogoUrl={orgLogoUrl}
+            onLogout={onLogout}
+            onSearchOpen={() => setIsSearchOpen(true)}
+          />
+        )}
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 min-h-0 overflow-hidden relative flex flex-col">
+        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto relative">
           {/* Ambient gradient blobs — gives glass cards depth on Aura canvas */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
             <div className="absolute -top-32 right-0 w-[500px] h-[500px] rounded-full blur-[140px] bg-blue-300/[0.15]" />
             <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[140px] bg-violet-300/[0.12]" />
             <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[120px] bg-indigo-200/[0.10]" />
           </div>
-          <div className="relative pt-14 sm:pt-6 lg:pt-8 pl-14 pr-4 sm:px-10 flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="relative pt-14 sm:pt-6 lg:pt-8 pl-14 pr-4 sm:px-10">
             {children}
           </div>
         </main>

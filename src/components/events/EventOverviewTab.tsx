@@ -59,17 +59,17 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
   const currentIndex = STATUS_STEPS.findIndex((s) => s.key === currentStatus)
 
   return (
-    <div className="flex items-center gap-0">
-      {STATUS_STEPS.map((step, i) => {
-        const isDone = i < currentIndex
-        const isCurrent = i === currentIndex
-        const isUpcoming = i > currentIndex
+    <div className="w-full">
+      {/* Dots and connecting lines */}
+      <div className="flex items-center">
+        {STATUS_STEPS.map((step, i) => {
+          const isDone = i < currentIndex
+          const isCurrent = i === currentIndex
 
-        return (
-          <div key={step.key} className="flex items-center flex-1 min-w-0 last:flex-none">
-            <div className="flex flex-col items-center gap-1 flex-shrink-0">
+          return (
+            <div key={step.key} className="flex items-center flex-1 last:flex-none">
               <div
-                className={`w-3 h-3 rounded-full border-2 transition-colors ${
+                className={`w-3 h-3 rounded-full border-2 transition-colors flex-shrink-0 ${
                   isCurrent
                     ? 'border-indigo-500 bg-indigo-500'
                     : isDone
@@ -77,24 +77,36 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
                     : 'border-slate-200 bg-white'
                 }`}
               />
-              <span
-                className={`text-[10px] font-medium text-center leading-tight ${
-                  isCurrent ? 'text-indigo-600' : isDone ? 'text-indigo-400' : 'text-slate-400'
-                } ${isUpcoming ? 'opacity-60' : ''}`}
-              >
-                {step.label}
-              </span>
+              {i < STATUS_STEPS.length - 1 && (
+                <div
+                  className={`flex-1 h-0.5 mx-2 transition-colors ${
+                    isDone ? 'bg-indigo-300' : 'bg-slate-200'
+                  }`}
+                />
+              )}
             </div>
-            {i < STATUS_STEPS.length - 1 && (
-              <div
-                className={`flex-1 h-0.5 mx-1 transition-colors ${
-                  isDone ? 'bg-indigo-300' : 'bg-slate-200'
-                }`}
-              />
-            )}
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
+      {/* Labels row — evenly spaced */}
+      <div className="flex justify-between mt-1.5">
+        {STATUS_STEPS.map((step, i) => {
+          const isDone = i < currentIndex
+          const isCurrent = i === currentIndex
+          const isUpcoming = i > currentIndex
+
+          return (
+            <span
+              key={step.key}
+              className={`text-[10px] font-medium text-center leading-tight ${
+                isCurrent ? 'text-indigo-600' : isDone ? 'text-indigo-400' : 'text-slate-400'
+              } ${isUpcoming ? 'opacity-60' : ''}`}
+            >
+              {step.label}
+            </span>
+          )
+        })}
+      </div>
     </div>
   )
 }
