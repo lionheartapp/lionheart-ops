@@ -463,7 +463,7 @@ export async function importPlanToSection(
       const blockType = 'SESSION'  // All PCO items map to SESSION — the block type enum doesn't have song/media variants
 
       // Build metadata with PCO-specific info
-      const metadata: Record<string, unknown> = {
+      const metadata: Record<string, string | null> = {
         pcoItemId: item.id,
         pcoItemType: item.itemType,
         servicePosition: item.servicePosition, // 'pre' | 'during' | 'post' | null
@@ -841,7 +841,7 @@ export async function syncAllLinkedSections(
             const startsAt = new Date(baseDate.getTime() + cursor * 1000)
             const endsAt = new Date(startsAt.getTime() + duration * 1000)
 
-            const metadata: Record<string, unknown> = {
+            const metadata: Record<string, string | null> = {
               pcoItemId: item.id,
               pcoItemType: item.itemType,
               servicePosition: item.servicePosition,
