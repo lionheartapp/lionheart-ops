@@ -45,7 +45,7 @@ interface SortableBreakoutCardProps {
   durationMins: number
   sectionStartTime: string
   onEdit: (block: EventScheduleBlock) => void
-  onDelete: (blockId: string) => Promise<void>
+  onDelete: (blockId: string) => void
   isDeleting?: boolean
 }
 
@@ -189,7 +189,7 @@ export interface ParallelBlockGridProps {
   allTypes: BlockTypeConfig[]
   sectionStartTime: string
   onEditBlock: (block: EventScheduleBlock) => void
-  onDelete: (blockId: string) => Promise<void>
+  onDelete: (blockId: string) => void
   deletingId: string | null
 }
 

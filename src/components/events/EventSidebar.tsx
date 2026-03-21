@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from 'lucide-react'
 import type { EventProject } from '@/lib/hooks/useEventProject'
+import type { MyEventPermissions } from '@/lib/hooks/useEventPermissions'
 
 // ─── Status badge config ──────────────────────────────────────────────────────
 
@@ -31,9 +32,17 @@ const STATUS_CONFIG: Record<string, { label: string; dotColor: string; bgColor: 
 
 type TabId = 'overview' | 'schedule' | 'people' | 'registration' | 'documents' | 'logistics' | 'budget' | 'tasks' | 'comms'
 
+interface NavItem {
+  id: TabId
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  /** Permission key required to see this tab. undefined = always visible. */
+  requiredPermission?: keyof MyEventPermissions
+}
+
 interface NavSection {
   label: string
-  items: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[]
+  items: NavItem[]
 }
 
 const NAV_SECTIONS: NavSection[] = [
@@ -43,17 +52,17 @@ const NAV_SECTIONS: NavSection[] = [
       { id: 'overview', label: 'Overview', icon: LayoutDashboard },
       { id: 'schedule', label: 'Schedule', icon: CalendarDays },
       { id: 'people', label: 'Team', icon: Users },
-      { id: 'registration', label: 'Registration', icon: ClipboardList },
+      { id: 'registration', label: 'Registration', icon: ClipboardList, requiredPermission: 'canViewRegistrations' },
     ],
   },
   {
     label: 'Planning',
     items: [
-      { id: 'documents', label: 'Documents', icon: FileText },
-      { id: 'logistics', label: 'Logistics', icon: Truck },
-      { id: 'budget', label: 'Budget', icon: DollarSign },
+      { id: 'documents', label: 'Documents', icon: FileText, requiredPermission: 'canManageDocuments' },
+      { id: 'logistics', label: 'Logistics', icon: Truck, requiredPermission: 'canManageLogistics' },
+      { id: 'budget', label: 'Budget', icon: DollarSign, requiredPermission: 'canViewBudget' },
       { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-      { id: 'comms', label: 'Comms', icon: MessageSquare },
+      { id: 'comms', label: 'Comms', icon: MessageSquare, requiredPermission: 'canSendComms' },
     ],
   },
 ]
@@ -66,11 +75,13 @@ interface EventSidebarProps {
   onTabChange: (tab: TabId) => void
   organizationLogoUrl?: string
   organizationName?: string
+  /** Current user's event-level permissions. If undefined, show all tabs (loading state). */
+  permissions?: MyEventPermissions
 }
 
 export type { TabId }
 
-export default function EventSidebar({ project, activeTab, onTabChange, organizationLogoUrl, organizationName }: EventSidebarProps) {
+export default function EventSidebar({ project, activeTab, onTabChange, organizationLogoUrl, organizationName, permissions }: EventSidebarProps) {
   const router = useRouter()
 
   const status = STATUS_CONFIG[project.status] ?? STATUS_CONFIG.DRAFT
@@ -126,34 +137,46 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4 pt-[24px]">
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.label} className="mb-1">
-            <div className="text-[10px] font-medium text-slate-400 uppercase tracking-[0.07em] px-4 mb-1 mt-3 first:mt-0">
-              {section.label}
+        {NAV_SECTIONS.map((section) => {
+          // Filter items based on permissions (if permissions not loaded yet, show all)
+          const visibleItems = permissions
+            ? section.items.filter((item) => {
+                if (!item.requiredPermission) return true
+                return permissions[item.requiredPermission]
+              })
+            : section.items
+
+          if (visibleItems.length === 0) return null
+
+          return (
+            <div key={section.label} className="mb-1">
+              <div className="text-[10px] font-medium text-slate-400 uppercase tracking-[0.07em] px-4 mb-1 mt-3 first:mt-0">
+                {section.label}
+              </div>
+              <ul className="space-y-1">
+                {visibleItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeTab === item.id
+                  return (
+                    <li key={item.id}>
+                      <button
+                        onClick={() => onTabChange(item.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                          isActive
+                            ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                            : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary-500' : ''}`} />
+                        {item.label}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
             </div>
-            <ul className="space-y-1">
-              {section.items.map((item) => {
-                const Icon = item.icon
-                const isActive = activeTab === item.id
-                return (
-                  <li key={item.id}>
-                    <button
-                      onClick={() => onTabChange(item.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                        isActive
-                          ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                          : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary-500' : ''}`} />
-                      {item.label}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ))}
+          )
+        })}
       </nav>
 
     </aside>

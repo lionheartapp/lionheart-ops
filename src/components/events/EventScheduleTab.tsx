@@ -1070,7 +1070,7 @@ interface SortableBlockRowProps {
   durationMins: number
   timeRange: string
   onEdit: (block: EventScheduleBlock) => void
-  onDelete: (blockId: string) => Promise<void>
+  onDelete: (blockId: string) => void
   isDeleting?: boolean
 }
 
@@ -1394,7 +1394,7 @@ interface SectionBlockListProps {
   allTypes: BlockTypeConfig[]
   computedTimes?: Map<string, ComputedBlockTime>
   onEditBlock: (block: EventScheduleBlock) => void
-  onDelete: (blockId: string) => Promise<void>
+  onDelete: (blockId: string) => void
   deletingId: string | null
 }
 
