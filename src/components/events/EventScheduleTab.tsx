@@ -194,6 +194,12 @@ function formatDateTo12(d: Date): string {
 /**
  * Compute sequential start/end times for blocks within a section.
  * Block 1 starts at sectionStartTime, Block 2 starts when Block 1 ends, etc.
+ *
+ * IMPORTANT: Uses only the section's startTime string + block durations for
+ * positioning. Does NOT use block.startsAt for positioning because server-side
+ * code (e.g. PCO sync) stores times as UTC while the client interprets them
+ * in local time, causing timezone mismatches. Durations (endsAt - startsAt)
+ * are timezone-independent and safe to use.
  */
 function computeBlockTimes(
   sectionStartTime: string | undefined | null,
@@ -205,15 +211,21 @@ function computeBlockTimes(
   const sectionStart = new Date(`${dateStr}T00:00:00`)
   sectionStart.setHours(hours, minutes, 0, 0)
 
-  // Check for pre-items (blocks that start before the section start time)
-  // by looking at the first block's actual startsAt
-  let cursor: Date
-  if (blocks.length > 0) {
-    const firstBlockStart = parseISO(blocks[0].startsAt)
-    cursor = firstBlockStart < sectionStart ? new Date(firstBlockStart) : new Date(sectionStart)
-  } else {
-    cursor = new Date(sectionStart)
+  // Detect pre-items via metadata (not date comparison, which is timezone-sensitive).
+  // Pre-items are always sorted first, so scan from the front.
+  let preTotalMins = 0
+  for (const block of blocks) {
+    const meta = (block.metadata as Record<string, unknown>) || {}
+    if (meta.servicePosition !== 'pre' && meta.pcoServicePosition !== 'pre') break
+    const s = parseISO(block.startsAt)
+    const e = parseISO(block.endsAt)
+    preTotalMins += Math.max(Math.round((e.getTime() - s.getTime()) / 60000), 1)
   }
+
+  // Pre-items start before the section time; non-pre blocks start at section time.
+  let cursor: Date = preTotalMins > 0
+    ? addMinutes(new Date(sectionStart), -preTotalMins)
+    : new Date(sectionStart)
 
   for (const block of blocks) {
     const startsAt = parseISO(block.startsAt)
@@ -221,9 +233,7 @@ function computeBlockTimes(
     const durationMs = endsAt.getTime() - startsAt.getTime()
     const durationMins = Math.max(Math.round(durationMs / 60000), 1)
 
-    // If this block's actual start is before the cursor (e.g., pre-service item),
-    // use its actual start time. Otherwise, stack sequentially.
-    const computedStart = startsAt < cursor ? new Date(startsAt) : new Date(cursor)
+    const computedStart = new Date(cursor)
     const computedEnd = addMinutes(computedStart, durationMins)
 
     result.set(block.id, { computedStart, computedEnd })
