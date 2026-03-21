@@ -17,9 +17,10 @@ type RouteParams = {
 }
 
 /**
- * GET /api/events/projects/[id]/schedule/sections
+ * GET /api/events/projects/[id]/schedule/sections?date=2026-04-09
  *
- * Returns all schedule sections for an EventProject, ordered by sortOrder.
+ * Returns schedule sections for an EventProject, filtered by date if provided.
+ * Ordered by sortOrder ascending.
  */
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
@@ -30,10 +31,19 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_READ)
 
+    const dateParam = req.nextUrl.searchParams.get('date')
+
     return await runWithOrgContext(orgId, async () => {
       const db = prisma as any
+      const where: Record<string, unknown> = { eventProjectId: id }
+
+      // Filter by date if provided (expects ISO date string like "2026-04-09")
+      if (dateParam) {
+        where.date = new Date(dateParam + 'T00:00:00.000Z')
+      }
+
       const sections = await db.eventScheduleSection.findMany({
-        where: { eventProjectId: id },
+        where,
         orderBy: { sortOrder: 'asc' },
       })
       return NextResponse.json(ok(sections))
@@ -54,7 +64,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 /**
  * POST /api/events/projects/[id]/schedule/sections
  *
- * Creates a new schedule section within an EventProject.
+ * Creates a new schedule section within an EventProject for a specific date.
  */
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
@@ -70,11 +80,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return await runWithOrgContext(orgId, async () => {
       const validated = CreateScheduleSectionSchema.parse(body)
       const db = prisma as any
+      const sectionDate = new Date(validated.date + 'T00:00:00.000Z')
 
-      // Auto-assign sortOrder if not provided
+      // Auto-assign sortOrder — find the last section for this specific date
       if (validated.sortOrder === 0) {
         const lastSection = await db.eventScheduleSection.findFirst({
-          where: { eventProjectId: id },
+          where: { eventProjectId: id, date: sectionDate },
           orderBy: { sortOrder: 'desc' },
           select: { sortOrder: true },
         })
@@ -84,7 +95,10 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       const section = await db.eventScheduleSection.create({
         data: {
           eventProjectId: id,
+          date: sectionDate,
           title: validated.title,
+          startTime: validated.startTime,
+          layout: validated.layout,
           sortOrder: validated.sortOrder,
         },
       })

@@ -15,7 +15,10 @@ import type { EventScheduleBlock } from './useEventProject'
 export interface EventScheduleSection {
   id: string
   eventProjectId: string
+  date: string
   title: string
+  startTime: string  // HH:mm — section start time for sequential block computation
+  layout: 'sequential' | 'parallel'
   sortOrder: number
   createdAt: string
   updatedAt: string
@@ -24,24 +27,27 @@ export interface EventScheduleSection {
 // ─── Section Hooks ────────────────────────────────────────────────────
 
 /**
- * Fetch all schedule sections for an event project.
+ * Fetch schedule sections for an event project, scoped to a specific date.
+ * @param date - ISO date string like "2026-04-09"
  */
-export function useScheduleSections(eventProjectId: string | null | undefined) {
+export function useScheduleSections(eventProjectId: string | null | undefined, date?: string) {
   return useQuery<EventScheduleSection[]>({
-    queryKey: ['event-schedule-sections', eventProjectId],
-    queryFn: () =>
-      fetchApi<EventScheduleSection[]>(
-        `/api/events/projects/${eventProjectId}/schedule/sections`,
-      ),
+    queryKey: ['event-schedule-sections', eventProjectId, date],
+    queryFn: () => {
+      const dateParam = date ? `?date=${date}` : ''
+      return fetchApi<EventScheduleSection[]>(
+        `/api/events/projects/${eventProjectId}/schedule/sections${dateParam}`,
+      )
+    },
     enabled: !!eventProjectId,
     staleTime: 2 * 60_000,
   })
 }
 
 /**
- * Create a new schedule section.
+ * Create a new schedule section (includes date).
  */
-export function useCreateScheduleSection(eventProjectId: string | null | undefined) {
+export function useCreateScheduleSection(eventProjectId: string | null | undefined, date?: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: CreateScheduleSectionInput) =>
@@ -50,7 +56,7 @@ export function useCreateScheduleSection(eventProjectId: string | null | undefin
         { method: 'POST', body: JSON.stringify(data) },
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId] })
+      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId, date] })
     },
   })
 }
@@ -58,7 +64,7 @@ export function useCreateScheduleSection(eventProjectId: string | null | undefin
 /**
  * Update a schedule section (rename, reorder).
  */
-export function useUpdateScheduleSection(eventProjectId: string | null | undefined) {
+export function useUpdateScheduleSection(eventProjectId: string | null | undefined, date?: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ sectionId, data }: { sectionId: string; data: UpdateScheduleSectionInput }) =>
@@ -67,7 +73,7 @@ export function useUpdateScheduleSection(eventProjectId: string | null | undefin
         { method: 'PATCH', body: JSON.stringify(data) },
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId] })
+      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId, date] })
     },
   })
 }
@@ -75,7 +81,7 @@ export function useUpdateScheduleSection(eventProjectId: string | null | undefin
 /**
  * Delete a schedule section. Blocks in the section become unassigned.
  */
-export function useDeleteScheduleSection(eventProjectId: string | null | undefined) {
+export function useDeleteScheduleSection(eventProjectId: string | null | undefined, date?: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (sectionId: string) =>
@@ -84,8 +90,52 @@ export function useDeleteScheduleSection(eventProjectId: string | null | undefin
         { method: 'DELETE' },
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId] })
+      queryClient.invalidateQueries({ queryKey: ['event-schedule-sections', eventProjectId, date] })
       queryClient.invalidateQueries({ queryKey: ['event-schedule', eventProjectId] })
+    },
+  })
+}
+
+/**
+ * Reorder sections by sending an ordered array of section IDs.
+ * Each section's sortOrder is updated to match its index.
+ * Uses optimistic updates for instant visual feedback.
+ */
+export function useReorderSections(eventProjectId: string | null | undefined, date?: string) {
+  const queryClient = useQueryClient()
+  const queryKey = ['event-schedule-sections', eventProjectId, date]
+  return useMutation({
+    mutationFn: (sectionIds: string[]) =>
+      fetchApi<{ reordered: number }>(
+        `/api/events/projects/${eventProjectId}/schedule/sections/reorder`,
+        { method: 'PATCH', body: JSON.stringify({ sectionIds }) },
+      ),
+    onMutate: async (sectionIds: string[]) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<EventScheduleSection[]>(queryKey)
+
+      if (previous) {
+        const sectionMap = new Map(previous.map((s) => [s.id, s]))
+        const reordered = sectionIds
+          .map((id, i) => {
+            const section = sectionMap.get(id)
+            if (!section) return null
+            return { ...section, sortOrder: i }
+          })
+          .filter(Boolean) as EventScheduleSection[]
+
+        queryClient.setQueryData<EventScheduleSection[]>(queryKey, reordered)
+      }
+
+      return { previous }
+    },
+    onError: (_err, _ids, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
     },
   })
 }
@@ -253,6 +303,76 @@ export function useAssignBlockToSection(eventProjectId: string | null | undefine
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['event-schedule', eventProjectId] })
+    },
+  })
+}
+
+// ─── Block Attachment Types ──────────────────────────────────────────
+
+export interface ScheduleBlockAttachment {
+  id: string
+  blockId: string
+  uploadedById: string
+  fileName: string
+  fileUrl: string
+  contentType: string
+  sizeBytes: number
+  createdAt: string
+  uploadedBy: {
+    id: string
+    name: string | null
+    firstName: string | null
+    lastName: string | null
+  } | null
+}
+
+// ─── Block Attachment Hooks ──────────────────────────────────────────
+
+/**
+ * Fetch all attachments for a specific schedule block.
+ */
+export function useBlockAttachments(eventProjectId: string | null | undefined, blockId: string | null | undefined) {
+  return useQuery<ScheduleBlockAttachment[]>({
+    queryKey: ['block-attachments', eventProjectId, blockId],
+    queryFn: () =>
+      fetchApi<ScheduleBlockAttachment[]>(
+        `/api/events/projects/${eventProjectId}/schedule/${blockId}/attachments`,
+      ),
+    enabled: !!eventProjectId && !!blockId,
+    staleTime: 60_000,
+  })
+}
+
+/**
+ * Upload a file attachment to a schedule block.
+ */
+export function useUploadBlockAttachment(eventProjectId: string | null | undefined, blockId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { fileName: string; fileBase64: string; contentType: string }) =>
+      fetchApi<ScheduleBlockAttachment>(
+        `/api/events/projects/${eventProjectId}/schedule/${blockId}/attachments`,
+        { method: 'POST', body: JSON.stringify(data) },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['block-attachments', eventProjectId, blockId] })
+    },
+  })
+}
+
+/**
+ * Delete a file attachment from a schedule block.
+ */
+export function useDeleteBlockAttachment(eventProjectId: string | null | undefined, blockId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (attachmentId: string) =>
+      fetchApi<{ deleted: true }>(
+        `/api/events/projects/${eventProjectId}/schedule/${blockId}/attachments/${attachmentId}`,
+        { method: 'DELETE' },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['block-attachments', eventProjectId, blockId] })
     },
   })
 }

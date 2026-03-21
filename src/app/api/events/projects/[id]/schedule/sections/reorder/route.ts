@@ -9,11 +9,11 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
-const log = logger.child({ route: '/api/events/projects/[id]/schedule/reorder' })
+const log = logger.child({ route: '/api/events/projects/[id]/schedule/sections/reorder' })
 
-const ReorderSchema = z.object({
-  /** Ordered list of block IDs — index becomes the new sortOrder */
-  blockIds: z.array(z.string().min(1)).min(1),
+const ReorderSectionsSchema = z.object({
+  /** Ordered list of section IDs — index becomes the new sortOrder */
+  sectionIds: z.array(z.string().min(1)).min(1),
 })
 
 type RouteParams = {
@@ -21,9 +21,9 @@ type RouteParams = {
 }
 
 /**
- * PATCH /api/events/projects/[id]/schedule/reorder
+ * PATCH /api/events/projects/[id]/schedule/sections/reorder
  *
- * Accepts an ordered array of block IDs and updates their sortOrder accordingly.
+ * Accepts an ordered array of section IDs and updates their sortOrder accordingly.
  * Uses a transaction to ensure atomic reordering.
  */
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
@@ -36,20 +36,19 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_UPDATE_ALL)
 
     const body = await req.json()
-    const { blockIds } = ReorderSchema.parse(body)
+    const { sectionIds } = ReorderSectionsSchema.parse(body)
 
     return await runWithOrgContext(orgId, async () => {
-      // Use rawPrisma for the batch transaction
-      const updates = blockIds.map((blockId, index) =>
-        rawPrisma.eventScheduleBlock.update({
-          where: { id: blockId },
+      const updates = sectionIds.map((sectionId, index) =>
+        rawPrisma.eventScheduleSection.update({
+          where: { id: sectionId },
           data: { sortOrder: index },
         })
       )
 
       await rawPrisma.$transaction(updates)
 
-      return NextResponse.json(ok({ reordered: blockIds.length }))
+      return NextResponse.json(ok({ reordered: sectionIds.length }))
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -58,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    log.error({ err: error }, 'Failed to reorder schedule blocks')
+    log.error({ err: error }, 'Failed to reorder schedule sections')
     Sentry.captureException(error)
     return NextResponse.json(
       fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),

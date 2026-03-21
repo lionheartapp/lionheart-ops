@@ -44,12 +44,27 @@ export const UpdateEventProjectSchema = z.object({
 
 export type UpdateEventProjectInput = z.infer<typeof UpdateEventProjectSchema>
 
+// ─── Block Type Config ──────────────────────────────────────────────────────
+
+export interface BlockTypeConfig {
+  value: string
+  label: string
+  dotColor: string
+  color: string
+  bg: string
+  isCustom?: boolean
+  hexColor?: string
+}
+
 // ─── Schedule Block ─────────────────────────────────────────────────────────
 
 // ─── Schedule Sections ──────────────────────────────────────────────────────
 
 export const CreateScheduleSectionSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
+  date: z.string().min(1, 'Date is required'),   // ISO date string, e.g. "2026-04-09"
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Must be HH:mm format').optional().default('08:00'),
+  layout: z.enum(['sequential', 'parallel']).optional().default('sequential'),
   sortOrder: z.number().int().min(0).optional().default(0),
 })
 
@@ -57,6 +72,8 @@ export type CreateScheduleSectionInput = z.infer<typeof CreateScheduleSectionSch
 
 export const UpdateScheduleSectionSchema = z.object({
   title: z.string().min(1).max(200).optional(),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Must be HH:mm format').optional(),
+  layout: z.enum(['sequential', 'parallel']).optional(),
   sortOrder: z.number().int().min(0).optional(),
 })
 
@@ -119,6 +136,33 @@ export const UpdateEventTaskSchema = z.object({
 })
 
 export type UpdateEventTaskInput = z.infer<typeof UpdateEventTaskSchema>
+
+// ─── Event Team Member ──────────────────────────────────────────────────────
+
+export const PRESET_TEAM_ROLES = [
+  'Coordinator',
+  'Section Lead',
+  'Volunteer',
+  'AV Tech',
+  'Chaperone',
+  'Medical Staff',
+  'Driver',
+] as const
+
+export const AddEventTeamMemberSchema = z.object({
+  userId: z.string().min(1, 'User is required'),
+  role: z.string().min(1, 'Role is required').max(100),
+  notes: z.string().max(500).optional(),
+})
+
+export type AddEventTeamMemberInput = z.infer<typeof AddEventTeamMemberSchema>
+
+export const UpdateEventTeamMemberSchema = z.object({
+  role: z.string().min(1).max(100).optional(),
+  notes: z.string().max(500).nullable().optional(),
+})
+
+export type UpdateEventTeamMemberInput = z.infer<typeof UpdateEventTeamMemberSchema>
 
 // ─── Event Series ────────────────────────────────────────────────────────────
 

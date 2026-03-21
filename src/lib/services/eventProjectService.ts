@@ -102,6 +102,16 @@ export async function createEventProject(
     initialStatus,
   })
 
+  // Auto-add creator as Event Owner team member (fire-and-forget)
+  db.eventTeamMember.create({
+    data: {
+      eventProjectId: project.id,
+      userId: createdById,
+      role: 'Event Owner',
+      addedById: createdById,
+    },
+  }).catch(() => {})
+
   // For direct requests with gates, notify relevant teams (fire-and-forget)
   if (isDirectRequest && approvalGates) {
     notifyTeamsOfPendingApproval(project.title as string, project.id as string, approvalGates).catch(() => {})
@@ -153,6 +163,13 @@ export async function getEventProject(id: string): Promise<Record<string, unknow
           actor: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       },
+      teamMembers: {
+        orderBy: { createdAt: 'asc' },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true, jobTitle: true } },
+          addedBy: { select: { id: true, firstName: true, lastName: true } },
+        },
+      },
       campus: { select: { id: true, name: true } },
       school: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
@@ -181,7 +198,7 @@ export async function listEventProjects(filters?: {
     include: {
       createdBy: { select: { id: true, firstName: true, lastName: true } },
       approvedBy: { select: { id: true, firstName: true, lastName: true } },
-      _count: { select: { tasks: true, scheduleBlocks: true } },
+      _count: { select: { tasks: true, scheduleBlocks: true, teamMembers: true } },
     },
     orderBy: { startsAt: 'asc' },
   })
@@ -915,6 +932,7 @@ export async function updateScheduleBlock(
     'locationText',
     'leadId',
     'sortOrder',
+    'sectionId',
     'metadata',
   ]
 
