@@ -23,6 +23,7 @@ type AudienceOption = {
 }
 
 const AUDIENCE_OPTIONS: AudienceOption[] = [
+  { value: 'TEAM', label: 'Team Members', description: 'Staff assigned to this event' },
   { value: 'ALL', label: 'All Registrants', description: 'Everyone who is registered' },
   { value: 'GROUP', label: 'Specific Group', description: 'Members of a selected group' },
   { value: 'INCOMPLETE_DOCS', label: 'Incomplete Documents', description: 'Registrants with missing required documents' },

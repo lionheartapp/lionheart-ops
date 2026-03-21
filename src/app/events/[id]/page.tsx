@@ -153,14 +153,18 @@ function TabContent({ activeTab, project }: { activeTab: TabId; project: EventPr
   const defaultDate = project.startsAt
     ? project.startsAt.split('T')[0]
     : undefined
+  const eventStartDate = defaultDate
+  const eventEndDate = project.endsAt
+    ? project.endsAt.split('T')[0]
+    : undefined
 
   switch (activeTab) {
     case 'overview':
       return <EventOverviewTab project={project} />
     case 'schedule':
-      return <EventScheduleTab eventProjectId={project.id} defaultDate={defaultDate} />
+      return <EventScheduleTab eventProjectId={project.id} defaultDate={defaultDate} eventStartDate={eventStartDate} eventEndDate={eventEndDate} />
     case 'people':
-      return <EventPeopleTab eventProjectId={project.id} />
+      return <EventPeopleTab eventProjectId={project.id} createdById={project.createdById} />
     case 'registration':
       return <RegistrationTab eventProjectId={project.id} />
     case 'documents':
@@ -189,7 +193,7 @@ function TabContent({ activeTab, project }: { activeTab: TabId; project: EventPr
 const TAB_LABELS: Record<TabId, string> = {
   overview: 'Overview',
   schedule: 'Schedule',
-  people: 'People',
+  people: 'Team',
   registration: 'Registration',
   documents: 'Documents',
   logistics: 'Logistics',
@@ -307,74 +311,45 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
           initial="hidden"
           animate="visible"
         >
-          {/* Header — event title, status, meta, and actions */}
+          {/* Action buttons row */}
           <motion.div variants={listItem} className="mb-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusConfig.bg} ${statusConfig.text}`}>
-                    {statusConfig.label}
-                  </span>
-                </div>
-                <h1 className="text-2xl font-bold text-slate-900 mb-1">{project.title}</h1>
+            <div className="flex items-center justify-end gap-2">
+              {/* Presence bar */}
+              {currentUserId && (
+                <PresenceBar
+                  eventProjectId={project.id}
+                  currentUserId={currentUserId}
+                  activeTab={activeTab}
+                />
+              )}
 
-                {/* Meta row */}
-                <div className="flex items-center gap-4 text-sm text-slate-500 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    <CalendarDays className="w-4 h-4 text-slate-400" />
-                    {dateDisplay}
-                  </div>
-                  {project.locationText && (
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4 text-slate-400" />
-                      {project.locationText}
-                    </div>
-                  )}
-                  {creatorName && (
-                    <span className="text-slate-400">By {creatorName}</span>
-                  )}
-                </div>
-              </div>
+              {/* Day-Of Mode button */}
+              {shouldShowDayOfButton(project) && (
+                <button
+                  onClick={() => router.push(`/events/${project.id}/dayof`)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  Day-Of Mode
+                </button>
+              )}
 
-              {/* Action buttons */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Presence bar */}
-                {currentUserId && (
-                  <PresenceBar
-                    eventProjectId={project.id}
-                    currentUserId={currentUserId}
-                    activeTab={activeTab}
-                  />
-                )}
-
-                {/* Day-Of Mode button */}
-                {shouldShowDayOfButton(project) && (
-                  <button
-                    onClick={() => router.push(`/events/${project.id}/dayof`)}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
-                  >
-                    <QrCode className="w-3.5 h-3.5" />
-                    Day-Of Mode
-                  </button>
-                )}
-
-                {project.status === 'PENDING_APPROVAL' && (
-                  <button
-                    onClick={handleApprove}
-                    disabled={approveProject.isPending}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-60 active:scale-[0.97] transition-all cursor-pointer"
-                  >
-                    {approveProject.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    Approve
-                  </button>
-                )}
-              </div>
+              {project.status === 'PENDING_APPROVAL' && (
+                <button
+                  onClick={handleApprove}
+                  disabled={approveProject.isPending}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-60 active:scale-[0.97] transition-all cursor-pointer"
+                >
+                  {approveProject.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Approve
+                </button>
+              )}
             </div>
           </motion.div>
 
           {/* Section label — shows which tab is active, with inline actions */}
           <motion.div variants={listItem} className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">{TAB_LABELS[activeTab]}</h2>
+            <h1 className="text-2xl font-bold text-slate-900">{TAB_LABELS[activeTab]}</h1>
             {activeTab === 'overview' && ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(project.status) && (
               <button
                 onClick={() => setIsTemplateDialogOpen(true)}

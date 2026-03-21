@@ -16,7 +16,7 @@ import {
 const CreateAnnouncementSchema = z.object({
   title: z.string().min(1).max(200),
   body: z.string().min(1),
-  audience: z.enum(['ALL', 'GROUP', 'INCOMPLETE_DOCS', 'PAID_ONLY']),
+  audience: z.enum(['ALL', 'GROUP', 'INCOMPLETE_DOCS', 'PAID_ONLY', 'TEAM']),
   targetGroupId: z.string().cuid().optional().nullable(),
 })
 

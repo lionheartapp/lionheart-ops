@@ -80,7 +80,7 @@ interface TabDef {
 const TABS: TabDef[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'schedule', label: 'Schedule', icon: CalendarDays },
-  { id: 'people', label: 'People', icon: Users },
+  { id: 'people', label: 'Team', icon: Users },
   { id: 'registration', label: 'Registration', icon: ClipboardList },
   { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'logistics', label: 'Logistics', icon: Truck },
@@ -154,11 +154,11 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
-  const defaultDate = project.startsAt
-    ? project.startsAt.split('T')[0]
-    : undefined
-  const eventStartDate = project.startsAt ? project.startsAt.split('T')[0] : undefined
-  const eventEndDate = project.endsAt ? project.endsAt.split('T')[0] : undefined
+  // Extract YYYY-MM-DD from datetime strings (handles both "T" and space separators)
+  const extractDate = (dt: string) => dt.substring(0, 10)
+  const defaultDate = project.startsAt ? extractDate(project.startsAt) : undefined
+  const eventStartDate = project.startsAt ? extractDate(project.startsAt) : undefined
+  const eventEndDate = project.endsAt ? extractDate(project.endsAt) : undefined
 
   function renderTab() {
     switch (activeTab) {
@@ -174,7 +174,7 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
           />
         )
       case 'people':
-        return <EventPeopleTab eventProjectId={project.id} />
+        return <EventPeopleTab eventProjectId={project.id} createdById={project.createdById} />
       case 'registration':
         return <RegistrationTab eventProjectId={project.id} />
       case 'documents':

@@ -28,6 +28,7 @@ const AUDIENCE_LABELS: Record<AnnouncementAudience, { label: string; style: stri
   GROUP: { label: 'Group', style: 'bg-purple-100 text-purple-700' },
   INCOMPLETE_DOCS: { label: 'Incomplete Docs', style: 'bg-amber-100 text-amber-700' },
   PAID_ONLY: { label: 'Paid Only', style: 'bg-green-100 text-green-700' },
+  TEAM: { label: 'Team Members', style: 'bg-indigo-100 text-indigo-700' },
 }
 
 // ─── Skeleton ──────────────────────────────────────────────────────────────────

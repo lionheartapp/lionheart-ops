@@ -42,7 +42,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'overview', label: 'Overview', icon: LayoutDashboard },
       { id: 'schedule', label: 'Schedule', icon: CalendarDays },
-      { id: 'people', label: 'People', icon: Users },
+      { id: 'people', label: 'Team', icon: Users },
       { id: 'registration', label: 'Registration', icon: ClipboardList },
     ],
   },
@@ -85,30 +85,34 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
 
   return (
     <aside className="w-[220px] flex-shrink-0 bg-white border-r border-slate-200/80 flex flex-col h-full overflow-hidden">
-      {/* Back to Events — top of sidebar for easy access */}
-      <div className="px-3 pt-3 pb-1">
+      {/* Org logo — matches main nav sizing */}
+      <div className="px-4 pt-8 pb-8 flex items-center justify-center">
+        {organizationLogoUrl ? (
+          <img
+            src={organizationLogoUrl}
+            alt={organizationName || 'Organization'}
+            className="h-10 max-w-[140px] object-contain"
+          />
+        ) : (
+          <span className="text-base font-semibold text-slate-800 truncate">
+            {organizationName || 'School'}
+          </span>
+        )}
+      </div>
+
+      {/* Back to Events — below logo */}
+      <div className="px-4 pb-0">
         <button
           onClick={() => router.push('/events')}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5 flex-shrink-0" />
           Back to Events
         </button>
       </div>
 
-      {/* Org logo */}
-      {organizationLogoUrl && (
-        <div className="px-5 pt-2 pb-2 border-b border-slate-100">
-          <img
-            src={organizationLogoUrl}
-            alt={organizationName || 'Organization'}
-            className="h-8 w-auto object-contain"
-          />
-        </div>
-      )}
-
       {/* Event info card */}
-      <div className="px-5 py-3.5 border-b border-slate-100">
+      <div className="px-5 pt-8 pb-8 border-b border-slate-100">
         <div className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-[3px] rounded-full mb-1.5 ${status.bgColor} ${status.textColor}`}>
           <span className={`w-[5px] h-[5px] rounded-full ${status.dotColor}`} />
           {status.label}
@@ -121,7 +125,7 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4 pt-2">
+      <nav className="flex-1 overflow-y-auto p-4 pt-[24px]">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label} className="mb-1">
             <div className="text-[10px] font-medium text-slate-400 uppercase tracking-[0.07em] px-4 mb-1 mt-3 first:mt-0">

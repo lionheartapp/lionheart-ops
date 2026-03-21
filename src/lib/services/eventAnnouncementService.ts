@@ -2,7 +2,7 @@
  * Event Announcement Service
  *
  * Targeted announcements to event participants.
- * Supports 4 audience types: ALL, GROUP, INCOMPLETE_DOCS, PAID_ONLY.
+ * Supports 5 audience types: ALL, GROUP, INCOMPLETE_DOCS, PAID_ONLY, TEAM.
  * Sends email to each recipient and returns the created announcement.
  */
 
@@ -177,13 +177,39 @@ async function resolveRecipients(
   return []
 }
 
+type TeamRecipient = { email: string; firstName: string; userId: string }
+
+/**
+ * Resolve event team members (staff) as recipients.
+ */
+async function resolveTeamRecipients(
+  eventProjectId: string,
+): Promise<TeamRecipient[]> {
+  const members = await rawPrisma.eventTeamMember.findMany({
+    where: { eventProjectId },
+    select: {
+      user: {
+        select: { id: true, email: true, firstName: true },
+      },
+    },
+  })
+
+  return members
+    .filter((m: any) => m.user?.email)
+    .map((m: any) => ({
+      email: m.user.email,
+      firstName: m.user.firstName || 'Team Member',
+      userId: m.user.id,
+    }))
+}
+
 // ─── Service Functions ────────────────────────────────────────────────────────
 
 export interface CreateAnnouncementInput {
   eventProjectId: string
   title: string
   body: string
-  audience: 'ALL' | 'GROUP' | 'INCOMPLETE_DOCS' | 'PAID_ONLY'
+  audience: 'ALL' | 'GROUP' | 'INCOMPLETE_DOCS' | 'PAID_ONLY' | 'TEAM'
   targetGroupId?: string | null
   createdById: string
 }
@@ -230,26 +256,48 @@ export async function createAnnouncement(
 
       const orgName = eventProject.organization?.name ?? 'Your School'
       const eventTitle = eventProject.title
-      const recipients = await resolveRecipients(
-        data.eventProjectId,
-        data.audience,
-        data.targetGroupId ?? null,
-      )
 
-      await Promise.allSettled(
-        recipients.map((r) => {
-          const portalUrl = `${getAppUrl()}/registration/${r.registrationId}`
-          return sendAnnouncementEmail(
-            r.email,
-            r.firstName,
-            data.title,
-            data.body,
-            eventTitle,
-            portalUrl,
-            orgName,
-          )
-        }),
-      )
+      if (data.audience === 'TEAM') {
+        // Send to event team members (staff) — link to event page, not registration portal
+        const teamRecipients = await resolveTeamRecipients(data.eventProjectId)
+        const eventUrl = `${getAppUrl()}/events/${data.eventProjectId}`
+
+        await Promise.allSettled(
+          teamRecipients.map((r) =>
+            sendAnnouncementEmail(
+              r.email,
+              r.firstName,
+              data.title,
+              data.body,
+              eventTitle,
+              eventUrl,
+              orgName,
+            )
+          ),
+        )
+      } else {
+        // Send to registrants — link to registration portal
+        const recipients = await resolveRecipients(
+          data.eventProjectId,
+          data.audience,
+          data.targetGroupId ?? null,
+        )
+
+        await Promise.allSettled(
+          recipients.map((r) => {
+            const portalUrl = `${getAppUrl()}/registration/${r.registrationId}`
+            return sendAnnouncementEmail(
+              r.email,
+              r.firstName,
+              data.title,
+              data.body,
+              eventTitle,
+              portalUrl,
+              orgName,
+            )
+          }),
+        )
+      }
     } catch (err) {
       log.error({ err }, 'Failed to send announcement emails')
     }

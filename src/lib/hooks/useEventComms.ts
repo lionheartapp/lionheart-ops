@@ -35,8 +35,7 @@ export function useAnnouncements(eventProjectId: string | null | undefined) {
         `/api/events/projects/${eventProjectId}/announcements`,
       ),
     enabled: !!eventProjectId,
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    staleTime: 60_000,
   })
 }
 
