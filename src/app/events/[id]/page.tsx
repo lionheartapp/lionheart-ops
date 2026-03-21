@@ -9,6 +9,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import EventSidebar, { type TabId } from '@/components/events/EventSidebar'
 import { staggerContainer, listItem, tabContent } from '@/lib/animations'
 import { useEventProject, useApproveEventProject } from '@/lib/hooks/useEventProject'
+import { useMyEventPermissions } from '@/lib/hooks/useEventPermissions'
 import { EventOverviewTab } from '@/components/events/EventOverviewTab'
 import { EventScheduleTab } from '@/components/events/EventScheduleTab'
 import { EventTasksTab } from '@/components/events/EventTasksTab'
@@ -216,6 +217,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   const { toast } = useToast()
 
   const { data: project, isLoading, error } = useEventProject(id)
+  const { data: myPermissions } = useMyEventPermissions(id)
   const approveProject = useApproveEventProject(id)
 
   // Tab state — reads initial from ?tab= URL param
@@ -300,6 +302,7 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
       onTabChange={handleTabChange}
       organizationLogoUrl={orgLogoUrl}
       organizationName={orgName}
+      permissions={myPermissions}
     />
   )
 

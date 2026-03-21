@@ -149,10 +149,49 @@ export const PRESET_TEAM_ROLES = [
   'Driver',
 ] as const
 
+/** The 8 per-member event permission keys stored on EventTeamMember. */
+export const EVENT_MEMBER_PERMISSION_KEYS = [
+  'canManageTasks',
+  'canManageSchedule',
+  'canViewBudget',
+  'canManageLogistics',
+  'canManageCheckin',
+  'canSendComms',
+  'canViewRegistrations',
+  'canManageDocuments',
+] as const
+
+export type EventMemberPermissionKey = typeof EVENT_MEMBER_PERMISSION_KEYS[number]
+
+/** Human-readable labels and descriptions for the permissions config UI. */
+export const EVENT_MEMBER_PERMISSION_META: Record<EventMemberPermissionKey, { label: string; description: string }> = {
+  canManageTasks:       { label: 'Tasks',         description: 'Create, assign, and complete tasks' },
+  canManageSchedule:    { label: 'Schedule',      description: 'Edit schedule blocks and timing' },
+  canViewBudget:        { label: 'Budget',        description: 'View budget and line items' },
+  canManageLogistics:   { label: 'Logistics',     description: 'Manage equipment and logistics' },
+  canManageCheckin:     { label: 'Check-in',      description: 'Run check-in on event day' },
+  canSendComms:         { label: 'Comms',         description: 'Send announcements to team or registrants' },
+  canViewRegistrations: { label: 'Registration',  description: 'View registration data and attendees' },
+  canManageDocuments:   { label: 'Documents',     description: 'Manage document requirements' },
+}
+
+/** Zod shape for permission booleans (reused in Add + Update schemas). */
+const eventMemberPermissionsShape = {
+  canManageTasks: z.boolean().optional(),
+  canManageSchedule: z.boolean().optional(),
+  canViewBudget: z.boolean().optional(),
+  canManageLogistics: z.boolean().optional(),
+  canManageCheckin: z.boolean().optional(),
+  canSendComms: z.boolean().optional(),
+  canViewRegistrations: z.boolean().optional(),
+  canManageDocuments: z.boolean().optional(),
+}
+
 export const AddEventTeamMemberSchema = z.object({
   userId: z.string().min(1, 'User is required'),
   role: z.string().min(1, 'Role is required').max(100),
   notes: z.string().max(500).optional(),
+  ...eventMemberPermissionsShape,
 })
 
 export type AddEventTeamMemberInput = z.infer<typeof AddEventTeamMemberSchema>
@@ -160,6 +199,7 @@ export type AddEventTeamMemberInput = z.infer<typeof AddEventTeamMemberSchema>
 export const UpdateEventTeamMemberSchema = z.object({
   role: z.string().min(1).max(100).optional(),
   notes: z.string().max(500).nullable().optional(),
+  ...eventMemberPermissionsShape,
 })
 
 export type UpdateEventTeamMemberInput = z.infer<typeof UpdateEventTeamMemberSchema>

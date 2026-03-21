@@ -3869,6 +3869,16 @@ model EventTeamMember {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  // Per-member event permissions (default: viewer — all false)
+  canManageTasks       Boolean @default(false)
+  canManageSchedule    Boolean @default(false)
+  canViewBudget        Boolean @default(false)
+  canManageLogistics   Boolean @default(false)
+  canManageCheckin     Boolean @default(false)
+  canSendComms         Boolean @default(false)
+  canViewRegistrations Boolean @default(false)
+  canManageDocuments   Boolean @default(false)
+
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   eventProject EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
   user         User         @relation("EventTeamMembers", fields: [userId], references: [id], onDelete: Cascade)

@@ -53,6 +53,15 @@ export async function addTeamMember(
       role: data.role,
       notes: data.notes ?? null,
       addedById: actorId,
+      // Per-member event permissions (default false via schema)
+      ...(data.canManageTasks !== undefined && { canManageTasks: data.canManageTasks }),
+      ...(data.canManageSchedule !== undefined && { canManageSchedule: data.canManageSchedule }),
+      ...(data.canViewBudget !== undefined && { canViewBudget: data.canViewBudget }),
+      ...(data.canManageLogistics !== undefined && { canManageLogistics: data.canManageLogistics }),
+      ...(data.canManageCheckin !== undefined && { canManageCheckin: data.canManageCheckin }),
+      ...(data.canSendComms !== undefined && { canSendComms: data.canSendComms }),
+      ...(data.canViewRegistrations !== undefined && { canViewRegistrations: data.canViewRegistrations }),
+      ...(data.canManageDocuments !== undefined && { canManageDocuments: data.canManageDocuments }),
     },
     include: MEMBER_INCLUDE,
   })
@@ -171,6 +180,15 @@ export async function updateTeamMember(
   const updateData: Record<string, unknown> = {}
   if (data.role !== undefined) updateData.role = data.role
   if (data.notes !== undefined) updateData.notes = data.notes
+  // Permission booleans
+  if (data.canManageTasks !== undefined) updateData.canManageTasks = data.canManageTasks
+  if (data.canManageSchedule !== undefined) updateData.canManageSchedule = data.canManageSchedule
+  if (data.canViewBudget !== undefined) updateData.canViewBudget = data.canViewBudget
+  if (data.canManageLogistics !== undefined) updateData.canManageLogistics = data.canManageLogistics
+  if (data.canManageCheckin !== undefined) updateData.canManageCheckin = data.canManageCheckin
+  if (data.canSendComms !== undefined) updateData.canSendComms = data.canSendComms
+  if (data.canViewRegistrations !== undefined) updateData.canViewRegistrations = data.canViewRegistrations
+  if (data.canManageDocuments !== undefined) updateData.canManageDocuments = data.canManageDocuments
 
   const updated = await db.eventTeamMember.update({
     where: { id: memberId },

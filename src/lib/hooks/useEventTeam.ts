@@ -13,6 +13,15 @@ export interface EventTeamMember {
   addedById: string
   createdAt: string
   updatedAt: string
+  // Per-member event permissions
+  canManageTasks: boolean
+  canManageSchedule: boolean
+  canViewBudget: boolean
+  canManageLogistics: boolean
+  canManageCheckin: boolean
+  canSendComms: boolean
+  canViewRegistrations: boolean
+  canManageDocuments: boolean
   user: {
     id: string
     firstName: string | null
