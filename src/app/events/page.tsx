@@ -483,7 +483,8 @@ function StatsRow({ isAdmin }: { isAdmin: boolean }) {
 // ─── Approval Queue (admin right column) ─────────────────────────────────────
 
 function ApprovalQueue() {
-  const { items, aiScored, isLoadingRaw, isLoadingScored, isError } = useEventDashboard()
+  const { items: allItems, aiScored, isLoadingRaw, isLoadingScored, isError } = useEventDashboard()
+  const items = allItems.filter((item) => item.type === 'pending_approval')
   const resolveMutation = useResolveAction()
   const { toast } = useToast()
   const [resolvingIds, setResolvingIds] = useState<Set<string>>(new Set())
