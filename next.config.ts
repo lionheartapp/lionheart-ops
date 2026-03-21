@@ -34,9 +34,14 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withSentryConfig(withSerwist(nextConfig), {
-  silent: true, // Suppress Sentry webpack plugin logs
-  sourcemaps: {
-    disable: !process.env.SENTRY_AUTH_TOKEN,
-  },
-})
+const isDev = process.env.NODE_ENV === 'development'
+
+// Skip Sentry wrapping in dev — saves significant compile time
+export default isDev
+  ? withSerwist(nextConfig)
+  : withSentryConfig(withSerwist(nextConfig), {
+      silent: true,
+      sourcemaps: {
+        disable: !process.env.SENTRY_AUTH_TOKEN,
+      },
+    })

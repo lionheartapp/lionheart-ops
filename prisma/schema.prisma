@@ -146,6 +146,7 @@ model Organization {
   maintenanceTicketWatchers   MaintenanceTicketWatcher[]
   // Event Project module relations
   eventProjects               EventProject[]
+  eventTeamMembers            EventTeamMember[]
   eventSeries                 EventSeries[]
   eventScheduleBlocks         EventScheduleBlock[]
   eventTasks                  EventTask[]
@@ -179,6 +180,10 @@ model Organization {
   // Phase 22: External Integrations
   integrationCredentials      IntegrationCredential[]
   integrationSyncLogs         IntegrationSyncLog[]
+  // Schedule sections
+  eventScheduleSections       EventScheduleSection[]
+  // Planning Center integration links
+  pcoServiceLinks             PCOServiceLink[]
 
   @@index([onboardingStatus])
 }
@@ -270,6 +275,7 @@ model User {
   // Ticket comment and attachment relations
   ticketComments            TicketComment[]              @relation("TicketCommentAuthor")
   ticketAttachments         TicketAttachment[]           @relation("TicketAttachmentUploader")
+  scheduleBlockAttachments  ScheduleBlockAttachment[]    @relation("ScheduleBlockAttachmentUploader")
   // Notification preferences
   notificationPreferences   NotificationPreference[]
   // Leo memory module relations
@@ -300,6 +306,9 @@ model User {
   // Phase 22: Budget relations
   budgetLineItemsCreated    BudgetLineItem[]         @relation("BudgetLineItemCreator")
   budgetRevenueCreated      BudgetRevenue[]          @relation("BudgetRevenueCreator")
+  // Event Team Member relations
+  eventTeamMemberships      EventTeamMember[]        @relation("EventTeamMembers")
+  addedEventTeamMembers     EventTeamMember[]        @relation("EventTeamMemberAdder")
   // Phase 22: External Integrations (per-user, e.g. Google Calendar)
   integrationCredentials    IntegrationCredential[]
 
@@ -3836,6 +3845,10 @@ model EventProject {
   budgetCategories      BudgetCategory[]
   budgetLineItems       BudgetLineItem[]
   budgetRevenue         BudgetRevenue[]
+  // Planning Center integration
+  pcoServiceLinks       PCOServiceLink[]
+  // Event Team Members
+  teamMembers           EventTeamMember[]
 
   @@index([organizationId, status])
   @@index([organizationId, startsAt])
@@ -3843,6 +3856,28 @@ model EventProject {
   @@index([createdById])
   @@index([source, sourceId])
   @@index([seriesId])
+}
+
+model EventTeamMember {
+  id               String   @id @default(cuid())
+  organizationId   String
+  eventProjectId   String
+  userId           String
+  role             String       // "Coordinator", "Section Lead", custom text
+  notes            String?
+  addedById        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  user         User         @relation("EventTeamMembers", fields: [userId], references: [id], onDelete: Cascade)
+  addedBy      User         @relation("EventTeamMemberAdder", fields: [addedById], references: [id], onDelete: Restrict)
+
+  @@unique([eventProjectId, userId])
+  @@index([organizationId])
+  @@index([eventProjectId])
+  @@index([userId])
 }
 
 model EventSeries {
@@ -3901,7 +3936,10 @@ model EventScheduleSection {
   id             String   @id @default(cuid())
   organizationId String
   eventProjectId String
+  date           DateTime @db.Date           // The specific day this section belongs to
   title          String
+  startTime      String   @default("08:00") // HH:mm — section start time for sequential block computation
+  layout         String   @default("sequential") // "sequential" | "parallel"
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -3909,8 +3947,9 @@ model EventScheduleSection {
   organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   eventProject EventProject         @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
   blocks       EventScheduleBlock[]
+  pcoServiceLink PCOServiceLink?    // Optional link to a Planning Center service plan
 
-  @@index([eventProjectId, sortOrder])
+  @@index([eventProjectId, date, sortOrder])
   @@index([organizationId])
 }
 
@@ -3936,9 +3975,85 @@ model EventScheduleBlock {
   section      EventScheduleSection?  @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   lead         User?                  @relation("ScheduleBlockLead", fields: [leadId], references: [id], onDelete: SetNull)
 
+  attachments    ScheduleBlockAttachment[]
+  pcoItemMapping PCOItemMapping?  // Optional link to a Planning Center plan item
+
   @@index([eventProjectId, startsAt])
   @@index([sectionId, sortOrder])
   @@index([organizationId])
+}
+
+model ScheduleBlockAttachment {
+  id             String   @id @default(cuid())
+  organizationId String
+  blockId        String
+  uploadedById   String
+  fileName       String
+  fileUrl        String
+  contentType    String
+  sizeBytes      Int
+  createdAt      DateTime @default(now())
+
+  block       EventScheduleBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  uploadedBy  User               @relation("ScheduleBlockAttachmentUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([blockId, createdAt])
+  @@index([organizationId])
+}
+
+/// Links a Lionheart EventScheduleSection to a Planning Center Online service plan.
+/// This is the bridge that enables two-way sync between PCO service plans and schedule blocks.
+model PCOServiceLink {
+  id                 String    @id @default(cuid())
+  organizationId     String
+  eventProjectId     String
+  sectionId          String    @unique  // Each section can only be linked to one PCO plan
+  credentialId       String             // FK to IntegrationCredential (the PCO connection)
+  pcoServiceTypeId   String             // PCO service_type ID (e.g., "12345")
+  pcoServiceTypeName String?            // Cached name (e.g., "Sunday Service")
+  pcoPlanId          String             // PCO plan ID (e.g., "67890")
+  pcoPlanDate        DateTime?          // PCO plan date (for display)
+  pcoPlanTitle       String?            // Cached plan title
+  syncDirection      String    @default("both")  // "import_only" | "export_only" | "both"
+  lastSyncAt         DateTime?
+  lastSyncStatus     String?            // "success" | "partial" | "failed"
+  autoSync           Boolean   @default(false)    // Auto-sync on schedule save
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject           @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  section      EventScheduleSection   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  credential   IntegrationCredential  @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  itemMappings PCOItemMapping[]
+
+  @@unique([organizationId, pcoPlanId])  // One link per PCO plan per org
+  @@index([eventProjectId])
+  @@index([organizationId])
+}
+
+/// Maps individual Planning Center plan items (songs, media, headers) to Lionheart schedule blocks.
+/// Enables two-way sync at the item level — know which block came from which PCO item.
+model PCOItemMapping {
+  id              String    @id @default(cuid())
+  serviceLinkId   String
+  blockId         String    @unique  // Each block maps to at most one PCO item
+  pcoItemId       String             // PCO plan item ID
+  pcoItemType     String             // "song" | "media" | "item" | "header"
+  pcoSongId       String?            // PCO song ID (if item is a song)
+  pcoArrangementId String?           // PCO arrangement ID (if item is a song)
+  pcoKey          String?            // Musical key from PCO (e.g., "G", "Bb")
+  lastPcoUpdatedAt DateTime?         // Last known PCO updated_at for change detection
+  lastPushedAt    DateTime?          // Last time we pushed changes TO PCO
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  serviceLink PCOServiceLink     @relation(fields: [serviceLinkId], references: [id], onDelete: Cascade)
+  block       EventScheduleBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceLinkId, pcoItemId])  // Each PCO item maps once per link
+  @@index([serviceLinkId])
+  @@index([blockId])
 }
 
 model EventTask {
@@ -4254,6 +4369,7 @@ enum AnnouncementAudience {
   GROUP
   INCOMPLETE_DOCS
   PAID_ONLY
+  TEAM
 }
 
 enum SurveyStatus {
@@ -4735,6 +4851,7 @@ model IntegrationCredential {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   syncLogs     IntegrationSyncLog[]
+  pcoServiceLinks PCOServiceLink[]  // Planning Center service plan links using this credential
 
   @@unique([organizationId, provider, userId])
   @@index([organizationId, provider])

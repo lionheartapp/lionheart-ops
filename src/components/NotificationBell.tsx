@@ -227,13 +227,12 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
   )
 }
 
-/** Unread badge hook — returns the unread count, polled every 30s */
+/** Unread badge hook — returns the unread count, refreshes on window focus */
 export function useUnreadCount() {
   const { data } = useQuery<{ count: number }>({
     queryKey: queryKeys.notifications.unreadCount,
     queryFn: () => fetchApi('/api/notifications/unread-count'),
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    staleTime: 60_000,
   })
   return data?.count ?? 0
 }

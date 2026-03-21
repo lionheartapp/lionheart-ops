@@ -97,8 +97,9 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/events/check-in/')) return true
   // Survey response submission — public POST (parent portal). GET requires auth and enforces it internally.
   if (pathname.match(/^\/api\/events\/projects\/[^/]+\/surveys\/[^/]+\/responses$/)) return true
-  // Google Calendar OAuth callback — must be public so OAuth redirect lands correctly
+  // OAuth callbacks — must be public so OAuth redirects land correctly
   if (pathname.startsWith('/api/integrations/google-calendar/callback')) return true
+  if (pathname.startsWith('/api/integrations/planning-center/callback')) return true
   return false
 }
 

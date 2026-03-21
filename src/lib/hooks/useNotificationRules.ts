@@ -30,8 +30,7 @@ export function useNotificationRules(eventProjectId: string | null | undefined) 
         `/api/events/projects/${eventProjectId}/notifications`,
       ),
     enabled: !!eventProjectId,
-    refetchInterval: 60_000,
-    staleTime: 30_000,
+    staleTime: 60_000,
   })
 }
 

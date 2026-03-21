@@ -84,33 +84,37 @@ export async function handleCallback(
       // Non-fatal
     }
 
-    await rawPrisma.integrationCredential.upsert({
-      where: {
-        organizationId_provider_userId: {
+    // Prisma can't use null in compound unique where, so use findFirst + create/update
+    const existing = await rawPrisma.integrationCredential.findFirst({
+      where: { organizationId, provider: 'planning_center', userId: null },
+    })
+
+    if (existing) {
+      await rawPrisma.integrationCredential.update({
+        where: { id: existing.id },
+        data: {
+          accessToken: tokenData.access_token,
+          refreshToken: tokenData.refresh_token || null,
+          tokenExpiresAt: expiresAt,
+          config: { orgName },
+          isActive: true,
+          updatedAt: new Date(),
+        },
+      })
+    } else {
+      await rawPrisma.integrationCredential.create({
+        data: {
           organizationId,
           provider: 'planning_center',
-          userId: null as unknown as string,
+          userId: null,
+          accessToken: tokenData.access_token,
+          refreshToken: tokenData.refresh_token || null,
+          tokenExpiresAt: expiresAt,
+          config: { orgName },
+          isActive: true,
         },
-      },
-      create: {
-        organizationId,
-        provider: 'planning_center',
-        userId: null,
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || null,
-        tokenExpiresAt: expiresAt,
-        config: { orgName },
-        isActive: true,
-      },
-      update: {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || null,
-        tokenExpiresAt: expiresAt,
-        config: { orgName },
-        isActive: true,
-        updatedAt: new Date(),
-      },
-    })
+      })
+    }
 
     return { success: true }
   } catch (error) {

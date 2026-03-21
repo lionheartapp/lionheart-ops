@@ -130,8 +130,7 @@ export function useDocumentMatrix(eventProjectId: string | null | undefined) {
     queryFn: () =>
       fetchApi<DocumentMatrix>(`/api/events/projects/${eventProjectId}/documents/completions`),
     enabled: !!eventProjectId,
-    staleTime: 30_000,
-    refetchInterval: 30_000,
+    staleTime: 60_000,
   })
 }
 

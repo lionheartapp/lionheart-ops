@@ -11,7 +11,7 @@ export type EventGroupType = 'BUS' | 'CABIN' | 'SMALL_GROUP' | 'ACTIVITY'
 export type ComplianceItemStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE'
 export type EventIncidentSeverity = 'MINOR' | 'MODERATE' | 'SERIOUS'
 export type EventIncidentType = 'MEDICAL' | 'BEHAVIORAL' | 'SAFETY' | 'OTHER'
-export type AnnouncementAudience = 'ALL' | 'GROUP' | 'INCOMPLETE_DOCS' | 'PAID_ONLY'
+export type AnnouncementAudience = 'ALL' | 'GROUP' | 'INCOMPLETE_DOCS' | 'PAID_ONLY' | 'TEAM'
 export type SurveyStatus = 'DRAFT' | 'ACTIVE' | 'CLOSED'
 
 // ─── Document Requirements ────────────────────────────────────────────────────

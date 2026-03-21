@@ -12,6 +12,7 @@ export type NotificationType =
   | 'event_approved'
   | 'event_rejected'
   | 'event_rsvp'
+  | 'event_team_added'
   // Maintenance ticket notifications (11 triggers)
   | 'maintenance_submitted'
   | 'maintenance_assigned'
@@ -50,7 +51,7 @@ export type NotificationType =
 
 /** Exported array of all valid notification type strings (for validation). */
 export const NOTIFICATION_TYPES: NotificationType[] = [
-  'event_updated', 'event_deleted', 'event_invite', 'event_approved', 'event_rejected', 'event_rsvp',
+  'event_updated', 'event_deleted', 'event_invite', 'event_approved', 'event_rejected', 'event_rsvp', 'event_team_added',
   'maintenance_submitted', 'maintenance_assigned', 'maintenance_claimed',
   'maintenance_in_progress', 'maintenance_on_hold', 'maintenance_qa_ready',
   'maintenance_done', 'maintenance_urgent', 'maintenance_stale', 'maintenance_qa_rejected',

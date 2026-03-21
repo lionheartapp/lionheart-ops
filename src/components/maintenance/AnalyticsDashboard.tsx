@@ -224,8 +224,7 @@ export default function AnalyticsDashboard() {
       fetch(`/api/maintenance/analytics?${params.toString()}`, {
         headers: getAuthHeaders(),
       }).then((r) => r.json()),
-    refetchInterval: 60_000,
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
   })
 
   const analytics: AllAnalyticsResult | null = analyticsResponse?.ok
@@ -255,7 +254,7 @@ export default function AnalyticsDashboard() {
               <div className="flex items-center gap-1.5 text-xs text-slate-400">
                 <RefreshCw className="w-3 h-3" />
                 <span>
-                  {lastUpdated ? `Updated ${lastUpdated} · auto-refreshes every 60s` : 'Auto-refreshes every 60s'}
+                  {lastUpdated ? `Updated ${lastUpdated}` : 'Loading...'}
                 </span>
               </div>
             </div>

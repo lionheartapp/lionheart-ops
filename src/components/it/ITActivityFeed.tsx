@@ -96,7 +96,7 @@ export default function ITActivityFeed({ ticketId, isPrivileged }: ITActivityFee
 
   const { data: activities = [], isLoading } = useQuery({
     ...queryOptions.itTicketComments(ticketId),
-    refetchInterval: 15_000,
+    refetchInterval: 60_000,
   })
 
   // Auto-scroll to bottom on new activities

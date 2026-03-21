@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'next/navigation'
 import {
   Link2,
   Calendar,
@@ -628,6 +629,14 @@ export default function IntegrationsTab() {
     },
     staleTime: 30000,
   })
+
+  // Auto-refetch when returning from OAuth callback
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    if (searchParams.get('pco_connected') || searchParams.get('pco_error')) {
+      queryClient.invalidateQueries({ queryKey: ['integration-status'] })
+    }
+  }, [searchParams, queryClient])
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['integration-status'] })

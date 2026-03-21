@@ -38,7 +38,7 @@ export default function ChatButton() {
   return (
     <>
       {/* Floating toggle button with glow */}
-      <div className="fixed bottom-6 right-6 z-[60]">
+      <div className="fixed bottom-6 right-6 z-mobilenav">
         <AiGlow active={isAiActive && !isOpen} shape="circle">
           <motion.button
             onClick={() => setIsOpen((prev) => !prev)}

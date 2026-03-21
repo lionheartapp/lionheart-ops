@@ -92,9 +92,11 @@ const orgScopedModels = new Set([
 	'ConversationMessage',
 	// Event Project module
 	'EventProject',
+	'EventTeamMember',
 	'EventSeries',
 	'EventScheduleSection',
 	'EventScheduleBlock',
+	'ScheduleBlockAttachment',
 	'EventTask',
 	'EventActivityLog',
 	// Phase 22: Event Templates
@@ -126,6 +128,8 @@ const orgScopedModels = new Set([
 	// Phase 22: External Integrations
 	'IntegrationCredential',
 	'IntegrationSyncLog',
+	// Planning Center Services integration
+	'PCOServiceLink',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

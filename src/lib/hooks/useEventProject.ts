@@ -55,10 +55,25 @@ export interface EventProject {
   scheduleBlocks?: EventScheduleBlock[]
   tasks?: EventTask[]
   activityLog?: EventActivityLog[]
+  teamMembers?: {
+    id: string
+    userId: string
+    role: string
+    notes: string | null
+    user: {
+      id: string
+      firstName: string | null
+      lastName: string | null
+      email: string
+      avatar: string | null
+      jobTitle: string | null
+    }
+  }[]
   _count?: {
     scheduleBlocks: number
     tasks: number
     activityLog: number
+    teamMembers: number
   }
 }
 
@@ -305,8 +320,7 @@ export function usePendingGateCount(gateType: 'av' | 'facilities' | 'admin', ena
     queryKey: ['pending-gates-count', gateType],
     queryFn: () => fetchApi<{ count: number }>(`/api/events/projects/pending-gates?gateType=${gateType}&countOnly=true`),
     enabled,
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 60_000,
   })
 }
 
