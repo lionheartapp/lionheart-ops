@@ -83,7 +83,9 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
     const allDay: CalendarEventData[] = []
     const timed: CalendarEventData[] = []
     for (const event of events) {
-      if (event.isAllDay) allDay.push(event)
+      // Treat multi-day events as all-day (like Google Calendar)
+      const spansMultipleDays = toDateOnly(new Date(event.startTime)) !== toDateOnly(new Date(event.endTime))
+      if (event.isAllDay || spansMultipleDays) allDay.push(event)
       else timed.push(event)
     }
     return { allDayEvents: allDay, timedEvents: timed }
