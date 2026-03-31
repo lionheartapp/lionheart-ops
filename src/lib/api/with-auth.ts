@@ -1,0 +1,241 @@
+/**
+ * Route Handler Wrapper — eliminates API route boilerplate
+ *
+ * Handles: org context, auth, permissions, Zod validation, error classification,
+ * Sentry tagging, and structured logging.
+ *
+ * Usage:
+ *   // Simple — no permission check
+ *   export const GET = withAuth(async ({ req, orgId, ctx }) => {
+ *     const data = await prisma.model.findMany(...)
+ *     return NextResponse.json(ok(data))
+ *   })
+ *
+ *   // With permission check
+ *   export const POST = withAuth(async ({ req, orgId, ctx }) => {
+ *     const item = await service.create(body, ctx.userId)
+ *     return NextResponse.json(ok(item), { status: 201 })
+ *   }, { permission: PERMISSIONS.SETTINGS_UPDATE })
+ *
+ *   // With Zod body parsing
+ *   export const POST = withAuth(async ({ req, orgId, ctx, body }) => {
+ *     // body is already validated & typed
+ *     return NextResponse.json(ok(await service.create(body)))
+ *   }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateSchema })
+ *
+ *   // Dynamic route with params
+ *   export const GET = withAuth(async ({ req, orgId, ctx, params }) => {
+ *     const item = await service.getById(params.id)
+ *     return NextResponse.json(ok(item))
+ *   })
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { z, ZodSchema } from 'zod'
+import { ok, fail, isAuthError } from '@/lib/api-response'
+import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+import { getUserContext, type RequestContext } from '@/lib/request-context'
+import { assertCan, can, canAny } from '@/lib/auth/permissions'
+import { logger } from '@/lib/logger'
+import * as Sentry from '@sentry/nextjs'
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** Context passed to every route handler */
+export interface RouteContext<
+  TBody = unknown,
+  TParams extends Record<string, string> = Record<string, string>,
+> {
+  req: NextRequest
+  orgId: string
+  ctx: RequestContext
+  /** Parsed + validated request body (only present when `schema` option is used) */
+  body: TBody
+  /** Awaited dynamic route params (e.g. { id: string }) */
+  params: TParams
+  /** Parsed URL search params for convenience */
+  searchParams: URLSearchParams
+  /** Permission helpers scoped to current user */
+  permissions: {
+    can: (permission: string) => Promise<boolean>
+    canAny: (permissions: string[]) => Promise<boolean>
+  }
+}
+
+/** Handler function signature */
+type Handler<TBody, TParams extends Record<string, string>> = (
+  context: RouteContext<TBody, TParams>
+) => Promise<NextResponse>
+
+/** Options for the wrapper */
+interface WithAuthOptions<TBody> {
+  /** Permission string — checked via assertCan() before handler runs */
+  permission?: string
+  /** Array of permissions — passes if user has ANY of them */
+  permissionAny?: string[]
+  /** Zod schema — parses req.json() and provides typed `body` */
+  schema?: ZodSchema<TBody>
+  /** Route label for logging (auto-detected from req.url if omitted) */
+  routeLabel?: string
+}
+
+// ---------------------------------------------------------------------------
+// Error classification
+// ---------------------------------------------------------------------------
+
+const PERMISSION_PATTERNS = [
+  'Permission denied',
+  'Insufficient permissions',
+  'Access denied',
+  'FORBIDDEN',
+]
+
+function isPermissionError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  return PERMISSION_PATTERNS.some((p) => error.message.includes(p))
+}
+
+function isNotFoundError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  return error.message.toLowerCase().includes('not found')
+}
+
+function isPrismaUniqueConstraint(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code: string }).code === 'P2002'
+  )
+}
+
+function classifyError(error: unknown): NextResponse {
+  // Auth errors → 401
+  if (isAuthError(error)) {
+    return NextResponse.json(
+      fail('UNAUTHORIZED', error instanceof Error ? error.message : 'Unauthorized'),
+      { status: 401 }
+    )
+  }
+
+  // Zod validation → 400
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'Invalid input', error.issues),
+      { status: 400 }
+    )
+  }
+
+  // Permission → 403
+  if (isPermissionError(error)) {
+    return NextResponse.json(
+      fail('FORBIDDEN', error instanceof Error ? error.message : 'Forbidden'),
+      { status: 403 }
+    )
+  }
+
+  // Not found → 404
+  if (isNotFoundError(error)) {
+    return NextResponse.json(
+      fail('NOT_FOUND', error instanceof Error ? error.message : 'Not found'),
+      { status: 404 }
+    )
+  }
+
+  // Prisma unique constraint → 409
+  if (isPrismaUniqueConstraint(error)) {
+    const target = (error as { meta?: { target?: string[] } }).meta?.target
+    const field = target?.[0] ?? 'value'
+    return NextResponse.json(
+      fail('CONFLICT', `A record with that ${field} already exists`),
+      { status: 409 }
+    )
+  }
+
+  // Catch-all → 500
+  return NextResponse.json(
+    fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
+    { status: 500 }
+  )
+}
+
+// ---------------------------------------------------------------------------
+// withAuth
+// ---------------------------------------------------------------------------
+
+/**
+ * Wrap a route handler with auth, org context, and error handling.
+ *
+ * Returns a standard Next.js route handler compatible with both
+ * top-level routes and dynamic `[id]` routes.
+ */
+export function withAuth<
+  TBody = unknown,
+  TParams extends Record<string, string> = Record<string, string>,
+>(
+  handler: Handler<TBody, TParams>,
+  options?: WithAuthOptions<TBody>
+) {
+  return async function routeHandler(
+    req: NextRequest,
+    /** Next.js passes { params: Promise<...> } for dynamic routes */
+    nextContext?: { params?: Promise<TParams> }
+  ): Promise<NextResponse> {
+    const routeLabel =
+      options?.routeLabel ?? new URL(req.url).pathname
+    const log = logger.child({ route: routeLabel, method: req.method })
+
+    try {
+      const orgId = getOrgIdFromRequest(req)
+      const ctx = await getUserContext(req)
+
+      Sentry.setTag('org_id', orgId)
+
+      // Permission gate — fail fast before doing any work
+      if (options?.permission) {
+        await assertCan(ctx.userId, options.permission)
+      }
+      if (options?.permissionAny) {
+        const hasAny = await canAny(ctx.userId, options.permissionAny)
+        if (!hasAny) {
+          return NextResponse.json(
+            fail('FORBIDDEN', 'Insufficient permissions'),
+            { status: 403 }
+          )
+        }
+      }
+
+      // Await dynamic params if present
+      const params = (nextContext?.params ? await nextContext.params : {}) as TParams
+
+      // Parse + validate body if schema provided
+      let body = undefined as unknown as TBody
+      if (options?.schema) {
+        const raw = await req.json()
+        body = options.schema.parse(raw)
+      }
+
+      const searchParams = new URL(req.url).searchParams
+
+      // Permission helpers scoped to this user
+      const permissions = {
+        can: (permission: string) => can(ctx.userId, permission),
+        canAny: (perms: string[]) => canAny(ctx.userId, perms),
+      }
+
+      return await runWithOrgContext(orgId, () =>
+        handler({ req, orgId, ctx, body, params, searchParams, permissions })
+      )
+    } catch (error) {
+      const response = classifyError(error)
+      // Log 5xx errors
+      if (response.status >= 500) {
+        log.error({ err: error }, `${req.method} ${routeLabel} failed`)
+        Sentry.captureException(error)
+      }
+      return response
+    }
+  }
+}
