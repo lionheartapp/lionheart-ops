@@ -717,7 +717,7 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
       <CreateEventProjectModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        initialMode={createMode}
+        initialMode={createMode as 'single' | 'multiday'}
       />
       <EventSeriesDrawer
         isOpen={seriesDrawerOpen}

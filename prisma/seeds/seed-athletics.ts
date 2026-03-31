@@ -5,6 +5,7 @@
  */
 
 import { prisma, getDefaultOrg, getAdminUser, getDefaultCampus, logSection } from './shared'
+import type { SportSeasonType, TeamLevel } from '@prisma/client'
 
 async function main() {
   const org = await getDefaultOrg()
@@ -14,7 +15,7 @@ async function main() {
 
   logSection('Creating sports')
 
-  const sports = [
+  const sports: { name: string; abbreviation: string; color: string; icon: string; seasonType: SportSeasonType }[] = [
     { name: 'Football', abbreviation: 'FB', color: '#8B4513', icon: 'football', seasonType: 'FALL' },
     { name: 'Basketball', abbreviation: 'BB', color: '#FF6B00', icon: 'basketball', seasonType: 'WINTER' },
     { name: 'Soccer', abbreviation: 'SOC', color: '#228B22', icon: 'soccer', seasonType: 'FALL' },
@@ -40,43 +41,48 @@ async function main() {
   const year = now.getFullYear()
 
   for (const sport of createdSports) {
-    const season = await prisma.athleticSeason.upsert({
-      where: {
-        sportId_name: { sportId: sport.id, name: `${year}-${year + 1}` },
-      },
-      update: {},
-      create: {
-        organizationId: orgId,
-        sportId: sport.id,
-        name: `${year}-${year + 1}`,
-        startDate: new Date(`${year}-08-01`),
-        endDate: new Date(`${year + 1}-06-01`),
-        isActive: true,
-      },
+    const seasonName = `${year}-${year + 1}`
+    let season = await prisma.athleticSeason.findFirst({
+      where: { organizationId: orgId, sportId: sport.id, name: seasonName },
     })
+    if (!season) {
+      season = await prisma.athleticSeason.create({
+        data: {
+          organizationId: orgId,
+          sportId: sport.id,
+          name: seasonName,
+          startDate: new Date(`${year}-08-01`),
+          endDate: new Date(`${year + 1}-06-01`),
+          isCurrent: true,
+        },
+      })
+    }
     console.log(`  Season: ${sport.name} ${season.name}`)
 
     logSection(`Creating ${sport.name} teams`)
 
-    const levels = ['Varsity', 'Junior Varsity']
-    for (const level of levels) {
-      const teamName = `${sport.name} ${level}`
-      const team = await prisma.athleticTeam.upsert({
-        where: {
-          seasonId_name: { seasonId: season.id, name: teamName },
-        },
-        update: {},
-        create: {
-          organizationId: orgId,
-          sportId: sport.id,
-          seasonId: season.id,
-          name: teamName,
-          level,
-          ...(campus ? { campusId: campus.id } : {}),
-          headCoachId: admin.id,
-          isActive: true,
-        },
+    const levels: { label: string; value: TeamLevel }[] = [
+      { label: 'Varsity', value: 'VARSITY' },
+      { label: 'Junior Varsity', value: 'JUNIOR_VARSITY' },
+    ]
+    for (const lvl of levels) {
+      const teamName = `${sport.name} ${lvl.label}`
+      let team = await prisma.athleticTeam.findFirst({
+        where: { organizationId: orgId, seasonId: season.id, name: teamName },
       })
+      if (!team) {
+        team = await prisma.athleticTeam.create({
+          data: {
+            organizationId: orgId,
+            sportId: sport.id,
+            seasonId: season.id,
+            name: teamName,
+            level: lvl.value,
+            ...(campus ? { schoolId: campus.id } : {}),
+            coachUserId: admin.id,
+          },
+        })
+      }
       console.log(`    Team: ${team.name}`)
     }
   }

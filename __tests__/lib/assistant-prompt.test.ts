@@ -149,7 +149,7 @@ describe('buildSystemPrompt — context injection', () => {
         domainExpertise: ['HVAC'],
         communicationStyle: null,
       },
-      relevantFacts: [{ factText: 'Prefers email updates', category: 'preference' }],
+      relevantFacts: [{ factText: 'Prefers email updates', category: 'preference', importance: 1 }],
       recentSummaries: [],
     }
     const prompt = buildSystemPrompt(

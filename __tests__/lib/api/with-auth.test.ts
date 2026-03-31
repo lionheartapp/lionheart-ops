@@ -61,7 +61,7 @@ import { ok } from '@/lib/api-response'
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function makeReq(path = '/api/test', method = 'GET', body?: unknown): NextRequest {
-  const opts: RequestInit = { method }
+  const opts: { method: string; body?: string; headers?: Record<string, string> } = { method }
   if (body) {
     opts.body = JSON.stringify(body)
     opts.headers = { 'Content-Type': 'application/json' }

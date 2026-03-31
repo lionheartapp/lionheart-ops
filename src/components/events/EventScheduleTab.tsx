@@ -54,6 +54,7 @@ import {
   File,
   Download,
   FileDown,
+  Sparkles,
 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -76,7 +77,7 @@ import {
   type EventScheduleSection,
   type ScheduleBlockAttachment,
 } from '@/lib/hooks/useEventSchedule'
-import { type EventScheduleBlock } from '@/lib/hooks/useEventProject'
+import { type EventScheduleBlock, useEventProject } from '@/lib/hooks/useEventProject'
 import { useToast } from '@/components/Toast'
 import { ParallelBlockGrid } from '@/components/events/ParallelBlockGrid'
 import { ScheduleTimelineView } from '@/components/events/ScheduleTimelineView'
@@ -1776,6 +1777,66 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
     saveCustomTypes(eventProjectId, updated)
   }
 
+  // ─── AI Schedule Generation ──────────────────────────────────────────
+  const [aiGenerating, setAIGenerating] = useState(false)
+  const { data: eventProject } = useEventProject(eventProjectId)
+
+  async function handleAIGenerate() {
+    if (!eventProject || !eventStartDate) return
+    setAIGenerating(true)
+    try {
+      const startDate = new Date(eventStartDate + 'T00:00:00')
+      const endDate = eventEndDate ? new Date(eventEndDate + 'T00:00:00') : startDate
+      const durationDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / 86400000) + 1)
+
+      const res = await fetch('/api/events/ai/generate-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: eventProject.title,
+          durationDays,
+          expectedAttendance: eventProject.expectedAttendance ?? 50,
+          description: eventProject.description ?? undefined,
+        }),
+      })
+      const json = await res.json() as { ok: boolean; data?: { blocks: Array<{ dayOffset: number; startTime: string; endTime: string; title: string; type: string; location?: string }>; reasoning: string }; error?: { message: string } }
+
+      if (!json.ok || !json.data) {
+        toast(json.error?.message ?? 'Failed to generate schedule', 'error')
+        return
+      }
+
+      const { blocks: templates } = json.data
+      let created = 0
+      for (const tpl of templates) {
+        const blockDate = addDays(startDate, tpl.dayOffset)
+        const dateStr = format(blockDate, 'yyyy-MM-dd')
+        const [startH, startM] = tpl.startTime.split(':').map(Number)
+        const [endH, endM] = tpl.endTime.split(':').map(Number)
+        const startsAt = new Date(`${dateStr}T00:00:00`)
+        startsAt.setHours(startH, startM, 0, 0)
+        const endsAt = new Date(`${dateStr}T00:00:00`)
+        endsAt.setHours(endH, endM, 0, 0)
+
+        const payload: CreateScheduleBlockInput = {
+          type: toApiType(tpl.type),
+          title: tpl.title,
+          startsAt,
+          endsAt,
+          locationText: tpl.location || undefined,
+          sortOrder: (blocks?.length ?? 0) + created,
+        }
+        await createBlock.mutateAsync(payload)
+        created++
+      }
+      toast(`Generated ${created} schedule items`, 'success')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'AI generation failed', 'error')
+    } finally {
+      setAIGenerating(false)
+    }
+  }
+
   // ─── Block CRUD ───────────────────────────────────────────────────────
 
   async function handleCreate(data: DrawerFormData) {
@@ -2424,6 +2485,23 @@ export function EventScheduleTab({ eventProjectId, defaultDate, eventStartDate, 
               Timeline
             </button>
           </div>
+
+          {/* AI Generate */}
+          {!hasBlocks && !hasSections && (
+            <button
+              onClick={handleAIGenerate}
+              disabled={aiGenerating}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-indigo-200 bg-indigo-50 text-sm font-medium text-indigo-700 hover:bg-indigo-100 hover:border-indigo-300 disabled:opacity-50 transition-all cursor-pointer"
+              title="Generate schedule with AI"
+            >
+              {aiGenerating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">{aiGenerating ? 'Generating...' : 'AI Generate'}</span>
+            </button>
+          )}
 
           {/* Export */}
           {hasBlocks && (

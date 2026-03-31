@@ -13,6 +13,7 @@ import {
   getDefaultBuilding,
   logSection,
 } from './shared'
+import type { MaintenanceCategory, MaintenancePriority, MaintenanceTicketStatus, MaintenanceSpecialty } from '@prisma/client'
 
 async function main() {
   const org = await getDefaultOrg()
@@ -42,33 +43,32 @@ async function main() {
     { name: 'Fire Alarm Panel — Admin', category: 'FIRE_SAFETY', status: 'OPERATIONAL', serialNumber: 'FIRE-001' },
   ]
 
-  // Get or create counter
+  // Get or create asset counter
   let counter = await prisma.maintenanceAssetCounter.findFirst({ where: { organizationId: orgId } })
   if (!counter) {
     counter = await prisma.maintenanceAssetCounter.create({
-      data: { organizationId: orgId, lastNumber: 0 },
+      data: { organizationId: orgId, lastAssetNumber: 0 },
     })
   }
 
   for (const a of assetTemplates) {
     counter = await prisma.maintenanceAssetCounter.update({
       where: { id: counter.id },
-      data: { lastNumber: { increment: 1 } },
+      data: { lastAssetNumber: { increment: 1 } },
     })
 
     const asset = await prisma.maintenanceAsset.create({
       data: {
         organizationId: orgId,
-        assetTag: `ASSET-${String(counter.lastNumber).padStart(4, '0')}`,
+        assetNumber: `ASSET-${String(counter.lastAssetNumber).padStart(4, '0')}`,
         name: a.name,
-        category: a.category as any,
-        status: a.status as any,
+        category: a.category,
+        status: a.status,
         serialNumber: a.serialNumber,
         ...(building ? { buildingId: building.id } : {}),
-        ...(campus ? { campusId: campus.id } : {}),
       },
     })
-    console.log(`  Asset: ${asset.assetTag} — ${asset.name}`)
+    console.log(`  Asset: ${asset.assetNumber} — ${asset.name}`)
   }
 
   // Create maintenance tickets (work orders)
@@ -77,41 +77,47 @@ async function main() {
   let ticketCounter = await prisma.maintenanceCounter.findFirst({ where: { organizationId: orgId } })
   if (!ticketCounter) {
     ticketCounter = await prisma.maintenanceCounter.create({
-      data: { organizationId: orgId, lastNumber: 0 },
+      data: { organizationId: orgId, lastTicketNumber: 0 },
     })
   }
 
-  const workOrders = [
-    { title: 'Leaking faucet in staff restroom', category: 'PLUMBING', priority: 'MEDIUM', status: 'OPEN' },
-    { title: 'Broken window latch — Room 102', category: 'GENERAL', priority: 'LOW', status: 'OPEN' },
-    { title: 'HVAC making loud noise — Library', category: 'HVAC', priority: 'HIGH', status: 'IN_PROGRESS' },
-    { title: 'Flickering lights in hallway B', category: 'ELECTRICAL', priority: 'MEDIUM', status: 'IN_PROGRESS' },
-    { title: 'Playground fence repair needed', category: 'GROUNDS', priority: 'HIGH', status: 'OPEN' },
-    { title: 'Fire extinguisher expired — Gym', category: 'FIRE_SAFETY', priority: 'URGENT', status: 'OPEN' },
-    { title: 'Door lock stuck — Main entrance', category: 'GENERAL', priority: 'HIGH', status: 'COMPLETED' },
-    { title: 'Parking lot pothole', category: 'GROUNDS', priority: 'MEDIUM', status: 'OPEN' },
+  const workOrders: {
+    title: string
+    category: MaintenanceCategory
+    specialty: MaintenanceSpecialty
+    priority: MaintenancePriority
+    status: MaintenanceTicketStatus
+  }[] = [
+    { title: 'Leaking faucet in staff restroom', category: 'PLUMBING', specialty: 'PLUMBING', priority: 'MEDIUM', status: 'BACKLOG' },
+    { title: 'Broken window latch — Room 102', category: 'STRUCTURAL', specialty: 'OTHER', priority: 'LOW', status: 'BACKLOG' },
+    { title: 'HVAC making loud noise — Library', category: 'HVAC', specialty: 'HVAC', priority: 'HIGH', status: 'IN_PROGRESS' },
+    { title: 'Flickering lights in hallway B', category: 'ELECTRICAL', specialty: 'ELECTRICAL', priority: 'MEDIUM', status: 'IN_PROGRESS' },
+    { title: 'Playground fence repair needed', category: 'GROUNDS', specialty: 'GROUNDS', priority: 'HIGH', status: 'BACKLOG' },
+    { title: 'Fire extinguisher expired — Gym', category: 'OTHER', specialty: 'OTHER', priority: 'URGENT', status: 'BACKLOG' },
+    { title: 'Door lock stuck — Main entrance', category: 'STRUCTURAL', specialty: 'OTHER', priority: 'HIGH', status: 'DONE' },
+    { title: 'Parking lot pothole', category: 'GROUNDS', specialty: 'GROUNDS', priority: 'MEDIUM', status: 'BACKLOG' },
   ]
 
   for (const wo of workOrders) {
     ticketCounter = await prisma.maintenanceCounter.update({
       where: { id: ticketCounter.id },
-      data: { lastNumber: { increment: 1 } },
+      data: { lastTicketNumber: { increment: 1 } },
     })
 
     const ticket = await prisma.maintenanceTicket.create({
       data: {
         organizationId: orgId,
-        ticketNumber: `WO-${String(ticketCounter.lastNumber).padStart(4, '0')}`,
+        ticketNumber: `WO-${String(ticketCounter.lastTicketNumber).padStart(4, '0')}`,
         title: wo.title,
-        category: wo.category as any,
-        priority: wo.priority as any,
-        status: wo.status as any,
+        category: wo.category,
+        specialty: wo.specialty,
+        priority: wo.priority,
+        status: wo.status,
         submittedById: admin.id,
-        ...(wo.status === 'IN_PROGRESS' || wo.status === 'COMPLETED'
+        ...(wo.status === 'IN_PROGRESS' || wo.status === 'DONE'
           ? { assignedToId: tech.id }
           : {}),
         ...(building ? { buildingId: building.id } : {}),
-        ...(campus ? { campusId: campus.id } : {}),
       },
     })
     console.log(`  Work Order: ${ticket.ticketNumber} — ${ticket.title}`)

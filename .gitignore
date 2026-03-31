@@ -8,6 +8,7 @@ dist
 .vercel
 .env*.local
 .DS_Store
+figma-debrander/
 
 # Performance test results (k6 JSON output)
 scripts/perf/results/

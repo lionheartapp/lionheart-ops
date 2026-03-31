@@ -328,6 +328,7 @@ export async function bulkPublish(seasonId: string, calendarId: string) {
         endsAt: new Date(sub.preferredDate.getTime() + sub.duration * 60000),
         calendarId,
         isMultiDay: false,
+        isOffCampus: false,
         requiresAV: false,
         requiresFacilities: false,
       },

@@ -1109,6 +1109,9 @@ async function runConflictDetection(
   buildingId?: string | null,
 ) {
   try {
+    const project = await db.eventProject.findUnique({ where: { id: eventProjectId }, select: { organizationId: true } })
+    if (!project) return
+
     const { detectConflicts } = await import('@/lib/services/ai/eventAIService')
     const report = await detectConflicts({
       eventProjectId,
@@ -1116,6 +1119,7 @@ async function runConflictDetection(
       endsAt: typeof endsAt === 'string' ? endsAt : endsAt.toISOString(),
       roomId: roomId ?? undefined,
       buildingId: buildingId ?? undefined,
+      organizationId: project.organizationId,
     })
 
     // Store conflict report in metadata for the overview UI

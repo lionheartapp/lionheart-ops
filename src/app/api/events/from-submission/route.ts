@@ -53,6 +53,7 @@ export const POST = withAuth(async ({ ctx, body }) => {
     startsAt,
     endsAt,
     isMultiDay: false,
+    isOffCampus: false,
     requiresAV: false,
     requiresFacilities: false,
     expectedAttendance: submission.expectedAttendance ?? undefined,

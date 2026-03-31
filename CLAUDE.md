@@ -23,13 +23,70 @@ Dev server runs on **port 3004**: `npm run dev`
 
 ## Environment Variables
 
+### Required
 ```
-DATABASE_URL      # Pooled Supabase connection (transactions/queries)
-DIRECT_URL        # Direct Supabase connection (migrations/introspection)
-AUTH_SECRET       # JWT signing secret — must be long and random
-GEMINI_API_KEY    # Optional — powers all AI features (events, maintenance, diagnostics, reports)
-RESEND_API_KEY    # Optional — enables welcome emails
-MAIL_FROM         # Optional — sender address (default: no-reply@lionheartapp.com)
+DATABASE_URL                     # Pooled Supabase connection (transactions/queries)
+DIRECT_URL                       # Direct Supabase connection (migrations/introspection)
+AUTH_SECRET                      # JWT signing secret — must be long and random
+NEXT_PUBLIC_SUPABASE_URL         # Supabase project URL (storage, auth)
+SUPABASE_SERVICE_ROLE_KEY        # Supabase service role key (server-side storage operations)
+NEXT_PUBLIC_APP_URL              # Canonical app URL (used in OAuth callbacks, emails, QR codes)
+NEXT_PUBLIC_PLATFORM_URL         # Platform base URL (used in email links, share links, asset labels)
+```
+
+### Optional — AI
+```
+GEMINI_API_KEY                   # Powers all AI features (events, maintenance, diagnostics, reports)
+NEXT_PUBLIC_GEMINI_API_KEY       # Client-side fallback for Gemini (same key, exposed to browser)
+```
+
+### Optional — Email (Resend or SMTP)
+```
+RESEND_API_KEY                   # Resend API key — enables transactional emails
+MAIL_FROM                        # Sender address (default: no-reply@lionheartapp.com)
+CONTACT_EMAIL                    # Contact/reply-to address for outbound emails
+SMTP_HOST                        # SMTP host (alternative to Resend)
+SMTP_PORT                        # SMTP port
+SMTP_USER                        # SMTP username
+SMTP_PASS                        # SMTP password
+SMTP_SECURE                      # "true" for TLS
+```
+
+### Optional — Payments
+```
+STRIPE_SECRET_KEY                # Stripe server-side key (billing, registration payments)
+STRIPE_WEBHOOK_SECRET            # Stripe webhook signature verification
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY # Stripe client-side key (payment forms)
+```
+
+### Optional — OAuth & Integrations
+```
+GOOGLE_CLIENT_ID                 # Google OAuth (calendar integration)
+GOOGLE_CLIENT_SECRET             # Google OAuth secret
+GOOGLE_PLACES_API_KEY            # Google Places API (school lookup, address autocomplete)
+GOOGLE_MAPS_API_KEY              # Google Maps API (geocoding, address validation)
+NEXTAUTH_SECRET                  # NextAuth secret (used by auth-config)
+NEXTAUTH_URL                     # NextAuth callback base URL
+PCO_APP_ID                       # Planning Center Online app ID
+PCO_SECRET                       # Planning Center Online secret
+AZURE_AD_CLIENT_ID               # Azure AD OAuth (SSO)
+AZURE_AD_CLIENT_SECRET           # Azure AD OAuth secret
+AZURE_AD_TENANT_ID               # Azure AD tenant
+```
+
+### Optional — Security & Monitoring
+```
+CRON_SECRET                      # Shared secret for cron job endpoints (Vercel Cron)
+TURNSTILE_SECRET_KEY             # Cloudflare Turnstile server-side key (bot protection)
+NEXT_PUBLIC_TURNSTILE_SITE_KEY   # Cloudflare Turnstile client-side key
+CLASSLINK_WEBHOOK_SECRET         # ClassLink roster webhook verification
+CLEVER_WEBHOOK_SECRET            # Clever roster webhook verification
+SENTRY_DSN                       # Sentry error tracking DSN
+NEXT_PUBLIC_SENTRY_DSN           # Sentry client-side DSN
+SENTRY_AUTH_TOKEN                # Sentry release/sourcemap upload token
+PLATFORM_AUTH_SECRET             # Platform-level auth (multi-org admin)
+BRANDFETCH_API_KEY               # Brandfetch API (school logo lookup)
+NEXT_PUBLIC_SUPABASE_ANON_KEY    # Supabase anonymous key (client-side browser access)
 ```
 
 `.env` = remote/production. `.env.local` = local dev (takes precedence for db:* scripts).

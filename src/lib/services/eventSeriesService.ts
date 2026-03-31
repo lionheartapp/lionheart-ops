@@ -187,6 +187,7 @@ export async function spawnProjectFromSeries(
     calendarId: overrides.calendarId ?? undefined,
     expectedAttendance: overrides.expectedAttendance ?? undefined,
     isMultiDay: false,
+    isOffCampus: false,
     requiresAV: !!(series.resourceNeeds as any)?.requiresAV,
     requiresFacilities: !!(series.resourceNeeds as any)?.requiresFacilities,
   }
