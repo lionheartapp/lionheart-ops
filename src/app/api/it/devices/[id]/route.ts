@@ -4,11 +4,9 @@
  * DELETE /api/it/devices/[id] — soft-delete device
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import {
   getDeviceDetail,
@@ -17,80 +15,24 @@ import {
   UpdateDeviceSchema,
 } from '@/lib/services/itDeviceService'
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.IT_DEVICE_READ)
+export const GET = withAuth(async ({ params }) => {
+  const device = await getDeviceDetail(params.id)
 
-    const device = await runWithOrgContext(orgId, () => getDeviceDetail(id))
-
-    if (!device) {
-      return NextResponse.json(fail('NOT_FOUND', 'Device not found'), { status: 404 })
-    }
-
-    return NextResponse.json(ok(device))
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[GET /api/it/devices/[id]]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  if (!device) {
+    return NextResponse.json(fail('NOT_FOUND', 'Device not found'), { status: 404 })
   }
-}
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.IT_DEVICE_UPDATE)
+  return NextResponse.json(ok(device))
+}, { permission: PERMISSIONS.IT_DEVICE_READ })
 
-    const body = await req.json()
-    const validated = UpdateDeviceSchema.parse(body)
+export const PATCH = withAuth(async ({ params, body }) => {
+  const device = await updateDevice(params.id, body)
 
-    const device = await runWithOrgContext(orgId, () => updateDevice(id, validated))
+  return NextResponse.json(ok(device))
+}, { permission: PERMISSIONS.IT_DEVICE_UPDATE, schema: UpdateDeviceSchema })
 
-    return NextResponse.json(ok(device))
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('Insufficient permissions')) {
-        return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-      }
-      if (error.name === 'ZodError') {
-        return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid request data', [error.message]), { status: 400 })
-      }
-    }
-    console.error('[PATCH /api/it/devices/[id]]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const DELETE = withAuth(async ({ params }) => {
+  await deleteDevice(params.id)
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.IT_DEVICE_DELETE)
-
-    await runWithOrgContext(orgId, () => deleteDevice(id))
-
-    return NextResponse.json(ok({ deleted: true }))
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[DELETE /api/it/devices/[id]]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  return NextResponse.json(ok({ deleted: true }))
+}, { permission: PERMISSIONS.IT_DEVICE_DELETE })

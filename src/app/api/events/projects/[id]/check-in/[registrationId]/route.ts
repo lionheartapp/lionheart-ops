@@ -10,11 +10,9 @@
  * Medical data additionally gated by: events:medical:read
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan, can } from '@/lib/auth/permissions'
-import { ok, fail, isAuthError } from '@/lib/api-response'
+import { NextResponse } from 'next/server'
+import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import {
   getParticipantByRegistration,
@@ -23,65 +21,27 @@ import {
 
 // ─── GET — Full Participant Info ──────────────────────────────────────────────
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; registrationId: string }> }
-) {
-  try {
-    const { id: eventProjectId, registrationId } = await params
-    void eventProjectId // eventProjectId context — not needed by service but validates route nesting
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_CHECKIN_MANAGE)
+export const GET = withAuth(async ({ params, permissions }) => {
+  const { registrationId } = params
+  void params.id // eventProjectId context — not needed by service but validates route nesting
 
-    // Medical data gate — only include if caller has the additional permission
-    const hasMedicalAccess = await can(ctx.userId, PERMISSIONS.EVENTS_MEDICAL_READ)
+  // Medical data gate — only include if caller has the additional permission
+  const hasMedicalAccess = await permissions.can(PERMISSIONS.EVENTS_MEDICAL_READ)
 
-    return await runWithOrgContext(orgId, async () => {
-      const participant = await getParticipantByRegistration(registrationId, hasMedicalAccess)
+  const participant = await getParticipantByRegistration(registrationId, hasMedicalAccess)
 
-      if (!participant) {
-        return NextResponse.json(fail('NOT_FOUND', 'Registration not found'), { status: 404 })
-      }
-
-      return NextResponse.json(ok(participant))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[check-in/:registrationId GET]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  if (!participant) {
+    return NextResponse.json(fail('NOT_FOUND', 'Registration not found'), { status: 404 })
   }
-}
+
+  return NextResponse.json(ok(participant))
+}, { permission: PERMISSIONS.EVENTS_CHECKIN_MANAGE })
 
 // ─── DELETE — Undo Check-In ───────────────────────────────────────────────────
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; registrationId: string }> }
-) {
-  try {
-    const { id: eventProjectId, registrationId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_CHECKIN_MANAGE)
+export const DELETE = withAuth(async ({ params }) => {
+  const { id: eventProjectId, registrationId } = params
 
-    return await runWithOrgContext(orgId, async () => {
-      await undoCheckIn(eventProjectId, registrationId)
-      return NextResponse.json(ok({ undone: true }))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[check-in/:registrationId DELETE]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  await undoCheckIn(eventProjectId, registrationId)
+  return NextResponse.json(ok({ undone: true }))
+}, { permission: PERMISSIONS.EVENTS_CHECKIN_MANAGE })

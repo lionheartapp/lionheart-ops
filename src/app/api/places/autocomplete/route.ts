@@ -4,9 +4,14 @@ import { getUserContext } from '@/lib/request-context'
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
+/**
+ * GET /api/places/autocomplete?input=...
+ *
+ * Proxies Google Places Autocomplete API.
+ * Returns suggestions with separate venue name (mainText) and address (secondaryText).
+ */
 export async function GET(req: NextRequest) {
   try {
-    // Require authentication
     await getUserContext(req)
 
     const input = req.nextUrl.searchParams.get('input')
@@ -20,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const url = new URL('https://maps.googleapis.com/maps/api/place/autocomplete/json')
     url.searchParams.set('input', input)
-    url.searchParams.set('types', 'address')
+    url.searchParams.set('types', 'establishment|geocode')
     url.searchParams.set('components', 'country:us')
     url.searchParams.set('key', GOOGLE_PLACES_API_KEY)
 
@@ -32,9 +37,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(fail('EXTERNAL_ERROR', 'Address lookup failed'), { status: 502 })
     }
 
-    const suggestions = (data.predictions || []).map((p: { description: string; place_id: string }) => ({
-      description: p.description,
+    const suggestions = (data.predictions || []).map((p: any) => ({
       placeId: p.place_id,
+      description: p.description,
+      // structured_formatting gives us venue name vs address separately
+      mainText: p.structured_formatting?.main_text ?? p.description,
+      secondaryText: p.structured_formatting?.secondary_text ?? '',
     }))
 
     return NextResponse.json(ok(suggestions))

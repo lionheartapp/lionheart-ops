@@ -8,12 +8,10 @@
  * Requires: events:incidents:manage
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
-import { ok, fail, isAuthError } from '@/lib/api-response'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { EventIncidentType, EventIncidentSeverity } from '@prisma/client'
 import {
@@ -55,153 +53,72 @@ const syncBodySchema = z.object({
 
 // ─── GET — List Incidents ─────────────────────────────────────────────────────
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id: eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_INCIDENTS_MANAGE)
+export const GET = withAuth(async ({ params, searchParams }) => {
+  const eventProjectId = params.id
 
-    const url = new URL(req.url)
-    const typeParam = url.searchParams.get('type')
-    const severityParam = url.searchParams.get('severity')
+  const typeParam = searchParams.get('type')
+  const severityParam = searchParams.get('severity')
 
-    // Validate optional filter params
-    const validTypes = Object.values(EventIncidentType)
-    const validSeverities = Object.values(EventIncidentSeverity)
+  // Validate optional filter params
+  const validTypes = Object.values(EventIncidentType)
+  const validSeverities = Object.values(EventIncidentSeverity)
 
-    const typeFilter = typeParam && validTypes.includes(typeParam as EventIncidentType)
-      ? (typeParam as EventIncidentType)
-      : undefined
+  const typeFilter = typeParam && validTypes.includes(typeParam as EventIncidentType)
+    ? (typeParam as EventIncidentType)
+    : undefined
 
-    const severityFilter = severityParam && validSeverities.includes(severityParam as EventIncidentSeverity)
-      ? (severityParam as EventIncidentSeverity)
-      : undefined
+  const severityFilter = severityParam && validSeverities.includes(severityParam as EventIncidentSeverity)
+    ? (severityParam as EventIncidentSeverity)
+    : undefined
 
-    return await runWithOrgContext(orgId, async () => {
-      const incidents = await listIncidents(eventProjectId, {
-        type: typeFilter,
-        severity: severityFilter,
-      })
+  const incidents = await listIncidents(eventProjectId, {
+    type: typeFilter,
+    severity: severityFilter,
+  })
 
-      return NextResponse.json(ok(incidents))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[incidents GET]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  return NextResponse.json(ok(incidents))
+}, { permission: PERMISSIONS.EVENTS_INCIDENTS_MANAGE })
 
 // ─── POST — Log Incident ──────────────────────────────────────────────────────
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id: eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_INCIDENTS_MANAGE)
+export const POST = withAuth(async ({ params, orgId, ctx, body }) => {
+  const eventProjectId = params.id
 
-    const body = await req.json()
-    const parsed = incidentBodySchema.safeParse(body)
+  const incident = await createIncident({
+    eventProjectId,
+    organizationId: orgId,
+    type: body.type,
+    severity: body.severity,
+    description: body.description,
+    actionsTaken: body.actionsTaken,
+    followUpNeeded: body.followUpNeeded,
+    followUpNotes: body.followUpNotes,
+    photoUrl: body.photoUrl,
+    reportedById: ctx.userId,
+    participantIds: body.participantIds,
+  })
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid request body', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      const incident = await createIncident({
-        eventProjectId,
-        organizationId: orgId,
-        type: parsed.data.type,
-        severity: parsed.data.severity,
-        description: parsed.data.description,
-        actionsTaken: parsed.data.actionsTaken,
-        followUpNeeded: parsed.data.followUpNeeded,
-        followUpNotes: parsed.data.followUpNotes,
-        photoUrl: parsed.data.photoUrl,
-        reportedById: ctx.userId,
-        participantIds: parsed.data.participantIds,
-      })
-
-      return NextResponse.json(ok(incident), { status: 201 })
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[incidents POST]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  return NextResponse.json(ok(incident), { status: 201 })
+}, { permission: PERMISSIONS.EVENTS_INCIDENTS_MANAGE, schema: incidentBodySchema })
 
 // ─── PUT — Offline Sync ───────────────────────────────────────────────────────
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    await params // consume params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_INCIDENTS_MANAGE)
+export const PUT = withAuth(async ({ body }) => {
+  const result = await syncOfflineIncidents(
+    body.incidents.map((inc) => ({
+      eventProjectId: inc.eventProjectId,
+      organizationId: inc.organizationId,
+      type: inc.type,
+      severity: inc.severity,
+      description: inc.description,
+      actionsTaken: inc.actionsTaken,
+      followUpNeeded: inc.followUpNeeded ?? false,
+      followUpNotes: inc.followUpNotes,
+      photoUrl: inc.photoUrl,
+      reportedById: inc.reportedById,
+      participantIds: inc.participantIds ?? [],
+    })),
+  )
 
-    const body = await req.json()
-    const parsed = syncBodySchema.safeParse(body)
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid request body', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      // Use the ctx.userId as the reportedById for incidents that don't specify it
-      const result = await syncOfflineIncidents(
-        parsed.data.incidents.map((inc) => ({
-          eventProjectId: inc.eventProjectId,
-          organizationId: inc.organizationId,
-          type: inc.type,
-          severity: inc.severity,
-          description: inc.description,
-          actionsTaken: inc.actionsTaken,
-          followUpNeeded: inc.followUpNeeded ?? false,
-          followUpNotes: inc.followUpNotes,
-          photoUrl: inc.photoUrl,
-          reportedById: inc.reportedById,
-          participantIds: inc.participantIds ?? [],
-        })),
-      )
-
-      return NextResponse.json(ok(result))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[incidents PUT sync]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  return NextResponse.json(ok(result))
+}, { permission: PERMISSIONS.EVENTS_INCIDENTS_MANAGE, schema: syncBodySchema })

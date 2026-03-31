@@ -1,6 +1,7 @@
 /**
  * POST /api/it/tickets/sub — Submit IT ticket via magic link (no auth required)
  */
+// Public endpoint — no auth required (magic link token-based)
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'

@@ -3,12 +3,9 @@
  * POST /api/maintenance/tickets — create a new maintenance ticket
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { runWithOrgContext } from '@/lib/org-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { NextResponse } from 'next/server'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createMaintenanceTicket, listTickets } from '@/lib/services/maintenanceTicketService'
 import type {
@@ -16,70 +13,28 @@ import type {
   MaintenanceCategory,
   MaintenancePriority,
 } from '@prisma/client'
-import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
 
-export async function POST(req: NextRequest) {
-  const log = logger.child({ route: '/api/maintenance/tickets', method: 'POST' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_SUBMIT)
+export const POST = withAuth(async ({ req, orgId, ctx }) => {
+  const body = await req.json()
 
-    const body = await req.json()
+  const ticket = await createMaintenanceTicket(body, ctx.userId, orgId)
 
-    const ticket = await runWithOrgContext(orgId, () =>
-      createMaintenanceTicket(body, ctx.userId, orgId)
-    )
+  return NextResponse.json(ok(ticket), { status: 201 })
+}, { permission: PERMISSIONS.MAINTENANCE_SUBMIT })
 
-    return NextResponse.json(ok(ticket), { status: 201 })
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('Insufficient permissions')) {
-        return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-      }
-      if (error.name === 'ZodError') {
-        return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid request data', [error.message]), { status: 400 })
-      }
-    }
-    log.error({ err: error }, 'Failed to create maintenance ticket')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
+  const filters = {
+    status: (searchParams.get('status') || undefined) as MaintenanceTicketStatus | undefined,
+    priority: (searchParams.get('priority') || undefined) as MaintenancePriority | undefined,
+    category: (searchParams.get('category') || undefined) as MaintenanceCategory | undefined,
+    schoolId: searchParams.get('schoolId') || undefined,
+    assignedToId: searchParams.get('assignedToId') || undefined,
+    search: searchParams.get('search') || undefined,
+    unassigned: searchParams.get('unassigned') === 'true',
+    excludeStatus: (searchParams.get('excludeStatus') || undefined) as MaintenanceTicketStatus | undefined,
   }
-}
 
-export async function GET(req: NextRequest) {
-  const log = logger.child({ route: '/api/maintenance/tickets', method: 'GET' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    await assertCan(ctx.userId, PERMISSIONS.MAINTENANCE_READ_OWN)
+  const tickets = await listTickets(filters, { userId: ctx.userId, organizationId: orgId })
 
-    const url = new URL(req.url)
-    const filters = {
-      status: (url.searchParams.get('status') || undefined) as MaintenanceTicketStatus | undefined,
-      priority: (url.searchParams.get('priority') || undefined) as MaintenancePriority | undefined,
-      category: (url.searchParams.get('category') || undefined) as MaintenanceCategory | undefined,
-      schoolId: url.searchParams.get('schoolId') || undefined,
-      assignedToId: url.searchParams.get('assignedToId') || undefined,
-      search: url.searchParams.get('search') || undefined,
-      unassigned: url.searchParams.get('unassigned') === 'true',
-      excludeStatus: (url.searchParams.get('excludeStatus') || undefined) as MaintenanceTicketStatus | undefined,
-    }
-
-    const tickets = await runWithOrgContext(orgId, () =>
-      listTickets(filters, { userId: ctx.userId, organizationId: orgId })
-    )
-
-    return NextResponse.json(ok(tickets))
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to list maintenance tickets')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  return NextResponse.json(ok(tickets))
+}, { permission: PERMISSIONS.MAINTENANCE_READ_OWN })

@@ -9,12 +9,10 @@
  * Requires: events:groups:manage permission
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
-import { ok, fail, isAuthError } from '@/lib/api-response'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import {
   listActivities,
@@ -22,8 +20,6 @@ import {
   updateActivity,
   deleteActivity,
 } from '@/lib/services/eventGroupService'
-
-type RouteParams = { params: Promise<{ id: string }> }
 
 const createActivitySchema = z.object({
   name: z.string().min(1).max(200),
@@ -52,138 +48,39 @@ const deleteActivitySchema = z.object({
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
-export async function GET(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id: eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_GROUPS_MANAGE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const activities = await listActivities(eventProjectId)
-      return NextResponse.json(ok(activities))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[activities GET]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const GET = withAuth(async ({ params }) => {
+  const activities = await listActivities(params.id)
+  return NextResponse.json(ok(activities))
+}, { permission: PERMISSIONS.EVENTS_GROUPS_MANAGE })
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
 
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id: eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_GROUPS_MANAGE)
-
-    const body = await req.json()
-    const parsed = createActivitySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid input', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      const activity = await createActivity({
-        eventProjectId,
-        ...parsed.data,
-        scheduledAt: parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null,
-      })
-      return NextResponse.json(ok(activity), { status: 201 })
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[activities POST]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const POST = withAuth(async ({ params, body }) => {
+  const activity = await createActivity({
+    eventProjectId: params.id,
+    ...body,
+    scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
+  })
+  return NextResponse.json(ok(activity), { status: 201 })
+}, { permission: PERMISSIONS.EVENTS_GROUPS_MANAGE, schema: createActivitySchema })
 
 // ─── PUT ──────────────────────────────────────────────────────────────────────
 
-export async function PUT(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id: _eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_GROUPS_MANAGE)
+export const PUT = withAuth(async ({ body }) => {
+  const { activityId, ...updateData } = body
 
-    const body = await req.json()
-    const parsed = updateActivitySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid input', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    const { activityId, ...updateData } = parsed.data
-
-    return await runWithOrgContext(orgId, async () => {
-      const activity = await updateActivity(activityId, {
-        ...updateData,
-        scheduledAt: updateData.scheduledAt !== undefined
-          ? (updateData.scheduledAt ? new Date(updateData.scheduledAt) : null)
-          : undefined,
-      })
-      return NextResponse.json(ok(activity))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[activities PUT]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  const activity = await updateActivity(activityId, {
+    ...updateData,
+    scheduledAt: updateData.scheduledAt !== undefined
+      ? (updateData.scheduledAt ? new Date(updateData.scheduledAt) : null)
+      : undefined,
+  })
+  return NextResponse.json(ok(activity))
+}, { permission: PERMISSIONS.EVENTS_GROUPS_MANAGE, schema: updateActivitySchema })
 
 // ─── DELETE ───────────────────────────────────────────────────────────────────
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id: _eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_GROUPS_MANAGE)
-
-    const body = await req.json()
-    const parsed = deleteActivitySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid input', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      await deleteActivity(parsed.data.activityId)
-      return NextResponse.json(ok({ deleted: true }))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[activities DELETE]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const DELETE = withAuth(async ({ body }) => {
+  await deleteActivity(body.activityId)
+  return NextResponse.json(ok({ deleted: true }))
+}, { permission: PERMISSIONS.EVENTS_GROUPS_MANAGE, schema: deleteActivitySchema })

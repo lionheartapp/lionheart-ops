@@ -1,10 +1,20 @@
+/**
+ * Survey Responses API.
+ *
+ * GET  /api/events/projects/[id]/surveys/[surveyId]/responses
+ *      — Staff-only: retrieve aggregated survey results
+ * POST /api/events/projects/[id]/surveys/[surveyId]/responses
+ *      — Public (parent portal): submit a survey response
+ *
+ * GET requires EVENTS_SURVEYS_MANAGE permission.
+ * POST is public — registration ID serves as the access credential.
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
-import { PERMISSIONS } from '@/lib/permissions'
 import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
+import { PERMISSIONS } from '@/lib/permissions'
 import { getSurveyResults, submitSurveyResponse } from '@/lib/services/eventSurveyService'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -20,27 +30,10 @@ const SubmitResponseSchema = z.object({
  * GET — Staff-only: retrieve aggregated survey results.
  * Requires EVENTS_SURVEYS_MANAGE permission.
  */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; surveyId: string }> },
-) {
-  try {
-    const { surveyId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const results = await getSurveyResults(surveyId)
-      return NextResponse.json(ok(results))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const GET = withAuth(async ({ params }) => {
+  const results = await getSurveyResults(params.surveyId)
+  return NextResponse.json(ok(results))
+}, { permission: PERMISSIONS.EVENTS_SURVEYS_MANAGE })
 
 /**
  * POST — Public (parent portal): submit a survey response.

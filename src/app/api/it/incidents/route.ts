@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest } from '@/lib/org-context'
-import { runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createIncident, getIncidents } from '@/lib/services/securityIncidentService'
 import { notifyIncidentCreated } from '@/lib/services/securityIncidentNotificationService'
@@ -22,77 +19,39 @@ const CreateIncidentSchema = z.object({
   piiInvolved: z.boolean().optional(),
 })
 
-export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.IT_INCIDENT_CREATE)
+export const POST = withAuth(async ({ orgId, ctx, body }) => {
+  const incident = await createIncident(orgId, ctx.userId, body)
 
-    const body = await req.json()
-    const parsed = CreateIncidentSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid input', parsed.error.issues),
-        { status: 400 }
-      )
-    }
+  // Fire-and-forget notifications
+  notifyIncidentCreated(
+    {
+      id: incident.id,
+      incidentNumber: incident.incidentNumber,
+      title: incident.title,
+      severity: incident.severity,
+      type: incident.type,
+      piiInvolved: incident.piiInvolved,
+      reportedById: incident.reportedById,
+    },
+    orgId
+  ).catch(() => {})
 
-    return await runWithOrgContext(orgId, async () => {
-      const incident = await createIncident(orgId, ctx.userId, parsed.data)
+  return NextResponse.json(ok(incident), { status: 201 })
+}, { permission: PERMISSIONS.IT_INCIDENT_CREATE, schema: CreateIncidentSchema })
 
-      // Fire-and-forget notifications
-      notifyIncidentCreated(
-        {
-          id: incident.id,
-          incidentNumber: incident.incidentNumber,
-          title: incident.title,
-          severity: incident.severity,
-          type: incident.type,
-          piiInvolved: incident.piiInvolved,
-          reportedById: incident.reportedById,
-        },
-        orgId
-      ).catch(() => {})
-
-      return NextResponse.json(ok(incident), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('POST /api/it/incidents error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+export const GET = withAuth(async ({ orgId, searchParams }) => {
+  const filters = {
+    type: searchParams.get('type') as SecurityIncidentType | undefined || undefined,
+    severity: searchParams.get('severity') as IncidentSeverity | undefined || undefined,
+    status: searchParams.get('status') as any || undefined,
+    schoolId: searchParams.get('schoolId') || undefined,
+    search: searchParams.get('search') || undefined,
+    from: searchParams.get('from') || undefined,
+    to: searchParams.get('to') || undefined,
+    page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
+    limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : undefined,
   }
-}
 
-export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.IT_INCIDENT_READ)
-
-    const url = new URL(req.url)
-    const filters = {
-      type: url.searchParams.get('type') as SecurityIncidentType | undefined || undefined,
-      severity: url.searchParams.get('severity') as IncidentSeverity | undefined || undefined,
-      status: url.searchParams.get('status') as any || undefined,
-      schoolId: url.searchParams.get('schoolId') || undefined,
-      search: url.searchParams.get('search') || undefined,
-      from: url.searchParams.get('from') || undefined,
-      to: url.searchParams.get('to') || undefined,
-      page: url.searchParams.get('page') ? Number(url.searchParams.get('page')) : undefined,
-      limit: url.searchParams.get('limit') ? Number(url.searchParams.get('limit')) : undefined,
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      const result = await getIncidents(orgId, filters)
-      return NextResponse.json(ok(result))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('GET /api/it/incidents error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  const result = await getIncidents(orgId, filters)
+  return NextResponse.json(ok(result))
+}, { permission: PERMISSIONS.IT_INCIDENT_READ })

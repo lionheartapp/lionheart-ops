@@ -1,3 +1,8 @@
+/**
+ * GET /api/it/tickets/:id/status-public — public ticket status lookup via token
+ */
+// Public endpoint — no auth required (token-based status lookup)
+
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'

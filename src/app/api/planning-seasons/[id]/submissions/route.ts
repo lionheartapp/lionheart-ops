@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { NextResponse } from 'next/server'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getSubmissions, createSubmission } from '@/lib/services/planningSeasonService'
+import { z } from 'zod'
 
 const CreateSubmissionSchema = z.object({
   title: z.string().trim().min(1).max(200),
@@ -25,53 +23,19 @@ const CreateSubmissionSchema = z.object({
   })).optional(),
 })
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.PLANNING_VIEW)
-    const { id } = await params
+export const GET = withAuth(async ({ params, searchParams }) => {
+  const submissions = await getSubmissions(params.id, {
+    status: searchParams.get('status') || undefined,
+    submittedById: searchParams.get('submittedById') || undefined,
+  })
+  return NextResponse.json(ok(submissions))
+}, { permission: PERMISSIONS.PLANNING_VIEW })
 
-    return await runWithOrgContext(orgId, async () => {
-      const { searchParams } = new URL(req.url)
-      const submissions = await getSubmissions(id, {
-        status: searchParams.get('status') || undefined,
-        submittedById: searchParams.get('submittedById') || undefined,
-      })
-      return NextResponse.json(ok(submissions))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch submissions'), { status: 500 })
-  }
-}
-
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    const body = await req.json()
-    await assertCan(ctx.userId, PERMISSIONS.PLANNING_SUBMIT)
-    const { id } = await params
-
-    return await runWithOrgContext(orgId, async () => {
-      const input = CreateSubmissionSchema.parse(body)
-      const submission = await createSubmission({
-        ...input,
-        planningSeasonId: id,
-        submittedById: ctx.userId,
-      })
-      return NextResponse.json(ok(submission), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create submission'), { status: 500 })
-  }
-}
+export const POST = withAuth(async ({ params, ctx, body }) => {
+  const submission = await createSubmission({
+    ...body,
+    planningSeasonId: params.id,
+    submittedById: ctx.userId,
+  })
+  return NextResponse.json(ok(submission), { status: 201 })
+}, { permission: PERMISSIONS.PLANNING_SUBMIT, schema: CreateSubmissionSchema })

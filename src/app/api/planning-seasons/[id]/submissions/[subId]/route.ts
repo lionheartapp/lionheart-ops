@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getSubmissionById, updateSubmission } from '@/lib/services/planningSeasonService'
+import { z } from 'zod'
 
 const UpdateSubmissionSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
@@ -21,46 +19,13 @@ const UpdateSubmissionSchema = z.object({
   estimatedBudget: z.number().nullable().optional(),
 })
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string; subId: string }> }) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.PLANNING_VIEW)
-    const { subId } = await params
+export const GET = withAuth(async ({ params }) => {
+  const submission = await getSubmissionById(params.subId)
+  if (!submission) return NextResponse.json(fail('NOT_FOUND', 'Submission not found'), { status: 404 })
+  return NextResponse.json(ok(submission))
+}, { permission: PERMISSIONS.PLANNING_VIEW })
 
-    return await runWithOrgContext(orgId, async () => {
-      const submission = await getSubmissionById(subId)
-      if (!submission) return NextResponse.json(fail('NOT_FOUND', 'Submission not found'), { status: 404 })
-      return NextResponse.json(ok(submission))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch submission'), { status: 500 })
-  }
-}
-
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; subId: string }> }) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    const body = await req.json()
-    await assertCan(ctx.userId, PERMISSIONS.PLANNING_SUBMIT)
-    const { subId } = await params
-
-    return await runWithOrgContext(orgId, async () => {
-      const input = UpdateSubmissionSchema.parse(body)
-      const submission = await updateSubmission(subId, input)
-      return NextResponse.json(ok(submission))
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update submission'), { status: 500 })
-  }
-}
+export const PUT = withAuth(async ({ params, body }) => {
+  const submission = await updateSubmission(params.subId, body)
+  return NextResponse.json(ok(submission))
+}, { permission: PERMISSIONS.PLANNING_SUBMIT, schema: UpdateSubmissionSchema })

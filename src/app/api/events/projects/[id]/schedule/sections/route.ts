@@ -1,20 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { prisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
+import { NextResponse } from 'next/server'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+import { prisma } from '@/lib/db'
 import { CreateScheduleSectionSchema } from '@/lib/types/event-project'
-import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
-
-const log = logger.child({ route: '/api/events/projects/[id]/schedule/sections' })
-
-type RouteParams = {
-  params: Promise<{ id: string }>
-}
 
 /**
  * GET /api/events/projects/[id]/schedule/sections?date=2026-04-09
@@ -22,100 +11,50 @@ type RouteParams = {
  * Returns schedule sections for an EventProject, filtered by date if provided.
  * Ordered by sortOrder ascending.
  */
-export async function GET(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
+export const GET = withAuth(async ({ params, searchParams }) => {
+  const db = prisma as any
+  const where: Record<string, unknown> = { eventProjectId: params.id }
 
-    await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_READ)
-
-    const dateParam = req.nextUrl.searchParams.get('date')
-
-    return await runWithOrgContext(orgId, async () => {
-      const db = prisma as any
-      const where: Record<string, unknown> = { eventProjectId: id }
-
-      // Filter by date if provided (expects ISO date string like "2026-04-09")
-      if (dateParam) {
-        where.date = new Date(dateParam + 'T00:00:00.000Z')
-      }
-
-      const sections = await db.eventScheduleSection.findMany({
-        where,
-        orderBy: { sortOrder: 'asc' },
-      })
-      return NextResponse.json(ok(sections))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to list schedule sections')
-    Sentry.captureException(error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
-      { status: 500 },
-    )
+  // Filter by date if provided (expects ISO date string like "2026-04-09")
+  const dateParam = searchParams.get('date')
+  if (dateParam) {
+    where.date = new Date(dateParam + 'T00:00:00.000Z')
   }
-}
+
+  const sections = await db.eventScheduleSection.findMany({
+    where,
+    orderBy: { sortOrder: 'asc' },
+  })
+  return NextResponse.json(ok(sections))
+}, { permission: PERMISSIONS.EVENT_PROJECT_READ })
 
 /**
  * POST /api/events/projects/[id]/schedule/sections
  *
  * Creates a new schedule section within an EventProject for a specific date.
  */
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
+export const POST = withAuth(async ({ params, body }) => {
+  const db = prisma as any
+  const sectionDate = new Date(body.date + 'T00:00:00.000Z')
 
-    await assertCan(ctx.userId, PERMISSIONS.EVENT_PROJECT_UPDATE_ALL)
+  // Auto-assign sortOrder — find the last section for this specific date
+  const sortOrder = body.sortOrder === 0
+    ? await db.eventScheduleSection.findFirst({
+        where: { eventProjectId: params.id, date: sectionDate },
+        orderBy: { sortOrder: 'desc' },
+        select: { sortOrder: true },
+      }).then((last: { sortOrder: number } | null) => last ? last.sortOrder + 1 : 0)
+    : body.sortOrder
 
-    const body = await req.json()
-
-    return await runWithOrgContext(orgId, async () => {
-      const validated = CreateScheduleSectionSchema.parse(body)
-      const db = prisma as any
-      const sectionDate = new Date(validated.date + 'T00:00:00.000Z')
-
-      // Auto-assign sortOrder — find the last section for this specific date
-      if (validated.sortOrder === 0) {
-        const lastSection = await db.eventScheduleSection.findFirst({
-          where: { eventProjectId: id, date: sectionDate },
-          orderBy: { sortOrder: 'desc' },
-          select: { sortOrder: true },
-        })
-        validated.sortOrder = lastSection ? lastSection.sortOrder + 1 : 0
-      }
-
-      const section = await db.eventScheduleSection.create({
-        data: {
-          eventProjectId: id,
-          date: sectionDate,
-          title: validated.title,
-          startTime: validated.startTime,
-          layout: validated.layout,
-          sortOrder: validated.sortOrder,
-        },
-      })
-      return NextResponse.json(ok(section), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to create schedule section')
-    Sentry.captureException(error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
-      { status: 500 },
-    )
-  }
-}
+  const section = await db.eventScheduleSection.create({
+    data: {
+      eventProjectId: params.id,
+      date: sectionDate,
+      title: body.title,
+      startTime: body.startTime,
+      layout: body.layout,
+      sortOrder,
+    },
+  })
+  return NextResponse.json(ok(section), { status: 201 })
+}, { permission: PERMISSIONS.EVENT_PROJECT_UPDATE_ALL, schema: CreateScheduleSectionSchema })

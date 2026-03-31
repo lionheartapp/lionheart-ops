@@ -9,45 +9,28 @@
  *   limit    — max results (default 5)
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { NextResponse } from 'next/server'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { searchArticles, findRelevantArticles } from '@/lib/services/knowledgeBaseService'
 
-export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.KB_READ)
+export const GET = withAuth(async ({ searchParams }) => {
+  const q = searchParams.get('q') || ''
+  const category = searchParams.get('category') || ''
+  const limit = searchParams.get('limit')
+    ? parseInt(searchParams.get('limit')!, 10)
+    : 5
 
-    const url = new URL(req.url)
-    const q = url.searchParams.get('q') || ''
-    const category = url.searchParams.get('category') || ''
-    const limit = url.searchParams.get('limit')
-      ? parseInt(url.searchParams.get('limit')!, 10)
-      : 5
+  let articles: Awaited<ReturnType<typeof searchArticles>>
 
-    return await runWithOrgContext(orgId, async () => {
-      let articles: Awaited<ReturnType<typeof searchArticles>>
-
-      if (category) {
-        // AI panel mode: find articles relevant to ticket category + title
-        articles = await findRelevantArticles(category, q) as typeof articles
-      } else {
-        // Manual search mode
-        articles = await searchArticles(q, limit)
-      }
-
-      return NextResponse.json(ok(articles.slice(0, limit)))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[GET /api/maintenance/knowledge-base/search]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  if (category) {
+    // AI panel mode: find articles relevant to ticket category + title
+    articles = await findRelevantArticles(category, q) as typeof articles
+  } else {
+    // Manual search mode
+    articles = await searchArticles(q, limit)
   }
-}
+
+  return NextResponse.json(ok(articles.slice(0, limit)))
+}, { permission: PERMISSIONS.KB_READ })

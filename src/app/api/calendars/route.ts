@@ -1,8 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { NextResponse } from 'next/server'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
 import { z } from 'zod'
@@ -19,52 +17,19 @@ const createCalendarSchema = z.object({
   isDefault: z.boolean().optional(),
 })
 
-export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.CALENDARS_READ)
+export const GET = withAuth(async ({ ctx, searchParams }) => {
+  const calendars = await calendarService.getCalendars({
+    calendarType: searchParams.get('calendarType') || undefined,
+    campusId: searchParams.get('campusId') || undefined,
+    schoolId: searchParams.get('schoolId') || undefined,
+    isActive: searchParams.get('isActive') === 'false' ? false : true,
+    userId: ctx.userId,
+    roleName: ctx.roleName ?? undefined,
+  })
+  return NextResponse.json(ok(calendars))
+}, { permission: PERMISSIONS.CALENDARS_READ })
 
-    return await runWithOrgContext(orgId, async () => {
-      const { searchParams } = new URL(req.url)
-      const calendars = await calendarService.getCalendars({
-        calendarType: searchParams.get('calendarType') || undefined,
-        campusId: searchParams.get('campusId') || undefined,
-        schoolId: searchParams.get('schoolId') || undefined,
-        isActive: searchParams.get('isActive') === 'false' ? false : true,
-        userId: ctx.userId,
-        roleName: ctx.roleName ?? undefined,
-      })
-      return NextResponse.json(ok(calendars))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.CALENDARS_CREATE)
-
-    const body = await req.json()
-    const data = createCalendarSchema.parse(body)
-
-    return await runWithOrgContext(orgId, async () => {
-      const calendar = await calendarService.createCalendar(data)
-      return NextResponse.json(ok(calendar), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const POST = withAuth(async ({ body }) => {
+  const calendar = await calendarService.createCalendar(body)
+  return NextResponse.json(ok(calendar), { status: 201 })
+}, { permission: PERMISSIONS.CALENDARS_CREATE, schema: createCalendarSchema })

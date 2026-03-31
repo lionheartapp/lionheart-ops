@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+/**
+ * GET /api/it/devices/[id]/qr — generate QR code for device
+ */
+
+import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { prisma } from '@/lib/db'
 
 /**
@@ -64,53 +66,35 @@ ${cells.join('\n')}
 </svg>`
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.IT_QR_GENERATE)
+export const GET = withAuth(async ({ params }) => {
+  const device = await prisma.iTDevice.findUnique({
+    where: { id: params.id },
+    select: { id: true, assetTag: true, qrCodeUrl: true },
+  })
 
-    return await runWithOrgContext(orgId, async () => {
-      const device = await prisma.iTDevice.findUnique({
-        where: { id },
-        select: { id: true, assetTag: true, qrCodeUrl: true },
-      })
-
-      if (!device) {
-        return NextResponse.json(fail('NOT_FOUND', 'Device not found'), { status: 404 })
-      }
-
-      const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_URL || 'https://app.lionheartapp.com'
-      const lookupUrl = `${baseUrl}/api/it/devices/lookup?tag=${encodeURIComponent(device.assetTag)}`
-      const svgContent = generateQrSvg(lookupUrl)
-
-      // Convert SVG to data URL for caching
-      const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`
-
-      // Cache the QR code URL on the device
-      if (!device.qrCodeUrl) {
-        await prisma.iTDevice.update({
-          where: { id },
-          data: { qrCodeUrl: dataUrl },
-        })
-      }
-
-      return NextResponse.json(ok({
-        svg: svgContent,
-        dataUrl,
-        lookupUrl,
-        assetTag: device.assetTag,
-      }))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[GET /api/it/devices/[id]/qr]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  if (!device) {
+    return NextResponse.json(fail('NOT_FOUND', 'Device not found'), { status: 404 })
   }
-}
+
+  const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_URL || 'https://app.lionheartapp.com'
+  const lookupUrl = `${baseUrl}/api/it/devices/lookup?tag=${encodeURIComponent(device.assetTag)}`
+  const svgContent = generateQrSvg(lookupUrl)
+
+  // Convert SVG to data URL for caching
+  const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`
+
+  // Cache the QR code URL on the device
+  if (!device.qrCodeUrl) {
+    await prisma.iTDevice.update({
+      where: { id: params.id },
+      data: { qrCodeUrl: dataUrl },
+    })
+  }
+
+  return NextResponse.json(ok({
+    svg: svgContent,
+    dataUrl,
+    lookupUrl,
+    assetTag: device.assetTag,
+  }))
+}, { permission: PERMISSIONS.IT_QR_GENERATE })

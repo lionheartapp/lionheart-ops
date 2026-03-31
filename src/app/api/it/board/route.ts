@@ -2,33 +2,16 @@
  * GET /api/it/board — Kanban board data for IT tickets
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { NextResponse } from 'next/server'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getITBoardData } from '@/lib/services/itTicketService'
 
-export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.IT_TICKET_READ_OWN)
+export const GET = withAuth(async ({ ctx, orgId, searchParams }) => {
+  const schoolId = searchParams.get('schoolId') || undefined
 
-    const url = new URL(req.url)
-    const schoolId = url.searchParams.get('schoolId') || undefined
+  const board = await getITBoardData({ userId: ctx.userId, orgId }, schoolId)
 
-    const board = await runWithOrgContext(orgId, () =>
-      getITBoardData({ userId: ctx.userId, orgId }, schoolId)
-    )
-
-    return NextResponse.json(ok(board))
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[GET /api/it/board]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  return NextResponse.json(ok(board))
+}, { permission: PERMISSIONS.IT_TICKET_READ_OWN })

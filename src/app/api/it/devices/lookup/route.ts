@@ -1,3 +1,8 @@
+/**
+ * GET /api/it/devices/lookup — public device lookup by asset tag (QR scan)
+ */
+// Public endpoint — no auth required (QR code lookup)
+
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'

@@ -8,13 +8,10 @@
  * All endpoints require events:registration:manage permission.
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
-import { runWithOrgContext } from '@/lib/org-context'
-import { ok, fail, isAuthError } from '@/lib/api-response'
+import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import {
   createRegistrationForm,
@@ -77,165 +74,102 @@ const putSchema = z.object({
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id: eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_REGISTRATION_MANAGE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const raw = await getRegistrationForm(eventProjectId)
-      if (!raw) return NextResponse.json(ok(null))
-      // Transform into { form, sections } structure the client expects
-      const { sections, ...formConfig } = raw as Record<string, unknown> & { sections?: unknown[] }
-      return NextResponse.json(ok({ form: formConfig, sections: sections ?? [] }))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[registration-config GET]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const GET = withAuth(async ({ params }) => {
+  const eventProjectId = params.id
+  const raw = await getRegistrationForm(eventProjectId)
+  if (!raw) return NextResponse.json(ok(null))
+  // Transform into { form, sections } structure the client expects
+  const { sections, ...formConfig } = raw as Record<string, unknown> & { sections?: unknown[] }
+  return NextResponse.json(ok({ form: formConfig, sections: sections ?? [] }))
+}, { permission: PERMISSIONS.EVENTS_REGISTRATION_MANAGE })
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id: eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_REGISTRATION_MANAGE)
+export const POST = withAuth(async ({ req, orgId, params }) => {
+  const eventProjectId = params.id
+  const body = await req.json()
+  const parsed = formDataSchema.safeParse(body)
 
-    const body = await req.json()
-    const parsed = formDataSchema.safeParse(body)
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    const data = parsed.data
-
-    return await runWithOrgContext(orgId, async () => {
-      const raw = await createRegistrationForm({
-        organizationId: orgId,
-        eventProjectId,
-        title: data.title,
-        shareSlug: data.shareSlug,
-        requiresPayment: data.requiresPayment,
-        basePrice: data.basePrice,
-        depositPercent: data.depositPercent,
-        maxCapacity: data.maxCapacity ?? undefined,
-        waitlistEnabled: data.waitlistEnabled,
-        requiresCoppaConsent: data.requiresCoppaConsent,
-        openAt: data.openAt ? new Date(data.openAt) : undefined,
-        closeAt: data.closeAt ? new Date(data.closeAt) : undefined,
-        brandingOverride: data.brandingOverride ?? undefined,
-        discountCodes: data.discountCodes ?? undefined,
-      })
-
-      // Transform into { form, sections } structure the client expects
-      const { sections, ...formConfig } = raw as Record<string, unknown> & { sections?: unknown[] }
-      return NextResponse.json(ok({ form: formConfig, sections: sections ?? [] }), { status: 201 })
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (error instanceof Error && error.message.includes('already taken')) {
-      return NextResponse.json(fail('CONFLICT', error.message), { status: 409 })
-    }
-    console.error('[registration-config POST]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  if (!parsed.success) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.issues),
+      { status: 400 },
+    )
   }
-}
+
+  const data = parsed.data
+
+  const raw = await createRegistrationForm({
+    organizationId: orgId,
+    eventProjectId,
+    title: data.title,
+    shareSlug: data.shareSlug,
+    requiresPayment: data.requiresPayment,
+    basePrice: data.basePrice,
+    depositPercent: data.depositPercent,
+    maxCapacity: data.maxCapacity ?? undefined,
+    waitlistEnabled: data.waitlistEnabled,
+    requiresCoppaConsent: data.requiresCoppaConsent,
+    openAt: data.openAt ? new Date(data.openAt) : undefined,
+    closeAt: data.closeAt ? new Date(data.closeAt) : undefined,
+    brandingOverride: data.brandingOverride ?? undefined,
+    discountCodes: data.discountCodes ?? undefined,
+  })
+
+  // Transform into { form, sections } structure the client expects
+  const { sections, ...formConfig } = raw as Record<string, unknown> & { sections?: unknown[] }
+  return NextResponse.json(ok({ form: formConfig, sections: sections ?? [] }), { status: 201 })
+}, { permission: PERMISSIONS.EVENTS_REGISTRATION_MANAGE })
 
 // ─── PUT ──────────────────────────────────────────────────────────────────────
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id: eventProjectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_REGISTRATION_MANAGE)
+export const PUT = withAuth(async ({ req, params }) => {
+  const eventProjectId = params.id
+  const body = await req.json()
+  const parsed = putSchema.safeParse(body)
 
-    const body = await req.json()
-    const parsed = putSchema.safeParse(body)
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      // Look up the existing form
-      const existingForm = await getRegistrationForm(eventProjectId)
-
-      if (!existingForm) {
-        return NextResponse.json(fail('NOT_FOUND', 'Registration form not found'), { status: 404 })
-      }
-
-      const formId = (existingForm as { id: string }).id
-      const { form: formData, sections } = parsed.data
-
-      if (formData) {
-        await updateRegistrationForm(formId, {
-          title: formData.title,
-          shareSlug: formData.shareSlug,
-          requiresPayment: formData.requiresPayment,
-          basePrice: formData.basePrice,
-          depositPercent: formData.depositPercent,
-          maxCapacity: formData.maxCapacity ?? undefined,
-          waitlistEnabled: formData.waitlistEnabled,
-          requiresCoppaConsent: formData.requiresCoppaConsent,
-          openAt: formData.openAt ? new Date(formData.openAt) : undefined,
-          closeAt: formData.closeAt ? new Date(formData.closeAt) : undefined,
-          brandingOverride: formData.brandingOverride ?? undefined,
-          discountCodes: formData.discountCodes ?? undefined,
-        })
-      }
-
-      if (sections) {
-        await upsertFormSections(formId, sections)
-      }
-
-      const updatedRaw = await getRegistrationForm(eventProjectId)
-      if (!updatedRaw) {
-        return NextResponse.json(fail('NOT_FOUND', 'Registration form not found after update'), { status: 404 })
-      }
-      const { sections: updatedSections, ...updatedFormConfig } = updatedRaw as Record<string, unknown> & { sections?: unknown[] }
-      return NextResponse.json(ok({ form: updatedFormConfig, sections: updatedSections ?? [] }))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[registration-config PUT]', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  if (!parsed.success) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.issues),
+      { status: 400 },
+    )
   }
-}
+
+  // Look up the existing form
+  const existingForm = await getRegistrationForm(eventProjectId)
+
+  if (!existingForm) {
+    return NextResponse.json(fail('NOT_FOUND', 'Registration form not found'), { status: 404 })
+  }
+
+  const formId = (existingForm as { id: string }).id
+  const { form: formData, sections } = parsed.data
+
+  if (formData) {
+    await updateRegistrationForm(formId, {
+      title: formData.title,
+      shareSlug: formData.shareSlug,
+      requiresPayment: formData.requiresPayment,
+      basePrice: formData.basePrice,
+      depositPercent: formData.depositPercent,
+      maxCapacity: formData.maxCapacity ?? undefined,
+      waitlistEnabled: formData.waitlistEnabled,
+      requiresCoppaConsent: formData.requiresCoppaConsent,
+      openAt: formData.openAt ? new Date(formData.openAt) : undefined,
+      closeAt: formData.closeAt ? new Date(formData.closeAt) : undefined,
+      brandingOverride: formData.brandingOverride ?? undefined,
+      discountCodes: formData.discountCodes ?? undefined,
+    })
+  }
+
+  if (sections) {
+    await upsertFormSections(formId, sections)
+  }
+
+  const updatedRaw = await getRegistrationForm(eventProjectId)
+  if (!updatedRaw) {
+    return NextResponse.json(fail('NOT_FOUND', 'Registration form not found after update'), { status: 404 })
+  }
+  const { sections: updatedSections, ...updatedFormConfig } = updatedRaw as Record<string, unknown> & { sections?: unknown[] }
+  return NextResponse.json(ok({ form: updatedFormConfig, sections: updatedSections ?? [] }))
+}, { permission: PERMISSIONS.EVENTS_REGISTRATION_MANAGE })

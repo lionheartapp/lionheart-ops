@@ -1,10 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
+/**
+ * Surveys API for an EventProject.
+ *
+ * GET    /api/events/projects/[id]/surveys         — list surveys
+ * POST   /api/events/projects/[id]/surveys         — create survey
+ * PUT    /api/events/projects/[id]/surveys         — update survey
+ * DELETE /api/events/projects/[id]/surveys         — delete survey
+ *
+ * Requires: events:surveys:manage permission
+ */
+
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { ok, fail } from '@/lib/api-response'
 import {
   createSurvey,
   updateSurvey,
@@ -33,126 +42,31 @@ const DeleteSurveySchema = z.object({
 
 // ─── Route Handlers ──────────────────────────────────────────────────────────
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
+export const GET = withAuth(async ({ params }) => {
+  const surveys = await listSurveys(params.id)
+  return NextResponse.json(ok(surveys))
+}, { permission: PERMISSIONS.EVENTS_SURVEYS_MANAGE })
 
-    return await runWithOrgContext(orgId, async () => {
-      const surveys = await listSurveys(id)
-      return NextResponse.json(ok(surveys))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const POST = withAuth(async ({ params, body }) => {
+  const survey = await createSurvey({
+    eventProjectId: params.id,
+    formId: body.formId,
+    opensAt: body.opensAt ? new Date(body.opensAt) : null,
+    closesAt: body.closesAt ? new Date(body.closesAt) : null,
+  })
+  return NextResponse.json(ok(survey), { status: 201 })
+}, { permission: PERMISSIONS.EVENTS_SURVEYS_MANAGE, schema: CreateSurveySchema })
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
+export const PUT = withAuth(async ({ body }) => {
+  const survey = await updateSurvey(body.surveyId, {
+    status: body.status,
+    opensAt: body.opensAt ? new Date(body.opensAt) : undefined,
+    closesAt: body.closesAt ? new Date(body.closesAt) : undefined,
+  })
+  return NextResponse.json(ok(survey))
+}, { permission: PERMISSIONS.EVENTS_SURVEYS_MANAGE, schema: UpdateSurveySchema })
 
-    const body = await req.json()
-    const parsed = CreateSurveySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid request body', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      const survey = await createSurvey({
-        eventProjectId: id,
-        formId: parsed.data.formId,
-        opensAt: parsed.data.opensAt ? new Date(parsed.data.opensAt) : null,
-        closesAt: parsed.data.closesAt ? new Date(parsed.data.closesAt) : null,
-      })
-      return NextResponse.json(ok(survey), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
-
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
-
-    const body = await req.json()
-    const parsed = UpdateSurveySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid request body', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      const survey = await updateSurvey(parsed.data.surveyId, {
-        status: parsed.data.status,
-        opensAt: parsed.data.opensAt ? new Date(parsed.data.opensAt) : undefined,
-        closesAt: parsed.data.closesAt ? new Date(parsed.data.closesAt) : undefined,
-      })
-      return NextResponse.json(ok(survey))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
-
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_SURVEYS_MANAGE)
-
-    const body = await req.json()
-    const parsed = DeleteSurveySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'surveyId is required', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      await deleteSurvey(parsed.data.surveyId)
-      return NextResponse.json(ok({ deleted: true }))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+export const DELETE = withAuth(async ({ body }) => {
+  await deleteSurvey(body.surveyId)
+  return NextResponse.json(ok({ deleted: true }))
+}, { permission: PERMISSIONS.EVENTS_SURVEYS_MANAGE, schema: DeleteSurveySchema })

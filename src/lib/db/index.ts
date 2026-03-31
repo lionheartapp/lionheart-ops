@@ -195,7 +195,10 @@ function mergeWhere(
 	return { ...(where as Record<string, unknown>), ...filters }
 }
 
-export const rawPrisma = new PrismaClient()
+// Use a global singleton to prevent hot-reload from creating new connections
+const globalForPrisma = globalThis as unknown as { __prisma: PrismaClient | undefined }
+export const rawPrisma = globalForPrisma.__prisma ?? new PrismaClient()
+if (process.env.NODE_ENV !== 'production') globalForPrisma.__prisma = rawPrisma
 
 const orgScopedPrisma = rawPrisma.$extends({
 	query: {

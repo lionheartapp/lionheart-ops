@@ -1,10 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
-import { PERMISSIONS } from '@/lib/permissions'
 import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
+import { PERMISSIONS } from '@/lib/permissions'
 import {
   createAnnouncement,
   listAnnouncements,
@@ -26,93 +24,33 @@ const DeleteAnnouncementSchema = z.object({
 
 // ─── Route Handlers ──────────────────────────────────────────────────────────
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE)
+export const GET = withAuth(async ({ params }) => {
+  const announcements = await listAnnouncements(params.id)
+  return NextResponse.json(ok(announcements))
+}, { permission: PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE })
 
-    return await runWithOrgContext(orgId, async () => {
-      const announcements = await listAnnouncements(id)
-      return NextResponse.json(ok(announcements))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+export const POST = withAuth(async ({ ctx, params, body }) => {
+  const announcement = await createAnnouncement({
+    eventProjectId: params.id,
+    title: body.title,
+    body: body.body,
+    audience: body.audience,
+    targetGroupId: body.targetGroupId ?? null,
+    createdById: ctx.userId,
+  })
+  return NextResponse.json(ok(announcement), { status: 201 })
+}, { permission: PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE, schema: CreateAnnouncementSchema })
+
+export const DELETE = withAuth(async ({ req }) => {
+  const body = await req.json()
+  const parsed = DeleteAnnouncementSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'announcementId is required', parsed.error.issues),
+      { status: 400 },
+    )
   }
-}
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE)
-
-    const body = await req.json()
-    const parsed = CreateAnnouncementSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid request body', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      const announcement = await createAnnouncement({
-        eventProjectId: id,
-        title: parsed.data.title,
-        body: parsed.data.body,
-        audience: parsed.data.audience,
-        targetGroupId: parsed.data.targetGroupId ?? null,
-        createdById: ctx.userId,
-      })
-      return NextResponse.json(ok(announcement), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
-
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE)
-
-    const body = await req.json()
-    const parsed = DeleteAnnouncementSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'announcementId is required', parsed.error.issues),
-        { status: 400 },
-      )
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      await deleteAnnouncement(parsed.data.announcementId)
-      return NextResponse.json(ok({ deleted: true }))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
-  }
-}
+  await deleteAnnouncement(parsed.data.announcementId)
+  return NextResponse.json(ok({ deleted: true }))
+}, { permission: PERMISSIONS.EVENTS_ANNOUNCEMENTS_MANAGE })

@@ -1,9 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { ok } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getRoster, createRosterPlayer } from '@/lib/services/athleticsService'
 
@@ -19,52 +17,18 @@ const CreateSchema = z.object({
   userId: z.string().optional(),
 })
 
-export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.ATHLETICS_READ)
+export const GET = withAuth(async ({ searchParams }) => {
+  const teamId = searchParams.get('teamId') || undefined
+  const isActive = searchParams.get('isActive')
 
-    const teamId = req.nextUrl.searchParams.get('teamId') || undefined
-    const isActive = req.nextUrl.searchParams.get('isActive')
+  const roster = await getRoster({
+    teamId,
+    isActive: isActive != null ? isActive === 'true' : undefined,
+  })
+  return NextResponse.json(ok(roster))
+}, { permission: PERMISSIONS.ATHLETICS_READ })
 
-    return await runWithOrgContext(orgId, async () => {
-      const roster = await getRoster({
-        teamId,
-        isActive: isActive != null ? isActive === 'true' : undefined,
-      })
-      return NextResponse.json(ok(roster))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch roster'), { status: 500 })
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    const body = await req.json()
-    await assertCan(ctx.userId, PERMISSIONS.ATHLETICS_ROSTER_MANAGE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const input = CreateSchema.parse(body)
-      const player = await createRosterPlayer(input)
-      return NextResponse.json(ok(player), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json(fail('CONFLICT', 'Jersey number already in use on this team'), { status: 409 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create roster player'), { status: 500 })
-  }
-}
+export const POST = withAuth(async ({ body }) => {
+  const player = await createRosterPlayer(body)
+  return NextResponse.json(ok(player), { status: 201 })
+}, { permission: PERMISSIONS.ATHLETICS_ROSTER_MANAGE, schema: CreateSchema })

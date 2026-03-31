@@ -5,12 +5,10 @@
  * DELETE /api/events/projects/[id]/compliance  — delete compliance item
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import {
   listComplianceItems,
@@ -18,10 +16,6 @@ import {
   deleteComplianceItem,
   getDefaultComplianceChecklist,
 } from '@/lib/services/eventDocumentService'
-
-type RouteParams = {
-  params: Promise<{ id: string }>
-}
 
 // ─── Validation Schemas ───────────────────────────────────────────────────────
 
@@ -58,164 +52,64 @@ const DeleteComplianceItemSchema = z.object({
  * Returns compliance checklist items for an event.
  * If ?defaults=true, returns the static default checklist instead.
  */
-export async function GET(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
+export const GET = withAuth(async ({ params, searchParams }) => {
+  const useDefaults = searchParams.get('defaults') === 'true'
 
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_COMPLIANCE_MANAGE)
-
-    const useDefaults = req.nextUrl.searchParams.get('defaults') === 'true'
-
-    if (useDefaults) {
-      const defaults = getDefaultComplianceChecklist()
-      return NextResponse.json(ok(defaults))
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      const items = await listComplianceItems(id)
-      return NextResponse.json(ok(items))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Something went wrong'),
-      { status: 500 },
-    )
+  if (useDefaults) {
+    const defaults = getDefaultComplianceChecklist()
+    return NextResponse.json(ok(defaults))
   }
-}
+
+  const items = await listComplianceItems(params.id)
+  return NextResponse.json(ok(items))
+}, { permission: PERMISSIONS.EVENTS_COMPLIANCE_MANAGE })
 
 // ─── POST /api/events/projects/[id]/compliance ───────────────────────────────
 
 /**
  * Creates a new compliance checklist item for the event.
  */
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_COMPLIANCE_MANAGE)
-
-    const body = await req.json()
-    const validated = CreateComplianceItemSchema.parse(body)
-
-    return await runWithOrgContext(orgId, async () => {
-      const item = await upsertComplianceItem({
-        eventProjectId: id,
-        ...validated,
-      })
-      return NextResponse.json(ok(item), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), {
-        status: 400,
-      })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Something went wrong'),
-      { status: 500 },
-    )
-  }
-}
+export const POST = withAuth(async ({ params, body }) => {
+  const item = await upsertComplianceItem({
+    eventProjectId: params.id,
+    ...body,
+  })
+  return NextResponse.json(ok(item), { status: 201 })
+}, { permission: PERMISSIONS.EVENTS_COMPLIANCE_MANAGE, schema: CreateComplianceItemSchema })
 
 // ─── PUT /api/events/projects/[id]/compliance ────────────────────────────────
 
 /**
  * Updates an existing compliance checklist item.
  */
-export async function PUT(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_COMPLIANCE_MANAGE)
-
-    const body = await req.json()
-    const validated = UpdateComplianceItemSchema.parse(body)
-
-    const { itemId, ...updateFields } = validated
-
-    return await runWithOrgContext(orgId, async () => {
-      const item = await upsertComplianceItem({
-        id: itemId,
-        eventProjectId: id,
-        ...updateFields,
-      })
-      return NextResponse.json(ok(item))
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), {
-        status: 400,
-      })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (error instanceof Error && error.message.includes('Record to update not found')) {
-      return NextResponse.json(fail('NOT_FOUND', 'Compliance item not found'), { status: 404 })
-    }
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Something went wrong'),
-      { status: 500 },
-    )
-  }
-}
+export const PUT = withAuth(async ({ params, body }) => {
+  const { itemId, ...updateFields } = body
+  const item = await upsertComplianceItem({
+    id: itemId,
+    eventProjectId: params.id,
+    ...updateFields,
+  })
+  return NextResponse.json(ok(item))
+}, { permission: PERMISSIONS.EVENTS_COMPLIANCE_MANAGE, schema: UpdateComplianceItemSchema })
 
 // ─── DELETE /api/events/projects/[id]/compliance ─────────────────────────────
 
 /**
  * Deletes a compliance checklist item.
  */
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id: _projectId } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-
-    await assertCan(ctx.userId, PERMISSIONS.EVENTS_COMPLIANCE_MANAGE)
-
-    // Support both query param and body
-    let itemId: string | null = req.nextUrl.searchParams.get('itemId')
-    if (!itemId) {
-      const body = await req.json()
-      const validated = DeleteComplianceItemSchema.parse(body)
-      itemId = validated.itemId
-    }
-
-    if (!itemId) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'itemId is required'), { status: 400 })
-    }
-
-    return await runWithOrgContext(orgId, async () => {
-      await deleteComplianceItem(itemId!)
-      return NextResponse.json(ok({ deleted: true }))
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), {
-        status: 400,
-      })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (error instanceof Error && error.message.includes('Record to delete does not exist')) {
-      return NextResponse.json(fail('NOT_FOUND', 'Compliance item not found'), { status: 404 })
-    }
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Something went wrong'),
-      { status: 500 },
-    )
+export const DELETE = withAuth(async ({ req, searchParams }) => {
+  // Support both query param and body
+  let itemId: string | null = searchParams.get('itemId')
+  if (!itemId) {
+    const body = await req.json()
+    const validated = DeleteComplianceItemSchema.parse(body)
+    itemId = validated.itemId
   }
-}
+
+  if (!itemId) {
+    return NextResponse.json(fail('VALIDATION_ERROR', 'itemId is required'), { status: 400 })
+  }
+
+  await deleteComplianceItem(itemId)
+  return NextResponse.json(ok({ deleted: true }))
+}, { permission: PERMISSIONS.EVENTS_COMPLIANCE_MANAGE })
