@@ -120,12 +120,12 @@ describe('buildSystemPrompt — capabilities', () => {
     expect(prompt).toContain('Create events')
   })
 
-  it('shows generic capability when no tools available', () => {
+  it('always includes photo analysis even with no tools', () => {
     const prompt = buildSystemPrompt(
       [], 'School', 'User', 'viewer',
       '2024-03-20T18:00:00.000Z'
     )
-    expect(prompt).toContain('General conversation')
+    expect(prompt).toContain('Photo analysis')
   })
 })
 

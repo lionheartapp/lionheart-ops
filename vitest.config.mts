@@ -11,6 +11,9 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     setupFiles: [],
+    environmentMatchGlobs: [
+      ['__tests__/components/**/*.test.tsx', 'jsdom'],
+    ],
     include: ['__tests__/**/*.test.ts', '__tests__/**/*.test.tsx'],
     env: {
       AUTH_SECRET: 'ci-test-secret-32-chars-minimum-x',
