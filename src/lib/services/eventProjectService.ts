@@ -57,11 +57,14 @@ export async function createEventProject(
   sourceId?: string,
 ): Promise<Record<string, unknown>> {
   const isDirectRequest = source === 'DIRECT_REQUEST'
-  const initialStatus = isDirectRequest ? 'PENDING_APPROVAL' : 'CONFIRMED'
-
   const requiresAV = !!(data as any).requiresAV
   const requiresFacilities = !!(data as any).requiresFacilities
-  const approvalGates = isDirectRequest ? buildApprovalGates(requiresAV, requiresFacilities) : null
+
+  // Any event that needs AV or Facilities approval goes through the gate workflow,
+  // regardless of source. Direct requests always require admin approval too.
+  const needsGates = isDirectRequest || requiresAV || requiresFacilities
+  const initialStatus = needsGates ? 'PENDING_APPROVAL' : 'CONFIRMED'
+  const approvalGates = needsGates ? buildApprovalGates(requiresAV, requiresFacilities) : null
 
   const project = await db.eventProject.create({
     data: {
@@ -112,13 +115,16 @@ export async function createEventProject(
     },
   }).catch(() => {})
 
-  // For direct requests with gates, notify relevant teams (fire-and-forget)
-  if (isDirectRequest && approvalGates) {
+  // Notify relevant teams when gates are active (fire-and-forget)
+  if (approvalGates) {
     notifyTeamsOfPendingApproval(project.title as string, project.id as string, approvalGates).catch(() => {})
   }
 
-  // For non-direct-request sources, auto-confirm by creating the CalendarEvent bridge
-  if (!isDirectRequest) {
+  // Auto-detect conflicts (fire-and-forget — results stored in metadata)
+  runConflictDetection(project.id, data.startsAt, data.endsAt, data.roomId, data.buildingId).catch(() => {})
+
+  // For events that don't need gates, auto-confirm by creating the CalendarEvent bridge
+  if (!needsGates) {
     await confirmEventProject(project.id, createdById)
 
     // Trigger Google Calendar sync for the creator (non-fatal)
@@ -671,6 +677,17 @@ export async function resubmitForApproval(
     notifyTeamsOfPendingApproval(freshProject.title, eventProjectId, freshProject.approvalGates as ApprovalGates).catch(() => {})
   }
 
+  // Re-run conflict detection with potentially updated details
+  if (freshProject) {
+    runConflictDetection(
+      eventProjectId,
+      freshProject.startsAt,
+      freshProject.endsAt,
+      freshProject.roomId,
+      freshProject.buildingId,
+    ).catch(() => {})
+  }
+
   return updated
 }
 
@@ -1076,4 +1093,49 @@ export async function updateEventTask(
   }
 
   return updated
+}
+
+// ─── Auto Conflict Detection ─────────────────────────────────────────────────
+
+/**
+ * Runs conflict detection for an event and stores results in metadata.
+ * Called fire-and-forget at creation and resubmission time.
+ */
+async function runConflictDetection(
+  eventProjectId: string,
+  startsAt: Date | string,
+  endsAt: Date | string,
+  roomId?: string | null,
+  buildingId?: string | null,
+) {
+  try {
+    const { detectConflicts } = await import('@/lib/services/ai/eventAIService')
+    const report = await detectConflicts({
+      eventProjectId,
+      startsAt: typeof startsAt === 'string' ? startsAt : startsAt.toISOString(),
+      endsAt: typeof endsAt === 'string' ? endsAt : endsAt.toISOString(),
+      roomId: roomId ?? undefined,
+      buildingId: buildingId ?? undefined,
+    })
+
+    // Store conflict report in metadata for the overview UI
+    const existing = await db.eventProject.findUnique({ where: { id: eventProjectId }, select: { metadata: true } })
+    const metadata = (existing?.metadata as Record<string, unknown>) ?? {}
+    metadata.conflictReport = report
+    metadata.conflictCheckedAt = new Date().toISOString()
+
+    await db.eventProject.update({
+      where: { id: eventProjectId },
+      data: { metadata },
+    })
+
+    if (report.conflicts.length > 0) {
+      await appendActivityLog(eventProjectId, 'system', 'CONFLICTS_DETECTED', {
+        count: report.conflicts.length,
+        types: report.conflicts.map((c: any) => c.type),
+      })
+    }
+  } catch (err) {
+    log.warn({ err, eventProjectId }, 'Auto conflict detection failed (non-fatal)')
+  }
 }

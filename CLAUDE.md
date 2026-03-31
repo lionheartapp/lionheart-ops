@@ -312,6 +312,18 @@ scripts/
 
 ---
 
+## Content & Language Guidelines
+
+### No Religious References in UI
+This is a **secular, multi-tenant platform** for all types of educational institutions. Never use religious language, examples, or placeholder text anywhere in the application — including input placeholders, sample data, seed scripts, empty states, and documentation. Use neutral, universally applicable examples instead.
+
+**Bad:** `"e.g. Morning Worship, Chapel, Devotion"` · `"Sync worship teams"`
+**Good:** `"e.g. Morning Assembly, Staff Meeting, Awards Ceremony"` · `"Sync teams and schedules"`
+
+This applies even when a specific tenant (like a Christian school) is the current customer — the platform itself must remain neutral.
+
+---
+
 ## Conventions
 
 ### Always use `rawPrisma` for:

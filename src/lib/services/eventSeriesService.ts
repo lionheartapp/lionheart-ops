@@ -187,8 +187,8 @@ export async function spawnProjectFromSeries(
     calendarId: overrides.calendarId ?? undefined,
     expectedAttendance: overrides.expectedAttendance ?? undefined,
     isMultiDay: false,
-    requiresAV: false,
-    requiresFacilities: false,
+    requiresAV: !!(series.resourceNeeds as any)?.requiresAV,
+    requiresFacilities: !!(series.resourceNeeds as any)?.requiresFacilities,
   }
 
   // createEventProject with source=SERIES auto-confirms and creates CalendarEvent bridge

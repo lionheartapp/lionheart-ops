@@ -3794,6 +3794,10 @@ model EventProject {
   isMultiDay         Boolean             @default(false)
   expectedAttendance Int?
   locationText       String?
+  isOffCampus        Boolean             @default(false)
+  venueName          String?             // Off-campus venue name (e.g. "City Convention Center")
+  venueAddress       String?             // Off-campus formatted address from Google Places
+  venuePlaceId       String?             // Google Places ID for future lookups
   buildingId         String?
   areaId             String?
   roomId             String?
@@ -3900,6 +3904,10 @@ model EventSeries {
   defaultStartTime    String?             // HH:mm
   defaultDuration     Int?                // minutes
   defaultLocationText String?
+  defaultIsOffCampus  Boolean   @default(false)
+  defaultVenueName    String?             // Off-campus venue name
+  defaultVenueAddress String?             // Off-campus formatted address
+  defaultVenuePlaceId String?             // Google Places ID
   defaultBuildingId   String?
   defaultRoomId       String?
   resourceNeeds       Json?               // Default resource needs JSON

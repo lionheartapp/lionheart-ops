@@ -18,6 +18,10 @@ export interface EventProject {
   isMultiDay: boolean
   expectedAttendance: number | null
   locationText: string | null
+  isOffCampus: boolean
+  venueName: string | null
+  venueAddress: string | null
+  venuePlaceId: string | null
   buildingId: string | null
   areaId: string | null
   roomId: string | null

@@ -543,7 +543,7 @@ export default function DashboardPage() {
 
       {/* Dashboard Panels Grid */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden mb-10"
         style={{ gridTemplateRows: 'minmax(0, 1fr)' }}
         initial="hidden"
         animate="visible"
@@ -633,7 +633,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Scrollable events area */}
-          <div className="flex-1 min-h-0 overflow-y-auto dashboard-scroll px-6 pb-6" onScroll={(e) => setEventsScrolled(e.currentTarget.scrollTop > 0)}>
+          <div className="relative flex-1 min-h-0">
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/90 to-transparent pointer-events-none z-10 rounded-b-2xl" />
+          <div className="h-full overflow-y-auto dashboard-scroll px-6 pb-20" onScroll={(e) => setEventsScrolled(e.currentTarget.scrollTop > 0)}>
           {/* ── Admin Events Panel — uses CalendarEvents (same source as calendar page) ── */}
           {user.dashboardMode === 'admin' ? (
             upcomingCalLoading ? (
@@ -802,6 +804,7 @@ export default function DashboardPage() {
               </>
             )
           )}
+          </div>
           </div>
         </motion.div>
 

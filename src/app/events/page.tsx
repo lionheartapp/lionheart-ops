@@ -9,12 +9,12 @@ import {
   CalendarRange,
   RefreshCw,
   Layers,
-  LayoutTemplate,
   AlertTriangle,
   Clock,
   Shield,
   AlertCircle,
   Calendar,
+  CalendarDays,
   CheckSquare,
   Sparkles,
   Loader2,
@@ -24,6 +24,8 @@ import {
   XCircle,
   Hourglass,
   ArrowRight,
+  ChevronDown,
+  Copy,
 } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import { staggerContainer, cardEntrance, fadeInUp, listItem } from '@/lib/animations'
@@ -571,13 +573,17 @@ function ApprovalQueue() {
 
 // ─── My Events Panel ─────────────────────────────────────────────────────────
 
+type EventCreateMode = 'single' | 'multiday' | 'recurring' | 'template'
+
 function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState('')
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createMode, setCreateMode] = useState<EventCreateMode>('single')
   const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
   const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const filters = {
     ...(statusFilter ? { status: statusFilter } : {}),
@@ -588,40 +594,84 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
     Object.keys(filters).length > 0 ? filters : undefined
   )
 
+  function openCreate(mode: EventCreateMode) {
+    setDropdownOpen(false)
+    if (mode === 'recurring') {
+      setSeriesDrawerOpen(true)
+    } else if (mode === 'template') {
+      setTemplateDrawerOpen(true)
+    } else {
+      setCreateMode(mode)
+      setCreateModalOpen(true)
+    }
+  }
+
+  const EVENT_OPTIONS: { mode: EventCreateMode; label: string; description: string; icon: React.ElementType; adminOnly?: boolean }[] = [
+    { mode: 'single', label: 'Single Event', description: 'A one-time event on a specific date', icon: Calendar },
+    { mode: 'recurring', label: 'Recurring Event', description: 'Repeats on a schedule (weekly, monthly, etc.)', icon: RefreshCw, adminOnly: true },
+    { mode: 'multiday', label: 'Multi-day Event', description: 'Spans across multiple days', icon: CalendarDays },
+    { mode: 'template', label: 'From Template', description: 'Start from a saved event template', icon: Copy, adminOnly: true },
+  ]
+
+  const visibleOptions = isAdmin ? EVENT_OPTIONS : EVENT_OPTIONS.filter((o) => !o.adminOnly)
+
   return (
     <div>
       {/* Section header */}
-      <h2 className="text-base font-semibold text-slate-900 mb-4">
-        {isAdmin ? 'All Events' : 'My Events'}
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-slate-900">
+          {isAdmin ? 'All Events' : 'My Events'}
+        </h2>
 
-      {/* Action buttons */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        {isAdmin && (
-          <>
-            <button
-              onClick={() => setTemplateDrawerOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
-            >
-              <LayoutTemplate className="w-4 h-4" />
-              From Template
-            </button>
-            <button
-              onClick={() => setSeriesDrawerOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
-            >
-              <RefreshCw className="w-4 h-4" />
-              New Series
-            </button>
-          </>
-        )}
-        <button
-          onClick={() => setCreateModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          New Event
-        </button>
+        {/* + Event dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Event
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          <AnimatePresence>
+            {dropdownOpen && (
+              <>
+                {/* Invisible backdrop to close dropdown */}
+                <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
+
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl border border-slate-200 shadow-lg z-20 overflow-hidden"
+                >
+                  <div className="p-1.5">
+                    {visibleOptions.map((opt) => {
+                      const Icon = opt.icon
+                      return (
+                        <button
+                          key={opt.mode}
+                          onClick={() => openCreate(opt.mode)}
+                          className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+                        >
+                          <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 group-hover:bg-indigo-50 transition-colors">
+                            <Icon className="w-4 h-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-slate-900">{opt.label}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{opt.description}</p>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Filter chips */}
@@ -667,6 +717,7 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
       <CreateEventProjectModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
+        initialMode={createMode}
       />
       <EventSeriesDrawer
         isOpen={seriesDrawerOpen}
