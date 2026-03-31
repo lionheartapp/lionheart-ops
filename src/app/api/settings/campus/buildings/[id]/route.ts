@@ -1,15 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
+import { withAuth } from '@/lib/api/with-auth'
 import { prisma, rawPrisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
-
-type RouteParams = {
-  params: Promise<{ id: string }>
-}
 
 const UpdateBuildingSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
@@ -27,123 +21,65 @@ const UpdateBuildingSchema = z.object({
   })).min(3).optional().nullable(),
 })
 
-export async function GET(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
+export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
+  const db = prisma as any
+  const building = await db.building.findFirst({ where: { id: params.id, organizationId: orgId } })
 
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
-
-    return await runWithOrgContext(orgId, async () => {
-      const db = prisma as any
-      const building = await db.building.findFirst({ where: { id, organizationId: orgId } })
-
-      if (!building) {
-        return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
-      }
-
-      return NextResponse.json(ok(building))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch building'), { status: 500 })
+  if (!building) {
+    return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
   }
-}
 
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    const body = await req.json()
+  return NextResponse.json(ok(building))
+}, { permission: PERMISSIONS.SETTINGS_READ })
 
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, params }) => {
+  const body = await req.json()
+  const input = UpdateBuildingSchema.parse(body)
+  const db = prisma as any
 
-    return await runWithOrgContext(orgId, async () => {
-      const input = UpdateBuildingSchema.parse(body)
-      const db = prisma as any
-
-      const existing = await db.building.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
-      if (!existing) {
-        return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
-      }
-
-      const building = await db.building.update({
-        where: { id },
-        data: {
-          ...(input.name !== undefined ? { name: input.name } : {}),
-          ...(input.code !== undefined ? { code: input.code || null } : {}),
-          ...(input.schoolId !== undefined ? { schoolId: input.schoolId || null } : {}),
-          ...(input.schoolDivision !== undefined ? { schoolDivision: input.schoolDivision } : {}),
-          ...(input.buildingType !== undefined ? { buildingType: input.buildingType } : {}),
-          ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
-          ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
-          ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
-          ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
-          ...(input.polygonCoordinates !== undefined ? { polygonCoordinates: input.polygonCoordinates } : {}),
-        },
-        include: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
-      })
-
-      return NextResponse.json(ok(building))
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'P2002') {
-      const target = (error as any).meta?.target as string[] | undefined
-      const field = target?.includes('name') ? 'name' : target?.includes('code') ? 'code' : null
-      const message = field
-        ? `A building with that ${field} already exists`
-        : 'A building with these values already exists'
-      return NextResponse.json(fail('VALIDATION_ERROR', message), { status: 409 })
-    }
-    console.error('Building update error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update building'), { status: 500 })
+  const existing = await db.building.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+  if (!existing) {
+    return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
   }
-}
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
+  const building = await db.building.update({
+    where: { id: params.id },
+    data: {
+      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.code !== undefined ? { code: input.code || null } : {}),
+      ...(input.schoolId !== undefined ? { schoolId: input.schoolId || null } : {}),
+      ...(input.schoolDivision !== undefined ? { schoolDivision: input.schoolDivision } : {}),
+      ...(input.buildingType !== undefined ? { buildingType: input.buildingType } : {}),
+      ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
+      ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+      ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+      ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
+      ...(input.polygonCoordinates !== undefined ? { polygonCoordinates: input.polygonCoordinates } : {}),
+    },
+    include: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
+  })
 
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+  return NextResponse.json(ok(building))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE })
 
-    const url = new URL(req.url)
-    const permanent = url.searchParams.get('permanent') === 'true'
+export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params, searchParams }) => {
+  const permanent = searchParams.get('permanent') === 'true'
+  const db = prisma as any
 
-    return await runWithOrgContext(orgId, async () => {
-      const db = prisma as any
-      const existing = await db.building.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
-      if (!existing) {
-        return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
-      }
-
-      if (permanent) {
-        // Hard delete: use rawPrisma to bypass soft-delete extension
-        await (rawPrisma as any).room.deleteMany({ where: { buildingId: id, organizationId: orgId } })
-        await (rawPrisma as any).area.updateMany({ where: { buildingId: id, organizationId: orgId }, data: { buildingId: null } })
-        await (rawPrisma as any).building.delete({ where: { id } })
-        return NextResponse.json(ok({ id, deleted: true }))
-      } else {
-        // Soft deactivate
-        const building = await db.building.update({ where: { id }, data: { isActive: false } })
-        return NextResponse.json(ok(building))
-      }
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete building'), { status: 500 })
+  const existing = await db.building.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+  if (!existing) {
+    return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
   }
-}
+
+  if (permanent) {
+    // Hard delete: use rawPrisma to bypass soft-delete extension
+    await (rawPrisma as any).room.deleteMany({ where: { buildingId: params.id, organizationId: orgId } })
+    await (rawPrisma as any).area.updateMany({ where: { buildingId: params.id, organizationId: orgId }, data: { buildingId: null } })
+    await (rawPrisma as any).building.delete({ where: { id: params.id } })
+    return NextResponse.json(ok({ id: params.id, deleted: true }))
+  } else {
+    // Soft deactivate
+    const building = await db.building.update({ where: { id: params.id }, data: { isActive: false } })
+    return NextResponse.json(ok(building))
+  }
+}, { permission: PERMISSIONS.SETTINGS_UPDATE })

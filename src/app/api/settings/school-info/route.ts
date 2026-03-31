@@ -1,13 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail, isAuthError } from '@/lib/api-response'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
+import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
@@ -108,204 +105,144 @@ function toNullable(value?: string | null) {
   return trimmed.length > 0 ? trimmed : null
 }
 
-export async function GET(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/school-info', method: 'GET' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
-
-    return await runWithOrgContext(orgId, async () => {
-      const [organization, primaryAdmin, campus] = await Promise.all([
-        prisma.organization.findUnique({
-          where: { id: orgId },
-          select: {
-            id: true,
-            name: true,
-            institutionType: true,
-            gradeLevel: true,
-            slug: true,
-            physicalAddress: true,
-            district: true,
-            website: true,
-            phone: true,
-            principalName: true,
-            principalEmail: true,
-            principalPhone: true,
-            headOfSchoolsName: true,
-            headOfSchoolsEmail: true,
-            headOfSchoolsPhone: true,
-            gradeRange: true,
-            studentCount: true,
-            staffCount: true,
-            logoUrl: true,
-            heroImageUrl: true,
-            imagePosition: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        }),
-        prisma.user.findFirst({
-          where: {
-            organizationId: orgId,
-            userRole: {
-              slug: { in: ['super-admin', 'admin'] },
-            },
-          },
-          orderBy: { createdAt: 'asc' },
-          select: {
-            name: true,
-            email: true,
-            phone: true,
-            jobTitle: true,
-          },
-        }),
-        Promise.all([
-          prisma.building.count({ where: { organizationId: orgId, isActive: true } }),
-          prisma.area.count({ where: { organizationId: orgId, isActive: true } }),
-          prisma.room.count({ where: { organizationId: orgId, isActive: true } }),
-        ]),
-      ])
-
-      if (!organization) {
-        return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
-      }
-
-      const [buildingCount, areaCount, roomCount] = campus
-
-      return NextResponse.json(
-        ok({
-          ...organization,
-          primaryAdminContact: {
-            name: primaryAdmin?.name || null,
-            email: primaryAdmin?.email || null,
-            phone: primaryAdmin?.phone || null,
-            title: primaryAdmin?.jobTitle || null,
-          },
-          campusSnapshot: {
-            buildings: buildingCount,
-            areas: areaCount,
-            rooms: roomCount,
-          },
-        })
-      )
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && (error.message.includes('permissions') || error.message.includes('Permission denied'))) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-
-    log.error({ err: error }, 'Failed to fetch school info')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch school information'), { status: 500 })
-  }
-}
-
-export async function PATCH(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/school-info', method: 'PATCH' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    const body = await req.json()
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    const input = SchoolInfoSchema.parse(body)
-
-    return await runWithOrgContext(orgId, async () => {
-      // Geocode address before saving so coordinates are available immediately
-      const newAddress = toNullable(input.physicalAddress)
-      let geoData: { latitude?: number; longitude?: number } = {}
-      if (newAddress) {
-        const coords = await geocodeAddress(newAddress)
-        if (coords) {
-          geoData = { latitude: coords.lat, longitude: coords.lng }
-        }
-      }
-
-      const updated = await prisma.organization.update({
-        where: { id: orgId },
-        data: {
-          name: input.name,
-          institutionType: input.institutionType ? input.institutionType : undefined,
-          gradeLevel: input.gradeLevel ? input.gradeLevel : undefined,
-          slug: input.slug,
-          physicalAddress: toNullable(input.physicalAddress),
-          district: toNullable(input.district),
-          website: toNullable(input.website),
-          phone: toNullable(input.phone),
-          principalName: toNullable(input.principalName),
-          principalEmail: toNullable(input.principalEmail),
-          principalPhone: toNullable(input.principalPhone),
-          headOfSchoolsName: toNullable(input.headOfSchoolsName),
-          headOfSchoolsEmail: toNullable(input.headOfSchoolsEmail),
-          headOfSchoolsPhone: toNullable(input.headOfSchoolsPhone),
-          gradeRange: toNullable(input.gradeRange),
-          studentCount: input.studentCount ?? null,
-          staffCount: input.staffCount ?? null,
-          logoUrl: toNullable(input.logoUrl),
-          heroImageUrl: toNullable(input.heroImageUrl),
-          imagePosition: input.imagePosition || 'LEFT',
-          ...geoData,
+export const GET = withAuth(async ({ orgId }) => {
+  const [organization, primaryAdmin, campus] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: orgId },
+      select: {
+        id: true,
+        name: true,
+        institutionType: true,
+        gradeLevel: true,
+        slug: true,
+        physicalAddress: true,
+        district: true,
+        website: true,
+        phone: true,
+        principalName: true,
+        principalEmail: true,
+        principalPhone: true,
+        headOfSchoolsName: true,
+        headOfSchoolsEmail: true,
+        headOfSchoolsPhone: true,
+        gradeRange: true,
+        studentCount: true,
+        staffCount: true,
+        logoUrl: true,
+        heroImageUrl: true,
+        imagePosition: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.user.findFirst({
+      where: {
+        organizationId: orgId,
+        userRole: {
+          slug: { in: ['super-admin', 'admin'] },
         },
-        select: {
-          id: true,
-          name: true,
-          institutionType: true,
-          gradeLevel: true,
-          slug: true,
-          physicalAddress: true,
-          district: true,
-          website: true,
-          phone: true,
-          principalName: true,
-          principalEmail: true,
-          principalPhone: true,
-          headOfSchoolsName: true,
-          headOfSchoolsEmail: true,
-          headOfSchoolsPhone: true,
-          gradeRange: true,
-          studentCount: true,
-          staffCount: true,
-          logoUrl: true,
-          heroImageUrl: true,
-          imagePosition: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      })
+      },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        jobTitle: true,
+      },
+    }),
+    Promise.all([
+      prisma.building.count({ where: { organizationId: orgId, isActive: true } }),
+      prisma.area.count({ where: { organizationId: orgId, isActive: true } }),
+      prisma.room.count({ where: { organizationId: orgId, isActive: true } }),
+    ]),
+  ])
 
-      return NextResponse.json(ok(updated))
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid school information', error.issues), { status: 400 })
-    }
-
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-
-    if (error instanceof Error && (error.message.includes('permissions') || error.message.includes('Permission denied'))) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code?: string }).code === 'P2002'
-    ) {
-      return NextResponse.json(fail('CONFLICT', 'That subdomain is already in use'), { status: 409 })
-    }
-
-    log.error({ err: error }, 'Failed to update school info')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update school information'), { status: 500 })
+  if (!organization) {
+    return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
   }
-}
+
+  const [buildingCount, areaCount, roomCount] = campus
+
+  return NextResponse.json(
+    ok({
+      ...organization,
+      primaryAdminContact: {
+        name: primaryAdmin?.name || null,
+        email: primaryAdmin?.email || null,
+        phone: primaryAdmin?.phone || null,
+        title: primaryAdmin?.jobTitle || null,
+      },
+      campusSnapshot: {
+        buildings: buildingCount,
+        areas: areaCount,
+        rooms: roomCount,
+      },
+    })
+  )
+}, { permission: PERMISSIONS.SETTINGS_READ })
+
+export const PATCH = withAuth<z.infer<typeof SchoolInfoSchema>>(async ({ orgId, body }) => {
+  // Geocode address before saving so coordinates are available immediately
+  const newAddress = toNullable(body.physicalAddress)
+  let geoData: { latitude?: number; longitude?: number } = {}
+  if (newAddress) {
+    const coords = await geocodeAddress(newAddress)
+    if (coords) {
+      geoData = { latitude: coords.lat, longitude: coords.lng }
+    }
+  }
+
+  const updated = await prisma.organization.update({
+    where: { id: orgId },
+    data: {
+      name: body.name,
+      institutionType: body.institutionType ? body.institutionType : undefined,
+      gradeLevel: body.gradeLevel ? body.gradeLevel : undefined,
+      slug: body.slug,
+      physicalAddress: toNullable(body.physicalAddress),
+      district: toNullable(body.district),
+      website: toNullable(body.website),
+      phone: toNullable(body.phone),
+      principalName: toNullable(body.principalName),
+      principalEmail: toNullable(body.principalEmail),
+      principalPhone: toNullable(body.principalPhone),
+      headOfSchoolsName: toNullable(body.headOfSchoolsName),
+      headOfSchoolsEmail: toNullable(body.headOfSchoolsEmail),
+      headOfSchoolsPhone: toNullable(body.headOfSchoolsPhone),
+      gradeRange: toNullable(body.gradeRange),
+      studentCount: body.studentCount ?? null,
+      staffCount: body.staffCount ?? null,
+      logoUrl: toNullable(body.logoUrl),
+      heroImageUrl: toNullable(body.heroImageUrl),
+      imagePosition: body.imagePosition || 'LEFT',
+      ...geoData,
+    },
+    select: {
+      id: true,
+      name: true,
+      institutionType: true,
+      gradeLevel: true,
+      slug: true,
+      physicalAddress: true,
+      district: true,
+      website: true,
+      phone: true,
+      principalName: true,
+      principalEmail: true,
+      principalPhone: true,
+      headOfSchoolsName: true,
+      headOfSchoolsEmail: true,
+      headOfSchoolsPhone: true,
+      gradeRange: true,
+      studentCount: true,
+      staffCount: true,
+      logoUrl: true,
+      heroImageUrl: true,
+      imagePosition: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  })
+
+  return NextResponse.json(ok(updated))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: SchoolInfoSchema })

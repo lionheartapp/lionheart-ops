@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 
 const CreateRoomSchema = z.object({
   buildingId: z.string().min(1),
@@ -17,104 +15,66 @@ const CreateRoomSchema = z.object({
   isActive: z.boolean().optional(),
 })
 
-export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
+export const GET = withAuth(async ({ orgId, searchParams }) => {
+  const includeInactive = searchParams.get('includeInactive') === 'true'
+  const buildingId = searchParams.get('buildingId') || undefined
+  const areaId = searchParams.get('areaId') || undefined
+  const db = prisma as any
 
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
+  const rooms = await db.room.findMany({
+    where: {
+      organizationId: orgId,
+      ...(includeInactive ? {} : { isActive: true }),
+      ...(buildingId ? { buildingId } : {}),
+      ...(areaId ? { areaId } : {}),
+    },
+    include: {
+      building: { select: { id: true, name: true, code: true } },
+      area: { select: { id: true, name: true, areaType: true } },
+    },
+    orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
+  })
 
-    return await runWithOrgContext(orgId, async () => {
-      const searchParams = new URL(req.url).searchParams
-      const includeInactive = searchParams.get('includeInactive') === 'true'
-      const buildingId = searchParams.get('buildingId') || undefined
-      const areaId = searchParams.get('areaId') || undefined
-      const db = prisma as any
+  return NextResponse.json(ok(rooms))
+}, { permission: PERMISSIONS.SETTINGS_READ })
 
-      const rooms = await db.room.findMany({
-        where: {
-          organizationId: orgId,
-          ...(includeInactive ? {} : { isActive: true }),
-          ...(buildingId ? { buildingId } : {}),
-          ...(areaId ? { areaId } : {}),
-        },
-        include: {
-          building: { select: { id: true, name: true, code: true } },
-          area: { select: { id: true, name: true, areaType: true } },
-        },
-        orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
-      })
+export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, body }) => {
+  const db = prisma as any
 
-      return NextResponse.json(ok(rooms))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch rooms'), { status: 500 })
+  const building = await db.building.findFirst({
+    where: { id: body.buildingId, organizationId: orgId },
+    select: { id: true },
+  })
+  if (!building) {
+    return NextResponse.json(fail('BAD_REQUEST', 'Invalid buildingId for this organization'), { status: 400 })
   }
-}
 
-export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    const body = await req.json()
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const input = CreateRoomSchema.parse(body)
-      const db = prisma as any
-
-      const building = await db.building.findFirst({
-        where: { id: input.buildingId, organizationId: orgId },
-        select: { id: true },
-      })
-      if (!building) {
-        return NextResponse.json(fail('BAD_REQUEST', 'Invalid buildingId for this organization'), { status: 400 })
-      }
-
-      if (input.areaId) {
-        const area = await db.area.findFirst({
-          where: { id: input.areaId, organizationId: orgId },
-          select: { id: true },
-        })
-        if (!area) {
-          return NextResponse.json(fail('BAD_REQUEST', 'Invalid areaId for this organization'), { status: 400 })
-        }
-      }
-
-      const room = await db.room.create({
-        data: {
-          organizationId: orgId,
-          buildingId: input.buildingId,
-          areaId: input.areaId || null,
-          roomNumber: input.roomNumber,
-          displayName: input.displayName || null,
-          floor: input.floor || null,
-          sortOrder: input.sortOrder ?? 0,
-          isActive: input.isActive ?? true,
-        },
-        include: {
-          building: { select: { id: true, name: true, code: true } },
-          area: { select: { id: true, name: true, areaType: true } },
-        },
-      })
-
-      return NextResponse.json(ok(room), { status: 201 })
+  if (body.areaId) {
+    const area = await db.area.findFirst({
+      where: { id: body.areaId, organizationId: orgId },
+      select: { id: true },
     })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
+    if (!area) {
+      return NextResponse.json(fail('BAD_REQUEST', 'Invalid areaId for this organization'), { status: 400 })
     }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'P2002') {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'A room with that number already exists in this building'), { status: 409 })
-    }
-    console.error('Room create error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create room'), { status: 500 })
   }
-}
+
+  const room = await db.room.create({
+    data: {
+      organizationId: orgId,
+      buildingId: body.buildingId,
+      areaId: body.areaId || null,
+      roomNumber: body.roomNumber,
+      displayName: body.displayName || null,
+      floor: body.floor || null,
+      sortOrder: body.sortOrder ?? 0,
+      isActive: body.isActive ?? true,
+    },
+    include: {
+      building: { select: { id: true, name: true, code: true } },
+      area: { select: { id: true, name: true, areaType: true } },
+    },
+  })
+
+  return NextResponse.json(ok(room), { status: 201 })
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateRoomSchema })

@@ -1,14 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { rawPrisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+import { rawPrisma } from '@/lib/db'
 import { audit, getIp } from '@/lib/services/auditService'
-import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
 
 const OrgUpdateSchema = z.object({
   name: z.string().trim().min(2).max(100).optional(),
@@ -26,109 +22,63 @@ const OrgUpdateSchema = z.object({
   eventBufferMinutes: z.number().int().min(0).max(480).optional(),
 })
 
-export async function GET(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/organization', method: 'GET' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    Sentry.setTag('org_id', orgId)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
+export const GET = withAuth(async ({ orgId }) => {
+  const org = await rawPrisma.organization.findUnique({
+    where: { id: orgId },
+    select: { name: true, slug: true, eventBufferMinutes: true },
+  })
 
-    const org = await rawPrisma.organization.findUnique({
-      where: { id: orgId },
-      select: { name: true, slug: true, eventBufferMinutes: true },
-    })
-
-    if (!org) {
-      return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
-    }
-
-    return NextResponse.json(ok(org))
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to fetch organization settings')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  if (!org) {
+    return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
   }
-}
 
-export async function PATCH(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/organization', method: 'PATCH' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    Sentry.setTag('org_id', orgId)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
+  return NextResponse.json(ok(org))
+}, { permission: PERMISSIONS.SETTINGS_READ })
 
-    let body: unknown
-    try {
-      body = await req.json()
-    } catch {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid JSON body'), { status: 400 })
-    }
+export const PATCH = withAuth<z.infer<typeof OrgUpdateSchema>>(async ({ orgId, ctx, req, body }) => {
+  const { name, slug, eventBufferMinutes } = body
 
-    const parsed = OrgUpdateSchema.safeParse(body)
-    if (!parsed.success) {
-      const details = parsed.error.issues.map((e) => ({
-        field: e.path.join('.'),
-        message: e.message,
-      }))
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Validation failed', details), { status: 400 })
-    }
+  if (!name && !slug && eventBufferMinutes === undefined) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'At least one field must be provided'),
+      { status: 400 }
+    )
+  }
 
-    const { name, slug, eventBufferMinutes } = parsed.data
-
-    if (!name && !slug && eventBufferMinutes === undefined) {
+  // If slug is changing, check uniqueness
+  if (slug) {
+    const existing = await rawPrisma.organization.findFirst({
+      where: { slug, id: { not: orgId } },
+      select: { id: true },
+    })
+    if (existing) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'At least one field must be provided'),
+        fail('VALIDATION_ERROR', 'Slug already taken'),
         { status: 400 }
       )
     }
-
-    // If slug is changing, check uniqueness
-    if (slug) {
-      const existing = await rawPrisma.organization.findFirst({
-        where: { slug, id: { not: orgId } },
-        select: { id: true },
-      })
-      if (existing) {
-        return NextResponse.json(
-          fail('VALIDATION_ERROR', 'Slug already taken'),
-          { status: 400 }
-        )
-      }
-    }
-
-    const updated = await rawPrisma.organization.update({
-      where: { id: orgId },
-      data: {
-        ...(name ? { name } : {}),
-        ...(slug ? { slug } : {}),
-        ...(eventBufferMinutes !== undefined ? { eventBufferMinutes } : {}),
-      },
-      select: { name: true, slug: true, eventBufferMinutes: true },
-    })
-
-    await audit({
-      organizationId: orgId,
-      userId: ctx.userId,
-      userEmail: ctx.email,
-      action: 'organization.update',
-      resourceType: 'Organization',
-      resourceId: orgId,
-      changes: { name, slug },
-      ipAddress: getIp(req),
-    })
-
-    return NextResponse.json(ok(updated))
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to update organization settings')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
-}
+
+  const updated = await rawPrisma.organization.update({
+    where: { id: orgId },
+    data: {
+      ...(name ? { name } : {}),
+      ...(slug ? { slug } : {}),
+      ...(eventBufferMinutes !== undefined ? { eventBufferMinutes } : {}),
+    },
+    select: { name: true, slug: true, eventBufferMinutes: true },
+  })
+
+  await audit({
+    organizationId: orgId,
+    userId: ctx.userId,
+    userEmail: ctx.email,
+    action: 'organization.update',
+    resourceType: 'Organization',
+    resourceId: orgId,
+    changes: { name, slug },
+    ipAddress: getIp(req),
+  })
+
+  return NextResponse.json(ok(updated))
+}, { permission: PERMISSIONS.SETTINGS_READ, schema: OrgUpdateSchema })

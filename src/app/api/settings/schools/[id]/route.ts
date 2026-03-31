@@ -1,14 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
-import { assertCan } from '@/lib/auth/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { invalidateOrgCache } from '@/lib/cache/settings-cache'
-import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
 
 const isValidPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -27,169 +23,119 @@ const UpdateSchoolSchema = z.object({
   principalPhoneExt: z.string().trim().max(20).nullable().optional(),
 })
 
-type UpdateSchoolInput = z.infer<typeof UpdateSchoolSchema>
+export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }>(async ({ orgId, body: input, params }) => {
+  const { id } = params
+  const principalPhone = input.principalPhone === undefined || input.principalPhone === null
+    ? input.principalPhone
+    : input.principalPhone.trim()
+  const principalPhoneExt = input.principalPhoneExt === undefined || input.principalPhoneExt === null
+    ? input.principalPhoneExt
+    : input.principalPhoneExt.trim()
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const log = logger.child({ route: '/api/settings/schools/[id]', method: 'PATCH' })
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    const body = await req.json()
-    const input = UpdateSchoolSchema.parse(body)
-    const principalPhone = input.principalPhone === undefined || input.principalPhone === null
-      ? input.principalPhone
-      : input.principalPhone.trim()
-    const principalPhoneExt = input.principalPhoneExt === undefined || input.principalPhoneExt === null
-      ? input.principalPhoneExt
-      : input.principalPhoneExt.trim()
-
-    if (typeof principalPhone === 'string' && principalPhone && !isValidPhone(principalPhone)) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Principal phone must be a valid phone number'),
-        { status: 400 }
-      )
-    }
-
-    if (typeof principalPhoneExt === 'string' && principalPhoneExt && !isValidExtension(principalPhoneExt)) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Extension must be numeric and up to 6 digits'),
-        { status: 400 }
-      )
-    }
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      // Verify school belongs to organization
-      const school = await prisma.school.findUnique({
-        where: { id },
-      })
-
-      if (!school || school.organizationId !== orgId) {
-        return NextResponse.json(fail('NOT_FOUND', 'School not found'), { status: 404 })
-      }
-
-      // If name is being updated, check for duplicates on the same campus
-      if (input.name && input.name !== school.name) {
-        const campusId = school.campusId
-        const existing = await prisma.school.findFirst({
-          where: {
-            organizationId: orgId,
-            campusId: campusId,
-            name: input.name,
-            id: { not: id },
-          },
-        })
-
-        if (existing) {
-          return NextResponse.json(
-            fail('CONFLICT', 'A school with this name already exists on this campus'),
-            { status: 409 }
-          )
-        }
-      }
-
-      const updated = await prisma.school.update({
-        where: { id },
-        data: {
-          ...(input.name !== undefined && { name: input.name }),
-          ...(input.gradeLevel !== undefined && { gradeLevel: input.gradeLevel }),
-          ...(input.color !== undefined && { color: input.color }),
-          ...(input.principalName !== undefined && { principalName: input.principalName }),
-          ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
-          ...(input.principalPhone !== undefined && { principalPhone }),
-          ...(input.principalPhoneExt !== undefined && { principalPhoneExt }),
-        },
-        select: {
-          id: true,
-          name: true,
-          gradeLevel: true,
-          color: true,
-          principalName: true,
-          principalEmail: true,
-          principalPhone: true,
-          principalPhoneExt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      })
-
-      invalidateOrgCache(orgId)
-
-      return NextResponse.json(ok(updated))
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid school data', error.issues),
-        { status: 400 }
-      )
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to update school')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update school'), { status: 500 })
+  if (typeof principalPhone === 'string' && principalPhone && !isValidPhone(principalPhone)) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'Principal phone must be a valid phone number'),
+      { status: 400 }
+    )
   }
-}
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const log = logger.child({ route: '/api/settings/schools/[id]', method: 'DELETE' })
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      // Verify school belongs to organization
-      const school = await prisma.school.findUnique({
-        where: { id },
-      })
-
-      if (!school || school.organizationId !== orgId) {
-        return NextResponse.json(fail('NOT_FOUND', 'School not found'), { status: 404 })
-      }
-
-      // Check if school has users assigned to it
-      const userCount = await prisma.user.count({
-        where: {
-          schoolId: id,
-        },
-      })
-
-      if (userCount > 0) {
-        return NextResponse.json(
-          fail('CONFLICT', `Cannot delete school with ${userCount} assigned user(s)`),
-          { status: 409 }
-        )
-      }
-
-      await prisma.school.delete({
-        where: { id },
-      })
-
-      invalidateOrgCache(orgId)
-
-      return NextResponse.json(ok({ message: 'School deleted successfully' }))
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to delete school')
-    Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete school'), { status: 500 })
+  if (typeof principalPhoneExt === 'string' && principalPhoneExt && !isValidExtension(principalPhoneExt)) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'Extension must be numeric and up to 6 digits'),
+      { status: 400 }
+    )
   }
-}
+
+  // Verify school belongs to organization
+  const school = await prisma.school.findUnique({
+    where: { id },
+  })
+
+  if (!school || school.organizationId !== orgId) {
+    return NextResponse.json(fail('NOT_FOUND', 'School not found'), { status: 404 })
+  }
+
+  // If name is being updated, check for duplicates on the same campus
+  if (input.name && input.name !== school.name) {
+    const campusId = school.campusId
+    const existing = await prisma.school.findFirst({
+      where: {
+        organizationId: orgId,
+        campusId: campusId,
+        name: input.name,
+        id: { not: id },
+      },
+    })
+
+    if (existing) {
+      return NextResponse.json(
+        fail('CONFLICT', 'A school with this name already exists on this campus'),
+        { status: 409 }
+      )
+    }
+  }
+
+  const updated = await prisma.school.update({
+    where: { id },
+    data: {
+      ...(input.name !== undefined && { name: input.name }),
+      ...(input.gradeLevel !== undefined && { gradeLevel: input.gradeLevel }),
+      ...(input.color !== undefined && { color: input.color }),
+      ...(input.principalName !== undefined && { principalName: input.principalName }),
+      ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
+      ...(input.principalPhone !== undefined && { principalPhone }),
+      ...(input.principalPhoneExt !== undefined && { principalPhoneExt }),
+    },
+    select: {
+      id: true,
+      name: true,
+      gradeLevel: true,
+      color: true,
+      principalName: true,
+      principalEmail: true,
+      principalPhone: true,
+      principalPhoneExt: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  })
+
+  invalidateOrgCache(orgId)
+
+  return NextResponse.json(ok(updated))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UpdateSchoolSchema })
+
+export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
+  const { id } = params
+
+  // Verify school belongs to organization
+  const school = await prisma.school.findUnique({
+    where: { id },
+  })
+
+  if (!school || school.organizationId !== orgId) {
+    return NextResponse.json(fail('NOT_FOUND', 'School not found'), { status: 404 })
+  }
+
+  // Check if school has users assigned to it
+  const userCount = await prisma.user.count({
+    where: {
+      schoolId: id,
+    },
+  })
+
+  if (userCount > 0) {
+    return NextResponse.json(
+      fail('CONFLICT', `Cannot delete school with ${userCount} assigned user(s)`),
+      { status: 409 }
+    )
+  }
+
+  await prisma.school.delete({
+    where: { id },
+  })
+
+  invalidateOrgCache(orgId)
+
+  return NextResponse.json(ok({ message: 'School deleted successfully' }))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE })

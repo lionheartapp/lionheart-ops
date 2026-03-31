@@ -1,312 +1,260 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { hash } from 'bcryptjs'
-import { ok, fail, isAuthError } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
+import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { generateSetupToken, getSetupLink, hashSetupToken } from '@/lib/auth/password-setup'
 import { sendWelcomeEmail } from '@/lib/services/emailService'
 import { PERMISSIONS } from '@/lib/permissions'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { audit, getIp } from '@/lib/services/auditService'
 import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
 
-export async function GET(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/users', method: 'GET' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
+export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
+  const { page, limit, skip } = parsePagination(searchParams)
+  const search = searchParams.get('search') || ''
+  const roleId = searchParams.get('roleId') || ''
+  const teamSlug = searchParams.get('teamSlug') || ''
+  const status = searchParams.get('status') || ''
+  const schoolScope = searchParams.get('schoolScope') || ''
 
-    // Check permission to view users
-    await assertCan(userContext.userId, PERMISSIONS.USERS_READ)
+  const where: any = {
+    organizationId: orgId,
+  }
 
-    const { searchParams } = new URL(req.url)
-    const { page, limit, skip } = parsePagination(searchParams)
-    const search = searchParams.get('search') || ''
-    const roleId = searchParams.get('roleId') || ''
-    const teamSlug = searchParams.get('teamSlug') || ''
-    const status = searchParams.get('status') || ''
-    const schoolScope = searchParams.get('schoolScope') || ''
+  // Search by first name, last name, or email
+  if (search) {
+    where.OR = [
+      { firstName: { contains: search, mode: 'insensitive' } },
+      { lastName: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ]
+  }
 
-    return await runWithOrgContext(orgId, async () => {
-      const where: any = {
-        organizationId: orgId,
-      }
+  // Filter by role
+  if (roleId) {
+    where.roleId = roleId
+  }
 
-      // Search by first name, last name, or email
-      if (search) {
-        where.OR = [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ]
-      }
+  // Filter by team (junction table)
+  if (teamSlug) {
+    where.teams = {
+      some: { team: { slug: teamSlug } },
+    }
+  }
 
-      // Filter by role
-      if (roleId) {
-        where.roleId = roleId
-      }
+  // Filter by status
+  if (status) {
+    where.status = status
+  }
 
-      // Filter by team (junction table)
-      if (teamSlug) {
-        where.teams = {
-          some: { team: { slug: teamSlug } },
-        }
-      }
+  // Filter by school scope
+  if (schoolScope) {
+    where.schoolScope = schoolScope
+  }
 
-      // Filter by status
-      if (status) {
-        where.status = status
-      }
-
-      // Filter by school scope
-      if (schoolScope) {
-        where.schoolScope = schoolScope
-      }
-
-      const userSelect = {
+  const userSelect = {
+    id: true,
+    email: true,
+    firstName: true,
+    lastName: true,
+    avatar: true,
+    jobTitle: true,
+    schoolScope: true,
+    employmentType: true,
+    phone: true,
+    status: true,
+    createdAt: true,
+    teams: {
+      select: {
+        team: { select: { id: true, name: true, slug: true } },
+      },
+    },
+    userRole: {
+      select: {
         id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        avatar: true,
-        jobTitle: true,
-        schoolScope: true,
-        employmentType: true,
-        phone: true,
-        status: true,
-        createdAt: true,
-        teams: {
-          select: {
-            team: { select: { id: true, name: true, slug: true } },
-          },
-        },
-        userRole: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      }
-
-      const [total, users] = await Promise.all([
-        prisma.user.count({ where }),
-        prisma.user.findMany({
-          where,
-          select: userSelect,
-          skip,
-          take: limit,
-          orderBy: [
-            { status: 'asc' }, // ACTIVE first
-            { lastName: 'asc' },
-            { firstName: 'asc' },
-          ],
-        }),
-      ])
-
-      return NextResponse.json(ok(users, paginationMeta(total, { page, limit, skip })))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to fetch users')
-    Sentry.captureException(error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to fetch users'),
-      { status: 500 }
-    )
+        name: true,
+        slug: true,
+      },
+    },
   }
-}
 
-export async function POST(req: NextRequest) {
+  const [total, users] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      select: userSelect,
+      skip,
+      take: limit,
+      orderBy: [
+        { status: 'asc' }, // ACTIVE first
+        { lastName: 'asc' },
+        { firstName: 'asc' },
+      ],
+    }),
+  ])
+
+  return NextResponse.json(ok(users, paginationMeta(total, { page, limit, skip })))
+}, { permission: PERMISSIONS.USERS_READ })
+
+export const POST = withAuth(async ({ req, orgId, ctx }) => {
   const log = logger.child({ route: '/api/settings/users', method: 'POST' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    const body = await req.json()
+  const body = await req.json()
 
-    // Check permission to invite users
-    await assertCan(userContext.userId, PERMISSIONS.USERS_INVITE)
+  const passwordSetupTokenModel = (prisma as any).passwordSetupToken
+  const email = String(body.email || '').trim().toLowerCase()
+  const firstName = String(body.firstName || '').trim()
+  const lastName = String(body.lastName || '').trim()
+  const roleId = body.roleId ? String(body.roleId) : null
+  const teamIds = Array.isArray(body.teamIds) ? body.teamIds.map(String) : []
+  const phone = body.phone ? String(body.phone).trim() : null
+  const jobTitle = body.jobTitle ? String(body.jobTitle).trim() : null
+  const rawEmploymentType = body.employmentType ? String(body.employmentType) : null
+  const allowedEmploymentTypes = ['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'INTERN', 'VOLUNTEER'] as const
+  const employmentType = allowedEmploymentTypes.includes(rawEmploymentType as (typeof allowedEmploymentTypes)[number])
+    ? (rawEmploymentType as (typeof allowedEmploymentTypes)[number])
+    : null
+  const rawSchoolScope = body.schoolScope ? String(body.schoolScope) : null
+  const allowedSchoolScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
+  const schoolScope = allowedSchoolScopes.includes(rawSchoolScope as (typeof allowedSchoolScopes)[number])
+    ? (rawSchoolScope as (typeof allowedSchoolScopes)[number])
+    : 'GLOBAL'
+  const provisioningMode = body.provisioningMode === 'INVITE_ONLY' ? 'INVITE_ONLY' : 'ADMIN_CREATE'
 
-    return await runWithOrgContext(orgId, async () => {
-      const passwordSetupTokenModel = (prisma as any).passwordSetupToken
-      const email = String(body.email || '').trim().toLowerCase()
-      const firstName = String(body.firstName || '').trim()
-      const lastName = String(body.lastName || '').trim()
-      const roleId = body.roleId ? String(body.roleId) : null
-      const teamIds = Array.isArray(body.teamIds) ? body.teamIds.map(String) : []
-      const phone = body.phone ? String(body.phone).trim() : null
-      const jobTitle = body.jobTitle ? String(body.jobTitle).trim() : null
-      const rawEmploymentType = body.employmentType ? String(body.employmentType) : null
-      const allowedEmploymentTypes = ['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'INTERN', 'VOLUNTEER'] as const
-      const employmentType = allowedEmploymentTypes.includes(rawEmploymentType as (typeof allowedEmploymentTypes)[number])
-        ? (rawEmploymentType as (typeof allowedEmploymentTypes)[number])
-        : null
-      const rawSchoolScope = body.schoolScope ? String(body.schoolScope) : null
-      const allowedSchoolScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
-      const schoolScope = allowedSchoolScopes.includes(rawSchoolScope as (typeof allowedSchoolScopes)[number])
-        ? (rawSchoolScope as (typeof allowedSchoolScopes)[number])
-        : 'GLOBAL'
-      const provisioningMode = body.provisioningMode === 'INVITE_ONLY' ? 'INVITE_ONLY' : 'ADMIN_CREATE'
-
-      if (!email || !firstName || !lastName || !roleId) {
-        return NextResponse.json(
-          fail('BAD_REQUEST', 'firstName, lastName, email, and roleId are required'),
-          { status: 400 }
-        )
-      }
-
-      const existing = await prisma.user.findUnique({
-        where: {
-          organizationId_email: {
-            organizationId: orgId,
-            email,
-          },
-        },
-      })
-      if (existing) {
-        return NextResponse.json(fail('CONFLICT', 'A user with this email already exists'), {
-          status: 409,
-        })
-      }
-
-      const role = await prisma.role.findFirst({
-        where: {
-          id: roleId,
-          organizationId: orgId,
-        },
-        select: { id: true },
-      })
-      if (!role) {
-        return NextResponse.json(fail('BAD_REQUEST', 'Invalid role for this organization'), {
-          status: 400,
-        })
-      }
-
-      // Fetch org slug for tenant-aware email links
-      const org = await prisma.organization.findUniqueOrThrow({
-        where: { id: orgId },
-        select: { slug: true, name: true },
-      })
-
-      const temporaryPassword = randomBytes(24).toString('hex')
-      const passwordHash = await hash(temporaryPassword, 10)
-      const setupToken = generateSetupToken()
-      const setupTokenHash = hashSetupToken(setupToken)
-      const setupLink = getSetupLink(setupToken, org.slug)
-      const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
-
-      const user = await prisma.user.create({
-        data: {
-          organizationId: orgId,
-          email,
-          firstName,
-          lastName,
-          name: `${firstName} ${lastName}`.trim(),
-          phone,
-          jobTitle,
-          schoolScope,
-          employmentType,
-          passwordHash,
-          roleId,
-          status: provisioningMode === 'ADMIN_CREATE' ? 'ACTIVE' : 'PENDING',
-          ...(teamIds.length > 0
-            ? { teams: { create: teamIds.map((teamId: string) => ({ teamId })) } }
-            : {}),
-        },
-        include: {
-          teams: {
-            select: { team: { select: { id: true, name: true, slug: true } } },
-          },
-          userRole: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-      })
-
-      // Auto-create personal "My Schedule" calendar for the new user
-      await prisma.calendar.create({
-        data: {
-          name: 'My Schedule',
-          slug: `my-schedule-${user.id.slice(-8)}`,
-          calendarType: 'PERSONAL' as any,
-          visibility: 'CAMPUS' as any,
-          createdById: user.id,
-          color: '#6366f1',
-        } as any,
-      })
-
-      await passwordSetupTokenModel.create({
-        data: {
-          userId: user.id,
-          tokenHash: setupTokenHash,
-          expiresAt,
-        },
-      })
-
-      const emailResult = await sendWelcomeEmail({
-        to: user.email,
-        firstName: user.firstName || 'there',
-        organizationName: org.name || 'your school',
-        setupLink,
-        expiresAtIso: expiresAt.toISOString(),
-        mode: provisioningMode,
-      })
-
-      log.info({ userId: user.id, provisioningMode, emailSent: emailResult.sent }, 'Welcome link generated')
-
-      await audit({
-        organizationId: orgId,
-        userId:         userContext.userId,
-        userEmail:      userContext.email,
-        action:         'user.invite',
-        resourceType:   'User',
-        resourceId:     user.id,
-        resourceLabel:  user.email,
-        changes:        { email, roleId, teamCount: teamIds.length, provisioningMode },
-        ipAddress:      getIp(req),
-      })
-
-      return NextResponse.json(
-        ok({
-          user,
-          setup: {
-            setupLink,
-            expiresAt: expiresAt.toISOString(),
-            mode: provisioningMode,
-            emailSent: emailResult.sent,
-            emailReason: emailResult.reason,
-          },
-        }),
-        { status: 201 }
-      )
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to create user')
-    Sentry.captureException(error)
+  if (!email || !firstName || !lastName || !roleId) {
     return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to create user'),
-      { status: 500 }
+      fail('BAD_REQUEST', 'firstName, lastName, email, and roleId are required'),
+      { status: 400 }
     )
   }
-}
+
+  const existing = await prisma.user.findUnique({
+    where: {
+      organizationId_email: {
+        organizationId: orgId,
+        email,
+      },
+    },
+  })
+  if (existing) {
+    return NextResponse.json(fail('CONFLICT', 'A user with this email already exists'), {
+      status: 409,
+    })
+  }
+
+  const role = await prisma.role.findFirst({
+    where: {
+      id: roleId,
+      organizationId: orgId,
+    },
+    select: { id: true },
+  })
+  if (!role) {
+    return NextResponse.json(fail('BAD_REQUEST', 'Invalid role for this organization'), {
+      status: 400,
+    })
+  }
+
+  // Fetch org slug for tenant-aware email links
+  const org = await prisma.organization.findUniqueOrThrow({
+    where: { id: orgId },
+    select: { slug: true, name: true },
+  })
+
+  const temporaryPassword = randomBytes(24).toString('hex')
+  const passwordHash = await hash(temporaryPassword, 10)
+  const setupToken = generateSetupToken()
+  const setupTokenHash = hashSetupToken(setupToken)
+  const setupLink = getSetupLink(setupToken, org.slug)
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+
+  const user = await prisma.user.create({
+    data: {
+      organizationId: orgId,
+      email,
+      firstName,
+      lastName,
+      name: `${firstName} ${lastName}`.trim(),
+      phone,
+      jobTitle,
+      schoolScope,
+      employmentType,
+      passwordHash,
+      roleId,
+      status: provisioningMode === 'ADMIN_CREATE' ? 'ACTIVE' : 'PENDING',
+      ...(teamIds.length > 0
+        ? { teams: { create: teamIds.map((teamId: string) => ({ teamId })) } }
+        : {}),
+    },
+    include: {
+      teams: {
+        select: { team: { select: { id: true, name: true, slug: true } } },
+      },
+      userRole: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  })
+
+  // Auto-create personal "My Schedule" calendar for the new user
+  await prisma.calendar.create({
+    data: {
+      name: 'My Schedule',
+      slug: `my-schedule-${user.id.slice(-8)}`,
+      calendarType: 'PERSONAL' as any,
+      visibility: 'CAMPUS' as any,
+      createdById: user.id,
+      color: '#6366f1',
+    } as any,
+  })
+
+  await passwordSetupTokenModel.create({
+    data: {
+      userId: user.id,
+      tokenHash: setupTokenHash,
+      expiresAt,
+    },
+  })
+
+  const emailResult = await sendWelcomeEmail({
+    to: user.email,
+    firstName: user.firstName || 'there',
+    organizationName: org.name || 'your school',
+    setupLink,
+    expiresAtIso: expiresAt.toISOString(),
+    mode: provisioningMode,
+  })
+
+  log.info({ userId: user.id, provisioningMode, emailSent: emailResult.sent }, 'Welcome link generated')
+
+  await audit({
+    organizationId: orgId,
+    userId:         ctx.userId,
+    userEmail:      ctx.email,
+    action:         'user.invite',
+    resourceType:   'User',
+    resourceId:     user.id,
+    resourceLabel:  user.email,
+    changes:        { email, roleId, teamCount: teamIds.length, provisioningMode },
+    ipAddress:      getIp(req),
+  })
+
+  return NextResponse.json(
+    ok({
+      user,
+      setup: {
+        setupLink,
+        expiresAt: expiresAt.toISOString(),
+        mode: provisioningMode,
+        emailSent: emailResult.sent,
+        emailReason: emailResult.reason,
+      },
+    }),
+    { status: 201 }
+  )
+}, { permission: PERMISSIONS.USERS_INVITE })

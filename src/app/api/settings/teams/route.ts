@@ -1,14 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail, isAuthError } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
+import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
-import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
 
 const CreateTeamSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -27,129 +23,60 @@ function toSlug(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
-export async function GET(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/teams', method: 'GET' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
+export const GET = withAuth(async ({ orgId }) => {
+  const teams = await prisma.team.findMany({
+    where: { organizationId: orgId },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      teamType: true,
+      _count: { select: { members: true } },
+    },
+    orderBy: { name: 'asc' },
+  })
 
-    // Check permission to view teams
-    await assertCan(userContext.userId, PERMISSIONS.TEAMS_READ)
+  return NextResponse.json(ok(teams))
+}, { permission: PERMISSIONS.TEAMS_READ })
 
-    return await runWithOrgContext(orgId, async () => {
-      const teams = await prisma.team.findMany({
-        where: { organizationId: orgId },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          teamType: true,
-          _count: { select: { members: true } },
-        },
-        orderBy: { name: 'asc' },
-      })
+export const POST = withAuth<z.infer<typeof CreateTeamSchema>>(async ({ orgId, ctx, body, req }) => {
+  const slug = toSlug(body.slug || body.name)
 
-      return NextResponse.json(ok(teams))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to fetch teams')
-    Sentry.captureException(error)
+  if (!slug) {
     return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to fetch teams'),
-      { status: 500 }
+      fail('VALIDATION_ERROR', 'Team name must include letters or numbers'),
+      { status: 400 }
     )
   }
-}
 
-export async function POST(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/teams', method: 'POST' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    const body = await req.json()
-    const input = CreateTeamSchema.parse(body)
+  const team = await prisma.team.create({
+    data: {
+      organizationId: orgId,
+      name: body.name,
+      slug,
+      description: body.description || null,
+      teamType: body.teamType ?? null,
+    },
+  })
 
-    // Check permission to create teams
-    await assertCan(userContext.userId, PERMISSIONS.TEAMS_CREATE)
+  await audit({
+    organizationId: orgId,
+    userId:         ctx.userId,
+    userEmail:      ctx.email,
+    action:         'team.create',
+    resourceType:   'Team',
+    resourceId:     team.id,
+    resourceLabel:  team.name,
+    changes:        { name: team.name, slug },
+    ipAddress:      getIp(req),
+  })
 
-    return await runWithOrgContext(orgId, async () => {
-      const slug = toSlug(input.slug || input.name)
-
-      if (!slug) {
-        return NextResponse.json(
-          fail('VALIDATION_ERROR', 'Team name must include letters or numbers'),
-          { status: 400 }
-        )
-      }
-
-      const team = await prisma.team.create({
-        data: {
-          organizationId: orgId,
-          name: input.name,
-          slug,
-          description: input.description || null,
-          teamType: input.teamType ?? null,
-        },
-      })
-
-      await audit({
-        organizationId: orgId,
-        userId:         userContext.userId,
-        userEmail:      userContext.email,
-        action:         'team.create',
-        resourceType:   'Team',
-        resourceId:     team.id,
-        resourceLabel:  team.name,
-        changes:        { name: team.name, slug },
-        ipAddress:      getIp(req),
-      })
-
-      return NextResponse.json(
-        ok({
-          ...team,
-          _count: { members: 0 }, // newly created team has no members yet
-        }),
-        { status: 201 }
-      )
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid team input', error.issues),
-        { status: 400 }
-      )
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code?: string }).code === 'P2002'
-    ) {
-      return NextResponse.json(
-        fail('CONFLICT', 'A team with this name/slug already exists'),
-        { status: 409 }
-      )
-    }
-    log.error({ err: error }, 'Failed to create team')
-    Sentry.captureException(error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to create team'),
-      { status: 500 }
-    )
-  }
-}
+  return NextResponse.json(
+    ok({
+      ...team,
+      _count: { members: 0 },
+    }),
+    { status: 201 }
+  )
+}, { permission: PERMISSIONS.TEAMS_CREATE, schema: CreateTeamSchema })

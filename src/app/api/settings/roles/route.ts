@@ -1,15 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail, isAuthError } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
+import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
 import { getCached, invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
-import { logger } from '@/lib/logger'
-import * as Sentry from '@sentry/nextjs'
 
 const CreateRoleSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -27,160 +23,91 @@ function toSlug(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
-export async function GET(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/roles', method: 'GET' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-
-    // Check permission to view roles
-    await assertCan(userContext.userId, PERMISSIONS.ROLES_READ)
-
-    return await runWithOrgContext(orgId, async () => {
-      const cacheKey = settingsCacheKey(orgId, 'roles')
-      const roles = await getCached(cacheKey, () =>
-        prisma.role.findMany({
-          where: { organizationId: orgId },
-          include: {
-            _count: {
-              select: {
-                permissions: true,
-                users: true,
-              },
-            },
+export const GET = withAuth(async ({ orgId }) => {
+  const cacheKey = settingsCacheKey(orgId, 'roles')
+  const roles = await getCached(cacheKey, () =>
+    prisma.role.findMany({
+      where: { organizationId: orgId },
+      include: {
+        _count: {
+          select: {
+            permissions: true,
+            users: true,
           },
-          orderBy: [
-            { isSystem: 'desc' },
-            { name: 'asc' },
-          ],
-        })
-      )
-
-      return NextResponse.json(ok(roles))
+        },
+      },
+      orderBy: [
+        { isSystem: 'desc' },
+        { name: 'asc' },
+      ],
     })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    log.error({ err: error }, 'Failed to fetch roles')
-    Sentry.captureException(error)
+  )
+
+  return NextResponse.json(ok(roles))
+}, { permission: PERMISSIONS.ROLES_READ })
+
+export const POST = withAuth<z.infer<typeof CreateRoleSchema>>(async ({ orgId, ctx, req, body }) => {
+  const slug = toSlug(body.slug || body.name)
+
+  if (!slug) {
     return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to fetch roles'),
-      { status: 500 }
+      fail('VALIDATION_ERROR', 'Role name must include letters or numbers'),
+      { status: 400 }
     )
   }
-}
 
-export async function POST(req: NextRequest) {
-  const log = logger.child({ route: '/api/settings/roles', method: 'POST' })
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    Sentry.setTag('org_id', orgId)
-    const body = await req.json()
-    const input = CreateRoleSchema.parse(body)
-
-    // Check permission to create roles
-    await assertCan(userContext.userId, PERMISSIONS.ROLES_CREATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const slug = toSlug(input.slug || input.name)
-
-      if (!slug) {
-        return NextResponse.json(
-          fail('VALIDATION_ERROR', 'Role name must include letters or numbers'),
-          { status: 400 }
-        )
-      }
-
-      const role = await prisma.role.create({
-        data: {
-          organizationId: orgId,
-          name: input.name,
-          slug,
-          isSystem: false,
+  const role = await prisma.role.create({
+    data: {
+      organizationId: orgId,
+      name: body.name,
+      slug,
+      isSystem: false,
+    },
+    include: {
+      _count: {
+        select: {
+          permissions: true,
+          users: true,
         },
-        include: {
-          _count: {
-            select: {
-              permissions: true,
-              users: true,
-            },
-          },
-        },
-      })
+      },
+    },
+  })
 
-      if (input.permissionIds && input.permissionIds.length > 0) {
-        const permissions = await prisma.permission.findMany({
-          where: { id: { in: input.permissionIds } },
-          select: { id: true },
-        })
-
-        if (permissions.length !== input.permissionIds.length) {
-          return NextResponse.json(
-            fail('VALIDATION_ERROR', 'One or more permissions are invalid'),
-            { status: 400 }
-          )
-        }
-
-        await prisma.rolePermission.createMany({
-          data: permissions.map((permission) => ({
-            roleId: role.id,
-            permissionId: permission.id,
-          })),
-          skipDuplicates: true,
-        })
-      }
-
-      invalidateSettingsCache(settingsCacheKey(orgId, 'roles'))
-
-      await audit({
-        organizationId: orgId,
-        userId:         userContext.userId,
-        userEmail:      userContext.email,
-        action:         'role.create',
-        resourceType:   'Role',
-        resourceId:     role.id,
-        resourceLabel:  role.name,
-        changes:        { name: input.name, slug, permissionCount: input.permissionIds?.length ?? 0 },
-        ipAddress:      getIp(req),
-      })
-
-      return NextResponse.json(ok(role), { status: 201 })
+  if (body.permissionIds && body.permissionIds.length > 0) {
+    const permissions = await prisma.permission.findMany({
+      where: { id: { in: body.permissionIds } },
+      select: { id: true },
     })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof z.ZodError) {
+
+    if (permissions.length !== body.permissionIds.length) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'Invalid role input', error.issues),
+        fail('VALIDATION_ERROR', 'One or more permissions are invalid'),
         { status: 400 }
       )
     }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code?: string }).code === 'P2002'
-    ) {
-      return NextResponse.json(
-        fail('CONFLICT', 'A role with this name/slug already exists'),
-        { status: 409 }
-      )
-    }
-    log.error({ err: error }, 'Failed to create role')
-    Sentry.captureException(error)
-    return NextResponse.json(
-      fail('INTERNAL_ERROR', 'Failed to create role'),
-      { status: 500 }
-    )
+
+    await prisma.rolePermission.createMany({
+      data: permissions.map((permission) => ({
+        roleId: role.id,
+        permissionId: permission.id,
+      })),
+      skipDuplicates: true,
+    })
   }
-}
+
+  invalidateSettingsCache(settingsCacheKey(orgId, 'roles'))
+
+  await audit({
+    organizationId: orgId,
+    userId:         ctx.userId,
+    userEmail:      ctx.email,
+    action:         'role.create',
+    resourceType:   'Role',
+    resourceId:     role.id,
+    resourceLabel:  role.name,
+    changes:        { name: body.name, slug, permissionCount: body.permissionIds?.length ?? 0 },
+    ipAddress:      getIp(req),
+  })
+
+  return NextResponse.json(ok(role), { status: 201 })
+}, { permission: PERMISSIONS.ROLES_CREATE, schema: CreateRoleSchema })

@@ -1,10 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
-import { getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
+import { withAuth } from '@/lib/api/with-auth'
 import { rawPrisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { uploadCampusImage, deleteCampusImage } from '@/lib/services/storageService'
 import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
@@ -41,110 +39,73 @@ async function updateEntityImages(entityType: string, entityId: string, images: 
 }
 
 /**
- * POST /api/settings/campus/images — Upload an image for a building, area, or room
+ * POST /api/settings/campus/images -- Upload an image for a building, area, or room
  */
-export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    const body = await req.json()
-    const input = UploadSchema.parse(body)
-
-    // Decode base64 and validate MIME type + size using shared utility
-    const fileBuffer = Buffer.from(input.fileBase64, 'base64')
-    const uploadCheck = validateFileUpload(
-      { type: input.contentType, size: fileBuffer.length, name: `${input.entityType}-image` },
-      { allowedTypes: ALLOWED_IMAGE_TYPES, maxSizeBytes: 5 * 1024 * 1024 }
-    )
-    if (!uploadCheck.valid) {
-      return NextResponse.json(fail('VALIDATION_ERROR', uploadCheck.error!), { status: 400 })
-    }
-
-    // Verify entity exists and belongs to org
-    const entity = await getEntity(input.entityType, input.entityId, orgId)
-    if (!entity) {
-      return NextResponse.json(fail('NOT_FOUND', `${input.entityType} not found`), { status: 404 })
-    }
-
-    // Check max images
-    const currentImages: string[] = Array.isArray(entity.images) ? entity.images : []
-    if (currentImages.length >= MAX_IMAGES) {
-      return NextResponse.json(fail('VALIDATION_ERROR', `Maximum ${MAX_IMAGES} images allowed`), { status: 400 })
-    }
-
-    // Upload to Supabase storage
-    const imageUrl = await uploadCampusImage(
-      orgId,
-      input.entityType,
-      input.entityId,
-      fileBuffer,
-      input.contentType
-    )
-
-    // Update entity images array
-    const updatedImages = [...currentImages, imageUrl]
-    await updateEntityImages(input.entityType, input.entityId, updatedImages)
-
-    return NextResponse.json(ok({ imageUrl, images: updatedImages }))
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('Image upload error:', error instanceof Error ? error.message : error, error)
-    const msg = error instanceof Error ? error.message : 'Failed to upload image'
-    return NextResponse.json(fail('INTERNAL_ERROR', msg), { status: 500 })
+export const POST = withAuth<z.infer<typeof UploadSchema>>(async ({ orgId, body }) => {
+  // Decode base64 and validate MIME type + size using shared utility
+  const fileBuffer = Buffer.from(body.fileBase64, 'base64')
+  const uploadCheck = validateFileUpload(
+    { type: body.contentType, size: fileBuffer.length, name: `${body.entityType}-image` },
+    { allowedTypes: ALLOWED_IMAGE_TYPES, maxSizeBytes: 5 * 1024 * 1024 }
+  )
+  if (!uploadCheck.valid) {
+    return NextResponse.json(fail('VALIDATION_ERROR', uploadCheck.error!), { status: 400 })
   }
-}
+
+  // Verify entity exists and belongs to org
+  const entity = await getEntity(body.entityType, body.entityId, orgId)
+  if (!entity) {
+    return NextResponse.json(fail('NOT_FOUND', `${body.entityType} not found`), { status: 404 })
+  }
+
+  // Check max images
+  const currentImages: string[] = Array.isArray(entity.images) ? entity.images : []
+  if (currentImages.length >= MAX_IMAGES) {
+    return NextResponse.json(fail('VALIDATION_ERROR', `Maximum ${MAX_IMAGES} images allowed`), { status: 400 })
+  }
+
+  // Upload to Supabase storage
+  const imageUrl = await uploadCampusImage(
+    orgId,
+    body.entityType,
+    body.entityId,
+    fileBuffer,
+    body.contentType
+  )
+
+  // Update entity images array
+  const updatedImages = [...currentImages, imageUrl]
+  await updateEntityImages(body.entityType, body.entityId, updatedImages)
+
+  return NextResponse.json(ok({ imageUrl, images: updatedImages }))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UploadSchema })
 
 /**
- * DELETE /api/settings/campus/images — Remove an image from a building, area, or room
+ * DELETE /api/settings/campus/images -- Remove an image from a building, area, or room
  */
-export async function DELETE(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const ctx = await getUserContext(req)
-    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    const body = await req.json()
-    const input = DeleteSchema.parse(body)
-
-    // Verify entity exists and belongs to org
-    const entity = await getEntity(input.entityType, input.entityId, orgId)
-    if (!entity) {
-      return NextResponse.json(fail('NOT_FOUND', `${input.entityType} not found`), { status: 404 })
-    }
-
-    const currentImages: string[] = Array.isArray(entity.images) ? entity.images : []
-    if (!currentImages.includes(input.imageUrl)) {
-      return NextResponse.json(fail('NOT_FOUND', 'Image not found on this entity'), { status: 404 })
-    }
-
-    // Delete from Supabase storage
-    try {
-      await deleteCampusImage(input.imageUrl)
-    } catch {
-      // Log but don't fail — the image might already be deleted from storage
-      console.warn('Failed to delete image from storage, continuing with DB update')
-    }
-
-    // Update entity images array
-    const updatedImages = currentImages.filter((url) => url !== input.imageUrl)
-    await updateEntityImages(input.entityType, input.entityId, updatedImages)
-
-    return NextResponse.json(ok({ images: updatedImages }))
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('Image delete error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete image'), { status: 500 })
+export const DELETE = withAuth<z.infer<typeof DeleteSchema>>(async ({ orgId, body }) => {
+  // Verify entity exists and belongs to org
+  const entity = await getEntity(body.entityType, body.entityId, orgId)
+  if (!entity) {
+    return NextResponse.json(fail('NOT_FOUND', `${body.entityType} not found`), { status: 404 })
   }
-}
+
+  const currentImages: string[] = Array.isArray(entity.images) ? entity.images : []
+  if (!currentImages.includes(body.imageUrl)) {
+    return NextResponse.json(fail('NOT_FOUND', 'Image not found on this entity'), { status: 404 })
+  }
+
+  // Delete from Supabase storage
+  try {
+    await deleteCampusImage(body.imageUrl)
+  } catch {
+    // Log but don't fail -- the image might already be deleted from storage
+    console.warn('Failed to delete image from storage, continuing with DB update')
+  }
+
+  // Update entity images array
+  const updatedImages = currentImages.filter((url) => url !== body.imageUrl)
+  await updateEntityImages(body.entityType, body.entityId, updatedImages)
+
+  return NextResponse.json(ok({ images: updatedImages }))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: DeleteSchema })

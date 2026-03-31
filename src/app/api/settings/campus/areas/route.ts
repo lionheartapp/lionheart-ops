@@ -1,10 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
 import { prisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
+import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 
 const CreateAreaSchema = z.object({
@@ -22,110 +20,72 @@ const CreateAreaSchema = z.object({
   isActive: z.boolean().optional(),
 })
 
-export async function GET(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
+export const GET = withAuth(async ({ orgId, searchParams }) => {
+  const includeInactive = searchParams.get('includeInactive') === 'true'
+  const buildingId = searchParams.get('buildingId') || undefined
+  const campusId = searchParams.get('campusId') || undefined
+  const db = prisma as any
 
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_READ)
+  const areas = await db.area.findMany({
+    where: {
+      organizationId: orgId,
+      ...(includeInactive ? {} : { isActive: true }),
+      ...(buildingId ? { buildingId } : {}),
+      ...(campusId ? { campusId } : {}),
+    },
+    include: {
+      building: {
+        select: { id: true, name: true, code: true },
+      },
+      campus: { select: { id: true, name: true, campusType: true } },
+    },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+  })
 
-    return await runWithOrgContext(orgId, async () => {
-      const searchParams = new URL(req.url).searchParams
-      const includeInactive = searchParams.get('includeInactive') === 'true'
-      const buildingId = searchParams.get('buildingId') || undefined
-      const campusId = searchParams.get('campusId') || undefined
-      const db = prisma as any
+  return NextResponse.json(ok(areas))
+}, { permission: PERMISSIONS.SETTINGS_READ })
 
-      const areas = await db.area.findMany({
-        where: {
-          organizationId: orgId,
-          ...(includeInactive ? {} : { isActive: true }),
-          ...(buildingId ? { buildingId } : {}),
-          ...(campusId ? { campusId } : {}),
-        },
-        include: {
-          building: {
-            select: { id: true, name: true, code: true },
-          },
-          campus: { select: { id: true, name: true, campusType: true } },
-        },
-        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      })
+export const POST = withAuth<z.infer<typeof CreateAreaSchema>>(async ({ orgId, body: input }) => {
+  const db = prisma as any
 
-      return NextResponse.json(ok(areas))
+  if (input.buildingId) {
+    const building = await db.building.findFirst({
+      where: { id: input.buildingId, organizationId: orgId },
+      select: { id: true },
     })
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    if (!building) {
+      return NextResponse.json(fail('BAD_REQUEST', 'Invalid buildingId for this organization'), { status: 400 })
     }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch areas'), { status: 500 })
   }
-}
 
-export async function POST(req: NextRequest) {
-  try {
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
-    const body = await req.json()
-
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
-
-    return await runWithOrgContext(orgId, async () => {
-      const input = CreateAreaSchema.parse(body)
-      const db = prisma as any
-
-      if (input.buildingId) {
-        const building = await db.building.findFirst({
-          where: { id: input.buildingId, organizationId: orgId },
-          select: { id: true },
-        })
-        if (!building) {
-          return NextResponse.json(fail('BAD_REQUEST', 'Invalid buildingId for this organization'), { status: 400 })
-        }
-      }
-
-      // Validate campus exists
-      const campus = await db.campus.findFirst({
-        where: { id: input.campusId, organizationId: orgId, deletedAt: null },
-        select: { id: true },
-      })
-      if (!campus) {
-        return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
-      }
-
-      const area = await db.area.create({
-        data: {
-          organizationId: orgId,
-          campusId: input.campusId,
-          name: input.name,
-          areaType: input.areaType || 'OTHER',
-          buildingId: input.buildingId || null,
-          latitude: input.latitude ?? null,
-          longitude: input.longitude ?? null,
-          polygonCoordinates: input.polygonCoordinates ?? null,
-          sortOrder: input.sortOrder ?? 0,
-          isActive: input.isActive ?? true,
-        },
-        include: {
-          building: {
-            select: { id: true, name: true, code: true },
-          },
-        },
-      })
-
-      return NextResponse.json(ok(area), { status: 201 })
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'P2002') {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'An area with that name already exists'), { status: 409 })
-    }
-    console.error('Area create error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create area'), { status: 500 })
+  // Validate campus exists
+  const campus = await db.campus.findFirst({
+    where: { id: input.campusId, organizationId: orgId, deletedAt: null },
+    select: { id: true },
+  })
+  if (!campus) {
+    return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
   }
-}
+
+  const area = await db.area.create({
+    data: {
+      organizationId: orgId,
+      campusId: input.campusId,
+      name: input.name,
+      areaType: input.areaType || 'OTHER',
+      buildingId: input.buildingId || null,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
+      polygonCoordinates: input.polygonCoordinates ?? null,
+      sortOrder: input.sortOrder ?? 0,
+      isActive: input.isActive ?? true,
+    },
+    include: {
+      building: {
+        select: { id: true, name: true, code: true },
+      },
+    },
+  })
+
+  return NextResponse.json(ok(area), { status: 201 })
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateAreaSchema })

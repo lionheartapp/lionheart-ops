@@ -1,15 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { ok, fail, isAuthError } from '@/lib/api-response'
-import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
-import { getUserContext } from '@/lib/request-context'
+import { NextResponse } from 'next/server'
+import { ok, fail } from '@/lib/api-response'
+import { withAuth } from '@/lib/api/with-auth'
 import { rawPrisma } from '@/lib/db'
-import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { buildingOutlineService } from '@/lib/services/ai/building-outline.service'
 
-type RouteParams = { params: Promise<{ id: string }> }
-
-/* ── Tile math (Web Mercator) ─────────────────────────────────────── */
+/* -- Tile math (Web Mercator) ------------------------------------------- */
 
 function latlngToTile(lat: number, lng: number, zoom: number) {
   const n = Math.pow(2, zoom)
@@ -21,7 +17,7 @@ function latlngToTile(lat: number, lng: number, zoom: number) {
 
 /**
  * Fetch a satellite image centered around the given coordinates.
- * Uses a single center tile (256×256) for AI analysis.
+ * Uses a single center tile (256x256) for AI analysis.
  */
 async function captureSatelliteTiles(lat: number, lng: number, zoom: number): Promise<string | null> {
   try {
@@ -53,7 +49,7 @@ async function captureSatelliteTiles(lat: number, lng: number, zoom: number): Pr
 }
 
 /**
- * Convert pixel coordinates (within a 256×256 tile) to lat/lng.
+ * Convert pixel coordinates (within a 256x256 tile) to lat/lng.
  */
 function pixelCoordsToLatLng(
   pixels: Array<{ x: number; y: number }>,
@@ -77,75 +73,56 @@ function pixelCoordsToLatLng(
   })
 }
 
-/* ── Route handler ────────────────────────────────────────────────── */
+/* -- Route handler ------------------------------------------------------ */
 
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params
-    const orgId = getOrgIdFromRequest(req)
-    const userContext = await getUserContext(req)
+export const POST = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
+  const db = rawPrisma as any
 
-    await assertCan(userContext.userId, PERMISSIONS.SETTINGS_UPDATE)
+  const building = await db.building.findFirst({
+    where: { id: params.id, organizationId: orgId },
+    select: { id: true, name: true, latitude: true, longitude: true },
+  })
 
-    return await runWithOrgContext(orgId, async () => {
-      const db = rawPrisma as any
-
-      const building = await db.building.findFirst({
-        where: { id, organizationId: orgId },
-        select: { id: true, name: true, latitude: true, longitude: true },
-      })
-
-      if (!building) {
-        return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
-      }
-
-      if (!building.latitude || !building.longitude) {
-        return NextResponse.json(
-          fail('VALIDATION_ERROR', 'Building must have coordinates. Place it on the map first.'),
-          { status: 400 }
-        )
-      }
-
-      // Fetch satellite tile — try zoom 19 first (good detail + reliable coverage),
-      // fall back to zoom 18 if 19 fails
-      let zoom = 19
-      let imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
-      if (!imageBase64) {
-        console.log('[DETECT_OUTLINE] Zoom 19 failed, retrying with zoom 18')
-        zoom = 18
-        imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
-      }
-
-      if (!imageBase64) {
-        return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch satellite imagery'), { status: 500 })
-      }
-      const pixelCoords = await buildingOutlineService.detectBuildingOutline(
-        imageBase64,
-        building.name,
-        256, // tile is 256×256
-        256
-      )
-
-      if (!pixelCoords || pixelCoords.length < 3) {
-        return NextResponse.json(
-          fail('DETECTION_FAILED', 'Could not detect the building outline. Try adjusting the building position or draw the outline manually.'),
-          { status: 422 }
-        )
-      }
-
-      // Convert pixel coordinates to lat/lng
-      const latLngCoords = pixelCoordsToLatLng(pixelCoords, building.latitude, building.longitude, zoom)
-
-      return NextResponse.json(ok({ coordinates: latLngCoords }))
-    })
-  } catch (error) {
-    if (isAuthError(error)) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
-    }
-    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
-    }
-    console.error('[DETECT_OUTLINE] Error:', error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to detect building outline'), { status: 500 })
+  if (!building) {
+    return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
   }
-}
+
+  if (!building.latitude || !building.longitude) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'Building must have coordinates. Place it on the map first.'),
+      { status: 400 }
+    )
+  }
+
+  // Fetch satellite tile -- try zoom 19 first (good detail + reliable coverage),
+  // fall back to zoom 18 if 19 fails
+  let zoom = 19
+  let imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
+  if (!imageBase64) {
+    console.log('[DETECT_OUTLINE] Zoom 19 failed, retrying with zoom 18')
+    zoom = 18
+    imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
+  }
+
+  if (!imageBase64) {
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch satellite imagery'), { status: 500 })
+  }
+  const pixelCoords = await buildingOutlineService.detectBuildingOutline(
+    imageBase64,
+    building.name,
+    256, // tile is 256x256
+    256
+  )
+
+  if (!pixelCoords || pixelCoords.length < 3) {
+    return NextResponse.json(
+      fail('DETECTION_FAILED', 'Could not detect the building outline. Try adjusting the building position or draw the outline manually.'),
+      { status: 422 }
+    )
+  }
+
+  // Convert pixel coordinates to lat/lng
+  const latLngCoords = pixelCoordsToLatLng(pixelCoords, building.latitude, building.longitude, zoom)
+
+  return NextResponse.json(ok({ coordinates: latLngCoords }))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE })
