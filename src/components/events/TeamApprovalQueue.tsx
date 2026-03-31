@@ -10,6 +10,9 @@ import {
   PartyPopper,
   Loader2,
   AlertCircle,
+  Monitor,
+  Wrench,
+  StickyNote,
 } from 'lucide-react'
 import { usePendingGateApprovals, useApproveGate, useRejectGate, type EventProject } from '@/lib/hooks/useEventProject'
 import { staggerContainer, cardEntrance, fadeInUp } from '@/lib/animations'
@@ -28,6 +31,108 @@ const GATE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: stri
   APPROVED: { label: 'Approved', bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-400' },
   REJECTED: { label: 'Rejected', bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-400' },
   SKIPPED: { label: 'Skipped', bg: 'bg-slate-50', text: 'text-slate-500', dot: 'bg-slate-300' },
+}
+
+// ─── Resource Requirements ───────────────────────────────────────────────────
+
+function ResourceRequirements({
+  project,
+  gateType,
+}: {
+  project: EventProject
+  gateType: 'av' | 'facilities' | 'admin'
+}) {
+  const meta = (project.metadata ?? {}) as Record<string, unknown>
+
+  // Determine which requirements to show based on the gate type
+  const isAV = gateType === 'av'
+  const isFacilities = gateType === 'facilities'
+  const isAdmin = gateType === 'admin'
+
+  const avNeeds = (meta.avNeeds ?? []) as string[]
+  const avNotes = (meta.avNotes ?? '') as string
+  const facilityNeeds = (meta.facilityNeeds ?? []) as string[]
+  const facilityNotes = (meta.facilityNotes ?? '') as string
+
+  const hasAV = project.requiresAV && (avNeeds.length > 0 || avNotes)
+  const hasFacilities = project.requiresFacilities && (facilityNeeds.length > 0 || facilityNotes)
+
+  // For AV gate, show AV requirements; for facilities gate, show facilities; admin sees both
+  const showAV = hasAV && (isAV || isAdmin)
+  const showFacilities = hasFacilities && (isFacilities || isAdmin)
+
+  if (!showAV && !showFacilities) {
+    // If the gate exists but no specific needs were listed, show a simple indicator
+    if ((isAV && project.requiresAV) || (isFacilities && project.requiresFacilities)) {
+      return (
+        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl mb-3">
+          {isAV ? <Monitor className="w-3.5 h-3.5 text-blue-500" /> : <Wrench className="w-3.5 h-3.5 text-amber-500" />}
+          <span className="text-xs text-slate-600">
+            {isAV ? 'A/V support' : 'Facilities support'} requested — no specific details provided
+          </span>
+        </div>
+      )
+    }
+    return null
+  }
+
+  return (
+    <div className="space-y-2 mb-3">
+      {showAV && (
+        <div className="bg-blue-50/70 border border-blue-100 rounded-xl px-3.5 py-3 space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Monitor className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-xs font-semibold text-blue-800">A/V Requirements</span>
+          </div>
+          {avNeeds.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {avNeeds.map((need) => (
+                <span
+                  key={need}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium"
+                >
+                  {need}
+                </span>
+              ))}
+            </div>
+          )}
+          {avNotes && (
+            <div className="flex items-start gap-1.5">
+              <StickyNote className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-blue-700 leading-relaxed">{avNotes}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {showFacilities && (
+        <div className="bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-3 space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Wrench className="w-3.5 h-3.5 text-amber-600" />
+            <span className="text-xs font-semibold text-amber-800">Facilities Requirements</span>
+          </div>
+          {facilityNeeds.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {facilityNeeds.map((need) => (
+                <span
+                  key={need}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium"
+                >
+                  {need}
+                </span>
+              ))}
+            </div>
+          )}
+          {facilityNotes && (
+            <div className="flex items-start gap-1.5">
+              <StickyNote className="w-3 h-3 text-amber-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 leading-relaxed">{facilityNotes}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ─── Approval Card ───────────────────────────────────────────────────────────
@@ -117,6 +222,9 @@ function ApprovalCard({
           })}
         </div>
       )}
+
+      {/* Resource requirements — show what the team needs to review */}
+      <ResourceRequirements project={project} gateType={gateType} />
 
       {/* Action buttons */}
       {!showRejectForm ? (

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users, Calendar } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users, Calendar, CalendarDays, RefreshCw, Copy } from 'lucide-react'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
 import CalendarFilterPopover, { type CalendarFilter } from './CalendarFilterPopover'
@@ -33,6 +33,10 @@ interface CalendarToolbarProps {
   onToday: () => void
   onCreateEvent: () => void
   onPlanEvent?: () => void
+  onCreateSingleEvent?: () => void
+  onCreateMultiDayEvent?: () => void
+  onCreateRecurringEvent?: () => void
+  onCreateFromTemplate?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
   categories: CategoryChip[]
@@ -97,6 +101,10 @@ export default function CalendarToolbar({
   onToday,
   onCreateEvent,
   onPlanEvent,
+  onCreateSingleEvent,
+  onCreateMultiDayEvent,
+  onCreateRecurringEvent,
+  onCreateFromTemplate,
   searchQuery,
   onSearchChange,
   categories,
@@ -248,18 +256,26 @@ export default function CalendarToolbar({
 
                     <div className="h-px bg-slate-100 mx-3 my-1" />
                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-3 py-1.5">School Events</p>
-                    <button
-                      onClick={() => { onPlanEvent?.(); setCreateDropdownOpen(false) }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
-                        <Calendar className="w-3.5 h-3.5 text-primary-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">Plan Event</p>
-                        <p className="text-xs text-slate-500">Formal — AV, facilities &amp; approval</p>
-                      </div>
-                    </button>
+                    {([
+                      { label: 'Single Event', desc: 'One-time event on a specific date', icon: Calendar, action: onCreateSingleEvent ?? onPlanEvent },
+                      { label: 'Recurring Event', desc: 'Repeats on a schedule', icon: RefreshCw, action: onCreateRecurringEvent },
+                      { label: 'Multi-day Event', desc: 'Spans across multiple days', icon: CalendarDays, action: onCreateMultiDayEvent },
+                      { label: 'From Template', desc: 'Start from a saved template', icon: Copy, action: onCreateFromTemplate },
+                    ] as const).map((opt) => opt.action ? (
+                      <button
+                        key={opt.label}
+                        onClick={() => { opt.action!(); setCreateDropdownOpen(false) }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left group"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-indigo-50 flex items-center justify-center flex-shrink-0 transition-colors">
+                          <opt.icon className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{opt.label}</p>
+                          <p className="text-xs text-slate-500">{opt.desc}</p>
+                        </div>
+                      </button>
+                    ) : null)}
                   </div>
                 </motion.div>
               )}

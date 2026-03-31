@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, differenceInDays } from 'date-fns'
 import {
@@ -11,22 +11,23 @@ import {
   Clock,
   FileText,
   Layers,
-  Sparkles,
-  AlertTriangle,
-  ChevronRight,
-  RefreshCw,
-  Loader2,
-  ThumbsUp,
-  ThumbsDown,
-  Minus,
-  BookmarkPlus,
   Check,
+  Loader2,
+  Pencil,
+  X,
+  Save,
 } from 'lucide-react'
 import { fadeInUp, staggerContainer, listItem } from '@/lib/animations'
 import { EventActivityLog } from './EventActivityLog'
 import { SaveAsTemplateDialog } from './templates/SaveAsTemplateDialog'
+import { useUpdateEventProject } from '@/lib/hooks/useEventProject'
+import { useToast } from '@/components/Toast'
+import { AIStatusSection } from './overview/AIStatusSection'
+import { FeedbackAnalysisSection } from './overview/FeedbackAnalysisSection'
+import { ApprovalGatesBar, type ApprovalGates } from './overview/ApprovalGatesBar'
+import { ConflictBanner } from './overview/ConflictBanner'
+import { ResourceRequirementsSection } from './overview/ResourceRequirementsSection'
 import type { EventProject } from '@/lib/hooks/useEventProject'
-import type { AIStatusSummary, AIFeedbackAnalysis } from '@/lib/types/event-ai'
 
 // ─── Stat card ───────────────────────────────────────────────────────────────
 
@@ -115,305 +116,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
   )
 }
 
-// ─── AI Status Summary section ───────────────────────────────────────────────
-
-interface AIStatusSectionProps {
-  eventProjectId: string
-  initialCompletionPercent?: number
-}
-
-function AIStatusSection({ eventProjectId, initialCompletionPercent = 0 }: AIStatusSectionProps) {
-  const [summary, setSummary] = useState<(AIStatusSummary & { aiGenerated: boolean }) | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  async function fetchSummary() {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/events/ai/generate-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventProjectId }),
-      })
-      const json = (await res.json()) as { ok: boolean; data?: AIStatusSummary & { aiGenerated: boolean }; error?: { message: string } }
-      if (json.ok && json.data) {
-        setSummary(json.data)
-      } else if (res.status === 503) {
-        setError('AI summary requires GEMINI_API_KEY to be configured')
-      } else {
-        setError(json.error?.message ?? 'Failed to generate summary')
-      }
-    } catch {
-      setError('Network error — please try again')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Auto-fetch on mount (two-phase pattern: first load comes quickly)
-  useEffect(() => {
-    void fetchSummary()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventProjectId])
-
-  const completionPercent = summary?.completionPercent ?? initialCompletionPercent
-
-  return (
-    <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-500" />
-          AI Status Summary
-        </h3>
-        <button
-          onClick={() => { void fetchSummary() }}
-          disabled={loading}
-          className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer disabled:opacity-50"
-        >
-          {loading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <RefreshCw className="w-3.5 h-3.5" />
-          )}
-          Refresh
-        </button>
-      </div>
-
-      {/* Completion progress bar */}
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-slate-500">Overall completion</span>
-          <span className="text-xs font-semibold text-slate-800">{completionPercent}%</span>
-        </div>
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{
-              width: `${completionPercent}%`,
-              background: 'linear-gradient(90deg, #3B82F6 0%, #6366F1 100%)',
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Loading skeleton */}
-      {loading && !summary && (
-        <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-slate-100 rounded-lg w-3/4" />
-          <div className="h-4 bg-slate-100 rounded-lg w-full" />
-          <div className="h-4 bg-slate-100 rounded-lg w-5/6" />
-        </div>
-      )}
-
-      {/* Error */}
-      {error && !loading && (
-        <p className="text-xs text-slate-400 italic">{error}</p>
-      )}
-
-      {/* AI summary content */}
-      {summary && summary.aiGenerated && (
-        <>
-          {/* Natural language summary */}
-          {summary.summary && (
-            <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/80 rounded-xl p-4 border border-indigo-100/50">
-              <p className="text-sm text-slate-700 leading-relaxed">{summary.summary}</p>
-            </div>
-          )}
-
-          {/* At Risk items */}
-          {summary.atRisk.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                At Risk
-              </p>
-              <div className="space-y-1">
-                {summary.atRisk.map((item, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-amber-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Next steps */}
-          {summary.nextSteps.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-700">Next Steps</p>
-              <ol className="space-y-1">
-                {summary.nextSteps.map((step, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
-                    <ChevronRight className="w-3.5 h-3.5 text-indigo-400 mt-0.5 flex-shrink-0" />
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-        </>
-      )}
-    </motion.div>
-  )
-}
-
-// ─── Feedback Analysis section ────────────────────────────────────────────────
-
-interface FeedbackAnalysisSectionProps {
-  eventProjectId: string
-}
-
-function FeedbackAnalysisSection({ eventProjectId }: FeedbackAnalysisSectionProps) {
-  const [analysis, setAnalysis] = useState<(AIFeedbackAnalysis & { responseCount: number }) | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [fetched, setFetched] = useState(false)
-
-  async function fetchAnalysis() {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/events/ai/analyze-feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventProjectId }),
-      })
-      const json = (await res.json()) as { ok: boolean; data?: AIFeedbackAnalysis & { responseCount: number }; error?: { message: string } }
-      setFetched(true)
-      if (json.ok && json.data) {
-        setAnalysis(json.data)
-      } else {
-        setError(json.error?.message ?? 'Failed to analyze feedback')
-      }
-    } catch {
-      setError('Network error — please try again')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const sentimentConfig: Record<string, { icon: React.ReactNode; badge: string }> = {
-    positive: { icon: <ThumbsUp className="w-3 h-3" />, badge: 'bg-green-100 text-green-700' },
-    negative: { icon: <ThumbsDown className="w-3 h-3" />, badge: 'bg-red-100 text-red-700' },
-    neutral: { icon: <Minus className="w-3 h-3" />, badge: 'bg-slate-100 text-slate-600' },
-    mixed: { icon: <Minus className="w-3 h-3" />, badge: 'bg-yellow-100 text-yellow-700' },
-  }
-
-  return (
-    <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-500" />
-          Post-Event Feedback Analysis
-        </h3>
-        <button
-          onClick={() => { void fetchAnalysis() }}
-          disabled={loading}
-          className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer disabled:opacity-50"
-        >
-          {loading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : fetched ? (
-            <RefreshCw className="w-3.5 h-3.5" />
-          ) : (
-            <Sparkles className="w-3.5 h-3.5" />
-          )}
-          {loading ? 'Analyzing...' : fetched ? 'Refresh Analysis' : 'Run Analysis'}
-        </button>
-      </div>
-
-      {!fetched && !loading && (
-        <p className="text-sm text-slate-400 text-center py-6">
-          Click &quot;Run Analysis&quot; to analyze survey feedback with AI
-        </p>
-      )}
-
-      {loading && (
-        <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-slate-100 rounded-lg w-3/4" />
-          <div className="h-4 bg-slate-100 rounded-lg w-full" />
-          <div className="grid grid-cols-2 gap-2">
-            <div className="h-16 bg-slate-100 rounded-xl" />
-            <div className="h-16 bg-slate-100 rounded-xl" />
-          </div>
-        </div>
-      )}
-
-      {error && !loading && (
-        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          {error}
-        </p>
-      )}
-
-      {analysis && !loading && (
-        <>
-          <p className="text-xs text-slate-500">
-            Based on{' '}
-            <span className="font-semibold text-slate-700">{analysis.responseCount}</span>{' '}
-            survey response{analysis.responseCount === 1 ? '' : 's'}
-          </p>
-
-          {/* Summary paragraph */}
-          {analysis.summary && (
-            <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/80 rounded-xl p-4 border border-indigo-100/50">
-              <p className="text-sm text-slate-700 leading-relaxed">{analysis.summary}</p>
-            </div>
-          )}
-
-          {/* Theme cards */}
-          {analysis.themes.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-slate-700 mb-2">Key Themes</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {analysis.themes.map((theme, i) => {
-                  const config = sentimentConfig[theme.sentiment] ?? sentimentConfig.neutral
-                  return (
-                    <div key={i} className="bg-white border border-slate-100 rounded-xl p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-slate-800 truncate pr-2">
-                          {theme.theme}
-                        </span>
-                        <span
-                          className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${config.badge}`}
-                        >
-                          {config.icon}
-                          {theme.sentiment}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400">{theme.count} mentions</p>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Action items */}
-          {analysis.actionItems.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-700">Action Items for Next Time</p>
-              <div className="space-y-1.5">
-                {analysis.actionItems.map((item, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs text-slate-700">
-                    <div className="w-5 h-5 rounded flex items-center justify-center bg-indigo-50 border border-indigo-100 flex-shrink-0 mt-0.5">
-                      <span className="text-[10px] font-bold text-indigo-500">{i + 1}</span>
-                    </div>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
-    </motion.div>
-  )
-}
-
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Main Component ─────────────────────────────────────────────────────────
 
 interface EventOverviewTabProps {
   project: EventProject
@@ -421,6 +124,59 @@ interface EventOverviewTabProps {
 
 export function EventOverviewTab({ project }: EventOverviewTabProps) {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const { toast } = useToast()
+  const updateProject = useUpdateEventProject(project.id)
+
+  // ── Editable fields state ──
+  const [editTitle, setEditTitle] = useState(project.title)
+  const [editDescription, setEditDescription] = useState(project.description || '')
+  const [editStartsAt, setEditStartsAt] = useState(format(new Date(project.startsAt), 'yyyy-MM-dd'))
+  const [editStartTime, setEditStartTime] = useState(format(new Date(project.startsAt), 'HH:mm'))
+  const [editEndsAt, setEditEndsAt] = useState(format(new Date(project.endsAt), 'yyyy-MM-dd'))
+  const [editEndTime, setEditEndTime] = useState(format(new Date(project.endsAt), 'HH:mm'))
+  const [editAttendance, setEditAttendance] = useState(project.expectedAttendance?.toString() || '')
+
+  function startEditing() {
+    setEditTitle(project.title)
+    setEditDescription(project.description || '')
+    setEditStartsAt(format(new Date(project.startsAt), 'yyyy-MM-dd'))
+    setEditStartTime(format(new Date(project.startsAt), 'HH:mm'))
+    setEditEndsAt(format(new Date(project.endsAt), 'yyyy-MM-dd'))
+    setEditEndTime(format(new Date(project.endsAt), 'HH:mm'))
+    setEditAttendance(project.expectedAttendance?.toString() || '')
+    setIsEditing(true)
+  }
+
+  function cancelEditing() {
+    setIsEditing(false)
+  }
+
+  async function saveEdits() {
+    if (!editTitle.trim()) {
+      toast('Title is required', 'error')
+      return
+    }
+
+    const startDateTime = `${editStartsAt}T${editStartTime || '00:00'}:00`
+    const endDateTime = project.isMultiDay
+      ? `${editEndsAt}T23:59:59`
+      : `${editStartsAt}T${editEndTime || '23:59'}:59`
+
+    try {
+      await updateProject.mutateAsync({
+        title: editTitle.trim(),
+        description: editDescription.trim() || null,
+        startsAt: new Date(startDateTime),
+        endsAt: new Date(endDateTime),
+        expectedAttendance: editAttendance ? parseInt(editAttendance, 10) : null,
+      })
+      toast('Event updated', 'success')
+      setIsEditing(false)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to update', 'error')
+    }
+  }
 
   const startsAt = new Date(project.startsAt)
   const endsAt = new Date(project.endsAt)
@@ -439,7 +195,6 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
   const initialCompletionPercent =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
   const isCompleted = project.status === 'COMPLETED'
-  const canSaveAsTemplate = ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(project.status)
 
   return (
     <>
@@ -449,68 +204,241 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       animate="visible"
       className="space-y-6"
     >
-      {/* Event Details — moved above stats for context-first reading */}
+      {/* Approval Gates — shown when event is pending approval */}
+      {project.approvalGates && (project.status === 'PENDING_APPROVAL' || project.status === 'DRAFT') && (
+        <ApprovalGatesBar gates={project.approvalGates as unknown as ApprovalGates} />
+      )}
+
+      {/* Conflict warnings — shown when conflicts detected */}
+      {(project.metadata as any)?.conflictReport?.conflicts?.length > 0 && (
+        <ConflictBanner
+          conflicts={(project.metadata as any).conflictReport.conflicts}
+          checkedAt={(project.metadata as any).conflictCheckedAt}
+        />
+      )}
+
+      {/* Resource Requirements — A/V and Facilities needs */}
+      <ResourceRequirementsSection project={project} />
+
+      {/* Event Details — inline editable */}
       <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-slate-400" />
-          Event Details
-        </h3>
-
-        {project.description && (
-          <p className="text-sm text-slate-700 leading-relaxed">{project.description}</p>
-        )}
-
-        <div className="space-y-2.5">
-          {/* Dates */}
-          <div className="flex items-start gap-3">
-            <CalendarDays className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm text-slate-900">
-                {format(startsAt, 'EEEE, MMMM d, yyyy')}
-                {project.isMultiDay && ` – ${format(endsAt, 'EEEE, MMMM d, yyyy')}`}
-              </p>
-              {!project.isMultiDay && (
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {format(startsAt, 'h:mm a')} – {format(endsAt, 'h:mm a')}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Location */}
-          {(project.locationText || project.building) && (
-            <div className="flex items-start gap-3">
-              <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-              <div>
-                {project.locationText && (
-                  <p className="text-sm text-slate-900">{project.locationText}</p>
-                )}
-                {project.building && (
-                  <p className="text-xs text-slate-500">
-                    {project.building.name}
-                    {project.area && ` · ${project.area.name}`}
-                    {project.room && ` · ${project.room.displayName || project.room.roomNumber || 'Room'}`}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Created by */}
-          {project.createdBy && (
-            <div className="flex items-center gap-3">
-              <Users className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <p className="text-sm text-slate-700">
-                Created by{' '}
-                <span className="font-medium text-slate-900">
-                  {project.createdBy.firstName
-                    ? `${project.createdBy.firstName} ${project.createdBy.lastName || ''}`.trim()
-                    : project.createdBy.email}
-                </span>
-              </p>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-slate-400" />
+            Event Details
+          </h3>
+          {!isEditing ? (
+            <button
+              type="button"
+              onClick={startEditing}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={saveEdits}
+                disabled={updateProject.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
+              >
+                {updateProject.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+                Cancel
+              </button>
             </div>
           )}
         </div>
+
+        {isEditing ? (
+          /* ── Edit Mode ── */
+          <div className="space-y-4">
+            {/* Title */}
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Title</label>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={3}
+                placeholder="Brief overview of this event..."
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
+              />
+            </div>
+
+            {/* Dates */}
+            {project.isMultiDay ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={editStartsAt}
+                    onChange={(e) => setEditStartsAt(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={editEndsAt}
+                    onChange={(e) => setEditEndsAt(e.target.value)}
+                    min={editStartsAt}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={editStartsAt}
+                    onChange={(e) => { setEditStartsAt(e.target.value); setEditEndsAt(e.target.value) }}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Start Time</label>
+                    <input
+                      type="time"
+                      value={editStartTime}
+                      onChange={(e) => setEditStartTime(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">End Time</label>
+                    <input
+                      type="time"
+                      value={editEndTime}
+                      onChange={(e) => setEditEndTime(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Expected Attendance */}
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Expected Attendance</label>
+              <input
+                type="number"
+                min="1"
+                value={editAttendance}
+                onChange={(e) => setEditAttendance(e.target.value)}
+                placeholder="e.g. 120"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
+              />
+            </div>
+          </div>
+        ) : (
+          /* ── Read Mode ── */
+          <>
+            {project.description && (
+              <p className="text-sm text-slate-700 leading-relaxed">{project.description}</p>
+            )}
+
+            <div className="space-y-2.5">
+              {/* Dates */}
+              <div className="flex items-start gap-3">
+                <CalendarDays className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm text-slate-900">
+                    {format(startsAt, 'EEEE, MMMM d, yyyy')}
+                    {project.isMultiDay && ` – ${format(endsAt, 'EEEE, MMMM d, yyyy')}`}
+                  </p>
+                  {!project.isMultiDay && (
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {format(startsAt, 'h:mm a')} – {format(endsAt, 'h:mm a')}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Location */}
+              {(project.locationText || project.building || project.venueName || project.venueAddress) && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    {project.isOffCampus ? (
+                      <>
+                        {project.venueName && (
+                          <p className="text-sm text-slate-900 font-medium">{project.venueName}</p>
+                        )}
+                        {project.venueAddress && (
+                          <p className="text-xs text-slate-500">{project.venueAddress}</p>
+                        )}
+                        <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          Off Campus
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        {project.locationText && (
+                          <p className="text-sm text-slate-900">{project.locationText}</p>
+                        )}
+                        {project.building && (
+                          <p className={project.locationText ? 'text-xs text-slate-500' : 'text-sm text-slate-900'}>
+                            {project.building.name}
+                            {project.area && ` · ${project.area.name}`}
+                            {project.room && ` · ${project.room.displayName || project.room.roomNumber || 'Room'}`}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Expected Attendance */}
+              {project.expectedAttendance && (
+                <div className="flex items-center gap-3">
+                  <Users className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <p className="text-sm text-slate-700">{project.expectedAttendance} expected attendees</p>
+                </div>
+              )}
+
+              {/* Created by */}
+              {project.createdBy && (
+                <div className="flex items-center gap-3">
+                  <Users className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <p className="text-sm text-slate-700">
+                    Created by{' '}
+                    <span className="font-medium text-slate-900">
+                      {project.createdBy.firstName
+                        ? `${project.createdBy.firstName} ${project.createdBy.lastName || ''}`.trim()
+                        : project.createdBy.email}
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </motion.div>
 
       {/* Quick Stats */}

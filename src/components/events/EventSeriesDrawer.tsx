@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { useToast } from '@/components/Toast'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Monitor, Wrench } from 'lucide-react'
 import type { CreateEventSeriesInput } from '@/lib/types/event-project'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -97,6 +97,26 @@ function buildRRule(
 
 // ─── Form State ───────────────────────────────────────────────────────────────
 
+const AV_OPTIONS = [
+  'Projector & Screen',
+  'Wireless Microphone(s)',
+  'Podium Mic',
+  'Livestream / Recording',
+  'Sound System / Speakers',
+  'Stage Lighting',
+  'Laptop / Presentation Clicker',
+]
+
+const FACILITIES_OPTIONS = [
+  'Extra Seating / Chairs',
+  'Table Arrangement',
+  'Stage or Podium Setup',
+  'Outdoor Setup',
+  'Cleaning Before Event',
+  'Cleaning After Event',
+  'Signage / Wayfinding',
+]
+
 interface SeriesFormData {
   title: string
   description: string
@@ -109,6 +129,12 @@ interface SeriesFormData {
   defaultStartTime: string
   defaultDuration: number
   defaultLocationText: string
+  requiresAV: boolean
+  avNeeds: string[]
+  avNotes: string
+  requiresFacilities: boolean
+  facilityNeeds: string[]
+  facilityNotes: string
 }
 
 const defaultForm: SeriesFormData = {
@@ -123,6 +149,12 @@ const defaultForm: SeriesFormData = {
   defaultStartTime: '09:00',
   defaultDuration: 60,
   defaultLocationText: '',
+  requiresAV: false,
+  avNeeds: [],
+  avNotes: '',
+  requiresFacilities: false,
+  facilityNeeds: [],
+  facilityNotes: '',
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -188,6 +220,12 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
       defaultStartTime: form.defaultStartTime || undefined,
       defaultDuration: form.defaultDuration || undefined,
       defaultLocationText: form.defaultLocationText.trim() || undefined,
+      resourceNeeds: {
+        requiresAV: form.requiresAV,
+        requiresFacilities: form.requiresFacilities,
+        ...(form.requiresAV ? { avNeeds: form.avNeeds, avNotes: form.avNotes.trim() } : {}),
+        ...(form.requiresFacilities ? { facilityNeeds: form.facilityNeeds, facilityNotes: form.facilityNotes.trim() } : {}),
+      },
     }
 
     try {
@@ -236,7 +274,7 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
             type="text"
             value={form.title}
             onChange={(e) => update('title', e.target.value)}
-            placeholder="e.g. Weekly Chapel, Monthly Leadership Meeting"
+            placeholder="e.g. Weekly Staff Meeting, Monthly Leadership Roundtable"
             className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
               errors.title ? 'border-red-300' : 'border-slate-200'
             }`}
@@ -419,9 +457,133 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
               type="text"
               value={form.defaultLocationText}
               onChange={(e) => update('defaultLocationText', e.target.value)}
-              placeholder="e.g. Chapel, Room 201"
+              placeholder="e.g. Main Hall, Room 201"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
             />
+          </div>
+        </div>
+
+        {/* Requirements */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-slate-900">Requirements</h3>
+          <p className="text-xs text-slate-500 -mt-2">Tell each team what you need — they&apos;ll review and approve each event in the series.</p>
+
+          {/* A/V Section */}
+          <div className={`rounded-xl border transition-colors ${form.requiresAV ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200'}`}>
+            <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+              <div className={`p-1.5 rounded-lg transition-colors ${form.requiresAV ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                <Monitor className={`w-4 h-4 transition-colors ${form.requiresAV ? 'text-blue-600' : 'text-slate-400'}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900">A/V Production</p>
+                <p className="text-xs text-slate-500">Projectors, mics, livestream, sound</p>
+              </div>
+              <div
+                role="switch"
+                aria-checked={form.requiresAV}
+                onClick={() => update('requiresAV', !form.requiresAV)}
+                className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresAV ? 'bg-blue-500' : 'bg-slate-200'}`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresAV ? 'translate-x-4' : ''}`} />
+              </div>
+            </label>
+            {form.requiresAV && (
+              <div className="px-3.5 pb-3.5 space-y-3 border-t border-blue-100 pt-3">
+                <p className="text-xs font-medium text-slate-700">What do you need?</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {AV_OPTIONS.map((opt) => {
+                    const selected = form.avNeeds.includes(opt)
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            avNeeds: selected
+                              ? prev.avNeeds.filter((n) => n !== opt)
+                              : [...prev.avNeeds, opt],
+                          }))
+                        }
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                          selected
+                            ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    )
+                  })}
+                </div>
+                <textarea
+                  value={form.avNotes}
+                  onChange={(e) => update('avNotes', e.target.value)}
+                  rows={2}
+                  placeholder="Any other A/V details — specific equipment, setup timing, etc."
+                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 resize-none bg-white"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Facilities Section */}
+          <div className={`rounded-xl border transition-colors ${form.requiresFacilities ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200'}`}>
+            <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+              <div className={`p-1.5 rounded-lg transition-colors ${form.requiresFacilities ? 'bg-amber-100' : 'bg-slate-100'}`}>
+                <Wrench className={`w-4 h-4 transition-colors ${form.requiresFacilities ? 'text-amber-600' : 'text-slate-400'}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900">Facilities</p>
+                <p className="text-xs text-slate-500">Room setup, cleaning, staging, outdoor needs</p>
+              </div>
+              <div
+                role="switch"
+                aria-checked={form.requiresFacilities}
+                onClick={() => update('requiresFacilities', !form.requiresFacilities)}
+                className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresFacilities ? 'bg-amber-500' : 'bg-slate-200'}`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresFacilities ? 'translate-x-4' : ''}`} />
+              </div>
+            </label>
+            {form.requiresFacilities && (
+              <div className="px-3.5 pb-3.5 space-y-3 border-t border-amber-100 pt-3">
+                <p className="text-xs font-medium text-slate-700">What do you need?</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {FACILITIES_OPTIONS.map((opt) => {
+                    const selected = form.facilityNeeds.includes(opt)
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            facilityNeeds: selected
+                              ? prev.facilityNeeds.filter((n) => n !== opt)
+                              : [...prev.facilityNeeds, opt],
+                          }))
+                        }
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                          selected
+                            ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    )
+                  })}
+                </div>
+                <textarea
+                  value={form.facilityNotes}
+                  onChange={(e) => update('facilityNotes', e.target.value)}
+                  rows={2}
+                  placeholder="Any other details — seating layout, special equipment, timing, etc."
+                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-amber-400 resize-none bg-white"
+                />
+              </div>
+            )}
           </div>
         </div>
 

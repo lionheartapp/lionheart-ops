@@ -181,7 +181,7 @@ function PlanningCenterCard({
 
       {/* Description */}
       <p className="text-sm text-slate-600 leading-relaxed">
-        Sync worship teams, service plans, people data, and check-ins with Planning Center Online.
+        Sync teams, service plans, people data, and check-ins with Planning Center Online.
       </p>
 
       {!status.isAvailable ? (

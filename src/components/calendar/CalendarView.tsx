@@ -27,6 +27,10 @@ import MobileMonthView from './MobileMonthView'
 import EventDetailPanel from './EventDetailPanel'
 import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
 import PlanEventDrawer from './PlanEventDrawer'
+import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
+import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
+import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
+import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import type { AttendeeSelection } from './AttendeePicker'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
@@ -72,10 +76,17 @@ export default function CalendarView() {
     getDateRange,
   } = useCalendarNavigation()
 
-  // Plan Event stepper state
+  // Plan Event stepper state (legacy — kept for slot-click choice modal)
   const [planEventOpen, setPlanEventOpen] = useState(false)
   const [planEventInitialStart, setPlanEventInitialStart] = useState<Date | undefined>()
   const [planEventInitialEnd, setPlanEventInitialEnd] = useState<Date | undefined>()
+
+  // Unified event creation drawers (matches Events Hub)
+  const [singleEventOpen, setSingleEventOpen] = useState(false)
+  const [multiDayEventOpen, setMultiDayEventOpen] = useState(false)
+  const [recurringEventOpen, setRecurringEventOpen] = useState(false)
+  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
 
   // Open the Plan Event stepper (from toolbar or choice modal)
   const handlePlanEvent = useCallback(() => {
@@ -889,6 +900,10 @@ export default function CalendarView() {
           onToday={goToToday}
           onCreateEvent={handleCreateEvent}
           onPlanEvent={handlePlanEvent}
+          onCreateSingleEvent={() => setSingleEventOpen(true)}
+          onCreateMultiDayEvent={() => setMultiDayEventOpen(true)}
+          onCreateRecurringEvent={() => setRecurringEventOpen(true)}
+          onCreateFromTemplate={() => setTemplateDrawerOpen(true)}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           categories={categories}
@@ -1206,6 +1221,34 @@ export default function CalendarView() {
         initialStart={planEventInitialStart}
         initialEnd={planEventInitialEnd}
       />
+
+      {/* Unified event creation drawers (same as Events Hub) */}
+      <CreateEventProjectModal
+        isOpen={singleEventOpen}
+        onClose={() => setSingleEventOpen(false)}
+        initialMode="single"
+      />
+      <CreateEventProjectModal
+        isOpen={multiDayEventOpen}
+        onClose={() => setMultiDayEventOpen(false)}
+        initialMode="multiday"
+      />
+      <EventSeriesDrawer
+        isOpen={recurringEventOpen}
+        onClose={() => setRecurringEventOpen(false)}
+      />
+      <TemplateListDrawer
+        isOpen={templateDrawerOpen}
+        onClose={() => setTemplateDrawerOpen(false)}
+        onSelect={(templateId: string) => setSelectedTemplateId(templateId)}
+      />
+      {selectedTemplateId && (
+        <CreateFromTemplateWizard
+          templateId={selectedTemplateId}
+          isOpen={!!selectedTemplateId}
+          onClose={() => setSelectedTemplateId(null)}
+        />
+      )}
 
       {/* Create choice modal — shown when user clicks an empty calendar slot */}
       <AnimatePresence>
