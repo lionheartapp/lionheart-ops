@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3004 -H 127.0.0.1",
-    "build": "prisma generate && next build",
+    "dev": "next dev -p 3004 -H 127.0.0.1 --turbopack",
+    "build": "prisma generate && NODE_OPTIONS='--max-old-space-size=8192' next build",
     "postinstall": "prisma generate && npm run hooks:install",
     "start": "next start",
     "lint": "next lint",
@@ -39,7 +39,8 @@
     "perf:soak": "node scripts/perf/run-perf.mjs soak",
     "perf:benchmark": "node scripts/perf/run-perf.mjs benchmark",
     "perf:benchmark:json": "node scripts/perf/run-perf.mjs benchmark --json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
