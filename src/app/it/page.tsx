@@ -17,6 +17,7 @@ import ITMagicLinksTab from '@/components/it/ITMagicLinksTab'
 import ITTicketDetail from '@/components/it/ITTicketDetail'
 import ITTicketCreateDrawer from '@/components/it/ITTicketCreateDrawer'
 import { LayoutDashboard, List, Kanban, Link2 } from 'lucide-react'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type HelpDeskTab = 'dashboard' | 'tickets' | 'board' | 'magic-links'
 
@@ -45,6 +46,7 @@ const TABS: { key: HelpDeskTab; label: string; icon: typeof LayoutDashboard; req
 ]
 
 function ITContent() {
+  usePageTitle('IT Help Desk')
   const router = useRouter()
   const searchParams = useSearchParams()
   const p = useITPermissions()

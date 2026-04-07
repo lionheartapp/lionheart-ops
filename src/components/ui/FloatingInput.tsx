@@ -7,7 +7,7 @@ const borderBase = 'border border-slate-300 rounded-lg bg-white transition-color
 const borderFocus = 'focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10'
 const borderDisabled = 'disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200'
 const labelBase = 'absolute left-3 -top-2.5 px-1 bg-white text-xs text-slate-500 font-medium pointer-events-none transition-all duration-200'
-const labelInside = 'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-400'
+const labelInside = 'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-500'
 const labelFocused = 'peer-focus:-top-2.5 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-medium peer-focus:text-slate-600'
 
 // ─── FloatingInput ────────────────────────────────────────────────────────────
@@ -251,7 +251,7 @@ export function FloatingDropdown({
             </span>
           )
         ) : (
-          <span className="text-slate-400">{placeholder || label}</span>
+          <span className="text-slate-500">{placeholder || label}</span>
         )}
       </button>
       <label
@@ -272,7 +272,7 @@ export function FloatingDropdown({
             return (
               <div key={groupName ?? '__ungrouped'}>
                 {groupName && (
-                  <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider select-none">
+                  <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none">
                     {groupName}
                   </div>
                 )}
@@ -344,7 +344,7 @@ export const FloatingTextarea = forwardRef<HTMLTextAreaElement, FloatingTextarea
       />
       <label
         htmlFor={id}
-        className={`${labelBase} peer-placeholder-shown:top-4 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-400 ${labelFocused} peer-disabled:bg-slate-50`}
+        className={`${labelBase} peer-placeholder-shown:top-4 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-500 ${labelFocused} peer-disabled:bg-slate-50`}
       >
         {label}
       </label>

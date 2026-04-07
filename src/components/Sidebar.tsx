@@ -1729,12 +1729,12 @@ export default function Sidebar({
     <div className="flex flex-col h-full">
       {/* Settings Header */}
       <div className="px-5 pt-10 pb-4 border-b border-white/30">
-        <h2 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Settings</h2>
+        <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Settings</h2>
       </div>
 
       {/* General Settings */}
       <div className="px-3 pt-4">
-        <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase px-2 mb-2">
+        <p className="text-[10px] font-semibold tracking-widest text-slate-500 uppercase px-2 mb-2">
           General
         </p>
         <nav className="space-y-1" aria-label="General settings sections">
@@ -1762,7 +1762,7 @@ export default function Sidebar({
       {/* Workspace Settings */}
       {canManageWorkspace && (
         <div className="px-3 pt-5 pb-4">
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase px-2 mb-2">
+          <p className="text-[10px] font-semibold tracking-widest text-slate-500 uppercase px-2 mb-2">
             Workspace
           </p>
           <nav className="space-y-1" aria-label="Workspace settings sections">
@@ -1840,13 +1840,13 @@ export default function Sidebar({
             <div key={key} className="mb-1">
               {isMySchedule ? (
                 /* MY SCHEDULE — flat section label, no collapsible dropdown */
-                <div className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
+                <div className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-slate-500 uppercase">
                   {label}
                 </div>
               ) : (
                 <button
                   onClick={() => toggleCalendarType(key)}
-                  className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-slate-400 uppercase hover:text-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                  className="flex items-center gap-1.5 w-full px-2 py-2 text-[10px] font-semibold tracking-widest text-slate-500 uppercase hover:text-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   <motion.span
                     animate={{ rotate: isExpanded ? 0 : -90 }}
@@ -2236,7 +2236,7 @@ export default function Sidebar({
       {/* Campuses */}
       {athleticsCampuses.length > 0 && (
         <div className="px-3 pt-4">
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase px-2 mb-2">
+          <p className="text-[10px] font-semibold tracking-widest text-slate-500 uppercase px-2 mb-2">
             Campuses
           </p>
           <nav className="space-y-0.5" aria-label="Athletics campuses">

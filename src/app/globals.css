@@ -31,7 +31,7 @@
 }
 
 /* Accessibility: Smooth scrolling for all and reduced motion support */
-html {
+html[data-scroll-behavior="smooth"] {
   scroll-behavior: smooth;
 }
 

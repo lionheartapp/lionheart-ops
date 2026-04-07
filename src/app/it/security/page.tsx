@@ -12,6 +12,7 @@ import ITSecurityIncidentsTab from '@/components/it/ITSecurityIncidentsTab'
 import ITIntelligenceTab from '@/components/it/ITIntelligenceTab'
 import ITDeviceDetailDrawer from '@/components/it/ITDeviceDetailDrawer'
 import { Shield, ShieldBan, Brain } from 'lucide-react'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type SecurityTab = 'content-filters' | 'security-incidents' | 'intelligence'
 
@@ -22,6 +23,7 @@ const TABS: { key: SecurityTab; label: string; icon: typeof Shield }[] = [
 ]
 
 function SecurityContent() {
+  usePageTitle('IT Security')
   const p = useITPermissions()
   const [activeTab, setActiveTab] = useState<SecurityTab>('content-filters')
 

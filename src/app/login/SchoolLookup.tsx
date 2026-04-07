@@ -22,7 +22,14 @@ export default function SchoolLookup() {
 
       if (data.ok && data.data.valid === false) {
         // Slug exists (taken = an org exists with this slug) — redirect to it
-        window.location.href = `${window.location.protocol}//${cleaned}.${window.location.host.replace(/^[^.]+\./, '')}/login`
+        const host = window.location.hostname
+        const port = window.location.port ? `:${window.location.port}` : ''
+        // On localhost/127.0.0.1, use {slug}.localhost:{port} since bare IPs don't support subdomains
+        const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0'
+        const baseDomain = isLocal
+          ? `localhost${port}`
+          : `${host.replace(/^[^.]+\./, '')}${port}`
+        window.location.href = `${window.location.protocol}//${cleaned}.${baseDomain}/login`
       } else {
         setError('No school found with that URL. Check the spelling and try again.')
       }

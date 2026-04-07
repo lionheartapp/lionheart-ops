@@ -18,6 +18,7 @@ import ScheduleSection from '@/components/athletics/ScheduleSection'
 import TournamentsSection from '@/components/athletics/TournamentsSection'
 import RosterSection from '@/components/athletics/RosterSection'
 import StatsSection from '@/components/athletics/StatsSection'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
 import type { AthleticsTab } from '@/components/Sidebar'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
@@ -47,6 +48,7 @@ interface CalendarBrief {
 }
 
 export default function AthleticsPage() {
+  usePageTitle('Athletics')
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
 

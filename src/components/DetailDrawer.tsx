@@ -12,6 +12,8 @@ interface DetailDrawerProps {
   footer?: ReactNode
   width?: 'sm' | 'md' | 'lg' | 'xl'
   onEdit?: () => void
+  /** Element to return focus to when the drawer closes */
+  triggerRef?: React.RefObject<HTMLElement | null>
 }
 
 const widths = {
@@ -29,6 +31,7 @@ export default function DetailDrawer({
   footer,
   width = 'md',
   onEdit,
+  triggerRef,
 }: DetailDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -76,6 +79,8 @@ export default function DetailDrawer({
     setTimeout(() => {
       setIsAnimating(false)
       onClose()
+      // Return focus to the element that triggered the drawer
+      triggerRef?.current?.focus()
     }, 300)
   }
 
@@ -110,7 +115,7 @@ export default function DetailDrawer({
         <div className="flex items-center justify-between px-6 pt-5 pb-3 flex-shrink-0">
           <h2
             id="drawer-title"
-            className="text-xs text-slate-400 uppercase tracking-wide font-medium truncate"
+            className="text-xs text-slate-500 uppercase tracking-wide font-medium truncate"
           >
             {title}
           </h2>

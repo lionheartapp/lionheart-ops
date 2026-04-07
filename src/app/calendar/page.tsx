@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import CalendarView from '@/components/calendar/CalendarView'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function CalendarPage() {
+  usePageTitle('Calendar')
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
 

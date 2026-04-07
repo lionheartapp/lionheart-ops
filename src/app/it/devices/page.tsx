@@ -15,6 +15,7 @@ import ITStudentDetailDrawer from '@/components/it/ITStudentDetailDrawer'
 import ITStudentCreateDrawer from '@/components/it/ITStudentCreateDrawer'
 import ITLoanersTab from '@/components/it/ITLoanersTab'
 import { HardDrive, GraduationCap, Package } from 'lucide-react'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type DevicesTab = 'devices' | 'students' | 'loaners'
 
@@ -25,6 +26,7 @@ const TABS: { key: DevicesTab; label: string; icon: typeof HardDrive }[] = [
 ]
 
 function DevicesContent() {
+  usePageTitle('IT Devices')
   const p = useITPermissions()
   const [activeTab, setActiveTab] = useState<DevicesTab>('devices')
 

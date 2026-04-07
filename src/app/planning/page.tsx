@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
-import { CalendarDays, Plus, ChevronDown } from 'lucide-react'
+import { Plus, ChevronDown } from 'lucide-react'
+import { IllustrationCalendar } from '@/components/illustrations/IllustrationCalendar'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import PlanningSubmissionForm from '@/components/planning/PlanningSubmissionForm'
@@ -13,8 +14,10 @@ import CommentThread from '@/components/planning/CommentThread'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { useSeasons, useCreateSeason, useSubmissions, useCreateSubmission, useSubmitSubmission, useComments, useAddComment } from '@/lib/hooks/usePlanningSeason'
 import type { PlanningSubmission } from '@/lib/hooks/usePlanningSeason'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function PlanningPage() {
+  usePageTitle('Calendar Planning')
   const router = useRouter()
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
@@ -181,13 +184,13 @@ export default function PlanningPage() {
         )}
 
         {!seasonsLoading && !activeSeason && !showCreateSeason && (
-          <motion.div variants={cardEntrance} className="ui-glass p-8 text-center">
-            <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h2 className="text-lg font-medium text-slate-700 mb-1">No Planning Seasons</h2>
-            <p className="text-sm text-slate-500 mb-4">
+          <motion.div variants={cardEntrance} className="ui-glass p-12 text-center">
+            <IllustrationCalendar className="w-48 h-48 mx-auto mb-6 opacity-80" />
+            <h2 className="text-lg font-semibold text-slate-800 mb-2">No Planning Seasons Yet</h2>
+            <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
               {isAdmin
-                ? 'Create a planning season to start collecting event submissions from staff.'
-                : 'An administrator needs to create a planning season first.'}
+                ? 'Planning seasons let you collect, review, and schedule event proposals from staff before publishing to the master calendar.'
+                : 'Your administrator hasn\u2019t created a planning season yet. Check back soon or contact them to get started.'}
             </p>
             {isAdmin && (
               <button

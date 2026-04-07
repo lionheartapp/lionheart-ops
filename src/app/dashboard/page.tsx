@@ -18,6 +18,7 @@ import EventCreatePanel, { type EventFormData } from '@/components/calendar/Even
 import EventDetailPanel from '@/components/calendar/EventDetailPanel'
 import PlanEventDrawer from '@/components/calendar/PlanEventDrawer'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 interface TicketData {
   id: string
@@ -45,6 +46,7 @@ interface EventData {
 }
 
 export default function DashboardPage() {
+  usePageTitle('Dashboard')
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, org, isReady, logout } = useAuth()
@@ -457,12 +459,13 @@ export default function DashboardPage() {
           <AnimatePresence>
           {isCreateDropdownOpen && (
             <motion.div
-              className="absolute right-0 mt-2 w-64 ui-glass-dropdown z-mobilenav"
+              className="absolute right-0 pt-2 top-full w-64 z-mobilenav"
               variants={dropdownVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
             >
+              <div className="ui-glass-dropdown">
               {/* Meetings Section */}
               <div className="p-3 space-y-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-1">Meetings</p>
@@ -533,6 +536,7 @@ export default function DashboardPage() {
                     <p className="text-xs text-slate-600">Submit an IT support request</p>
                   </div>
                 </button>
+              </div>
               </div>
             </motion.div>
           )}

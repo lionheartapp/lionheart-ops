@@ -25,8 +25,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(ok(modules))
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    const msg = error instanceof Error ? error.message : ''
+    if (msg.includes('Permission denied')) {
+      return NextResponse.json(fail('FORBIDDEN', msg), { status: 403 })
+    }
+    if (msg.includes('Missing') || msg.includes('Unauthorized') || msg.includes('Invalid token') || msg.includes('x-org-id')) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
     log.error({ err: error }, 'Failed to fetch modules')
     Sentry.captureException(error)

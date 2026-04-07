@@ -1,8 +1,13 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { organizationService } from '@/lib/services'
 import LoginForm from './LoginForm'
 import SchoolLookup from './SchoolLookup'
 import { ImagePosition } from '@prisma/client'
+
+export const metadata: Metadata = {
+  title: 'Sign In | Lionheart',
+}
 
 export default async function LoginPage() {
   // Get subdomain from middleware header (set by middleware from the host)

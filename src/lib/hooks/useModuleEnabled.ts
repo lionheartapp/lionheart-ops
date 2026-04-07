@@ -39,8 +39,15 @@ export function cacheModules(modules: TenantModule[]): void {
 
 async function fetchModules(): Promise<TenantModule[]> {
   const token = localStorage.getItem('auth-token')
+  // When using cookie-based auth, omit the Authorization header entirely —
+  // the httpOnly cookie authenticates via credentials: 'include' automatically.
+  const headers: Record<string, string> = {}
+  if (token && token !== 'cookie-auth') {
+    headers.Authorization = `Bearer ${token}`
+  }
   const res = await fetch('/api/modules', {
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
+    credentials: 'include',
   })
   if (!res.ok) return []
   const data = await res.json()

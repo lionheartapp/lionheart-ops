@@ -69,8 +69,13 @@ export default function LoginForm({ organizationId, organizationName, organizati
       localStorage.setItem('org-logo-url', orgData?.logoUrl || '')
 
       // Prefetch modules so add-ons render instantly on first page load
+      const moduleFetchHeaders: Record<string, string> = {}
+      if (authToken && authToken !== 'cookie-auth') {
+        moduleFetchHeaders.Authorization = `Bearer ${authToken}`
+      }
       fetch('/api/modules', {
-        headers: { Authorization: `Bearer ${authToken || 'cookie-auth'}` },
+        headers: moduleFetchHeaders,
+        credentials: 'include',
       })
         .then((res) => res.json())
         .then((json) => {
@@ -228,7 +233,6 @@ export default function LoginForm({ organizationId, organizationName, organizati
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
-              tabIndex={-1}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -237,7 +241,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           <p className="font-medium">Sign in failed</p>
           <p className="mt-1">{error}</p>
         </div>

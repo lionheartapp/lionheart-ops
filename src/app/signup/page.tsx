@@ -5,6 +5,7 @@ import { Loader2, AlertCircle } from 'lucide-react'
 import { motion, MotionConfig } from 'framer-motion'
 import Link from 'next/link'
 import PasswordInput from '@/components/PasswordInput'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 const showcaseCardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -16,6 +17,7 @@ const showcaseCardVariants = {
 }
 
 export default function SignupPage() {
+  usePageTitle('Sign Up')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const errorRef = useRef<HTMLDivElement>(null)

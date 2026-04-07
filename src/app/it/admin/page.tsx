@@ -12,6 +12,7 @@ import ITReportsTab from '@/components/it/ITReportsTab'
 import ITERateTab from '@/components/it/ITERateTab'
 import ITSyncTab from '@/components/it/ITSyncTab'
 import { BarChart3, FileText, FileCheck, RefreshCw } from 'lucide-react'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type AdminTab = 'analytics' | 'reports' | 'erate' | 'sync'
 
@@ -23,6 +24,7 @@ const TABS: { key: AdminTab; label: string; icon: typeof BarChart3 }[] = [
 ]
 
 function AdminContent() {
+  usePageTitle('IT Admin')
   const p = useITPermissions()
   const [activeTab, setActiveTab] = useState<AdminTab>('analytics')
 

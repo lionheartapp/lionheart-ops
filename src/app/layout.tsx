@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${headingFont.variable} ${bodyFont.variable}`}>
       <body className="min-h-screen antialiased bg-white font-body">
         <Providers>{children}</Providers>
         <ServiceWorkerRegistration />

@@ -14,6 +14,7 @@ import ITDamageReportDrawer from '@/components/it/ITDamageReportDrawer'
 import ITProvisioningTab from '@/components/it/ITProvisioningTab'
 import ITSummerTab from '@/components/it/ITSummerTab'
 import { Rocket, UserCog, Sun } from 'lucide-react'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type LifecycleTab = 'deployment' | 'provisioning' | 'summer'
 
@@ -24,6 +25,7 @@ const TABS: { key: LifecycleTab; label: string; icon: typeof Rocket }[] = [
 ]
 
 function LifecycleContent() {
+  usePageTitle('IT Lifecycle')
   const p = useITPermissions()
   const [activeTab, setActiveTab] = useState<LifecycleTab>('deployment')
 

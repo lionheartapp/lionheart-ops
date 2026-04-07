@@ -18,6 +18,7 @@ import AddOnsTab from '@/components/settings/AddOnsTab'
 import AuditLogTab from '@/components/settings/AuditLogTab'
 import BillingTab from '@/components/settings/BillingTab'
 import IntegrationsTab from '@/components/settings/IntegrationsTab'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { Camera, User, Shield, Lock, Mail, Bell, Link2 } from 'lucide-react'
@@ -28,6 +29,7 @@ type WorkspaceTab = Exclude<Tab, 'profile'>
 
 
 export default function SettingsPage() {
+  usePageTitle('Settings')
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)

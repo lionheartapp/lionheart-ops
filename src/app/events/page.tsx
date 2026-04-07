@@ -39,6 +39,7 @@ import { CreateEventProjectModal } from '@/components/events/CreateEventProjectM
 import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
 import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -759,6 +760,7 @@ function EventsPageHeader({ isAdmin }: { isAdmin: boolean }) {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function EventsPage() {
+  usePageTitle('Events')
   const { isAdmin, isReady } = useAuth()
 
   if (!isReady) {

@@ -18,6 +18,7 @@ import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, Layou
 import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import TabIndicator from '@/components/ui/TabIndicator'
 import { useQueryClient } from '@tanstack/react-query'
@@ -35,6 +36,7 @@ const SUB_TABS: {
  * Inner content component — uses useSearchParams, must be inside a Suspense boundary.
  */
 function MaintenanceContent() {
+  usePageTitle('Maintenance')
   const router = useRouter()
   const searchParams = useSearchParams()
 
