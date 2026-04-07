@@ -49,7 +49,7 @@ export default function TicketDetailPage() {
     if (result.ok) fetchTicket()
   }
 
-  if (loading) return <div className="text-slate-500 text-center py-12">Loading...</div>
+  if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></div>
   if (!ticket) return <div className="text-slate-500 text-center py-12">Ticket not found</div>
 
   return (

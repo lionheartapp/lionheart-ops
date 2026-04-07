@@ -102,7 +102,7 @@ export default function DiscountCodesPage() {
           </thead>
           <tbody className="divide-y divide-slate-800">
             {loading ? (
-              <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-500">Loading...</td></tr>
+              <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-500"><div class="w-6 h-6 mx-auto rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></td></tr>
             ) : codes.length === 0 ? (
               <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-500"><Tag size={24} className="mx-auto mb-2 text-slate-600" />No discount codes yet</td></tr>
             ) : (

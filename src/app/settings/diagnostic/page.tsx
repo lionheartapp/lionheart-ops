@@ -90,7 +90,7 @@ export default function DiagnosticPage() {
               {JSON.stringify(diagnostics, null, 2)}
             </pre>
           ) : (
-            <p className="text-slate-600">Loading...</p>
+            <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
           )}
         </div>
 

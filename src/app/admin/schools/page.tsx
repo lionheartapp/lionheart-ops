@@ -77,7 +77,7 @@ export default function SchoolsPage() {
           </thead>
           <tbody className="divide-y divide-slate-800">
             {loading ? (
-              <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-500">Loading...</td></tr>
+              <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-500"><div class="w-6 h-6 mx-auto rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></td></tr>
             ) : orgs.length === 0 ? (
               <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-500">No schools found</td></tr>
             ) : (

@@ -328,7 +328,7 @@ export default function DashboardPage() {
   if (!isReady) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #e8eaf0, #d4dbe8, #c8d4e4, #d8dce8, #e4e6ec)' }}>
-        <div className="text-slate-500">Loading...</div>
+        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
       </div>
     )
   }

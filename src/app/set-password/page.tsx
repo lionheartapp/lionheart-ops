@@ -145,7 +145,7 @@ function SetPasswordContent() {
 
 export default function SetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center p-4"><p className="text-sm text-slate-600">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center p-4"><div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></div>}>
       <SetPasswordContent />
     </Suspense>
   )

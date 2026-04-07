@@ -14,7 +14,7 @@ export default function PlansPage() {
       .then(data => { if (data.ok) setPlans(data.data); setLoading(false) })
   }, [])
 
-  if (loading) return <div className="text-slate-500 text-center py-12">Loading...</div>
+  if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></div>
 
   return (
     <div className="space-y-6">
