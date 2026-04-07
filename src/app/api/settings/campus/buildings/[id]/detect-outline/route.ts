@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { rawPrisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { buildingOutlineService } from '@/lib/services/ai/building-outline.service'
+import { logger } from '@/lib/logger'
 
 /* -- Tile math (Web Mercator) ------------------------------------------- */
 
@@ -24,26 +25,26 @@ async function captureSatelliteTiles(lat: number, lng: number, zoom: number): Pr
     const { x: cx, y: cy } = latlngToTile(lat, lng, zoom)
 
     const centerTileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${cy}/${cx}`
-    console.log('[DETECT_OUTLINE] Fetching satellite tile:', centerTileUrl)
+    logger.info({ url: centerTileUrl }, '[DETECT_OUTLINE] Fetching satellite tile')
 
     const centerRes = await fetch(centerTileUrl)
 
     // Check content type to ensure it's actually an image
     const contentType = centerRes.headers.get('content-type')
     if (!contentType || !contentType.includes('image')) {
-      console.error('[DETECT_OUTLINE] Invalid content type:', contentType)
+      logger.error({ contentType }, '[DETECT_OUTLINE] Invalid content type')
       return null
     }
 
     if (!centerRes.ok) {
-      console.error('[DETECT_OUTLINE] Failed to fetch tile, status:', centerRes.status)
+      logger.error({ status: centerRes.status }, '[DETECT_OUTLINE] Failed to fetch tile')
       return null
     }
 
     const centerBuffer = await centerRes.arrayBuffer()
     return Buffer.from(centerBuffer).toString('base64')
   } catch (error) {
-    console.error('[DETECT_OUTLINE] Failed to fetch satellite tile:', error)
+    logger.error({ error: String(error) }, '[DETECT_OUTLINE] Failed to fetch satellite tile')
     return null
   }
 }
@@ -97,7 +98,7 @@ export const POST = withAuth<unknown, { id: string }>(async ({ orgId, params }) 
   let zoom = 19
   let imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
   if (!imageBase64) {
-    console.log('[DETECT_OUTLINE] Zoom 19 failed, retrying with zoom 18')
+    logger.info('[DETECT_OUTLINE] Zoom 19 failed, retrying with zoom 18')
     zoom = 18
     imageBase64 = await captureSatelliteTiles(building.latitude, building.longitude, zoom)
   }

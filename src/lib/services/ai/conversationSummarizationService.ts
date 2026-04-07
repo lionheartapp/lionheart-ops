@@ -11,15 +11,9 @@
 import { GoogleGenAI } from '@google/genai'
 import { rawPrisma } from '@/lib/db'
 import { getMessages } from './conversationService'
+import { logger } from '@/lib/logger'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function log(level: 'info' | 'warn' | 'error', msg: string, data?: Record<string, unknown>) {
-  const entry = { service: 'conversationSummarizationService', msg, ...data }
-  if (level === 'error') console.error(entry)
-  else if (level === 'warn') console.warn(entry)
-  else console.log(entry)
-}
+const log = logger.child({ service: 'conversationSummarizationService' })
 
 /**
  * Rough token estimate: 4 characters ≈ 1 token (good enough for budgeting).
@@ -63,10 +57,10 @@ export async function shouldSummarize(conversationId: string): Promise<boolean> 
     // Re-summarize only if 10+ new messages have arrived since last summary
     return latestSummary.messageCount < messageCount - 10
   } catch (err) {
-    log('warn', 'shouldSummarize: error checking threshold', {
+    log.warn({
       conversationId,
       error: String(err),
-    })
+    }, 'shouldSummarize: error checking threshold')
     return false
   }
 }
@@ -85,7 +79,7 @@ export async function summarizeConversation(conversationId: string): Promise<voi
   try {
     const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
     if (!apiKey) {
-      log('warn', 'Summarization skipped — no Gemini API key', { conversationId })
+      log.warn({ conversationId }, 'Summarization skipped — no Gemini API key')
       return
     }
 
@@ -98,10 +92,10 @@ export async function summarizeConversation(conversationId: string): Promise<voi
     )
 
     if (dialogMessages.length < 20) {
-      log('info', 'Summarization skipped — not enough dialog messages', {
+      log.info({
         conversationId,
         dialogMessageCount: dialogMessages.length,
-      })
+      }, 'Summarization skipped — not enough dialog messages')
       return
     }
 
@@ -111,16 +105,16 @@ export async function summarizeConversation(conversationId: string): Promise<voi
     const recentMessages = dialogMessages.slice(splitPoint)
 
     if (oldMessages.length === 0) {
-      log('info', 'Summarization skipped — no old messages to summarize', { conversationId })
+      log.info({ conversationId }, 'Summarization skipped — no old messages to summarize')
       return
     }
 
-    log('info', 'Starting conversation summarization', {
+    log.info({
       conversationId,
       totalDialogMessages: dialogMessages.length,
       oldMessageCount: oldMessages.length,
       recentMessageCount: recentMessages.length,
-    })
+    }, 'Starting conversation summarization')
 
     // 3. Build transcript of OLD messages only
     const transcript = oldMessages
@@ -148,7 +142,7 @@ ${transcript}`
     const summaryText = response.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 
     if (!summaryText.trim()) {
-      log('warn', 'Summarization: Gemini returned empty summary', { conversationId })
+      log.warn({ conversationId }, 'Summarization: Gemini returned empty summary')
       return
     }
 
@@ -162,16 +156,16 @@ ${transcript}`
       },
     })
 
-    log('info', 'Conversation summarized successfully', {
+    log.info({
       conversationId,
       oldMessageCount: oldMessages.length,
       summaryLength: summaryText.length,
       estimatedTokens: estimateTokenCount(summaryText),
-    })
+    }, 'Conversation summarized successfully')
   } catch (err) {
-    log('error', 'summarizeConversation: unhandled error', {
+    log.error({
       conversationId,
       error: String(err),
-    })
+    }, 'summarizeConversation: unhandled error')
   }
 }

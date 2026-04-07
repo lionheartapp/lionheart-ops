@@ -8,6 +8,9 @@
  */
 
 import { GoogleGenAI } from '@google/genai'
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'schoolLookupService' })
 
 interface SchoolLookupResult {
   logo: string | null
@@ -79,7 +82,7 @@ function extractDomain(url: string): string {
 async function fetchFromGooglePlaces(schoolName: string, website: string): Promise<Partial<SchoolLookupResult> | null> {
   const apiKey = (process.env.GOOGLE_PLACES_API_KEY || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
   if (!apiKey) {
-    console.log('No Google API key found, skipping Places lookup')
+    log.info('No Google API key found, skipping Places lookup')
     return null
   }
 
@@ -89,7 +92,7 @@ async function fetchFromGooglePlaces(schoolName: string, website: string): Promi
     const query = /school|academy|college|university/i.test(schoolName)
       ? schoolName
       : `${schoolName} school`
-    console.log(`[Places] Searching for: "${query}"`)
+    log.info({ query }, 'Places text search')
 
     const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
@@ -107,16 +110,16 @@ async function fetchFromGooglePlaces(schoolName: string, website: string): Promi
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => 'no body')
-      console.log(`[Places] API returned ${response.status}: ${errorBody}`)
+      log.warn({ status: response.status, body: errorBody }, 'Places API error')
       return null
     }
 
     const data = await response.json()
-    console.log(`[Places] Response:`, JSON.stringify(data).slice(0, 500))
+    log.info({ responsePreview: JSON.stringify(data).slice(0, 500) }, 'Places response')
     const places = data.places
 
     if (!places || places.length === 0) {
-      console.log('[Places] No results for:', query)
+      log.info({ query }, 'Places returned no results')
       return null
     }
 
@@ -144,10 +147,10 @@ async function fetchFromGooglePlaces(schoolName: string, website: string): Promi
       result.phone = phone
     }
 
-    console.log(`Google Places found: address="${result.address}", phone="${result.phone}"`)
+    log.info({ address: result.address, phone: result.phone }, 'Places result')
     return result
   } catch (error) {
-    console.error('Google Places error:', error instanceof Error ? error.message : error)
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Google Places error')
     return null
   }
 }
@@ -156,7 +159,7 @@ async function fetchFromGooglePlaces(schoolName: string, website: string): Promi
 async function fetchFromBrandfetch(domain: string): Promise<Partial<SchoolLookupResult> | null> {
   const apiKey = process.env.BRANDFETCH_API_KEY?.trim()
   if (!apiKey) {
-    console.log('Brandfetch API key not set, skipping layer 1')
+    log.info('Brandfetch API key not set, skipping layer 1')
     return null
   }
 
@@ -170,7 +173,7 @@ async function fetchFromBrandfetch(domain: string): Promise<Partial<SchoolLookup
     })
 
     if (!response.ok) {
-      console.log(`Brandfetch API returned ${response.status} for ${domain}`)
+      log.warn({ status: response.status, domain }, 'Brandfetch API error')
       return null
     }
 
@@ -237,7 +240,7 @@ async function fetchFromBrandfetch(domain: string): Promise<Partial<SchoolLookup
 
     return result
   } catch (error) {
-    console.error('Brandfetch error:', error instanceof Error ? error.message : error)
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Brandfetch error')
     return null
   }
 }
@@ -256,13 +259,13 @@ async function fetchWebsiteHtml(url: string): Promise<string | null> {
     })
 
     if (!response.ok) {
-      console.log(`Website fetch returned ${response.status} for ${url}`)
+      log.warn({ status: response.status, url }, 'Website fetch failed')
       return null
     }
 
     return await response.text()
   } catch (error) {
-    console.error('Website fetch error:', error instanceof Error ? error.message : error)
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Website fetch error')
     return null
   }
 }
@@ -299,7 +302,7 @@ function stripHtmlToText(html: string): string {
 async function extractWithGemini(htmlText: string, rawHtml: string, domain: string): Promise<Partial<SchoolLookupResult> | null> {
   const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
   if (!apiKey) {
-    console.log('Gemini API key not set (checked GEMINI_API_KEY and NEXT_PUBLIC_GEMINI_API_KEY), skipping layer 2')
+    log.info('Gemini API key not set, skipping layer 2')
     return null
   }
 
@@ -340,7 +343,7 @@ ${htmlText}`
     // Parse JSON response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      console.log('No JSON found in Gemini response')
+      log.warn('No JSON found in Gemini response')
       return null
     }
 
@@ -369,7 +372,7 @@ ${htmlText}`
 
     return result
   } catch (error) {
-    console.error('Gemini extraction error:', error instanceof Error ? error.message : error)
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Gemini extraction error')
     return null
   }
 }
@@ -550,7 +553,7 @@ export async function lookupSchool(website: string, schoolName?: string): Promis
       layersSucceeded++
     }
   } catch (error) {
-    console.error('School lookup error:', error instanceof Error ? error.message : error)
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'School lookup error')
   }
 
   // Resolve any relative logo URLs to absolute

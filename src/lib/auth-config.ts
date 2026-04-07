@@ -15,6 +15,7 @@ import Google from 'next-auth/providers/google'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 import { verifyAuthToken, signAuthToken, type AuthClaims } from '@/lib/auth'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import bcryptjs from 'bcryptjs'
 import { z } from 'zod'
 
@@ -88,7 +89,7 @@ export const authConfig: NextAuthConfig = {
             organizationId: user.organizationId,
           }
         } catch (error) {
-          console.error('Credentials auth error:', error)
+          logger.error({ error: String(error) }, 'Credentials auth error')
           return null
         }
       },
@@ -156,7 +157,7 @@ export const authConfig: NextAuthConfig = {
 
         return true
       } catch (error) {
-        console.error('signIn callback error:', error)
+        logger.error({ error: String(error) }, 'signIn callback error')
         return false
       }
     },
@@ -192,7 +193,7 @@ export const authConfig: NextAuthConfig = {
 
         return token
       } catch (error) {
-        console.error('JWT callback error:', error)
+        logger.error({ error: String(error) }, 'JWT callback error')
         return token
       }
     },
@@ -210,10 +211,10 @@ export const authConfig: NextAuthConfig = {
   // Event handlers (optional)
   events: {
     async signIn({ user, account }) {
-      console.log(`User ${user.email} signed in via ${account?.provider || 'credentials'}`)
+      logger.info({ provider: account?.provider || 'credentials' }, 'User signed in')
     },
     async signOut() {
-      console.log('User signed out')
+      logger.info('User signed out')
     },
   },
 

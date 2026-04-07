@@ -12,6 +12,9 @@ import { GoogleGenAI } from '@google/genai'
 import { rawPrisma } from '@/lib/db'
 import { getMessages } from './conversationService'
 import { generateAndStoreEmbedding } from './embeddingService'
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'memoryExtractionService' })
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,15 +36,6 @@ interface ProfileUpdates {
 interface GeminiExtractionResult {
   facts: ExtractedFact[]
   profile_updates: ProfileUpdates
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function log(level: 'info' | 'warn' | 'error', msg: string, data?: Record<string, unknown>) {
-  const entry = { service: 'memoryExtractionService', msg, ...data }
-  if (level === 'error') console.error(entry)
-  else if (level === 'warn') console.warn(entry)
-  else console.log(entry)
 }
 
 /**
@@ -79,7 +73,7 @@ export async function extractMemoryFromConversation(
   try {
     const apiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)?.trim()
     if (!apiKey) {
-      log('warn', 'Memory extraction skipped — no Gemini API key', { conversationId })
+      log.warn({ conversationId }, 'Memory extraction skipped — no Gemini API key')
       return
     }
 
@@ -93,10 +87,10 @@ export async function extractMemoryFromConversation(
 
     // 3. Skip if fewer than 3 messages (not enough signal)
     if (dialogMessages.length < 3) {
-      log('info', 'Memory extraction skipped — too few messages', {
+      log.info({
         conversationId,
         messageCount: dialogMessages.length,
-      })
+      }, 'Memory extraction skipped — too few messages')
       return
     }
 
@@ -146,21 +140,21 @@ ${transcript}`
     try {
       extracted = JSON.parse(rawText)
     } catch {
-      log('warn', 'Memory extraction: failed to parse Gemini response as JSON', {
+      log.warn({
         conversationId,
         rawText: rawText.slice(0, 200),
-      })
+      }, 'Memory extraction: failed to parse Gemini response as JSON')
       return
     }
 
     const facts = extracted?.facts ?? []
     const profileUpdates = extracted?.profile_updates ?? {}
 
-    log('info', 'Memory extraction: extracted facts and profile updates', {
+    log.info({
       conversationId,
       userId,
       factCount: facts.length,
-    })
+    }, 'Memory extraction: extracted facts and profile updates')
 
     // 7. Store each extracted fact
     for (const fact of facts) {
@@ -201,25 +195,25 @@ ${transcript}`
           void generateAndStoreEmbedding('UserMemoryFact', created.id, fact.text)
         }
       } catch (factErr) {
-        log('error', 'Memory extraction: error storing fact', {
+        log.error({
           conversationId,
           userId,
           factText: fact.text,
           error: String(factErr),
-        })
+        }, 'Memory extraction: error storing fact')
       }
     }
 
     // 8. Update user profile
     await updateUserProfile(userId, profileUpdates)
 
-    log('info', 'Memory extraction: complete', { conversationId, userId })
+    log.info({ conversationId, userId }, 'Memory extraction: complete')
   } catch (err) {
-    log('error', 'Memory extraction: unhandled error', {
+    log.error({
       conversationId,
       userId,
       error: String(err),
-    })
+    }, 'Memory extraction: unhandled error')
   }
 }
 
@@ -301,9 +295,9 @@ export async function updateUserProfile(
       update: updateData,
     })
 
-    log('info', 'User profile updated', { userId })
+    log.info({ userId }, 'User profile updated')
   } catch (err) {
-    log('error', 'updateUserProfile: error', { userId, error: String(err) })
+    log.error({ userId, error: String(err) }, 'updateUserProfile: error')
   }
 }
 
@@ -320,8 +314,8 @@ export async function decayMemoryImportance(userId: string): Promise<void> {
       'UPDATE "UserMemoryFact" SET importance = importance * 0.95 WHERE "userId" = $1 AND importance > 0.1',
       userId
     )
-    log('info', 'Memory importance decayed', { userId })
+    log.info({ userId }, 'Memory importance decayed')
   } catch (err) {
-    log('error', 'decayMemoryImportance: error', { userId, error: String(err) })
+    log.error({ userId, error: String(err) }, 'decayMemoryImportance: error')
   }
 }

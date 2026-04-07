@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai'
+import { logger } from '@/lib/logger'
 
 interface PixelCoord {
   x: number
@@ -97,7 +98,7 @@ If no clear building is visible near center, return: {"found": false, "confidenc
       const lastBraceIdx = text.lastIndexOf('}')
 
       if (firstBraceIdx === -1 || lastBraceIdx === -1 || firstBraceIdx >= lastBraceIdx) {
-        console.error('[OUTLINE] No valid JSON found in response. Raw text:', text)
+        logger.error({ rawText: text.slice(0, 200) }, '[OUTLINE] No valid JSON found in response')
         return null
       }
 
@@ -107,16 +108,14 @@ If no clear building is visible near center, return: {"found": false, "confidenc
       try {
         parsed = JSON.parse(jsonStr)
       } catch (parseError) {
-        console.error('[OUTLINE] Failed to parse JSON response. Raw text:', text)
-        console.error('[OUTLINE] Extracted JSON:', jsonStr)
-        console.error('[OUTLINE] Parse error:', parseError)
+        logger.error({ rawText: text.slice(0, 200), jsonStr: jsonStr.slice(0, 200), error: String(parseError) }, '[OUTLINE] Failed to parse JSON response')
         return null
       }
 
       // Even if 'found' is false, return coordinates if we have 3+ points
       // Sometimes Gemini sets found:false even when it detects something
       if (!parsed.pixelCoordinates?.length || parsed.pixelCoordinates.length < 3) {
-        console.log('[OUTLINE] Building detection has insufficient points (<3). Found flag:', parsed.found, 'Description:', parsed.description)
+        logger.info({ found: parsed.found, description: parsed.description }, '[OUTLINE] Building detection has insufficient points (<3)')
         return null
       }
 
@@ -125,20 +124,18 @@ If no clear building is visible near center, return: {"found": false, "confidenc
         (p) => p.x >= 0 && p.x <= imageWidth && p.y >= 0 && p.y <= imageHeight
       )
       if (!valid) {
-        console.warn('[OUTLINE] Some coordinates out of bounds, attempting to clamp')
+        logger.warn('[OUTLINE] Some coordinates out of bounds, attempting to clamp')
         parsed.pixelCoordinates = parsed.pixelCoordinates.map((p) => ({
           x: Math.max(0, Math.min(imageWidth, p.x)),
           y: Math.max(0, Math.min(imageHeight, p.y)),
         }))
       }
 
-      console.log(
-        `[OUTLINE] Detected "${buildingName}" with ${parsed.pixelCoordinates.length} points, confidence: ${parsed.confidence}`
-      )
+      logger.info({ buildingName, points: parsed.pixelCoordinates.length, confidence: parsed.confidence }, '[OUTLINE] Building detected')
 
       return parsed.pixelCoordinates
     } catch (error) {
-      console.error('[OUTLINE] Gemini detection failed:', error)
+      logger.error({ error: String(error) }, '[OUTLINE] Gemini detection failed')
       return null
     }
   }

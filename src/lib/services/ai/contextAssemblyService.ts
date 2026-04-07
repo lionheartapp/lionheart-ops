@@ -12,6 +12,9 @@
 
 import { rawPrisma } from '@/lib/db'
 import { generateEmbedding, searchSimilar } from './embeddingService'
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'contextAssemblyService' })
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,15 +35,6 @@ export interface AssembledContext {
     summaryText: string
     conversationTitle?: string | null
   }>
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function log(level: 'info' | 'warn' | 'error', msg: string, data?: Record<string, unknown>) {
-  const entry = { service: 'contextAssemblyService', msg, ...data }
-  if (level === 'error') console.error(entry)
-  else if (level === 'warn') console.warn(entry)
-  else console.log(entry)
 }
 
 // ─── Assembly ─────────────────────────────────────────────────────────────────
@@ -76,22 +70,22 @@ export async function assembleContext(
   if (profileResult.status === 'fulfilled') {
     result.userProfile = profileResult.value
   } else {
-    log('warn', 'Failed to load user profile', { userId, error: String(profileResult.reason) })
+    log.warn({ userId, error: String(profileResult.reason) }, 'Failed to load user profile')
   }
 
   if (factsResult.status === 'fulfilled') {
     result.relevantFacts = factsResult.value
   } else {
-    log('warn', 'Failed to load relevant facts', { userId, error: String(factsResult.reason) })
+    log.warn({ userId, error: String(factsResult.reason) }, 'Failed to load relevant facts')
   }
 
   if (summariesResult.status === 'fulfilled') {
     result.recentSummaries = summariesResult.value
   } else {
-    log('warn', 'Failed to load recent summaries', {
+    log.warn({
       userId,
       error: String(summariesResult.reason),
-    })
+    }, 'Failed to load recent summaries')
   }
 
   return result
@@ -169,10 +163,10 @@ async function loadRelevantFacts(
         }
       }
     } catch (err) {
-      log('warn', 'Semantic fact search failed, falling back to importance rank', {
+      log.warn({
         userId,
         error: String(err),
-      })
+      }, 'Semantic fact search failed, falling back to importance rank')
     }
   }
 
