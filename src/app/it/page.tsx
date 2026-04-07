@@ -131,11 +131,15 @@ function ITContent() {
       </motion.div>
 
       {/* Sub-navigation tabs */}
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6">
+      <div ref={tabContainerRef} role="tablist" aria-label="Help Desk tabs" className="relative flex gap-1 border-b border-slate-200 mb-6">
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             ref={(el) => setTabRef(key, el)}
+            role="tab"
+            aria-selected={activeTab === key}
+            id={`tab-${key}`}
+            aria-controls={`tabpanel-${key}`}
             onClick={() => handleTabChange(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === key
@@ -153,6 +157,9 @@ function ITContent() {
       {/* Tab content */}
       {canSeeManageTabs && (
         <div
+          role="tabpanel"
+          id="tabpanel-dashboard"
+          aria-labelledby="tab-dashboard"
           className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'dashboard'}
         >
@@ -165,6 +172,9 @@ function ITContent() {
 
       {canSeeManageTabs && (
         <div
+          role="tabpanel"
+          id="tabpanel-board"
+          aria-labelledby="tab-board"
           className={activeTab === 'board' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'board'}
         >
@@ -173,6 +183,9 @@ function ITContent() {
       )}
 
       <div
+        role="tabpanel"
+        id="tabpanel-tickets"
+        aria-labelledby="tab-tickets"
         className={activeTab === 'tickets' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
         aria-hidden={activeTab !== 'tickets'}
       >
@@ -185,6 +198,9 @@ function ITContent() {
 
       {canSeeManageTabs && (
         <div
+          role="tabpanel"
+          id="tabpanel-magic-links"
+          aria-labelledby="tab-magic-links"
           className={activeTab === 'magic-links' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'magic-links'}
         >

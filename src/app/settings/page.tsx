@@ -25,8 +25,17 @@ import { Camera, User, Shield, Lock, Mail, Bell, Link2 } from 'lucide-react'
 
 type Tab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'integrations' | 'activity-log' | 'billing'
 
+const VALID_TABS: Tab[] = ['profile', 'school-info', 'roles', 'teams', 'users', 'campus', 'academic-calendar', 'approval-config', 'add-ons', 'integrations', 'activity-log', 'billing']
+
 type WorkspaceTab = Exclude<Tab, 'profile'>
 
+function getInitialTab(): Tab {
+  if (typeof window === 'undefined') return 'profile'
+  const params = new URLSearchParams(window.location.search)
+  const tab = params.get('tab') as Tab | null
+  if (tab && VALID_TABS.includes(tab)) return tab
+  return 'profile'
+}
 
 export default function SettingsPage() {
   usePageTitle('Settings')
@@ -34,8 +43,9 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)
 
-  const [activeTab, setActiveTab] = useState<Tab>('profile')
-  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set(['profile']))
+  const [activeTab, setActiveTab] = useState<Tab>(getInitialTab)
+  const initialTab = activeTab
+  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(() => new Set(['profile', initialTab]))
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
   const [permissionsLoaded, setPermissionsLoaded] = useState(false)
   const [schoolInfoDirty, setSchoolInfoDirty] = useState(false)
@@ -118,6 +128,14 @@ export default function SettingsPage() {
     }
     fetchLogo()
   }, [orgLogoUrl, token])
+
+  // Update both state and URL when switching tabs
+  const switchToTab = (tab: Tab) => {
+    setActiveTab(tab)
+    setVisitedTabs((prev) => new Set(prev).add(tab))
+    const url = tab === 'profile' ? '/settings' : `/settings?tab=${tab}`
+    window.history.replaceState(null, '', url)
+  }
 
   // Keep a stable ref to requestTabChange so the event listener never goes stale
   const requestTabChangeRef = useRef<(tab: Tab) => void>(() => {})
@@ -441,9 +459,9 @@ export default function SettingsPage() {
     if (!permissionsLoaded || canManageWorkspace) return
 
     if (activeTab !== 'profile') {
-      setActiveTab('profile')
+      switchToTab('profile')
     }
-  }, [activeTab, canManageWorkspace, permissionsLoaded])
+  }, [activeTab, canManageWorkspace, permissionsLoaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const requestTabChange = (nextTab: Tab) => {
     if (nextTab === activeTab) return
@@ -462,8 +480,7 @@ export default function SettingsPage() {
       return
     }
 
-    setActiveTab(nextTab)
-    setVisitedTabs((prev) => new Set(prev).add(nextTab))
+    switchToTab(nextTab)
   }
 
   const handleStayOnCurrentTab = () => {
@@ -483,8 +500,7 @@ export default function SettingsPage() {
     if (blockedTab === 'campus') setCampusDirty(false)
 
     if (pendingTab) {
-      setActiveTab(pendingTab)
-      setVisitedTabs((prev) => new Set(prev).add(pendingTab))
+      switchToTab(pendingTab)
     }
     setShowUnsavedDialog(false)
     setPendingTab(null)
@@ -499,7 +515,7 @@ export default function SettingsPage() {
 
     if (!schoolInfoSaveHandler) {
       if (pendingTab) {
-        setActiveTab(pendingTab)
+        switchToTab(pendingTab)
       }
       setShowUnsavedDialog(false)
       setPendingTab(null)
@@ -515,8 +531,7 @@ export default function SettingsPage() {
 
     setSchoolInfoDirty(false)
     if (pendingTab) {
-      setActiveTab(pendingTab)
-      setVisitedTabs((prev) => new Set(prev).add(pendingTab))
+      switchToTab(pendingTab)
     }
     setShowUnsavedDialog(false)
     setPendingTab(null)

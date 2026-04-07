@@ -847,11 +847,13 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       )}
 
       {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
-      <div ref={campusTabContainerRef} className="relative flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
+      <div ref={campusTabContainerRef} role="tablist" aria-label="Campus selector" className="relative flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
         {campuses.length >= 1 && campuses.map((campus) => (
           <div key={campus.id} className="relative flex items-center">
             <button
               ref={(el) => setCampusTabRef(campus.id, el)}
+              role="tab"
+              aria-selected={selectedCampusId === campus.id}
               onClick={() => setSelectedCampusId(campus.id)}
               className={`px-4 py-3 text-sm font-medium transition whitespace-nowrap ${
                 selectedCampusId === campus.id

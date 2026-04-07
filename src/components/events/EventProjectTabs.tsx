@@ -207,6 +207,8 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
           {/* Scrollable tab list */}
           <div
             ref={tabsContainerRef}
+            role="tablist"
+            aria-label="Event tabs"
             className="flex flex-1 overflow-x-auto scrollbar-none -mb-px"
             style={{ scrollbarWidth: 'none' }}
           >
@@ -217,6 +219,9 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
                 <button
                   key={tab.id}
                   data-tab={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  id={`tab-${tab.id}`}
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-shrink-0 ${
                     isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-700'
@@ -271,6 +276,9 @@ export function EventProjectTabs({ project }: EventProjectTabsProps) {
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
+          role="tabpanel"
+          id={`tabpanel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
           variants={tabContent}
           initial="hidden"
           animate="visible"

@@ -237,11 +237,15 @@ export default function AthleticsPage() {
           </motion.div>
 
           {/* Sub-navigation tabs */}
-          <div ref={tabContainerRef} className="relative flex gap-0.5 border-b border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
+          <div ref={tabContainerRef} role="tablist" aria-label="Athletics tabs" className="relative flex gap-0.5 border-b border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
             {SUB_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 ref={(el) => setTabRef(key, el)}
+                role="tab"
+                aria-selected={activeTab === key}
+                id={`tab-${key}`}
+                aria-controls={`tabpanel-${key}`}
                 onClick={() => setActiveTab(key)}
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === key
@@ -261,25 +265,25 @@ export default function AthleticsPage() {
             <AthleticsTableSkeleton columns={5} rows={5} />
           ) : (
             <>
-              <div className={activeTab === 'overview' ? '' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
+              <div role="tabpanel" id="tabpanel-overview" aria-labelledby="tab-overview" className={activeTab === 'overview' ? '' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
                 <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={setActiveTab} />
               </div>
-              <div className={activeTab === 'sports' ? '' : 'hidden'} aria-hidden={activeTab !== 'sports'}>
+              <div role="tabpanel" id="tabpanel-sports" aria-labelledby="tab-sports" className={activeTab === 'sports' ? '' : 'hidden'} aria-hidden={activeTab !== 'sports'}>
                 <SportsSection canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'teams' ? '' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
+              <div role="tabpanel" id="tabpanel-teams" aria-labelledby="tab-teams" className={activeTab === 'teams' ? '' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
                 <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'schedule' ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
+              <div role="tabpanel" id="tabpanel-schedule" aria-labelledby="tab-schedule" className={activeTab === 'schedule' ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
                 <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'roster' ? '' : 'hidden'} aria-hidden={activeTab !== 'roster'}>
+              <div role="tabpanel" id="tabpanel-roster" aria-labelledby="tab-roster" className={activeTab === 'roster' ? '' : 'hidden'} aria-hidden={activeTab !== 'roster'}>
                 <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />
               </div>
-              <div className={activeTab === 'tournaments' ? '' : 'hidden'} aria-hidden={activeTab !== 'tournaments'}>
+              <div role="tabpanel" id="tabpanel-tournaments" aria-labelledby="tab-tournaments" className={activeTab === 'tournaments' ? '' : 'hidden'} aria-hidden={activeTab !== 'tournaments'}>
                 <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
-              <div className={activeTab === 'stats' ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
+              <div role="tabpanel" id="tabpanel-stats" aria-labelledby="tab-stats" className={activeTab === 'stats' ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
                 <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
               </div>
             </>

@@ -206,11 +206,15 @@ function MaintenanceContent() {
             {/* Sub-navigation tabs — for admins and technicians */}
             {showDashboardTabs ? (
               <>
-                <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
+                <div ref={tabContainerRef} role="tablist" aria-label="Maintenance tabs" className="relative flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
                   {SUB_TABS.map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
                       ref={(el) => setTabRef(key, el)}
+                      role="tab"
+                      aria-selected={activeTab === key}
+                      id={`tab-${key}`}
+                      aria-controls={`tabpanel-${key}`}
                       onClick={() => setActiveTab(key)}
                       className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                         activeTab === key
@@ -231,6 +235,9 @@ function MaintenanceContent() {
                 ) : (
                   <>
                     <div
+                      role="tabpanel"
+                      id="tabpanel-dashboard"
+                      aria-labelledby="tab-dashboard"
                       className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
                       aria-hidden={activeTab !== 'dashboard'}
                     >
@@ -238,6 +245,9 @@ function MaintenanceContent() {
                     </div>
 
                     <div
+                      role="tabpanel"
+                      id="tabpanel-pm-calendar"
+                      aria-labelledby="tab-pm-calendar"
                       className={activeTab === 'pm-calendar' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
                       aria-hidden={activeTab !== 'pm-calendar'}
                     >

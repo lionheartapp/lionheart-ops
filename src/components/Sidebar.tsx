@@ -155,7 +155,12 @@ export default function Sidebar({
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('profile')
+  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>(() => {
+    if (typeof window === 'undefined' || !pathname.startsWith('/settings')) return 'profile'
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab') as SettingsTab | null
+    return tab || 'profile'
+  })
 
   // Events sidebar state
   const [eventsOpen, setEventsOpen] = useState(() =>

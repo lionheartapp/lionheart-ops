@@ -65,11 +65,15 @@ function DevicesContent() {
       </motion.div>
 
       {/* Tab bar */}
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6">
+      <div ref={tabContainerRef} role="tablist" aria-label="Devices tabs" className="relative flex gap-1 border-b border-slate-200 mb-6">
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             ref={(el) => setTabRef(key, el)}
+            role="tab"
+            aria-selected={activeTab === key}
+            id={`tab-${key}`}
+            aria-controls={`tabpanel-${key}`}
             onClick={() => setActiveTab(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
@@ -85,6 +89,9 @@ function DevicesContent() {
       {/* Tab content */}
       {p.canReadDevices && (
         <div
+          role="tabpanel"
+          id="tabpanel-devices"
+          aria-labelledby="tab-devices"
           className={activeTab === 'devices' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'devices'}
         >
@@ -98,6 +105,9 @@ function DevicesContent() {
 
       {p.canReadStudents && (
         <div
+          role="tabpanel"
+          id="tabpanel-students"
+          aria-labelledby="tab-students"
           className={activeTab === 'students' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'students'}
         >
@@ -111,6 +121,9 @@ function DevicesContent() {
 
       {p.canAccessLoaners && (
         <div
+          role="tabpanel"
+          id="tabpanel-loaners"
+          aria-labelledby="tab-loaners"
           className={activeTab === 'loaners' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'loaners'}
         >

@@ -57,11 +57,15 @@ function SecurityContent() {
         </motion.p>
       </motion.div>
 
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6">
+      <div ref={tabContainerRef} role="tablist" aria-label="Security tabs" className="relative flex gap-1 border-b border-slate-200 mb-6">
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             ref={(el) => setTabRef(key, el)}
+            role="tab"
+            aria-selected={activeTab === key}
+            id={`tab-${key}`}
+            aria-controls={`tabpanel-${key}`}
             onClick={() => setActiveTab(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
@@ -76,6 +80,9 @@ function SecurityContent() {
 
       {p.canViewContentFilters && (
         <div
+          role="tabpanel"
+          id="tabpanel-content-filters"
+          aria-labelledby="tab-content-filters"
           className={activeTab === 'content-filters' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'content-filters'}
         >
@@ -85,6 +92,9 @@ function SecurityContent() {
 
       {p.canViewSecurityIncidents && (
         <div
+          role="tabpanel"
+          id="tabpanel-security-incidents"
+          aria-labelledby="tab-security-incidents"
           className={activeTab === 'security-incidents' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'security-incidents'}
         >
@@ -94,6 +104,9 @@ function SecurityContent() {
 
       {p.canViewIntelligence && (
         <div
+          role="tabpanel"
+          id="tabpanel-intelligence"
+          aria-labelledby="tab-intelligence"
           className={activeTab === 'intelligence' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'intelligence'}
         >

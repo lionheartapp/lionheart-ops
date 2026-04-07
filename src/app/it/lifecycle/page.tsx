@@ -61,11 +61,15 @@ function LifecycleContent() {
         </motion.p>
       </motion.div>
 
-      <div ref={tabContainerRef} className="relative flex gap-1 border-b border-slate-200 mb-6">
+      <div ref={tabContainerRef} role="tablist" aria-label="Lifecycle tabs" className="relative flex gap-1 border-b border-slate-200 mb-6">
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             ref={(el) => setTabRef(key, el)}
+            role="tab"
+            aria-selected={activeTab === key}
+            id={`tab-${key}`}
+            aria-controls={`tabpanel-${key}`}
             onClick={() => setActiveTab(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
@@ -80,6 +84,9 @@ function LifecycleContent() {
 
       {p.canAccessDeployment && (
         <div
+          role="tabpanel"
+          id="tabpanel-deployment"
+          aria-labelledby="tab-deployment"
           className={activeTab === 'deployment' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'deployment'}
         >
@@ -103,6 +110,9 @@ function LifecycleContent() {
 
       {p.canAccessProvisioning && (
         <div
+          role="tabpanel"
+          id="tabpanel-provisioning"
+          aria-labelledby="tab-provisioning"
           className={activeTab === 'provisioning' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'provisioning'}
         >
@@ -112,6 +122,9 @@ function LifecycleContent() {
 
       {p.canManage && (
         <div
+          role="tabpanel"
+          id="tabpanel-summer"
+          aria-labelledby="tab-summer"
           className={activeTab === 'summer' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'summer'}
         >
