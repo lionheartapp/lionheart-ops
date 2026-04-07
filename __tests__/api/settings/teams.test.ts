@@ -81,7 +81,7 @@ describe('GET /api/settings/teams', () => {
     ;(mocks.prisma.team.findMany as any).mockResolvedValue(teams)
 
     const req = new NextRequest('http://localhost/api/settings/teams')
-    const res = await GET(req)
+    const res = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await res.json()
 
     expect(body.ok).toBe(true)
@@ -94,7 +94,7 @@ describe('GET /api/settings/teams', () => {
     ;(mocks.prisma.team.findMany as any).mockResolvedValue([])
 
     const req = new NextRequest('http://localhost/api/settings/teams')
-    const res = await GET(req)
+    const res = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await res.json()
 
     expect(body.ok).toBe(true)
@@ -116,7 +116,7 @@ describe('POST /api/settings/teams', () => {
       body: JSON.stringify({ name: 'A/V Production' }),
       headers: { 'Content-Type': 'application/json' },
     })
-    const res = await POST(req)
+    const res = await POST(req, { params: Promise.resolve({}) } as any)
     const body = await res.json()
 
     expect(res.status).toBe(201)
@@ -130,7 +130,7 @@ describe('POST /api/settings/teams', () => {
       body: JSON.stringify({ name: '' }),
       headers: { 'Content-Type': 'application/json' },
     })
-    const res = await POST(req)
+    const res = await POST(req, { params: Promise.resolve({}) } as any)
 
     expect(res.status).toBe(400)
     const body = await res.json()
@@ -144,7 +144,7 @@ describe('POST /api/settings/teams', () => {
       body: JSON.stringify({}),
       headers: { 'Content-Type': 'application/json' },
     })
-    const res = await POST(req)
+    const res = await POST(req, { params: Promise.resolve({}) } as any)
 
     expect(res.status).toBe(400)
   })
@@ -161,7 +161,7 @@ describe('POST /api/settings/teams', () => {
       body: JSON.stringify({ name: 'My New Team' }),
       headers: { 'Content-Type': 'application/json' },
     })
-    const res = await POST(req)
+    const res = await POST(req, { params: Promise.resolve({}) } as any)
     const body = await res.json()
 
     expect(res.status).toBe(201)
@@ -182,7 +182,7 @@ describe('POST /api/settings/teams', () => {
       body: JSON.stringify({ name: 'My Team', slug: 'custom-slug' }),
       headers: { 'Content-Type': 'application/json' },
     })
-    await POST(req)
+    await POST(req, { params: Promise.resolve({}) } as any)
 
     const createCall = (mocks.prisma.team.create as any).mock.calls[0][0]
     expect(createCall.data.slug).toBe('custom-slug')

@@ -60,6 +60,9 @@ import { ok } from '@/lib/api-response'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Route context stub for non-dynamic routes (withAuth runtime accepts optional 2nd param)
+const routeCtx = { params: Promise.resolve({}) } as any
+
 function makeReq(path = '/api/test', method = 'GET', body?: unknown): NextRequest {
   const opts: { method: string; body?: string; headers?: Record<string, string> } = { method }
   if (body) {
@@ -91,7 +94,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockResolvedValue(NextResponse.json(ok('hello')))
     const wrapped = withAuth(handler)
 
-    const res = await wrapped(makeReq('/api/test?foo=bar'))
+    const res = await wrapped(makeReq('/api/test?foo=bar'), routeCtx)
     const body = await res.json()
 
     expect(body.ok).toBe(true)
@@ -107,7 +110,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockResolvedValue(NextResponse.json(ok('ok')))
     const wrapped = withAuth(handler)
 
-    await wrapped(makeReq())
+    await wrapped(makeReq(), routeCtx)
 
     expect(mocks.runWithOrgContext).toHaveBeenCalledWith('org-1', expect.any(Function))
   })
@@ -118,7 +121,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockResolvedValue(NextResponse.json(ok('ok')))
     const wrapped = withAuth(handler, { permission: 'teams:read' })
 
-    await wrapped(makeReq())
+    await wrapped(makeReq(), routeCtx)
 
     expect(mocks.assertCan).toHaveBeenCalledWith('user-1', 'teams:read')
   })
@@ -128,7 +131,7 @@ describe('withAuth', () => {
     const handler = vi.fn()
     const wrapped = withAuth(handler, { permission: 'teams:read' })
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(403)
     const body = await res.json()
@@ -142,7 +145,7 @@ describe('withAuth', () => {
     const handler = vi.fn()
     const wrapped = withAuth(handler, { permissionAny: ['teams:read', 'teams:manage'] })
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(403)
     expect(handler).not.toHaveBeenCalled()
@@ -153,7 +156,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockResolvedValue(NextResponse.json(ok('ok')))
     const wrapped = withAuth(handler, { permissionAny: ['teams:read', 'teams:manage'] })
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(200)
     expect(handler).toHaveBeenCalledTimes(1)
@@ -166,7 +169,7 @@ describe('withAuth', () => {
     const handler = vi.fn()
     const wrapped = withAuth(handler)
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(401)
     const body = await res.json()
@@ -179,7 +182,7 @@ describe('withAuth', () => {
     const handler = vi.fn()
     const wrapped = withAuth(handler)
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(401)
   })
@@ -193,7 +196,7 @@ describe('withAuth', () => {
     )
     const wrapped = withAuth(handler, { schema })
 
-    const res = await wrapped(makeReq('/api/test', 'POST', { name: 'Test' }))
+    const res = await wrapped(makeReq('/api/test', 'POST', { name: 'Test' }), routeCtx)
     const data = await res.json()
 
     expect(data.ok).toBe(true)
@@ -205,7 +208,7 @@ describe('withAuth', () => {
     const handler = vi.fn()
     const wrapped = withAuth(handler, { schema })
 
-    const res = await wrapped(makeReq('/api/test', 'POST', { name: '' }))
+    const res = await wrapped(makeReq('/api/test', 'POST', { name: '' }), routeCtx)
 
     expect(res.status).toBe(400)
     const body = await res.json()
@@ -219,7 +222,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockRejectedValue(new Error('Record not found'))
     const wrapped = withAuth(handler)
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(404)
     const body = await res.json()
@@ -236,7 +239,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockRejectedValue(prismaError)
     const wrapped = withAuth(handler)
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(409)
     const body = await res.json()
@@ -250,7 +253,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockRejectedValue(new Error('Something unexpected'))
     const wrapped = withAuth(handler)
 
-    const res = await wrapped(makeReq())
+    const res = await wrapped(makeReq(), routeCtx)
 
     expect(res.status).toBe(500)
     const body = await res.json()
@@ -273,7 +276,7 @@ describe('withAuth', () => {
     const handler = vi.fn().mockResolvedValue(NextResponse.json(ok('ok')))
     const wrapped = withAuth(handler)
 
-    await wrapped(makeReq())
+    await wrapped(makeReq(), routeCtx)
 
     const ctx = handler.mock.calls[0][0]
     expect(ctx.params).toEqual({})
@@ -288,7 +291,7 @@ describe('withAuth', () => {
     })
     const wrapped = withAuth(handler)
 
-    await wrapped(makeReq())
+    await wrapped(makeReq(), routeCtx)
 
     expect(mocks.can).toHaveBeenCalledWith('user-1', 'teams:read')
   })

@@ -20,9 +20,13 @@ const log = logger.child({ route: '/api/cron/automations' })
 export async function GET(req: NextRequest) {
   // Verify cron secret (Vercel sends this header)
   const cronSecret = process.env.CRON_SECRET
-  const authHeader = req.headers.get('authorization')
+  if (!cronSecret) {
+    log.error('CRON_SECRET is not configured')
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Cron endpoint not configured'), { status: 500 })
+  }
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  const authHeader = req.headers.get('authorization')
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json(fail('UNAUTHORIZED', 'Invalid cron secret'), { status: 401 })
   }
 

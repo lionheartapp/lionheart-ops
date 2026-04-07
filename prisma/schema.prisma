@@ -371,6 +371,7 @@ model Ticket {
   @@index([organizationId, campusId])
   @@index([schoolId])
   @@index([createdById])
+  @@index([assignedToId])
 }
 
 model TicketComment {
@@ -387,6 +388,7 @@ model TicketComment {
 
   @@index([ticketId, createdAt])
   @@index([organizationId])
+  @@index([authorId])
 }
 
 model TicketAttachment {
@@ -405,6 +407,7 @@ model TicketAttachment {
 
   @@index([ticketId, createdAt])
   @@index([organizationId])
+  @@index([uploadedById])
 }
 
 model Building {
@@ -663,6 +666,7 @@ model Event {
 
   @@index([organizationId, startsAt])
   @@index([organizationId, deletedAt])
+  @@index([submittedById])
 }
 
 model DraftEvent {
@@ -683,6 +687,7 @@ model DraftEvent {
 
   @@index([organizationId, updatedAt])
   @@index([organizationId, deletedAt])
+  @@index([createdById])
 }
 
 model InventoryItem {
@@ -747,6 +752,8 @@ model InventoryTransaction {
   @@index([organizationId, itemId])
   @@index([organizationId, itemId, createdAt(sort: Desc)])
   @@index([itemId, checkedInAt])
+  @@index([checkedOutById])
+  @@index([checkedInById])
 }
 
 model TeacherSchedule {
@@ -763,6 +770,7 @@ model TeacherSchedule {
   teacher        User?        @relation(fields: [teacherId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, dayOfWeek])
+  @@index([teacherId])
 }
 
 model Permission {
@@ -1121,6 +1129,7 @@ model Subscription {
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([status])
   @@index([stripeCustomerId])
+  @@index([planId])
 }
 
 model Payment {
@@ -1140,6 +1149,7 @@ model Payment {
 
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([status])
+  @@index([subscriptionId])
 }
 
 model DiscountCode {
@@ -1269,6 +1279,7 @@ model Calendar {
   @@index([schoolId])
   @@index([createdById])
   @@index([organizationId, deletedAt])
+  @@index([defaultApproverRoleId])
 }
 
 model CalendarEvent {
@@ -1325,6 +1336,7 @@ model CalendarEvent {
   @@index([schoolId])
   @@index([buildingId])
   @@index([areaId])
+  @@index([approvedById])
 }
 
 model CalendarCategory {
@@ -1703,6 +1715,7 @@ model ApprovalChannelConfig {
   @@unique([organizationId, campusId, channelType])
   @@index([organizationId])
   @@index([campusId])
+  @@index([assignedTeamId])
 }
 
 model EventApproval {
@@ -2004,6 +2017,8 @@ model AthleticTeam {
   @@index([sportId])
   @@index([seasonId])
   @@index([coachUserId])
+  @@index([schoolId])
+  @@index([calendarId])
 }
 
 model Game {
@@ -2031,6 +2046,7 @@ model Game {
   @@index([athleticTeamId])
   @@index([organizationId, startTime])
   @@index([athleticTeamId, startTime])
+  @@index([calendarEventId])
 }
 
 model Practice {
@@ -2052,6 +2068,7 @@ model Practice {
   @@index([organizationId])
   @@index([athleticTeamId])
   @@index([athleticTeamId, startTime])
+  @@index([calendarEventId])
 }
 
 model Tournament {
@@ -2072,6 +2089,7 @@ model Tournament {
 
   @@index([organizationId])
   @@index([sportId])
+  @@index([calendarId])
 }
 
 model TournamentBracket {
@@ -2385,6 +2403,8 @@ model MaintenanceTicketActivity {
 
   @@index([ticketId, createdAt])
   @@index([organizationId])
+  @@index([actorId])
+  @@index([assignedToId])
 }
 
 model MaintenanceLaborEntry {
@@ -2476,6 +2496,9 @@ model MaintenanceAsset {
   @@index([organizationId])
   @@index([organizationId, buildingId])
   @@index([organizationId, deletedAt])
+  @@index([areaId])
+  @@index([roomId])
+  @@index([schoolId])
 }
 
 model PmSchedule {
@@ -2517,6 +2540,12 @@ model PmSchedule {
   @@index([organizationId, nextDueDate])
   @@index([schoolId])
   @@index([isActive])
+  @@index([assetId])
+  @@index([buildingId])
+  @@index([areaId])
+  @@index([roomId])
+  @@index([defaultTechnicianId])
+  @@index([knowledgeArticleId])
 }
 
 model MaintenanceAssetCounter {
@@ -2615,6 +2644,8 @@ model ComplianceRecord {
   @@index([organizationId, status])
   @@index([domainConfigId])
   @@index([organizationId, deletedAt])
+  @@index([schoolId])
+  @@index([knowledgeArticleId])
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -2654,6 +2685,7 @@ model KnowledgeArticle {
   @@index([organizationId, type])
   @@index([organizationId, deletedAt])
   @@index([organizationId, isPublished])
+  @@index([assetId])
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -2961,6 +2993,10 @@ model ITTicket {
   @@index([organizationId, deletedAt, status, schoolId])
   @@index([organizationId, deletedAt, createdAt])
   @@index([organizationId, priority])
+  @@index([buildingId])
+  @@index([areaId])
+  @@index([roomId])
+  @@index([deviceId])
 }
 
 model ITTicketCounter {
@@ -2992,6 +3028,8 @@ model ITTicketActivity {
 
   @@index([ticketId, createdAt])
   @@index([organizationId])
+  @@index([actorId])
+  @@index([assignedToId])
 }
 
 model ITMagicLink {
@@ -3103,6 +3141,8 @@ model ITDevice {
   @@index([organizationId, deletedAt])
   @@index([organizationId, deletedAt, status])
   @@index([googleDeviceId])
+  @@index([buildingId])
+  @@index([roomId])
 }
 
 model ITDeviceCounter {
@@ -3134,6 +3174,7 @@ model ITDeviceAssignment {
   @@index([organizationId, studentId])
   @@index([organizationId, userId])
   @@index([deviceId, returnedAt])
+  @@index([assignedById])
 }
 
 model ITDeviceRepair {
@@ -3157,6 +3198,7 @@ model ITDeviceRepair {
   @@index([organizationId, deviceId])
   @@index([deviceId, repairDate])
   @@index([organizationId, queueStatus])
+  @@index([ticketId])
 }
 
 model ITLoanerCheckout {
@@ -3183,6 +3225,10 @@ model ITLoanerCheckout {
   @@index([organizationId, deviceId])
   @@index([organizationId, checkedInAt])
   @@index([organizationId, dueDate])
+  @@index([borrowerStudentId])
+  @@index([borrowerUserId])
+  @@index([checkedOutById])
+  @@index([checkedInById])
 }
 
 model ITSyncConfig {
@@ -3269,6 +3315,8 @@ model ITDeploymentBatch {
   @@index([organizationId, status])
   @@index([organizationId, batchType])
   @@index([organizationId, deletedAt])
+  @@index([schoolId])
+  @@index([createdById])
 }
 
 model ITDeploymentBatchItem {
@@ -3324,6 +3372,7 @@ model ITSummerBatch {
   @@index([organizationId, status])
   @@index([organizationId, batchType])
   @@index([organizationId, deletedAt])
+  @@index([createdById])
 }
 
 model ITSummerBatchItem {
@@ -3403,6 +3452,10 @@ model ITProvisioningEvent {
   @@index([organizationId, eventType])
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
+  @@index([studentId])
+  @@index([userId])
+  @@index([fromSchoolId])
+  @@index([toSchoolId])
 }
 
 model ITProvisioningConfig {
@@ -3547,6 +3600,8 @@ model ITContentFilterEvent {
   @@index([organizationId, disposition])
   @@index([organizationId, isAdminOnly])
   @@index([externalEventId])
+  @@index([actorId])
+  @@index([ticketId])
 }
 
 // ─── Security Incident Models ─────────────────────────────────────────────────
@@ -3584,6 +3639,8 @@ model SecurityIncident {
   @@index([organizationId, status])
   @@index([organizationId, severity])
   @@index([organizationId, createdAt])
+  @@index([schoolId])
+  @@index([reportedById])
 }
 
 model SecurityIncidentCounter {
@@ -3614,6 +3671,7 @@ model SecurityIncidentActivity {
 
   @@index([incidentId, createdAt])
   @@index([organizationId])
+  @@index([actorId])
 }
 
 model NotificationPreference {
@@ -3724,6 +3782,7 @@ model UserMemoryFact {
 
   @@index([userId, category])
   @@index([userId, importance])
+  @@index([sourceConversationId])
 }
 
 // ─── Event Project Module ──────────────────────────────────────────────────
@@ -3865,6 +3924,12 @@ model EventProject {
   @@index([createdById])
   @@index([source, sourceId])
   @@index([seriesId])
+  @@index([campusId])
+  @@index([schoolId])
+  @@index([buildingId])
+  @@index([areaId])
+  @@index([roomId])
+  @@index([approvedById])
 }
 
 model EventTeamMember {
@@ -3927,6 +3992,7 @@ model EventSeries {
 
   @@index([organizationId, isActive])
   @@index([createdById])
+  @@index([campusId])
 }
 
 // Phase 22: Event Template — serialized structure for reusable event scaffolding
@@ -3953,6 +4019,8 @@ model EventTemplate {
 
   @@index([organizationId])
   @@index([organizationId, eventType])
+  @@index([sourceEventProjectId])
+  @@index([createdById])
 }
 
 model EventScheduleSection {
@@ -4004,6 +4072,7 @@ model EventScheduleBlock {
   @@index([eventProjectId, startsAt])
   @@index([sectionId, sortOrder])
   @@index([organizationId])
+  @@index([leadId])
 }
 
 model ScheduleBlockAttachment {
@@ -4022,6 +4091,7 @@ model ScheduleBlockAttachment {
 
   @@index([blockId, createdAt])
   @@index([organizationId])
+  @@index([uploadedById])
 }
 
 /// Links a Lionheart EventScheduleSection to a Planning Center Online service plan.
@@ -4053,6 +4123,7 @@ model PCOServiceLink {
   @@unique([organizationId, pcoPlanId])  // One link per PCO plan per org
   @@index([eventProjectId])
   @@index([organizationId])
+  @@index([credentialId])
 }
 
 /// Maps individual Planning Center plan items (songs, media, headers) to Lionheart schedule blocks.
@@ -4289,6 +4360,9 @@ model RegistrationResponse {
 
   registration EventRegistration     @relation(fields: [registrationId], references: [id], onDelete: Cascade)
   field        RegistrationFormField @relation(fields: [fieldId], references: [id], onDelete: Restrict)
+
+  @@index([registrationId])
+  @@index([fieldId])
 }
 
 /// FERPA/COPPA-gated sensitive data — separate table for access control.
@@ -4338,6 +4412,8 @@ model RegistrationPayment {
   createdAt               DateTime @default(now())
 
   registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([registrationId])
 }
 
 /// Passwordless magic links for parent portal access.
@@ -4575,6 +4651,8 @@ model EventAnnouncement {
 
   @@index([eventProjectId])
   @@index([organizationId])
+  @@index([targetGroupId])
+  @@index([createdById])
 }
 
 /// QR code check-in record for event attendance.
@@ -4596,6 +4674,7 @@ model EventCheckIn {
   @@unique([registrationId, eventProjectId])
   @@index([eventProjectId, checkedInAt])
   @@index([organizationId])
+  @@index([checkedInById])
 }
 
 /// Day-of incident log for events.
@@ -4634,6 +4713,7 @@ model EventIncidentParticipant {
   incident     EventIncident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
 
   @@unique([registrationId, incidentId])
+  @@index([incidentId])
 }
 
 /// Post-event feedback survey (reuses RegistrationForm builder).
@@ -4737,6 +4817,7 @@ model BudgetLineItem {
   @@index([organizationId])
   @@index([eventProjectId])
   @@index([categoryId])
+  @@index([createdById])
 }
 
 /// Revenue entries for an event — auto-populated from Stripe or entered manually.
@@ -4760,6 +4841,7 @@ model BudgetRevenue {
 
   @@index([organizationId])
   @@index([eventProjectId])
+  @@index([createdById])
 }
 
 enum BudgetRevenueSource {
@@ -4831,6 +4913,8 @@ model EventNotificationRule {
   @@index([organizationId])
   @@index([eventProjectId])
   @@index([status, scheduledAt])
+  @@index([approvedById])
+  @@index([createdById])
 }
 
 /// Log entry for each dispatch of a notification rule.

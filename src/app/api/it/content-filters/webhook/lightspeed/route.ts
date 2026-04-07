@@ -25,10 +25,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fail('NOT_FOUND', 'Provider not configured'), { status: 404 })
     }
 
-    if (config.webhookSecret && signature) {
-      const valid = validateWebhookSignature(rawBody, signature, config.webhookSecret)
-      if (!valid) {
-        return NextResponse.json(fail('UNAUTHORIZED', 'Invalid signature'), { status: 401 })
+    if (config.webhookSecret) {
+      if (!signature || !validateWebhookSignature(rawBody, signature, config.webhookSecret)) {
+        return NextResponse.json(fail('UNAUTHORIZED', 'Invalid or missing signature'), { status: 401 })
       }
     }
 

@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
 
     if (!classLinkSecret) {
-      // Graceful degradation: log warning and skip verification when secret not configured
-      console.warn('[ClassLink webhook] CLASSLINK_WEBHOOK_SECRET not configured — skipping signature verification')
+      console.error('[ClassLink webhook] CLASSLINK_WEBHOOK_SECRET not configured')
+      return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook endpoint not configured'), { status: 500 })
     } else {
       const signature =
         req.headers.get('x-classlink-signature') || req.headers.get('classlink-signature')

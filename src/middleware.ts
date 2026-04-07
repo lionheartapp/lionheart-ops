@@ -250,16 +250,8 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ─── Direct org-id shortcut (for legacy/internal use) ───────────
-  const directOrgId = req.headers.get('x-org-id')?.trim()
-  const authHeader = req.headers.get('authorization')
-
-  if (directOrgId) {
-    requestHeaders.set('x-org-id', directOrgId)
-    return NextResponse.next({ request: { headers: requestHeaders } })
-  }
-
   // ─── Token extraction: cookie first, then Authorization header ──
+  const authHeader = req.headers.get('authorization')
   const cookieToken = req.cookies.get('auth-token')?.value
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
   const token = cookieToken ?? bearerToken

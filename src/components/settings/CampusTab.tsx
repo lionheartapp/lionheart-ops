@@ -1,191 +1,90 @@
 'use client'
 
-import React, { useEffect, useMemo, useState, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, Save, XCircle, Camera, MoreVertical } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Building2, MapPin, DoorOpen, Plus } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
-import DetailDrawer from '@/components/DetailDrawer'
-import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
-import RowActionMenu from '@/components/RowActionMenu'
-import ConfirmDialog from '@/components/ConfirmDialog'
+import { getAuthHeaders } from '@/lib/api-client'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
-import ImageUpload from '@/components/settings/ImageUpload'
-import PhotoLightbox from '@/components/settings/PhotoLightbox'
-import AddressAutocomplete from '@/components/AddressAutocomplete'
 import SchoolsManagement from '@/components/settings/SchoolsManagement'
-import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
-import TabIndicator from '@/components/ui/TabIndicator'
-import { IllustrationCampus } from '@/components/illustrations'
-
-type Building = {
-  id: string
-  name: string
-  code: string | null
-  latitude: number | null
-  longitude: number | null
-  schoolDivision: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL'
-  buildingType: 'GENERAL' | 'ARTS_CULTURE' | 'ATHLETICS' | 'ADMINISTRATION' | 'SUPPORT_SERVICES'
-  images: string[] | null
-  sortOrder: number
-  isActive: boolean
-  school?: { id: string; name: string; gradeLevel: string; color: string } | null
-}
-
-type Area = {
-  id: string
-  name: string
-  areaType: 'FIELD' | 'COURT' | 'GYM' | 'COMMON' | 'PARKING' | 'OTHER'
-  buildingId: string | null
-  images: string[] | null
-  sortOrder: number
-  isActive: boolean
-  building?: { id: string; name: string; code: string | null } | null
-}
-
-type Room = {
-  id: string
-  buildingId: string
-  areaId: string | null
-  roomNumber: string
-  displayName: string | null
-  floor: string | null
-  images: string[] | null
-  sortOrder: number
-  isActive: boolean
-  building?: { id: string; name: string; code: string | null } | null
-  area?: { id: string; name: string; areaType: string } | null
-}
+import PhotoLightbox from '@/components/settings/PhotoLightbox'
+import CampusSelector from './campus/CampusSelector'
+import BuildingsTable from './campus/BuildingsTable'
+import OutdoorSpacesTable from './campus/OutdoorSpacesTable'
+import BuildingFormDrawer from './campus/BuildingFormDrawer'
+import OutdoorFormDrawer from './campus/OutdoorFormDrawer'
+import RoomsDrawer from './campus/RoomsDrawer'
+import BuildingInfoDrawer from './campus/BuildingInfoDrawer'
+import { AddCampusDrawer, EditCampusDrawer } from './campus/CampusFormDrawers'
+import { DeleteCampusDialog, PlaceOnMapDialog, EntityDeleteDialog } from './campus/CampusDialogs'
+import type { Building, Area, Room, Campus, SchoolInfo, DeleteConfirm } from './campus/types'
 
 type CampusTabProps = {
   onDirtyChange?: (isDirty: boolean) => void
 }
 
-type Campus = {
-  id: string
-  name: string
-  campusType: 'HEADQUARTERS' | 'CAMPUS' | 'SATELLITE'
-  address: string | null
-}
-
-const DIVISION_LABELS: Record<string, string> = {
-  GLOBAL: 'Global',
-  ELEMENTARY: 'Elementary',
-  MIDDLE_SCHOOL: 'Middle School',
-  HIGH_SCHOOL: 'High School',
-}
-
-const DIVISION_ORDER = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
-const DIVISION_COLORS: Record<string, string> = {
-  ELEMENTARY: '#7c3aed',
-  MIDDLE_SCHOOL: '#0891b2',
-  HIGH_SCHOOL: '#dc2626',
-  GLOBAL: '#2563eb',
-}
-const DIVISION_BG_CLASSES: Record<string, string> = {
-  ELEMENTARY: 'bg-purple-50',
-  MIDDLE_SCHOOL: 'bg-cyan-50',
-  HIGH_SCHOOL: 'bg-red-50',
-  GLOBAL: 'bg-primary-50',
-}
-
-const BUILDING_TYPE_LABELS: Record<string, string> = {
-  GENERAL: 'General',
-  ARTS_CULTURE: 'Arts & Culture',
-  ATHLETICS: 'Athletics',
-  ADMINISTRATION: 'Administration',
-  SUPPORT_SERVICES: 'Support Services',
-}
-
-const OUTDOOR_TYPE_LABELS: Record<string, string> = {
-  FIELD: 'Athletic Field',
-  COURT: 'Court',
-  GYM: 'Gymnasium',
-  COMMON: 'Gathering Area',
-  PARKING: 'Parking',
-  OTHER: 'Other',
-}
-
 export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
-  // ─── Campus Selection ────────────────────────────────────────────────────
+  // ─── Campus state ──────────────────────────────────────────────────────
   const [campuses, setCampuses] = useState<Campus[]>([])
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
-  const { containerRef: campusTabContainerRef, setTabRef: setCampusTabRef, indicatorStyle: campusIndicatorStyle } = useAnimatedTabIndicator(selectedCampusId ?? '', [campuses.length])
   const [campusesLoading, setCampusesLoading] = useState(true)
+
+  // Add campus
   const [showAddCampusModal, setShowAddCampusModal] = useState(false)
   const [addCampusForm, setAddCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
   const [addCampusError, setAddCampusError] = useState('')
   const [addCampusSaving, setAddCampusSaving] = useState(false)
 
-  // ─── Campus Edit / Delete ──────────────────────────────────────────────
+  // Edit campus
   const [editCampusDrawerOpen, setEditCampusDrawerOpen] = useState(false)
   const [editingCampus, setEditingCampus] = useState<Campus | null>(null)
   const [editCampusForm, setEditCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
   const [editCampusError, setEditCampusError] = useState('')
   const [editCampusSaving, setEditCampusSaving] = useState(false)
+
+  // Delete campus
   const [deleteCampusConfirm, setDeleteCampusConfirm] = useState<Campus | null>(null)
   const [deleteCampusLoading, setDeleteCampusLoading] = useState(false)
-  const [campusMenuOpen, setCampusMenuOpen] = useState<string | null>(null)
-  const [campusMenuPos, setCampusMenuPos] = useState<{ top: number; left: number } | null>(null)
 
-  // ─── Data ────────────────────────────────────────────────────────────────
+  // ─── Data ──────────────────────────────────────────────────────────────
   const [buildings, setBuildings] = useState<Building[]>([])
   const [areas, setAreas] = useState<Area[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
-  const [schools, setSchools] = useState<{ name: string; color: string; gradeLevel: string }[]>([])
+  const [schools, setSchools] = useState<SchoolInfo[]>([])
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; name: string; address: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // ─── Building drawer (add / edit) ────────────────────────────────────────
+  // ─── Building drawer ───────────────────────────────────────────────────
   const [buildingDrawerOpen, setBuildingDrawerOpen] = useState(false)
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null)
   const [buildingForm, setBuildingForm] = useState({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
   const [buildingFormError, setBuildingFormError] = useState('')
   const [buildingFormSaving, setBuildingFormSaving] = useState(false)
 
-  // ─── Outdoor space drawer (add / edit) ───────────────────────────────────
+  // ─── Outdoor space drawer ──────────────────────────────────────────────
   const [outdoorDrawerOpen, setOutdoorDrawerOpen] = useState(false)
   const [editingOutdoor, setEditingOutdoor] = useState<Area | null>(null)
   const [outdoorForm, setOutdoorForm] = useState({ name: '', areaType: 'FIELD' })
   const [outdoorFormError, setOutdoorFormError] = useState('')
   const [outdoorFormSaving, setOutdoorFormSaving] = useState(false)
 
-  // ─── Rooms drawer (per-building) — inline add + inline edit ──────────────
+  // ─── Rooms drawer ─────────────────────────────────────────────────────
   const [roomsBuilding, setRoomsBuilding] = useState<Building | null>(null)
-  // inline add form
-  const [addRoomForm, setAddRoomForm] = useState({ roomNumber: '', displayName: '', floor: '' })
-  const [addRoomError, setAddRoomError] = useState('')
-  const [addRoomSaving, setAddRoomSaving] = useState(false)
-  // inline row edit
-  const [editingRoomId, setEditingRoomId] = useState<string | null>(null)
-  const [editRoomData, setEditRoomData] = useState({ roomNumber: '', displayName: '', floor: '' })
-  const [editRoomError, setEditRoomError] = useState('')
-  const [editRoomSaving, setEditRoomSaving] = useState(false)
-  const [roomImagesId, setRoomImagesId] = useState<string | null>(null) // show image upload for this room
 
-  // ─── Delete/Deactivate confirm ────────────────────────────────────────────
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    type: 'building' | 'outdoor' | 'room'
-    id: string
-    name: string
-    roomCount: number
-    ticketCount: number
-    action: 'delete' | 'deactivate'
-  } | null>(null)
+  // ─── Delete/Deactivate ────────────────────────────────────────────────
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirm | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // ─── Map building placement ──────────────────────────────────────────────
+  // ─── Map state ─────────────────────────────────────────────────────────
   const [pendingBuildingCoords, setPendingBuildingCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [pendingOutdoorCoords, setPendingOutdoorCoords] = useState<{ lat: number; lng: number } | null>(null)
-  const [pendingMarkerData, setPendingMarkerData] = useState<{
-    lat: number; lng: number; label: string; type: 'building' | 'outdoor'
-  } | null>(null)
+  const [pendingMarkerData, setPendingMarkerData] = useState<{ lat: number; lng: number; label: string; type: 'building' | 'outdoor' } | null>(null)
   const [lastCreatedBuilding, setLastCreatedBuilding] = useState<Building | null>(null)
   const [placeOnMapBuilding, setPlaceOnMapBuilding] = useState<Building | null>(null)
   const [placingExistingBuilding, setPlacingExistingBuilding] = useState<Building | null>(null)
   const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
   const [outdoorMapSpaces, setOutdoorMapSpaces] = useState<any[]>([])
 
-  // ─── Photo lightbox ─────────────────────────────────────────────────────
+  // ─── Photo lightbox ────────────────────────────────────────────────────
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -196,70 +95,39 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     setLightboxOpen(true)
   }
 
-  // ─── Feedback ────────────────────────────────────────────────────────────
+  // ─── Feedback ──────────────────────────────────────────────────────────
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
-  // ─── Computed ────────────────────────────────────────────────────────────
+  // ─── Computed ──────────────────────────────────────────────────────────
   const outdoorSpaces = useMemo(() => areas.filter((a) => a.buildingId === null), [areas])
   const buildingRooms = useMemo(
     () => (roomsBuilding ? rooms.filter((r) => r.buildingId === roomsBuilding.id) : []),
     [rooms, roomsBuilding],
   )
-  const groupedBuildings = useMemo(() => {
-    return DIVISION_ORDER
-      .map(div => ({ division: div, buildings: buildings.filter(b => b.schoolDivision === div) }))
-      .filter(g => g.buildings.length > 0)
-  }, [buildings])
-
-  const getGroupColor = (group: { division: string; buildings: Building[] }) =>
-    group.buildings.find(b => b.school?.color)?.school?.color
-    || schools.find(s => s.gradeLevel === group.division)?.color
-    || DIVISION_COLORS[group.division]
 
   const hasUnsavedChanges = Boolean(
     (buildingDrawerOpen && (buildingForm.name.trim().length > 0 || buildingForm.code.trim().length > 0)) ||
-      (outdoorDrawerOpen && outdoorForm.name.trim().length > 0) ||
-      addRoomForm.roomNumber.trim().length > 0 ||
-      editingRoomId !== null,
+    (outdoorDrawerOpen && outdoorForm.name.trim().length > 0),
   )
 
-  useEffect(() => {
-    onDirtyChange?.(hasUnsavedChanges)
-  }, [hasUnsavedChanges, onDirtyChange])
+  useEffect(() => { onDirtyChange?.(hasUnsavedChanges) }, [hasUnsavedChanges, onDirtyChange])
 
   useEffect(() => {
     if (!successMessage) return
     const delay = lastCreatedBuilding ? 6000 : 2500
-    const t = setTimeout(() => {
-      setSuccessMessage('')
-      setLastCreatedBuilding(null)
-    }, delay)
+    const t = setTimeout(() => { setSuccessMessage(''); setLastCreatedBuilding(null) }, delay)
     return () => clearTimeout(t)
   }, [successMessage, lastCreatedBuilding])
 
   useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!hasUnsavedChanges) return
-      event.preventDefault()
-      event.returnValue = ''
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    if (!hasUnsavedChanges) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
   }, [hasUnsavedChanges])
 
-  // ─── Auth helpers ─────────────────────────────────────────────────────────
-  const getAuthHeaders = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-    const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
-    return {
-      Authorization: token ? `Bearer ${token}` : '',
-      'X-Organization-ID': orgId || '',
-      'Content-Type': 'application/json',
-    }
-  }
-
-  // ─── Load campuses on mount ───────────────────────────────────────────────
+  // ─── Data loading ──────────────────────────────────────────────────────
   const loadCampuses = async (andLoadData = false) => {
     setCampusesLoading(true)
     try {
@@ -267,30 +135,23 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to load campuses')
-      const campusList = json.data || []
-      setCampuses(campusList)
-      // Set selectedCampusId to first campus (HQ) if available
-      if (campusList.length > 0 && !selectedCampusId) {
-        setSelectedCampusId(campusList[0].id)
-        // Eagerly start loading data for the first campus to avoid waterfall
-        if (andLoadData) loadDataForCampus(campusList[0].id)
+      const list = json.data || []
+      setCampuses(list)
+      if (list.length > 0 && !selectedCampusId) {
+        setSelectedCampusId(list[0].id)
+        if (andLoadData) loadDataForCampus(list[0].id)
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load campuses')
-    } finally {
-      setCampusesLoading(false)
-    }
+    } catch (e) { setError(e instanceof Error ? e.message : 'Failed to load campuses') }
+    finally { setCampusesLoading(false) }
   }
 
-  // ─── Data loading ─────────────────────────────────────────────────────────
   const loadDataForCampus = async (campusId: string) => {
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
-      const campusQuery = campusId ? `?campusId=${campusId}` : ''
+      const q = campusId ? `?campusId=${campusId}` : ''
       const [campusRes, mapRes, schoolsRes] = await Promise.all([
-        fetch(`/api/settings/campus${campusQuery}`, { headers: getAuthHeaders() }),
-        fetch(`/api/settings/campus/map-data${campusQuery}`, { headers: getAuthHeaders() }),
+        fetch(`/api/settings/campus${q}`, { headers: getAuthHeaders() }),
+        fetch(`/api/settings/campus/map-data${q}`, { headers: getAuthHeaders() }),
         fetch('/api/settings/schools', { headers: getAuthHeaders() }),
       ])
       if (handleAuthResponse(campusRes)) return
@@ -299,290 +160,119 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       setBuildings(campusJson.data.buildings || [])
       setAreas(campusJson.data.areas || [])
       setRooms(campusJson.data.rooms || [])
-
-      // Load schools for map legend colors
       if (schoolsRes.ok) {
-        const schoolsJson = await schoolsRes.json()
-        if (schoolsJson.ok && schoolsJson.data) {
-          setSchools(schoolsJson.data.map((s: any) => ({ name: s.name, color: s.color, gradeLevel: s.gradeLevel })))
-        }
+        const sj = await schoolsRes.json()
+        if (sj.ok && sj.data) setSchools(sj.data.map((s: any) => ({ name: s.name, color: s.color, gradeLevel: s.gradeLevel })))
       }
-
-      // Load map center + outdoor space positions
       if (mapRes.ok) {
-        const mapJson = await mapRes.json()
-        if (mapJson.ok) {
-          if (mapJson.data?.org) {
-            setMapCenter({
-              lat: mapJson.data.org.lat || 33.4936,
-              lng: mapJson.data.org.lng || -117.0892,
-              name: mapJson.data.org.name || '',
-              address: mapJson.data.org.address || null,
-            })
-          }
-          if (mapJson.data?.outdoorSpaces) {
-            setOutdoorMapSpaces(mapJson.data.outdoorSpaces)
-          }
+        const mj = await mapRes.json()
+        if (mj.ok) {
+          if (mj.data?.org) setMapCenter({ lat: mj.data.org.lat || 33.4936, lng: mj.data.org.lng || -117.0892, name: mj.data.org.name || '', address: mj.data.org.address || null })
+          if (mj.data?.outdoorSpaces) setOutdoorMapSpaces(mj.data.outdoorSpaces)
         }
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load campus data')
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { setError(e instanceof Error ? e.message : 'Failed to load campus data') }
+    finally { setLoading(false) }
   }
 
   const loadData = () => loadDataForCampus(selectedCampusId || '')
 
-  // Load campuses on mount — eagerly start data fetch for first campus
+  useEffect(() => { loadCampuses(true) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
-    loadCampuses(true)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (!selectedCampusId) return
+    setBuildings([]); setAreas([]); setRooms([]); setOutdoorMapSpaces([])
+    setBuildingDrawerOpen(false); setOutdoorDrawerOpen(false); setRoomsBuilding(null)
+    setEditingBuilding(null); setEditingOutdoor(null)
+    setSelectedMapBuildingId(null); setPlacingExistingBuilding(null); setPlaceOnMapBuilding(null)
+    loadData()
+  }, [selectedCampusId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load data when selectedCampusId changes — reset stale state immediately
-  useEffect(() => {
-    if (selectedCampusId) {
-      setBuildings([])
-      setAreas([])
-      setRooms([])
-      setOutdoorMapSpaces([])
-      setBuildingDrawerOpen(false)
-      setOutdoorDrawerOpen(false)
-      setRoomsBuilding(null)
-      setEditingBuilding(null)
-      setEditingOutdoor(null)
-      setSelectedMapBuildingId(null)
-      setPlacingExistingBuilding(null)
-      setPlaceOnMapBuilding(null)
-      loadData()
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCampusId])
-
-  // ─── Building CRUD ────────────────────────────────────────────────────────
-  const openAddBuilding = () => {
-    setEditingBuilding(null)
-    setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
-    setBuildingFormError('')
-    setBuildingDrawerOpen(true)
-  }
-
-  const openEditBuilding = (b: Building) => {
-    setEditingBuilding(b)
-    setBuildingForm({ name: b.name, code: b.code || '', schoolDivision: b.schoolDivision, buildingType: b.buildingType || 'GENERAL' })
-    setBuildingFormError('')
-    setBuildingDrawerOpen(true)
-  }
-
-  const closeBuildingDrawer = () => {
-    if (buildingFormSaving) return
-    setBuildingDrawerOpen(false)
-    setEditingBuilding(null)
-    setPendingMarkerData(null)
-  }
+  // ─── Building CRUD ─────────────────────────────────────────────────────
+  const openAddBuilding = () => { setEditingBuilding(null); setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' }); setBuildingFormError(''); setBuildingDrawerOpen(true) }
+  const openEditBuilding = (b: Building) => { setEditingBuilding(b); setBuildingForm({ name: b.name, code: b.code || '', schoolDivision: b.schoolDivision, buildingType: b.buildingType || 'GENERAL' }); setBuildingFormError(''); setBuildingDrawerOpen(true) }
+  const closeBuildingDrawer = () => { if (buildingFormSaving) return; setBuildingDrawerOpen(false); setEditingBuilding(null); setPendingMarkerData(null) }
 
   const saveBuildingForm = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setBuildingFormError('')
+    e.preventDefault(); setBuildingFormError('')
     const name = buildingForm.name.trim()
     if (!name) { setBuildingFormError('Building name is required'); return }
-
     setBuildingFormSaving(true)
     try {
-      const url = editingBuilding
-        ? `/api/settings/campus/buildings/${editingBuilding.id}`
-        : '/api/settings/campus/buildings'
+      const url = editingBuilding ? `/api/settings/campus/buildings/${editingBuilding.id}` : '/api/settings/campus/buildings'
       const res = await fetch(url, {
-        method: editingBuilding ? 'PATCH' : 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name,
-          code: buildingForm.code || null,
-          schoolDivision: buildingForm.schoolDivision,
-          buildingType: buildingForm.buildingType,
-          ...(selectedCampusId && !editingBuilding ? { campusId: selectedCampusId } : {}),
-          ...(pendingBuildingCoords && !editingBuilding ? { latitude: pendingBuildingCoords.lat, longitude: pendingBuildingCoords.lng } : {}),
-        }),
+        method: editingBuilding ? 'PATCH' : 'POST', headers: getAuthHeaders(),
+        body: JSON.stringify({ name, code: buildingForm.code || null, schoolDivision: buildingForm.schoolDivision, buildingType: buildingForm.buildingType, ...(selectedCampusId && !editingBuilding ? { campusId: selectedCampusId } : {}), ...(pendingBuildingCoords && !editingBuilding ? { latitude: pendingBuildingCoords.lat, longitude: pendingBuildingCoords.lng } : {}) }),
       })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save building')
-      setBuildingDrawerOpen(false)
-      setEditingBuilding(null)
-      setPendingBuildingCoords(null)
-      setPendingMarkerData(null)
-      if (!editingBuilding) {
-        setLastCreatedBuilding(json.data)
-      }
+      setBuildingDrawerOpen(false); setEditingBuilding(null); setPendingBuildingCoords(null); setPendingMarkerData(null)
+      if (!editingBuilding) setLastCreatedBuilding(json.data)
       setSuccessMessage(editingBuilding ? 'Building updated' : 'Building added')
       await loadData()
-    } catch (e) {
-      setBuildingFormError(e instanceof Error ? e.message : 'Failed to save building')
-    } finally {
-      setBuildingFormSaving(false)
-    }
+    } catch (e) { setBuildingFormError(e instanceof Error ? e.message : 'Failed to save building') }
+    finally { setBuildingFormSaving(false) }
   }
 
-  // ─── Outdoor Space CRUD ───────────────────────────────────────────────────
-  const openAddOutdoor = () => {
-    setEditingOutdoor(null)
-    setOutdoorForm({ name: '', areaType: 'FIELD' })
-    setOutdoorFormError('')
-    setOutdoorDrawerOpen(true)
-  }
-
-  const openEditOutdoor = (a: Area) => {
-    setEditingOutdoor(a)
-    setOutdoorForm({ name: a.name, areaType: a.areaType })
-    setOutdoorFormError('')
-    setOutdoorDrawerOpen(true)
-  }
-
-  const closeOutdoorDrawer = () => {
-    if (outdoorFormSaving) return
-    setOutdoorDrawerOpen(false)
-    setEditingOutdoor(null)
-    setPendingMarkerData(null)
-  }
+  // ─── Outdoor CRUD ──────────────────────────────────────────────────────
+  const openAddOutdoor = () => { setEditingOutdoor(null); setOutdoorForm({ name: '', areaType: 'FIELD' }); setOutdoorFormError(''); setOutdoorDrawerOpen(true) }
+  const openEditOutdoor = (a: Area) => { setEditingOutdoor(a); setOutdoorForm({ name: a.name, areaType: a.areaType }); setOutdoorFormError(''); setOutdoorDrawerOpen(true) }
+  const closeOutdoorDrawer = () => { if (outdoorFormSaving) return; setOutdoorDrawerOpen(false); setEditingOutdoor(null); setPendingMarkerData(null) }
 
   const saveOutdoorForm = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setOutdoorFormError('')
+    e.preventDefault(); setOutdoorFormError('')
     const name = outdoorForm.name.trim()
     if (!name) { setOutdoorFormError('Name is required'); return }
-
     setOutdoorFormSaving(true)
     try {
-      const url = editingOutdoor
-        ? `/api/settings/campus/areas/${editingOutdoor.id}`
-        : '/api/settings/campus/areas'
+      const url = editingOutdoor ? `/api/settings/campus/areas/${editingOutdoor.id}` : '/api/settings/campus/areas'
       const res = await fetch(url, {
-        method: editingOutdoor ? 'PATCH' : 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name,
-          areaType: outdoorForm.areaType,
-          buildingId: null,
-          ...(selectedCampusId && !editingOutdoor ? { campusId: selectedCampusId } : {}),
-          ...(pendingOutdoorCoords && !editingOutdoor ? { latitude: pendingOutdoorCoords.lat, longitude: pendingOutdoorCoords.lng } : {}),
-        }),
+        method: editingOutdoor ? 'PATCH' : 'POST', headers: getAuthHeaders(),
+        body: JSON.stringify({ name, areaType: outdoorForm.areaType, buildingId: null, ...(selectedCampusId && !editingOutdoor ? { campusId: selectedCampusId } : {}), ...(pendingOutdoorCoords && !editingOutdoor ? { latitude: pendingOutdoorCoords.lat, longitude: pendingOutdoorCoords.lng } : {}) }),
       })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save outdoor space')
-      setOutdoorDrawerOpen(false)
-      setEditingOutdoor(null)
-      setPendingOutdoorCoords(null)
-      setPendingMarkerData(null)
+      setOutdoorDrawerOpen(false); setEditingOutdoor(null); setPendingOutdoorCoords(null); setPendingMarkerData(null)
       setSuccessMessage(editingOutdoor ? 'Outdoor space updated' : 'Outdoor space added')
       await loadData()
-    } catch (e) {
-      setOutdoorFormError(e instanceof Error ? e.message : 'Failed to save outdoor space')
-    } finally {
-      setOutdoorFormSaving(false)
-    }
+    } catch (e) { setOutdoorFormError(e instanceof Error ? e.message : 'Failed to save outdoor space') }
+    finally { setOutdoorFormSaving(false) }
   }
 
-  // ─── Rooms (per-building, inline) ────────────────────────────────────────
-  const openRoomsDrawer = (b: Building) => {
-    setRoomsBuilding(b)
-    setAddRoomForm({ roomNumber: '', displayName: '', floor: '' })
-    setAddRoomError('')
-    setEditingRoomId(null)
-  }
-
-  const closeRoomsDrawer = () => {
-    if (addRoomSaving || editRoomSaving) return
-    setRoomsBuilding(null)
-    setEditingRoomId(null)
-    setAddRoomForm({ roomNumber: '', displayName: '', floor: '' })
-  }
-
-  const addRoom = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAddRoomError('')
-    const roomNumber = addRoomForm.roomNumber.trim()
-    if (!roomNumber) { setAddRoomError('Room number is required'); return }
+  // ─── Room CRUD (called from RoomsDrawer) ───────────────────────────────
+  const handleAddRoom = async (form: { roomNumber: string; displayName: string; floor: string }) => {
     if (!roomsBuilding) return
-
-    setAddRoomSaving(true)
-    try {
-      const res = await fetch('/api/settings/campus/rooms', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          buildingId: roomsBuilding.id,
-          roomNumber,
-          displayName: addRoomForm.displayName.trim() || null,
-          floor: addRoomForm.floor.trim() || null,
-          areaId: null,
-        }),
-      })
-      if (handleAuthResponse(res)) return
-      const json = await res.json()
-      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add room')
-      setAddRoomForm({ roomNumber: '', displayName: '', floor: '' })
-      setAddRoomError('')
-      await loadData()
-    } catch (e) {
-      setAddRoomError(e instanceof Error ? e.message : 'Failed to add room')
-    } finally {
-      setAddRoomSaving(false)
-    }
+    const res = await fetch('/api/settings/campus/rooms', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ buildingId: roomsBuilding.id, roomNumber: form.roomNumber.trim(), displayName: form.displayName.trim() || null, floor: form.floor.trim() || null, areaId: null }),
+    })
+    if (handleAuthResponse(res)) return
+    const json = await res.json()
+    if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add room')
+    await loadData()
   }
 
-  const startEditRoom = (r: Room) => {
-    setEditingRoomId(r.id)
-    setEditRoomData({ roomNumber: r.roomNumber, displayName: r.displayName || '', floor: r.floor || '' })
-    setEditRoomError('')
+  const handleEditRoom = async (roomId: string, form: { roomNumber: string; displayName: string; floor: string }) => {
+    const res = await fetch(`/api/settings/campus/rooms/${roomId}`, {
+      method: 'PATCH', headers: getAuthHeaders(),
+      body: JSON.stringify({ roomNumber: form.roomNumber.trim(), displayName: form.displayName.trim() || null, floor: form.floor.trim() || null }),
+    })
+    if (handleAuthResponse(res)) return
+    const json = await res.json()
+    if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save room')
+    await loadData()
   }
 
-  const cancelEditRoom = () => {
-    setEditingRoomId(null)
-    setEditRoomError('')
-  }
-
-  const saveEditRoom = async (roomId: string) => {
-    setEditRoomError('')
-    const roomNumber = editRoomData.roomNumber.trim()
-    if (!roomNumber) { setEditRoomError('Room number is required'); return }
-
-    setEditRoomSaving(true)
-    try {
-      const res = await fetch(`/api/settings/campus/rooms/${roomId}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          roomNumber,
-          displayName: editRoomData.displayName.trim() || null,
-          floor: editRoomData.floor.trim() || null,
-        }),
-      })
-      if (handleAuthResponse(res)) return
-      const json = await res.json()
-      if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to save room')
-      setEditingRoomId(null)
-      await loadData()
-    } catch (e) {
-      setEditRoomError(e instanceof Error ? e.message : 'Failed to save room')
-    } finally {
-      setEditRoomSaving(false)
-    }
-  }
-
-  // ─── Delete/Deactivate ───────────────────────────────────────────────────
-  const openDeleteConfirm = async (type: 'building' | 'outdoor', id: string, name: string) => {
-    let roomCount = 0
-    let ticketCount = 0
-    if (type === 'building') {
-      roomCount = rooms.filter(r => r.buildingId === id).length
-    }
-    setDeleteConfirm({ type, id, name, roomCount, ticketCount, action: 'delete' })
+  // ─── Delete/Deactivate ────────────────────────────────────────────────
+  const openDeleteConfirm = (type: 'building' | 'outdoor', id: string, name: string) => {
+    const roomCount = type === 'building' ? rooms.filter((r) => r.buildingId === id).length : 0
+    setDeleteConfirm({ type, id, name, roomCount, ticketCount: 0, action: 'delete' })
   }
 
   const openDeactivateConfirm = (type: 'building' | 'outdoor' | 'room', id: string, name: string) => {
-    const roomCount = type === 'building' ? rooms.filter(r => r.buildingId === id).length : 0
+    const roomCount = type === 'building' ? rooms.filter((r) => r.buildingId === id).length : 0
     setDeleteConfirm({ type, id, name, roomCount, ticketCount: 0, action: 'deactivate' })
   }
 
@@ -590,204 +280,93 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     if (!deleteConfirm) return
     setDeleteLoading(true)
     try {
-      const endpointMap = { building: 'buildings', outdoor: 'areas', room: 'rooms' } as const
-      const endpoint = endpointMap[deleteConfirm.type]
-      const res = await fetch(`/api/settings/campus/${endpoint}/${deleteConfirm.id}?permanent=true`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      })
+      const ep = { building: 'buildings', outdoor: 'areas', room: 'rooms' } as const
+      const res = await fetch(`/api/settings/campus/${ep[deleteConfirm.type]}/${deleteConfirm.id}?permanent=true`, { method: 'DELETE', headers: getAuthHeaders() })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to delete')
-      setDeleteConfirm(null)
-      setSuccessMessage(`${deleteConfirm.name} deleted permanently`)
-      await loadData()
-    } catch (e) {
-      setDeleteConfirm(null)
-      setBuildingFormError(e instanceof Error ? e.message : 'Failed to delete')
-    } finally {
-      setDeleteLoading(false)
-    }
+      setDeleteConfirm(null); setSuccessMessage(`${deleteConfirm.name} deleted permanently`); await loadData()
+    } catch (e) { setDeleteConfirm(null); setBuildingFormError(e instanceof Error ? e.message : 'Failed to delete') }
+    finally { setDeleteLoading(false) }
   }
 
   const handleDeactivateFromDialog = async () => {
     if (!deleteConfirm) return
     setDeleteLoading(true)
     try {
-      const endpointMap = { building: 'buildings', outdoor: 'areas', room: 'rooms' } as const
-      const endpoint = endpointMap[deleteConfirm.type]
-      const res = await fetch(`/api/settings/campus/${endpoint}/${deleteConfirm.id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      })
+      const ep = { building: 'buildings', outdoor: 'areas', room: 'rooms' } as const
+      const res = await fetch(`/api/settings/campus/${ep[deleteConfirm.type]}/${deleteConfirm.id}`, { method: 'DELETE', headers: getAuthHeaders() })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to deactivate')
-      setDeleteConfirm(null)
-      setSuccessMessage(`${deleteConfirm.name} deactivated`)
-      await loadData()
-    } catch (e) {
-      setDeleteConfirm(null)
-      setBuildingFormError(e instanceof Error ? e.message : 'Failed to deactivate')
-    } finally {
-      setDeleteLoading(false)
-    }
+      setDeleteConfirm(null); setSuccessMessage(`${deleteConfirm.name} deactivated`); await loadData()
+    } catch (e) { setDeleteConfirm(null); setBuildingFormError(e instanceof Error ? e.message : 'Failed to deactivate') }
+    finally { setDeleteLoading(false) }
   }
 
-  // ─── Campus Management ────────────────────────────────────────────────────
-  const openAddCampusModal = () => {
-    setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' })
-    setAddCampusError('')
-    setShowAddCampusModal(true)
-  }
-
-  const closeAddCampusModal = () => {
-    if (addCampusSaving) return
-    setShowAddCampusModal(false)
-    setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' })
-    setAddCampusError('')
-  }
+  // ─── Campus CRUD ───────────────────────────────────────────────────────
+  const openAddCampusModal = () => { setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' }); setAddCampusError(''); setShowAddCampusModal(true) }
+  const closeAddCampusModal = () => { if (addCampusSaving) return; setShowAddCampusModal(false) }
 
   const saveAddCampusForm = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAddCampusError('')
+    e.preventDefault(); setAddCampusError('')
     const name = addCampusForm.name.trim()
     if (!name) { setAddCampusError('Campus name is required'); return }
-
     setAddCampusSaving(true)
     try {
-      const res = await fetch('/api/settings/campus/campuses', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name,
-          address: addCampusForm.address.trim() || null,
-          campusType: addCampusForm.campusType,
-        }),
-      })
+      const res = await fetch('/api/settings/campus/campuses', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ name, address: addCampusForm.address.trim() || null, campusType: addCampusForm.campusType }) })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add campus')
-      setShowAddCampusModal(false)
-      setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' })
-      setSuccessMessage('Campus added')
+      setShowAddCampusModal(false); setSuccessMessage('Campus added')
       await loadCampuses()
-      // Select the newly created campus
-      if (json.data?.id) {
-        setSelectedCampusId(json.data.id)
-      }
-    } catch (e) {
-      setAddCampusError(e instanceof Error ? e.message : 'Failed to add campus')
-    } finally {
-      setAddCampusSaving(false)
-    }
+      if (json.data?.id) setSelectedCampusId(json.data.id)
+    } catch (e) { setAddCampusError(e instanceof Error ? e.message : 'Failed to add campus') }
+    finally { setAddCampusSaving(false) }
   }
 
-  // ─── Campus Edit / Delete handlers ─────────────────────────────────────
-  const openEditCampus = (campus: Campus) => {
-    setEditingCampus(campus)
-    setEditCampusForm({ name: campus.name, address: campus.address || '', campusType: campus.campusType })
-    setEditCampusError('')
-    setEditCampusDrawerOpen(true)
-    setCampusMenuOpen(null)
-    setCampusMenuPos(null)
-  }
-
-  const closeEditCampusDrawer = () => {
-    if (editCampusSaving) return
-    setEditCampusDrawerOpen(false)
-    setEditingCampus(null)
-    setEditCampusError('')
-  }
+  const openEditCampus = (campus: Campus) => { setEditingCampus(campus); setEditCampusForm({ name: campus.name, address: campus.address || '', campusType: campus.campusType }); setEditCampusError(''); setEditCampusDrawerOpen(true) }
+  const closeEditCampusDrawer = () => { if (editCampusSaving) return; setEditCampusDrawerOpen(false); setEditingCampus(null) }
 
   const saveEditCampusForm = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingCampus) return
-    setEditCampusError('')
+    e.preventDefault(); if (!editingCampus) return; setEditCampusError('')
     const name = editCampusForm.name.trim()
     if (!name) { setEditCampusError('Campus name is required'); return }
-
     setEditCampusSaving(true)
     try {
-      const res = await fetch(`/api/settings/campus/campuses/${editingCampus.id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name,
-          address: editCampusForm.address.trim() || null,
-          campusType: editCampusForm.campusType,
-        }),
-      })
+      const res = await fetch(`/api/settings/campus/campuses/${editingCampus.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ name, address: editCampusForm.address.trim() || null, campusType: editCampusForm.campusType }) })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to update campus')
-      setEditCampusDrawerOpen(false)
-      setEditingCampus(null)
-      setSuccessMessage('Campus updated')
-      await loadCampuses()
-    } catch (e) {
-      setEditCampusError(e instanceof Error ? e.message : 'Failed to update campus')
-    } finally {
-      setEditCampusSaving(false)
-    }
-  }
-
-  const openDeleteCampus = (campus: Campus) => {
-    setDeleteCampusConfirm(campus)
-    setCampusMenuOpen(null)
-    setCampusMenuPos(null)
+      setEditCampusDrawerOpen(false); setEditingCampus(null); setSuccessMessage('Campus updated'); await loadCampuses()
+    } catch (e) { setEditCampusError(e instanceof Error ? e.message : 'Failed to update campus') }
+    finally { setEditCampusSaving(false) }
   }
 
   const confirmDeleteCampus = async () => {
     if (!deleteCampusConfirm) return
     setDeleteCampusLoading(true)
     try {
-      const res = await fetch(`/api/settings/campus/campuses/${deleteCampusConfirm.id}?permanent=true`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      })
+      const res = await fetch(`/api/settings/campus/campuses/${deleteCampusConfirm.id}?permanent=true`, { method: 'DELETE', headers: getAuthHeaders() })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to delete campus')
-      setDeleteCampusConfirm(null)
-      setSuccessMessage('Campus deleted')
-      // If we deleted the selected campus, reset selection
-      if (selectedCampusId === deleteCampusConfirm.id) {
-        setSelectedCampusId(null)
-      }
+      setDeleteCampusConfirm(null); setSuccessMessage('Campus deleted')
+      if (selectedCampusId === deleteCampusConfirm.id) setSelectedCampusId(null)
       await loadCampuses()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to delete campus')
-      setDeleteCampusConfirm(null)
-    } finally {
-      setDeleteCampusLoading(false)
-    }
+    } catch (e) { setError(e instanceof Error ? e.message : 'Failed to delete campus'); setDeleteCampusConfirm(null) }
+    finally { setDeleteCampusLoading(false) }
   }
 
-  // ─── Render helpers ───────────────────────────────────────────────────────
-  const renderStatusBadge = (isActive: boolean) => (
-    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-      {isActive ? 'Active' : 'Inactive'}
-    </span>
-  )
+  // ─── Map click → open edit building from info drawer ───────────────────
+  const openEditFromMap = (b: Building) => {
+    setSelectedMapBuildingId(null)
+    openEditBuilding(b)
+  }
 
-  const renderSkeleton = () => (
-    <div className="ui-glass-table animate-pulse p-4 space-y-3">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 py-2">
-          <div className="h-4 w-40 bg-slate-200 rounded" />
-          <div className="h-4 w-24 bg-slate-200 rounded" />
-          <div className="h-4 w-16 bg-slate-200 rounded" />
-          <div className="h-4 w-12 bg-slate-200 rounded flex-1" />
-        </div>
-      ))}
-    </div>
-  )
-
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ─── Render ────────────────────────────────────────────────────────────
   return (
     <div className="space-y-8">
-
       {/* Page header */}
       <div className="ui-glass p-6">
         <div className="flex items-center justify-between">
@@ -800,1138 +379,89 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
               <p className="text-xs text-slate-500">Manage buildings, areas, and rooms</p>
             </div>
           </div>
-          <button
-            onClick={openAddCampusModal}
-            className="bg-slate-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-semibold transition"
-          >
+          <button onClick={openAddCampusModal} className="bg-slate-900 text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-semibold transition">
             <Plus className="w-4 h-4" /> Add Campus
           </button>
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
-      )}
+      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {successMessage && (
         <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           <span>{successMessage}</span>
           {lastCreatedBuilding && (
             <div className="flex items-center gap-2 ml-4">
               {!lastCreatedBuilding.latitude && (
-                <button
-                  onClick={() => {
-                    setSuccessMessage('')
-                    setLastCreatedBuilding(null)
-                    setPlaceOnMapBuilding(lastCreatedBuilding)
-                  }}
-                  className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 transition-colors"
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                  Place on Map
+                <button onClick={() => { setSuccessMessage(''); setLastCreatedBuilding(null); setPlaceOnMapBuilding(lastCreatedBuilding) }} className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 transition-colors">
+                  <MapPin className="h-3.5 w-3.5" /> Place on Map
                 </button>
               )}
-              <button
-                onClick={() => {
-                  openRoomsDrawer(lastCreatedBuilding)
-                  setSuccessMessage('')
-                  setLastCreatedBuilding(null)
-                }}
-                className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 transition-colors"
-              >
-                <DoorOpen className="h-3.5 w-3.5" />
-                Add Rooms
+              <button onClick={() => { setRoomsBuilding(lastCreatedBuilding); setSuccessMessage(''); setLastCreatedBuilding(null) }} className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 transition-colors">
+                <DoorOpen className="h-3.5 w-3.5" /> Add Rooms
               </button>
             </div>
           )}
         </div>
       )}
 
-      {/* ── Campus Selector Tabs ──────────────────────────────────────────── */}
-      <div ref={campusTabContainerRef} role="tablist" aria-label="Campus selector" className="relative flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
-        {campuses.length >= 1 && campuses.map((campus) => (
-          <div key={campus.id} className="relative flex items-center">
-            <button
-              ref={(el) => setCampusTabRef(campus.id, el)}
-              role="tab"
-              aria-selected={selectedCampusId === campus.id}
-              onClick={() => setSelectedCampusId(campus.id)}
-              className={`px-4 py-3 text-sm font-medium transition whitespace-nowrap ${
-                selectedCampusId === campus.id
-                  ? 'text-slate-900'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {campus.name}
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                if (campusMenuOpen === campus.id) {
-                  setCampusMenuOpen(null)
-                  setCampusMenuPos(null)
-                } else {
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  setCampusMenuPos({ top: rect.bottom + 4, left: rect.right - 160 })
-                  setCampusMenuOpen(campus.id)
-                }
-              }}
-              className={`p-2.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition ${
-                selectedCampusId === campus.id ? 'visible' : 'invisible'
-              }`}
-              tabIndex={selectedCampusId === campus.id ? 0 : -1}
-              aria-label="Campus options"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </button>
-            {campusMenuOpen === campus.id && campusMenuPos && createPortal(
-              <>
-                <div className="fixed inset-0 z-popover" onClick={() => { setCampusMenuOpen(null); setCampusMenuPos(null) }} />
-                <div
-                  className="fixed z-[76] w-40 ui-glass-dropdown py-1"
-                  style={{ top: campusMenuPos.top, left: campusMenuPos.left }}
-                >
-                  <button
-                    onClick={() => openEditCampus(campus)}
-                    className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                    style={{ minHeight: 'auto' }}
-                  >
-                    <Edit2 className="w-3.5 h-3.5" /> Edit Campus
-                  </button>
-                  <button
-                    onClick={() => openDeleteCampus(campus)}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                    style={{ minHeight: 'auto' }}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Delete Campus
-                  </button>
-                </div>
-              </>,
-              document.body
-            )}
-          </div>
-        ))}
-        <TabIndicator style={campusIndicatorStyle} />
-      </div>
+      <CampusSelector campuses={campuses} selectedCampusId={selectedCampusId} onSelectCampus={setSelectedCampusId} onEditCampus={openEditCampus} onDeleteCampus={(c) => setDeleteCampusConfirm(c)} />
 
-      {/* ── Campus Map ────────────────────────────────────────────────────── */}
       <InteractiveCampusMap
         campusId={selectedCampusId || undefined}
         mapCenter={mapCenter}
-        buildings={buildings.map((b) => ({
-          id: b.id,
-          name: b.name,
-          code: b.code,
-          latitude: b.latitude,
-          longitude: b.longitude,
-          schoolDivision: b.schoolDivision,
-          school: b.school,
-          polygonCoordinates: (b as any).polygonCoordinates || null,
-        }))}
+        buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code, latitude: b.latitude, longitude: b.longitude, schoolDivision: b.schoolDivision, school: b.school, polygonCoordinates: (b as any).polygonCoordinates || null }))}
         outdoorSpaces={outdoorMapSpaces}
         schools={schools}
         editable
         quickPlaceMode={placingExistingBuilding ? 'building' : null}
         onQuickPlaceDone={() => setPlacingExistingBuilding(null)}
-        onOrgCenterChange={async (lat, lng) => {
-          try {
-            const res = await fetch('/api/settings/campus/map-data', {
-              method: 'PATCH',
-              headers: getAuthHeaders(),
-              body: JSON.stringify({ latitude: lat, longitude: lng }),
-            })
-            if (res.ok) {
-              setSuccessMessage('School center position updated')
-              setTimeout(() => setSuccessMessage(''), 3000)
-            }
-          } catch {
-            setError('Failed to save school center position')
-          }
-        }}
-        onBuildingPositionChange={async (buildingId, lat, lng) => {
-          try {
-            const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, {
-              method: 'PATCH',
-              headers: getAuthHeaders(),
-              body: JSON.stringify({ latitude: lat, longitude: lng }),
-            })
-            if (res.ok) {
-              setBuildings((prev) =>
-                prev.map((b) => (b.id === buildingId ? { ...b, latitude: lat, longitude: lng } : b))
-              )
-              setSuccessMessage('Building position updated')
-              setTimeout(() => setSuccessMessage(''), 3000)
-            }
-          } catch {
-            setError('Failed to save building position')
-          }
-        }}
+        onOrgCenterChange={async (lat, lng) => { try { const res = await fetch('/api/settings/campus/map-data', { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('School center position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save school center position') } }}
+        onBuildingPositionChange={async (buildingId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage('Building position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building position') } }}
         onAddBuildingAtPosition={async (lat, lng) => {
-          // If placing an existing building, just PATCH its coordinates
           if (placingExistingBuilding) {
-            const building = placingExistingBuilding
-            setPlacingExistingBuilding(null)
-            try {
-              const res = await fetch(`/api/settings/campus/buildings/${building.id}`, {
-                method: 'PATCH',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ latitude: lat, longitude: lng }),
-              })
-              if (res.ok) {
-                setBuildings((prev) =>
-                  prev.map((b) => (b.id === building.id ? { ...b, latitude: lat, longitude: lng } : b))
-                )
-                setSuccessMessage(`"${building.name}" placed on map`)
-              }
-            } catch {
-              setError('Failed to place building on map')
-            }
-            await loadData()
-            return
+            const building = placingExistingBuilding; setPlacingExistingBuilding(null)
+            try { const res = await fetch(`/api/settings/campus/buildings/${building.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === building.id ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage(`"${building.name}" placed on map`) } } catch { setError('Failed to place building on map') }
+            await loadData(); return
           }
-          setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
-          setEditingBuilding(null)
-          setBuildingDrawerOpen(true)
-          setPendingBuildingCoords({ lat, lng })
-          setPendingMarkerData({ lat, lng, label: '', type: 'building' })
+          setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' }); setEditingBuilding(null); setBuildingDrawerOpen(true); setPendingBuildingCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'building' })
         }}
-        onAddOutdoorSpaceAtPosition={(lat, lng) => {
-          setOutdoorForm({ name: '', areaType: 'FIELD' })
-          setEditingOutdoor(null)
-          setOutdoorDrawerOpen(true)
-          setPendingOutdoorCoords({ lat, lng })
-          setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' })
-        }}
-        onBuildingSelected={(buildingId) => {
-          setSelectedMapBuildingId(buildingId)
-        }}
-        onPolygonSaved={async (buildingId, coordinates) => {
-          try {
-            const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, {
-              method: 'PATCH',
-              headers: getAuthHeaders(),
-              body: JSON.stringify({ polygonCoordinates: coordinates }),
-            })
-            if (res.ok) {
-              setBuildings((prev) =>
-                prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } as any : b))
-              )
-              setSuccessMessage('Building outline saved')
-              setTimeout(() => setSuccessMessage(''), 3000)
-            }
-          } catch {
-            setError('Failed to save building outline')
-          }
-        }}
-        onOutdoorPositionChange={async (areaId, lat, lng) => {
-          try {
-            const res = await fetch(`/api/settings/campus/areas/${areaId}`, {
-              method: 'PATCH',
-              headers: getAuthHeaders(),
-              body: JSON.stringify({ latitude: lat, longitude: lng }),
-            })
-            if (res.ok) {
-              setSuccessMessage('Outdoor space position updated')
-              setTimeout(() => setSuccessMessage(''), 3000)
-            }
-          } catch {
-            setError('Failed to save outdoor space position')
-          }
-        }}
-        onEditBuilding={(buildingId) => {
-          const b = buildings.find((x) => x.id === buildingId)
-          if (b) openEditBuilding(b)
-        }}
-        onDeleteBuilding={(buildingId) => {
-          const b = buildings.find((x) => x.id === buildingId)
-          if (b) openDeleteConfirm('building', b.id, b.name)
-        }}
-        onManageRooms={(buildingId) => {
-          const b = buildings.find((x) => x.id === buildingId)
-          if (b) openRoomsDrawer(b)
-        }}
-        onEditOutdoor={(outdoorId) => {
-          const a = outdoorSpaces.find((x) => x.id === outdoorId)
-          if (a) openEditOutdoor(a)
-        }}
-        onDeleteOutdoor={(outdoorId) => {
-          const a = outdoorSpaces.find((x) => x.id === outdoorId)
-          if (a) openDeleteConfirm('outdoor', a.id, a.name)
-        }}
+        onAddOutdoorSpaceAtPosition={(lat, lng) => { setOutdoorForm({ name: '', areaType: 'FIELD' }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' }) }}
+        onBuildingSelected={setSelectedMapBuildingId}
+        onPolygonSaved={async (buildingId, coordinates) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ polygonCoordinates: coordinates }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } as any : b))); setSuccessMessage('Building outline saved'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building outline') } }}
+        onOutdoorPositionChange={async (areaId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/areas/${areaId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('Outdoor space position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save outdoor space position') } }}
+        onEditBuilding={(id) => { const b = buildings.find((x) => x.id === id); if (b) openEditBuilding(b) }}
+        onDeleteBuilding={(id) => { const b = buildings.find((x) => x.id === id); if (b) openDeleteConfirm('building', b.id, b.name) }}
+        onManageRooms={(id) => { const b = buildings.find((x) => x.id === id); if (b) setRoomsBuilding(b) }}
+        onEditOutdoor={(id) => { const a = outdoorSpaces.find((x) => x.id === id); if (a) openEditOutdoor(a) }}
+        onDeleteOutdoor={(id) => { const a = outdoorSpaces.find((x) => x.id === id); if (a) openDeleteConfirm('outdoor', a.id, a.name) }}
         pendingMarker={pendingMarkerData}
       />
 
-      {/* ── Schools ────────────────────────────────────────────────────────── */}
       <SchoolsManagement campusId={selectedCampusId || undefined} />
 
-      {/* ── Buildings ─────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-semibold text-slate-900">Buildings</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Physical structures on campus</p>
-          </div>
-          <button
-            onClick={openAddBuilding}
-            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
-          >
-            <Plus className="w-4 h-4" />
-            Add Building
-          </button>
-        </div>
+      <BuildingsTable buildings={buildings} rooms={rooms} schools={schools} loading={loading} onAddBuilding={openAddBuilding} onEditBuilding={openEditBuilding} onDeleteBuilding={(id, name) => openDeleteConfirm('building', id, name)} onManageRooms={(b) => setRoomsBuilding(b)} />
 
-        {loading ? renderSkeleton() : (
-          <div className="ui-glass-table overflow-x-auto">
-            {buildings.length === 0 ? (
-              <div className="text-center py-14">
-                <IllustrationCampus className="w-48 h-40 mx-auto mb-2" />
-                <p className="text-sm font-medium text-slate-600 mb-1">No buildings yet</p>
-                <p className="text-xs text-slate-400 mb-4">Add your campus buildings to manage rooms and areas.</p>
-                <button
-                  onClick={openAddBuilding}
-                  className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
-                >
-                  Add First Building
-                </button>
-              </div>
-            ) : (
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-slate-500 border-b bg-slate-50">
-                    <th className="py-3 px-4 text-left font-medium">Building</th>
-                    <th className="py-3 px-4 text-left font-medium">Type</th>
-                    <th className="py-3 px-4 text-left font-medium">Rooms</th>
-                    <th className="py-3 px-4 text-left font-medium">Status</th>
-                    <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groupedBuildings.map((group) => (
-                    <React.Fragment key={group.division}>
-                      {/* Division header row */}
-                      <tr style={{ backgroundColor: getGroupColor(group) + '0a' }}>
-                        <td colSpan={5} className="py-2 px-4">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                              style={{ background: getGroupColor(group) }}
-                            />
-                            <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                              {DIVISION_LABELS[group.division] || group.division}
-                            </span>
-                            <span className="text-xs text-slate-400">({group.buildings.length})</span>
-                          </div>
-                        </td>
-                      </tr>
-                      {/* Building rows */}
-                      {group.buildings.map((b) => {
-                        const roomCount = rooms.filter((r) => r.buildingId === b.id).length
-                        return (
-                          <tr key={b.id} className="border-b last:border-b-0 hover:bg-slate-50">
-                            <td className="py-3 pl-9 pr-4">
-                              <div className="font-medium text-slate-900">{b.name}</div>
-                              {b.code && <div className="text-xs text-slate-400 mt-0.5">{b.code}</div>}
-                            </td>
-                            <td className="py-3 px-4 text-slate-500 text-xs">{BUILDING_TYPE_LABELS[b.buildingType] || 'General'}</td>
-                            <td className="py-3 px-4 text-slate-500">{roomCount}</td>
-                            <td className="py-3 px-4">{renderStatusBadge(b.isActive)}</td>
-                            <td className="py-3 pl-4 pr-10">
-                              <div className="flex justify-end">
-                                <RowActionMenu
-                                  items={[
-                                    {
-                                      label: 'Manage Rooms',
-                                      icon: <DoorOpen className="w-4 h-4" />,
-                                      onClick: () => openRoomsDrawer(b),
-                                    },
-                                    {
-                                      label: 'Edit',
-                                      icon: <Edit2 className="w-4 h-4" />,
-                                      onClick: () => openEditBuilding(b),
-                                    },
-                                    {
-                                      label: 'Delete',
-                                      icon: <Trash2 className="w-4 h-4" />,
-                                      onClick: () => openDeleteConfirm('building', b.id, b.name),
-                                      variant: 'danger',
-                                    },
-                                  ]}
-                                />
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
-      </div>
+      <OutdoorSpacesTable outdoorSpaces={outdoorSpaces} loading={loading} onAddOutdoor={openAddOutdoor} onEditOutdoor={openEditOutdoor} onDeleteOutdoor={(id, name) => openDeleteConfirm('outdoor', id, name)} />
 
-      {/* ── Outdoor Spaces ────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-semibold text-slate-900">Outdoor Spaces</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Fields, courts, gathering areas, and other outdoor locations</p>
-          </div>
-          <button
-            onClick={openAddOutdoor}
-            className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
-          >
-            <Plus className="w-4 h-4" />
-            Add Outdoor Space
-          </button>
-        </div>
+      {/* Drawers */}
+      <BuildingFormDrawer isOpen={buildingDrawerOpen} onClose={closeBuildingDrawer} editingBuilding={editingBuilding} form={buildingForm} onFormChange={(u) => setBuildingForm((p) => ({ ...p, ...u }))} error={buildingFormError} saving={buildingFormSaving} onSubmit={saveBuildingForm} onImagesChange={editingBuilding ? (imgs) => { setEditingBuilding({ ...editingBuilding, images: imgs }); setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingBuildingCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} />
 
-        {loading ? renderSkeleton() : (
-          <div className="ui-glass-table overflow-x-auto">
-            {outdoorSpaces.length === 0 ? (
-              <div className="text-center py-14">
-                <IllustrationCampus className="w-48 h-40 mx-auto mb-2" />
-                <p className="text-base font-semibold text-slate-700 mb-1">No outdoor spaces yet</p>
-                <p className="text-sm text-slate-500 mb-4">Add fields, courts, and other outdoor areas to your campus.</p>
-                <button
-                  onClick={openAddOutdoor}
-                  className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
-                >
-                  Add First Outdoor Space
-                </button>
-              </div>
-            ) : (
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-slate-500 border-b bg-slate-50">
-                    <th className="py-3 px-4 text-left font-medium">Space</th>
-                    <th className="py-3 px-4 text-left font-medium">Type</th>
-                    <th className="py-3 px-4 text-left font-medium">Status</th>
-                    <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {outdoorSpaces.map((a) => (
-                    <tr key={a.id} className="border-b last:border-b-0 hover:bg-slate-50">
-                      <td className="py-3 px-4 font-medium text-slate-900">{a.name}</td>
-                      <td className="py-3 px-4 text-slate-600">{OUTDOOR_TYPE_LABELS[a.areaType] || a.areaType}</td>
-                      <td className="py-3 px-4">{renderStatusBadge(a.isActive)}</td>
-                      <td className="py-3 pl-4 pr-10">
-                        <div className="flex justify-end">
-                          <RowActionMenu
-                            items={[
-                              {
-                                label: 'Edit',
-                                icon: <Edit2 className="w-4 h-4" />,
-                                onClick: () => openEditOutdoor(a),
-                              },
-                              {
-                                label: 'Delete',
-                                icon: <Trash2 className="w-4 h-4" />,
-                                onClick: () => openDeleteConfirm('outdoor', a.id, a.name),
-                                variant: 'danger',
-                              },
-                            ]}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
-      </div>
+      <OutdoorFormDrawer isOpen={outdoorDrawerOpen} onClose={closeOutdoorDrawer} editingOutdoor={editingOutdoor} form={outdoorForm} onFormChange={(u) => setOutdoorForm((p) => ({ ...p, ...u }))} error={outdoorFormError} saving={outdoorFormSaving} onSubmit={saveOutdoorForm} onImagesChange={editingOutdoor ? (imgs) => { setEditingOutdoor({ ...editingOutdoor, images: imgs }); setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingOutdoorCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} />
 
-      {/* ── Building Drawer ───────────────────────────────────────────────── */}
-      <DetailDrawer
-        isOpen={buildingDrawerOpen}
-        onClose={closeBuildingDrawer}
-        title={editingBuilding ? `Edit ${editingBuilding.name}` : 'Add Building'}
-        width="lg"
-        footer={
-          <div className="space-y-3">
-            <button type="submit" form="building-form" className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={buildingFormSaving}>
-              {buildingFormSaving ? 'Saving...' : editingBuilding ? 'Save Changes' : 'Add Building'}
-            </button>
-            <button type="button" onClick={closeBuildingDrawer} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1" disabled={buildingFormSaving}>Cancel</button>
-          </div>
-        }
-      >
-        <form id="building-form" onSubmit={saveBuildingForm} className="p-8 space-y-6">
-          {buildingFormError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{buildingFormError}</div>
-          )}
-          <section className="space-y-4">
-            <div className="border-b border-slate-200 pb-3">
-              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Building Details</h3>
-            </div>
-            <FloatingInput
-              id="ct-buildingName"
-              label="Building name"
-              value={buildingForm.name}
-              onChange={(e) => {
-                setBuildingForm((p) => ({ ...p, name: e.target.value }))
-                if (pendingBuildingCoords) {
-                  setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
-                }
-              }}
-              disabled={buildingFormSaving}
-              autoFocus
-              required
-            />
-            <FloatingInput
-              id="ct-buildingCode"
-              label="Short code (optional)"
-              value={buildingForm.code}
-              onChange={(e) => setBuildingForm((p) => ({ ...p, code: e.target.value }))}
-              disabled={buildingFormSaving}
-            />
-            <FloatingDropdown
-              id="ct-buildingDivision"
-              label="School division"
-              value={buildingForm.schoolDivision}
-              onChange={(v) => setBuildingForm((p) => ({ ...p, schoolDivision: v }))}
-              disabled={buildingFormSaving}
-              options={[
-                { value: 'GLOBAL', label: 'Global (all divisions)' },
-                { value: 'ELEMENTARY', label: 'Elementary' },
-                { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
-                { value: 'HIGH_SCHOOL', label: 'High School' },
-              ]}
-            />
-            <FloatingDropdown
-              id="ct-buildingType"
-              label="Building type"
-              value={buildingForm.buildingType}
-              onChange={(v) => setBuildingForm((p) => ({ ...p, buildingType: v }))}
-              disabled={buildingFormSaving}
-              options={[
-                { value: 'GENERAL', label: 'General' },
-                { value: 'ARTS_CULTURE', label: 'Arts & Culture' },
-                { value: 'ATHLETICS', label: 'Athletics' },
-                { value: 'ADMINISTRATION', label: 'Administration' },
-                { value: 'SUPPORT_SERVICES', label: 'Support Services' },
-              ]}
-            />
-          </section>
+      <RoomsDrawer building={roomsBuilding} rooms={buildingRooms} onClose={() => { setRoomsBuilding(null) }} onAddRoom={handleAddRoom} onEditRoom={handleEditRoom} onDeactivateRoom={(id, name) => openDeactivateConfirm('room', id, name)} onRoomImagesChange={(roomId, imgs) => setRooms((prev) => prev.map((r) => r.id === roomId ? { ...r, images: imgs } : r))} onImageClick={openLightbox} />
 
-          {/* Photos section — only for existing buildings */}
-          {editingBuilding && (
-            <section className="border-t border-slate-200 pt-4">
-              <ImageUpload
-                entityType="building"
-                entityId={editingBuilding.id}
-                images={editingBuilding.images || []}
-                onImagesChange={(imgs) => {
-                  setEditingBuilding({ ...editingBuilding, images: imgs })
-                  // Also update the buildings list so the drawer shows updated images
-                  setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b))
-                }}
-                disabled={buildingFormSaving}
-                onImageClick={openLightbox}
-              />
-            </section>
-          )}
-        </form>
-      </DetailDrawer>
+      <BuildingInfoDrawer buildingId={selectedMapBuildingId} buildings={buildings} rooms={rooms} onClose={() => setSelectedMapBuildingId(null)} onEditBuilding={openEditFromMap} onImageClick={openLightbox} />
 
-      {/* ── Outdoor Space Drawer ──────────────────────────────────────────── */}
-      <DetailDrawer
-        isOpen={outdoorDrawerOpen}
-        onClose={closeOutdoorDrawer}
-        title={editingOutdoor ? `Edit ${editingOutdoor.name}` : 'Add Outdoor Space'}
-        width="lg"
-        footer={
-          <div className="space-y-3">
-            <button type="submit" form="outdoor-form" className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2" disabled={outdoorFormSaving}>
-              {outdoorFormSaving ? 'Saving...' : editingOutdoor ? 'Save Changes' : 'Add Space'}
-            </button>
-            <button type="button" onClick={closeOutdoorDrawer} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1" disabled={outdoorFormSaving}>Cancel</button>
-          </div>
-        }
-      >
-        <form id="outdoor-form" onSubmit={saveOutdoorForm} className="p-8 space-y-6">
-          {outdoorFormError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{outdoorFormError}</div>
-          )}
-          <section className="space-y-4">
-            <div className="border-b border-slate-200 pb-3">
-              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Space Details</h3>
-              <p className="mt-1 text-sm text-slate-500">Name it the way your staff and students already know it.</p>
-            </div>
-            <FloatingInput
-              id="ct-areaName"
-              label="Name"
-              value={outdoorForm.name}
-              onChange={(e) => {
-                setOutdoorForm((p) => ({ ...p, name: e.target.value }))
-                if (pendingOutdoorCoords) {
-                  setPendingMarkerData((prev) => (prev ? { ...prev, label: e.target.value } : null))
-                }
-              }}
-              disabled={outdoorFormSaving}
-              autoFocus
-              required
-            />
-            <FloatingDropdown
-              id="ct-areaType"
-              label="Type"
-              value={outdoorForm.areaType}
-              onChange={(v) => setOutdoorForm((p) => ({ ...p, areaType: v }))}
-              disabled={outdoorFormSaving}
-              options={[
-                { value: 'FIELD', label: 'Athletic Field' },
-                { value: 'COURT', label: 'Court' },
-                { value: 'GYM', label: 'Gymnasium' },
-                { value: 'COMMON', label: 'Gathering Area' },
-                { value: 'PARKING', label: 'Parking' },
-                { value: 'OTHER', label: 'Other' },
-              ]}
-            />
-          </section>
+      <AddCampusDrawer isOpen={showAddCampusModal} onClose={closeAddCampusModal} form={addCampusForm} onFormChange={(u) => setAddCampusForm((p) => ({ ...p, ...u }))} error={addCampusError} saving={addCampusSaving} onSubmit={saveAddCampusForm} />
 
-          {/* Photos section — only for existing outdoor spaces */}
-          {editingOutdoor && (
-            <section className="border-t border-slate-200 pt-4">
-              <ImageUpload
-                entityType="area"
-                entityId={editingOutdoor.id}
-                images={editingOutdoor.images || []}
-                onImagesChange={(imgs) => {
-                  setEditingOutdoor({ ...editingOutdoor, images: imgs })
-                  setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a))
-                }}
-                disabled={outdoorFormSaving}
-                onImageClick={openLightbox}
-              />
-            </section>
-          )}
-        </form>
-      </DetailDrawer>
+      <EditCampusDrawer isOpen={editCampusDrawerOpen} onClose={closeEditCampusDrawer} campus={editingCampus} form={editCampusForm} onFormChange={(u) => setEditCampusForm((p) => ({ ...p, ...u }))} error={editCampusError} saving={editCampusSaving} onSubmit={saveEditCampusForm} />
 
-      {/* ── Rooms Drawer (per building) ───────────────────────────────────── */}
-      <DetailDrawer
-        isOpen={roomsBuilding !== null}
-        onClose={closeRoomsDrawer}
-        title={roomsBuilding ? `${roomsBuilding.name} — Rooms` : 'Rooms'}
-        width="lg"
-      >
-        <div className="p-8 space-y-6">
+      {/* Dialogs */}
+      <DeleteCampusDialog campus={deleteCampusConfirm} loading={deleteCampusLoading} onConfirm={confirmDeleteCampus} onCancel={() => setDeleteCampusConfirm(null)} />
+      <PlaceOnMapDialog building={placeOnMapBuilding} onSkip={() => setPlaceOnMapBuilding(null)} onPlace={(b) => { setPlaceOnMapBuilding(null); setPlacingExistingBuilding(b); const mapEl = document.querySelector('.leaflet-container'); if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' }) }} />
+      <EntityDeleteDialog confirm={deleteConfirm} loading={deleteLoading} onDelete={handleDeleteConfirm} onDeactivate={handleDeactivateFromDialog} onCancel={() => setDeleteConfirm(null)} />
 
-          {/* Inline add form — always visible */}
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
-            <p className="text-sm font-semibold text-slate-700">Add a room</p>
-            {addRoomError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{addRoomError}</div>
-            )}
-            <form onSubmit={addRoom} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <FloatingInput
-                  id="ct-roomNumber"
-                  label="Room # / ID"
-                  value={addRoomForm.roomNumber}
-                  onChange={(e) => setAddRoomForm((p) => ({ ...p, roomNumber: e.target.value }))}
-                  disabled={addRoomSaving}
-                  required
-                />
-                <FloatingInput
-                  id="ct-roomDisplayName"
-                  label="Name (optional)"
-                  value={addRoomForm.displayName}
-                  onChange={(e) => setAddRoomForm((p) => ({ ...p, displayName: e.target.value }))}
-                  disabled={addRoomSaving}
-                />
-                <FloatingInput
-                  id="ct-roomFloor"
-                  label="Floor (optional)"
-                  value={addRoomForm.floor}
-                  onChange={(e) => setAddRoomForm((p) => ({ ...p, floor: e.target.value }))}
-                  disabled={addRoomSaving}
-                />
-              </div>
-              <div className="flex justify-end pt-1">
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 px-5 py-2 min-h-[38px] bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={addRoomSaving}
-                >
-                  <Plus className="w-4 h-4" />
-                  {addRoomSaving ? 'Adding...' : 'Add Room'}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Existing rooms list */}
-          {editRoomError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{editRoomError}</div>
-          )}
-
-          {buildingRooms.length === 0 ? (
-            <div className="text-center py-10 text-slate-400">
-              <DoorOpen className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-              <p className="text-sm">No rooms yet — add one above.</p>
-            </div>
-          ) : (
-            <div className="ui-glass-table">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-slate-500 border-b bg-slate-50">
-                    <th className="py-3 px-4 text-left font-medium">Room</th>
-                    <th className="py-3 px-4 text-left font-medium">Display name</th>
-                    <th className="py-3 px-4 text-left font-medium">Floor</th>
-                    <th className="py-3 px-4 text-left font-medium">Status</th>
-                    <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {buildingRooms.map((r) => (
-                    editingRoomId === r.id ? (
-                      /* ── Inline edit row ── */
-                      <tr key={r.id} className="border-b last:border-b-0 bg-primary-50">
-                        <td className="py-2 px-4">
-                          <input
-                            aria-label="Room number"
-                            value={editRoomData.roomNumber}
-                            onChange={(e) => setEditRoomData((p) => ({ ...p, roomNumber: e.target.value }))}
-                            className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
-                            disabled={editRoomSaving}
-                            autoFocus
-                          />
-                        </td>
-                        <td className="py-2 px-4">
-                          <input
-                            aria-label="Room display name"
-                            value={editRoomData.displayName}
-                            onChange={(e) => setEditRoomData((p) => ({ ...p, displayName: e.target.value }))}
-                            placeholder="optional"
-                            className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
-                            disabled={editRoomSaving}
-                          />
-                        </td>
-                        <td className="py-2 px-4">
-                          <input
-                            aria-label="Room floor"
-                            value={editRoomData.floor}
-                            onChange={(e) => setEditRoomData((p) => ({ ...p, floor: e.target.value }))}
-                            placeholder="optional"
-                            className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
-                            disabled={editRoomSaving}
-                          />
-                        </td>
-                        <td className="py-2 px-4">{renderStatusBadge(r.isActive)}</td>
-                        <td className="py-2 pl-4 pr-10">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => saveEditRoom(r.id)}
-                              disabled={editRoomSaving}
-                              className="p-2 text-green-600 hover:bg-green-50 rounded-full transition disabled:opacity-40"
-                              title="Save"
-                              aria-label="Save"
-                            >
-                              <Save className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={cancelEditRoom}
-                              disabled={editRoomSaving}
-                              className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition"
-                              title="Cancel"
-                              aria-label="Cancel"
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      /* ── Normal row ── */
-                      <React.Fragment key={r.id}>
-                      <tr className="border-b last:border-b-0 hover:bg-slate-50">
-                        <td className="py-3 px-4 font-medium text-slate-900">{r.roomNumber}</td>
-                        <td className="py-3 px-4 text-slate-600">{r.displayName || <span className="text-slate-400">—</span>}</td>
-                        <td className="py-3 px-4 text-slate-600">{r.floor || <span className="text-slate-400">—</span>}</td>
-                        <td className="py-3 px-4">{renderStatusBadge(r.isActive)}</td>
-                        <td className="py-3 pl-4 pr-10">
-                          <div className="flex justify-end">
-                            <RowActionMenu
-                              items={[
-                                {
-                                  label: 'Edit',
-                                  icon: <Edit2 className="w-4 h-4" />,
-                                  onClick: () => startEditRoom(r),
-                                },
-                                {
-                                  label: 'Photos',
-                                  icon: <Camera className="w-4 h-4" />,
-                                  onClick: () => setRoomImagesId(roomImagesId === r.id ? null : r.id),
-                                },
-                                {
-                                  label: 'Deactivate',
-                                  icon: <Trash2 className="w-4 h-4" />,
-                                  onClick: () => openDeactivateConfirm('room', r.id, r.displayName || r.roomNumber),
-                                  variant: 'danger',
-                                },
-                              ]}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                      {roomImagesId === r.id && (
-                        <tr className="border-b last:border-b-0 bg-slate-50">
-                          <td colSpan={5} className="px-4 py-4">
-                            <ImageUpload
-                              entityType="room"
-                              entityId={r.id}
-                              images={r.images || []}
-                              onImagesChange={(imgs) => {
-                                setRooms((prev) => prev.map((room) => room.id === r.id ? { ...room, images: imgs } : room))
-                              }}
-                              onImageClick={openLightbox}
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                    )
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </DetailDrawer>
-
-      {/* ── Building Info Side Panel (from map click) ───────────────────── */}
-      <DetailDrawer
-        isOpen={!!selectedMapBuildingId}
-        onClose={() => setSelectedMapBuildingId(null)}
-        title={buildings.find((b) => b.id === selectedMapBuildingId)?.name || 'Building'}
-      >
-        {selectedMapBuildingId && (() => {
-          const building = buildings.find((b) => b.id === selectedMapBuildingId)
-          const buildingRooms = rooms.filter((r) => r.buildingId === selectedMapBuildingId)
-          if (!building) return null
-          return (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                {building.code && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-slate-500">Code:</span>
-                    <span className="font-medium text-slate-900">{building.code}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-slate-500">Division:</span>
-                  <span className="font-medium text-slate-900">{DIVISION_LABELS[building.schoolDivision] || building.schoolDivision}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-slate-500">Status:</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${building.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}`}>
-                    {building.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Photos */}
-              {building.images && building.images.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900 mb-3">Photos</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {building.images.map((url: string, idx: number) => (
-                      <button
-                        key={url}
-                        type="button"
-                        onClick={() => openLightbox(building.images!, idx)}
-                        className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 border border-slate-200 hover:ring-2 hover:ring-primary-400 transition cursor-pointer"
-                        style={{ minHeight: 'auto' }}
-                      >
-                        <img src={url} alt={`Building photo ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                  Rooms ({buildingRooms.length})
-                </h4>
-                {buildingRooms.length === 0 ? (
-                  <p className="text-sm text-slate-500 italic">No rooms added to this building yet.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {buildingRooms.map((room) => (
-                      <div key={room.id} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
-                        <div>
-                          <span className="text-sm font-medium text-slate-900">
-                            {room.displayName || `Room ${room.roomNumber}`}
-                          </span>
-                          {room.displayName && (
-                            <span className="text-xs text-slate-500 ml-2">#{room.roomNumber}</span>
-                          )}
-                        </div>
-                        {room.floor && (
-                          <span className="text-xs text-slate-500">Floor {room.floor}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => {
-                  setSelectedMapBuildingId(null)
-                  setEditingBuilding(building)
-                  setBuildingForm({
-                    name: building.name,
-                    code: building.code || '',
-                    schoolDivision: building.schoolDivision,
-                    buildingType: building.buildingType || 'GENERAL',
-                  })
-                  setBuildingDrawerOpen(true)
-                }}
-                className="w-full px-4 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
-              >
-                Edit Building
-              </button>
-            </div>
-          )
-        })()}
-      </DetailDrawer>
-
-      {/* ── Add Campus Drawer ──────────────────────────────────────────────── */}
-      <DetailDrawer
-        isOpen={showAddCampusModal}
-        onClose={closeAddCampusModal}
-        title="Add Campus"
-        width="md"
-        footer={
-          <div className="space-y-3">
-            <button
-              type="submit"
-              form="add-campus-form"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-              disabled={addCampusSaving}
-            >
-              {addCampusSaving ? 'Adding...' : 'Add Campus'}
-            </button>
-            <button type="button" onClick={closeAddCampusModal} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1">
-              Cancel
-            </button>
-          </div>
-        }
-      >
-        <form id="add-campus-form" onSubmit={saveAddCampusForm} className="p-8 space-y-6">
-          {addCampusError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{addCampusError}</div>
-          )}
-          <FloatingInput
-            id="ct-campusName"
-            label="Campus name"
-            value={addCampusForm.name}
-            onChange={(e) => setAddCampusForm((p) => ({ ...p, name: e.target.value }))}
-            disabled={addCampusSaving}
-            autoFocus
-            required
-          />
-          <div className="relative">
-            <AddressAutocomplete
-              value={addCampusForm.address}
-              onChange={(val) => setAddCampusForm((p) => ({ ...p, address: val }))}
-              placeholder=" "
-              className="peer w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder-transparent outline-none border border-slate-300 rounded-lg bg-white transition-colors focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
-            />
-            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-slate-500 font-medium pointer-events-none">
-              Address (optional)
-            </label>
-          </div>
-          <FloatingDropdown
-            id="ct-campusType"
-            label="Campus type"
-            value={addCampusForm.campusType}
-            onChange={(v) => setAddCampusForm((p) => ({ ...p, campusType: v }))}
-            disabled={addCampusSaving}
-            options={[
-              { value: 'HEADQUARTERS', label: 'Headquarters' },
-              { value: 'CAMPUS', label: 'Campus' },
-              { value: 'SATELLITE', label: 'Satellite' },
-            ]}
-          />
-        </form>
-      </DetailDrawer>
-
-      {/* ── Edit Campus Drawer ──────────────────────────────────────────── */}
-      <DetailDrawer
-        isOpen={editCampusDrawerOpen}
-        onClose={closeEditCampusDrawer}
-        title={editingCampus ? `Edit ${editingCampus.name}` : 'Edit Campus'}
-        width="md"
-        footer={
-          <div className="space-y-3">
-            <button
-              type="submit"
-              form="edit-campus-form"
-              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-              disabled={editCampusSaving}
-            >
-              {editCampusSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button type="button" onClick={closeEditCampusDrawer} className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1">
-              Cancel
-            </button>
-          </div>
-        }
-      >
-        <form id="edit-campus-form" onSubmit={saveEditCampusForm} className="p-8 space-y-6">
-          {editCampusError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{editCampusError}</div>
-          )}
-          <FloatingInput
-            id="ct-editCampusName"
-            label="Campus name"
-            value={editCampusForm.name}
-            onChange={(e) => setEditCampusForm((p) => ({ ...p, name: e.target.value }))}
-            disabled={editCampusSaving}
-            autoFocus
-            required
-          />
-          <div className="relative">
-            <AddressAutocomplete
-              value={editCampusForm.address}
-              onChange={(val) => setEditCampusForm((p) => ({ ...p, address: val }))}
-              placeholder=" "
-              className="peer w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder-transparent outline-none border border-slate-300 rounded-lg bg-white transition-colors focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
-            />
-            <label className="absolute left-3 -top-2.5 px-1 bg-white text-xs text-slate-500 font-medium pointer-events-none">
-              Address (optional)
-            </label>
-          </div>
-          <FloatingDropdown
-            id="ct-editCampusType"
-            label="Campus type"
-            value={editCampusForm.campusType}
-            onChange={(v) => setEditCampusForm((p) => ({ ...p, campusType: v }))}
-            disabled={editCampusSaving}
-            options={[
-              { value: 'HEADQUARTERS', label: 'Headquarters' },
-              { value: 'CAMPUS', label: 'Campus' },
-              { value: 'SATELLITE', label: 'Satellite' },
-            ]}
-          />
-        </form>
-      </DetailDrawer>
-
-      {/* ── Delete Campus Confirm ──────────────────────────────────────────── */}
-      {deleteCampusConfirm && createPortal(
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="ui-glass-overlay rounded-2xl max-w-sm w-full p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Delete Campus?</h3>
-            <p className="text-sm text-slate-500 mb-6">
-              Are you sure you want to delete <span className="font-medium text-slate-700">{deleteCampusConfirm.name}</span>? This cannot be undone. Campuses with schools or buildings cannot be deleted.
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => setDeleteCampusConfirm(null)}
-                className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-full hover:bg-slate-50 transition"
-                disabled={deleteCampusLoading}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDeleteCampus}
-                className="px-4 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-full hover:bg-red-700 transition disabled:opacity-50"
-                disabled={deleteCampusLoading}
-              >
-                {deleteCampusLoading ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* ── Delete/Deactivate Confirm ────────────────────────────────────── */}
-      {/* ── Place on Map Prompt ──────────────────────────────────────────── */}
-      {placeOnMapBuilding && createPortal(
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal p-4">
-          <div className="ui-glass-overlay rounded-2xl max-w-sm w-full p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
-              <MapPin className="w-6 h-6 text-primary-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Place on Map?</h3>
-            <p className="text-sm text-slate-500 mb-6">
-              Would you like to place <span className="font-medium text-slate-700">{placeOnMapBuilding.name}</span> on the campus map? You can click a spot on the map to set its location.
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => setPlaceOnMapBuilding(null)}
-                className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-full hover:bg-slate-50 transition"
-              >
-                Skip for Now
-              </button>
-              <button
-                onClick={() => {
-                  const building = placeOnMapBuilding
-                  setPlaceOnMapBuilding(null)
-                  setPlacingExistingBuilding(building)
-                  // Scroll map into view
-                  const mapEl = document.querySelector('.leaflet-container')
-                  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }}
-                className="px-4 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
-              >
-                Place on Map
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {deleteConfirm && (
-        <ConfirmDialog
-          isOpen={!!deleteConfirm}
-          onClose={() => setDeleteConfirm(null)}
-          onConfirm={deleteConfirm.action === 'delete' ? handleDeleteConfirm : handleDeactivateFromDialog}
-          title={deleteConfirm.action === 'delete'
-            ? `Delete "${deleteConfirm.name}"?`
-            : `Deactivate "${deleteConfirm.name}"?`}
-          message={deleteConfirm.action === 'delete'
-            ? 'This action is permanent and cannot be undone.'
-            : 'This hides it from active selections but keeps existing references intact.'}
-          confirmText={deleteConfirm.action === 'delete' ? 'Delete permanently' : 'Deactivate'}
-          cancelText="Cancel"
-          variant="danger"
-          isLoading={deleteLoading}
-          loadingText={deleteConfirm.action === 'delete' ? 'Deleting...' : 'Deactivating...'}
-          requireText={deleteConfirm.action === 'delete' ? deleteConfirm.name : undefined}
-          extraAction={deleteConfirm.action === 'delete' ? {
-            label: 'Deactivate instead',
-            onClick: handleDeactivateFromDialog,
-          } : undefined}
-        >
-          {deleteConfirm.type === 'building' && deleteConfirm.roomCount > 0 && (
-            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              This building has <strong>{deleteConfirm.roomCount} room{deleteConfirm.roomCount !== 1 ? 's' : ''}</strong>.
-              {deleteConfirm.action === 'delete' && ' Deleting will permanently remove all associated rooms.'}
-            </div>
-          )}
-        </ConfirmDialog>
-      )}
-
-      {/* Photo lightbox */}
-      <PhotoLightbox
-        images={lightboxImages}
-        initialIndex={lightboxIndex}
-        isOpen={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-      />
+      <PhotoLightbox images={lightboxImages} initialIndex={lightboxIndex} isOpen={lightboxOpen} onClose={() => setLightboxOpen(false)} />
     </div>
   )
 }

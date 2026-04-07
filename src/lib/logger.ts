@@ -17,7 +17,8 @@ interface Logger {
   child(bindings: Record<string, unknown>): Logger
 }
 
-function createConsoleLogger(bindings: Record<string, unknown> = {}): Logger {
+/** @internal Exported for testing only */
+export function createConsoleLogger(bindings: Record<string, unknown> = {}): Logger {
   const prefix = Object.keys(bindings).length > 0
     ? `[${Object.entries(bindings).map(([k, v]) => `${k}=${v}`).join(' ')}] `
     : ''

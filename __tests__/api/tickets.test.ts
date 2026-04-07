@@ -109,7 +109,7 @@ describe('GET /api/tickets pagination', () => {
 
   it('returns pagination meta with correct shape for page=1&limit=25', async () => {
     const req = new NextRequest('http://localhost/api/tickets?page=1&limit=25')
-    const response = await GET(req)
+    const response = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await response.json()
 
     expect(body.ok).toBe(true)
@@ -123,7 +123,7 @@ describe('GET /api/tickets pagination', () => {
 
   it('defaults to page=1 and limit=25 when no params provided', async () => {
     const req = new NextRequest('http://localhost/api/tickets')
-    const response = await GET(req)
+    const response = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await response.json()
 
     expect(body.ok).toBe(true)
@@ -136,7 +136,7 @@ describe('GET /api/tickets pagination', () => {
     ;(mocks.prisma.ticket.findMany as any).mockResolvedValue([makeTicket('t1')])
 
     const req = new NextRequest('http://localhost/api/tickets?page=2&limit=10')
-    const response = await GET(req)
+    const response = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await response.json()
 
     expect(body.meta.page).toBe(2)
@@ -150,7 +150,7 @@ describe('GET /api/tickets pagination', () => {
     ;(mocks.prisma.ticket.findMany as any).mockResolvedValue([])
 
     const req = new NextRequest('http://localhost/api/tickets')
-    const response = await GET(req)
+    const response = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await response.json()
 
     expect(body.ok).toBe(true)
@@ -170,7 +170,7 @@ describe('POST /api/tickets validation', () => {
       method: 'POST',
       body: JSON.stringify({}),
     })
-    const response = await POST(req)
+    const response = await POST(req, { params: Promise.resolve({}) } as any)
     expect(response.status).toBe(400)
     const body = await response.json()
     expect(body.ok).toBe(false)
@@ -187,7 +187,7 @@ describe('POST /api/tickets validation', () => {
         // Missing locationText and locationRefType+locationRefId
       }),
     })
-    const response = await POST(req)
+    const response = await POST(req, { params: Promise.resolve({}) } as any)
     expect(response.status).toBe(400)
   })
 })

@@ -81,4 +81,4 @@ export const PATCH = withAuth<z.infer<typeof OrgUpdateSchema>>(async ({ orgId, c
   })
 
   return NextResponse.json(ok(updated))
-}, { permission: PERMISSIONS.SETTINGS_READ, schema: OrgUpdateSchema })
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: OrgUpdateSchema })

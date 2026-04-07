@@ -154,9 +154,9 @@ function classifyError(error: unknown): NextResponse {
     )
   }
 
-  // Catch-all → 500
+  // Catch-all → 500 (never leak internal error details to clients)
   return NextResponse.json(
-    fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Internal server error'),
+    fail('INTERNAL_ERROR', 'Internal server error'),
     { status: 500 }
   )
 }
@@ -171,14 +171,20 @@ function classifyError(error: unknown): NextResponse {
  * Returns a standard Next.js route handler compatible with both
  * top-level routes and dynamic `[id]` routes.
  */
+/** Next.js route handler type — second param is required for generated type-checks */
+type NextRouteHandler<TParams extends Record<string, string>> = (
+  req: NextRequest,
+  context: { params: Promise<TParams> }
+) => Promise<NextResponse>
+
 export function withAuth<
   TBody = unknown,
   TParams extends Record<string, string> = Record<string, string>,
 >(
   handler: Handler<TBody, TParams>,
   options?: WithAuthOptions<TBody>
-) {
-  return async function routeHandler(
+): NextRouteHandler<TParams> {
+  async function routeHandler(
     req: NextRequest,
     /** Next.js passes { params: Promise<...> } for dynamic routes */
     nextContext?: { params?: Promise<TParams> }
@@ -208,7 +214,7 @@ export function withAuth<
       }
 
       // Await dynamic params if present
-      const params = (nextContext?.params ? await nextContext.params : {}) as TParams
+      const params = (nextContext?.params ? await nextContext.params : {} as TParams)
 
       // Parse + validate body if schema provided
       let body = undefined as unknown as TBody
@@ -238,4 +244,8 @@ export function withAuth<
       return response
     }
   }
+
+  // Cast: implementation accepts optional 2nd param, but Next.js route type-checks
+  // require it to be non-optional. The cast satisfies generated .next/types/ files.
+  return routeHandler as unknown as NextRouteHandler<TParams>
 }

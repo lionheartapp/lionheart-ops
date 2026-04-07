@@ -12,6 +12,7 @@ import {
   lookupStudent,
   generateResetToken,
 } from '@/lib/services/itStudentPasswordService'
+import { sendPasswordResetEmail } from '@/lib/services/emailService'
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     // Look up org by slug
     const org = await rawPrisma.organization.findFirst({
       where: { slug: orgSlug },
-      select: { id: true },
+      select: { id: true, name: true },
     })
 
     if (!org) {
@@ -53,15 +54,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate reset token
+    // Generate reset token and send via email
     const { token, expiresAt } = await generateResetToken(org.id, student.id)
 
-    // Return the token for the frontend to use in the next step
-    // (In production, this would be sent via email instead)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.lionheartapp.com'
+    const resetLink = `${appUrl}/it/password-reset?token=${encodeURIComponent(token)}`
+
+    await sendPasswordResetEmail({
+      to: student.email!,
+      firstName: student.firstName || 'Student',
+      orgName: org.name,
+      resetLink,
+    })
+
     return NextResponse.json(ok({
       success: true,
-      token,
-      expiresAt: expiresAt.toISOString(),
+      message: 'If that account exists, a reset link has been sent to the associated email address.',
     }))
   } catch (error) {
     console.error('[POST /api/it/student-password/request]', error)

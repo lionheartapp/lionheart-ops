@@ -69,6 +69,9 @@ vi.mock('@/lib/services/emailService', () => ({
 
 import { GET, POST } from '@/app/api/settings/users/route'
 
+// Route context stub for non-dynamic routes
+const routeCtx = { params: Promise.resolve({}) } as any
+
 // ── Fixtures ────────────────────────────────────────────────────────────────
 
 function makeUser(id: string, email: string, first: string, last: string) {
@@ -105,7 +108,7 @@ describe('GET /api/settings/users', () => {
     ;(mocks.prisma.user.findMany as any).mockResolvedValue(users)
 
     const req = new NextRequest('http://localhost/api/settings/users?page=1&limit=10')
-    const res = await GET(req)
+    const res = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await res.json()
 
     expect(body.ok).toBe(true)
@@ -121,7 +124,7 @@ describe('GET /api/settings/users', () => {
     ;(mocks.prisma.user.findMany as any).mockResolvedValue([])
 
     const req = new NextRequest('http://localhost/api/settings/users')
-    const res = await GET(req)
+    const res = await GET(req, { params: Promise.resolve({}) } as any)
     const body = await res.json()
 
     expect(body.ok).toBe(true)
@@ -134,7 +137,7 @@ describe('GET /api/settings/users', () => {
     ;(mocks.prisma.user.findMany as any).mockResolvedValue([])
 
     const req = new NextRequest('http://localhost/api/settings/users?search=alice')
-    await GET(req)
+    await GET(req, { params: Promise.resolve({}) } as any)
 
     const countCall = (mocks.prisma.user.count as any).mock.calls[0][0]
     expect(countCall.where.OR).toBeDefined()
@@ -146,7 +149,7 @@ describe('GET /api/settings/users', () => {
     ;(mocks.prisma.user.findMany as any).mockResolvedValue([])
 
     const req = new NextRequest('http://localhost/api/settings/users?roleId=role-123')
-    await GET(req)
+    await GET(req, { params: Promise.resolve({}) } as any)
 
     const countCall = (mocks.prisma.user.count as any).mock.calls[0][0]
     expect(countCall.where.roleId).toBe('role-123')
@@ -157,7 +160,7 @@ describe('GET /api/settings/users', () => {
     ;(mocks.prisma.user.findMany as any).mockResolvedValue([])
 
     const req = new NextRequest('http://localhost/api/settings/users?teamSlug=it-support')
-    await GET(req)
+    await GET(req, { params: Promise.resolve({}) } as any)
 
     const countCall = (mocks.prisma.user.count as any).mock.calls[0][0]
     expect(countCall.where.teams).toEqual({ some: { team: { slug: 'it-support' } } })
@@ -205,7 +208,7 @@ describe('POST /api/settings/users', () => {
       create: vi.fn().mockResolvedValue({ id: 'pst-1' }),
     }
 
-    const res = await POST(postReq(validBody))
+    const res = await POST(postReq(validBody), routeCtx)
     const body = await res.json()
 
     expect(res.status).toBe(201)
@@ -216,7 +219,7 @@ describe('POST /api/settings/users', () => {
   })
 
   it('returns 400 when required fields are missing', async () => {
-    const res = await POST(postReq({ email: 'a@b.com' }))
+    const res = await POST(postReq({ email: 'a@b.com' }), routeCtx)
     expect(res.status).toBe(400)
 
     const body = await res.json()
@@ -225,7 +228,7 @@ describe('POST /api/settings/users', () => {
   })
 
   it('returns 400 when email is empty', async () => {
-    const res = await POST(postReq({ ...validBody, email: '' }))
+    const res = await POST(postReq({ ...validBody, email: '' }), routeCtx)
     expect(res.status).toBe(400)
   })
 
@@ -234,7 +237,7 @@ describe('POST /api/settings/users', () => {
       makeUser('u-existing', 'new@example.com', 'Existing', 'User')
     )
 
-    const res = await POST(postReq(validBody))
+    const res = await POST(postReq(validBody), routeCtx)
     const body = await res.json()
 
     expect(res.status).toBe(409)
@@ -245,7 +248,7 @@ describe('POST /api/settings/users', () => {
     ;(mocks.prisma.user.findUnique as any).mockResolvedValue(null)
     ;(mocks.prisma.role.findFirst as any).mockResolvedValue(null) // role not found
 
-    const res = await POST(postReq(validBody))
+    const res = await POST(postReq(validBody), routeCtx)
     const body = await res.json()
 
     expect(res.status).toBe(400)
@@ -266,7 +269,7 @@ describe('POST /api/settings/users', () => {
       create: vi.fn().mockResolvedValue({ id: 'pst-1' }),
     }
 
-    await POST(postReq({ ...validBody, email: 'UPPER@Example.COM' }))
+    await POST(postReq({ ...validBody, email: 'UPPER@Example.COM' }), routeCtx)
 
     const findCall = (mocks.prisma.user.findUnique as any).mock.calls[0][0]
     expect(findCall.where.organizationId_email.email).toBe('upper@example.com')

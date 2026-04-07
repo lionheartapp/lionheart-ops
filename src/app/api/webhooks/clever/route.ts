@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
 
     if (!cleverSecret) {
-      // Graceful degradation: log warning and skip verification when secret not configured
-      console.warn('[Clever webhook] CLEVER_WEBHOOK_SECRET not configured — skipping signature verification')
+      console.error('[Clever webhook] CLEVER_WEBHOOK_SECRET not configured')
+      return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook endpoint not configured'), { status: 500 })
     } else {
       const signature =
         req.headers.get('x-clever-signature') || req.headers.get('clever-signature')
