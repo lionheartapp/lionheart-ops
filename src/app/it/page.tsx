@@ -141,7 +141,7 @@ function ITContent() {
             id={`tab-${key}`}
             aria-controls={`tabpanel-${key}`}
             onClick={() => handleTabChange(key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded ${
               activeTab === key
                 ? 'text-slate-900'
                 : 'text-slate-500 hover:text-slate-700'

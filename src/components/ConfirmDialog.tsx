@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 
@@ -61,8 +61,6 @@ export default function ConfirmDialog({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
-
   const variantStyles = {
     danger: {
       icon: 'bg-red-100 text-red-600',
@@ -86,28 +84,32 @@ export default function ConfirmDialog({
     (!requiresConfirmation || normalizedInput === normalizedRequire) && !confirmDisabled
 
   return (
-    <div className="fixed inset-0 z-modal overflow-y-auto">
-      {/* Backdrop */}
-      <motion.div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
-        onClick={onClose}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.15 }}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-modal overflow-y-auto">
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          />
 
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <motion.div
-          ref={focusTrapRef}
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="confirm-dialog-title"
-          className="relative w-full max-w-xl transform overflow-hidden rounded-2xl ui-glass-overlay"
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-        >
+          {/* Modal */}
+          <div className="flex min-h-full items-center justify-center p-4">
+            <motion.div
+              ref={focusTrapRef}
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="confirm-dialog-title"
+              className="relative w-full max-w-xl transform overflow-hidden rounded-2xl ui-glass-overlay"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            >
           {/* Close button */}
           <button
             onClick={onClose}
@@ -198,8 +200,10 @@ export default function ConfirmDialog({
               </div>
             )}
           </div>
-        </motion.div>
-      </div>
-    </div>
+            </motion.div>
+          </div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }

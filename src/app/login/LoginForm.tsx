@@ -7,10 +7,9 @@ import { Eye, EyeOff } from 'lucide-react'
 interface LoginFormProps {
   organizationId: string
   organizationName: string
-  organizationLogoUrl?: string
 }
 
-export default function LoginForm({ organizationId, organizationName, organizationLogoUrl }: LoginFormProps) {
+export default function LoginForm({ organizationId, organizationName }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -131,7 +130,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
           <button
             type="button"
             onClick={handleBackToSignIn}
-            className="w-full text-sm text-slate-600 hover:text-slate-900 transition-colors"
+            className="w-full text-sm text-slate-600 hover:text-slate-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 rounded cursor-pointer"
           >
             Back to sign in
           </button>
@@ -172,7 +171,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
         <button
           type="button"
           onClick={handleBackToSignIn}
-          className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors"
+          className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 rounded cursor-pointer"
         >
           Back to sign in
         </button>
@@ -191,6 +190,7 @@ export default function LoginForm({ organizationId, organizationName, organizati
           <input
             id="email"
             type="email"
+            inputMode="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"

@@ -28,8 +28,6 @@ const TABS: { key: DevicesTab; label: string; icon: typeof HardDrive }[] = [
 function DevicesContent() {
   usePageTitle('IT Devices')
   const p = useITPermissions()
-  const [activeTab, setActiveTab] = useState<DevicesTab>('devices')
-
   // Drawer state
   const [detailDeviceId, setDetailDeviceId] = useState<string | null>(null)
   const [showDeviceCreate, setShowDeviceCreate] = useState(false)
@@ -42,6 +40,8 @@ function DevicesContent() {
     if (key === 'loaners') return p.canAccessLoaners
     return false
   })
+
+  const [activeTab, setActiveTab] = useState<DevicesTab>((visibleTabs[0]?.key as DevicesTab) || 'devices')
 
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [p.loaded])
 
@@ -75,7 +75,7 @@ function DevicesContent() {
             id={`tab-${key}`}
             aria-controls={`tabpanel-${key}`}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded ${
               activeTab === key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
             }`}
           >

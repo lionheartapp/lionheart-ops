@@ -8,7 +8,6 @@ import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
-import MaintenanceSkeleton from '@/components/maintenance/MaintenanceSkeleton'
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
 import MyRequestsView from '@/components/maintenance/MyRequestsView'
 import PmCalendarView from '@/components/maintenance/PmCalendarView'
@@ -101,7 +100,6 @@ function MaintenanceContent() {
   // Show full dashboard + tabs for team members, admins, and technicians; My Requests only for submit-only users
   const showDashboardTabs = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance
   const campusFilter = useCampusFilter()
-  const dataLoading = false // Campus filter loading handled inline; don't gate entire page
   const queryClient = useQueryClient()
 
   // Determine default tab based on URL param then permissions
@@ -216,7 +214,7 @@ function MaintenanceContent() {
                       id={`tab-${key}`}
                       aria-controls={`tabpanel-${key}`}
                       onClick={() => setActiveTab(key)}
-                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded ${
                         activeTab === key
                           ? 'text-slate-900'
                           : 'text-slate-500 hover:text-slate-700'
@@ -230,10 +228,7 @@ function MaintenanceContent() {
                 </div>
 
                 {/* Tab content */}
-                {dataLoading ? (
-                  <MaintenanceSkeleton />
-                ) : (
-                  <>
+                <>
                     <div
                       role="tabpanel"
                       id="tabpanel-dashboard"
@@ -357,16 +352,11 @@ function MaintenanceContent() {
                         </AnimatePresence>
                       </section>
                     </div>
-                  </>
-                )}
+                </>
               </>
             ) : (
               /* Submit-only users see My Requests (to track tickets they've submitted) */
-              dataLoading ? (
-                <MaintenanceSkeleton />
-              ) : (
-                <MyRequestsView />
-              )
+              <MyRequestsView />
             )}
         </div>
       </MotionConfig>

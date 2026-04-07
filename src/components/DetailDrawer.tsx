@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 
 interface DetailDrawerProps {
   isOpen: boolean
@@ -33,7 +34,7 @@ export default function DetailDrawer({
   onEdit,
   triggerRef,
 }: DetailDrawerProps) {
-  const drawerRef = useRef<HTMLDivElement>(null)
+  const focusTrapRef = useFocusTrap(isOpen)
   const contentRef = useRef<HTMLDivElement>(null)
   const [isAnimating, setIsAnimating] = useState(false)
   const [shouldShow, setShouldShow] = useState(false)
@@ -57,13 +58,7 @@ export default function DetailDrawer({
         })
       })
       
-      // Focus trap - focus first interactive element
-      setTimeout(() => {
-        const firstButton = drawerRef.current?.querySelector(
-          'button, [tabindex]:not([tabindex="-1"])'
-        ) as HTMLElement
-        firstButton?.focus()
-      }, 100)
+      // Focus is managed by useFocusTrap hook
     } else if (isAnimating) {
       setShouldShow(false)
     }
@@ -103,7 +98,7 @@ export default function DetailDrawer({
 
       {/* Drawer - Right side slide */}
       <div
-        ref={drawerRef}
+        ref={focusTrapRef}
         className={`fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 ${widths[width]} ui-glass-overlay flex flex-col transition-transform duration-300 ease-out z-modal sm:rounded-2xl ${
           shouldShow ? 'translate-x-0' : 'translate-x-full'
         }`}

@@ -220,7 +220,6 @@ export function FloatingDropdown({
         ref={triggerRef}
         id={id}
         type="button"
-        role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-required={required || undefined}
@@ -265,6 +264,7 @@ export function FloatingDropdown({
         <div
           ref={listRef}
           role="listbox"
+          aria-label={label}
           className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto ui-glass-dropdown z-50 py-1"
         >
           {groupOrder.map((groupName) => {

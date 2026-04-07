@@ -25,8 +25,6 @@ const TABS: { key: SecurityTab; label: string; icon: typeof Shield }[] = [
 function SecurityContent() {
   usePageTitle('IT Security')
   const p = useITPermissions()
-  const [activeTab, setActiveTab] = useState<SecurityTab>('content-filters')
-
   // Device detail drawer for Intelligence's onViewDevice
   const [detailDeviceId, setDetailDeviceId] = useState<string | null>(null)
 
@@ -36,6 +34,8 @@ function SecurityContent() {
     if (key === 'intelligence') return p.canViewIntelligence
     return false
   })
+
+  const [activeTab, setActiveTab] = useState<SecurityTab>((visibleTabs[0]?.key as SecurityTab) || 'content-filters')
 
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [p.loaded])
 
@@ -67,7 +67,7 @@ function SecurityContent() {
             id={`tab-${key}`}
             aria-controls={`tabpanel-${key}`}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded ${
               activeTab === key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
             }`}
           >

@@ -26,8 +26,6 @@ const TABS: { key: AdminTab; label: string; icon: typeof BarChart3 }[] = [
 function AdminContent() {
   usePageTitle('IT Admin')
   const p = useITPermissions()
-  const [activeTab, setActiveTab] = useState<AdminTab>('analytics')
-
   const visibleTabs = TABS.filter(({ key }) => {
     if (key === 'analytics') return p.canViewITAnalytics
     if (key === 'reports') return p.canViewITBoardReports
@@ -35,6 +33,8 @@ function AdminContent() {
     if (key === 'sync') return p.canManageSync
     return false
   })
+
+  const [activeTab, setActiveTab] = useState<AdminTab>((visibleTabs[0]?.key as AdminTab) || 'analytics')
 
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [p.loaded])
 
@@ -66,7 +66,7 @@ function AdminContent() {
             id={`tab-${key}`}
             aria-controls={`tabpanel-${key}`}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded ${
               activeTab === key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
             }`}
           >

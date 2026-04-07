@@ -89,7 +89,7 @@ function SetPasswordContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl p-6 space-y-4">
         <h1 className="text-2xl font-bold text-slate-900">Set Password</h1>
 
         {loading ? (
@@ -122,16 +122,17 @@ function SetPasswordContent() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="ui-input-bordered"
+                required
+                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
               />
             </div>
 
-            {error && <p className="text-sm text-red-700">{error}</p>}
+            {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-60"
+              className="w-full px-4 py-3.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 disabled:opacity-60 transition-colors cursor-pointer"
             >
               {submitting ? 'Saving...' : 'Set Password'}
             </button>

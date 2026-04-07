@@ -42,7 +42,7 @@ export default function PasswordInput({
   return (
     <div className="space-y-2">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-zinc-700">
+        <label htmlFor={id} className="block text-sm font-medium text-slate-700">
           {label}
           {required && <span className="ml-1 text-red-500">*</span>}
         </label>
@@ -59,13 +59,12 @@ export default function PasswordInput({
           required={required}
           autoComplete={autoComplete}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-zinc-300 px-4 py-3 pr-12 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200"
+          className="w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
         />
         <button
           type="button"
-          tabIndex={-1}
           onClick={() => setShowPassword((s) => !s)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 cursor-pointer transition-colors duration-200"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors duration-200"
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -81,12 +80,12 @@ export default function PasswordInput({
               ? 'text-green-500'
               : showError
               ? 'text-red-500'
-              : 'text-zinc-300'
+              : 'text-slate-300'
             const textColor = rule.passed
               ? 'text-green-600'
               : showError
               ? 'text-red-500'
-              : 'text-zinc-400'
+              : 'text-slate-400'
 
             return (
               <li key={rule.id} className="flex items-center gap-1.5">
