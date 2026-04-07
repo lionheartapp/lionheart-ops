@@ -154,7 +154,6 @@ export async function POST(req: NextRequest) {
     }
     log.error({ err: error }, 'Failed to create calendar event')
     Sentry.captureException(error)
-    const message = error instanceof Error ? error.message : 'Something went wrong'
-    return NextResponse.json(fail('INTERNAL_ERROR', message), { status: 500 })
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

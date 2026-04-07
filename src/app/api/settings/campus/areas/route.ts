@@ -24,9 +24,9 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const includeInactive = searchParams.get('includeInactive') === 'true'
   const buildingId = searchParams.get('buildingId') || undefined
   const campusId = searchParams.get('campusId') || undefined
-  const db = prisma as any
 
-  const areas = await db.area.findMany({
+
+  const areas = await prisma.area.findMany({
     where: {
       organizationId: orgId,
       ...(includeInactive ? {} : { isActive: true }),
@@ -46,10 +46,10 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const POST = withAuth<z.infer<typeof CreateAreaSchema>>(async ({ orgId, body: input }) => {
-  const db = prisma as any
+
 
   if (input.buildingId) {
-    const building = await db.building.findFirst({
+    const building = await prisma.building.findFirst({
       where: { id: input.buildingId, organizationId: orgId },
       select: { id: true },
     })
@@ -59,7 +59,7 @@ export const POST = withAuth<z.infer<typeof CreateAreaSchema>>(async ({ orgId, b
   }
 
   // Validate campus exists
-  const campus = await db.campus.findFirst({
+  const campus = await prisma.campus.findFirst({
     where: { id: input.campusId, organizationId: orgId, deletedAt: null },
     select: { id: true },
   })
@@ -67,7 +67,8 @@ export const POST = withAuth<z.infer<typeof CreateAreaSchema>>(async ({ orgId, b
     return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
   }
 
-  const area = await db.area.create({
+  const area = await prisma.area.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zod-validated input; polygonCoordinates Json type needs cast
     data: {
       organizationId: orgId,
       campusId: input.campusId,
@@ -76,7 +77,7 @@ export const POST = withAuth<z.infer<typeof CreateAreaSchema>>(async ({ orgId, b
       buildingId: input.buildingId || null,
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
-      polygonCoordinates: input.polygonCoordinates ?? null,
+      polygonCoordinates: (input.polygonCoordinates ?? null) as any,
       sortOrder: input.sortOrder ?? 0,
       isActive: input.isActive ?? true,
     },

@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     log.error({ err: error }, 'Cron automations failed')
     return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Automation run failed'),
+      fail('INTERNAL_ERROR', 'Automation run failed'),
       { status: 500 },
     )
   }

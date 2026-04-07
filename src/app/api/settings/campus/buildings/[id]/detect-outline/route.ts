@@ -76,9 +76,7 @@ function pixelCoordsToLatLng(
 /* -- Route handler ------------------------------------------------------ */
 
 export const POST = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
-  const db = rawPrisma as any
-
-  const building = await db.building.findFirst({
+  const building = await rawPrisma.building.findFirst({
     where: { id: params.id, organizationId: orgId },
     select: { id: true, name: true, latitude: true, longitude: true },
   })

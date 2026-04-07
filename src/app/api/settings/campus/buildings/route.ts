@@ -23,9 +23,7 @@ export const GET = withAuth(
     const includeInactive = searchParams.get('includeInactive') === 'true'
     const schoolId = searchParams.get('schoolId') || undefined
     const campusId = searchParams.get('campusId') || undefined
-    const db = prisma as any
-
-    const buildings = await db.building.findMany({
+    const buildings = await prisma.building.findMany({
       where: {
         organizationId: orgId,
         ...(includeInactive ? {} : { isActive: true }),
@@ -46,10 +44,8 @@ export const GET = withAuth(
 
 export const POST = withAuth(
   async ({ orgId, body }) => {
-    const db = prisma as any
-
     // Validate campus exists in this org
-    const campus = await db.campus.findFirst({
+    const campus = await prisma.campus.findFirst({
       where: { id: body.campusId, organizationId: orgId, deletedAt: null },
       select: { id: true },
     })
@@ -59,7 +55,7 @@ export const POST = withAuth(
 
     // If schoolId provided, validate it belongs to the same campus
     if (body.schoolId) {
-      const school = await db.school.findFirst({
+      const school = await prisma.school.findFirst({
         where: { id: body.schoolId, organizationId: orgId, deletedAt: null },
         select: { campusId: true },
       })
@@ -71,7 +67,7 @@ export const POST = withAuth(
       }
     }
 
-    const building = await db.building.create({
+    const building = await prisma.building.create({
       data: {
         organizationId: orgId,
         campusId: body.campusId,

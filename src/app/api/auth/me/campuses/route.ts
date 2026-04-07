@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(ok(assignedCampuses))
   } catch (error) {
     return NextResponse.json(
-      fail('INTERNAL_ERROR', error instanceof Error ? error.message : 'Something went wrong'),
+      fail('INTERNAL_ERROR', 'Something went wrong'),
       { status: 500 },
     )
   }

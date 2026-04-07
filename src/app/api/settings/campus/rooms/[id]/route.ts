@@ -16,8 +16,8 @@ const UpdateRoomSchema = z.object({
 })
 
 export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
-  const db = prisma as any
-  const room = await db.room.findFirst({
+
+  const room = await prisma.room.findFirst({
     where: { id: params.id, organizationId: orgId },
     include: {
       building: { select: { id: true, name: true, code: true } },
@@ -33,15 +33,15 @@ export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) =
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(async ({ orgId, params, body }) => {
-  const db = prisma as any
 
-  const existing = await db.room.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+
+  const existing = await prisma.room.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Room not found'), { status: 404 })
   }
 
   if (body.buildingId) {
-    const building = await db.building.findFirst({
+    const building = await prisma.building.findFirst({
       where: { id: body.buildingId, organizationId: orgId },
       select: { id: true },
     })
@@ -51,7 +51,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
   }
 
   if (body.areaId) {
-    const area = await db.area.findFirst({
+    const area = await prisma.area.findFirst({
       where: { id: body.areaId, organizationId: orgId },
       select: { id: true },
     })
@@ -60,7 +60,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
     }
   }
 
-  const room = await db.room.update({
+  const room = await prisma.room.update({
     where: { id: params.id },
     data: {
       ...(body.buildingId !== undefined ? { buildingId: body.buildingId } : {}),
@@ -81,12 +81,12 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
 }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UpdateRoomSchema })
 
 export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
-  const db = prisma as any
-  const existing = await db.room.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+
+  const existing = await prisma.room.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Room not found'), { status: 404 })
   }
 
-  const room = await db.room.update({ where: { id: params.id }, data: { isActive: false } })
+  const room = await prisma.room.update({ where: { id: params.id }, data: { isActive: false } })
   return NextResponse.json(ok(room))
 }, { permission: PERMISSIONS.SETTINGS_UPDATE })

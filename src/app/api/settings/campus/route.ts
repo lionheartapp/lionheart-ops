@@ -15,12 +15,12 @@ import { getCached, settingsCacheKey } from '@/lib/cache/settings-cache'
 export const GET = withAuth(async ({ orgId, searchParams }) => {
   const includeInactive = searchParams.get('includeInactive') === 'true'
   const campusId = searchParams.get('campusId')
-  const db = prisma as any
+
 
   // If campusId not specified, find the default (HQ) campus
   let selectedCampusId = campusId
   if (!selectedCampusId) {
-    const defaultCampus = await db.campus.findFirst({
+    const defaultCampus = await prisma.campus.findFirst({
       where: { organizationId: orgId, deletedAt: null, isActive: true },
       orderBy: [{ campusType: 'asc' }, { sortOrder: 'asc' }],
       select: { id: true },
@@ -42,7 +42,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const cacheKey = settingsCacheKey(orgId, `campus:${selectedCampusId || 'all'}:${includeInactive}`)
   const data = await getCached(cacheKey, async () => {
     const [buildings, areas, rooms] = await Promise.all([
-      db.building.findMany({
+      prisma.building.findMany({
         where,
         include: {
           school: { select: { id: true, name: true, gradeLevel: true, color: true } },
@@ -50,7 +50,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       }),
-      db.area.findMany({
+      prisma.area.findMany({
         where,
         include: {
           building: { select: { id: true, name: true, code: true } },
@@ -58,7 +58,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       }),
-      db.room.findMany({
+      prisma.room.findMany({
         where: {
           organizationId: orgId,
           deletedAt: null,

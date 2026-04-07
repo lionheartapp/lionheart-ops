@@ -283,7 +283,6 @@ export async function DELETE(
     }
     log.error({ err: error }, 'Failed to delete calendar event')
     Sentry.captureException(error)
-    const msg = error instanceof Error ? error.message : 'Something went wrong'
-    return NextResponse.json(fail('INTERNAL_ERROR', msg), { status: 500 })
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

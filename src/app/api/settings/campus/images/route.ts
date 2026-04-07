@@ -24,7 +24,7 @@ const DeleteSchema = z.object({
 
 async function getEntity(entityType: string, entityId: string, orgId: string) {
   const model = entityType === 'building' ? 'building' : entityType === 'area' ? 'area' : 'room'
-  return (rawPrisma as any)[model].findFirst({
+  return (rawPrisma[model as keyof typeof rawPrisma] as any).findFirst({
     where: { id: entityId, organizationId: orgId, deletedAt: null },
     select: { id: true, images: true },
   })
@@ -32,7 +32,7 @@ async function getEntity(entityType: string, entityId: string, orgId: string) {
 
 async function updateEntityImages(entityType: string, entityId: string, images: string[]) {
   const model = entityType === 'building' ? 'building' : entityType === 'area' ? 'area' : 'room'
-  return (rawPrisma as any)[model].update({
+  return (rawPrisma[model as keyof typeof rawPrisma] as any).update({
     where: { id: entityId },
     data: { images },
   })

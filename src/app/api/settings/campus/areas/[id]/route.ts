@@ -21,8 +21,8 @@ const UpdateAreaSchema = z.object({
 
 export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
   const { id } = params
-  const db = prisma as any
-  const area = await db.area.findFirst({
+
+  const area = await prisma.area.findFirst({
     where: { id, organizationId: orgId },
     include: { building: { select: { id: true, name: true, code: true } } },
   })
@@ -36,15 +36,15 @@ export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) =
 
 export const PATCH = withAuth<z.infer<typeof UpdateAreaSchema>, { id: string }>(async ({ orgId, body: input, params }) => {
   const { id } = params
-  const db = prisma as any
 
-  const existing = await db.area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
+
+  const existing = await prisma.area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Area not found'), { status: 404 })
   }
 
   if (input.buildingId) {
-    const building = await db.building.findFirst({
+    const building = await prisma.building.findFirst({
       where: { id: input.buildingId, organizationId: orgId },
       select: { id: true },
     })
@@ -53,18 +53,10 @@ export const PATCH = withAuth<z.infer<typeof UpdateAreaSchema>, { id: string }>(
     }
   }
 
-  const area = await db.area.update({
+  const area = await prisma.area.update({
     where: { id },
-    data: {
-      ...(input.name !== undefined ? { name: input.name } : {}),
-      ...(input.areaType !== undefined ? { areaType: input.areaType } : {}),
-      ...(input.buildingId !== undefined ? { buildingId: input.buildingId || null } : {}),
-      ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
-      ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
-      ...(input.polygonCoordinates !== undefined ? { polygonCoordinates: input.polygonCoordinates } : {}),
-      ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
-      ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
-    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- spread pattern creates union type incompatible with Prisma's strict UpdateInput
+    data: Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as any,
     include: {
       building: { select: { id: true, name: true, code: true } },
     },
@@ -76,20 +68,20 @@ export const PATCH = withAuth<z.infer<typeof UpdateAreaSchema>, { id: string }>(
 export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params, searchParams }) => {
   const { id } = params
   const permanent = searchParams.get('permanent') === 'true'
-  const db = prisma as any
 
-  const existing = await db.area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
+
+  const existing = await prisma.area.findFirst({ where: { id, organizationId: orgId }, select: { id: true } })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Area not found'), { status: 404 })
   }
 
   if (permanent) {
     // Hard delete: use rawPrisma to bypass soft-delete extension
-    await (rawPrisma as any).area.delete({ where: { id } })
+    await rawPrisma.area.delete({ where: { id } })
     return NextResponse.json(ok({ id, deleted: true }))
   } else {
     // Soft deactivate
-    const area = await db.area.update({ where: { id }, data: { isActive: false } })
+    const area = await prisma.area.update({ where: { id }, data: { isActive: false } })
     return NextResponse.json(ok(area))
   }
 }, { permission: PERMISSIONS.SETTINGS_UPDATE })

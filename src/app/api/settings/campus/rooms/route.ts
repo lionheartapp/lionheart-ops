@@ -19,9 +19,9 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const includeInactive = searchParams.get('includeInactive') === 'true'
   const buildingId = searchParams.get('buildingId') || undefined
   const areaId = searchParams.get('areaId') || undefined
-  const db = prisma as any
 
-  const rooms = await db.room.findMany({
+
+  const rooms = await prisma.room.findMany({
     where: {
       organizationId: orgId,
       ...(includeInactive ? {} : { isActive: true }),
@@ -39,9 +39,9 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, body }) => {
-  const db = prisma as any
 
-  const building = await db.building.findFirst({
+
+  const building = await prisma.building.findFirst({
     where: { id: body.buildingId, organizationId: orgId },
     select: { id: true },
   })
@@ -50,7 +50,7 @@ export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, b
   }
 
   if (body.areaId) {
-    const area = await db.area.findFirst({
+    const area = await prisma.area.findFirst({
       where: { id: body.areaId, organizationId: orgId },
       select: { id: true },
     })
@@ -59,7 +59,7 @@ export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, b
     }
   }
 
-  const room = await db.room.create({
+  const room = await prisma.room.create({
     data: {
       organizationId: orgId,
       buildingId: body.buildingId,
